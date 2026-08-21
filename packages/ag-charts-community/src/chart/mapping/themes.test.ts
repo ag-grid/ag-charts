@@ -412,7 +412,6 @@ describe('themes.ts', () => {
             expect(lineStrokeWidth(withoutPreset)).not.toBe(PRESET_STROKE_WIDTH);
         });
 
-        // The bug this guards is order-dependent: whichever call runs first populates the shared entry.
         it('is independent of which preset resolved the theme value first', () => {
             const presetFirst = getChartTheme('ag-material', undefined, 'test-preset');
             const plainSecond = getChartTheme('ag-material');

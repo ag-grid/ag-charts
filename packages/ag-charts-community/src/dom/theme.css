@@ -64,10 +64,7 @@
     --ag-charts-crosshair-label-background-color: #fafafa;
     --ag-charts-crosshair-label-text-color: #181d1f;
 
-    /******************************************************************************************************************
-     * Future Theme Parameters.
-     * Variables to be added to the `theme.params`.
-     *****************************************************************************************************************/
+    /* Future theme parameters, to be added to `theme.params`. */
     --ag-charts-spacing: 4px;
     --ag-charts-icon-size: 16px;
 
