@@ -1,3 +1,4 @@
+import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type {
@@ -18,6 +19,7 @@ import {
     dragAction,
     expectSceneSamplesMatch,
     hoverAction,
+    looserSnapshotDefaults,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
@@ -994,8 +996,8 @@ describe('OrganizationSeries', () => {
 
     const ctx = setupMockCanvas();
 
-    const compare = async () => {
-        await compareImageSnapshot(chart, ctx);
+    const compare = async (options?: MatchImageSnapshotOptions) => {
+        await compareImageSnapshot(chart, ctx, options);
     };
 
     function getZoomRatios(c: any) {
@@ -1562,6 +1564,188 @@ describe('OrganizationSeries', () => {
             // Root card centre on the 800x600 mock canvas (card spans ~x=357-523, ~y=112-202).
             await hoverAction(440, 155)(chart);
             await compare();
+        });
+
+        it('should apply default highlight stroke when a node is set active', async () => {
+            const options: AgChartOptions = {
+                ...SIMPLE_ORG_CHART,
+                series: SIMPLE_ORG_CHART.series.map((series) => ({ ...series, id: 'org' })),
+                theme: {
+                    overrides: {
+                        organization: { series: { node: { cornerRadius: 0 } } },
+                    },
+                },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            await chart.setState({
+                version: chart.getState().version,
+                active: { activeItem: { type: 'series-node', seriesId: 'org', itemId: 'cto' } },
+            });
+            // The state-driven highlight lands on a debounced animation frame, after the update
+            // `setState` itself triggers has settled.
+            await waitForChartStability(chart);
+            await waitForChartStability(chart, 50);
+            // Centring on the active item puts its card at a fractional x, where the accent
+            // stroke's vertical edges antialias differently between skia builds — 12 pixels
+            // between macOS and Linux, none of them structural.
+            await compare(looserSnapshotDefaults());
+        });
+    });
+
+    describe('active item highlight', () => {
+        const buildOptions = (seriesOverrides: Record<string, unknown> = {}): AgChartOptions => ({
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    id: 'org',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: { title: { key: 'name' }, subtitle: { key: 'job' }, cornerRadius: 0 },
+                    ...seriesOverrides,
+                },
+            ],
+        });
+
+        async function createChart(options: AgChartOptions): Promise<void> {
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+        }
+
+        async function setActive(itemId: string | number | undefined): Promise<void> {
+            await chart.setState({
+                version: chart.getState().version,
+                active: {
+                    activeItem: itemId == null ? undefined : { type: 'series-node', seriesId: 'org', itemId },
+                },
+            });
+            // The state-driven highlight is applied on a debounced animation frame, which lands
+            // after the update that `setState` itself triggers has settled.
+            await waitForChartStability(chart);
+            await waitForChartStability(chart, 50);
+        }
+
+        async function hoverItem(itemId: string): Promise<void> {
+            const { x, y } = centreOf(itemId, OrganizationNodeTag.Card);
+            await hoverAction(x, y)(chart);
+            await waitForChartStability(chart);
+        }
+
+        /** The card `Rect`'s paint style, which is what the highlight alters. */
+        function cardStyle(itemId: string) {
+            const card = new Caster(findTaggedNode(itemId, OrganizationNodeTag.Card)).cast(_ModuleSupport.Rect).value;
+            const { fill, stroke, strokeWidth, strokeOpacity } = card;
+            return { fill, stroke, strokeWidth, strokeOpacity };
+        }
+
+        it('should style the active node exactly as hovering styles it', async () => {
+            await createChart(buildOptions());
+
+            // Every card shares the default node style, so an untouched sibling is the reference.
+            const defaultStyle = cardStyle('cfo');
+
+            await setActive('cto');
+            const activeStyle = cardStyle('cto');
+            expect(activeStyle).not.toEqual(defaultStyle);
+            expect(cardStyle('cfo')).toEqual(defaultStyle);
+
+            await hoverItem('cto');
+            expect(cardStyle('cto')).toEqual(activeStyle);
+        });
+
+        it('should resolve a numeric item id to its node', async () => {
+            await createChart(buildOptions());
+            const defaultStyle = cardStyle('cfo');
+
+            await setActive(1);
+
+            expect(cardStyle('cto')).not.toEqual(defaultStyle);
+        });
+
+        it('should drop the highlight when the active item is cleared', async () => {
+            await createChart(buildOptions());
+            const defaultStyle = cardStyle('cto');
+
+            await setActive('cto');
+            expect(cardStyle('cto')).not.toEqual(defaultStyle);
+
+            await setActive(undefined);
+            expect(cardStyle('cto')).toEqual(defaultStyle);
+        });
+
+        it('should drop the highlight when the pointer moves over empty space', async () => {
+            await createChart(buildOptions());
+            const defaultStyle = cardStyle('cto');
+
+            await setActive('cto');
+            expect(cardStyle('cto')).not.toEqual(defaultStyle);
+
+            // Chart background, clear of every card on the 800x600 mock canvas.
+            await hoverAction(20, 580)(chart);
+            // The unhighlight is delayed by `highlightManager.unhighlightDelay`.
+            await waitForChartStability(chart, 150);
+
+            expect(cardStyle('cto')).toEqual(defaultStyle);
+        });
+
+        // Organization tooltips are off by default, so a tooltip case has to opt in.
+        it('should show the tooltip for the active node', async () => {
+            await createChart(buildOptions({ tooltip: { enabled: true } }));
+
+            await setActive('cto');
+
+            const tooltip = document.querySelector('.ag-charts-tooltip');
+            expect(tooltip).toBeInstanceOf(HTMLElement);
+            expect(tooltip?.hasAttribute('data-presented-as-popover')).toBe(true);
+            expect(tooltip?.textContent).toContain('Bob Smith');
+        });
+
+        it('should hide the tooltip when the active item is cleared', async () => {
+            await createChart(buildOptions({ tooltip: { enabled: true } }));
+
+            await setActive('cto');
+            await setActive(undefined);
+            // Removal is delayed, as it is for a hover leaving a node.
+            await waitForChartStability(chart, 150);
+
+            expect(document.querySelector('.ag-charts-tooltip')?.hasAttribute('data-presented-as-popover')).toBe(false);
+        });
+
+        it('should move the highlight to a hovered node, leaving the previously active one unstyled', async () => {
+            await createChart(buildOptions());
+            const defaultStyle = cardStyle('cto');
+
+            await setActive('cto');
+            await hoverItem('cfo');
+
+            expect(cardStyle('cto')).toEqual(defaultStyle);
+            expect(cardStyle('cfo')).not.toEqual(defaultStyle);
+        });
+
+        it('should not style the active node when highlighting is disabled', async () => {
+            await createChart(buildOptions({ highlight: { enabled: false } }));
+            const defaultStyle = cardStyle('cto');
+
+            await setActive('cto');
+
+            expect(cardStyle('cto')).toEqual(defaultStyle);
+        });
+
+        it('should style an active node whose ancestry was collapsed', async () => {
+            await createChart(buildOptions());
+            const defaultStyle = cardStyle('cfo');
+
+            await chart.setState({ version: chart.getState().version, collapsed: ['cto'] });
+            await waitForChartStability(chart);
+            await setActive('dev');
+
+            expect(findCardNode('dev').visible).toBe(true);
+            expect(cardStyle('dev')).not.toEqual(defaultStyle);
         });
     });
 
