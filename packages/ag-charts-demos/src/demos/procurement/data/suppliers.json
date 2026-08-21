@@ -1,7 +1,7 @@
 [
     {
         "supplierId": "NIP",
-        "name": "Nippon Metals",
+        "name": "Kaishu Metals",
         "country": "Japan",
         "city": "Yokohama",
         "origin": {
@@ -38,7 +38,7 @@
     },
     {
         "supplierId": "GLS",
-        "name": "Great Lakes Steel",
+        "name": "Ironvale Steel",
         "country": "United States",
         "city": "Cleveland",
         "origin": {
@@ -74,7 +74,7 @@
     },
     {
         "supplierId": "TAT",
-        "name": "Tata Structural",
+        "name": "Veldan Structural",
         "country": "India",
         "city": "Jamshedpur",
         "origin": {
@@ -92,7 +92,7 @@
     },
     {
         "supplierId": "SZM",
-        "name": "Shenzhen Microtech",
+        "name": "Nanhai Microsystems",
         "country": "China",
         "city": "Shenzhen",
         "origin": {
@@ -110,7 +110,7 @@
     },
     {
         "supplierId": "HSC",
-        "name": "Hsinchu Semicon",
+        "name": "Aritek Semicon",
         "country": "Taiwan",
         "city": "Hsinchu",
         "origin": {
@@ -182,7 +182,7 @@
     },
     {
         "supplierId": "GPC",
-        "name": "Gulf Petrochem",
+        "name": "Calyx Petrochem",
         "country": "United States",
         "city": "Houston",
         "origin": {
