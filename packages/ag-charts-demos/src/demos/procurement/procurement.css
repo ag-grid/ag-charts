@@ -164,7 +164,6 @@
     stroke-linejoin: round;
     stroke-linecap: round;
 }
-/* The account block, at the foot of the sidebar. */
 .pc-account {
     display: flex;
     align-items: center;
@@ -224,7 +223,6 @@
        A minimum rather than a height: a taller view still scrolls. */
     min-height: 100%;
 }
-/* Each tab's own stack. */
 .pc-view-content {
     display: flex;
     flex-direction: column;
@@ -1073,7 +1071,6 @@
 .pc-status-cell.is-done {
     color: var(--pc-muted);
 }
-/* The label takes the badge's ink, not the page's. */
 .pc-status-cell-text {
     color: inherit;
 }
