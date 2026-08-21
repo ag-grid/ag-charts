@@ -21,6 +21,7 @@ import {
     CleanupRegistry,
     WeakCache,
     ZIndexMap,
+    arraysEqual,
     callWithContext,
     clamp,
     clampArray,
@@ -84,6 +85,10 @@ export interface AxisPickDatum {
     readonly index: number;
     readonly value: AgAxisValue;
     readonly along: readonly [number, number];
+
+    // 2D Optionals (e.g. `grouped-category`):
+    readonly formattedValue?: NormalisedTextOrSegments;
+    readonly depth?: number;
     readonly cross?: readonly [number, number];
 }
 
@@ -124,6 +129,12 @@ export type AxisTickFormatParams =
     | {
           type: 'category';
       };
+
+interface AxisTickIdentity {
+    readonly index: number;
+    readonly depth?: number;
+    readonly formattedValue?: NormalisedTextOrSegments;
+}
 
 interface TickLayout<D, TickLayoutMeta> {
     niceDomain: D[];
@@ -1098,10 +1109,31 @@ export abstract class Axis<
         const { type, value } = formatParams;
 
         const f = this.createCallWithContext(contextProvider);
+
+        // Formatting an arbitrary datum rather than a rendered tick, so there is no tick index to hand the
+        // label formatter. Where the value is one this axis stacks in rows — `grouped-category` — the tick
+        // it belongs to does carry an identity, and the formatter must see the same one a click reports.
+        // Resolving it means scanning the tick data, so this stays inside the branch that consumes it:
+        // formatting a datum runs on every pointer move that moves a crosshair.
+        const formatWithAxisLabel = () => {
+            const identity = this.options.label.formatter == null ? undefined : this.resolveTickIdentity(value);
+            const rowIdentity = identity?.depth == null ? undefined : identity;
+            return formatAxisLabelValue(
+                this.options.label,
+                this.formatterCache,
+                f,
+                formatParams,
+                rowIdentity?.index ?? Number.NaN,
+                // Only the callback is told the depth. `formatParams` keeps none, so the default
+                // formatting a tooltip or crosshair falls back to stays the whole joined path.
+                rowIdentity && { depth: rowIdentity.depth }
+            );
+        };
+
         const result =
             label?.formatValue(f, type, value, params ?? formatParams) ??
             formatManager.format(f, formatParams, { allowNull }) ??
-            formatAxisLabelValue(this.options.label, this.formatterCache, f, formatParams, Number.NaN) ??
+            formatWithAxisLabel() ??
             formatManager.defaultFormat(formatParams);
 
         return isArray(result) ? result : String(result);
@@ -1358,6 +1390,18 @@ export abstract class Axis<
         }
 
         return nearest;
+    }
+
+    private resolveTickIdentity(value: unknown): AxisTickIdentity | undefined {
+        for (const datum of this.pickTickData) {
+            if (datum.depth != null && datum.depth !== 0) continue;
+
+            const matches =
+                isArray(datum.value) && isArray(value) ? arraysEqual(datum.value, value) : datum.value === value;
+            if (matches) {
+                return { index: datum.index, depth: datum.depth, formattedValue: datum.formattedValue };
+            }
+        }
     }
 
     pickBand(point: Point): AxisBandDatum | undefined {
