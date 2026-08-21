@@ -39,7 +39,7 @@
 
 #### Blog Post Link Validation
 
-- **Target**: https://blog.ag-grid.com/whats-new-in-ag-charts-9-3/
+- **Target**: https://www.ag-grid.com/blog/whats-new-in-ag-charts-9-3/
 - **Expected**: Link should be accessible and contain the announced features
 - **Priority**: High
 

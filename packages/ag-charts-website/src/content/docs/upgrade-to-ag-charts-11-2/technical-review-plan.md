@@ -6,7 +6,7 @@ This is a migration guide page for AG Charts version 11.2. The page contains:
 
 ### Key Content
 
-1. **Release Information**: Link to the release blog post (https://blog.ag-grid.com/whats-new-in-ag-charts-11-2/)
+1. **Release Information**: Link to the release blog post (https://www.ag-grid.com/blog/whats-new-in-ag-charts-11-2/)
 2. **Breaking Changes**: States there are no breaking changes in v11.2
 3. **Behaviour Changes**: States there are no behaviour changes in v11.2
 4. **Removed Deprecated APIs**: States no deprecated APIs were removed in v11.2
