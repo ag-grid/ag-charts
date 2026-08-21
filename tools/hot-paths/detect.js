@@ -433,10 +433,13 @@ function summarise(result) {
     for (const hit of result.hits) {
         out.push('');
         out.push(`  ${hit.file}  [tier ${hit.tier} — ${hit.tierId}, +${hit.addedLineCount} lines, score ${hit.score}]`);
+        // `+` added, `~` unchanged context, `-` removed. A removed line carries the
+        // new-file number of the position it was deleted from, so without the mark a
+        // reviewer would follow it to unrelated head-revision code and read deleted
+        // work as newly introduced.
+        const MARK = { added: '+', context: '~', removed: '-' };
         for (const [group, entries] of Object.entries(hit.signals)) {
-            out.push(
-                `    ${group}: ${entries.map((e) => `${e.needle}@${e.line}${e.where === 'context' ? '~' : ''}`).join(', ')}`
-            );
+            out.push(`    ${group}: ${entries.map((e) => `${MARK[e.where]}${e.needle}@${e.line}`).join(', ')}`);
         }
         for (const marker of hit.markers) {
             out.push(`    marker@${marker.line}: ${marker.text}`);

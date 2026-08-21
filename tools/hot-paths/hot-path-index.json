@@ -10,6 +10,11 @@
                 "packages/ag-charts-enterprise/src/series/**",
                 "packages/ag-charts-core/src/utils/aggregation.ts",
                 "packages/ag-charts-core/src/utils/data/**",
+                "packages/ag-charts-community/src/chart/data/data-model/**",
+                "packages/ag-charts-community/src/chart/data/dataModel.ts",
+                "packages/ag-charts-community/src/chart/data/dataSet.ts",
+                "packages/ag-charts-community/src/chart/data/processors.ts",
+                "packages/ag-charts-community/src/chart/data/aggregateFunctions.ts",
                 "packages/ag-charts-core/src/utils/geometry/**",
                 "packages/ag-charts-core/src/utils/text/textWrapper.ts"
             ],

@@ -374,3 +374,40 @@ test('markers: only a comment is a marker', () => {
     assert.equal(markerProximity(asComment, added).length, 1, 'a marker comment counts');
     assert.equal(markerProximity(asString, added).length, 0, 'a string that reads like one does not');
 });
+
+test('benchmark map: every tag is covered, or named in the notes', () => {
+    // The property the cap has to preserve: nothing a change touched may fall out of
+    // the command silently. Types, example names and test cases are all requirements.
+    const probes = [
+        ['packages/ag-charts-community/src/chart/series/cartesian/barSeries.ts'],
+        [
+            'packages/ag-charts-community/src/chart/series/cartesian/barSeries.ts',
+            'packages/ag-charts-community/src/chart/series/cartesian/lineSeries.ts',
+            'packages/ag-charts-community/src/chart/series/cartesian/areaSeries.ts',
+            'packages/ag-charts-community/src/chart/series/cartesian/scatterSeries.ts',
+            'packages/ag-charts-community/src/chart/series/seriesAreaManager.ts',
+        ],
+        ['packages/ag-charts-community/src/chart/series/polar/polarSeries.ts'],
+        ['packages/ag-charts-community/src/scale/logScale.ts'],
+    ];
+
+    for (const paths of probes) {
+        const { tags, examples, notes } = recommend(paths);
+        const chosen = examples.map((e) => e.name);
+        const catalogue = allExamples();
+        const selected = catalogue.filter((ex) => chosen.includes(ex.name));
+        const spoken = notes.join(' ');
+
+        for (const type of tags.types) {
+            const covered = selected.some((ex) => ex.types.includes(type) || ex.variants.includes(type));
+            assert.ok(covered || spoken.includes(type), `type ${type} is measured or declared unmeasured`);
+        }
+        for (const testCase of tags.cases) {
+            const covered = selected.some((ex) => ex.testCases.includes(testCase) || ex.name.includes(testCase));
+            assert.ok(covered || spoken.includes(testCase), `case ${testCase} is measured or declared unmeasured`);
+        }
+        for (const name of tags.names) {
+            assert.ok(chosen.includes(name) || spoken.includes(name), `example ${name} is run or declared dropped`);
+        }
+    }
+});

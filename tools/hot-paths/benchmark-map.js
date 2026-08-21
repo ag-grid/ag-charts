@@ -250,12 +250,28 @@ function recommend(paths) {
     // Cover every changed type before filling the remaining slots by score. A
     // straight top-N lets the highest-scoring type fill every slot, leaving another
     // changed series with no example in the command and no warning either.
-    const covers = (ex, t) => ex.types.includes(t) || ex.variants.includes(t);
+    // Every tag is a requirement, not just a series type: a change spanning a series
+    // and the zoom subsystem must not have its zoom example squeezed out by five
+    // series examples, silently, because only types were reserved slots.
+    const requirements = [
+        ...tags.types.map((value) => ({
+            kind: 'type',
+            value,
+            covers: (ex) => ex.types.includes(value) || ex.variants.includes(value),
+        })),
+        ...tags.names.map((value) => ({ kind: 'example', value, covers: (ex) => ex.name === value })),
+        ...tags.cases.map((value) => ({
+            kind: 'test case',
+            value,
+            covers: (ex) => ex.testCases.includes(value) || ex.name.includes(value),
+        })),
+    ];
+
     const scored = [];
-    for (const type of tags.types) {
+    for (const requirement of requirements) {
         if (scored.length >= MAX_RECOMMENDED) break;
-        if (scored.some((ex) => covers(ex, type))) continue;
-        const best = allScored.find((ex) => covers(ex, type) && !scored.includes(ex));
+        if (scored.some(requirement.covers)) continue;
+        const best = allScored.find((ex) => requirement.covers(ex) && !scored.includes(ex));
         if (best) scored.push(best);
     }
     for (const ex of allScored) {
@@ -266,21 +282,20 @@ function recommend(paths) {
 
     // A series with no example cannot be evidenced by the browser suite. Say so
     // rather than falling back to a benchmark that never runs the changed code.
-    const inCatalogue = new Set(examples.flatMap((ex) => [...ex.types, ...ex.variants]));
-    const uncovered = tags.types.filter((t) => !inCatalogue.has(t));
+    const uncovered = requirements.filter((r) => !examples.some(r.covers));
     const notes = [...tags.notes];
     if (uncovered.length > 0) {
         notes.push(
-            `No benchmark example exercises ${uncovered.join(', ')} — the browser suite cannot evidence this change. ` +
-                'Profile locally with `/ag-charts:benchmark-profile` instead.'
+            `No benchmark example exercises ${uncovered.map((r) => r.value).join(', ')} — the browser suite cannot ` +
+                'evidence this change. Profile locally with `/ag-charts:benchmark-profile` instead.'
         );
     }
-    // More changed types than slots: name what the command leaves unmeasured.
-    const dropped = tags.types.filter((t) => !uncovered.includes(t) && !scored.some((ex) => covers(ex, t)));
+    // More requirements than slots: name what the command leaves unmeasured.
+    const dropped = requirements.filter((r) => !uncovered.includes(r) && !scored.some(r.covers));
     if (dropped.length > 0) {
         notes.push(
-            `The ${MAX_RECOMMENDED}-example cap leaves ${dropped.join(', ')} unmeasured; ` +
-                'run those separately if the change touches them.'
+            `The ${MAX_RECOMMENDED}-example cap leaves ${dropped.map((r) => `${r.value} (${r.kind})`).join(', ')} ` +
+                'unmeasured; run those separately if the change touches them.'
         );
     }
 
