@@ -150,11 +150,18 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         suppressOptionsClone = true;
     }
 
+    // For examples whose configured theme is the subject of the example, so must survive the toggle.
+    let fixedTheme = false;
+    if (entryFile.includes('@ag-fixed-theme')) {
+        entryFile = entryFile.replace(/^[ \t]*\/\/ @ag-fixed-theme.*\n?/gm, '');
+        fixedTheme = true;
+    }
+
     const transformEntryFile: TransformEntryFile = ({ entryFile, chartAPI }) => {
         let transformedEntryFile = entryFile;
         // Add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
         if (!ignoreDarkMode) {
-            transformedEntryFile = transformedEntryFile + '\n' + getDarkModeSnippet({ chartAPI });
+            transformedEntryFile = transformedEntryFile + '\n' + getDarkModeSnippet({ chartAPI, fixedTheme });
             transformedEntryFile = transformedEntryFile + '\n' + getE2ETestThemeSnippet({ chartAPI });
         }
 

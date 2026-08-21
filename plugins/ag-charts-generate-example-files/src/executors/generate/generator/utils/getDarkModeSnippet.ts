@@ -2,22 +2,7 @@
 export const DARK_MODE_START = '/** DARK MODE START **/';
 export const DARK_MODE_END = '/** DARK MODE END **/';
 
-export const getDarkModeSnippet = ({ chartAPI }: { chartAPI?: string } = {}) =>
-    `${DARK_MODE_START}
-${
-    chartAPI == null
-        ? `import { AgCharts as __chartAPI } from 'ag-charts-community';`
-        : `const __chartAPI = ${chartAPI};`
-}
-
-const ignoreDarkMode = document.documentElement.dataset.ignoreDarkMode === 'true';
-let darkmode = !ignoreDarkMode &&
-    (localStorage['documentation:darkmode'] || String(matchMedia('(prefers-color-scheme: dark)').matches)) === 'true';
-
-const isAgThemeOrUndefined = (theme) => {
-    return theme == null || (typeof theme === 'string' && theme.startsWith('ag-'));
-};
-
+const THEME_MUTATION = `
 const getDarkmodeTheme = (theme = 'ag-default', preset) => {
     const baseTheme = preset === 'price-volume' ? 'ag-financial' : theme.replace(/-dark$/, '');
     return darkmode ? baseTheme + '-dark' : baseTheme;
@@ -36,7 +21,26 @@ __chartAPI.optionsMutationFn = function update(options, preset) {
     }
     return nextOptions;
 };
+`;
 
+/** `fixedTheme` pins the example to the theme it configures; `data-dark-mode` still tracks the site. */
+export const getDarkModeSnippet = ({ chartAPI, fixedTheme }: { chartAPI?: string; fixedTheme?: boolean } = {}) =>
+    `${DARK_MODE_START}
+${
+    chartAPI == null
+        ? `import { AgCharts as __chartAPI } from 'ag-charts-community';`
+        : `const __chartAPI = ${chartAPI};`
+}
+
+const ignoreDarkMode = document.documentElement.dataset.ignoreDarkMode === 'true';
+let darkmode = !ignoreDarkMode &&
+    (localStorage['documentation:darkmode'] || String(matchMedia('(prefers-color-scheme: dark)').matches)) === 'true';
+
+const isAgThemeOrUndefined = (theme) => {
+    return theme == null || (typeof theme === 'string' && theme.startsWith('ag-'));
+};
+
+${fixedTheme ? '' : THEME_MUTATION}
 const applyDarkmode = () => {
     document.documentElement.setAttribute('data-dark-mode', darkmode);
     const charts = document.querySelectorAll('[data-ag-charts]');
