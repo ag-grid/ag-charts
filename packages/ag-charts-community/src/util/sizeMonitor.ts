@@ -98,15 +98,7 @@ export class SizeMonitor {
     private checkSize(entry: Entry | undefined, element: HTMLElement, width: number, height: number) {
         if (!entry) return;
 
-        // `clientWidth`/`clientHeight` are spec-rounded integers while ResizeObserver reports a
-        // fractional `contentRect`, so at a fractional container size the two producers disagree by
-        // up to half a pixel and would otherwise report a size change that never happened.
-        const { size } = entry;
-        if (
-            size == null ||
-            Math.round(width) !== Math.round(size.width) ||
-            Math.round(height) !== Math.round(size.height)
-        ) {
+        if (width !== entry.size?.width || height !== entry.size?.height) {
             const pixelRatio = this.pixelRatioObserver?.pixelRatio ?? 1;
             entry.size = { width, height, pixelRatio };
             entry.cb(entry.size, element);

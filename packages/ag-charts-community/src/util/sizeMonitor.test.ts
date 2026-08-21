@@ -115,40 +115,6 @@ describe('SizeMonitor', () => {
         });
     });
 
-    describe('fractional container widths must not produce a spurious second resize', () => {
-        it('suppresses the ResizeObserver callback that only differs by sub-pixel rounding', () => {
-            const sizeMonitor = new SizeMonitor(createMockAgDocument());
-
-            // A 345.5px container: clientWidth is spec-rounded to 346, contentRect stays 345.5.
-            const element = mockElement({ clientWidth: 346, clientHeight: 400 });
-
-            const sizes: Size[] = [];
-            sizeMonitor.observe(element, (size) => sizes.push({ ...size }));
-
-            expect(sizes).toHaveLength(1);
-            expect(sizes[0]).toMatchObject({ width: 346, height: 400 });
-
-            fireResizeObserver(element, 345.5, 400);
-
-            expect(sizes).toHaveLength(1);
-        });
-
-        it('still fires when a fractional size crosses to a different rounded pixel', () => {
-            const sizeMonitor = new SizeMonitor(createMockAgDocument());
-
-            const element = mockElement({ clientWidth: 346, clientHeight: 400 });
-
-            const sizes: Size[] = [];
-            sizeMonitor.observe(element, (size) => sizes.push({ ...size }));
-            expect(sizes).toHaveLength(1);
-
-            fireResizeObserver(element, 344.5, 400);
-
-            expect(sizes).toHaveLength(2);
-            expect(sizes[1]).toMatchObject({ width: 344.5, height: 400 });
-        });
-    });
-
     describe('refresh() re-reads an observed element after it gains a size', () => {
         it('emits the laid-out size when a detached element is later attached', () => {
             const sizeMonitor = new SizeMonitor(createMockAgDocument());
