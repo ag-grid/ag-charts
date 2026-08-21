@@ -41,7 +41,25 @@ Two stages, both mechanical:
 
 The JSON output carries the tier, the frequency claim, the invariants for the tiers
 hit, and the evidence handles. Read `triggered`; the invariants come with it, so there
-is no need to restate the tier table from here.
+is no need to restate the tier table from here. The shape:
+
+```
+range                 string   the revisions compared
+changedSourceFiles    number   non-test .ts files in the range
+maxScore              number   highest stage-2 score across the hits
+stage1, stage2        object   { files: number, tiers: number[] }
+triggered             boolean  stage 2 cleared the threshold — the verdict
+hits[]                object   { file, tier, tierId, addedLineCount, score,
+                                 signals: { <name>: [{ line, needle, where, text }] },
+                                 markers: [...], loops: [...] }
+invariants            object   keyed by tierId: { frequency, invariants[] }
+evidence              object   benchmark trigger, workflow, base, noise filters,
+                               size limits, memory guard, local profiling, playbook
+```
+
+`where` is `added` for a line the change introduced and `context` for one it did
+not — a `context` loop header is what makes an `added` line per-datum, so quote it
+as evidence but never cite it as the changed line.
 
 Calibration at the current threshold, over the last 48 PR merges: stage 1 alone matches
 **67%** of them — the tier globs are deliberately broad — and the stage-2 scoring narrows

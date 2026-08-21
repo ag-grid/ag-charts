@@ -2,8 +2,9 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
+const fs = require('node:fs');
 
-const { globToRegExp, insideLoop, resolveRange } = require('./detect');
+const { analyse, globToRegExp, insideLoop, resolveRange } = require('./detect');
 const { allExamples, recommend, tagsFor } = require('./benchmark-map');
 
 // Run with: node --test tools/hot-paths/
@@ -234,4 +235,32 @@ test('resolveRange: three dots resolve the fork point, two dots do not', () => {
     const two = resolveRange(['--range', 'HEAD~1..HEAD']);
     assert.equal(two.base, 'HEAD~1', 'two-dot passes the revisions through untouched');
     assert.equal(two.head, 'HEAD');
+});
+
+test('the documented JSON schema names exactly the fields the detector emits', () => {
+    // A review pass reads the shape from the skill, so drift between the two is a
+    // contract break the detector cannot report on itself.
+    const skill = fs.readFileSync(path.join(__dirname, '../../.rulesync/skills/hot-paths/SKILL.md'), 'utf8');
+    const block = /The shape:\n\n```\n([\s\S]*?)```/.exec(skill);
+    assert.ok(block, 'the skill documents the output shape');
+
+    const documented = new Set(
+        block[1]
+            .split('\n')
+            .filter((line) => line && !/^\s/.test(line)) // continuation lines describe a field, not a new one
+            .map((line) => line.split(/\s{2,}/)[0])
+            .flatMap((names) => names.split(',').map((n) => n.trim().replace(/\[\]$/, '')))
+    );
+
+    const emitted = new Set(Object.keys(analyse({ base: 'HEAD~1', head: 'HEAD', label: 'schema check' })));
+    assert.deepEqual(
+        [...emitted].filter((k) => !documented.has(k)),
+        [],
+        'every emitted field is documented'
+    );
+    assert.deepEqual(
+        [...documented].filter((k) => !emitted.has(k)),
+        [],
+        'every documented field is emitted'
+    );
 });
