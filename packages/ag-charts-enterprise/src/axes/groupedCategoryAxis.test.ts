@@ -459,7 +459,7 @@ describe('Grouped Category', () => {
         // A crosshair label formats the axis value through the axis label formatter as well as its own
         // callbacks, so it doubles the formatter call count on hover. It gets its own chart to keep that
         // out of the tests above.
-        describe.skip('crosshair', () => {
+        describe('crosshair', () => {
             beforeEach(async () => {
                 chart = await createEnterpriseChart({
                     data: [
