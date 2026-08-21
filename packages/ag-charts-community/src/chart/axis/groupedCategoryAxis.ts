@@ -184,11 +184,11 @@ export class GroupedCategoryAxis extends CategoryAxis<
             const depth = maxDepth - datum.depth;
             depthLabelMaxSize[depth] ??= 0;
 
+            if (!optionsMap[depth]?.enabled || !inRange(datum.screen, range)) continue;
+
             const tickIndex = index - 1;
             const value = (datum.refId == null ? undefined : this.tickValues?.[datum.refId]) ?? [];
             const inputText = tickFormatter(value, tickIndex, depth);
-            // Captured here so a click cannot disagree with the formatter; the perpendicular extent is
-            // only known once the row sizes below have been summed.
             const alongHalfWidth = ((datum.leafCount || 1) * step) / 2;
             pickIdentities.push({
                 index: tickIndex,
@@ -200,7 +200,6 @@ export class GroupedCategoryAxis extends CategoryAxis<
 
             const isLeaf = !datum.children.length;
             if (isLeaf && step < MIN_CATEGORY_SPACING) continue;
-            if (!optionsMap[depth]?.enabled || !inRange(datum.screen, range)) continue;
 
             let maxWidth = (datum.leafCount || 1) * step;
             if (maxWidth < MIN_CATEGORY_SPACING) continue;
