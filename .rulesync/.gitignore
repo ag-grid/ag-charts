@@ -10,6 +10,7 @@ mcp.json
 !/skills/animation-test-migration/
 !/skills/chart-defaults/
 !/skills/technology-stack/
+!/skills/hot-paths/
 
 # Plugin-delivered agents — all agents live in plugins
 /subagents/*.md

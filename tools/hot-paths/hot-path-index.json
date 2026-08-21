@@ -1,0 +1,190 @@
+{
+    "$comment": "Hot-path index for PR review. Consumed by tools/hot-paths/detect.sh and documented by the `hot-paths` skill. Tiers are ordered by call frequency: a change in tier 1 runs per datum (up to 1M), tier 4 runs once per bundle load.",
+    "tiers": [
+        {
+            "id": "per-datum",
+            "tier": 1,
+            "frequency": "once per datum, per SERIES_UPDATE \u2014 up to 1e6 iterations",
+            "globs": [
+                "packages/ag-charts-community/src/chart/series/**",
+                "packages/ag-charts-enterprise/src/series/**",
+                "packages/ag-charts-core/src/utils/aggregation.ts",
+                "packages/ag-charts-core/src/utils/data/**",
+                "packages/ag-charts-core/src/utils/geometry/**",
+                "packages/ag-charts-core/src/utils/text/textWrapper.ts"
+            ],
+            "invariants": [
+                "TypedArrays (Float64Array/Uint32Array/Int32Array) are reused across renders, not reallocated \u2014 reuse arrays are threaded through helper signatures",
+                "Two-pass count-then-fill so the second pass can write into a reused array",
+                "Scratch objects are pre-allocated outside the loop and mutated in place",
+                "No closure, array, object or template-string allocation inside the loop body",
+                "Per-datum callbacks (getDatumId, label formatting) are gated on whether their result is used",
+                "Positional parameters, not destructuring, on per-datum helpers"
+            ]
+        },
+        {
+            "id": "per-frame",
+            "tier": 2,
+            "frequency": "once per animation frame, per node \u2014 60Hz x node count",
+            "globs": [
+                "packages/ag-charts-community/src/scene/**",
+                "packages/ag-charts-community/src/motion/**",
+                "packages/ag-charts-community/src/chart/marker/**",
+                "packages/ag-charts-community/src/chart/series/**/*Node.ts",
+                "packages/ag-charts-enterprise/src/series/**/*Node.ts",
+                "packages/ag-charts-community/src/chart/series/**/*Shape.ts",
+                "packages/ag-charts-enterprise/src/series/**/*Shape.ts"
+            ],
+            "invariants": [
+                "@DeclaredSceneChangeDetection with a matching `declare __field`, and render paths read the backing field",
+                "Batched writes via setStyleProperties()/setStaticProperties() collapse to a single markDirty()",
+                "resetDatumAnimation() overrides bypass resetMotion()'s per-datum callback",
+                "Returned anchors/boxes are frozen shared literals or caller-owned `out` params, never fresh objects",
+                "BBox and matrix values are updated in place"
+            ]
+        },
+        {
+            "id": "per-interaction",
+            "tier": 3,
+            "frequency": "once per pointer move, data transaction, or chart update",
+            "globs": [
+                "packages/ag-charts-community/src/chart/interaction/**",
+                "packages/ag-charts-community/src/chart/data/**",
+                "packages/ag-charts-community/src/chart/tooltip/**",
+                "packages/ag-charts-community/src/chart/axis/**",
+                "packages/ag-charts-community/src/chart/chart.ts",
+                "packages/ag-charts-community/src/chart/series/seriesAreaManager.ts",
+                "packages/ag-charts-community/src/chart/series/pickManager.ts",
+                "packages/ag-charts-community/src/scale/**",
+                "packages/ag-charts-community/src/dom/**",
+                "packages/ag-charts-enterprise/src/features/**"
+            ],
+            "invariants": [
+                "The narrowest sufficient ChartUpdateType is requested \u2014 never FULL where PERFORM_LAYOUT or SERIES_UPDATE suffices",
+                "Incremental paths keyed off processedData.changeDescription are preserved, not degraded to a full rescan",
+                "DOM writes go through DOMElementProxy's compare-before-write surface; layout-triggering reads are cached and invalidated by listener",
+                "Tick and domain computation is memoised or gated, not recomputed per update"
+            ]
+        },
+        {
+            "id": "bundle",
+            "tier": 4,
+            "frequency": "once per bundle load \u2014 governed by size-limit budgets",
+            "globs": [
+                "packages/ag-charts-community/src/module/**",
+                "packages/ag-charts-community/src/module-bundles/**",
+                "packages/ag-charts-community/src/main.ts",
+                "packages/ag-charts-enterprise/src/main.ts"
+            ],
+            "invariants": [
+                "New code reachable from main.ts stays inside the src/dist budgets in the package's .size-limit.js",
+                "Module registration stays lazy \u2014 no eager import of a feature the entry point does not need"
+            ]
+        }
+    ],
+    "signals": {
+        "$comment": "Stage-2 narrowing. A tier-1/2/3 file hit alone is not enough to warrant the analysis pass; an added line must also carry one of these.",
+        "loops": ["for (", "for(", "while (", ".map(", ".filter(", ".forEach(", ".reduce(", ".flatMap(", ".slice("],
+        "typed-arrays": ["Float64Array", "Uint32Array", "Int32Array", "Uint8Array", "Float32Array"],
+        "per-datum-entrypoints": [
+            "createNodeData",
+            "createNodeDatum",
+            "updateNodeDatum",
+            "upsertNodeDatum",
+            "updateDatumNodes",
+            "resetDatumAnimation",
+            "getDatumId",
+            "processData",
+            "computeDomain"
+        ],
+        "per-frame-entrypoints": [
+            "updatePath",
+            "renderContent",
+            "markDirty",
+            "setStyleProperties",
+            "setStaticProperties",
+            "resetMotion",
+            "fromToMotion",
+            "pickNode"
+        ],
+        "update-type": [
+            "ChartUpdateType.FULL",
+            "ChartUpdateType.UPDATE_DATA",
+            "ChartUpdateType.PROCESS_DATA",
+            "performUpdate",
+            "changeDescription"
+        ],
+        "dom": [
+            "getBoundingClientRect",
+            "computedStyleMap",
+            "getComputedStyle",
+            "offsetWidth",
+            "offsetHeight",
+            "innerHTML",
+            "setAttribute",
+            "classList"
+        ],
+        "allocation": [
+            "new Map(",
+            "new Set(",
+            "new Array(",
+            "Object.assign(",
+            "structuredClone(",
+            "JSON.stringify(",
+            "JSON.parse(",
+            "toSorted(",
+            "Array.from("
+        ],
+        "per-datum-locals": [
+            "datumIndex",
+            "datumId",
+            "rowIndex",
+            "columnIndex",
+            "valueIndex",
+            "[i]",
+            "i++",
+            "idx",
+            "nextIndex"
+        ]
+    },
+    "markerComments": {
+        "$comment": "Existing in-code tripwires. A hunk landing within `proximityLines` of one of these is the highest-precision signal available and needs no maintained symbol list.",
+        "patterns": [
+            "hot path",
+            "hot loop",
+            "hot-path",
+            "per-frame",
+            "avoid allocation",
+            "avoid allocations",
+            "allocation-free",
+            "scratch object",
+            "in place to avoid",
+            "performance is critical"
+        ],
+        "proximityLines": 20
+    },
+    "evidence": {
+        "benchmarkTrigger": "/benchmarks [example...]",
+        "benchmarkWorkflow": ".github/workflows/benchmark.yml",
+        "benchmarkBase": "merge-base of the PR branch, not the base-branch tip",
+        "noiseFilters": "compare-browser-results.js requires a change to clear --min-pct, --min-abs-ms, and NOISE_BAND_FACTOR x cross-run CV before it counts as a regression",
+        "sizeLimits": ["packages/ag-charts-community/.size-limit.js", "packages/ag-charts-enterprise/.size-limit.js"],
+        "memoryGuard": "packages/ag-charts-community/src/chart/chartHeapMemory.test.ts",
+        "localProfiling": ["/ag-charts:benchmark-profile", "/ag-eng:profile-analyse"],
+        "playbook": "/ag-charts:optimize-series"
+    },
+    "signalWeights": {
+        "$comment": "Stage-2 scoring. A group scores its weight when matched in an added line, half (floor, minimum 1) when only in surrounding context. markerWeight applies when a change lands within markerComments.proximityLines of an existing hot-path marker; loopWeight when an added line executes inside a loop. A file triggers at `threshold`; the PR triggers on its highest-scoring file. Calibrated at threshold 3 over the last 48 PR merges: stage 1 (tier globs alone) matches 67% of them, scoring narrows that to 27%, and 10 of 13 known performance commits are caught. See the `hot-paths` skill.",
+        "typed-arrays": 3,
+        "per-datum-entrypoints": 3,
+        "per-frame-entrypoints": 3,
+        "update-type": 3,
+        "loops": 2,
+        "allocation": 2,
+        "dom": 2,
+        "per-datum-locals": 1,
+        "markerWeight": 4,
+        "threshold": 3,
+        "loopWeight": 5
+    }
+}
