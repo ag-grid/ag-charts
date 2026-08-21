@@ -541,6 +541,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         enabled: boolean,
         drawingMode: union('overlay', 'cutout'),
         range: union('tooltip', 'node'),
+        mode: union('single', 'shared'),
     },
     overlays: {
         loading: chartOverlayOptionsDefs,

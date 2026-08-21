@@ -67,7 +67,7 @@ import {
 } from './series';
 import type { DatumIndex, FireNodeEventParams, SeriesNodeDatum } from './seriesTypes';
 import { SelectionState } from './seriesTypes';
-import { getDatumRefPoint } from './util';
+import { getDatumRefPoint, isDatumHighlight } from './util';
 
 type FocusAnnounceMode = 'always' | 'never' | 'when-changed';
 
@@ -1483,7 +1483,17 @@ export class SeriesAreaManager extends BaseManager {
 
         // Known bug: on the `seriesToUpdate` branch, `setState` resets every excluded series to an
         // unhighlighted style — hence the full update for that case.
-        if (this.getHoverDevice() === 'setState' || newSeries == null || lastSeries == null || suppressionChanged) {
+        const sharedHighlight =
+            this.chart.highlight.mode === 'shared' &&
+            (isDatumHighlight(event.currentHighlight) || isDatumHighlight(event.previousHighlight));
+
+        if (
+            this.getHoverDevice() === 'setState' ||
+            newSeries == null ||
+            lastSeries == null ||
+            suppressionChanged ||
+            sharedHighlight
+        ) {
             this.update(ChartUpdateType.SERIES_UPDATE, { clearCallbackCache: true });
         } else {
             this.update(ChartUpdateType.SERIES_UPDATE, {

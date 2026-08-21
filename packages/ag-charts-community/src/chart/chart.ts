@@ -88,6 +88,7 @@ import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/se
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesProperties } from './series/seriesProperties';
 import type { DatumIndex, ISeries, ISeriesProperties, SeriesNodeDatum } from './series/seriesTypes';
+import { type CategoryGroupSeries, SharedCategoryGroup } from './sharedCategoryGroup';
 import { Tooltip, type TooltipContent } from './tooltip/tooltip';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
@@ -282,6 +283,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     readonly overlays: ChartOverlays;
     readonly validationCollector = new ValidationIssueCollector();
     readonly highlight: ChartHighlight;
+    private readonly sharedCategoryGroup = new SharedCategoryGroup();
     readonly background: Background;
     readonly seriesArea: SeriesArea;
     foreground?: Background;
@@ -723,18 +725,26 @@ export abstract class Chart implements ModuleInstance, ChartService {
             return tooltipContent;
         }
 
-        const categoryValue = series.getCategoryValue(datumIndex);
-        if (categoryValue == null) return tooltipContent;
+        const group = this.sharedCategoryGroup.get(this.series, series, datumIndex);
+        if (group.size === 0) return tooltipContent;
 
         return this.series.flatMap<TooltipContent>((s) => {
             if (s === series) return tooltipContent;
-            if (!s.isEnabled() || s.properties.tooltip.enabled === false) return [];
-            const seriesDatumIndex = s.datumIndexForCategoryValue(categoryValue);
+            if (s.properties.tooltip.enabled === false) return [];
+            const seriesDatumIndex = group.get(s);
             const seriesTooltipContent =
                 seriesDatumIndex == null ? undefined : s.getTooltipContent(seriesDatumIndex, undefined);
             if (seriesTooltipContent == null) return [];
             return [seriesTooltipContent];
         });
+    }
+
+    public getSharedHighlightMatch(
+        hoveredSeries: CategoryGroupSeries,
+        hoveredDatumIndex: DatumIndex,
+        series: CategoryGroupSeries
+    ): DatumIndex | undefined {
+        return this.sharedCategoryGroup.get(this.series, hoveredSeries, hoveredDatumIndex).get(series);
     }
 
     protected getCaptionText(): string {
@@ -1038,6 +1048,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
             // draw call; the cache only survives when nothing is redrawn.
             this.clearCallbackCache();
         }
+
+        // Category groups derive from series data and visibility, either of which may have changed.
+        this.sharedCategoryGroup.invalidate();
 
         // Clear state immediately so that side effects can be detected prior to SCENE_RENDER.
         this.performUpdateType = ChartUpdateType.NONE;

@@ -152,6 +152,8 @@ export interface AgChartBackground {
 
 export type AgChartHighlightRange = 'tooltip' | 'node';
 
+export type AgChartHighlightMode = 'single' | 'shared';
+
 export interface AgChartHighlightOptions {
     /**
      * Set to `false` to disable highlighting for all series in the chart.
@@ -161,6 +163,14 @@ export interface AgChartHighlightOptions {
     enabled?: boolean;
     /** By default, nodes will be highlighted when the cursor is within the `tooltip.range`. Set this to `'node'` to highlight nodes when within the `series[].nodeClickRange`. */
     range?: AgChartHighlightRange;
+    /**
+     * Determines which items are highlighted when hovering an item.
+     * - `'single'` highlights the hovered item only.
+     * - `'shared'` also highlights the item of every other series that shares the hovered item's category, using the same grouping as `tooltip.mode: 'shared'`. Series with no item at that category - including series with no category concept, such as scatter and bubble - are unhighlighted as a whole series.
+     *
+     * Default: `'single'`
+     */
+    mode?: AgChartHighlightMode;
     /**
      * Determines the rendering behaviour of the highlight relative to existing chart content.
      * - `'overlay'` renders the highlight above existing content, both layers remain visible where they overlap.

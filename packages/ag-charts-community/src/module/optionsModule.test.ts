@@ -684,6 +684,41 @@ describe('ChartOptions', () => {
         });
     });
 
+    describe('highlight.mode option', () => {
+        it('does not warn when highlight.mode is left unset', () => {
+            const options = prepareOptions<AgCartesianChartOptions>({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            expect(console.warn).not.toHaveBeenCalled();
+            expect((options as any).highlight?.mode).toBeUndefined();
+        });
+
+        it('accepts highlight.mode: shared', () => {
+            const options = prepareOptions<AgCartesianChartOptions>({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                highlight: { mode: 'shared' },
+            });
+
+            expect(console.warn).not.toHaveBeenCalled();
+            expect((options as any).highlight?.mode).toBe('shared');
+        });
+
+        it('rejects an invalid highlight.mode and drops it', () => {
+            const options = prepareOptions<AgCartesianChartOptions>({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                highlight: { mode: 'invalid' as any },
+            });
+
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.includes('Option `highlight.mode` cannot be set to `"invalid"`'))).toBe(true);
+            expect(messages.some((m) => m.includes("expecting a keyword such as 'single' or 'shared'"))).toBe(true);
+            // The invalid value is dropped rather than substituted, so `ChartHighlight`'s own
+            // `mode = 'single'` property default applies at the chart-instance level.
+            expect((options as any).highlight?.mode).toBeUndefined();
+        });
+    });
+
     describe('circular opaque payloads (CRT-1143 regression)', () => {
         // A `context` may hold self-references (AG Grid's cross-filter passes a component instance), so
         // the `update()` diff walk must skip these opaque pass-throughs by name or it overflows the stack.
