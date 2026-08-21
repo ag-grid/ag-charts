@@ -21,7 +21,7 @@ This page documents AG Charts' large dataset interactivity capabilities, specifi
 
 1. "AG Charts is optimised to handle **large datasets with over 1 million points**"
 2. "No additional configuration or modules required - it just works out of the box"
-3. "AG Charts applies advanced data aggregation techniques, such as the [M4 algorithm](https://blog.ag-grid.com/optimizing-large-data-set-visualisations-with-the-m4-algorithm/)"
+3. "AG Charts applies advanced data aggregation techniques, such as the [M4 algorithm](https://www.ag-grid.com/blog/optimizing-large-data-set-visualisations-with-the-m4-algorithm/)"
 4. "As you zoom and pan, the chart dynamically adapts to the visible range"
 
 ---
@@ -72,7 +72,7 @@ This page documents AG Charts' large dataset interactivity capabilities, specifi
 ### 1. M4 Algorithm Claim Verification
 
 **Priority**: HIGH
-**Claim**: "AG Charts applies advanced data aggregation techniques, such as the [M4 algorithm](https://blog.ag-grid.com/optimizing-large-data-set-visualisations-with-the-m4-algorithm/)"
+**Claim**: "AG Charts applies advanced data aggregation techniques, such as the [M4 algorithm](https://www.ag-grid.com/blog/optimizing-large-data-set-visualisations-with-the-m4-algorithm/)"
 
 **Verification Steps**:
 

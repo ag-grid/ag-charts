@@ -371,7 +371,7 @@
                 },
                 {
                     "question": "How does AG Charts handle large datasets?",
-                    "answer": "AG Charts uses canvas-based rendering optimised for large data with the M4 algorithm. Learn more in our [blog](https://blog.ag-grid.com/optimizing-large-data-set-visualisations-with-the-m4-algorithm/)."
+                    "answer": "AG Charts uses canvas-based rendering optimised for large data with the M4 algorithm. Learn more in our [blog](https://www.ag-grid.com/blog/optimizing-large-data-set-visualisations-with-the-m4-algorithm/)."
                 },
                 {
                     "question": "Can I use AG Charts with AG Grid?",
