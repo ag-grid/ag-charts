@@ -6,6 +6,7 @@ import faqData from '../../content/faqs/homepage.json';
 import homepage from '../../content/homepage/homepage.json';
 import versionsData from '../../content/versions/ag-charts-versions.json';
 import { latestReleasesMarkdown } from './latestReleasesMarkdown';
+import { withDefaultFramework } from './withDefaultFramework';
 
 const NUM_LATEST_RELEASES = 3;
 
@@ -54,7 +55,7 @@ interface FaqItem {
     answer: string;
 }
 function ctaLink(title: string, url: string, siteRoot?: string): string {
-    return `[${title}](${toAbsoluteUrl(urlWithBaseUrl(url), siteRoot)})`;
+    return `[${title}](${toAbsoluteUrl(urlWithBaseUrl(withDefaultFramework(url)), siteRoot)})`;
 }
 
 type CtaSectionBlock = Partial<Omit<CtaSection, 'heading'>> & { heading: string; ctas?: HomepageCta[] };

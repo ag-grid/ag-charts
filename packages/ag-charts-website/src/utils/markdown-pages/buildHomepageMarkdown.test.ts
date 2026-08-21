@@ -35,10 +35,15 @@ describe('buildHomepageMarkdown', () => {
 
     it("renders the gallery section's CTAs as one row", () => {
         expect(output).toMatch(/\[Explore the Docs\]\([^)]*\) \| \[Free Trial\]\([^)]*\) \| \[Buy Now\]\([^)]*\)/);
-        expect(output).toMatch(
-            /\[Free Trial\]\(https:\/\/www\.ag-grid\.com\/[^)]*community-vs-enterprise\/[^)]*#request-a-30-day-enterprise-bundle-trial-licence\)/
-        );
         expect(output).toMatch(/\[Buy Now\]\(https:\/\/www\.ag-grid\.com\/[^)]*license-pricing\/[^)]*\)/);
+    });
+
+    it('resolves framework agnostic CTA links to the default framework', () => {
+        // `/r/{page}` redirects client side, which the tools reading this markdown don't run.
+        expect(output).toContain(
+            '[Free Trial](https://www.ag-grid.com/react/community-vs-enterprise/?utm_source=charts-homepage&utm_medium=features-section&utm_campaign=homepage-cta#request-a-30-day-enterprise-bundle-trial-licence)'
+        );
+        expect(output).not.toContain('ag-grid.com/r/');
     });
 
     it('converts the integrated subHeadingHtml links to markdown (no raw anchor tags)', () => {
