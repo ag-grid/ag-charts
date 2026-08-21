@@ -67,7 +67,7 @@ import {
 } from './series';
 import type { DatumIndex, FireNodeEventParams, SeriesNodeDatum } from './seriesTypes';
 import { SelectionState } from './seriesTypes';
-import { getDatumRefPoint } from './util';
+import { getDatumRefPoint, isDatumHighlight } from './util';
 
 type FocusAnnounceMode = 'always' | 'never' | 'when-changed';
 
@@ -1513,10 +1513,11 @@ export class SeriesAreaManager extends BaseManager {
         // NOTE: There's a rendering bug with on `seriesToUpdate` branch when calling `setState`; All series that
         // aren't included in the `seriesToUpdate` property get reset to an unhighlighted style. The root cause for
         // this is unknown, further investigation may be required.
-        // In `highlight.mode: 'shared'` the highlight styles every series that has an item at the hovered
-        // category, so a hover moving between two categories of the same series still changes every other
-        // series' dimming - narrowing the update to the hovered series would leave it stale.
-        const sharedHighlight = this.chart.highlight.mode === 'shared';
+        // A shared-mode datum highlight dims by category across every series, so a narrowed update would
+        // leave the others stale. Series-level highlights match no category and keep the narrow path.
+        const sharedHighlight =
+            this.chart.highlight.mode === 'shared' &&
+            (isDatumHighlight(event.currentHighlight) || isDatumHighlight(event.previousHighlight));
 
         if (
             this.getHoverDevice() === 'setState' ||
