@@ -64,17 +64,6 @@ const options: AgCartesianChartOptions = {
                     'grouped-category': {
                         groupPaddingInner: 0.2,
                         paddingInner: 0.3,
-                        label: {
-                            //formatter is used here for the series tooltip
-                            formatter: (params) => {
-                                const parts = params.value;
-                                if (Array.isArray(parts) && parts.length === 3) {
-                                    // Display all parts: Continent, Country, City
-                                    return `${parts[2]}, ${parts[1]}`;
-                                }
-                                return String(params.value);
-                            },
-                        },
                     },
                     number: {
                         gridLine: {
@@ -105,6 +94,13 @@ const options: AgCartesianChartOptions = {
             bar: {
                 series: {
                     fillOpacity: 0.85,
+                    tooltip: {
+                        renderer: (params) => {
+                            // Parts are: [Continent, Country, City]
+                            const parts = params.datum.location;
+                            return { heading: `${parts[2]}, ${parts[1]}` };
+                        },
+                    },
                 },
             },
             line: {
@@ -119,6 +115,12 @@ const options: AgCartesianChartOptions = {
                     highlight: {
                         highlightedItem: {
                             strokeWidth: 4,
+                        },
+                    },
+                    tooltip: {
+                        renderer: (params) => {
+                            const parts = params.datum.location;
+                            return { heading: `${parts[2]}, ${parts[1]}` };
                         },
                     },
                 },
