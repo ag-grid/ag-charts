@@ -363,7 +363,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
     private _lastAutoSize?: [number, number, number];
     private _firstAutoSize = true;
-    private _initialAnimationReplayed = false;
     private readonly _autoSizeNotify = new AsyncAwaitQueue();
 
     private _requiredRange = 0;
@@ -800,7 +799,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
     resetAnimations() {
         this.chartAnimationPhase = 'initial';
-        this._initialAnimationReplayed = false;
 
         for (const series of this.series) {
             series.resetAnimation(this.chartAnimationPhase);
@@ -1465,10 +1463,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
             if ((this.width == null || this.height == null) && this._firstAutoSize) {
                 skipAnimations = false;
                 this._firstAutoSize = false;
-            } else if (initialPhase && this.width == null && this.height == null && !this._initialAnimationReplayed) {
+            } else if (initialPhase) {
                 // A resize during the initial phase (e.g. the size monitor re-measuring
                 // after a series-type switch) must not cancel the pending entry animation.
-                this._initialAnimationReplayed = true;
                 skipAnimations = false;
                 for (const series of this.series) {
                     series.resetAnimation('initial');
