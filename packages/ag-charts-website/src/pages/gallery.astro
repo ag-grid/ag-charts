@@ -6,6 +6,7 @@ import { getPageHashUrl } from '@components/gallery/utils/urlPaths';
 import type { GalleryData, GalleryExample, GalleryExampleChartType } from '@ag-grid-types';
 import { GalleryExampleLink } from '@components/gallery/components/GalleryExampleLink';
 import { GalleryExampleThemeDropdown } from '@components/gallery/components/GalleryExampleThemeDropdown';
+import { GALLERY_CTAS } from '@components/gallery/galleryCtas';
 import { DISABLE_MARKDOWN_DOCS, GALLERY_IMAGE_DPR_ENHANCEMENT } from '@constants';
 import { getModifiedGalleryExamples } from '@components/gallery/utils/modifiedExamples';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
@@ -28,7 +29,18 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
 >
     <div class={styles.toolbar} data-gallery-toolbar>
         <div class:list={[styles.toolbarInner, 'layout-page-max-width']}>
-            <h1>AG Charts Gallery</h1>
+            <div class={styles.toolbarTitleGroup}>
+                <h1>AG Charts Gallery</h1>
+                <div class={styles.toolbarCtas}>
+                    {
+                        GALLERY_CTAS.map((cta) => (
+                            <a id={cta.id} href={urlWithBaseUrl(cta.url)} class="button-tertiary">
+                                {cta.title} <Icon name="chevronRight" />
+                            </a>
+                        ))
+                    }
+                </div>
+            </div>
             <GalleryExampleThemeDropdown client:only="react" />
         </div>
     </div>

@@ -11,6 +11,12 @@ describe('buildGalleryMarkdown', () => {
         expect(output).toContain('\n# AG Charts Gallery');
     });
 
+    it('renders the trial and pricing CTAs', () => {
+        expect(output).toContain(
+            '[Free Trial](https://www.ag-grid.com/react/community-vs-enterprise/#request-a-30-day-enterprise-bundle-trial-licence) | [Buy Now](https://www.ag-grid.com/license-pricing/)'
+        );
+    });
+
     it('groups examples under a chart-type heading', () => {
         expect(output).toContain('## Bar');
         expect(output).toContain('## Line');

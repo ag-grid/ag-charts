@@ -264,6 +264,13 @@ const landingPages = defineCollection({
     }),
 });
 
+// `url` is a raw path, base-prefixed at render.
+const homepageSectionCta = z.object({
+    title: z.string(),
+    url: z.string(),
+    id: z.string(),
+});
+
 // Homepage marketing copy (index.astro). The bespoke interactive islands stay inline in the
 // page; only the hero and section text lives here so it can be shared with the /index.md twin.
 const homepage = defineCollection({
@@ -282,9 +289,8 @@ const homepage = defineCollection({
             gallery: z.object({
                 tag: z.string(),
                 heading: z.string(),
-                ctaTitle: z.string(),
-                ctaUrl: z.string(),
-                ctaId: z.string(),
+                // Rendered as one row by index.astro; LandingPageSection only takes a single CTA.
+                ctas: z.array(homepageSectionCta),
             }),
             financial: z.object({
                 tag: z.string(),

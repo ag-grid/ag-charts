@@ -327,6 +327,267 @@ describe('DataService', () => {
         });
     });
 
+    describe('superseded (stale) requests', () => {
+        const dataLoadCalls = () =>
+            eventEmitSpy.mock.calls.filter(([event]) => event === 'data:load').map(([, payload]) => payload.data);
+
+        it('should not dispatch an earlier request that resolves after the latest one', async () => {
+            const requests = [deferred<any>(), deferred<any>()];
+            let call = 0;
+            const dataSourceCallback = vi.fn((_params) => requests[call++].promise);
+            dataService.updateCallback(dataSourceCallback);
+
+            dataService.load({ windowStart: new Date('2025-01-01'), windowEnd: new Date('2025-02-01') });
+            await sleep();
+            dataService.load({ windowStart: new Date('2025-01-01'), windowEnd: new Date('2025-03-01') });
+            await sleep();
+
+            requests[1].resolve([{ datum: 'latest' }]);
+            await sleep();
+            requests[0].resolve([{ datum: 'stale' }]);
+            await sleep();
+
+            expect(dataSourceCallback).toHaveBeenCalledTimes(2);
+            expect(dataLoadCalls()).toEqual([[{ datum: 'latest' }]]);
+        });
+
+        it('should not dispatch an earlier request that resolves while the latest is still in flight', async () => {
+            const requests = [deferred<any>(), deferred<any>()];
+            let call = 0;
+            const dataSourceCallback = vi.fn((_params) => requests[call++].promise);
+            dataService.updateCallback(dataSourceCallback);
+
+            dataService.load({ windowStart: new Date('2025-01-01'), windowEnd: new Date('2025-02-01') });
+            await sleep();
+            dataService.load({ windowStart: new Date('2025-01-01'), windowEnd: new Date('2025-03-01') });
+            await sleep();
+
+            requests[0].resolve([{ datum: 'stale' }]);
+            await sleep();
+
+            expect(dataLoadCalls()).toEqual([]);
+
+            requests[1].resolve([{ datum: 'latest' }]);
+            await sleep();
+
+            expect(dataLoadCalls()).toEqual([[{ datum: 'latest' }]]);
+        });
+
+        it('should not emit `data:error` for a superseded request, so the latest window is not rolled back', async () => {
+            const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+            const requests = [deferred<any>(), deferred<any>()];
+            let call = 0;
+            const dataSourceCallback = vi.fn((_params) => requests[call++].promise);
+            dataService.updateCallback(dataSourceCallback);
+
+            dataService.load({ windowStart: new Date('2025-01-01'), windowEnd: new Date('2025-02-01') }, 1);
+            await sleep();
+            dataService.load({ windowStart: new Date('2025-01-01'), windowEnd: new Date('2025-03-01') }, 2);
+            await sleep();
+
+            requests[1].resolve([{ datum: 'latest' }]);
+            await sleep();
+            requests[0].resolve([]);
+            await sleep();
+
+            expect(eventEmitSpy).not.toHaveBeenCalledWith('data:error', expect.anything());
+            consoleWarnSpy.mockRestore();
+        });
+
+        it('should not forward a superseded secondary (mini-chart) response', async () => {
+            const primaries = [deferred<any>(), deferred<any>()];
+            const secondaries = [deferred<any>(), deferred<any>()];
+            let call = 0;
+            const dataSourceCallback = vi.fn(({ source }) => {
+                const index = source === 'mini-chart' ? call : call++;
+                return source === 'mini-chart' ? secondaries[index].promise : primaries[index].promise;
+            });
+            const secondaryCallback = vi.fn();
+            dataService.updateCallback(dataSourceCallback);
+            dataService.registerSecondaryLoader('mini-chart', ['chart-update'], secondaryCallback);
+
+            dataService.load({ ...definedWindow, source: 'chart-update' });
+            await sleep();
+            dataService.load({
+                windowStart: definedWindow.windowStart,
+                windowEnd: new Date('2025-06-01'),
+                source: 'chart-update',
+            });
+            await sleep();
+
+            primaries[1].resolve([{ datum: 'latest' }]);
+            secondaries[1].resolve([{ datum: 'mini-latest' }]);
+            await sleep();
+
+            primaries[0].resolve([{ datum: 'stale' }]);
+            secondaries[0].resolve([{ datum: 'mini-stale' }]);
+            await sleep();
+
+            expect(secondaryCallback).toHaveBeenCalledTimes(1);
+            expect(secondaryCallback).toHaveBeenCalledWith([{ datum: 'mini-latest' }]);
+        });
+
+        it('should discard an earlier request whose primary resolved first but whose secondary settles after the latest dispatched', async () => {
+            const primaries = [deferred<any>(), deferred<any>()];
+            const secondaries = [deferred<any>(), deferred<any>()];
+            let call = 0;
+            const dataSourceCallback = vi.fn(({ source }) => {
+                const index = source === 'mini-chart' ? call : call++;
+                return source === 'mini-chart' ? secondaries[index].promise : primaries[index].promise;
+            });
+            const secondaryCallback = vi.fn();
+            dataService.updateCallback(dataSourceCallback);
+            dataService.registerSecondaryLoader('mini-chart', ['chart-update'], secondaryCallback);
+
+            dataService.load({ ...definedWindow, source: 'chart-update' });
+            await sleep();
+
+            // The earlier request's primary lands while it is still the only one in flight; its
+            // mini-chart request is outstanding, so nothing may be applied yet.
+            primaries[0].resolve([{ datum: 'stale' }]);
+            await sleep();
+
+            expect(dataLoadCalls()).toEqual([]);
+
+            dataService.load({
+                windowStart: definedWindow.windowStart,
+                windowEnd: new Date('2025-06-01'),
+                source: 'chart-update',
+            });
+            await sleep();
+
+            primaries[1].resolve([{ datum: 'latest' }]);
+            secondaries[1].resolve([{ datum: 'mini-latest' }]);
+            await sleep();
+
+            secondaries[0].resolve([{ datum: 'mini-stale' }]);
+            await sleep();
+
+            expect(dataLoadCalls()).toEqual([[{ datum: 'latest' }]]);
+            expect(secondaryCallback).toHaveBeenCalledTimes(1);
+            expect(secondaryCallback).toHaveBeenCalledWith([{ datum: 'mini-latest' }]);
+        });
+
+        it('should still forward a secondary response whose primary was superseded by a request that does not trigger the loader', async () => {
+            const primaries = [deferred<any>(), deferred<any>()];
+            const secondary = deferred<any>();
+            let call = 0;
+            const dataSourceCallback = vi.fn(({ source }) =>
+                source === 'mini-chart' ? secondary.promise : primaries[call++].promise
+            );
+            const secondaryCallback = vi.fn();
+            dataService.updateCallback(dataSourceCallback);
+            dataService.registerSecondaryLoader('mini-chart', ['chart-update'], secondaryCallback);
+
+            dataService.load({ ...definedWindow, source: 'chart-update' });
+            await sleep();
+
+            // A navigator pan is not a trigger for the loader, so this request carries no
+            // replacement overview data — dropping the outstanding one would lose it entirely.
+            dataService.load({
+                windowStart: definedWindow.windowStart,
+                windowEnd: new Date('2025-06-01'),
+                source: 'user-interaction',
+            });
+            await sleep();
+
+            primaries[1].resolve([{ datum: 'latest' }]);
+            await sleep();
+            primaries[0].resolve([{ datum: 'stale' }]);
+            secondary.resolve([{ datum: 'mini' }]);
+            await sleep();
+
+            expect(dataSourceCallback).not.toHaveBeenCalledWith(
+                expect.objectContaining({ source: 'mini-chart', windowEnd: new Date('2025-06-01') })
+            );
+            expect(dataLoadCalls()).toEqual([[{ datum: 'latest' }]]);
+            expect(secondaryCallback).toHaveBeenCalledWith([{ datum: 'mini' }]);
+        });
+
+        // `dispatchOnlyLatest` is `!dataSource.updateDuringInteraction`, so `false` asks for every
+        // response to be shown as it arrives — but never in an order that moves the chart backwards.
+        describe('with `dispatchOnlyLatest: false`', () => {
+            beforeEach(() => {
+                dataService.dispatchOnlyLatest = false;
+            });
+
+            it('should dispatch every overlapping request that resolves in issue order', async () => {
+                const requests = [deferred<any>(), deferred<any>(), deferred<any>()];
+                let call = 0;
+                const dataSourceCallback = vi.fn((_params) => requests[call++].promise);
+                dataService.updateCallback(dataSourceCallback);
+
+                dataService.load({ windowStart: new Date('2025-01-01'), windowEnd: new Date('2025-02-01') });
+                await sleep();
+                dataService.load({ windowStart: new Date('2025-01-01'), windowEnd: new Date('2025-03-01') });
+                await sleep();
+                dataService.load({ windowStart: new Date('2025-01-01'), windowEnd: new Date('2025-04-01') });
+                await sleep();
+
+                requests[0].resolve([{ datum: 1 }]);
+                await sleep();
+                requests[1].resolve([{ datum: 2 }]);
+                await sleep();
+                requests[2].resolve([{ datum: 3 }]);
+                await sleep();
+
+                expect(dataLoadCalls()).toEqual([[{ datum: 1 }], [{ datum: 2 }], [{ datum: 3 }]]);
+            });
+
+            it('should discard a request that resolves after a later one has been dispatched', async () => {
+                const requests = [deferred<any>(), deferred<any>(), deferred<any>()];
+                let call = 0;
+                const dataSourceCallback = vi.fn((_params) => requests[call++].promise);
+                dataService.updateCallback(dataSourceCallback);
+
+                dataService.load({ windowStart: new Date('2025-01-01'), windowEnd: new Date('2025-02-01') });
+                await sleep();
+                dataService.load({ windowStart: new Date('2025-01-01'), windowEnd: new Date('2025-03-01') });
+                await sleep();
+                dataService.load({ windowStart: new Date('2025-01-01'), windowEnd: new Date('2025-04-01') });
+                await sleep();
+
+                requests[2].resolve([{ datum: 3 }]);
+                await sleep();
+                requests[0].resolve([{ datum: 1 }]);
+                requests[1].resolve([{ datum: 2 }]);
+                await sleep();
+
+                expect(dataLoadCalls()).toEqual([[{ datum: 3 }]]);
+            });
+
+            it('should forward each secondary response as it arrives, independently of the primary', async () => {
+                const primary = deferred<any>();
+                const secondaries = [deferred<any>(), deferred<any>()];
+                let call = 0;
+                const dataSourceCallback = vi.fn(({ source }) =>
+                    source === 'mini-chart' ? secondaries[call++].promise : primary.promise
+                );
+                const secondaryCallback = vi.fn();
+                dataService.updateCallback(dataSourceCallback);
+                dataService.registerSecondaryLoader('mini-chart', ['chart-update'], secondaryCallback);
+
+                dataService.load({ ...definedWindow, source: 'chart-update' });
+                await sleep();
+                dataService.load({
+                    windowStart: definedWindow.windowStart,
+                    windowEnd: new Date('2025-06-01'),
+                    source: 'chart-update',
+                });
+                await sleep();
+
+                // The primary never settles, so the loader's data is all that can be shown.
+                secondaries[0].resolve([{ datum: 'mini-1' }]);
+                await sleep();
+                secondaries[1].resolve([{ datum: 'mini-2' }]);
+                await sleep();
+
+                expect(secondaryCallback.mock.calls).toEqual([[[{ datum: 'mini-1' }]], [[{ datum: 'mini-2' }]]]);
+                expect(dataLoadCalls()).toEqual([]);
+            });
+        });
+    });
+
     it('should echo the requestId on `data:load`', async () => {
         const data = [{ datum: 'value' }];
         const dataSourceCallback = vi.fn((_params) => Promise.resolve(data));
