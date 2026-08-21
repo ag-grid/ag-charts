@@ -26,6 +26,7 @@ import agDevMarkdownNegotiation from './plugins/agDevMarkdownNegotiation';
 import agGallerySeoChecker from './plugins/agGallerySeoChecker';
 import agHotModuleReload from './plugins/agHotModuleReload';
 import agHtaccessGen from './plugins/agHtaccessGen';
+import agHtmlAsString from './plugins/agHtmlAsString';
 import agRedirectsChecker from './plugins/agRedirectsChecker';
 import { FRAMEWORKS, FRAMEWORK_REDIRECT_PATH } from './src/constants';
 import { getIsBenchmarkOnlyBuild } from './src/utils/env';
@@ -98,6 +99,7 @@ const plugins = [
     agSourcemapCors(),
     svgr(),
     agCssAsString(),
+    agHtmlAsString(),
     agHotModuleReload(),
     agAutoRedirect(['/javascript', '/react', '/vue', '/angular', '/gallery']),
     agDevCsp(),
