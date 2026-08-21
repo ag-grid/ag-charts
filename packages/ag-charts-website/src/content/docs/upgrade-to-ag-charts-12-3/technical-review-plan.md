@@ -34,7 +34,7 @@ The page currently states:
 
 #### B. Blog Post Link Validation
 
-- **Target**: `https://blog.ag-grid.com/whats-new-in-ag-charts-12-3/`
+- **Target**: `https://www.ag-grid.com/blog/whats-new-in-ag-charts-12-3/`
 - **Method**: Verify link is accessible and correctly formatted
 - **Expected**: Blog post should exist and be relevant
 
