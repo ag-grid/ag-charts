@@ -113,7 +113,9 @@ const RULES = [
     { re: series('heatmap'), types: ['heatmap'] },
     { re: series('radar-line'), types: ['radar-line'] },
     { re: series('radar-area'), types: ['radar-area'] },
-    { re: series('radar'), types: ['radar-line', 'radar-area'] },
+    // Only the shared radar base: `radar-line` and `radar-area` have their own rules
+    // above, and matching them here as well would report both as changed.
+    { re: /(^|\/)radar\.ts$|\/radar\//, types: ['radar-line', 'radar-area'] },
     { re: series('nightingale'), types: ['nightingale'] },
     { re: series('radial-bar'), types: ['radial-bar'] },
     { re: series('radial-column'), types: ['radial-column'] },
@@ -145,7 +147,10 @@ const RULES = [
     // Shared series bases — no concrete series in the path, but every scaled
     // example runs them, so the workflow must still name something to measure.
     {
-        re: /\/chart\/series\/[a-z][a-zA-Z]*\.ts$|cartesianSeries|dataModelSeries|polarSeries|abstractBarSeries/,
+        // Named, not matched by shape: `chart/series/` also holds the managers
+        // (`seriesAreaManager.ts`, `pickManager.ts`), and tagging those with five
+        // scaled examples would push their own interaction benchmarks past the cap.
+        re: /(^|\/)(series|dataModelSeries|cartesianSeries|polarSeries|hierarchySeries|abstractBarSeries|placedLabelCartesianSeries)\.ts$/,
         names: ['high-perf-bar', 'high-perf-line', 'high-perf-area', 'large-dataset', 'enterprise-1M-line-series'],
     },
 

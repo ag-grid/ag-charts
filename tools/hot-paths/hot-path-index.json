@@ -1,5 +1,5 @@
 {
-    "$comment": "Hot-path index for PR review. Consumed by tools/hot-paths/detect.sh and documented by the `hot-paths` skill. Tiers are ordered by call frequency: a change in tier 1 runs per datum (up to 1M), tier 4 runs once per bundle load.",
+    "$comment": "Hot-path index for PR review. Consumed by tools/hot-paths/detect.js and documented by the `hot-paths` skill. Tiers are ordered by call frequency: a change in tier 1 runs per datum (up to 1M), tier 4 runs once per bundle load.",
     "tiers": [
         {
             "id": "per-datum",

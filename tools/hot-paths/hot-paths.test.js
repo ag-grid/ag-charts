@@ -264,3 +264,31 @@ test('the documented JSON schema names exactly the fields the detector emits', (
         'every documented field is emitted'
     );
 });
+
+test('insideLoop: a listener declared inside a loop is not per-iteration work', () => {
+    // The arrow body runs when the event fires, not once per turn of the loop it was
+    // registered in, so charging the loop's frequency to it is a false positive.
+    const lines = [
+        'for (const series of allSeries) {',
+        "    series.addEventListener('click', (event) => {",
+        '        const point = { x: event.x, y: event.y };',
+        '    });',
+        '}',
+    ];
+    assert.equal(insideLoop(lines, 3), null);
+});
+
+test('insideLoop: a split iteration callback is still a loop, not a boundary', () => {
+    // Same arrow shape as the listener above, but the call it belongs to iterates,
+    // so its body does run once per element.
+    const lines = [
+        'const points = data.map(',
+        '    (datum) => {',
+        '        return { x: datum.x, y: datum.y };',
+        '    }',
+        ');',
+    ];
+    const hit = insideLoop(lines, 3);
+    assert.ok(hit, 'the iteration is found');
+    assert.equal(hit.line, 1, 'the loop reported is the iterating call, not the arrow');
+});
