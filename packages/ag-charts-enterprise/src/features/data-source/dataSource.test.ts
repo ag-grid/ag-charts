@@ -465,6 +465,125 @@ describe('DataSource', () => {
         });
     });
 
+    describe('initial zoom state', () => {
+        const TIME_RESPONSE = [
+            { time: new Date('2024-01-01 00:00:00'), price: 0 },
+            { time: new Date('2024-01-08 00:00:00'), price: 50 },
+            { time: new Date('2024-01-15 00:00:00'), price: 25 },
+            { time: new Date('2024-01-22 00:00:00'), price: 75 },
+            { time: new Date('2024-01-29 00:00:00'), price: 50 },
+            { time: new Date('2024-02-05 00:00:00'), price: 25 },
+            { time: new Date('2024-02-12 00:00:00'), price: 50 },
+        ];
+
+        const NUMERIC_RESPONSE = [
+            { x: 1, y: 0 },
+            { x: 2, y: 50 },
+            { x: 3, y: 25 },
+            { x: 4, y: 75 },
+            { x: 5, y: 50 },
+            { x: 6, y: 25 },
+            { x: 7, y: 50 },
+        ];
+
+        const serialisableDate = (value: string) => ({ __type: 'date' as const, value: new Date(value).toISOString() });
+
+        let windows: Array<{ windowStart: unknown; windowEnd: unknown }>;
+
+        async function prepareWithWindowCapture(
+            baseOptions: AgCartesianChartOptions,
+            data: unknown[],
+            initialState: AgChartOptions['initialState']
+        ) {
+            windows = [];
+            await prepareChart(
+                {
+                    getData: ({ windowStart, windowEnd }) => {
+                        windows.push({ windowStart, windowEnd });
+                        return Promise.resolve(data);
+                    },
+                },
+                { ...baseOptions, initialState }
+            );
+            // A second, window-corrected request lands a frame or two after the first response, so
+            // asserting a single request means waiting past the point where it would have arrived.
+            for (let i = 0; i < 10; i++) {
+                await waitForChartStability(chart);
+                await delay(5);
+            }
+        }
+
+        // A `rangeX` request is already stated in data space, so it needs no domain to interpret and
+        // must be honoured by the very first request rather than after a corrective round-trip.
+        describe('rangeX', () => {
+            const timeRange = {
+                start: serialisableDate('2024-01-22 00:00:00'),
+                end: serialisableDate('2024-02-12 00:00:00'),
+            };
+
+            it.each([
+                ['time', TIME_OPTIONS, timeRange, new Date('2024-01-22 00:00:00'), new Date('2024-02-12 00:00:00')],
+                [
+                    'unit-time',
+                    UNIT_TIME_OPTIONS,
+                    timeRange,
+                    new Date('2024-01-22 00:00:00'),
+                    new Date('2024-02-12 00:00:00'),
+                ],
+                [
+                    'ordinal-time',
+                    ORDINAL_TIME_OPTIONS,
+                    timeRange,
+                    new Date('2024-01-22 00:00:00'),
+                    new Date('2024-02-12 00:00:00'),
+                ],
+                ['number', NUMERIC_OPTIONS, { start: 4, end: 7 }, 4, 7],
+            ] as const)('requests the range once on a %s axis', async (type, options, range, start, end) => {
+                const data = type === 'number' ? NUMERIC_RESPONSE : TIME_RESPONSE;
+                await prepareWithWindowCapture(options, data, { zoom: { rangeX: range } });
+
+                expect(windows).toEqual([{ windowStart: start, windowEnd: end }]);
+            });
+
+            it('restores the same zoom as it would from static data', async () => {
+                await prepareWithWindowCapture(NUMERIC_OPTIONS, NUMERIC_RESPONSE, {
+                    zoom: { rangeX: { start: 4, end: 7 } },
+                });
+
+                expect(chart.getState().zoom.ratioX).toEqual({ start: 0.5, end: 1 });
+            });
+        });
+
+        // A `ratioX` request cannot be resolved without the domain, so an axis that does not know its
+        // bounds up front has to ask once to learn them. A bounded axis has no such excuse.
+        describe('ratioX', () => {
+            it('requests the ratio once when the axis is bounded', async () => {
+                await prepareWithWindowCapture(TIME_OPTIONS, TIME_RESPONSE, {
+                    zoom: { ratioX: { start: 0.5, end: 1 } },
+                });
+
+                expect(windows).toHaveLength(1);
+                expect(windows[0].windowEnd).toEqual(new Date('2024-01-07 00:00:00'));
+            });
+
+            it('omits the window rather than sending an unresolvable one when the axis is unbounded', async () => {
+                const unbounded: AgCartesianChartOptions = {
+                    ...BASE_OPTIONS,
+                    axes: {
+                        y: { type: 'number', position: 'left', crosshair: { enabled: false } },
+                        x: { type: 'time', position: 'bottom', crosshair: { enabled: false } },
+                    },
+                    series: [{ type: 'line', xKey: 'time', yKey: 'price' }],
+                };
+                await prepareWithWindowCapture(unbounded, TIME_RESPONSE, {
+                    zoom: { ratioX: { start: 0.5, end: 1 } },
+                });
+
+                expect(windows[0]).toEqual({ windowStart: undefined, windowEnd: undefined });
+            });
+        });
+    });
+
     describe('source parameter', () => {
         let sources: Array<AgDataSourceRequestSource | undefined>;
 
