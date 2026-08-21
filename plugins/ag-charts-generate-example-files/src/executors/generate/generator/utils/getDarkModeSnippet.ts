@@ -68,11 +68,16 @@ if (darkmode) {
         });
     }
 }
-window.addEventListener('message', (event) => {
-    const data = event.data || event.detail;
+const onColorSchemeChange = (data) => {
     if (data?.type === 'color-scheme-change') {
         darkmode = data.darkmode;
         applyDarkmode();
     }
-});
+};
+
+// Two delivery channels, each read from the property its own channel provides: a real
+// postMessage when this example runs inside the example-runner iframe, and a same-page
+// CustomEvent when it is embedded directly in the docs page.
+window.addEventListener('message', (event) => onColorSchemeChange(event.data));
+window.addEventListener('ag-color-scheme-change', (event) => onColorSchemeChange(event.detail));
 ${DARK_MODE_END}`;
