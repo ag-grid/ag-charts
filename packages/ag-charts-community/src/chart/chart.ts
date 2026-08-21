@@ -363,6 +363,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
     private _lastAutoSize?: [number, number, number];
     private _firstAutoSize = true;
+    private _initialAnimationReplayed = false;
     private readonly _autoSizeNotify = new AsyncAwaitQueue();
 
     private _requiredRange = 0;
@@ -799,6 +800,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
     resetAnimations() {
         this.chartAnimationPhase = 'initial';
+        this._initialAnimationReplayed = false;
 
         for (const series of this.series) {
             series.resetAnimation(this.chartAnimationPhase);
@@ -1451,6 +1453,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if (width == null || height == null || !isFiniteNumber(width) || !isFiniteNumber(height)) return;
 
         if (scene.resize(width, height, pixelRatio)) {
+            // reset() stops the running batch, which flips chartAnimationPhase to 'ready'.
+            const initialPhase = this.chartAnimationPhase === 'initial';
             animationManager.reset();
 
             // A caught update error emits no layout:complete, so a shown validation overlay would freeze
@@ -1461,10 +1465,19 @@ export abstract class Chart implements ModuleInstance, ChartService {
             if ((this.width == null || this.height == null) && this._firstAutoSize) {
                 skipAnimations = false;
                 this._firstAutoSize = false;
-            } else if (this.chartAnimationPhase === 'initial') {
+            } else if (initialPhase && this.width == null && this.height == null && !this._initialAnimationReplayed) {
                 // A resize during the initial phase (e.g. the size monitor re-measuring
                 // after a series-type switch) must not cancel the pending entry animation.
+                this._initialAnimationReplayed = true;
                 skipAnimations = false;
+                for (const series of this.series) {
+                    series.resetAnimation('initial');
+                }
+                for (const axis of this.axes) {
+                    axis.resetAnimation('initial');
+                }
+                // processLayout() skips the re-armed batch if the layout rect moved under it.
+                this.animationRect = undefined;
             }
 
             let updateType = ChartUpdateType.PERFORM_LAYOUT;
