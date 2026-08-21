@@ -25,6 +25,7 @@ import agDevCsp from './plugins/agDevCsp';
 import agDevMarkdownNegotiation from './plugins/agDevMarkdownNegotiation';
 import agHotModuleReload from './plugins/agHotModuleReload';
 import agHtaccessGen from './plugins/agHtaccessGen';
+import agHtmlAsString from './plugins/agHtmlAsString';
 import agRedirectsChecker from './plugins/agRedirectsChecker';
 import { getAstroRedirectRules } from './src/utils/htaccess/htaccessRules';
 import { getSitemapConfig } from './src/utils/sitemap';
@@ -88,6 +89,7 @@ const plugins = [
     agSourcemapCors(),
     svgr(),
     agCssAsString(),
+    agHtmlAsString(),
     agHotModuleReload(),
     agAutoRedirect(['/javascript', '/react', '/vue', '/angular', '/gallery']),
     agDevCsp(),
