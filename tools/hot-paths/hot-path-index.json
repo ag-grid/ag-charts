@@ -174,7 +174,7 @@
         "playbook": "/ag-charts:optimize-series"
     },
     "signalWeights": {
-        "$comment": "Stage-2 scoring. A group scores its weight when matched in an added line, half (floor, minimum 1) when only in surrounding context. markerWeight applies when a change lands within markerComments.proximityLines of an existing hot-path marker; loopWeight when an added line executes inside a loop. A file triggers at `threshold`; the PR triggers on its highest-scoring file. Calibrated at threshold 3 over the last 48 PR merges: stage 1 (tier globs alone) matches 67% of them, scoring narrows that to 27%, and 10 of 13 known performance commits are caught. See the `hot-paths` skill.",
+        "$comment": "Stage-2 scoring. A group scores its weight when matched in an added line, half (floor, minimum 1) when only in surrounding context. markerWeight applies when a change lands within markerComments.proximityLines of an existing hot-path marker; loopWeight when an added line executes inside a loop. A file triggers at `threshold`; the PR triggers on its highest-scoring file. Calibrated at threshold 3 over the last 48 PR merges: stage 1 (tier globs alone) matches 67% of them, scoring narrows that to 29%, and 10 of 13 known performance commits are caught. See the `hot-paths` skill.",
         "typed-arrays": 3,
         "per-datum-entrypoints": 3,
         "per-frame-entrypoints": 3,

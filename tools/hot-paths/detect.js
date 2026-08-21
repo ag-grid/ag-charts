@@ -235,7 +235,14 @@ function signalsIn({ added, context }) {
         }
     };
     scan(added, 'added');
-    scan(context, 'context');
+    scan(
+        context.filter((c) => !c.removed),
+        'context'
+    );
+    scan(
+        context.filter((c) => c.removed),
+        'removed'
+    );
     return Object.fromEntries(found);
 }
 
@@ -257,6 +264,19 @@ const DEFERRED_CALLBACK_RE =
  * tracks nesting reliably. A function or class boundary ends the walk — a loop
  * further out belongs to a different scope.
  */
+function isDeferredCallback(lines, arrowIndex, arrowIndent) {
+    if (DEFERRED_CALLBACK_RE.test(lines[arrowIndex])) return true;
+    // Prettier splits a long call so the arrow lands on its own line, with the call
+    // opener at lower indentation above it and the other arguments in between. Walk
+    // back over those continuation lines to the opener and test that.
+    for (let i = arrowIndex - 1; i >= 0; i--) {
+        const at = lines[i].search(/\S/);
+        if (at < 0 || at >= arrowIndent) continue;
+        return DEFERRED_CALLBACK_RE.test(lines[i]);
+    }
+    return false;
+}
+
 function insideLoop(lines, lineNo) {
     const target = lines[lineNo - 1];
     if (target === undefined) return null;
@@ -275,7 +295,11 @@ function insideLoop(lines, lineNo) {
         const text = lines[i];
         const at = text.search(/\S/);
         if (at < 0 || at >= indent) continue;
-        indent = at;
+        // A line that only closes an argument list — `) {` — is the tail of a header
+        // Prettier split across lines, and the opener sits at the *same*
+        // indentation. Lowering the bar to that indentation would skip it, losing
+        // every multiline `for (` and `while (` header, so leave room for it.
+        indent = /^\s*\)/.test(text) ? at + 1 : at;
         if (LOOP_OPENER_RE.test(text)) return { line: i + 1, text: text.trim().slice(0, 160) };
         // A callback registered for later — a listener, a timer, a frame request —
         // runs when its event fires, not once per turn of the loop that registered
@@ -285,7 +309,7 @@ function insideLoop(lines, lineNo) {
         // which of the two a given call is cannot be decided from the line alone.
         // Defaulting to in-loop keeps the false negatives — a missed regression —
         // rarer than the false positives, which cost one sub-agent.
-        if (ARROW_OPENER_RE.test(text) && DEFERRED_CALLBACK_RE.test(text)) return null;
+        if (ARROW_OPENER_RE.test(text) && isDeferredCallback(lines, i, at)) return null;
         if (BLOCK_BOUNDARY_RE.test(text)) return null;
     }
     return null;
@@ -306,7 +330,13 @@ function markerProximity(lines, added) {
     if (lines === null) return [];
     const markers = [];
     lines.forEach((text, i) => {
-        if (MARKER_RE.test(text)) markers.push({ line: i + 1, text: text.trim().slice(0, 160) });
+        // The index calls these marker *comments*, so only the comment part of the
+        // line counts. A string literal that happens to read "hot path" is not a
+        // maintainer's tripwire, and matching it added the marker weight for free.
+        const comment = /(\/\/|\/\*|^\s*\*)/.exec(text);
+        if (comment && MARKER_RE.test(text.slice(comment.index))) {
+            markers.push({ line: i + 1, text: text.trim().slice(0, 160) });
+        }
     });
     if (markers.length === 0) return [];
 
@@ -337,8 +367,13 @@ function scoreOf(file) {
     let score = 0;
     for (const [group, entries] of Object.entries(file.signals)) {
         const weight = WEIGHTS[group] ?? 1;
-        const inAdded = entries.some((e) => e.where === 'added');
-        score += inAdded ? weight : Math.max(1, Math.floor(weight / 2));
+        // A removed line scores like context, not like an added one: the construct
+        // is not at the head revision, but a change that deletes a TypedArray or a
+        // fast path from a tier-1 file is exactly what this gate exists to put in
+        // front of a reviewer. Scoring deletions at zero loses that whole class —
+        // `26d7f84244`, the canonical rescan regression, is a deletion.
+        if (entries.some((e) => e.where === 'added')) score += weight;
+        else score += Math.max(1, Math.floor(weight / 2));
     }
     if (file.markers.length > 0) score += WEIGHTS.markerWeight;
     if (file.loops.length > 0) score += WEIGHTS.loopWeight;
@@ -423,4 +458,4 @@ if (require.main === module) {
     main();
 }
 
-module.exports = { analyse, resolveRange, globToRegExp, insideLoop };
+module.exports = { analyse, resolveRange, globToRegExp, insideLoop, signalsIn, scoreOf, markerProximity };

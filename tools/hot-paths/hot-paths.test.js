@@ -4,7 +4,7 @@ const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 
-const { analyse, globToRegExp, insideLoop, resolveRange } = require('./detect');
+const { analyse, globToRegExp, insideLoop, resolveRange, signalsIn, scoreOf, markerProximity } = require('./detect');
 const { allExamples, recommend, tagsFor } = require('./benchmark-map');
 
 // Run with: node --test tools/hot-paths/
@@ -311,4 +311,66 @@ test('benchmark map: a base no benchmark example instantiates says so', () => {
     // The Cartesian bases those examples do run keep their recommendation.
     const cartesian = recommend(['packages/ag-charts-community/src/chart/series/cartesian/cartesianSeries.ts']);
     assert.ok(cartesian.examples.length > 0, 'a base the examples run still recommends them');
+});
+
+test('insideLoop: a multiline loop header is still a loop', () => {
+    // Prettier splits a long header, leaving `) {` at the opener's own indentation.
+    // Lowering the walk's bar to that indentation would skip the `for (` itself.
+    const lines = [
+        'for (',
+        '    let index = 0;',
+        '    index < processedData.rawData.length;',
+        '    index += 1',
+        ') {',
+        '    total += weights[index];',
+        '}',
+    ];
+    const hit = insideLoop(lines, 6);
+    assert.ok(hit, 'the split header is found');
+    assert.equal(hit.line, 1);
+});
+
+test('insideLoop: a deferred callback split across lines is still a boundary', () => {
+    // Same shape as the single-line listener, with Prettier having moved the arrow
+    // onto its own line. The body still runs on the event, not per iteration.
+    const lines = [
+        'for (const series of allSeries) {',
+        '    series.addEventListener(',
+        "        'click',",
+        '        (event) => {',
+        '            const point = { x: event.x, y: event.y };',
+        '        }',
+        '    );',
+        '}',
+    ];
+    assert.equal(insideLoop(lines, 5), null);
+});
+
+test('scoring: a removed line is evidence but carries no weight', () => {
+    const removedOnly = {
+        added: [],
+        context: [{ line: 10, text: 'const buffer = new Float64Array(n);', removed: true }],
+    };
+    const signals = signalsIn(removedOnly);
+    const groups = Object.values(signals).flat();
+    assert.ok(groups.length > 0, 'the removed construct is still reported as evidence');
+    assert.ok(
+        groups.every((e) => e.where === 'removed'),
+        'and is labelled as removed'
+    );
+    // It scores like context rather than like an added line: removing a TypedArray
+    // from a hot file is worth a reviewer's eye, but the change did not introduce it.
+    const asContext = { added: [], context: [{ line: 10, text: 'const buffer = new Float64Array(n);' }] };
+    const asAdded = { added: [{ line: 10, text: 'const buffer = new Float64Array(n);' }], context: [] };
+    const scoreFor = (hunks) => scoreOf({ signals: signalsIn(hunks), markers: [], loops: [] });
+    assert.equal(scoreFor(removedOnly), scoreFor(asContext), 'removed scores as context');
+    assert.ok(scoreFor(asAdded) > scoreFor(removedOnly), 'and below an added line');
+});
+
+test('markers: only a comment is a marker', () => {
+    const added = [{ line: 2, text: 'total += 1;' }];
+    const asComment = ['// allocation-free: mutate the scratch object', 'total += 1;'];
+    const asString = ["const label = 'allocation-free';", 'total += 1;'];
+    assert.equal(markerProximity(asComment, added).length, 1, 'a marker comment counts');
+    assert.equal(markerProximity(asString, added).length, 0, 'a string that reads like one does not');
 });
