@@ -118,12 +118,28 @@ function resolveRange(argv) {
     return { base, head: undefined, label: `${baseRef}...HEAD` };
 }
 
+const isSource = (f) => f.endsWith('.ts') && !f.endsWith('.test.ts');
+
+/**
+ * The changed source files, and which of them are untracked.
+ *
+ * `git diff` never lists an untracked file, so in working-tree mode a brand-new
+ * hot-path file would read as no change at all until it was staged — the one case
+ * where the answer matters most.
+ */
 function changedFiles({ base, head }) {
     const args = head ? ['diff', '--name-only', base, head] : ['diff', '--name-only', base];
-    return git(args)
-        .split('\n')
-        .filter(Boolean)
-        .filter((f) => f.endsWith('.ts') && !f.endsWith('.test.ts'));
+    const tracked = git(args).split('\n').filter(Boolean).filter(isSource);
+    const untracked = head
+        ? []
+        : git(['ls-files', '--others', '--exclude-standard']).split('\n').filter(Boolean).filter(isSource);
+    return { files: [...new Set([...tracked, ...untracked])], untracked: new Set(untracked) };
+}
+
+/** An untracked file has no diff — it is entirely new, so every line is an added line. */
+function wholeFileAsAdded(lines) {
+    if (lines === null) return { added: [], context: [] };
+    return { added: lines.map((text, i) => ({ line: i + 1, text })), context: [] };
 }
 
 function classify(files) {
@@ -289,12 +305,12 @@ function scoreOf(file) {
 }
 
 function analyse(range) {
-    const files = changedFiles(range);
+    const { files, untracked } = changedFiles(range);
     const tierHits = classify(files);
 
     const perFile = tierHits.map((hit) => {
-        const hunks = changedHunks(range, hit.file);
         const lines = headLines(range, hit.file);
+        const hunks = untracked.has(hit.file) ? wholeFileAsAdded(lines) : changedHunks(range, hit.file);
         return {
             ...hit,
             addedLineCount: hunks.added.length,

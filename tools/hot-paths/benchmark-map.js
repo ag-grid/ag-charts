@@ -26,18 +26,33 @@ const MAX_RECOMMENDED = 5;
 // Examples without a standard harness config — see tools/benchmark/benchmark-examples.js.
 const EXCLUDED = new Set(['summary', 'high-freq-high-volume']);
 
-/** Series and axis type strings the examples actually declare, harvested from `type: '...'`. */
+/**
+ * What an example measures, derived from its source: the series and axis types it
+ * declares, its test-case ids, and the series each dynamic case swaps in.
+ *
+ * `data-selection-zoom-*` build their cases from a `SERIES_TYPES` list and apply
+ * the series at runtime, so neither the ids nor those series appear as a literal
+ * `type: '...'`. Deriving them matters: they are the only examples covering
+ * bubble and histogram, and reporting them as opaque would let a change to
+ * either recommend a benchmark that never runs it.
+ */
 function readExample(name) {
     const src = fs.readFileSync(path.join(EXAMPLES_DIR, name, 'main.ts'), 'utf8');
     const types = [...new Set([...src.matchAll(/type: '([a-zA-Z-]+)'/g)].map((m) => m[1]))].sort();
     const ids = [...new Set([...src.matchAll(/\bid: '([a-z0-9-]+)'/g)].map((m) => m[1]))];
-    // Some examples build testCases dynamically (data-selection-zoom-*); a literal
-    // id list is then absent rather than empty, so say so instead of implying none.
-    const dynamic = ids.length === 0 && /testCases[,\s]/.test(src);
+
+    const fromSeriesList = ids.length === 0 && /\bid: seriesType\b/.test(src);
+    const seriesList = fromSeriesList ? /const SERIES_TYPES = \[([^\]]*)\]/.exec(src) : null;
+    const variants = seriesList ? [...seriesList[1].matchAll(/'([a-z0-9-]+)'/g)].map((m) => m[1]) : [];
+    // A dynamic shape this does not understand must be visible, not silently empty
+    // — `hot-paths.test.js` fails on `<dynamic>` so a new shape gets handled here.
+    const dynamic = ids.length === 0 && variants.length === 0 && /testCases[,\s]/.test(src);
+
     return {
         name,
         types,
-        testCases: dynamic ? ['<dynamic>'] : ids,
+        variants,
+        testCases: dynamic ? ['<dynamic>'] : ids.length > 0 ? ids : variants,
         enterprise: /ag-charts-enterprise/.test(src),
     };
 }
@@ -51,28 +66,78 @@ function allExamples() {
         .sort((a, b) => a.name.localeCompare(b.name));
 }
 
+/** camelCase to kebab-case, so one rule covers both conventions in a path. */
+function kebab(p) {
+    return p.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+}
+
 /**
- * Path patterns to the tags they imply. `types` match an example's declared
- * series/axis types; `names` match example directory names; `cases` match
- * test-case ids. First match wins per rule, and every matching rule contributes.
+ * A path segment naming a series. Tokens are written kebab-case and matched
+ * against both the raw path (`series/box-plot/`) and its kebab form
+ * (`boxPlotSeries.ts` → `box-plot-series.ts`).
+ *
+ * The lookahead is what stops `line` matching `linearScale`, so a scale change
+ * does not pull in line-series examples. It is case-sensitive deliberately: under
+ * `/i` it would also reject the camelCase boundary in `bubbleSeries.ts`.
+ */
+function series(pattern) {
+    return new RegExp(`(^|/)(${pattern})(?![a-z])`);
+}
+
+/**
+ * Path patterns to the tags they imply. `types` match an example's declared or
+ * variant series/axis types; `names` match example directory names; `cases` match
+ * test-case ids. Every matching rule contributes.
+ *
+ * A series maps only to its own type — never to a structural analogue. Where no
+ * example runs that type, the change gets no recommendation and a note saying so;
+ * recommending the nearest example instead would produce a clean run that never
+ * executed the changed code, which is worse than no evidence at all.
  */
 const RULES = [
-    // Series implementations — match the example's series type.
-    { re: /(^|\/)(bar|barSeries|barAggregation|barUtil|barShape)/i, types: ['bar'] },
-    { re: /(^|\/)(line|lineSeries|lineAggregation|lineUtil|lineInterpolation)/i, types: ['line'] },
-    { re: /(^|\/)(area|areaSeries|areaAggregation|areaUtil)/i, types: ['area'] },
-    { re: /(^|\/)(scatter|bubble)/i, types: ['scatter'] },
-    { re: /(^|\/)ohlc/i, types: ['ohlc'] },
-    { re: /(^|\/)candlestick/i, types: ['candlestick'] },
-    { re: /(^|\/)range-?bar/i, types: ['range-bar'] },
-    { re: /(^|\/)range-?area/i, types: ['range-area'] },
-    { re: /(^|\/)(waterfall|histogram|box-plot|heatmap|radar|nightingale)/i, types: ['bar'] },
-    { re: /(^|\/)(pie|donut|sunburst|treemap|sankey|chord|funnel|gauge|map-)/i, names: ['large-dataset'] },
+    // Cartesian series — the examples cover these.
+    { re: series('abstract-bar|bar'), types: ['bar'] },
+    { re: series('line'), types: ['line'] },
+    { re: series('area'), types: ['area'] },
+    { re: series('scatter'), types: ['scatter'] },
+    { re: series('bubble'), types: ['bubble'] },
+    { re: series('histogram'), types: ['histogram'] },
+    { re: series('ohlc'), types: ['ohlc'] },
+    { re: series('candlestick'), types: ['candlestick'] },
+    { re: series('range-bar'), types: ['range-bar'] },
+    { re: series('range-area'), types: ['range-area'] },
 
-    // Scales — match the example's axis type.
+    // Series with no benchmark example — tagged so the uncovered-type note fires.
+    { re: series('waterfall'), types: ['waterfall'] },
+    { re: series('box-plot'), types: ['box-plot'] },
+    { re: series('heatmap'), types: ['heatmap'] },
+    { re: series('radar-line'), types: ['radar-line'] },
+    { re: series('radar-area'), types: ['radar-area'] },
+    { re: series('radar'), types: ['radar-line', 'radar-area'] },
+    { re: series('nightingale'), types: ['nightingale'] },
+    { re: series('radial-bar'), types: ['radial-bar'] },
+    { re: series('radial-column'), types: ['radial-column'] },
+    { re: series('pie'), types: ['pie'] },
+    { re: series('donut'), types: ['donut'] },
+    { re: series('sunburst'), types: ['sunburst'] },
+    { re: series('treemap'), types: ['treemap'] },
+    { re: series('sankey'), types: ['sankey'] },
+    { re: series('chord'), types: ['chord'] },
+    { re: series('funnel'), types: ['funnel'] },
+    { re: series('cone-funnel'), types: ['cone-funnel'] },
+    { re: series('pyramid'), types: ['pyramid'] },
+    { re: series('organization'), types: ['organization'] },
+    { re: series('map-line'), types: ['map-line'] },
+    { re: series('map-marker'), types: ['map-marker'] },
+    { re: series('map-shape'), types: ['map-shape'] },
+    { re: series('linear-gauge'), types: ['linear-gauge'] },
+    { re: series('radial-gauge'), types: ['radial-gauge'] },
+
+    // Scales — match the example's axis type. The specialised time scales are
+    // exclusive: a unitTimeScale change must not also recommend the time-axis example.
     { re: /unitTimeScale/i, types: ['unit-time'] },
     { re: /ordinalTimeScale/i, types: ['ordinal-time'] },
-    { re: /(timeScale|time\/)/i, types: ['time'] },
+    { re: /(?<!unit|ordinal)timeScale|\/time\//i, types: ['time'] },
     { re: /(continuousScale|linearScale|logScale)/i, types: ['number'] },
     { re: /(bandScale|ordinalScale|categoryAxis)/i, types: ['category'] },
 
@@ -111,8 +176,10 @@ function tagsFor(paths) {
     const cases = new Set();
     const notes = new Set();
     for (const p of paths) {
+        // Series rules are kebab-case; scale and subsystem rules are camelCase.
+        const forms = [p, kebab(p)];
         for (const rule of RULES) {
-            if (!rule.re.test(p)) continue;
+            if (!forms.some((f) => rule.re.test(f))) continue;
             rule.types?.forEach((t) => types.add(t));
             rule.names?.forEach((n) => names.add(n));
             rule.cases?.forEach((c) => cases.add(c));
@@ -125,7 +192,8 @@ function tagsFor(paths) {
 /** Score each example against the tags; higher is a closer match. */
 function recommend(paths) {
     const tags = tagsFor(paths);
-    const scored = allExamples()
+    const examples = allExamples();
+    const scored = examples
         .map((ex) => {
             let score = 0;
             const why = [];
@@ -133,12 +201,23 @@ function recommend(paths) {
                 score += 3;
                 why.push('subsystem');
             }
-            const typeHits = ex.types.filter((t) => tags.types.includes(t));
-            if (typeHits.length > 0) {
-                score += 2 * typeHits.length;
-                why.push(`type:${typeHits.join('+')}`);
+            // A declared type runs in the example's measured default configuration; a
+            // variant only runs in the case that swaps it in, so it scores lower.
+            const declaredHits = ex.types.filter((t) => tags.types.includes(t));
+            const variantHits = ex.variants.filter((t) => tags.types.includes(t) && !declaredHits.includes(t));
+            if (declaredHits.length + variantHits.length > 0) {
+                score += 2 * declaredHits.length + variantHits.length;
+                why.push(`type:${[...declaredHits, ...variantHits].join('+')}`);
             }
-            const caseHits = ex.testCases.filter((c) => tags.cases.includes(c));
+            // A dynamic example's case ids are series names, but its directory name
+            // says which interaction it measures — `data-selection-zoom-*` is a zoom
+            // example, and a zoom-tagged change must be able to select it.
+            const caseHits = [
+                ...new Set([
+                    ...ex.testCases.filter((c) => tags.cases.includes(c)),
+                    ...tags.cases.filter((c) => ex.name.includes(c)),
+                ]),
+            ];
             if (caseHits.length > 0) {
                 score += 1;
                 why.push(`case:${caseHits.join('+')}`);
@@ -149,11 +228,23 @@ function recommend(paths) {
         .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name))
         .slice(0, MAX_RECOMMENDED);
 
+    // A series with no example cannot be evidenced by the browser suite. Say so
+    // rather than falling back to a benchmark that never runs the changed code.
+    const covered = new Set(examples.flatMap((ex) => [...ex.types, ...ex.variants]));
+    const uncovered = tags.types.filter((t) => !covered.has(t));
+    const notes = [...tags.notes];
+    if (uncovered.length > 0) {
+        notes.push(
+            `No benchmark example exercises ${uncovered.join(', ')} — the browser suite cannot evidence this change. ` +
+                'Profile locally with `/ag-charts:benchmark-profile` instead.'
+        );
+    }
+
     return {
         tags,
         examples: scored.map(({ name, score, why, testCases }) => ({ name, score, why, testCases })),
         command: scored.length > 0 ? `/benchmarks ${scored.map((e) => e.name).join(' ')}` : null,
-        notes: tags.notes,
+        notes,
     };
 }
 
@@ -165,7 +256,7 @@ function main() {
                 [
                     ex.name.padEnd(30),
                     ex.enterprise ? 'ent' : 'com',
-                    (ex.types.join(',') || '-').padEnd(28),
+                    ([...new Set([...ex.types, ...ex.variants])].join(',') || '-').padEnd(34),
                     ex.testCases.join(',') || '-',
                 ].join(' ')
             );

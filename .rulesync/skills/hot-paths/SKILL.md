@@ -100,6 +100,12 @@ node tools/hot-paths/benchmark-map.js --for <changed,paths>   # → recommended 
 node tools/hot-paths/benchmark-map.js --list                  # every example, with its series/axis types and test cases
 ```
 
+It recommends only examples that actually run the changed series, and returns a
+note instead of a command when none does — most non-cartesian series have no
+benchmark example. A clean run on a benchmark that never executed the change is
+worse than no evidence, so profile locally in that case rather than substituting
+the nearest example.
+
 - **`/benchmarks <example...>`** as a PR comment runs the browser suite. It compares the
   PR head against the **merge-base**, not the base-branch tip, so it measures the PR's
   own diff. `compare-browser-results.js` only calls a change a regression once it clears
