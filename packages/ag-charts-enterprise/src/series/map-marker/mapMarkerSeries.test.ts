@@ -106,9 +106,8 @@ describe('MapMarkerSeries', () => {
         });
     });
 
-    // CRT-1078: Hovering a legend item in a map marker chart produces a highlight with
-    // datum == null. Without the fix, getHighlightedDatum() passes this through and the
-    // render cycle crashes accessing point.x on the undefined datum.
+    // Hovering a legend item produces a highlight with datum == null, which must not reach the
+    // render cycle.
     describe('legend hover with null datum (CRT-1078)', () => {
         it('should not crash when hovering the legend item', async () => {
             const options: AgChartOptions = {
@@ -120,8 +119,6 @@ describe('MapMarkerSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
 
-            // Hover over the legend item — triggers a highlight with datum == null.
-            // Without the fix this crashes the render cycle.
             const { x, y } = computeLegendBBox(chart);
             await hoverAction(x + 10, y + 10)(chart);
             await waitForChartStability(chart);
@@ -211,7 +208,6 @@ describe('MapMarkerSeries', () => {
 
         const checkHighlight = async (chartInstance: any) => {
             await hoverChartNodes(chartInstance, ({ series }) => {
-                // Check the highlighted marker
                 const highlightNode = testParams.getHighlightNode(chartInstance, series);
                 expect(highlightNode).toBeDefined();
                 expect(highlightNode.fill).toEqual('lime');
@@ -224,12 +220,10 @@ describe('MapMarkerSeries', () => {
             offset?: { x: number; y: number }
         ) => {
             await hoverChartNodes(chartInstance, async ({ x, y }) => {
-                // Perform click
                 await clickAction(x + (offset?.x ?? 0), y + (offset?.y ?? 0))(chartInstance);
                 await waitForChartStability(chartInstance);
             });
 
-            // Check click handler
             const nodeCount = chartInstance.series.reduce(
                 (sum, series) => sum + testParams.getNodeData(series).length,
                 0
@@ -240,17 +234,14 @@ describe('MapMarkerSeries', () => {
         it(`should render tooltip correctly`, async () => {
             chart = await createChart({ hasTooltip: true });
             await hoverChartNodes(chart, ({ series, item }) => {
-                // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-charts-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(false);
 
-                // Check the tooltip text
                 const values = testParams.getDatumValues(item, series);
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
 
-            // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
             await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             const tooltip = document.querySelector('.ag-charts-tooltip');
@@ -426,9 +417,8 @@ describe('MapMarkerSeries', () => {
                         colorKey: 'population',
                         colorScale: {
                             fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
-                            // Deliberately contrasting colour: markers render at the theme-default
-                            // fillOpacity of 0.5 against a grey map background, so a neutral grey
-                            // fill would be visually indistinguishable in the snapshot.
+                            // Markers render at 0.5 fillOpacity over a grey map, so a neutral fill
+                            // would be indistinguishable in the snapshot.
                             missingDataFill: 'magenta',
                         },
                     },
@@ -895,10 +885,8 @@ describe('MapMarkerSeries', () => {
         });
     });
 
-    // Marker enter-scale, asserted over the whole animation trajectory (see the
-    // animation-trajectory-tests rule). Markers grow from a point to full size; the reveal is
-    // observed on the marker's rendered bbox width/height (Marker nodes carry the scale on their
-    // geometry, not as a sampled scalingX/scalingY transform).
+    // Markers grow from a point to full size; Marker nodes carry the scale on their geometry, so the
+    // reveal is observed on the rendered bbox rather than a scalingX/scalingY transform.
     describe('marker enter animation', () => {
         const frames = spyOnAnimationFrames();
 
@@ -926,8 +914,7 @@ describe('MapMarkerSeries', () => {
             for (const key of keys) {
                 const width = trajectory.map((frame) => frame.get(key)!.width);
                 const height = trajectory.map((frame) => frame.get(key)!.height);
-                // Anti-vacuity: the marker is a point at frame 0 and grows to full size, so the
-                // directional spec below cannot pass flat.
+                // Anti-vacuity: without these the directional spec below could pass flat.
                 expect(width[0], `${key} width at frame 0`).toBeLessThanOrEqual(0.5);
                 expect(width.at(-1)!, `${key} width settled`).toBeGreaterThan(1);
                 expectMonotonic(width, 'increasing');
@@ -935,9 +922,8 @@ describe('MapMarkerSeries', () => {
                 expect(height[0], `${key} height at frame 0`).toBeLessThanOrEqual(0.5);
                 expectMonotonic(height, 'increasing');
 
-                // The marker scales about its fixed geographic position: its top-left (x/y) drifts
-                // inwards as width/height grow, but the centre must not move. A marker that grew while
-                // translating across the map would pass the size checks above yet fail here.
+                // The marker scales about its fixed geographic position, so its top-left drifts
+                // inwards as it grows but the centre must not move.
                 const centreX = trajectory.map((frame) => frame.get(key)!.x + frame.get(key)!.width / 2);
                 const centreY = trajectory.map((frame) => frame.get(key)!.y + frame.get(key)!.height / 2);
                 for (const [i, cx] of centreX.entries()) {
@@ -951,8 +937,6 @@ describe('MapMarkerSeries', () => {
                 spec[key] = {
                     width: ['increases', 'progresses'],
                     height: ['increases', 'progresses'],
-                    // x/y drift as the top-left tracks the growing marker; the fixed centre they encode
-                    // is asserted per frame in the loop above.
                     x: 'any',
                     y: 'any',
                 };
@@ -962,9 +946,8 @@ describe('MapMarkerSeries', () => {
             deproxy(proxy).destroy();
         });
 
-        // Pins current behaviour: markers entering on a data update appear at full size on their
-        // first frame rather than scaling in — the enter-scale animation only runs on the initial
-        // empty->ready reveal. This pins the quirk; it does not fix it.
+        // The enter-scale animation only runs on the initial empty->ready reveal, so markers entering
+        // on a data update appear at full size.
         it('entering markers appear at full size on a data update, no scale-in (AG-17797)', async () => {
             const options = mapOptions(ukData.slice(0, 1));
             prepareEnterpriseTestOptions(options);
@@ -978,8 +961,7 @@ describe('MapMarkerSeries', () => {
             const beforeKeys = new Set(markerKeys(before));
             const survivingKey = markerKeys(after).find((key) => beforeKeys.has(key))!;
             const entering = markerKeys(after).filter((key) => !beforeKeys.has(key));
-            // Non-vacuity guard: the entering set must be exactly the three added markers before any
-            // per-marker assertion, otherwise the loop below would pass by asserting nothing.
+            // Anti-vacuity: otherwise the loop below would pass by asserting nothing.
             expect(survivingKey, 'a surviving marker to read the full size from').toBeDefined();
             expect(entering, 'markers added by the update').toHaveLength(3);
 

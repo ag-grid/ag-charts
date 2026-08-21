@@ -2,10 +2,8 @@ import { DISABLE_MARKDOWN_DOCS, SITE_URL } from '@constants';
 import { SESSIONS, type Session, sessionSlug } from '@utils/beyondThePromptSessions';
 import { buildSessionMarkdown } from '@utils/markdown-pages/buildSessionMarkdown';
 
-// Served at /session/<slug>.md — the markdown twin of each recorded session page, built from the
-// same SESSIONS entry the page renders. Mirrors the page's own getStaticPaths so the two URL sets
-// line up 1:1. Content-negotiates from the HTML URL on Accept: text/markdown (see
-// getMarkdownNegotiationRules in htaccessRules.ts).
+// Mirrors the page's own getStaticPaths so the two URL sets line up 1:1.
+// Content-negotiated from the HTML URL on Accept: text/markdown — see getMarkdownNegotiationRules in htaccessRules.ts.
 export function getStaticPaths() {
     if (DISABLE_MARKDOWN_DOCS) {
         return [];

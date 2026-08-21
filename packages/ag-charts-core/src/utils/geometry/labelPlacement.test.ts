@@ -40,8 +40,7 @@ import {
 import { SpatialIndex } from './spatialIndex';
 
 // jsdom has no canvas, so cachedTextMeasurer's real createCanvasContext throws. This stand-in gives
-// measureLabelText deterministic metrics (CHAR_WIDTH px per codepoint, LINE_HEIGHT px per line), scaled
-// by the measurer's font size so that restyling a label's font changes what it measures.
+// measureLabelText deterministic metrics, scaled by the measurer's font size.
 const { CHAR_WIDTH, BASE_FONT_SIZE } = vi.hoisted(() => ({ CHAR_WIDTH: 10, BASE_FONT_SIZE: 12 }));
 vi.mock('../canvas', () => ({
     createCanvasContext: () => ({

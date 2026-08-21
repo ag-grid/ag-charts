@@ -197,9 +197,8 @@ describe('OverlaysProcessor', () => {
 
         const rendersBeforeResize = validationSpy.mock.calls.length;
 
-        // A resize (e.g. an auto-sized chart's container shrinks) emits a fresh layout with a smaller
-        // chart rect; the shown overlay must re-render and follow it rather than freeze at its
-        // first-mounted size.
+        // A resize emits a fresh layout with a smaller chart rect, which the shown overlay must
+        // follow rather than freezing at its first-mounted size.
         emitLayout(eventsHub, new BBox(0, 0, 400, 300), { width: 400, height: 300 });
         expect(validationSpy.mock.calls.length).toBeGreaterThan(rendersBeforeResize);
         expect(overlays.validation.focusBox).toEqual(new BBox(0, 0, 400, 300));
@@ -216,9 +215,8 @@ describe('OverlaysProcessor', () => {
 
         const rendersBeforeResize = validationSpy.mock.calls.length;
 
-        // An erroring chart re-throws on every update, so a resize completes no layout and emits no
-        // layout:complete; the canvas:resize signal must still re-anchor the shown overlay to the
-        // new canvas size rather than leaving it frozen.
+        // An erroring chart completes no layout, so canvas:resize is the only signal left to
+        // re-anchor the shown overlay.
         eventsHub.emit('canvas:resize', { width: 400, height: 300 });
 
         expect(validationSpy.mock.calls.length).toBeGreaterThan(rendersBeforeResize);

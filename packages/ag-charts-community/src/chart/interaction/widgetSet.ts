@@ -111,16 +111,10 @@ export class AxisWidgets {
         this.pruneEntry(axisId, entry);
     }
 
-    // Bounds must be routed through these setters (rather than the widgets' own `setBounds`) because
-    // the axis title text lives in one of two coordinate systems depending on interactivity:
-    //   - Non-interactive axis: there is no region, so the title is a standalone element in the
-    //     canvas-proxy container and is positioned in canvas coordinates.
-    //   - Interactive axis: the title is nested inside the region widget, whose bounds are a subset
-    //     of the canvas bounds. A nested element is positioned relative to the region's origin, not
-    //     the canvas, so the title's canvas bounds must be translated by the region origin.
-    // The region bounds (from the interaction feature) and title bounds (from the caption) arrive
-    // from independent `layout:complete` listeners in an unspecified order, so both are stored and
-    // the title position is re-derived on every update — never depending on which arrived last.
+    // Bounds are routed through these setters because an interactive axis nests its title inside the
+    // region widget (positioned relative to the region origin) while a non-interactive one positions it
+    // in canvas coordinates. Region and title bounds arrive from independent `layout:complete` listeners
+    // in an unspecified order, so both are stored and the position re-derived on every update.
 
     setRegionBounds(axisId: AxisID, bounds: BoxBounds): void {
         const entry = this.getEntry(axisId);

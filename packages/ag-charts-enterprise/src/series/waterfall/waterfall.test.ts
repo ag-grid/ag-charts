@@ -149,8 +149,7 @@ describe('WaterfallSeries', () => {
     }
 
     it('preserves bigint value precision in the data label and formatter callback (AG-16608)', async () => {
-        // The raw value must reach the label text and label-formatter `value` un-narrowed; a bigint
-        // beyond 2^53 would otherwise be float64-rounded in both.
+        // The raw value must reach the label text and formatter `value` un-narrowed, or it float64-rounds above 2^53.
         const BIG_VALUE = 9_007_199_254_740_993n; // Number()-rounds to ...992
         let captured: unknown;
         const options: AgCartesianChartOptions = {
@@ -273,9 +272,7 @@ describe('WaterfallSeries', () => {
         });
 
         it('computes each subtotal totalValue relative to the previous subtotal, not the absolute total', async () => {
-            // Two subtotals: 1st after A,B (segment 150, absolute 150 — coincide); 2nd after C,D
-            // (absolute cumulative 200, segment since the 1st subtotal 50). totalValue must be the
-            // segment the bar represents (50), matching the rendered value, not the absolute total (200).
+            // 2nd subtotal's totalValue must be the segment since the 1st subtotal (50), not the absolute cumulative total (200).
             const options = totalValueOptions({
                 totals: [
                     { totalType: 'subtotal', index: 1, axisLabel: 'Sub 1' },
@@ -594,15 +591,8 @@ describe('WaterfallSeries', () => {
 `);
     });
 
-    // Initial-load animation is covered by the `animation -test page actions` block below
-    // (`initial load (vertical|horizontal): bars and the connector reveal from the baseline`).
-
-    // Frame-trajectory coverage for waterfall animation, replacing the legacy per-ratio image
-    // snapshots. On initial load both the value bars (Rect) and the connector line (a Path, keyed
-    // `series[0]/path[stroke]`) reveal together from a collapsed baseline via `animateEmptyUpdateReady`.
-    // Waterfall overrides no waiting-update hook, so a later data change SNAPS to its end state on the
-    // first frame (as candlestick does). The endpoint guards pin the settled pixels the deleted
-    // 0%/100% snapshots used to.
+    // Initial-load animation is covered below; waterfall overrides no waiting-update hook, so a later
+    // data change snaps to its end state on the first frame (as candlestick does).
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
 
@@ -613,8 +603,7 @@ describe('WaterfallSeries', () => {
             { type: 'D', value: -10 },
         ];
 
-        // A pinned value axis keeps every mutation below provably non-rescaling: only the marks move,
-        // so a reflow or a value change is the series animation, never a rescale.
+        // Pinned value axis keeps every mutation below provably non-rescaling — only the marks move.
         const options = (direction: 'horizontal' | 'vertical', data: object[] = DATA): AgCartesianChartOptions => {
             const valueAxis = { type: 'number' as const, min: -20, max: 80 };
             const catAxis = { type: 'category' as const };
@@ -628,8 +617,7 @@ describe('WaterfallSeries', () => {
             }) as AgCartesianChartOptions;
         };
 
-        // The reveal grows along the value axis (height when vertical, width when horizontal) while the
-        // band axis holds. Naming the dimension per-direction keeps the initial-load specs symmetric.
+        // Naming the dimension per-direction keeps the initial-load specs symmetric.
         const valueDim = (direction: 'horizontal' | 'vertical') => (direction === 'vertical' ? 'height' : 'width');
         const bandDim = (direction: 'horizontal' | 'vertical') => (direction === 'vertical' ? 'width' : 'height');
 
@@ -649,20 +637,15 @@ describe('WaterfallSeries', () => {
             const value = valueDim(direction);
             const band = bandDim(direction);
 
-            // Initial-load reveal: every bar and the connector line grow from the collapsed baseline
-            // along the value axis while their bands hold. The near edge slides for floating/negative
-            // bars, so it is `bounded` by its own endpoints, not pinned constant.
+            // The near edge slides for floating/negative bars, so it is `bounded` by its own endpoints, not pinned constant.
             it(`initial load (${direction}): bars and the connector reveal from the baseline`, async () => {
                 chart = AgCharts.create(options(direction));
                 const sampleScene = createSceneGeometrySampler(chart);
                 const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
 
-                // Anti-vacuity: a named bar AND the connector genuinely start collapsed to ~0 extent (a
-                // snap would already sit at full extent on frame 0, which `increases` then rejects).
+                // Guards against a vacuous pass: bar A must genuinely start collapsed to ~0 extent, not already at full extent.
                 expect(trajectory[0].get('series[0]/rect[A]')![value]).toBeLessThanOrEqual(0.1);
-                // The connector's per-subpath `top@n` props blink in and out as subpaths clip in, so it
-                // can't pass through the constant-by-default scene spec; assert its value dimension grows
-                // through real intermediate frames directly instead.
+                // The connector's per-subpath `top@n` props blink in/out as subpaths clip in, so assert its value dimension directly rather than via the default scene spec.
                 const connector = trajectory.map((f) => f.get('series[0]/path[stroke]')![value]);
                 expect(connector[0]).toBeLessThanOrEqual(0.1);
                 expectProgresses(connector);
@@ -675,24 +658,19 @@ describe('WaterfallSeries', () => {
                         x: phased(['initial', 'trailing'], 'bounded'),
                         y: phased(['initial', 'trailing'], 'bounded'),
                     },
-                    // Value dimension pinned directly above; exempt here so its blinking subpath tops
-                    // don't trip the default-constant rule.
+                    // Exempt: value dimension pinned directly above; blinking subpath tops would trip the default-constant rule.
                     'series[0]/path[stroke]': 'any',
                 });
             });
         }
 
-        // Data mutations SNAP — waterfall overrides no waiting-update animation hook, so the whole
-        // layout (revalued bars, reflowed bands, entrants and leavers) already sits at its settled state
-        // on the first captured frame.
+        // Data mutations snap: the whole layout already sits at its settled state on the first captured frame.
         const captureSnap = (opts: AgCartesianChartOptions, action: () => void) => {
             chart = AgCharts.create(opts);
             return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);
         };
 
-        // Every node must hold constant across the captured frames (the snap) — except the connector,
-        // whose per-subpath `top@n` stations legitimately go non-finite where a segment has no crossing,
-        // which the default constant check can't express. Its settled pixels ride the endpoint guards.
+        // Connector is exempt: its per-subpath `top@n` stations legitimately go non-finite where a segment has no crossing.
         const layoutSnaps: Record<string, SceneNodeExpectation> = { 'series[0]/path[stroke]': 'any' };
 
         it('update value: the changed bar snaps to its new height', async () => {
@@ -714,8 +692,7 @@ describe('WaterfallSeries', () => {
             expect(rectCount(before)).toBe(3);
             expect(rectCount(after)).toBe(4);
             expect(rectCount(trajectory[0])).toBe(4);
-            // The bands genuinely re-flowed: a survivor moved from its 3-band slot, yet it is already at
-            // its new band on frame 0 (snapped, not sliding across).
+            // A survivor moved from its 3-band slot, yet is already at its new band on frame 0 (snapped, not sliding).
             const survivor = 'series[0]/rect[C]';
             expect(Math.abs(after.get(survivor)!.x - before.get(survivor)!.x)).toBeGreaterThan(5);
             expect(Math.abs(trajectory[0].get(survivor)!.x - after.get(survivor)!.x)).toBeLessThan(1);
@@ -735,9 +712,7 @@ describe('WaterfallSeries', () => {
             expectSceneTrajectory(trajectory, layoutSnaps);
         });
 
-        // Pixel endpoint guards: the settled scene must match a static render of the same options
-        // (replacing the deleted 0%/100% image snapshots). One chart per test — the mock canvas only
-        // snapshots the first chart created.
+        // Settled scene must match a static render; one chart per test since the mock canvas only snapshots the first chart created.
         it('endpoints: update value settles at the static render', async () => {
             const before = options('vertical');
             chart = AgCharts.create(before);
@@ -1174,7 +1149,6 @@ describe('WaterfallSeries', () => {
 
             const series = chart.series[0] as WaterfallSeries;
 
-            // Index 0 is the first regular data node
             const regularContent = series.getTooltipContent(0);
             expect(regularContent).toBeDefined();
             expect(regularContent?.type).toBe('structured');
@@ -1194,7 +1168,6 @@ describe('WaterfallSeries', () => {
             const nodeData = series['contextNodeData']?.nodeData;
             expect(nodeData).toBeDefined();
 
-            // Verify every node returns non-missing tooltip content
             for (let i = 0; i < nodeData!.length; i++) {
                 const content = series.getTooltipContent(i);
                 expect(content).toBeDefined();
@@ -1318,8 +1291,7 @@ describe('WaterfallSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
 
-            // Returning undefined must fall through to the default structured tooltip
-            // rather than rendering literal "undefined".
+            // Returning undefined must fall through to the default structured tooltip, not render literal "undefined".
             const html = await hoverDatum(0);
             expect(html).not.toContain('undefined');
             expect(html).toContain('Spending');
@@ -1327,8 +1299,7 @@ describe('WaterfallSeries', () => {
     });
 
     describe('AG-17484: synthetic datum, itemType and itemId for total/subtotal bars', () => {
-        // Augmented order [2020, 2021, Sub, 2022, 2023, Total]: the synthetic subtotal/total consume
-        // index slots, so real bars 2022/2023 sit at datumIndex 3/4.
+        // Augmented order [2020, 2021, Sub, 2022, 2023, Total]: synthetic entries shift real bars 2022/2023 to datumIndex 3/4.
         const DATA = [
             { year: '2020', spending: 10 },
             { year: '2021', spending: -20 },
@@ -1393,8 +1364,7 @@ describe('WaterfallSeries', () => {
             expect(params.positive?.datum).toEqual(DATA[0]);
             expect(params.negative?.datum).toEqual(DATA[1]);
 
-            // itemId uses the stable getItemId resolution: totals fall back to their axisLabel,
-            // real bars (no dataIdKey) fall back to their datumIndex.
+            // getItemId resolution: totals fall back to their axisLabel, real bars (no dataIdKey) fall back to datumIndex.
             expect(params.subtotal?.itemId).toBe('Subtotal');
             expect(params.total?.itemId).toBe('Total');
             expect(params.positive?.itemId).toBe(positiveIndex);
@@ -1421,8 +1391,7 @@ describe('WaterfallSeries', () => {
             expect(syntheticCalls.every((c) => c.datum === undefined)).toBe(true);
             expect(realCalls.every((c) => c.datum != null && typeof c.datum === 'object')).toBe(true);
 
-            // itemId uses the stable getItemId resolution: totals fall back to their axisLabel,
-            // real bars (no dataIdKey) fall back to their numeric datumIndex.
+            // getItemId resolution: totals fall back to their axisLabel, real bars fall back to numeric datumIndex.
             expect(calls.filter((c) => c.itemType === 'subtotal').every((c) => c.itemId === 'Subtotal')).toBe(true);
             expect(calls.filter((c) => c.itemType === 'total').every((c) => c.itemId === 'Total')).toBe(true);
             expect(realCalls.every((c) => typeof c.itemId === 'number')).toBe(true);
@@ -1432,8 +1401,7 @@ describe('WaterfallSeries', () => {
             const series = await createWaterfall(TOTALS_OPTIONS.series![0] as AgWaterfallSeriesOptions);
             const nodeData = getNodeData(series);
 
-            // The nodeClick/nodeDoubleClick/activeChange event payload is built directly from
-            // `node.datum` (SeriesNodeEvent), so asserting it here covers those surfaces.
+            // Covers nodeClick/nodeDoubleClick/activeChange, whose payload is built directly from `node.datum`.
             const byType = (itemType: string) => nodeData.filter((n) => n.itemType === itemType);
             expect(byType('subtotal').every((n) => n.datum === undefined)).toBe(true);
             expect(byType('total').every((n) => n.datum === undefined)).toBe(true);
@@ -1477,8 +1445,7 @@ describe('WaterfallSeries', () => {
             const series = chart.series[0] as WaterfallSeries;
             const nodeData = getNodeData(series);
 
-            // Real bar: itemId unset on the node, so the event/active itemId resolves via dataIdKey
-            // (the `year` value) and round-trips through findNodeDatum.
+            // Real bar's itemId is unset, so the event/active itemId resolves via dataIdKey (`year`) and round-trips through findNodeDatum.
             const real = nodeData.find((n) => n.datumIndex === 0)!;
             expect(real.itemId).toBeUndefined();
             expect(series.findNodeDatum('2020')).toBe(real);
@@ -1515,8 +1482,7 @@ describe('WaterfallSeries', () => {
             const series = chart.series[0] as WaterfallSeries;
             const nodeData = getNodeData(series) as ({ x: number } & ReturnType<typeof getNodeData>[number])[];
 
-            // Both totals share the axisLabel 'Total' but carry distinct itemIds, so they remain two
-            // separate bars rather than collapsing onto a single band.
+            // Distinct itemIds keep both 'Total'-labelled bars separate rather than collapsing onto one band.
             const first = nodeData.find((n) => n.itemId === 'first')!;
             const second = nodeData.find((n) => n.itemId === 'second')!;
             expect(first).toBeDefined();
@@ -1537,8 +1503,7 @@ describe('WaterfallSeries', () => {
                 item: {
                     positive: { label },
                     negative: { label },
-                    // The `total` bucket is shared by total and subtotal bars; the formatter must still
-                    // receive their distinct itemType.
+                    // The `total` bucket is shared by total and subtotal bars; the formatter must still see their distinct itemType.
                     total: { label },
                 },
             });
@@ -1581,9 +1546,7 @@ describe('WaterfallSeries', () => {
             const series = chart.series[0] as WaterfallSeries;
             const total = series.getNodeData()!.find((n) => n.itemType === 'total')!;
 
-            // activeManager.update is the canonical hover simulation; JSDOM canvas hit-testing is
-            // stubbed so DOM events can't drive picking (testing.md). The activeItem itemId mirrors the
-            // node's, which falls back to its axisLabel.
+            // activeManager.update is the canonical hover simulation since jsdom canvas hit-testing is stubbed.
             chart.ctx.activeManager.update({ type: 'series-node', seriesId: series.id, itemId: total.itemId! }, total);
 
             const totalEvent = events.find((e) => e.itemType === 'total');
@@ -1593,8 +1556,7 @@ describe('WaterfallSeries', () => {
         });
 
         it('highlighting a synthetic bar invokes its itemStyler with highlighted-item', async () => {
-            // The item-highlight overlay must render for synthetic bars even though their datum is
-            // undefined, otherwise the styler only ever sees the base-layer unhighlighted-item state.
+            // Must render for synthetic bars despite their undefined datum, or the styler never sees a highlighted-item state.
             const calls: { itemType: string; highlightState: string }[] = [];
             const styler = (p: any) => (calls.push({ itemType: p.itemType, highlightState: p.highlightState }), {});
             const series = await createWaterfall({
@@ -1650,8 +1612,7 @@ describe('WaterfallSeries', () => {
     });
 
     describe('rotated label per-side padding', () => {
-        // A rotated (vertical) khaki-boxed label must float clear of the bar AND stay centred on it,
-        // whatever the per-side padding. One chart per case keeps the mock-canvas text metrics reliable.
+        // One chart per case keeps the mock-canvas text metrics reliable.
         const ROTATED_PADDINGS: Record<string, object> = {
             symmetric: { top: 0, bottom: 0, left: 10, right: 10 },
             'wide left': { top: 0, bottom: 0, left: 50, right: 10 },

@@ -3,9 +3,7 @@ import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 
 import galleryData from '../../content/gallery/data.json';
 
-// Shape of the slice of the gallery collection this twin consumes (see data.json). The
-// `series` field is an array of groups, each group a list of chart types holding their
-// gallery examples — matching how gallery.astro iterates and renders them.
+// The slice of the gallery collection this twin consumes; shaped to how gallery.astro iterates.
 interface GalleryExampleEntry {
     title: string;
     name: string;
@@ -20,8 +18,7 @@ interface GalleryContent {
     series: GallerySeries[][];
 }
 
-// The gallery page links each example via getPageUrl(name) → /gallery/<name>/, rendered by
-// src/pages/gallery/[pageName].astro.
+// Must match the /gallery/<name>/ URLs the page builds via getPageUrl.
 function galleryExampleUrl(name: string, siteRoot?: string): string {
     return toAbsoluteUrl(urlWithBaseUrl(`/gallery/${name}/`), siteRoot);
 }

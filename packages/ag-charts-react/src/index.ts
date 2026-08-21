@@ -25,9 +25,8 @@ interface BaseChartProps {
     className?: string;
 }
 
-// The merge below turns anything spreadable into a valid `{ container }` object - `undefined`, `3`
-// and `{}` all become one - so `AgCharts.create()`'s own check can never see what the caller passed.
-// Validate the raw prop first, and report the same error against the prop rather than the factory.
+// The merge below turns anything spreadable into a valid `{ container }` object, so `AgCharts.create()`'s
+// own check can never see what the caller passed. Validate the raw prop first and report against it.
 function getOptions(
     options: AgChartOptions,
     containerRef: RefObject<HTMLElement | null>,
@@ -63,9 +62,8 @@ function ChartWithConstructor<Props extends BaseChartProps>(
         const unsafeIsInitialMount = chartRef.current === undefined;
         useEffect(() => {
             if (!unsafeIsInitialMount) {
-                // The chart's logger may be absent here — the chart may already be destroyed, or may
-                // never have been created — so raw console is the only guaranteed report. The wrapper
-                // holds only the public `AgChartInstance` type, which exposes no logger.
+                // The chart may already be destroyed, or may never have been created, so its logger is not
+                // reachable here and raw console is the only guaranteed report.
                 // eslint-disable-next-line no-console
                 chartRef.current?.update(getOptions(options, containerRef, displayName)).catch((e) => console.error(e));
             }

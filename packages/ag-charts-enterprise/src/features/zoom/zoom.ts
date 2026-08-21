@@ -105,25 +105,8 @@ export class Zoom extends AbstractModuleInstance {
 
     private hoveredAxisId?: AxisID;
     private hoveredAxisDirection?: ChartAxisDirection;
-    // Tech-Debt: Widget & DragInterpreter do not capture the pointer, so the first mousemove event in DragInterpreter
-    // that triggers the drag-start event can target a different element.
-    //
-    // For example:
-    //
-    // 1.  mousedown the left-most pixel of the .ag-charts-series-area element.
-    //     Effect: drag-start/drag-move deferred.
-    //
-    // 2.  mousemove to the left by 1 pixel:
-    //     Effect: fires on X-axis onAxisMouseEnter() callback.
-    //
-    // 3.  mousemove to the left by 2 more pixels:
-    //     Effect: fires the deferred drag-start/drag-move events, but onSeriesAreaDragStart needs to do nothing if
-    //     you're dragging an axis.
-    //
-    // Workaround: Listen for un-deferred drag-start so that onSeriesAreaDragStart knows what axis was hovered when
-    // the mousedown event occurred.
-    //
-    // This workaround will become obsolete if-and-when Widget drag-* events capture the pointer.
+    // DragInterpreter does not capture the pointer, so a deferred drag-start can be reported against a different
+    // element; recorded from the un-deferred drag-start so the axis the mousedown hit is known.
     private draggedAxisId?: AxisID;
 
     // State
@@ -160,7 +143,7 @@ export class Zoom extends AbstractModuleInstance {
             this.isZoomValid.bind(this)
         );
 
-        // FIXME(AG-8627 TC10; AG-16414) `minVisibleItems` should have its own zoom:change-request handling
+        // FIXME: `minVisibleItems` should have its own zoom:change-request handling
         const minVisibleItemsCallback = (event: _ModuleSupport.ZoomChangeRequestEvent): void => {
             if (this.opts.minVisibleItems > 0) {
                 const restrictions = event.stateAsDefinedZoom();
@@ -339,7 +322,6 @@ export class Zoom extends AbstractModuleInstance {
 
         if (this.draggedAxisId) return;
 
-        // Determine which ZoomDrag behaviour to use.
         let newDragState = DragState.None;
 
         const selectionOpts = this.selectionOpts;

@@ -244,9 +244,7 @@ describe('Category Axis', () => {
     }
 
     describe('block image labels', () => {
-        // Axis label formatters may return `ContentSegment[]` (RichFormatter), so `block: true`
-        // image segments reach the same Text shape used by treemap labels. These snapshots capture
-        // block-image axis labels with and without rotation.
+        // Axis label formatters may return `ContentSegment[]`, so `block: true` image segments reach the same Text shape.
         const iconSvg = (letter: string, fill: string) =>
             `data:image/svg+xml;utf8,${encodeURIComponent(
                 `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">` +

@@ -138,8 +138,7 @@ export const INSTRUMENTS: Instrument[] = [
 // Number of points shown in a trend sparkline.
 const SPARK_POINTS = 24;
 
-// Deterministic PRNG seeded by ticker so each mover's synthetic spark is stable
-// across reloads (no live feed backs these display-only rows).
+// Deterministic PRNG seeded by ticker so each display-only spark is stable across reloads.
 function seededRandom(seed: string): () => number {
     let h = 2166136261;
     for (let i = 0; i < seed.length; i++) {
@@ -155,8 +154,7 @@ function seededRandom(seed: string): () => number {
 
 type MoverSeed = Omit<MoverRow, 'history' | 'baseline'>;
 
-// Synthesize a close-price walk that drifts toward the day's % change, so the
-// sparkline visually agrees with the value in the row.
+// Drift the walk toward the day's % change, so the sparkline agrees with the value in the row.
 function withSpark(row: MoverSeed): MoverRow {
     const rand = seededRandom(row.ticker);
     const totalReturn = row.changePct / 100;
@@ -171,9 +169,7 @@ function withSpark(row: MoverSeed): MoverRow {
     return { ...row, history, baseline };
 }
 
-// Market-overview companies shown in the trending / most-active tables. Distinct
-// from the watchlist INSTRUMENTS, but promoted to full instruments below so they
-// can be selected and streamed in the main chart.
+// Market-overview companies, promoted to full instruments below so they can be selected and streamed.
 const TRENDING_SEED: MoverSeed[] = [
     { ticker: 'ZNTH', name: 'Zenith Mobility', last: 128.44, changePct: 9.82, volume: 54.1 },
     { ticker: 'PIXL', name: 'Pixelate Games', last: 61.2, changePct: -7.35, volume: 38.9 },
@@ -205,8 +201,7 @@ export const MOST_ACTIVE_STOCKS: MoverRow[] = MOST_ACTIVE_SEED.map(withSpark);
 
 const SECTORS = ['Technology', 'Energy & Utilities', 'Healthcare & Consumer'];
 
-// Synthesise the fundamentals a mover lacks (deterministically per ticker) so it
-// becomes a fully-fledged, selectable instrument backed by a live feed.
+// Synthesise a mover's missing fundamentals deterministically so it becomes a selectable instrument.
 function moverToInstrument(row: MoverSeed, index: number): Instrument {
     const rand = seededRandom(`${row.ticker}-fundamentals`);
     const baseline = row.last / (1 + row.changePct / 100);
@@ -275,10 +270,7 @@ function nextClose(prevClose: number, volatility: number): number {
 
 // --- streaming gauge metrics --------------------------------------------------
 //
-// Sentiment, beta and analyst consensus aren't constants on a live desk — they
-// drift as headlines and price action arrive. Each feed keeps its own metrics
-// and nudges them on every tick, mean-reverting toward the instrument's baseline
-// so they wander without running away.
+// Each feed nudges its metrics on every tick, mean-reverting toward the baseline so they never run away.
 
 export interface GaugeMetrics {
     sentiment: number;
@@ -324,8 +316,7 @@ function seedHistory(instrument: Instrument, now: number): Bar[] {
 export class MarketFeed {
     readonly instrument: Instrument;
     private readonly bars: Bar[];
-    // The window drops its oldest bar once past MAX_BARS, so `bars[0]` is not a stable session
-    // reference; capture the open once, as MoverFeed does with its per-row baseline.
+    // `bars[0]` is not a stable session reference once the window drops its oldest bar; capture the open once.
     private readonly openPrice: number;
     private readonly gaugeMetrics: GaugeMetrics;
 
@@ -394,18 +385,13 @@ export class MarketFeed {
 
 // --- streaming peer performance (for the profile peer chart) -----------------
 //
-// A live feed sampled in lockstep with the candlestick chart: one point per bar
-// interval, so the peer chart's time axis stays aligned with the main chart.
-// Each `tick()` appends one point and scrolls the rolling window. The chart plots
-// beta-adjusted outperformance vs a synthetic S&P 500 index — each company's
-// return minus the return its beta says the market alone would have produced —
-// so the S&P 500 itself sits flat at 0 and the lines show who is beating it.
+// Sampled in lockstep with the candlestick chart, so the peer chart's time axis stays aligned.
+// Plots beta-adjusted outperformance against a synthetic index, which therefore sits flat at 0.
 
 const SPX_SEED = 5200;
 const SPX_VOLATILITY = 0.0008;
 
-// Sector-only peers used purely for the comparison chart — not tradable, so they
-// stay out of INSTRUMENTS (and the watchlist), but still get a live price.
+// Sector-only peers: not tradable, so they stay out of INSTRUMENTS but still get a live price.
 interface PeerCompany {
     ticker: string;
     sector: string;
@@ -475,8 +461,7 @@ export interface PeerHeatmapCell {
     value: number;
 }
 
-// Heatmap columns are fixed one-minute wall-clock buckets, so a given column keeps
-// its colour as the feed streams — only the trailing partial bucket updates.
+// Fixed one-minute wall-clock buckets, so a column keeps its colour as the feed streams.
 const HEATMAP_BUCKET_MS = BAR_INTERVAL_MS;
 const HEATMAP_BUCKETS = 30;
 
@@ -498,8 +483,7 @@ interface PeerSample {
 export class PeerPerformanceFeed {
     private readonly samples: PeerSample[] = [];
     private readonly prices: Record<string, number> = {};
-    // Fixed rebase origin, captured once. Every point is measured against this, so
-    // streaming a new day only appends a point — existing points never recompute.
+    // Fixed rebase origin, so streaming a new day only appends a point; existing points never recompute.
     private readonly basePrices: Record<string, number> = {};
     private readonly baseSpx = SPX_SEED;
     private spx = SPX_SEED;
@@ -509,8 +493,7 @@ export class PeerPerformanceFeed {
     // changes once computed.
     private perfCache = new WeakMap<PeerSample, PerfRow>();
     private perfCacheKey = '';
-    // Settled buckets only — a bucket's cells are fixed once it has a stable predecessor in the
-    // window (see rollingSpread).
+    // Settled buckets only: cells are fixed once a bucket has a stable predecessor in the window.
     private readonly spreadCache = new Map<number, PeerHeatmapCell[]>();
     private spreadCacheKey = '';
 
@@ -519,9 +502,7 @@ export class PeerPerformanceFeed {
             this.prices[company.ticker] = company.seed;
             this.basePrices[company.ticker] = company.seed;
         }
-        // advance() pre-increments time before storing, so start one extra interval
-        // back: the final seeded sample then lands at now - one interval, aligning
-        // with seedHistory()'s last main-chart bar.
+        // advance() pre-increments time, so start one interval back to align with seedHistory()'s last bar.
         this.time = now - (HISTORY_BARS + 1) * BAR_INTERVAL_MS;
         for (let i = 0; i < HISTORY_BARS; i++) this.advance();
     }
@@ -627,9 +608,7 @@ export class PeerPerformanceFeed {
             this.spreadCache.clear();
             this.spreadCacheKey = tickersKey;
         }
-        // Fetch one extra older bucket as predecessor context. The first emitted bucket's spread is
-        // the move from its preceding sample; without that context it would be forced to zero. The
-        // context bucket supplies the predecessor only — emit exactly the requested columns.
+        // One extra older bucket supplies predecessor context only; emit exactly the requested columns.
         const buckets = this.timeBuckets(bucketCount + 1);
         const emitStart = buckets.length > bucketCount ? 1 : 0;
         const lastIndex = buckets.length - 1;
@@ -639,9 +618,7 @@ export class PeerPerformanceFeed {
             const bucket = buckets[bucketIndex];
             const key = Math.floor(bucket[0].time / HEATMAP_BUCKET_MS);
             liveKeys.add(key);
-            // A bucket with a stable in-window predecessor and that is no longer filling (not the
-            // trailing bucket) keeps fixed cells; the trailing bucket and any bucket lacking a
-            // predecessor recompute each tick.
+            // Only the trailing bucket and buckets lacking a predecessor recompute each tick.
             const settled = bucketIndex > 0 && bucketIndex < lastIndex;
             let bucketCells = settled ? this.spreadCache.get(key) : undefined;
             if (!bucketCells) {

@@ -42,17 +42,8 @@ const STYLER_EXAMPLES = [
 
 type Vec2 = { x: number; y: number };
 
-// The highlight-state examples branch both the series `styler` and an `itemStyler` on `highlightState`.
-// Each example exposes its invocations - tagged with the series id and the datum's category value - via
-// `window.agE2E.popStylerCalls()`. We hover a datum and focus a legend item, then assert the highlight is
-// attributed to exactly one node / one series, for both callback surfaces.
-//
-// `node1` is a canvas-relative coordinate over a datum that triggers the item styler, exercising the
-// pointer-driven (mouse/touch) highlight path that keyboard navigation does not. Coordinates are
-// chart-type-specific and were measured against each rendered example, then converted to page
-// coordinates at runtime via `canvasToPageTransformer`. To re-measure: open the example at the e2e
-// viewport, hover a datum until the styler reports `highlighted-item`, and record the page coordinate
-// minus the canvas-proxy origin (see the website-e2e-testing rule for the full procedure).
+// `node1` is a canvas-relative coordinate over a datum, measured per chart type against the rendered
+// example at the e2e viewport (see the website-e2e-testing rule for the re-measuring procedure).
 interface HighlightStateExample {
     name: string;
     node1: Vec2;

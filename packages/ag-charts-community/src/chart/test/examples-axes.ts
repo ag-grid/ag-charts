@@ -344,9 +344,8 @@ export const AXIS_LABEL_TEXT_ALIGN: AgCartesianChartOptions = {
     ...examples.ADV_COMBINATION_SERIES_CHART_EXAMPLE,
     legend: { enabled: false },
     axes: {
-        // Unformatted tick values, and a secondary domain anchored at zero, give both vertical axes
-        // labels of differing width. Alignment within a uniform-width column is unobservable: the
-        // column is re-anchored to its widest label, so every label lands in the same place.
+        // Both vertical axes need labels of differing width: alignment within a uniform-width column
+        // is unobservable, since the column re-anchors to its widest label.
         ...mapValues(examples.ADV_COMBINATION_SERIES_CHART_EXAMPLE.axes ?? {}, (axis) => ({
             ...axis,
             min: axis.position === 'right' ? 0 : undefined,

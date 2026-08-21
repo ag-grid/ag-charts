@@ -180,9 +180,8 @@ export class Crosshair
         this.updateSelections(crosshairKeys);
 
         if (!options.snap && this.activeHighlight) {
-            // AG-16861 TC9. If we're hovering over a candlestick and click it, then this fires a layout:complete
-            // event. But we don't need to refresh the positioning of the Y-axis (non-snapping); the non-snap
-            // positioning can stay as-is to stay in sync with the mouse position.
+            // A non-snapping crosshair tracks the mouse position, so a layout:complete raised by clicking a node
+            // must not reposition it.
             return;
         }
 
@@ -205,7 +204,6 @@ export class Crosshair
         const { labels, ctx } = this;
         const labelOpts = this.options?.label;
         for (const key of keys) {
-            // Lazy creation of labels if enabled.
             if (labelOpts?.enabled) {
                 labels[key] ??= new CrosshairLabel(ctx.domManager, key, this.axisCtx.axisId);
             }
@@ -284,7 +282,7 @@ export class Crosshair
     }
 
     private onMouseOut() {
-        // AG-16861 TC9: non-snap crosshairs respond to mouse movements on frozen charts and snap crosshairs don't
+        // Non-snap crosshairs respond to mouse movements on frozen charts; snap crosshairs don't.
         const snap = this.options?.snap ?? true;
         const mask: _ModuleSupport.InteractionState = snap
             ? InteractionState.Hoverable

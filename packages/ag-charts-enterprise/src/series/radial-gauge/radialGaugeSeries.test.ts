@@ -70,11 +70,7 @@ describe('RadialGaugeSeries', () => {
         });
     });
 
-    // The initial-load reveal, asserted over the whole animation trajectory (see the
-    // animation-trajectory-tests rule) rather than as per-ratio image snapshots. Only the needle moves:
-    // its rotation tweens from the scale's start angle to the value's angle during the initial phase,
-    // while its scale and every other node hold constant. This exercises the shared harness' path-node
-    // scalingX/scalingY/rotation readers — the needle is the transform-carrying path they report on.
+    // Only the needle moves on initial load: its rotation tweens to the value's angle while scale and everything else hold constant.
     describe('initial animation', () => {
         const frames = spyOnAnimationFrames();
 
@@ -87,8 +83,7 @@ describe('RadialGaugeSeries', () => {
             const proxy = AgCharts.createGauge(options);
             chart = deproxy(proxy);
             const sampler = createSceneGeometrySampler(proxy);
-            // Capture immediately (the internal settle only waits for layout) so the reveal is preserved;
-            // captureUpdate/captureFrom runToEnd first and would consume the needle rotation before sampling.
+            // captureAnimationFrames (not captureUpdate/captureFrom) avoids running to end first, which would consume the needle rotation before sampling.
             const trajectory = await frames.captureAnimationFrames(proxy, sampler);
             await frames.runToEnd(proxy);
 
@@ -97,13 +92,11 @@ describe('RadialGaugeSeries', () => {
             expect(start, 'needle sampled at frame 0').toBeDefined();
             expect(end, 'needle sampled at final frame').toBeDefined();
 
-            // Anti-vacuity for the rotation tween: it starts at the scale's start angle and genuinely
-            // advances to the value angle, so the directional spec below cannot pass flat.
+            // Anti-vacuity: confirm the rotation genuinely advances before the directional spec below.
             expect(start!.rotation).toBeCloseTo(Math.PI, 5);
             expect(end!.rotation).toBeGreaterThan(start!.rotation + 0.5);
 
-            // Anti-vacuity for the new scale readers: the needle carries a real, non-neutral scale
-            // (radius-derived, far from the neutral 1) that the path-node scalingX/scalingY readers report.
+            // Anti-vacuity: the needle carries a real, non-neutral scale for scalingX/scalingY to report.
             expect(start!.scalingX).toBeGreaterThan(1);
             expect(start!.scalingX).toBeCloseTo(start!.scalingY, 6);
 

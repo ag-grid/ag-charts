@@ -8,16 +8,13 @@ import { EllipsisChar } from './textUtils';
 import type { FontOptions } from './textUtils';
 import { clipLines, fitLabelText, truncateLine, wrapLines, wrapTextSegments } from './textWrapper';
 
-// Mock only the canvas leaf so the real cachedTextMeasurer, measureTextSegments and
-// wrapTextSegments run their actual logic against deterministic metrics: every grapheme cluster
-// (codepoint, so surrogate pairs count as one) is CHAR_WIDTH px wide and every line LINE_HEIGHT px
-// tall. No layout logic is re-implemented here.
+// Mock only the canvas leaf so the real cachedTextMeasurer, measureTextSegments and wrapTextSegments run
+// against deterministic metrics: every grapheme cluster is CHAR_WIDTH px wide, every line LINE_HEIGHT px tall.
 const { CHAR_WIDTH, LINE_HEIGHT } = vi.hoisted(() => ({ CHAR_WIDTH: 10, LINE_HEIGHT: 20 }));
 
 vi.mock('../canvas', () => ({
-    // jsdom has no canvas, so cachedTextMeasurer's real createCanvasContext throws. This stand-in
-    // only needs a writable `font` (cachedTextMeasurer assigns it) and a measureText returning
-    // fixed metrics; wrapping never reads the font back or calls baselineDistance.
+    // jsdom has no canvas, so cachedTextMeasurer's real createCanvasContext throws. This stand-in only needs
+    // a writable `font` and a measureText returning fixed metrics.
     createCanvasContext: () => ({
         font: '',
         measureText: (text: string) => ({
@@ -414,12 +411,8 @@ describe('wrapLines', () => {
 
     describe('avoidOrphans', () => {
         it('should move orphan word to join previous line when enabled (default)', () => {
-            // 'AA BB CC DD EE FF G' at maxWidth=90:
-            // Line 1: 'AA BB CC' (80px fits, 'DD' would push to 100 > 90)
-            // Line 2: 'DD EE FF' (80px fits, 'G' would push to 100 > 90)
-            // Line 3: 'G' → orphan (single word)
-            // avoidOrphans: beforeLast='DD EE FF' has 2 spaces, lastLine='G' has no space
-            // → moves 'FF' down: ['AA BB CC', 'DD EE', 'FF G']
+            // At maxWidth=90 the natural wrap leaves 'G' alone on the last line; avoidOrphans moves
+            // 'FF' down to join it.
             const result = wrapLines('AA BB CC DD EE FF G', { font, maxWidth: 90 });
             const lastLine = result.at(-1)!;
             expect(lastLine.split(' ').length).toBeGreaterThan(1);
@@ -794,9 +787,8 @@ describe('wrapTextSegments — block-leading image', () => {
     });
 
     it('treats adjacent block:true images mid-line as inline (no spurious block strip)', () => {
-        // Regression for AG-15933: text, block-image, block-image, text. Neither image follows a
-        // \n or index 0, so the run is mid-line and both images stay inline — the second must not
-        // be promoted to a block strip while the first remains inline (which corrupted layout).
+        // text, block-image, block-image, text: neither image follows a `\n` or index 0, so the run is
+        // mid-line and both images must stay inline rather than the second becoming a block strip.
         const segments: ContentSegment[] = [
             text('Prefix '),
             image('a', { width: 20, height: 20, block: true }),
@@ -851,9 +843,8 @@ describe('wrapTextSegments — block-leading image', () => {
     });
 });
 
-// Regression coverage for the AG-15933 follow-up that removed the speculative
-// `textWrap: 'never'` override on axis-tick labels containing image segments. The wrapper must
-// honour the user-supplied wrap mode (or theme default) when the label mixes text and image segments.
+// The wrapper must honour the user-supplied wrap mode (or theme default) when a label mixes text and
+// image segments.
 describe('wrapTextSegments — non-never wrap modes with image segments', () => {
     it("wraps trailing text to a new line under 'on-space' when image + text overflow the first line", () => {
         // maxWidth 60. Image is 30px → fits on line 1. Trailing 'AB CD EF' is 80px and cannot

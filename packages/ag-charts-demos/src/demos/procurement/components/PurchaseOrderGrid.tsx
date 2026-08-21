@@ -60,8 +60,7 @@ export function PurchaseOrderGrid({ orders, poActions, onAction }: PurchaseOrder
                 headerName: 'Quantity',
                 minWidth: 120,
                 type: 'rightAligned',
-                // Specified as unfilterable: quantity is only comparable within one unit
-                // of measure, and the grid mixes them.
+                // Unfilterable: quantity is only comparable within one unit of measure, and the grid mixes them.
                 filter: false,
                 valueFormatter: ({ value, data }) => (value == null ? '' : `${fmtInt(value)} ${data?.unit ?? ''}`),
             },
@@ -114,9 +113,7 @@ export function PurchaseOrderGrid({ orders, poActions, onAction }: PurchaseOrder
                 headerName: 'Action',
                 minWidth: 180,
                 maxWidth: 200,
-                // Pinned so it survives horizontal scrolling. The other nine columns overflow a
-                // laptop-width viewport, and an action she has to scroll sideways to reach is an
-                // action she will not take.
+                // Pinned: the other columns overflow a laptop viewport, and an action she must scroll to reach is not taken.
                 pinned: 'right',
                 // A control column, so nothing to sort or filter on.
                 sortable: false,
@@ -125,8 +122,7 @@ export function PurchaseOrderGrid({ orders, poActions, onAction }: PurchaseOrder
                 cellRenderer: ({ data }: ICellRendererParams<PurchaseOrder>) => {
                     if (!data) return null;
                     const recorded = poActions[data.poId];
-                    // Once a decision is recorded the line states it, rather than offering the
-                    // same three buttons again as though nothing had happened.
+                    // Once a decision is recorded the line states it rather than offering the same buttons again.
                     if (recorded) {
                         return (
                             <span className="pc-po-action-done">

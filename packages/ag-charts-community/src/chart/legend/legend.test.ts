@@ -140,7 +140,6 @@ describe('Legend', () => {
     const ctx = setupMockCanvas();
 
     const compare = async (chartInstance: Chart, customSnapshotIdentifier?: string, useLooserDefaults = false) => {
-        // Try tighter threshold: 0.06 per-pixel (closer to default 0.05) and 550 pixel count
         const defaults = useLooserDefaults ? looserSnapshotDefaults(0.06, 550) : IMAGE_SNAPSHOT_DEFAULTS;
         await compareImageSnapshot(chartInstance, ctx, { ...defaults, customSnapshotIdentifier });
     };
@@ -213,7 +212,6 @@ describe('Legend', () => {
                 await doubleClickAction(x, y)(chart);
                 await waitForChartStability(chart);
 
-                // Click the legend item again for some reason... why does this test require this?
                 await clickAction(x, y)(chart);
                 await waitForChartStability(chart);
 
@@ -247,7 +245,6 @@ describe('Legend', () => {
                 await doubleTapAction(x, y)(chart);
                 await waitForChartStability(chart);
 
-                // Click the legend item again for some reason... why does this test require this?
                 await clickAction(x, y)(chart);
                 await waitForChartStability(chart);
 
@@ -486,8 +483,7 @@ describe('Legend', () => {
         it('should dim a toggled-off item as a whole when no disabledStyle is set', async () => {
             const [disabled, enabled] = await disabledItem({});
 
-            // The item group carries the dim and the label keeps its own 0.5 on top, which is the
-            // appearance shipped before disabledStyle existed - no baseline churn for default charts.
+            // The item group carries the dim and the label keeps its own 0.5 on top.
             expect(disabled.opacity).toBe(0.5);
             expect(disabled.marker?.fillOpacity).toBe(1);
             expect(disabled.line?.strokeOpacity).toBe(1);
@@ -643,23 +639,20 @@ describe('Legend', () => {
                 ],
             });
             chart = deproxy(AgCharts.create(options));
-            // Use looser threshold for AG-15016 scene graph changes
+            // Looser threshold for scene-graph churn.
             await compare(chart, 'ag-12693-both-visible', true);
 
             const [x_ag, x_npm, y] = [357, 428, 575];
 
-            // Hide AG Grid scatter
             await clickAction(x_ag, y)(chart);
             await compare(chart, 'ag-12693-one-visible');
 
-            // Hide NPM scatter
             await clickAction(x_npm, y)(chart);
             await compare(chart, 'ag-12693-none-visible');
 
-            // Show both scatters
             await clickAction(x_ag, y)(chart);
             await clickAction(x_npm, y)(chart);
-            // Use looser threshold for AG-15016 scene graph changes
+            // Looser threshold for scene-graph churn.
             await compare(chart, 'ag-12693-both-visible', true);
         });
     });
@@ -769,12 +762,10 @@ describe('Legend', () => {
             chart = deproxy(chartInstance);
             await waitForChartStability(chart);
 
-            // click legend to hide series
             const { x, y } = computeLegendBBox(chart);
             await clickAction(x, y)(chart);
             await waitForChartStability(chart);
 
-            // update data, series should remain hidden
             await chartInstance.updateDelta({
                 ...options,
                 data: [
@@ -807,12 +798,10 @@ describe('Legend', () => {
             chart = deproxy(chartInstance);
             await waitForChartStability(chart);
 
-            // click legend to hide series
             const { x, y } = computeLegendBBox(chart);
             await clickAction(x, y)(chart);
             await waitForChartStability(chart);
 
-            // remove legend, all series should become visible again
             await chartInstance.updateDelta({
                 ...options,
                 legend: { enabled: false },
@@ -842,7 +831,6 @@ describe('Legend', () => {
             chart = deproxy(chartInstance);
             await waitForChartStability(chart);
 
-            // click legend to hide series
             const { x, y } = computeLegendBBox(chart);
             await clickAction(x, y)(chart);
             await clickAction(x + 75, y)(chart);
@@ -850,7 +838,6 @@ describe('Legend', () => {
 
             await compare(chart); // Two series should be hidden.
 
-            // remove legend, all series should become visible again
             await chartInstance.updateDelta({
                 ...options,
                 legend: {
@@ -882,12 +869,10 @@ describe('Legend', () => {
             chart = deproxy(chartInstance);
             await waitForChartStability(chart);
 
-            // click legend to hide series
             const { x, y } = computeLegendBBox(chart);
             await clickAction(x, y)(chart);
             await waitForChartStability(chart);
 
-            // remove legend, all series should become visible again
             await chartInstance.updateDelta({
                 ...options,
                 legend: { item: { showSeriesStroke: true } },
@@ -1089,7 +1074,6 @@ describe('Legend', () => {
             animate(1200, 1);
             chart = await createChart(options);
 
-            // Hide first series via legend click, then show it again.
             const { x, y } = computeLegendBBox(chart);
             await clickAction(x, y)(chart);
             await waitForChartStability(chart);
@@ -1282,7 +1266,6 @@ describe('Legend', () => {
                 },
             });
 
-            // Non-truncated item: no tooltip
             await hoverLegendItem();
             expect(isTooltipVisible(chart)).toBe(false);
         });

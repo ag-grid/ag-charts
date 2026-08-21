@@ -48,13 +48,11 @@ export function setElementBBox(element: HTMLElement | undefined, bbox: Partial<B
 
 export function getElementBBox(element: HTMLElement): BoxBounds {
     // Try to read from style first to avoid triggering layout/reflow
-    // Only fallback to offsetWidth/offsetHeight if style values aren't set
     const styleWidth = Number.parseFloat(element.style.width);
     const styleHeight = Number.parseFloat(element.style.height);
     const styleX = Number.parseFloat(element.style.left);
     const styleY = Number.parseFloat(element.style.top);
 
-    // Use style values if they're valid numbers, otherwise fallback to offset values
     const width = Number.isFinite(styleWidth) ? styleWidth : element.offsetWidth;
     const height = Number.isFinite(styleHeight) ? styleHeight : element.offsetHeight;
     const x = Number.isFinite(styleX) ? styleX : element.offsetLeft;

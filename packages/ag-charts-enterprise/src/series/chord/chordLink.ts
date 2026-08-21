@@ -107,8 +107,8 @@ export class ChordLink<D = unknown> extends Path<D> {
     @SceneChangeDetection()
     tension: number = 1;
 
-    // Change-detected because a cornerRadius change moves the link's ends without touching any of
-    // the angles above, so nothing else would mark the path dirty.
+    // A cornerRadius change moves the link's ends without touching the angles above, so nothing
+    // else would mark the path dirty.
     @SceneObjectChangeDetection({ equals: objectsEqual })
     edge1: ChordLinkNodeEdge | undefined = undefined;
 
@@ -160,17 +160,15 @@ export class ChordLink<D = unknown> extends Path<D> {
         const centreRadius = innerRadius + cornerRadius;
         const delta = 1e-6;
 
-        // Corner arcs run from the node's radial edge to the tangent point on its inner edge, and a
-        // point's polar angle falls as the arc is traced, so this link end's higher boundary maps to
-        // the lower arc angle. Angles mirror `Sector`'s startInnerArc/endInnerArc so the two
-        // outlines coincide exactly — see scene/shape/sector.ts.
+        // Angles mirror `Sector`'s startInnerArc/endInnerArc so the two outlines coincide exactly;
+        // polar angle falls as the corner arc is traced, so the higher boundary maps to the lower angle.
         if (endAngle > endCentreAngle + delta) {
             const cx = centerX + centreRadius * Math.cos(endCentreAngle);
             const cy = centerY + centreRadius * Math.sin(endCentreAngle);
             const edgeAngle = edge.endAngle + Math.PI * 0.5;
             const tangentAngle = edge.endAngle + Math.PI - cornerSweep;
-            // A boundary flush with the node's own edge takes the arc's endpoint rather than a ray
-            // crossing, because that endpoint sits on the node's radially inset edge, not on the ray.
+            // A boundary flush with the node's edge takes the arc endpoint, which sits on the node's
+            // radially inset edge rather than on the ray.
             const from =
                 endAngle >= edge.endAngle - delta
                     ? edgeAngle

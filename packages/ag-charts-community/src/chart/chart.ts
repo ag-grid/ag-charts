@@ -146,12 +146,8 @@ function syncAxisContext(axis: ChartAxis, opts: AgBaseAxisOptions): void {
 
 const MINI_CHART_AXIS_STRIPPED_KEYS = new Set(['thickness', 'title', 'crosshair', 'depthOptions']);
 
-// Mini-chart axes never inherit main-axis tick-density controls. Pre-refactor
-// this was achieved by post-construction `=` assignments that cleared the
-// fields; here we rebuild the interval object so these four keys come solely
-// from the user-supplied `navigator.miniChart.label.interval` (or stay
-// undefined). Other interval keys, e.g. category-axis `placement`, still
-// fall through from the main axis.
+// Mini-chart axes never inherit main-axis tick-density controls; these keys come solely from
+// `navigator.miniChart.label.interval`, while other interval keys still fall through.
 const MINI_CHART_INTERVAL_DENSITY_KEYS = ['step', 'values', 'minSpacing', 'maxSpacing'] as const;
 
 function deriveMiniChartInterval(
@@ -215,10 +211,7 @@ function deriveMiniChartOptions(completeOptions: AgChartOptions): AgChartOptions
         const lineOverride = isHorizontal ? { enabled: false } : undefined;
         const parentLevelOverride =
             isHorizontal && TIME_LIKE_AXIS_TYPES.has(axisOptions.type ?? '') ? { enabled: false } : undefined;
-        // Mini-chart never inherits axis thickness, title, crosshair, or
-        // grouped-category depth styling from the main chart's options. Build
-        // the derived axis options without those keys so the mini-chart axis
-        // never sees them.
+        // Mini-chart axes never inherit thickness, title, crosshair or grouped-category depth styling.
         const sourceDepth = (axisOptions as { depthOptions?: unknown[] }).depthOptions;
         const groupedCategoryDepth = isGroupedCategoryHorizontal
             ? deriveMiniChartGroupedCategoryDepth(sourceDepth)
@@ -312,11 +305,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
     public data: DataSet;
 
-    // A dispatched lazy load is a non-empty array, but its rows can still fail to render against the
-    // series keys (wrong-shaped or all-null rows). The DataService is series-agnostic and cannot
-    // detect that; only a post-process check on `series.hasData` can. Each load snapshots the
-    // outgoing data-set so the next `update:complete` can restore it if the load rendered nothing,
-    // keeping the chart non-blank and re-requestable on an identical re-zoom.
+    // A lazy load's rows can still fail to render against the series keys, which only a post-process
+    // `series.hasData` check detects, so snapshot the outgoing data-set to restore on an empty render.
     private pendingDataRetain: { snapshot: DataSet; requestId: number | undefined } | undefined = undefined;
 
     public loading: boolean | undefined = undefined;
@@ -502,9 +492,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         }));
         this.data = DataSet.empty(ctx.logger);
 
-        // Publish processed options to chartState immediately so option-derived reads
-        // (mode, padding, etc.) work for the rest of construction. `applyOptions` will
-        // refresh this on each subsequent update.
+        // Published immediately so option-derived reads work for the rest of construction.
         ctx.chartState.setValue('options', options.processedOptions as unknown as ChartState['options']);
 
         this.chartCaptions = new ChartCaptions(ctx);
@@ -512,8 +500,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         this.titleGroup.append(this.subtitle.node);
         this.titleGroup.append(this.footnote.node);
 
-        // Disable delayed unhighlight + tooltip removal for sparklines to avoid laggy tooltips when quickly
-        // moving between charts (CRT-1012)
+        // Delayed unhighlight and tooltip removal make sparklines feel laggy when moving between charts.
         if (options.optionMetadata.presetType === 'sparkline') {
             ctx.highlightManager.unhighlightDelay = 0;
             ctx.tooltipManager.removeDelay = 0;
@@ -581,9 +568,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         this.seriesAreaManager = new SeriesAreaManager(this.initSeriesAreaDependencies());
         this.cleanup.register(
-            // Observers that re-apply BaseProperties subtrees when their option subtree
-            // changes. Replaces the explicit `.set()` cascade previously in Chart.applyOptions
-            // (Phase 12.7 migration off the BaseProperties cascade).
+            // Observers that re-apply BaseProperties subtrees when their option subtree changes.
             ctx.chartState.observe((get) => {
                 const opts = get('options', 'tooltip');
                 if (opts != null) this.tooltip.set(opts);
@@ -767,11 +752,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
         outdatedOptions: ChartOptions,
         seriesWithUserVisibility: NonNullable<ChartOptions['seriesWithUserVisibility']>
     ): void {
-        // AG-16360 The preferred mechanism to update the series visibility is to use the `chart.setState` API. However,
-        // the `series[].visible` property pre-dates the `initialState`, `getState`, `setState' APIs. As a consequence,
-        // the `series[].visible` property is an unusual state where it is treated like both the "initial" state and the
-        // "new / updated" state; sometimes `updateDelta()` updates the series visibility, and sometimes it doesn't. To
-        // address this discrepancy, we'll update processedOptions to match the current visibility state of the series.
+        // `series[].visible` pre-dates the state APIs and acts as both initial and updated state, so keep
+        // processedOptions in step with the live series visibility.
         for (let i = 0; i < this.series.length; i++) {
             type TSrc = { visible: boolean; id: string };
             type TDst = { visible: boolean } | object | undefined;
@@ -1010,9 +992,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     private async tryPerformUpdate(count: number) {
-        // Wrapped callbacks re-run (and can re-report caught errors) only when their cache is cleared
-        // this cycle; on a cache-hit redraw the styler's result is reused without re-invocation, so the
-        // previously committed callback-error set stays authoritative and must not be wiped by an empty cycle.
+        // On a cache-hit redraw the callbacks never re-run, so the committed callback-error set stays
+        // authoritative and must not be wiped by an empty cycle.
         const callbacksReEvaluated = this.clearCallbackCacheOnUpdate;
         if (callbacksReEvaluated) this.validationCollector.beginCallbackIssues();
         this.pendingFailFastError = undefined;
@@ -1053,10 +1034,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if (this.clearCallbackCacheOnUpdate) {
             this.clearCallbackCacheOnUpdate = false;
 
-            // AG-10112 Callbacks (i.e. formatters / stylers / renderers) must always be considered "outdated" at the start
-            // of a draw call, because it is impossible for us to determine whether the return values have changed. The
-            // cache will only be used if nothing is being redrawn (e.g. moving the cursor within a bar of bar-series, which
-            // doesn't change the current highlight).
+            // Callback return values can change unobservably, so they are always outdated at the start of a
+            // draw call; the cache only survives when nothing is redrawn.
             this.clearCallbackCache();
         }
 
@@ -1296,9 +1275,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
             const success = await this._autoSizeNotify.waitForCompletion(500);
 
             if (!success) {
-                // After several failed passes, continue and accept there maybe a redundant
-                // render. Sometimes this case happens when we already have the correct
-                // width/height, and we end up never rendering the chart in that scenario.
+                // Accept a possibly redundant render: the size may already be correct, and waiting
+                // forever would leave the chart unrendered.
                 this.debug('Chart.checkFirstAutoSize() - timeout for first size update.');
             }
         }
@@ -1557,10 +1535,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if (Object.keys(chartRanges).length === 0) {
             this._requiredRange = 0;
         } else {
-            // IMPORTANT: _requiredRange must only be set here (during PROCESS_RANGE), not during
-            // PERFORM_LAYOUT. The zoom oscillation guard in zoomManager.restoreRequiredRange() depends
-            // on this value being stable across re-layouts to distinguish genuine option changes from
-            // layout-triggered dimension changes. See AG-16803 and AG-17008.
+            // Set only during PROCESS_RANGE: zoomManager's oscillation guard needs this stable across
+            // re-layouts to tell option changes from layout-triggered dimension changes.
             this._requiredRange = Math.ceil(Math.max(...Object.values(chartRanges)));
         }
 
@@ -1862,7 +1838,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         // Apply the series area modules after the axes to ensure the axes are available for these modules.
         this.applySeriesAreaModules(newOpts);
 
-        // AG-16389: Only reset data if the user explicitly passed 'data' in their delta.
+        // Only reset data if the user explicitly passed 'data' in their delta.
         const { userDeltaKeys } = newChartOptions;
         const userExplicitlyPassedData = userDeltaKeys === undefined || userDeltaKeys.has('data');
         let dataSetRecreated = false;
@@ -2060,19 +2036,13 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         const series: UnknownSeries[] = miniChart.series;
         for (const s of series) {
-            // AG-12681
             s.properties.id = undefined;
         }
 
         const axes = miniChart.axes as ChartAxis[];
 
-        // AG-17456: the navigator overlay is derived from the main chart's domain-direction
-        // axis after `nice` rounding, so the mini-chart axis on that same direction must
-        // inherit `nice` from the main axis or the handles drift. All other (cross) axes
-        // keep `nice = false` — restoring the pre-AG-13759 raw-extent rendering and avoiding
-        // collateral mini-chart rendering changes (see AG-17456 history comment).
-        // The domain direction is resolved from the main series rather than
-        // `_requiredRangeDirection`, which is only set later by `processRanges()`.
+        // The navigator overlay derives from the main domain-direction axis after `nice` rounding, so the
+        // matching mini-chart axis must inherit `nice` or the handles drift; cross axes keep `nice = false`.
         const domainDirection = this.series.some(
             (s) => s.visible && s.resolveKeyDirection(ChartAxisDirection.X) === ChartAxisDirection.Y
         )
@@ -2094,11 +2064,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
             if (shouldBeEnabled === this.modulesManager.isEnabled(module.name)) continue;
 
             if (shouldBeEnabled) {
-                // Register any services this module contributes before constructing it.
-                // Modules registered after `createChartContext()` (e.g. a plugin added via
-                // `AgCharts.registerModule()` post-construction) would otherwise miss the
-                // one-shot `register()` loop in `createChartContext`. `ctx.has()` guards in
-                // each register hook keep repeated registration a no-op.
+                // Modules registered after `createChartContext()` would otherwise miss its one-shot
+                // `register()` loop; `ctx.has()` guards make a repeat registration a no-op.
                 module.register?.(this.getModuleContext());
                 const moduleInstance = module.create(this.getModuleContext());
                 this.modulesManager.addModule(module.name, moduleInstance);
@@ -2249,9 +2216,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             chart.axes = this.createAxes(axes);
         }
 
-        // Axes the user never named — the implicit primary axes created for a direction no `axes` entry
-        // covers — have no unmapped key. Fall back to the canonical id ('x', 'y', ...) so `userKey` is
-        // always a usable identifier, matching how option key paths resolve axis keys.
+        // Implicit primary axes have no unmapped key, so fall back to the canonical id to keep `userKey` usable.
         const { unmappedAxisKeys, optionMetadata } = this.chartOptions;
         // Optimization: try (if possible) to disable the expensive tick-calculation.
         // This is ignored if the Axis thinks tick-calculation is still required.

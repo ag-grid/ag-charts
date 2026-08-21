@@ -5,9 +5,8 @@ import { THEMES_API_PAGE_CONTENT } from '@utils/markdown-pages/apiReferencePageC
 import { buildThemesApiOverrideMarkdown } from '@utils/markdown-pages/buildApiReferenceMarkdown';
 import { getInterfacesReference } from '@utils/server/getInterfacesReference';
 
-// Served at /themes-api/overrides/<member>.md — the markdown twin of each theme-override page.
-// Mirrors the page's own getStaticPaths so the two URL sets line up 1:1. Content-negotiates from
-// the HTML URL on Accept: text/markdown (see getMarkdownNegotiationRules in htaccessRules.ts).
+// Mirrors the page's own getStaticPaths so the two URL sets line up 1:1.
+// Content-negotiated from the HTML URL on Accept: text/markdown — see getMarkdownNegotiationRules in htaccessRules.ts.
 export function getStaticPaths() {
     if (DISABLE_MARKDOWN_DOCS) {
         return [];

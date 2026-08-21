@@ -35,8 +35,7 @@ it('places every session inside the window', () => {
 });
 
 it('spreads sessions across exactly HISTORY_DAYS calendar days', () => {
-    // The load-bearing assertion: a fixed-24h generator drifts off midnight past a DST
-    // transition, so its days straddle two buckets and this count overshoots.
+    // A fixed-24h generator drifts off midnight past a DST transition, so this count overshoots.
     const days = new Set(SESSIONS.map((s) => localDayKey(s.timestamp)));
     expect(days.size).toBe(HISTORY_DAYS);
 });

@@ -4,11 +4,8 @@ import type { AgChartTheme } from 'ag-charts-community';
 
 import type { AnnotationType } from './types';
 
-// Categorical slots for series identity, assigned in order and never cycled: the
-// order is what keeps neighbours separable under colour-vision deficiency, so it is
-// not safe to reorder. At nine slots only adjacent pairs are reliably distinct, so a
-// chart where arbitrary slots sit side by side (the flow diagram) must also carry
-// identity in a second channel, such as always-visible labels.
+// Assigned in order and never cycled: the order is what keeps neighbours separable under CVD, and only
+// adjacent pairs are reliably distinct, so charts pairing arbitrary slots need a second channel.
 export const PALETTE = [
     '#2a78d6', // 0 blue
     '#eb6834', // 1 orange
@@ -21,8 +18,7 @@ export const PALETTE = [
     '#8e44ad', // 8 plum
 ] as const;
 
-// Grey for drop-off and unclassified marks; below the palette's chroma floor so it
-// can never be mistaken for a series colour.
+// Below the palette's chroma floor, so it can never be mistaken for a series colour.
 export const NEUTRAL = '#94a3b8';
 
 /** Funnel stages are ordinal, so one hue darkens with depth instead of changing. */

@@ -201,8 +201,7 @@ function resolveRenewal(spec: RenewalDate, now: Date, supplierId: string): numbe
         return parsed;
     }
     if ('daysFromNow' in spec) return now.getTime() + spec.daysFromNow * DAY_MS;
-    // Month arithmetic on the date parts, not a day count: a fixed number of days drifts off
-    // the day of the month, which is what a renewal date is stated as.
+    // Month arithmetic on the date parts: a fixed day count drifts off the day of the month.
     return new Date(now.getFullYear(), now.getMonth() + spec.monthsFromNow, spec.dayOfMonth ?? now.getDate()).getTime();
 }
 
@@ -218,8 +217,7 @@ export function resolveDataset(raw: RawDataset): ProcurementDataset {
     if (Number.isNaN(now.getTime())) fail(`unparseable meta.now "${raw.meta.now}"`);
 
     if (raw.catalogue.length === 0) fail('the material catalogue is empty');
-    // The one place a feed's string becomes a `Commodity`. Managers and budgets are checked against
-    // `knownCommodity` below, so guarding the catalogue here is what makes their casts safe too.
+    // The one place a feed string becomes a `Commodity`; guarding here is what makes the other casts safe.
     const commodities = raw.catalogue.map((entry) => {
         if (!COMMODITIES.includes(entry.commodity as Commodity)) {
             fail(`the material catalogue defines "${entry.commodity}", which is not a commodity this build supports`);
@@ -251,8 +249,7 @@ export function resolveDataset(raw: RawDataset): ProcurementDataset {
                 if (!UNITS.includes(material.unit as Unit)) fail(`${where} has unknown unit "${material.unit}"`);
                 requireSuppliers(material.supplierIds, where);
                 materials.push({
-                    // Commodity and subcategory are part of the id, so a material name can repeat
-                    // across commodities the way a real catalogue's does.
+                    // Commodity and subcategory are part of the id, so a material name can repeat across commodities.
                     materialId: `${commodity}/${subcategory}/${material.name}`,
                     name: material.name,
                     commodity,
@@ -276,9 +273,7 @@ export function resolveDataset(raw: RawDataset): ProcurementDataset {
     const budgets = {} as Record<Commodity, CommodityBudget>;
     for (const { commodity, annual, quarterly } of raw.budgets) {
         if (!knownCommodity.has(commodity)) fail(`a budget names unknown commodity "${commodity}"`);
-        // Assigned by key, so a second row for a commodity would quietly win on source order and
-        // every figure measured against the allocation would follow whichever row happened to be
-        // last. Which of the two was meant is the feed's to settle, not this module's.
+        // Assigned by key: a duplicate commodity row would quietly win on source order.
         if (budgets[commodity as Commodity] != null) fail(`the budget table states "${commodity}" twice`);
         budgets[commodity as Commodity] = { annual, quarterly };
     }
@@ -302,12 +297,7 @@ export function resolveDataset(raw: RawDataset): ProcurementDataset {
         const departDate = instant(shipment.departDate, where);
         const projectedDate = instant(shipment.projectedDate, where);
         const requiredDate = instant(shipment.requiredDate, where);
-        // Arrival follows departure. `trackShipment` interpolates the map marker across that span
-        // and treats a non-positive one as "arrived", so a backwards projection does not fail — it
-        // parks the marker on the destination and reports a shipment as complete that never ran.
-        //
-        // Only this pair is ordered. A required date before either is a shipment that is already
-        // late, which is a real state the workspace is built to show, not a bad record.
+        // Arrival must follow departure: a backwards projection parks the marker on the destination and reports a shipment complete that never ran.
         if (projectedDate < departDate) {
             fail(
                 `${where} is projected to arrive on ${shipment.projectedDate}, ` +
@@ -325,11 +315,7 @@ export function resolveDataset(raw: RawDataset): ProcurementDataset {
         if (!knownSupplier.has(order.supplierId)) fail(`${where} references unknown supplier "${order.supplierId}"`);
         const material = materialById.get(order.materialId);
         if (material == null) fail(`${where} references unknown material "${order.materialId}"`);
-        // The catalogue's approved list is not a description of the order book, it is what the
-        // sourcing views are built from: the sunburst lays out one leaf per approved supplier and
-        // then looks spend up against it, so a line from a supplier the catalogue does not approve
-        // has no leaf to land in and drops out of the chart while still counting in the grid and
-        // the tiles. Approval has to hold on the line, not just alongside it.
+        // Approval has to hold on the line: the sunburst lays out one leaf per approved supplier, so an unapproved line has none to land in.
         if (!material.supplierIds.includes(order.supplierId)) {
             fail(
                 `${where} buys "${order.materialId}" from ${order.supplierId}, which the catalogue ` +
@@ -340,11 +326,7 @@ export function resolveDataset(raw: RawDataset): ProcurementDataset {
         if (order.shipmentId != null) {
             const shipment = shipmentById.get(order.shipmentId);
             if (shipment == null) fail(`${where} references unknown shipment "${order.shipmentId}"`);
-            // A shipment is one carrier movement down one lane, and its contents are its lines':
-            // value, line count and materials are all summed from them, while the lane itself comes
-            // from the shipment record. A line on someone else's shipment therefore books its spend
-            // against that supplier's lane and into that supplier's manager's scope — so the two
-            // have to agree on the lane before anything downstream reads either.
+            // A line on someone else's shipment books its spend against that lane, so the two must agree first.
             if (shipment.supplierId !== order.supplierId || shipment.plantId !== order.plantId) {
                 fail(
                     `${where} is on shipment ${shipment.shipmentId}, which runs ` +
@@ -352,9 +334,7 @@ export function resolveDataset(raw: RawDataset): ProcurementDataset {
                         `${order.supplierId} → ${order.plantId}`
                 );
             }
-            // Goods cannot leave before they are on order. A consolidation waits for every line it
-            // carries, so the departure is after the last of them — and the map would otherwise
-            // show a line already in transit on a date its order had not been raised.
+            // Goods cannot leave before they are on order; a consolidation departs after the last line it carries.
             if (instant(shipment.departDate, where) < instant(order.orderDate, where)) {
                 fail(
                     `${where} was ordered on ${order.orderDate}, after shipment ` +
@@ -362,24 +342,18 @@ export function resolveDataset(raw: RawDataset): ProcurementDataset {
                 );
             }
         }
-        // A receipt is the pair: the date it landed and what passed inspection. Half of one
-        // would leave a line that is delivered but has no accepted quantity, or the reverse.
+        // A receipt is the pair: half of one leaves a line delivered with no accepted quantity, or the reverse.
         if ((order.actualDate == null) !== (order.acceptedQuantity == null)) {
             fail(`${where} has an actualDate and an acceptedQuantity that disagree about receipt`);
         }
-        // A rejected part is scrapped or returned, never replaced on the line. Above the ordered
-        // quantity the shortfall goes negative and the scorecard bills rejected material as a credit.
+        // Rejects are never replaced: above the ordered quantity the scorecard bills rejected material as a credit.
         if (order.acceptedQuantity != null && order.acceptedQuantity > order.quantity) {
             fail(`${where} accepted ${order.acceptedQuantity} of ${order.quantity} ordered`);
         }
         const orderDate = instant(order.orderDate, where);
         const expectedDate = instant(order.expectedDate, where);
         const actualDate = order.actualDate == null ? null : instant(order.actualDate, where);
-        // A promise and a receipt both belong to an order that has been raised. Nothing downstream
-        // guards against the reverse: the quoted lead time is `expectedDate - orderDate` and the
-        // realised one `actualDate - orderDate`, so either would go negative and be averaged into
-        // the lead-time and slip charts as a real figure rather than rejected as an impossible one.
-        // Same-instant is allowed — an order placed and received the same day is ordinary.
+        // Lead times are measured from the order date, so an earlier promise or receipt averages a negative in.
         if (expectedDate < orderDate) {
             fail(`${where} is expected on ${order.expectedDate}, before it was ordered on ${order.orderDate}`);
         }

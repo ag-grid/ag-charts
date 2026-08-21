@@ -35,9 +35,7 @@ export function LoadingDemo() {
                     gap: 12,
                     height: '100%',
                     minHeight: '100vh',
-                    // Offset from the left rather than centred: embedded, the stage holds this
-                    // document wider than the card and clips the overflow, so the middle of
-                    // the viewport can sit outside the part of the card a visitor can see.
+                    // Offset from the left: embedded, the card clips the overflow, so the viewport middle can be out of view.
                     paddingLeft: 64,
                     boxSizing: 'border-box',
                     fontFamily: 'system-ui, sans-serif',

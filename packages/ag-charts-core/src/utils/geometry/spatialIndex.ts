@@ -22,9 +22,8 @@ export class SpatialIndex<R> {
 
     reset(bounds: BoxBounds, cellSize: number) {
         let clampedCellSize = Math.max(cellSize, 1);
-        // Cap total cells so a degenerate (tiny) cell size can't build a per-pixel grid over a large
-        // bounds; beyond this a uniform grid stops helping queries anyway. Cell size affects only
-        // query cost, not correctness, so growing it here is safe.
+        // Cap total cells so a degenerate cell size can't build a per-pixel grid over large bounds. Cell size
+        // affects query cost only, not correctness, so growing it here is safe.
         const MAX_CELLS = 1 << 14;
         const area = Math.max(0, bounds.width) * Math.max(0, bounds.height);
         if (area > MAX_CELLS * clampedCellSize * clampedCellSize) {

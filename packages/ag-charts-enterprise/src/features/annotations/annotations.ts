@@ -224,7 +224,6 @@ export class Annotations extends AbstractModuleInstance {
                 // Only change anything else if a different node has been selected or when deselecting
                 if (previousNode === selectedNode && selectedNode != null) return;
 
-                // Deselect the previous node
                 previousNode?.toggleActive(false);
 
                 // Hide the annotation options so it has time to update before being shown again
@@ -873,7 +872,7 @@ export class Annotations extends AbstractModuleInstance {
         if (!annotationManager) return;
 
         // Suppress history records caused by side-effects of restoring a memento (undo/redo) — recording them
-        // would truncate the redo stack. See CRT-1094.
+        // would truncate the redo stack.
         if (this.isRestoringMemento) return;
 
         const originators = types.map((type) => (type === 'defaults' ? defaults : annotationManager));
@@ -1027,8 +1026,8 @@ export class Annotations extends AbstractModuleInstance {
         const { state } = this;
 
         this.pushAnnotationState(InteractionState.Annotations);
-        // AG-16815 Keep the focus on the series-area element. The axis button can disappear on 'mouseleave' events,
-        // which clears the current focus as a consequence.
+        // Keep the focus on the series-area element: the axis button can disappear on 'mouseleave', which would
+        // otherwise clear the current focus.
         this.ctx.widgets.seriesWidget.focus({ preventScroll: true });
 
         const isHorizontal = direction === 'horizontal';

@@ -20,10 +20,8 @@ export class ChartToolbar extends AbstractModuleInstance {
     private readonly menu: _ModuleSupport.Menu;
     private menuShowing = false;
 
-    // The ChartToolbar module is registered for cartesian charts but the option subtree is
-    // optional. ChartToolbarModule.themeTemplate emits `enabled: false` so the subtree is
-    // present once any chart applies the theme; the fallbacks here remain only because the
-    // observer can fire during transient absent-subtree windows (deltaOptions removal).
+    // The observer can fire during transient absent-subtree windows (deltaOptions removal), so the
+    // fallbacks below are needed even though the theme always emits the `chartToolbar` subtree.
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 

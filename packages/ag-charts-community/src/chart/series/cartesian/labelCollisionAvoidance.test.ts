@@ -666,7 +666,7 @@ describe('label collision avoidance', () => {
 
         it('scatter: cascades to a directional fallback when the marker is too small', async () => {
             const placed = await render('scatter', { markerSize: 6, placement: ['inside', 'top', 'bottom'] });
-            // No vanishing: every label still renders, now at the directional fallback with full text.
+            // No vanishing: every label renders at the directional fallback with full text.
             expect(placed.length).toBe(sparseData.length);
             for (const label of placed) {
                 expect(label.placement).toBe('top');
@@ -710,8 +710,8 @@ describe('label collision avoidance', () => {
             }
         });
 
-        // Visual regression guard: with a size range, small bubbles cascade their labels to
-        // top/bottom while large bubbles keep them inside — none vanish.
+        // With a size range, small bubbles cascade their labels to top/bottom while large bubbles
+        // keep them inside — none vanish.
         it('bubble: renders a mixed inside/top/bottom cascade across a size range', async () => {
             await renderAndSnapshot(
                 {
@@ -1659,11 +1659,9 @@ describe('label collision avoidance', () => {
             }
         });
 
-        // A vertical label is rendered by rotating its Text node about the untransformed glyph-box
-        // centre. If the pivot is re-derived each render from a box that already folds in the previous
-        // rotation, it walks a little every resize step — the label orbits the rect centre and drifts
-        // out of the bar. Resizing away and back must leave the node's pivot exactly where it started
-        // (AG-17782).
+        // A vertical label rotates about its untransformed glyph-box centre; re-deriving that pivot
+        // from an already-rotated box makes it walk on every resize. Resize away and back must be a
+        // no-op on the pivot.
         it('keeps a vertical label pivot stable across resizes (no drift)', async () => {
             const optionsAt = (width: number) => {
                 const options = {
@@ -1722,10 +1720,8 @@ describe('label collision avoidance', () => {
             expect(settled!.rotationCenterY).toBeCloseTo(rotationCenterY);
         });
 
-        // An inside-start/inside-end label is anchored at the bar's start/end edge. When the array
-        // resolves to the along-bar (vertical) orientation, the label is rotated about its glyph
-        // centre — which sits at that edge — so without a correction it straddles the end and half of
-        // it pokes out of the bar. The placement engine must slide it flush inside the rect (AG-17782).
+        // An inside-start/end label rotated to the along-bar orientation pivots on its glyph centre,
+        // which sits on the bar's edge, so the engine must slide it flush back inside the rect.
         const thinTallColumns = (placement: string) => ({
             data: Array.from({ length: 10 }, (_, i) => ({ cat: `Category ${i}`, value: 100 })),
             legend: { enabled: false },

@@ -117,13 +117,10 @@ describe('AgChartV2', () => {
             }
             const snapshots: any[] = [];
 
-            // Create initial chart instance.
             chart = AgCharts.create(exampleCycle[0]);
             snapshots[0] = await snapshot();
 
-            // Execute 2 rounds of comparisons to try and catch any issues. On first round, just
-            // make sure that the chart changes; on second+ round check the same chart image is
-            // generated.
+            // Round 0 proves the chart changes; later rounds prove the same options render identically.
             let previousSnapshot: any = undefined;
             for (let round = 0; round <= 1; round++) {
                 for (let index = 0; index < exampleCycle.length; index++) {
@@ -169,13 +166,10 @@ describe('AgChartV2', () => {
                 prepareTestOptions(opts);
             }
 
-            // Create initial chart instance.
             chart = AgCharts.create(exampleCycle[0]);
             await waitForChartStability(chart);
 
-            // Execute 2 rounds of comparisons to try and catch any issues. On first round, just
-            // make sure that the chart changes; on second+ round check the same chart image is
-            // generated.
+            // Round 0 proves the chart changes; later rounds prove the same options render identically.
             for (let round = 0; round <= 1; round++) {
                 for (const cycle of exampleCycle) {
                     await chart.update(cycle);
@@ -215,9 +209,8 @@ describe('AgChartV2', () => {
                 chart = AgCharts.create(barOptions());
                 await waitForChartStability(chart);
 
-                // A series-type switch resets the animation phase to 'initial', queuing an
-                // entry animation. The size monitor then re-measures the transferred scene,
-                // firing a resize. That resize must not force-skip the pending animation.
+                // A series-type switch queues an entry animation; the resize from re-measuring the
+                // transferred scene must not force-skip it.
                 const resizeSkips: string[] = [];
                 const skipSpy = vi.spyOn(AnimationManager.prototype, 'skipCurrentBatch').mockImplementation(() => {
                     const stack = new Error().stack ?? '';
@@ -328,7 +321,6 @@ describe('AgChartV2', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            // Hide series by clicking the legend item
             await clickAction(405, 572)(chart);
             await waitForChartStability(chart);
             const state = chart.getState();
@@ -337,7 +329,6 @@ describe('AgChartV2', () => {
         });
 
         afterEach(async () => {
-            // Check that update/updateDelta has reset series `visible: true`.
             const state = chart.getState();
             expect(state.legend).toHaveLength(1);
             expect(state.legend![0].visible).toBe(true);

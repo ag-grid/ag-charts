@@ -487,7 +487,7 @@ describe('AgChart', () => {
         ]);
     });
 
-    // CRT-564 - Synchronous updateDelta()s wiped out previous updateDelta() updates, if unapplied.
+    // Synchronous updateDelta()s must not wipe out an earlier, still-unapplied updateDelta().
     test('rapid updateDelta() calls', async () => {
         chartProxy = AgCharts.create({
             data: revenueProfitData,
@@ -517,7 +517,6 @@ describe('AgChart', () => {
         });
     });
 
-    // AG-13708 - Ensure removal of options works without error.
     test('option deletion updateDelta() calls', async () => {
         chartProxy = AgCharts.create({
             data: revenueProfitData,
@@ -586,18 +585,15 @@ describe('Chart re-creation canvas attachment (AG-17444)', () => {
     ];
 
     const SERIES: Record<string, NonNullable<AgChartOptions['series']>> = {
-        // Polar series change the chart type from the default cartesian chart, which re-creates
-        // the chart and transfers the scene (the AG-17444 / AS-774 path).
+        // Polar series change the chart type from the default cartesian chart, re-creating it and transferring the scene.
         donut: [{ type: 'donut', angleKey: 'v', calloutLabelKey: 'k' }],
         pie: [{ type: 'pie', angleKey: 'v', calloutLabelKey: 'k' }],
         // Cartesian control: no type change, no re-creation.
         line: [{ type: 'line', xKey: 'k', yKey: 'v' }],
     };
 
-    // Regression: `AgCharts.create()` followed immediately by an `update()` that changes the
-    // chart type transfers the scene to a re-created chart. The previous chart's deferred
-    // teardown (DOMManager.destroy) must not remove the transferred <canvas> that the new chart
-    // has already adopted — otherwise the live canvas is orphaned from the DOM and renders blank.
+    // A chart-type change transfers the scene to a re-created chart, so the old chart's deferred
+    // teardown must not remove the <canvas> the new chart has already adopted.
     test.each(Object.keys(SERIES))(
         'canvas stays attached to the container when update() applies a %s series',
         async (seriesType) => {

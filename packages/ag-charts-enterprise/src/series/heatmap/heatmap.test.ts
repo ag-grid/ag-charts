@@ -29,7 +29,6 @@ import { classCast } from 'ag-charts-test';
 import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
 import { HeatmapSeries } from './heatmapSeries';
 
-// Drives a hover at the canvas point of the given datum index and waits for chart stability.
 // Resolves nodeData fresh on every call so it stays valid across `proxy.update(...)` rebuilds.
 async function hoverDatumByIndex(chart: Chart, seriesIndex: number, datumIndex: number, hideDelay?: number) {
     const series = classCast(chart.series[seriesIndex], HeatmapSeries);
@@ -167,10 +166,8 @@ describe('HeatmapSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            // Clear the data
             await chart.updateDelta({ data: [] });
 
-            // Verify chart is cleared
             await compareImageSnapshot(chart, ctx);
         });
     });
@@ -587,9 +584,8 @@ describe('HeatmapSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
 
-            // Drive Legend.onHover directly rather than simulating canvas coordinates — the
-            // legend's own markerLabel nodes already carry the datum association, and the
-            // MouseEvent argument is only used for tooltip positioning, not highlight state.
+            // Drive Legend.onHover directly: its markerLabel nodes already carry the datum
+            // association, and the MouseEvent is only used for tooltip positioning.
             const legendModule = (chart as Chart).modulesManager.getModule<any>('legend');
             const items: any[] = [];
             legendModule.itemSelection.each((item: any) => items.push(item));
@@ -640,9 +636,8 @@ describe('HeatmapSeries', () => {
             await hoverAction(legendBBox.x + 5, legendBBox.y + legendBBox.height / 2)(chart);
             await waitForChartStability(chart);
 
-            // The bin's itemId is a bin index, not a datum index; feeding it through the
-            // highlight pipeline would either dim everything (heatmap/maps) or throw
-            // (treemap/sunburst whose datumIndex is a path array).
+            // A bin's itemId is a bin index, not a datum index, so it must never reach the
+            // highlight pipeline.
             expect(highlightManager.getActiveHighlight()).toBeUndefined();
         });
 
@@ -666,8 +661,7 @@ describe('HeatmapSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
 
-            // Discrete-bin items don't toggle and don't drive series highlight, so the
-            // pointer cursor would mislead users into expecting an interactive response.
+            // Discrete-bin items don't toggle, so a pointer cursor would imply interactivity.
             const legendButtons = document.querySelectorAll<HTMLElement>('button.ag-charts-proxy-elem[role="switch"]');
             expect(legendButtons.length).toBeGreaterThan(0);
             for (const button of Array.from(legendButtons)) {
@@ -711,8 +705,7 @@ describe('HeatmapSeries', () => {
             const legendData = series.getLegendData('category') as { label: { text: string } }[];
             const labels = legendData.map((d) => d.label.text);
 
-            // Compact-notation formatting should be applied to every bin boundary.
-            // Stops are 150000 / 500000 / 1000000; final bin runs to data max (1.5M).
+            // Stops are 150000 / 500000 / 1000000; the final bin runs to the data max (1.5M).
             expect(labels).toEqual(['43K–150K', '150K–500K', '500K–1M', '1M–1.5M']);
         });
     });
@@ -869,10 +862,6 @@ describe('HeatmapSeries', () => {
             );
         });
 
-        // AG-16046 pt2 regression: previously, hovering a missing-data datum left the prior
-        // neighbour's tooltip stuck because seriesAreaManager.showTooltip skipped the dismissal
-        // path when the per-series tooltipContent array came back empty. This drives the chart
-        // through real hover events to exercise that pipeline end-to-end.
         it('AG-16046: should dismiss tooltip when hovering a missing colorValue datum', async () => {
             const data: Array<{ year: string; person: string; spending?: number | null }> = [
                 { year: '2020', person: 'Florian', spending: 10 },
@@ -909,8 +898,6 @@ describe('HeatmapSeries', () => {
             expect(isTooltipVisible(chart)).toBe(false);
         });
 
-        // AG-16046 pt2 broadened semantic: when a series has tooltip.enabled = false, hovering
-        // it now also dismisses any prior tooltip via the same empty-content path.
         it('AG-16046: should dismiss tooltip when hovering a series with tooltip disabled', async () => {
             const data = [
                 { year: '2020', person: 'Florian', spending: 10 },
@@ -953,9 +940,7 @@ describe('HeatmapSeries', () => {
             );
             await waitForChartStability(chart);
 
-            // Re-resolve via the helper post-update — layout, scale domains and node identity
-            // may all have changed, so pre-update coordinates aren't guaranteed to land on the
-            // second datum.
+            // Re-resolve post-update: layout, scale domains and node identity may all have changed.
             await hoverDatumByIndex(chart, 0, 1, MIN_TOOLTIP_HIDE_DELAY);
             expect(isTooltipVisible(chart)).toBe(false);
         });
@@ -1581,7 +1566,7 @@ describe('HeatmapSeries', () => {
         });
 
         // `'start'`/`'end'` name a side of the paragraph, so the cell edge they anchor to has to
-        // follow the chart's direction (AG-18142 resolves the glyph alignment; the anchor is here).
+        // follow the chart's direction.
         describe('direction-relative alignments', () => {
             it.each([
                 ['start', false, -0.5],

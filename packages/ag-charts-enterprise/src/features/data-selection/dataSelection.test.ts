@@ -744,7 +744,7 @@ function createDiskUsageOptions(
                     series: {
                         group: {
                             label: { formatter },
-                            // FIXME: AG-17328 group selection is descoped & unsupported
+                            // FIXME: group selection is descoped and unsupported
                             // selection: { selectedItem: { strokeWidth } },
                         },
                         tile: {
@@ -1379,10 +1379,8 @@ describe('DataSelection', () => {
             await compare();
         });
 
-        // CRT-1186: error bars express series-level dimming as group opacity. That opacity used to be
-        // maintained only by the highlight-change handler, so a selection change left the group at
-        // whatever opacity a previous highlight happened to set — error bars stayed dimmed after
-        // deselection until the next hover repaired them.
+        // Error bars express series-level dimming as group opacity, which a selection change must
+        // maintain on its own rather than relying on the highlight-change handler.
         describe('CRT-1186 group opacity follows selection state', () => {
             // The default theme sets selection.unselectedSeries.opacity = 0.2.
             const DIMMED_OPACITY = 0.2;
@@ -1937,7 +1935,7 @@ describe('DataSelection', () => {
             });
         });
 
-        // AG-17328 Group selection is currently unsupported, revisit this test once we start implementing it.
+        // Group selection is currently unsupported; revisit this test once we start implementing it.
         describe.skip('treemap - group selection enabled', () => {
             type D = DiskDatum;
             type C = unknown;
@@ -4662,7 +4660,7 @@ describe('DataSelection', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
                 });
-                // AG-17528 Selection dragging on radars is disabled for this release:
+                // Selection dragging on radars is disabled for this release:
                 describe.skip('mousedown and mousemove', () => {
                     beforeEach(async () => {
                         await mouseDown(DRAG_FROM);
@@ -5166,7 +5164,7 @@ describe('DataSelection', () => {
     });
 
     describe('setState', () => {
-        // AG-17328 Group selection is currently unsupported, revisit this test once we start implementing it.
+        // Group selection is currently unsupported; revisit this test once we start implementing it.
         describe.skip('treemap - group selection enabled', () => {
             type D = DiskDatum;
             type C = unknown;
@@ -5227,7 +5225,7 @@ describe('DataSelection', () => {
                     afterEach(() => {
                         state = undefined;
                     });
-                    // FIXME(AG-17567): mouseMove(20,20) ("miss") does not correctly unhighlight the chart. This only
+                    // FIXME: mouseMove(20,20) ("miss") does not correctly unhighlight the chart. This only
                     // happens in node.js, browser-base implementation render the unhighlighted chart correctly.
                     test.skip('screenshot', async () => {
                         await compareExact('diskusage-treemap-highlighted-none-selected-none');

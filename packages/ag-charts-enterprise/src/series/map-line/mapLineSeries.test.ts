@@ -165,9 +165,8 @@ describe('MapLineSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
 
-            // Tier-2 behaviour: the line geometry still exists, so the line renders with the
-            // default series stroke and stays queryable for tooltips (with the colour row
-            // omitted). See AG-16046 pt3 — David's QA classification.
+            // The line geometry still exists, so it renders with the default series stroke and stays
+            // queryable for tooltips, with the colour row omitted.
             const seriesImpl = chart.series[0] as MapLineSeries;
             assertTooltipPresentForAll(
                 seriesImpl,
@@ -413,10 +412,8 @@ describe('MapLineSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
 
-            // Clear any warnings from initial render
             resetMockConsole();
 
-            // Toggle series visibility via legend
             const series = chart.series[0];
             series.toggleSeriesItem(false, 'category', series.id, undefined);
             await waitForChartStability(chart);
@@ -498,7 +495,6 @@ describe('MapLineSeries', () => {
 
         const checkHighlight = async (chartInstance: any) => {
             await hoverChartNodes(chartInstance, ({ series }) => {
-                // Check the highlighted marker
                 const highlightNode = testParams.getHighlightNode(chartInstance, series);
                 expect(highlightNode).toBeDefined();
                 expect(highlightNode.stroke).toEqual('lime');
@@ -511,12 +507,10 @@ describe('MapLineSeries', () => {
             offset?: { x: number; y: number }
         ) => {
             await hoverChartNodes(chartInstance, async ({ x, y }) => {
-                // Perform click
                 await clickAction(x + (offset?.x ?? 0), y + (offset?.y ?? 0))(chartInstance);
                 await waitForChartStability(chartInstance);
             });
 
-            // Check click handler
             const nodeCount = chartInstance.series.reduce(
                 (sum, series) => sum + testParams.getNodeData(series).length,
                 0
@@ -527,17 +521,14 @@ describe('MapLineSeries', () => {
         it(`should render tooltip correctly`, async () => {
             chart = await createChart({ hasTooltip: true });
             await hoverChartNodes(chart, ({ series, item }) => {
-                // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-charts-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(false);
 
-                // Check the tooltip text
                 const values = testParams.getDatumValues(item, series);
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
 
-            // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
             await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             const tooltip = document.querySelector('.ag-charts-tooltip');

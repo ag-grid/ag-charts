@@ -169,7 +169,6 @@ describe('PyramidSeries', () => {
 
         const checkHighlight = async (chartInstance: any) => {
             await hoverChartNodes(chartInstance, ({ series }) => {
-                // Check the highlighted node
                 const highlightNode = testParams.getHighlightNode(chartInstance, series);
                 expect(highlightNode).toBeDefined();
                 expect(highlightNode.fill).toEqual('lime');
@@ -182,12 +181,10 @@ describe('PyramidSeries', () => {
             offset?: { x: number; y: number }
         ) => {
             await hoverChartNodes(chartInstance, async ({ x, y }) => {
-                // Perform click
                 await clickAction(x + (offset?.x ?? 0), y + (offset?.y ?? 0))(chartInstance);
                 await waitForChartStability(chartInstance);
             });
 
-            // Check click handler
             const nodeCount = chartInstance.series.reduce(
                 (sum, series) => sum + testParams.getNodeData(series).length,
                 0
@@ -211,17 +208,14 @@ describe('PyramidSeries', () => {
         it(`should render tooltip correctly`, async () => {
             chart = await createChart({ hasTooltip: true });
             await hoverChartNodes(chart, ({ series, item }) => {
-                // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-charts-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(false);
 
-                // Check the tooltip text
                 const values = testParams.getDatumValues(item, series);
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
 
-            // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
             await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             const tooltip = document.querySelector('.ag-charts-tooltip');
@@ -279,7 +273,6 @@ describe('PyramidSeries', () => {
         const cartesianTestParams = {
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getTooltipRenderedValues: (params) => [params.datum[params.stageKey], params.datum[params.valueKey]],
-            // Returns a highlighted node
             getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
         } as Parameters<typeof testPointerEvents>[0];
 
@@ -718,9 +711,7 @@ describe('PyramidSeries', () => {
                 legend: { enabled: true },
             });
 
-        // Item labels are keyed by their value (numeric); stage labels are keyed by the stage name.
-        // Only the item labels fade — the stage labels are static — so the fade guard/spec targets the
-        // numeric keys.
+        // Item labels are keyed by their numeric value; only item labels fade, so the guard targets those keys.
         const isItemLabelKey = (key: string) => /^series\[0\]\/text\[\d/.test(key);
         const expectItemLabelsStartHidden = (frame0: SceneGeometrySample) => {
             const opacities = funnelLabelOpacities(frame0, isItemLabelKey);
@@ -729,8 +720,7 @@ describe('PyramidSeries', () => {
         };
         const bodyReveal = funnelPathReveal();
 
-        // A structural snap runs no animation batch, so every captured inter-frame interval traversed no
-        // phase — the "did not tween" contract for pyramid's data update.
+        // A structural snap runs no animation batch, so every captured inter-frame interval traverses no phase.
         const expectSnapped = (trajectory: PhasedTrajectory) => {
             expect(
                 trajectory.phaseIntervals.filter((interval) => interval.length > 0),
@@ -738,17 +728,13 @@ describe('PyramidSeries', () => {
             ).toEqual([]);
         };
 
-        // Initial load: each stage body grows out from a collapsed edge (funnelPathReveal) and the item
-        // labels fade in — pyramid reuses only the BaseFunnelSeries label-fade primitive, not being a
-        // BaseFunnelSeries subclass. Its FunnelConnector bodies serialise as `path` with a finite bbox,
-        // so no scene-node reader is needed.
+        // Pyramid reuses only the BaseFunnelSeries label-fade primitive, not being a subclass of it.
         it('initial load: stage bodies grow from collapsed and item labels fade in', async () => {
             chart = deproxy(AgCharts.create(animated(DATA)));
             const sampler = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampler);
             await frames.runToEnd(chart);
 
-            // Anti-vacuity: every body starts collapsed to a zero-width edge, every item label invisible.
             for (const [key, props] of trajectory[0]) {
                 if (/^series\[0\]\/path\[/.test(key) && props.width != null) {
                     expect(props.width, `${key} width at frame 0`).toBeLessThanOrEqual(0.5);
@@ -768,9 +754,7 @@ describe('PyramidSeries', () => {
             });
         });
 
-        // Data update: pyramid only animates its empty→ready reveal, so a data revalue reshapes the
-        // bodies structurally without tweening. captureSnap + expectSnapped is the "did not tween"
-        // contract; the structural delta guards against a vacuously-still trajectory.
+        // Pyramid only animates its empty→ready reveal, so a data revalue reshapes bodies structurally without tweening.
         it('data update: reshapes the bodies to the new values without tweening', async () => {
             const proxy = AgCharts.create(animated(DATA));
             chart = deproxy(proxy);
@@ -779,14 +763,11 @@ describe('PyramidSeries', () => {
                 proxy.updateDelta({ data: UPDATED })
             );
 
-            // Anti-vacuity: a body genuinely reshapes end-to-end, and no animation phase ran.
             const develop = 'series[0]/path[Develop]';
             expect(Math.abs(after.get(develop)!.width - before.get(develop)!.width)).toBeGreaterThan(10);
             expectSnapped(trajectory);
         });
 
-        // Pixel endpoint guard: the animated reveal and the data update must each settle at exactly the
-        // pixels a snapped render of the same options produces.
         it('animated endpoints match a static render (initial load + data update)', async () => {
             const opts = animated(DATA);
             chart = AgCharts.create(opts);

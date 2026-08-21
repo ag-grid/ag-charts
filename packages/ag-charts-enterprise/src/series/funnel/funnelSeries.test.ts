@@ -204,7 +204,6 @@ describe('FunnelSeries', () => {
 
         const checkHighlight = async (chartInstance: any) => {
             await hoverChartNodes(chartInstance, ({ series }) => {
-                // Check the highlighted node
                 const highlightNode = testParams.getHighlightNode(chartInstance, series);
                 expect(highlightNode).toBeDefined();
                 expect(highlightNode.fill).toEqual('lime');
@@ -217,12 +216,10 @@ describe('FunnelSeries', () => {
             offset?: { x: number; y: number }
         ) => {
             await hoverChartNodes(chartInstance, async ({ x, y }) => {
-                // Perform click
                 await clickAction(x + (offset?.x ?? 0), y + (offset?.y ?? 0))(chartInstance);
                 await waitForChartStability(chartInstance);
             });
 
-            // Check click handler
             const nodeCount = chartInstance.series.reduce(
                 (sum, series) => sum + testParams.getNodeData(series).length,
                 0
@@ -246,17 +243,14 @@ describe('FunnelSeries', () => {
         it(`should render tooltip correctly`, async () => {
             chart = await createChart({ hasTooltip: true });
             await hoverChartNodes(chart, ({ series, item }) => {
-                // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-charts-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(false);
 
-                // Check the tooltip text
                 const values = testParams.getDatumValues(item, series);
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
 
-            // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
             await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             const tooltip = document.querySelector('.ag-charts-tooltip');
@@ -314,7 +308,6 @@ describe('FunnelSeries', () => {
         const cartesianTestParams = {
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getTooltipRenderedValues: (params) => [params.datum[params.stageKey], params.datum[params.valueKey]],
-            // Returns a highlighted node
             getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
         } as Parameters<typeof testPointerEvents>[0];
 
@@ -715,8 +708,7 @@ describe('FunnelSeries', () => {
     });
 
     describe('cornerRadius', () => {
-        // Rect.serializeProps() omits the corner-radius fields, so neither the image snapshot nor the
-        // scene-graph JSON can witness this option — the nodes have to be read directly.
+        // Rect.serializeProps() omits the corner-radius fields, so read the nodes directly.
         const contentNodes = (target: Chart) => {
             const nodes: _ModuleSupport.Node[] = [];
             const visit = (node: _ModuleSupport.Node) => {
@@ -788,8 +780,8 @@ describe('FunnelSeries', () => {
                 expect(connector.startCornerRadius).toBe(16);
                 expect(connector.endCornerRadius).toBe(16);
 
-                // The connector opens on the bottom-left corner arc of the segment it leaves, at or past that
-                // arc's midpoint — never at the square corner, which is the cut-away the segment does not draw.
+                // The connector opens on the segment's bottom-left corner arc, never at the square
+                // corner, which is the cut-away the segment does not draw.
                 const { startCornerRadius: radius, x0, y0 } = connector;
                 const above = rects[index];
                 expect(x0).toBeCloseTo(above.x, 0);
@@ -849,8 +841,8 @@ describe('FunnelSeries', () => {
     });
 
     describe('stageLabel placement under RTL', () => {
-        // The stage labels are the category axis' labels, so the side they land on is the axis position
-        // the funnel theme derives from `stageLabel.placement`.
+        // Stage labels are the category axis' labels, so their side is the axis position the funnel
+        // theme derives from `stageLabel.placement`.
         const buildOptions = ({
             enableRtl,
             placement,
@@ -958,16 +950,13 @@ describe('FunnelSeries', () => {
             expect(Math.max(...opacities), 'labels hidden at frame 0').toBeLessThanOrEqual(0.01);
         };
 
-        // Initial load: each bar expands from its midpoint along the value axis (width grows, near edge
-        // recedes), the connector fan opens out (funnelPathReveal), and the labels fade in — the shared
-        // BaseFunnelSeries animation reused across the funnel-family suites.
         it('initial load: bars grow from the midpoint, connectors fan out and labels fade in', async () => {
             chart = deproxy(AgCharts.create(animated(DATA)));
             const sampler = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampler);
             await frames.runToEnd(chart);
 
-            // Anti-vacuity: every bar starts collapsed to a zero-width line, every label invisible.
+            // Anti-vacuity: every bar starts collapsed and every label invisible.
             for (const [key, props] of trajectory[0]) {
                 if (/^series\[0\]\/rect\[/.test(key)) {
                     expect(props.width, `${key} width at frame 0`).toBeLessThanOrEqual(0.5);
@@ -987,10 +976,7 @@ describe('FunnelSeries', () => {
             });
         });
 
-        // Data update: every bar tweens its width to the new value during the `update` phase and the
-        // labels re-fade; the connectors snap to their new positions on the first frame (base halts the
-        // connector motion on a waiting update). captureSnap because that connector snap trips
-        // captureUpdate's whole-scene start anchor.
+        // captureSnap because the connector snap trips captureUpdate's whole-scene start anchor.
         it('data update: bars tween to the new values while labels re-fade', async () => {
             const proxy = AgCharts.create(animated(DATA));
             chart = deproxy(proxy);
@@ -999,7 +985,6 @@ describe('FunnelSeries', () => {
                 proxy.updateDelta({ data: UPDATED })
             );
 
-            // Anti-vacuity: a named bar's width genuinely changes end-to-end, and labels re-fade from 0.
             const develop = 'series[0]/rect[Develop]';
             expect(Math.abs(after.get(develop)!.width - before.get(develop)!.width)).toBeGreaterThan(50);
             expectLabelsStartHidden(trajectory[0]);
@@ -1013,15 +998,12 @@ describe('FunnelSeries', () => {
                 'series[0]/path[]': 'constant',
                 'series[0]/path[#2]': 'constant',
                 'series[0]/path[#3]': 'constant',
-                // The category axis redraws its tick lines as the bars revalue; that reflow is incidental
-                // to the bar animation under test (the endpoint guard covers its settled pixels).
+                // The axis tick reflow is incidental to the bar animation under test.
                 'axis[left]/*': 'any',
                 'axis[bottom]/*': 'any',
             });
         });
 
-        // Pixel endpoint guard: the animated reveal and the data update must each settle at exactly the
-        // pixels a snapped render of the same options produces.
         it('animated endpoints match a static render (initial load + data update)', async () => {
             const opts = animated(DATA);
             chart = AgCharts.create(opts);

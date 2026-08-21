@@ -314,7 +314,6 @@ HTMLCollection [
                         ],
                     });
 
-                    // Check that no data overlay is NOT shown
                     const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-no-data-overlay');
                     expect(overlayEl).toBe(null);
                 });
@@ -334,7 +333,6 @@ HTMLCollection [
                         ],
                     });
 
-                    // Check that no data overlay IS shown
                     const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-no-data-overlay');
                     expect(overlayEl).not.toBe(null);
                 });
@@ -362,7 +360,6 @@ HTMLCollection [
                         ],
                     ]);
 
-                    // Check that no data overlay IS shown
                     const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-no-data-overlay');
                     expect(overlayEl).not.toBe(null);
                 });
@@ -385,7 +382,6 @@ HTMLCollection [
                         ],
                     });
 
-                    // Check that no data overlay is NOT shown
                     const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-no-data-overlay');
                     expect(overlayEl).toBe(null);
                 });
@@ -399,7 +395,6 @@ HTMLCollection [
                         series: [{ type: seriesType, xKey: 'quarter', yKey: 'iphone' }],
                     });
 
-                    // Check that no data overlay is NOT shown
                     const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-no-data-overlay');
                     expect(overlayEl).toBe(null);
                 });
@@ -417,11 +412,9 @@ HTMLCollection [
                     },
                 });
 
-                // Verify the overlay element contains the custom text
                 const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay');
                 expect(overlayEl?.textContent?.trim()).toEqual(customMessage);
 
-                // Verify the overlay's getFocusInfo returns the custom text for screenreaders
                 const chartInstance = chart as any;
                 const focusInfo = chartInstance.overlays?.getFocusInfo(chartInstance.ctx?.localeManager);
                 expect(focusInfo?.text).toEqual(customMessage);
@@ -437,22 +430,17 @@ HTMLCollection [
                     },
                 });
 
-                // Verify the overlay element contains the custom text
                 const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay');
                 expect(overlayEl?.textContent?.trim()).toEqual(customMessage);
 
-                // Verify the overlay's getFocusInfo returns the custom text for screenreaders
                 const chartInstance = chart as any;
                 const focusInfo = chartInstance.overlays?.getFocusInfo(chartInstance.ctx?.localeManager);
                 expect(focusInfo?.text).toEqual(customMessage);
             });
         });
 
-        // NOTE: the actual <img> DOM rendering of overlay image segments is verified by E2E /
-        // manual testing — vitest's jsdom environment substitutes a skia-canvas `Image` for the
-        // 'img' tag, which has no `.style` and is not a DOM node, so it cannot host an overlay
-        // <img>. The CSS-mapping logic (the bug-prone part) is unit-tested via `imageSegmentStyle`
-        // below; accessibility (alt text → plain text) is covered by `toPlainText`.
+        // The <img> DOM rendering of overlay image segments is verified by E2E: jsdom substitutes a
+        // skia-canvas `Image` that is not a DOM node and cannot host an overlay <img>.
     });
 
     // The content element is absolutely positioned with no `top`, so it resolves to its static

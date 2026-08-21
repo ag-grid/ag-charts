@@ -593,9 +593,8 @@ export function sectorLabelContainer(
         cos: Math.abs(Math.cos(angle)),
     }));
 
-    // Half-width the wedge allows for a box of half-height `b`: bounded by the outer arc (worst outward corner),
-    // each straight edge (box extent along the edge normal ≤ its perpendicular distance) and, for a donut, the
-    // inner arc (radial-inward extent ≤ the ring depth).
+    // Half-width the wedge allows for a box of half-height `b`: bounded by the outer arc, each straight edge
+    // (box extent along the edge normal <= its perpendicular distance) and, for a donut, the inner arc.
     const halfWidthGiven = (b: number) => {
         const outer = Math.sqrt(Math.max(0, outerRadius ** 2 - (py + b) ** 2)) - px;
         const edgeLimits = edges.map((e) => (e.sin > 1e-6 ? (edgeDistance - b * e.cos) / e.sin : Infinity));
@@ -691,9 +690,8 @@ export interface BarLabelTarget {
     fittedText?: NormalisedTextOrSegments;
     /** Reduced font size that text was fitted at; `undefined` when it renders at the configured size. */
     fittedFontSize?: number;
-    // Positioned-candidate writeback (placement-cascade path only): the chosen candidate's anchor and
-    // granular placement, copied here so the label renders at the winning candidate rather than the
-    // baked first one. Left untouched on the orientation-only path.
+    // Positioned-candidate writeback (placement-cascade path only): the chosen anchor and granular placement,
+    // so the label renders at the winning candidate rather than the baked first one.
     x?: number;
     y?: number;
     textAlign?: CanvasTextAlign;
@@ -885,9 +883,8 @@ export function applyBarLabelOrientation(placed: readonly PlacedLabel<unknown>[]
         // the unfitted source the datum was built from.
         target.fittedText = fit == null ? undefined : text;
         target.fittedFontSize = fit == null ? undefined : fontSize;
-        // Placement-cascade path: the engine chose a whole candidate (region + rotation may differ per
-        // candidate), so also retarget the label to that candidate's anchor and granular placement. The
-        // orientation-only path leaves `candidate` unset and keeps the baked anchor/placement.
+        // Placement-cascade path: the engine chose a whole candidate, so also retarget the label to that
+        // candidate's anchor and granular placement.
         if (candidate != null) {
             const { anchor, placement } = candidate as BarPositionedCandidate;
             target.x = anchor.x;
@@ -1131,23 +1128,19 @@ let candidateCollideWith: CollideWith | undefined;
 let candidateThreshold = 0;
 // The placement of the candidate being tested.
 let candidatePlacement: LabelPlacement | undefined;
-// Centre and radius of the candidate datum's own anchor marker, which an `inside` label is centred on
-// and so never avoids. The radius disambiguates it from a coincident marker of a different size (e.g.
-// stacked bubbles). Set per datum before its obstacle queries; centre is NaN and radius -1 (never
-// matches) for candidates with no own marker.
+// Centre and radius of the candidate datum's own anchor marker, which an `inside` label is centred on and
+// so never avoids. Radius disambiguates a coincident marker of a different size; -1 never matches.
 let candidateOwnMarkerCx = 0;
 let candidateOwnMarkerCy = 0;
 let candidateOwnMarkerR = -1;
-// The candidate datum's own shape rect (bar labels only): any obstacle intersecting it is excluded so
-// an inside label never collides with the shape it sits on. `undefined` disables the gate (marker
-// series, whose own marker is handled by the own-marker circle gate instead).
+// The candidate datum's own shape rect (bar labels only): any obstacle intersecting it is excluded so an
+// inside label never collides with the shape it sits on. `undefined` disables the gate.
 let candidateOwnBox: BoxBounds | undefined;
 // When true, `category: 'label'` obstacles overlapping `candidateOwnBox` are not excluded by the
 // own-box gate (range-bar's two labels share one bar rect and must still avoid each other).
 let candidateOwnBoxLabelsCollide = false;
 // The label's text/box after the fit step, reused per candidate to keep the hot path allocation-free.
-// `dropped` is how many characters truncation removed, ranking candidates when none holds the full text.
-// `fontSize` is the reduced size the text was auto-sized to, or `undefined` at the configured size.
+// `dropped` ranks candidates when none holds the full text; `fontSize` is the auto-sized reduction.
 const fittedLabel: {
     text: NormalisedTextOrSegments;
     width: number;
@@ -1210,9 +1203,8 @@ let cascadeFlushToRegion = false;
 let cascadeKeepBest = false;
 // Glyph budget of the candidate being fitted, refilled per candidate on the compass path.
 const candidateContainer = { width: 0, height: 0 };
-// The datum's source text measured under one candidate font, keyed by that font. A styler returning the
-// same font for every candidate (the common case) therefore measures once per datum; the key is cleared
-// at the start of each datum's cascade, so it never carries across datums.
+// The datum's source text measured under one candidate font, keyed by that font, so the common case of one
+// font per datum measures once. The key is cleared at the start of each datum's cascade.
 const styledSource = { width: 0, height: 0 };
 let styledSourceFont = '';
 // Drawn-box centre of a positioned candidate whose box a re-fit resized.

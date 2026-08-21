@@ -449,8 +449,7 @@ export function buildSpendTree(commodity: Commodity, orders: PurchaseOrder[], su
     const owned = new Set(supplierIds);
 
     const subcategoryNodes = SUBCATEGORIES[commodity].map<SpendNode>((subcategory) => {
-        // Only materials she can actually buy: one approved supplier of hers is enough to keep
-        // the material in the ring, none at all and it belongs to another manager's commodity.
+        // One approved supplier of hers keeps the material in the ring; none at all and it is another commodity.
         const materialNodes = (MATERIALS_BY_SUBCATEGORY.get(`${commodity}/${subcategory}`) ?? [])
             .map((material) => ({
                 material,
@@ -464,8 +463,7 @@ export function buildSpendTree(commodity: Commodity, orders: PurchaseOrder[], su
                         name: SUPPLIER_BY_ID.get(supplierId)!.name,
                         path: [subcategory, material.name, supplierId],
                         spend,
-                        // Leaves only: a size on an internal node is added to its children's,
-                        // which would double the branch's arc and leave a gap in the ring.
+                        // Leaves only: a size on an internal node is added to its children's, doubling the branch's arc.
                         size: Math.max(spend, sliver),
                         shareOfParent: 0,
                         shareOfTotal: total > 0 ? spend / total : 0,
@@ -554,8 +552,7 @@ export function scorecard(
     const empty = (): Accumulator => ({ spend: 0, listValue: 0, delivered: 0, onTime: 0, orderCount: 0 });
     const bySupplier = new Map(supplierIds.map((id) => [id, empty()]));
 
-    // Rejected value comes from the same delivered window the on-time rate does, and from the same
-    // derivation the quality-cost chart reads, so the column and the chart cannot disagree.
+    // Same delivered window and derivation as the quality-cost chart, so column and chart cannot disagree.
     const rejectedBySupplier = new Map(
         qualityCost(performanceOrders, supplierIds).map((row) => [row.supplierId, row.rejectedValue])
     );
@@ -563,17 +560,13 @@ export function scorecard(
     // Commercial figures follow the selected period: this is what she is buying now.
     for (const order of periodOrders) {
         const acc = bySupplier.get(order.supplierId);
-        // Defensive: an order outside the roster cannot contribute to it.
         if (!acc) continue;
         acc.spend += order.totalCost;
         acc.listValue += order.quantity * (LIST_PRICE_BY_MATERIAL.get(order.material) ?? order.unitCost);
         acc.orderCount += 1;
     }
 
-    // Delivery performance is measured over the rolling window instead, because it is a
-    // record, not a snapshot — and because steel lead times run to six weeks, so barely
-    // anything ordered inside a single quarter has landed within it. Reading the rate off
-    // the period would show a handful of deliveries and swing wildly as the period changed.
+    // Delivery performance uses the rolling window: lead times run to six weeks, so a single period holds barely any deliveries.
     for (const order of performanceOrders) {
         const acc = bySupplier.get(order.supplierId);
         if (!acc || order.actualDate == null) continue;
@@ -581,8 +574,7 @@ export function scorecard(
         if (order.actualDate <= order.expectedDate) acc.onTime += 1;
     }
 
-    // Only genuinely late shipments, not at-risk ones: the flag says a shipment is late, and
-    // a flag every supplier carries tells her nothing about which relationship needs work.
+    // Genuinely late shipments only: a flag every supplier carries says nothing about which relationship needs work.
     const lateBySupplier = new Map<string, number>();
     for (const shipment of shipments) {
         if (shipment.status !== 'Late') continue;
@@ -600,8 +592,7 @@ export function scorecard(
             const daysToRenewal = daysBetween(nowMs, supplier.contractRenewal);
             const lateShipments = lateBySupplier.get(supplierId) ?? 0;
 
-            // Worst-first, so the flag names the single thing most worth acting on: something
-            // broken now, then a deadline, then chronic underperformance against her targets.
+            // Worst-first, so the flag names the single thing most worth acting on.
             let flag: SupplierScorecard['flag'] = 'On track';
             if (lateShipments > 0) flag = 'Late shipment open';
             else if (daysToRenewal <= RENEWAL_WARN_DAYS) flag = 'Renewal due';
@@ -619,8 +610,7 @@ export function scorecard(
                 spend: acc.spend,
                 orderCount: acc.orderCount,
                 qualityScore: supplier.qualityScore,
-                // Zero, not undefined, when nothing was delivered: no receipts means nothing was
-                // rejected, which is a real figure rather than a missing one.
+                // Zero, not undefined: no receipts means nothing was rejected, which is a real figure.
                 rejectedValue: rejectedBySupplier.get(supplierId) ?? 0,
                 priceVariance: supplier.priceVariance,
                 contractRenewal: supplier.contractRenewal,
@@ -1001,8 +991,7 @@ export function supplierShareBySubcategory(
  */
 export function trackShipment(shipment: Shipment, now: number): TrackedShipment {
     const span = shipment.projectedDate - shipment.departDate;
-    // A shipment past its projection has not vanished — it sits at the destination waiting to be
-    // received, which is exactly the state a late shipment is in.
+    // A shipment past its projection sits at the destination waiting to be received.
     const progress = span > 0 ? Math.min(1, Math.max(0, (now - shipment.departDate) / span)) : 1;
     return {
         ...shipment,

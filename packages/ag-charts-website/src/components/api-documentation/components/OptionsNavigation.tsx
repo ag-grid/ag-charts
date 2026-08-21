@@ -97,7 +97,7 @@ export function OptionsNavigation({
     const handleClick = (navData: NavigationData) => {
         if (location?.pathname === navData.pathname && location.hash.substring(1) === navData.hash) {
             scrollIntoViewById(navData.hash);
-            selection?.setSelection(navData); // trigger change for highlighting selection
+            selection?.setSelection(navData);
         } else {
             selection?.setSelection(navData);
             navigateToSelection(navData);
@@ -382,10 +382,8 @@ function NavTypedUnionProperty({
     const reference = useContext(ApiReferenceContext);
     const config = useContext(ApiReferenceConfigContext);
     const navData = getNavigationDataFromPath(path, config.specialTypes);
-    // The variant interface is the terminal path entry. `navData.pageInterface` only advances to
-    // the variant for members registered as InterfaceArray/Record special types; an inline aliased
-    // union (e.g. a cross-line member) leaves it pointing at the page's root interface, so resolving
-    // from it would render the root interface's members instead of the variant's.
+    // `navData.pageInterface` only advances to the variant for InterfaceArray/Record special types;
+    // for an inline aliased union it still points at the page's root interface.
     const variantType = path[path.length - 1].type;
     const interfaceRef = reference?.get(variantType);
     // An inline aliased-union variant shares its page with the root interface, so a page-level match

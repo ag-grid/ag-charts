@@ -1,7 +1,7 @@
 import { deviceDimension } from '../util/pixel';
 import { clearContext, debugContext } from './canvasUtil';
 
-// Work-around for typing issues with Angular 13+ (see AG-6969),
+// Work-around for typing issues with Angular 13+.
 type OffscreenCanvasRenderingContext2D = any;
 
 export interface CanvasOptions {
@@ -44,8 +44,8 @@ export class HdpiCanvas {
         this.context = this.element.getContext('2d', { willReadFrequently })!;
         this.context.direction = this.direction;
 
-        // Apply the DPR transform at construction; the first Scene.resize callback may match
-        // the seeded width/height and be short-circuited by the equality check (AG-17372).
+        // Apply the DPR transform at construction: the first Scene.resize callback may match the
+        // seeded width/height and be short-circuited by its equality check.
         this.resize(width ?? this.width, height ?? this.height, this.pixelRatio);
 
         debugContext(this.context);

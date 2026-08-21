@@ -224,11 +224,7 @@ describe('RadialBarSeries', () => {
         await compare();
     });
 
-    // The public animation data actions — initial load, add/remove/update data — asserted over the whole
-    // animation trajectory (see the animation-trajectory-tests rule) rather than as per-ratio image
-    // snapshots. Only the empty→ready reveal animates: each bar sweeps its angular span out from a shared
-    // start-angle anchor (the angle-axis origin) while its radius band holds. A data update, add, or
-    // partial remove on an already-populated series snaps to the settled state with no tween.
+    // Only the empty→ready reveal animates (each bar sweeps out from a shared start-angle anchor); data updates, adds and removes snap with no tween.
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
 
@@ -239,8 +235,7 @@ describe('RadialBarSeries', () => {
             { quarter: `Q3'22`, air: 4.14, winds: 3.34 },
             { quarter: `Q4'22`, air: 3.48, winds: 3.56 },
         ];
-        // A pinned angle axis keeps the value→angle scaling fixed across data mutations, so a bar's span
-        // tracks its value directly and the radius bands only re-layout when categories are added/removed.
+        // Pinned angle axis: value→angle scaling stays fixed across data mutations, so only the radius bands re-layout.
         const radialBarOptions = (data: Row[] = RB_DATA): AgPolarChartOptions =>
             prepareEnterpriseTestOptions<AgPolarChartOptions>({
                 data: [...data],
@@ -267,9 +262,7 @@ describe('RadialBarSeries', () => {
             trajectory.map((f) => spanOf(f, key)).filter((v): v is number => v != null && Number.isFinite(v));
         const maxSpan = (sample: SceneGeometrySample) =>
             Math.max(...sectorEntries(sample).map(([, v]) => v.endAngle - v.startAngle));
-        // The per-bar labels start collapsed at opacity ~0 on the first captured frame, so the
-        // trailing-phase fade-in specs cannot pass vacuously — a regression that snapped them straight
-        // to full opacity would trip this.
+        // Guards against the fade-in spec passing vacuously if labels snapped straight to full opacity.
         const expectLabelsStartHidden = (trajectory: SceneGeometrySample[]) => {
             const hidden = [...trajectory[0]].filter(([key]) => /^series\[\d+\]\/labels\/text\[.+\]$/.test(key));
             expect(hidden.length, 'label nodes at frame 0').toBeGreaterThan(0);
@@ -304,9 +297,6 @@ describe('RadialBarSeries', () => {
                 },
             };
 
-            // Each bar's endAngle sweeps out during 'initial' from the fixed startAngle anchor; the anchor
-            // and the radius band (unlisted props) hold constant. The per-bar labels fade in during the
-            // trailing phase, after the sweep.
             const angularSweep = {
                 startAngle: 'constant',
                 endAngle: { during: 'initial', expect: ['increases', 'bounded'] },
@@ -328,8 +318,6 @@ describe('RadialBarSeries', () => {
             );
             expectLabelsStartHidden(trajectory);
 
-            // Anti-vacuity: every bar's span starts collapsed (~0) at the anchor and sweeps to a real
-            // angle — a snap regression would show frame 0 already at the target span.
             for (const key of sectorKeys) {
                 const span = spans(trajectory, key);
                 expect(span[0], `${key} span collapsed at frame 0`).toBeLessThanOrEqual(0.02);
@@ -347,10 +335,8 @@ describe('RadialBarSeries', () => {
             const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
                 (proxy as AgChartInstance).update({ ...options, data: grow(RB_DATA) } as AgPolarChartOptions)
             );
-            // The update actually swept the air bars wider (anti-vacuity for the snap assertion)...
+            // Anti-vacuity: confirm the sweep genuinely changed before asserting it held constant (no tween).
             expect(maxSpan(after) - maxSpan(before), 'bars swept wider').toBeGreaterThan(0.5);
-            // ...and the whole scene held constant across the captured frames: it landed fully formed on
-            // frame 0 with no tween anywhere (a regression that tweened the sweep would break this).
             expectSceneTrajectory(trajectory);
         });
 
@@ -382,8 +368,6 @@ describe('RadialBarSeries', () => {
             expectSceneTrajectory(trajectory);
         });
 
-        // Endpoint sanity guards: the animated reveal into `before` and the snapped transition into
-        // `after` must settle at exactly the pixels a non-animated render of the same options produces.
         it('sanity: update-data endpoints match static renders', async () => {
             const before = radialBarOptions();
             const proxy = AgCharts.create(before);

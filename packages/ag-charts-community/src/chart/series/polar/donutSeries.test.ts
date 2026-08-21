@@ -846,7 +846,6 @@ describe('DonutSeries', () => {
         });
     });
 
-    // AG-8724 - Allow hiding zero value sectors in legend
     describe('hideZeroValueSectorsInLegend', () => {
         const data = [
             { id: 'a', value: 4 },
@@ -879,7 +878,7 @@ describe('DonutSeries', () => {
         });
     });
 
-    // AG-13953 - an invalid value shouldn't affect other segments or the legend
+    // An invalid value shouldn't affect other segments or the legend.
     describe('with invalid values', () => {
         it('should render correctly', async () => {
             const invalidDataOptions: AgPolarChartOptions = {
@@ -1645,10 +1644,8 @@ describe('DonutSeries', () => {
         const GRADIENT_STOPS = [{ color: '#c9fdc9' }, { color: '#1f77b4' }];
         const LIGHT_FOREGROUND_COLOR = '#464646';
 
-        // A baseline is generated from the implementation, so it cannot by itself show that the rich
-        // fill reached the canvas — a blank disc would be recorded just as happily. Re-rendering the
-        // same chart with a flat fill and requiring the pixels to differ is what gives it that force.
-        // One chart throughout: the mock canvas only snapshots the first one created per test.
+        // A baseline alone cannot show the rich fill reached the canvas, so require the pixels to
+        // differ from a flat-fill render. The mock canvas only snapshots the first chart per test.
         const expectDiffersFromFlatFill = async (
             reference: ImageData,
             fill: AgColorType,

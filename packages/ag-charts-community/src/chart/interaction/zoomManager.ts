@@ -70,9 +70,8 @@ export type CartesianAxisLike = SimpleAxis & {
     // domain. `NumberAxis`, `TimeAxis`, and `LogAxis` populate these via `axis.options.min/max`;
     // axis types without numeric bounds (e.g. category) leave `options` shaped without these keys.
     options?: { min?: number; max?: number };
-    // Axis-local zoom — added during the zoom-state-migration work. `CartesianAxis` implements
-    // these; `SimpleAxis` literals (e.g. topologyChart) do not, and ZoomManager must guard with
-    // `'setZoom' in axis`.
+    // Axis-local zoom. `CartesianAxis` implements these; `SimpleAxis` literals (e.g. topologyChart) do
+    // not, so ZoomManager must guard with `'setZoom' in axis`.
     getZoom(): ZoomMinMax;
     setZoom(zoom: ZoomMinMax): void;
 };
@@ -96,7 +95,6 @@ function validateChanges(changes: UpdateZoomChanges, logger: Logger): void {
                 `Attempted to update axis (${axisId}) zoom to an invalid ratio of [{ min: ${min}, max: ${max} }], expecting a ratio of 0 to 1. Ignoring.`
             );
 
-            // Remove invalid zoom state for this axis
             delete changes[axisId];
         }
     }
@@ -271,7 +269,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
                 // Maybe fire 'zoom:change-request' if the zoom-state has changed in this redraw:
                 this.updateZoom({
-                    source: 'chart-update', // FIXME(AG-16412): this is "probably" what caused, but we don't really know
+                    source: 'chart-update',
                     sourceDetail: 'unspecified',
                 });
             }),
@@ -741,7 +739,6 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         // When the underlying required range changes (e.g. user changed barWidth), reset the iteration counter
         // so the new range is applied. Layout-triggered re-layouts only change the ratio (via chart dimension
         // changes) without changing the required range itself, so the counter still prevents those oscillations.
-        // @see AG-17008
         if (this.lastRequiredRange !== requiredRange) {
             this.lastRequiredRange = requiredRange;
             this.restoreRequiredRangeIterations = 0;
@@ -756,7 +753,6 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         // label hidden again, creating an infinite loop.
         // A full-range application (the content fits) changes nothing visible and cannot start that loop, so it must
         // not consume the one-shot budget — otherwise a genuine overflow zoom after an external resize is suppressed.
-        // @see AG-16803
         if (requiredZoom < 1) {
             this.restoreRequiredRangeIterations += 1;
         }

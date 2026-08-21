@@ -106,10 +106,8 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
         const hasLevel = this._filters?.some((f) => f.maxRange > range);
 
         if (!hasLevel && this.executor.isPending()) {
-            // demand() runs the executor's onComplete (which already called
-            // mergeFilters and emitted filtersChanged). No additional work
-            // needed — the historical second mergeFilters call here was a
-            // double-merge bug.
+            // demand() runs the executor's onComplete, which already merged filters and emitted
+            // filtersChanged.
             this.executor.demand();
         }
     }
@@ -148,10 +146,8 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
         this.executor.cancel();
 
         if (filtersDiscarded) {
-            // Filters were dropped — notify subscribers so they can release
-            // closures over the now-orphaned `indexData` TypedArrays. (The
-            // `stale: true` branch keeps the filter objects alive, so cached
-            // readers stay valid.)
+            // Filters were dropped — notify subscribers so they can release closures over the
+            // now-orphaned `indexData` TypedArrays.
             this.events.emit('filtersChanged', undefined);
         }
     }

@@ -128,9 +128,8 @@ const SIMPLE_ORG_CHART_THEMED: AgChartOptions = {
     },
 };
 
-// Wide + tall layout that overflows the 800x600 mock canvas on both axes. Required for tests
-// that exercise non-fit zoom behaviour — content that already fits is held at the native-pixel cap,
-// so SIMPLE_ORG_CHART can't drive centre-on-active or off-isotropic input.
+// Overflows the mock canvas on both axes: content that already fits is held at the native-pixel
+// cap, so SIMPLE_ORG_CHART cannot drive non-fit zoom behaviour.
 const OVERFLOWING_ORG_CHART: AgChartOptions = {
     data: (() => {
         const data: { id: string; name: string; job: string; location: string; parentId: string | null }[] = [
@@ -166,9 +165,8 @@ const OVERFLOWING_ORG_CHART: AgChartOptions = {
     ],
 };
 
-// Tall + narrow layout: contentBBox fits the canvas horizontally but overflows vertically.
-// Used by the series-area clipping test so y-only zoom + vertical pan produces an unmistakable
-// "card cut off at the title boundary" demonstration with readable cards.
+// Fits the canvas horizontally but overflows vertically, so y-only zoom and vertical pan visibly
+// clip a card at the series-area boundary.
 const TALL_ORG_CHART: AgChartOptions = {
     data: (() => {
         const data: { id: string; name: string; job: string; location: string; parentId: string | null }[] = [
@@ -208,15 +206,9 @@ const TALL_ORG_CHART: AgChartOptions = {
     ],
 };
 
-// Square-aspect overflow: contentBBox aspect ratio matches the 800×600 canvas so fitX ≈ fitY,
-// AND content is densely distributed across both axes (not just one corner). Each leaf has its
-// own chain hanging below, so the middle-x/middle-y region of contentBBox actually contains
-// nodes — without that, zoom-centred snapshots land in blank whitespace.
-//
-// Both axes derive their window size from one shared scale, taken from the least-zoomed axis. If one
-// axis overflows much more than the other (as in OVERFLOWING_ORG_CHART, which is very wide but only
-// modestly tall), that axis dominates and the requested zoom on the other is widened to match. Tests
-// asserting symmetric x/y zoom behaviour need fits that are comparable on both axes.
+// Square-aspect overflow with nodes densely spread over both axes, so zoom-centred snapshots do not
+// land in whitespace. Both axes share one scale taken from the least-zoomed axis, so tests asserting
+// symmetric x/y zoom need fits that are comparable on both axes.
 const SQUARE_OVERFLOW_ORG_CHART: AgChartOptions = {
     data: (() => {
         const data: { id: string; name: string; job: string; location: string; parentId: string | null }[] = [
@@ -603,8 +595,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         assertions,
     },
     SEGMENT_TITLE_PER_DATUM_ALIGNMENT_VIA_ITEM_STYLER: {
-        // Confirms cached per-datum styles aren't shared between OrganizationNodes:
-        // each row gets a different alignment based on its job.
+        // Cached per-datum styles must not be shared between OrganizationNodes.
         options: {
             ...SIMPLE_ORG_CHART,
             series: [
@@ -672,9 +663,8 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         assertions,
     },
     TEXT_TIER_BACKING_BOX_LARGE_PADDING: {
-        // Regression for AG-17193 pt2: with sizable padding (>>0) the text-box layout
-        // must reserve the full padded bounds so siblings don't overlap each other or
-        // the card edges. Mirrors the QA repro at plnkr.co/edit/64pDpFemUqydBOhJ.
+        // With sizable padding the text-box layout must reserve the full padded bounds so siblings
+        // do not overlap each other or the card edges.
         options: {
             ...SIMPLE_ORG_CHART,
             series: [
@@ -760,9 +750,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         assertions,
     },
     NODE_ITEM_STYLER_USES_IS_COLLAPSED: {
-        // 'cto' is collapsed via initialState; node.itemStyler returns a distinct fill/stroke
-        // when isCollapsed is true. Verifies the param is plumbed through and reflects the
-        // current collapsed state per node.
+        // 'cto' is collapsed via initialState, so its itemStyler must see isCollapsed true.
         options: {
             ...SIMPLE_ORG_CHART,
             initialState: { collapsed: ['cto'] },
@@ -786,8 +774,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         assertions,
     },
     TEXT_TIER_ITEM_STYLER_USES_IS_COLLAPSED: {
-        // Same setup but the styler lives on the title tier — confirms isCollapsed reaches
-        // text-tier itemStyler params, not just node-level.
+        // The styler lives on the title tier, so isCollapsed must reach text-tier styler params.
         options: {
             ...SIMPLE_ORG_CHART,
             initialState: { collapsed: ['cto'] },
@@ -811,8 +798,6 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         assertions,
     },
     NODE_TEXT_FORMATTER_USES_IS_COLLAPSED: {
-        // Title/subtitle/label formatters receive `isCollapsed` and can append a marker —
-        // verifies the param reaches the formatter callback for all three text tiers.
         options: {
             ...SIMPLE_ORG_CHART,
             initialState: { collapsed: ['cto'] },
@@ -846,8 +831,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         assertions,
     },
     TEXT_TIER_BACKING_BOX_PARTIAL_OVERRIDE: {
-        // property-level supplies stroke + cornerRadius + padding; itemStyler adds fill conditionally.
-        // Verifies merge: defaults + property + itemStyler accumulate correctly per datum.
+        // Defaults, property-level values and itemStyler results must accumulate per datum.
         options: {
             ...SIMPLE_ORG_CHART,
             series: [
@@ -1020,9 +1004,8 @@ describe('OrganizationSeries', () => {
             | undefined;
     }
 
-    // Drives ZoomManager directly to bypass the memento path's theme-template projection
-    // (`keepAspectRatio`, `autoScaling`) — tests below assert exact zoom states. Use
-    // `chart.setState({zoom: ...})` to exercise the full state-restore pipeline.
+    // Bypasses the memento path's theme-template projection so the tests can assert exact zoom
+    // states; `chart.setState({zoom: ...})` exercises the full state-restore pipeline instead.
     function setZoom(c: any, xMin: number, xMax: number, yMin: number, yMax: number) {
         deproxy(c).ctx.zoomManager?.updateZoom(
             { source: 'state-change', sourceDetail: 'unspecified' },
@@ -1212,8 +1195,7 @@ describe('OrganizationSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            // Node 2 (Bob) is collapsed, so its children (4, 5) are not rendered. setupMockConsole's
-            // afterEach fails the test on any console warning, covering the string-array validator warning.
+            // setupMockConsole's afterEach fails the test on any console warning.
             expect(renderedItemIds(chart)).toEqual([1, 2, 3, 6]);
         });
 
@@ -1322,8 +1304,8 @@ describe('OrganizationSeries', () => {
             });
 
             it('should not leak labels onto sparse-tier nodes after collapse reuses scene nodes', async () => {
-                // AG-17246 regression: collapsing nodes forces Selection reuse; a scene node
-                // whose previous datum had labels retains that text unless trailing nodes are trimmed.
+                // Collapsing forces Selection reuse: a scene node whose previous datum had labels
+                // retains that text unless trailing nodes are trimmed.
                 const options: AgChartOptions = {
                     data: [
                         { id: 'henry7', name: 'Henry VII', reign: 'King 1485 - 1509', parentId: null },
@@ -1353,8 +1335,6 @@ describe('OrganizationSeries', () => {
                 await chart.setState({ version: '13.3.0', collapsed: ['henry8'] });
                 await waitForChartStability(chart);
 
-                // Assert rendered labels match each node's source datum (pinpoints the mismatch
-                // more precisely than a snapshot).
                 const series = deproxy(chart).series[0] as any;
                 const expectedReign: Record<string, string | undefined> = {
                     henry7: 'King 1485 - 1509',
@@ -1449,8 +1429,7 @@ describe('OrganizationSeries', () => {
             });
 
             it('should re-evaluate isCollapsed-aware itemStylers across collapse/expand toggles', async () => {
-                // The styler flips fill on `isCollapsed`; snapshotting after each toggle
-                // catches a stale-cache regression where `isCollapsed` is omitted from the key.
+                // Catches a stale-cache defect where `isCollapsed` is omitted from the style key.
                 const options: AgChartOptions = {
                     ...SIMPLE_ORG_CHART,
                     series: [
@@ -1497,8 +1476,8 @@ describe('OrganizationSeries', () => {
             const nodeData = series.contextNodeData.nodeData;
             const cfoVertex = series.graph.findVertexById('cfo');
 
-            // Node-selection order and graph datumIndex only diverge when render order differs from data
-            // order; pin the divergence so a reordered fixture fails loudly instead of silently passing.
+            // Selection order and graph datumIndex only diverge when render order differs from data
+            // order, so a reordered fixture must fail loudly rather than pass silently.
             expect(nodeData.map((d: any) => d.itemId)).toEqual(['ceo', 'cto', 'dev', 'qa', 'cfo', 'acc']);
             expect(series.getNodeDatumIndex(cfoVertex)).toBe(4);
             expect(series.graph.findNeighbourValue(cfoVertex, 'datumIndex')).toBe(2);
@@ -1565,9 +1544,8 @@ describe('OrganizationSeries', () => {
 
     describe('theme defaults', () => {
         it('should apply default highlight stroke when a node is hovered', async () => {
-            // AG-17192 regression. cornerRadius=0 lets JSDOM bbox-hit-test the rect (see
-            // .claude/rules/testing.md); without the theme stroke default the hovered node
-            // would render identical to its neighbours.
+            // cornerRadius=0 lets JSDOM bbox-hit-test the rect; without the theme stroke default the
+            // hovered node would render identically to its neighbours.
             const options: AgChartOptions = {
                 ...SIMPLE_ORG_CHART,
                 theme: {
@@ -1974,11 +1952,8 @@ describe('OrganizationSeries', () => {
 
     describe('series-area clipping', () => {
         it('should clip dragged content to the series area so nodes do not bleed into the title', async () => {
-            // AG-17233 regression. TALL_ORG_CHART fits the canvas horizontally but overflows
-            // vertically, so zooming in and dragging upward lands an upper card directly on the
-            // series-area top boundary. The clip-rect must cut the card off at that boundary instead
-            // of letting it bleed into the title above. Both axes share one scale, so the window is
-            // narrowed on x as well as y.
+            // TALL_ORG_CHART overflows vertically, so dragging upward lands a card on the
+            // series-area top boundary, where the clip-rect must cut it off.
             const options: AgChartOptions = {
                 ...TALL_ORG_CHART,
                 title: { text: 'Organisation Chart', fontSize: 18 },
@@ -1992,9 +1967,7 @@ describe('OrganizationSeries', () => {
             setZoom(chart, 0.4, 0.6, 0.41, 0.61);
             await waitForChartStability(chart);
 
-            // Drag content up far enough that an upper card straddles the title boundary —
-            // the clip-rect must cut it at the series-area top instead of letting it bleed
-            // into the title. AG-17233's bug was a missing clip-rect during pan.
+            // Drag far enough that an upper card straddles the title boundary.
             await dragAction({ x: 400, y: 580 }, { x: 400, y: 50 })(chart);
 
             await compare();
@@ -2209,11 +2182,7 @@ describe('OrganizationSeries', () => {
             await compare();
         });
 
-        // AG-17253 pt2 follow-up (David Glickman QA) — clamping the card via `maxWidth`/
-        // `maxHeight` left children drawing outside the card. Mirrors three plunker repros:
-        //   plnkr.co/edit/0maSWVkHxeSLQ5Fb  (narrow width + theme-default top image)
-        //   plnkr.co/edit/jxPaPCmKEyWoTi3b  (narrow height, text-only)
-        //   plnkr.co/edit/oq0FP2LDZkapxUO4  (narrow height + image left)
+        // Clamping the card via `maxWidth`/`maxHeight` must not leave children drawing outside it.
         //   plnkr.co/edit/qA05jRd478qdnhDe  (narrow width + height)
         const OVERFLOW_DATA = [
             {
@@ -2621,7 +2590,6 @@ describe('OrganizationSeries', () => {
             );
         });
 
-        // AG-17263 regression: Alt+Up/Down keybindings were added but Enter/Space toggling was lost.
         // With clickToExpand enabled (the default) Enter/Space must still expand/collapse the node.
         it('Enter toggles the focused parent node when clickToExpand is enabled', async () => {
             const collapsedManager = await setupChartWithClickToExpand(true);
@@ -2672,9 +2640,8 @@ describe('OrganizationSeries', () => {
         });
     });
 
-    // AG-17947: expanding/collapsing is a distinct interaction from activating a node, so a pointer
-    // event on the expander pill must neither reach the user's node click/double-click listeners nor
-    // change the data selection.
+    // Expanding is a distinct interaction from activating a node, so a pointer event on the expander
+    // pill must not reach the user's node listeners or change the data selection.
     describe('AG-17947 expander clicks do not activate the node', () => {
         type Fn = ReturnType<(typeof vi)['fn']>;
         type CollapsedManager = ReturnType<typeof deproxy>['ctx']['collapsedManager'];

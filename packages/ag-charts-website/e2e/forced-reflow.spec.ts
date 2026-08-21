@@ -21,7 +21,6 @@ test.describe('forced reflow detection', () => {
         await waitForAllChartUpdates(page);
 
         const initialEvents = await traceAction(page, async () => {
-            // Move to chart area to trigger initial tooltip.
             await page.mouse.move(50, 150);
         });
         const initialAnalysis = analyseForcedReflows(initialEvents);
@@ -37,11 +36,8 @@ test.describe('forced reflow detection', () => {
         const initialTooltipBox = await tooltip.boundingBox();
 
         const events = await traceAction(page, async () => {
-            // Move to chart area to trigger tooltip
             await page.mouse.move(400, 150, { steps: 3 });
-            // Small pause to let tooltip render cycle complete
             await page.waitForTimeout(200);
-            // Move to a different point to trigger tooltip update
             await page.mouse.move(350, 200, { steps: 3 });
             await page.waitForTimeout(200);
         });
@@ -55,25 +51,15 @@ test.describe('forced reflow detection', () => {
         expect(finalTooltipBox?.x).not.toBe(initialTooltipBox?.x);
     });
 
-    // Canvas rendering operations inherently trigger UpdateLayoutTree (style recalculation)
-    // when setting canvas dimensions or font properties. These are unavoidable for the initial
-    // render of each sparkline. The key reflow sources we're guarding against are:
-    // - Concentrated deferred DOM flushes between sparkline updates (fixed via setDeferring no-op)
-    // - SizeMonitor's synchronous getBoundingClientRect interleaved with DOM writes (fixed via skipInitialRead)
-    // - getComputedStyle in isDirectionRtl during container setup (fixed via minimal mode skip)
-    // - Tooltip's addResizeListener calling getBoundingClientRect (fixed via skipInitialRead on proxy)
-    // - ctx.direction reads during offscreen rendering (fixed via RenderContext caching)
-    //
-    // IMPORTANT: Data in the test examples uses 150 points (> RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD
-    // of 100) to ensure the offscreen rendering path in group.ts is exercised. Without this,
-    // regressions in the offscreen path (e.g. expensive ctx.direction reads) would go undetected.
+    // Setting canvas dimensions and font properties unavoidably triggers UpdateLayoutTree, so those
+    // are allowlisted; the examples use 150 points (> RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD) so the
+    // offscreen rendering path in group.ts is exercised.
     const sparklineAllowlist = ['applyPendingResize', 'updateBaseFont', 'drawImage'];
     const SPARKLINE_COUNT = 30; // must match the count in the test example
 
-    // Duration budget per allowlisted reflow event (microseconds). If any single
-    // allowlisted event exceeds this, a fixable performance bug is hiding behind the
-    // allowlist (e.g. the ctx.direction regression that was 1,942ms under renderOffscreen).
-    const MAX_ALLOWLISTED_EVENT_DURATION_US = 8_000; // 8ms — CI variance can push drawImage to ~6ms; ctx.direction regression was 1,942ms
+    // Duration budget per allowlisted reflow event (microseconds): an allowlisted event that exceeds
+    // it is a fixable performance bug hiding behind the allowlist.
+    const MAX_ALLOWLISTED_EVENT_DURATION_US = 8_000; // CI variance can push drawImage to ~6ms
 
     function assertAllowlistBounds(filtered: ReturnType<typeof filterAgChartsReflows>, bounds: Record<string, number>) {
         for (const [fn, maxCount] of Object.entries(bounds)) {
@@ -81,8 +67,6 @@ test.describe('forced reflow detection', () => {
             expect(entry?.count ?? 0, `allowlisted ${fn} count`).toBeLessThanOrEqual(maxCount);
         }
 
-        // Assert no single allowlisted event is suspiciously expensive — catches
-        // regressions like ctx.direction reads hiding behind function-name allowlisting.
         for (const [fn, entry] of Object.entries(filtered.allowlisted)) {
             if (entry.count === 0) continue;
             const avgDuration = entry.totalDuration / entry.count;

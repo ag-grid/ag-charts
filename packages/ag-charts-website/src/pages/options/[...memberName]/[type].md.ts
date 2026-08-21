@@ -5,9 +5,8 @@ import { optionsVariantPageContent } from '@utils/markdown-pages/apiReferencePag
 import { buildOptionsVariantMarkdown } from '@utils/markdown-pages/buildApiReferenceMarkdown';
 import { getInterfacesReference } from '@utils/server/getInterfacesReference';
 
-// Served at /options/<member>/<type>.md — the markdown twin of each options union-variant page.
-// Mirrors the page's own getStaticPaths so the two URL sets line up 1:1. Content-negotiates from
-// the HTML URL on Accept: text/markdown (see getMarkdownNegotiationRules in htaccessRules.ts).
+// Mirrors the page's own getStaticPaths so the two URL sets line up 1:1.
+// Content-negotiated from the HTML URL on Accept: text/markdown — see getMarkdownNegotiationRules in htaccessRules.ts.
 export function getStaticPaths() {
     if (DISABLE_MARKDOWN_DOCS) {
         return [];

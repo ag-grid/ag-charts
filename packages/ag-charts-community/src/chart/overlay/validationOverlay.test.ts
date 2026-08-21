@@ -350,11 +350,8 @@ describe('ValidationOverlay', () => {
         });
     });
 
-    // The "Deprecation Only" QA case (jira-comments 2026-08-13): a deprecation-severity issue at
-    // overlayLevel 'deprecation' must render its own section. No community-level deprecated option
-    // exists to drive this through a real chart — the option -> collector -> overlay wiring is
-    // covered by the warning tests above — so the renderer is exercised directly here against a
-    // grouped deprecation issue, the one severity no other DOM test renders.
+    // No community-level deprecated option can drive a deprecation-severity issue through a real chart,
+    // so the renderer is exercised directly against a grouped deprecation issue.
     describe('#deprecation section', () => {
         test('renders a Deprecations section, count heading and summary for a deprecation-severity issue', async () => {
             chart = await createChart({

@@ -124,8 +124,8 @@ export class ContextMenu extends AbstractModuleInstance {
         this.element = ctx.domManager.addChild('canvas-overlay', moduleId);
         this.element.classList.add(DEFAULT_CONTEXT_MENU_CLASS);
         this.element.style.display = 'none';
-        this.element.addEventListener('contextmenu', (event) => event.preventDefault()); // AG-10223
-        // CRT-481 Automatically close the context menu when change focus with TAB / Shift+TAB
+        this.element.addEventListener('contextmenu', (event) => event.preventDefault());
+        // Automatically close the context menu when focus changes with TAB / Shift+TAB.
         this.element.addEventListener('focusout', ({ relatedTarget }) => {
             if (this.collapsingSubMenus > 0) return;
             if (relatedTarget == null || (relatedTarget instanceof Node && !this.element.contains(relatedTarget))) {
@@ -503,8 +503,8 @@ export class ContextMenu extends AbstractModuleInstance {
     }
     private onSubMenuCollapse(button: _Widget.MenuItemWidget, menu: _Widget.MenuWidget) {
         button.setFocusOverride(undefined);
-        // AG-14931 Removing HTML elements can fire a 'focusout' event with `relatedTarget: null` and dismiss the whole
-        // context menu, we want to avoid that.
+        // Removing HTML elements can fire a 'focusout' with `relatedTarget: null`, which would dismiss the whole
+        // context menu.
         this.collapsingSubMenus++;
         menu.remove();
         this.collapsingSubMenus--;
@@ -727,7 +727,6 @@ export class ContextMenu extends AbstractModuleInstance {
             button.addListener('click', this.createButtonOnClick(event, showOn, action));
         }
         if (item.items.length === 0) {
-            // AG-14807 Design clear hover state
             // TODO: move this logic into MenuWidget
             button.addListener('mouseleave', () => button.setFocusOverride(false));
             button.addListener('mouseenter', () => button.setFocusOverride(undefined));

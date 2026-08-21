@@ -206,18 +206,12 @@ describe('RadarLineSeries', () => {
         chart = AgCharts.create(options);
         await compare();
     });
-    // Covers the radar-line -test page (radar-line-series-test) actions, asserted over the whole
-    // animation trajectory (see the animation-trajectory-tests rule) rather than per-ratio snapshots.
-    // Radar-line only genuinely tweens on its INITIAL reveal: the line path grows radially out from the
-    // chart centre while the markers fade in behind it. Its data-swap and legend-toggle paths both
-    // skipCurrentBatch (polar animation state machine), so they SNAP structurally — the page's
-    // "re-tween between datasets" / "animates out and back in" wording never matched the code. The snap
-    // CASEs pin that behaviour (no tween, correct end state) so a regression that started tweening them,
-    // or dropped the snap, would fail.
+    // Radar-line only genuinely tweens on its initial reveal; data-swap and legend-toggle both
+    // skipCurrentBatch (polar animation state machine), so they snap structurally instead.
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
 
-        // The -test page's two datasets: data2 prepends one extra category (a point add on swap).
+        // data2 prepends one extra category (a point add on swap).
         const DATA_1 = [
             { category: 'cat 1', iphone: 18, mac: 27 },
             { category: 'cat 2', iphone: 138, mac: 35 },
@@ -226,9 +220,7 @@ describe('RadarLineSeries', () => {
         ];
         const DATA_2 = [{ category: 'cat 10', iphone: 18, mac: 27 }, ...DATA_1];
 
-        // radiusMax pins the radius domain so a legend toggle can't rescale the surviving series — the
-        // hidden series' marks then move in isolation, keeping the snap CASEs' "nothing else moved"
-        // default honest.
+        // radiusMax pins the radius domain so a legend toggle can't rescale the surviving series.
         const radarOptions = (data: typeof DATA_1, radiusMax?: number): AgPolarChartOptions =>
             prepareEnterpriseTestOptions<AgPolarChartOptions>({
                 animation: { enabled: true },
@@ -258,9 +250,7 @@ describe('RadarLineSeries', () => {
         const visibleMarkerCount = (sample: SceneGeometrySample, seriesIndex: number) =>
             [...sample].filter(([k, v]) => k.startsWith(`series[${seriesIndex}]/marker[`) && v.visible === 1).length;
 
-        // A structural snap runs no animation batch, so every captured inter-frame interval traversed no
-        // phase. This is the "did not tween" contract for the data-swap and legend-toggle actions, and
-        // (unlike a full-scene constancy check) it tolerates the paths' legitimately non-finite stations.
+        // A structural snap runs no animation batch, so every captured inter-frame interval traverses no phase.
         const expectSnapped = (trajectory: SceneGeometrySample[]) => {
             const intervals = (trajectory as unknown as { phaseIntervals: unknown[][] }).phaseIntervals;
             expect(
@@ -269,18 +259,14 @@ describe('RadarLineSeries', () => {
             ).toEqual([]);
         };
 
-        // The fade-in shared by every marker on the initial reveal: markers snap to opacity 0 and fade
-        // back to 1 during add/trailing. Only non-vacuous alongside the frame-0 collapsed guard below —
-        // a marker held at 1 throughout also satisfies increases/bounded/settlesAt.
+        // Only non-vacuous alongside the frame-0 collapsed guard below — a marker held at 1 throughout
+        // also satisfies increases/bounded/settlesAt.
         const markerFadeIn: PhasedPropertyExpectation = {
             during: ['add', 'trailing'],
             expect: ['increases', 'bounded'],
             settlesAt: 1,
         };
 
-        // "Initial reveal" — the line path sweeps out from the centre (bbox grows from a collapsed point
-        // during the `initial` phase) and the markers fade in during add/trailing. Both series reveal
-        // identically, so the path/marker globs cover series[0] (iphone) and series[1] (mac) together.
         it('initial reveal: the line grows out from the centre and markers fade in', async () => {
             const proxy = AgCharts.create(radarOptions(DATA_1));
             chart = deproxy(proxy);
@@ -288,8 +274,6 @@ describe('RadarLineSeries', () => {
             const trajectory = await frames.captureAnimationFrames(chart, sampler);
             await frames.runToEnd(chart);
 
-            // Anti-vacuity: on the first captured frame every line path is collapsed to a point (zero
-            // extent) and every marker is invisible, so the growth/fade specs below cannot pass vacuously.
             const paths = pathKeys(trajectory[0]);
             expect(paths.length, 'line paths at frame 0').toBe(2);
             for (const key of paths) {
@@ -307,10 +291,7 @@ describe('RadarLineSeries', () => {
                 expect: ['increases', 'progresses', 'bounded'],
             };
             const recedes: PhasedPropertyExpectation = { during: 'initial', expect: ['decreases', 'bounded'] };
-            // The per-station top-y crossings are non-finite while the path is collapsed (frame 0) and at
-            // any frame where a station has no crossing, so they are pinned `degenerate`; the bbox
-            // width/height carry the growth signal, and top@2 (the deepest station) additionally proves
-            // per-point outward motion.
+            // Per-station top-y crossings are non-finite while collapsed, so they are pinned `degenerate`.
             const collapsedStation: PhasedPropertyExpectation = { during: 'initial', expect: ['degenerate'] };
             expectSceneTrajectory(trajectory, {
                 'series[*]/path[*]': {
@@ -331,8 +312,6 @@ describe('RadarLineSeries', () => {
                     x: 'any',
                     y: 'any',
                 },
-                // The datum labels fade in alongside the markers (also from opacity 0 — the frame-0 guard
-                // above covers markers; labels start at 0 too, per the same add/trailing fade).
                 'series[*]/labels/text[*]': {
                     opacity: { during: ['add', 'trailing'], expect: ['increases', 'bounded'] },
                     x: 'any',
@@ -341,10 +320,6 @@ describe('RadarLineSeries', () => {
             });
         });
 
-        // "Data1 → Data2" — the swap prepends the `cat 10` category (4 → 5 points), so the series rebuild
-        // their marks. The polar update path skipCurrentBatches, so this SNAPS: no animation phase runs.
-        // Anti-vacuity: each series gains a marker (4 → 5) and the new `cat 10` marker is present after,
-        // proving the swap actually landed rather than the trajectory being trivially still.
         it('data swap: reshapes to the new categories without tweening', async () => {
             const proxy = AgCharts.create(radarOptions(DATA_1));
             chart = deproxy(proxy);
@@ -362,7 +337,6 @@ describe('RadarLineSeries', () => {
             expectSnapped(trajectory);
         });
 
-        // "Data2 → Data1" — the reverse: the swap drops the `cat 10` category (5 → 4 points). Also a snap.
         it('data swap (remove): drops a category without tweening', async () => {
             const proxy = AgCharts.create(radarOptions(DATA_2));
             chart = deproxy(proxy);
@@ -378,10 +352,6 @@ describe('RadarLineSeries', () => {
             expectSnapped(trajectory);
         });
 
-        // "Toggle a legend item" — clicking a legend entry hides the series. With the radius domain pinned
-        // the surviving series stays put, and the toggle SNAPS (no phase runs): the hidden series' line
-        // path leaves the scene and its markers flip invisible in place, everything else holds. Re-clicking
-        // restores it, again without tweening.
         it('legend toggle: the series snaps out and back in without tweening', async () => {
             const proxy = AgCharts.create(radarOptions(DATA_1, 150));
             chart = deproxy(proxy);
@@ -389,7 +359,6 @@ describe('RadarLineSeries', () => {
             const sampler = createSceneGeometrySampler(chart);
             const { x, y } = computeLegendBBox(chart);
 
-            // Hide series[0] (the first legend item).
             const {
                 before,
                 trajectory: hideTrajectory,
@@ -401,10 +370,8 @@ describe('RadarLineSeries', () => {
             expect(visibleMarkerCount(hidden, 0), 'series[0] visible markers after hide').toBe(0);
             expect(hasSeriesPath(hidden, 0), 'series[0] path after hide').toBe(false);
             expectSnapped(hideTrajectory);
-            // Positional correctness: with the radius domain pinned, hiding series[0] must not disturb the
-            // surviving series[1] — every one of its markers stays at the same screen position. Compared by
-            // sorted position (not by key), because hiding a sibling re-creates series[1]'s marker nodes and
-            // the sampler assigns the fresh instances new keys.
+            // Compared by sorted position, not key: hiding a sibling re-creates series[1]'s marker nodes
+            // with fresh sampler keys.
             const survivorCenters = (s: SceneGeometrySample) =>
                 [...s]
                     .filter(([k]) => k.startsWith('series[1]/marker['))
@@ -421,7 +388,6 @@ describe('RadarLineSeries', () => {
                 expect(drift, `survivor marker ${i} moved when the sibling was hidden`).toBeLessThan(0.5);
             }
 
-            // Show series[0] again.
             const { trajectory: showTrajectory, after: shown } = await frames.captureSnap(chart, sampler, () =>
                 clickAction(x, y)(proxy)
             );
@@ -431,8 +397,6 @@ describe('RadarLineSeries', () => {
             expectSnapped(showTrajectory);
         });
 
-        // Pixel endpoint guards: the animated reveal of data1 and the data1 → data2 swap must each settle
-        // at exactly the pixels a non-animated (snapped) render of the same options produces.
         it('animated endpoints match a static render (reveal + data swap)', async () => {
             const before = radarOptions(DATA_1);
             const after = radarOptions(DATA_2);
@@ -721,8 +685,7 @@ describe('RadarLineSeries', () => {
                 await waitForChartStability(chart);
             });
             test('snapshot', async () => {
-                // The 'pattern' fill type is rendered slightly different on GitHub CI, but the difference isn't
-                // noticeable without an image-diff aid. I've counted the exact number of pixels that differ.
+                // The 'pattern' fill type renders slightly differently on GitHub CI, imperceptible without an image-diff aid.
                 await compare(looserSnapshotDefaults(0.08));
             });
         });
@@ -817,7 +780,6 @@ describe('RadarLineSeries', () => {
                     expect(popCalls()).toMatchSnapshot();
 
                     await hover(legendItem1);
-                    // Wait for delayed unhighlights to complete
                     await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
                     expect(popCalls()).toMatchSnapshot();
                 });

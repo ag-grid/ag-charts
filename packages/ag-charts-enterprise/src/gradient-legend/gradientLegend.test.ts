@@ -372,7 +372,6 @@ describe('GradientLegend', () => {
         await hoverAction(300, 200)(chart);
         await waitForChartStability(chart);
 
-        // After hover - arrow should be visible because highlight is enabled
         expect(gradientLegend?.arrowSelection.at(0)?.visible).toBe(true);
     });
 
@@ -693,9 +692,8 @@ describe('GradientLegend', () => {
             await compare();
         });
 
-        // Regression for AG-16048 QA feedback point 2: an empty user-supplied `colorScale: {}`
-        // must still pick up the theme's diverging palette for `fills` via the `$map` theme
-        // expression. Guard against a regression to the ColorScale constructor defaults.
+        // An empty user-supplied `colorScale: {}` must still pick up the theme's diverging palette for
+        // `fills` via the `$map` theme expression, not the ColorScale constructor defaults.
         it('AG-16048 should apply the theme fills palette when user supplies an empty colorScale', async () => {
             const options = prepareEnterpriseTestOptions({
                 data: SCATTER_DATA,
