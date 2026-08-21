@@ -451,6 +451,7 @@ export const organizationSeriesThemeableOptionsDef: OptionsDefs<AgOrganizationSe
     direction: union('horizontal', 'vertical'),
     reverse: boolean,
     expander: defined,
+    layout: defined,
     link: defined,
     node: defined,
     tooltip: tooltipOptionsDefs,

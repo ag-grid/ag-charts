@@ -22,6 +22,7 @@ const options: AgChartOptions = {
             type: 'organization',
             idKey: 'id',
             parentIdKey: 'parentId',
+            layout: { type: 'stacked', stackAtDepth: 5 },
             node: {
                 maxWidth: 180,
                 title: {
@@ -32,7 +33,10 @@ const options: AgChartOptions = {
                 },
             },
             expander: {
-                enabled: false,
+                text: {
+                    showAllChildren: true,
+                    showDirectChildren: true,
+                },
             },
         },
     ],

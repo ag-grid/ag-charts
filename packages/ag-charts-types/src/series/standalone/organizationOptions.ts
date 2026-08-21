@@ -57,6 +57,8 @@ export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TCo
      * Default: false
      */
     reverse?: boolean;
+    /** Configuration for the series layout. */
+    layout?: AgOrganizationSeriesLayout;
 
     expander?: AgOrganizationSeriesOptionsExpander<TDatum, TContext>;
 
@@ -65,6 +67,18 @@ export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TCo
 
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgOrganizationSeriesTooltipRendererParams<TDatum, TContext>>;
+}
+
+export type AgOrganizationSeriesLayout = AgOrganizationSeriesStackedLayoutOptions;
+
+export interface AgOrganizationSeriesStackedLayoutOptions {
+    type: 'stacked';
+    /** The number of pixels to indent the link from the edge of the parent node. */
+    linkIndentation?: number;
+    /** The number of pixels to indent the child node from the link. */
+    nodeIndentation?: number;
+    /** The depth at which to switch to the stacked layout. */
+    stackAtDepth?: number;
 }
 
 export interface AgOrganizationSeriesOptionsExpander<
