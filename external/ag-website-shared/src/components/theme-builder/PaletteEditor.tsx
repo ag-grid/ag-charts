@@ -1,42 +1,55 @@
-import { ColorPicker } from '@ag-website-shared/components/theme-builder/ColorPicker';
-import { FormField } from '@ag-website-shared/components/theme-builder/FormField';
 import styled from '@emotion/styled';
-import type { AgPaletteColors } from 'ag-charts-community';
 import { Plus, Trash2 } from 'lucide-react';
 
-import { type SeriesColor, fromSeriesColors, toSeriesColors, usePalette, withAccentColors } from './paletteModel';
+import { ColorPicker } from './ColorPicker';
+import { FormField } from './FormField';
+import {
+    PALETTE_ACCENT_KEYS,
+    type Palette,
+    type PaletteAccent,
+    type PaletteAccentKey,
+    type SeriesColor,
+    fromSeriesColors,
+    toSeriesColors,
+    withAccentColors,
+} from './palette';
 
 /**
- * The series palette: the half of an AG Charts theme the shared model has no
- * concept of. Fills and strokes are index-paired, so the editor works in series
- * slots rather than in two parallel lists - reordering or removing a slot keeps
- * the pair together, which is the behaviour a user expects and the one the two
- * arrays silently rely on.
+ * Editor for a chart series palette - see `palette.ts` for why the shape is
+ * shared. It is fully controlled: the host owns the state, whether that is a
+ * single atom (AG Charts) or a set of numbered theme params (Studio).
  */
-export const PaletteEditor = () => {
-    const [palette, setPalette] = usePalette();
-    const colors = toSeriesColors(palette);
+export interface PaletteEditorProps {
+    value: Palette;
+    onChange: (palette: Palette) => void;
+    /**
+     * Upper bound on series slots, if the host has one. Studio's theme declares a
+     * fixed 20 palette params; AG Charts' palette array is unbounded.
+     */
+    maxSeriesColors?: number;
+}
+
+/** A new slot when there is no previous colour to clone - AG Charts' first fill. */
+const FALLBACK_SERIES_COLOR: SeriesColor = { fill: '#5090dc', stroke: '#2b5c95' };
+
+const ACCENT_LABELS: Record<PaletteAccentKey, string> = {
+    up: 'Up (Financial)',
+    down: 'Down (Financial)',
+    neutral: 'Neutral (Financial)',
+};
+
+export const PaletteEditor = ({ value, onChange, maxSeriesColors }: PaletteEditorProps) => {
+    const colors = toSeriesColors(value);
+    const canAdd = maxSeriesColors == null || colors.length < maxSeriesColors;
+
+    const setColors = (next: SeriesColor[]) => onChange(fromSeriesColors(value, next));
 
     const updateColor = (index: number, color: Partial<SeriesColor>) =>
-        setPalette(
-            fromSeriesColors(
-                palette,
-                colors.map((c, i) => (i === index ? { ...c, ...color } : c))
-            )
-        );
+        setColors(colors.map((c, i) => (i === index ? { ...c, ...color } : c)));
 
-    const addColor = () => {
-        const last = colors[colors.length - 1] ?? { fill: '#5090dc', stroke: '#2b5c95' };
-        setPalette(fromSeriesColors(palette, [...colors, last]));
-    };
+    const addColor = () => setColors([...colors, colors[colors.length - 1] ?? FALLBACK_SERIES_COLOR]);
 
-    const removeColor = (index: number) =>
-        setPalette(
-            fromSeriesColors(
-                palette,
-                colors.filter((_, i) => i !== index)
-            )
-        );
+    const removeColor = (index: number) => setColors(colors.filter((_, i) => i !== index));
 
     return (
         <Fields>
@@ -67,44 +80,40 @@ export const PaletteEditor = () => {
                     ))}
                 </Slots>
             </FormField>
-            <AddButton type="button" onClick={addColor}>
-                <Plus size={14} /> Add series color
-            </AddButton>
-            {(['up', 'down', 'neutral'] as const).map((key) => (
+            {canAdd && (
+                <AddButton type="button" onClick={addColor}>
+                    <Plus size={14} /> Add series color
+                </AddButton>
+            )}
+            {PALETTE_ACCENT_KEYS.map((key) => (
                 <AccentEditor
                     key={key}
                     label={ACCENT_LABELS[key]}
-                    value={palette[key]}
-                    onChange={(value) => setPalette(withAccentColors(palette, key, value))}
+                    value={value[key]}
+                    onChange={(accent) => onChange(withAccentColors(value, key, accent))}
                 />
             ))}
         </Fields>
     );
 };
 
-const ACCENT_LABELS = {
-    up: 'Up (Financial)',
-    down: 'Down (Financial)',
-    neutral: 'Neutral (Financial)',
-} as const;
-
-type AccentEditorProps = {
+interface AccentEditorProps {
     label: string;
-    value: AgPaletteColors | undefined;
-    onChange: (value: AgPaletteColors) => void;
-};
+    value: PaletteAccent | undefined;
+    onChange: (value: PaletteAccent) => void;
+}
 
 const AccentEditor = ({ label, value, onChange }: AccentEditorProps) => (
     <FormField label={label}>
         <Slot>
             <ColorPicker
                 preventTransparency={false}
-                value={String(value?.fill ?? '')}
+                value={value?.fill ?? ''}
                 onChange={(fill) => onChange({ ...value, fill: fill ?? undefined })}
             />
             <ColorPicker
                 preventTransparency={false}
-                value={String(value?.stroke ?? '')}
+                value={value?.stroke ?? ''}
                 onChange={(stroke) => onChange({ ...value, stroke: stroke ?? undefined })}
             />
         </Slot>

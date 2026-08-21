@@ -1,3 +1,4 @@
+import { type Palette, paletteIsEmpty } from '@ag-website-shared/components/theme-builder/palette';
 import type { AgChartTheme, AgChartThemeName, AgChartThemePalette, AgChartThemeParams } from 'ag-charts-community';
 
 /**
@@ -66,7 +67,7 @@ export const toChartThemeParams = (overriddenParams: Record<string, unknown>): A
 export type ChartsThemeSelection = {
     baseTheme: AgChartThemeName;
     params: Record<string, unknown>;
-    palette: AgChartThemePalette;
+    palette: Palette;
 };
 
 export const toChartTheme = ({ baseTheme, params, palette }: ChartsThemeSelection): AgChartTheme => {
@@ -74,12 +75,11 @@ export const toChartTheme = ({ baseTheme, params, palette }: ChartsThemeSelectio
     return {
         baseTheme,
         ...(Object.keys(themeParams).length > 0 ? { params: themeParams } : {}),
-        ...(paletteIsEmpty(palette) ? {} : { palette }),
+        // The shared palette is a structural subset of AgChartThemePalette - it
+        // carries plain colours where AG Charts also allows gradients.
+        ...(paletteIsEmpty(palette) ? {} : { palette: palette satisfies AgChartThemePalette }),
     };
 };
-
-export const paletteIsEmpty = (palette: AgChartThemePalette) =>
-    !palette.fills?.length && !palette.strokes?.length && !palette.up && !palette.down && !palette.neutral;
 
 /**
  * Render the selection as the theme object a user would paste into their app.

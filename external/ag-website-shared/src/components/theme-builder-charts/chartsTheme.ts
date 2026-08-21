@@ -1,5 +1,12 @@
+import {
+    EMPTY_PALETTE,
+    type Palette,
+    type PaletteAccent,
+    type SeriesColor,
+    fromSeriesColors,
+} from '@ag-website-shared/components/theme-builder/palette';
 import { _Theme } from 'ag-charts-community';
-import type { AgChartThemeName, AgChartThemePalette } from 'ag-charts-community';
+import type { AgChartThemeName, AgPaletteColors } from 'ag-charts-community';
 import { createPart, createSharedTheme } from 'ag-stack';
 
 import { themeLogger } from './themeLogger';
@@ -113,14 +120,35 @@ export const getStackParams = (themeName: AgChartThemeName): Record<string, unkn
     );
 };
 
+/** An accent colour pair, narrowed to the plain colours the editor can show. */
+const toAccent = ({ fill, stroke }: AgPaletteColors): PaletteAccent => ({
+    fill: typeof fill === 'string' ? fill : undefined,
+    stroke,
+});
+
 /**
- * A stock theme's palette, in the public `AgChartThemePalette` shape - which is
- * what the instance already exposes, with fills and strokes as index-paired
- * arrays rather than the keyed objects used internally.
+ * A stock theme's palette, in the shared editor's shape.
+ *
+ * The instance already exposes fills and strokes as index-paired arrays rather
+ * than the keyed objects used internally, so this is mostly a narrowing:
+ * `AgChartThemePalette.fills` also admits gradients and patterns, which no stock
+ * theme uses and no colour picker could edit. Such a slot is dropped along with
+ * its paired stroke rather than stringified into nonsense.
  */
-export const getPalette = (themeName: AgChartThemeName): Required<AgChartThemePalette> => {
+export const getPalette = (themeName: AgChartThemeName): Palette => {
     const { fills, strokes, up, down, neutral } = getThemeInstance(themeName).palette;
-    return { fills, strokes, up, down, neutral };
+    const series: SeriesColor[] = [];
+    fills.forEach((fill, index) => {
+        if (typeof fill !== 'string') {
+            console.warn(`[charts theme builder] Theme "${themeName}" palette fill ${index} is not a plain colour`);
+            return;
+        }
+        series.push({ fill, stroke: strokes[index] ?? fill });
+    });
+    return fromSeriesColors(
+        { ...EMPTY_PALETTE, up: toAccent(up), down: toAccent(down), neutral: toAccent(neutral) },
+        series
+    );
 };
 
 export const DEFAULT_THEME_NAME: AgChartThemeName = 'ag-default';
