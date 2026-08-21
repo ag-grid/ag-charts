@@ -191,20 +191,22 @@ export class GroupedCategoryAxis extends CategoryAxis<
             let maxWidth = (datum.leafCount || 1) * step;
             if (maxWidth < MIN_CATEGORY_SPACING) continue;
 
+            const tickIndex = index - 1;
             const value = (datum.refId == null ? undefined : this.tickValues?.[datum.refId]) ?? [];
-            const inputText = tickFormatter(value, index - 1, depth);
+            const inputText = tickFormatter(value, tickIndex, depth);
             // Captured here so a click cannot disagree with the formatter; the perpendicular extent is
             // only known once the row sizes below have been summed.
             const alongHalfWidth = ((datum.leafCount || 1) * step) / 2;
             pickIdentities.push({
-                index: index - 1,
-                value: datum.label ?? '',
+                index: tickIndex,
+                value,
+                formattedValue: inputText,
                 along: [datum.screen - alongHalfWidth, datum.screen + alongHalfWidth],
                 depth,
             });
             let text = inputText;
             const labelStyles = this.getLabelStyles(
-                { value: datum.index, formattedValue: text, depth },
+                { value, formattedValue: text, depth, index: tickIndex },
                 depthOptions[depth]?.label
             );
 
@@ -270,6 +272,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
         // labels still resolve to the group they sit under.
         this.pickTickData = pickIdentities.map(({ depth, ...identity }) => ({
             ...identity,
+            depth,
             cross: [
                 depth === 0 ? 0 : tickSizeAtDepth[depth - 1],
                 depth === maxDepth - 1 ? Infinity : tickSizeAtDepth[depth],
