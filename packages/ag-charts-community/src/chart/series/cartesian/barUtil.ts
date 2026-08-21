@@ -133,11 +133,8 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
 ) {
     const isRemoved = (datum?: T) => datum == null || Number.isNaN(datum.x) || Number.isNaN(datum.y);
 
-    // Converge on the device-snapped category position so the settle crisp is a no-op: without this the
-    // bar animates to its raw position then jumps up to ~1px at the final frame. Snapping reuses the same
-    // `Shape.alignCentre` primitive the crisp render applies, so the animation target matches the rest
-    // spot exactly. Only the category dimension is snapped (never the value dimension, which may
-    // legitimately collapse to 0 on enter/exit).
+    // Animate to the device-snapped category position so the settle crisp is a no-op. Only the
+    // category dimension is snapped; the value dimension may legitimately collapse to 0.
     const alignScratch = { start: 0, length: 0 };
     const snapCategory = (rect: BarRect, geom: AnimatableBarDatum): AnimatableBarDatum => {
         const dir = rect.crispCentreDirection;

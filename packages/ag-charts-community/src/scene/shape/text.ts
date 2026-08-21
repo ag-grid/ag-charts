@@ -539,7 +539,6 @@ export class Text<D = unknown> extends Shape<D> {
     }
 
     // Anchor a child of `childHeight` inside a container of `totalHeight` according to verticalAlign.
-    // Used to position the block-leading image and its text column independently within the label.
     private static calcAnchoredOffset(verticalAlign: CanvasTextBaseline, totalHeight: number, childHeight: number) {
         const slack = Math.max(0, totalHeight - childHeight);
         switch (verticalAlign) {

@@ -269,8 +269,7 @@ function nextClose(prevClose: number, volatility: number): number {
 }
 
 // --- streaming gauge metrics --------------------------------------------------
-//
-// Each feed nudges its metrics on every tick, mean-reverting toward the baseline so they never run away.
+// Metrics mean-revert toward the baseline on every tick so they never run away.
 
 export interface GaugeMetrics {
     sentiment: number;
@@ -384,9 +383,7 @@ export class MarketFeed {
 }
 
 // --- streaming peer performance (for the profile peer chart) -----------------
-//
-// Sampled in lockstep with the candlestick chart, so the peer chart's time axis stays aligned.
-// Plots beta-adjusted outperformance against a synthetic index, which therefore sits flat at 0.
+// Sampled in lockstep with the candlestick chart so the time axes stay aligned.
 
 const SPX_SEED = 5200;
 const SPX_VOLATILITY = 0.0008;

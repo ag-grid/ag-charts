@@ -84,11 +84,8 @@ function hasLoneSurrogates(str: string): boolean {
     return false;
 }
 
-// Helper: returns true if any combining mark (U+0300–U+036F) appears
-// at position 0 of the string or immediately after a non-base character,
-// indicating it was orphaned from its base.
+// True when a combining mark (U+0300–U+036F) has been separated from its base character.
 function hasOrphanedCombiningMark(str: string): boolean {
-    // A combining mark at position 0 is always orphaned
     for (let i = 0; i < str.length; i++) {
         const code = str.charCodeAt(i);
         if (code >= 0x0300 && code <= 0x036f) {
@@ -217,9 +214,7 @@ describe('truncateLine', () => {
         });
 
         it('should not add ZWJ when last Arabic char is right-join-only (e.g. Alef, Dal, Ra)', () => {
-            // ا (Alef U+0627), د (Dal U+062F), ر (Ra U+0631) are right-join-only
-            // Their final form is the same as isolated, so no ZWJ needed
-            // 'ادر' = 3 chars, truncate at 30px (fits 2 chars + ellipsis)
+            // Right-join-only letters have identical final and isolated forms, so no ZWJ is needed.
             const result = truncateLine('ادرس', measurer, 30);
             expect(result.endsWith(E)).toBe(true);
             const beforeEllipsis = result.slice(0, -E.length);
@@ -690,9 +685,7 @@ describe('wrapTextSegments — image segment overflow', () => {
         });
 
         it('drops the image when the text line it would leave behind exhausts the vertical room', () => {
-            // 'ABCD' (40px) fits inline but the image (30px) overflows the 50px width, so wrapping it
-            // needs a second line. maxHeight (40px) fits the image alone but not the 20px text line
-            // plus the image below it, so the image must drop rather than push the label past maxHeight.
+            // maxHeight fits the image alone but not the wrapped text line above it, so the image drops.
             const result = wrapTextSegments(segments, {
                 font: baseFont,
                 maxWidth: 50,
@@ -763,8 +756,7 @@ describe('wrapTextSegments — block-leading image', () => {
         });
         expect(textOf(naturalFit)).toBe('Foo\nBar');
 
-        // With lineHeight: 40 on the first segment, the first line consumes 40px so the second
-        // line no longer fits in the budget and gets dropped/truncated.
+        // A larger lineHeight on the first segment consumes the budget, dropping the second line.
         const overrideFit = wrapTextSegments([text('Foo', { lineHeight: 40 }), text('\nBar')], {
             font: baseFont,
             maxWidth: 200,

@@ -167,10 +167,8 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
     private lastPixelRatio = Number.NaN;
     override preRender(renderCtx: RenderContext): ChildNodeCounts {
         if (renderCtx.devicePixelRatio !== this.lastPixelRatio) {
-            // Some shapes align the paths to pixels
-            // In almost every case, when the pixel ratio changes, the chart will be resized and all paths would be invalidated
-            // The only time this wouldn't happen is dragging the browser between monitors with different scaling
-            // Since this case is rare, it's easier to just assume any path will align to pixels rather than doing this opt-in
+            // Pixel-aligned paths must be rebuilt; invalidate unconditionally rather than opt-in,
+            // since only a cross-monitor drag changes the ratio without also resizing the chart.
             this.dirtyPath = true;
         }
         this.lastPixelRatio = renderCtx.devicePixelRatio;
@@ -194,7 +192,7 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
             ctx.save();
 
             try {
-                // AG-10477 avoid clipping thick lines that touch the top, bottom and left edges of the clip rect
+                // Avoid clipping thick lines that touch the top, bottom and left edges of the clip rect
                 const margin = this.strokeWidth / 2;
                 this._clipPath ??= new ExtendedPath2D();
                 this._clipPath.clear();

@@ -32,9 +32,8 @@ export class HdpiCanvas {
         this.element = options.canvasElement;
         this.pixelRatio = options.pixelRatio;
 
-        // Immediately apply width + height to avoid out-of-memory errors on iOS/iPadOS Safari.
-        // Safari needs a width and height set before calling getContext or the output can appear blurry
-        // Must also be `display: block` so the height doesn't get increased by `inline-block` layout
+        // iOS/iPadOS Safari runs out of memory or renders blurry unless width/height are set before
+        // getContext; `display: block` stops inline-block layout inflating the height.
         this.element.style.display = 'block';
         this.element.style.width = (width ?? this.width) + 'px';
         this.element.style.height = (height ?? this.height) + 'px';

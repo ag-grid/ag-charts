@@ -950,9 +950,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             isInside && (ctx.labelFit != null || ctx.labelResolvesOrientation)
                 ? insideBarRegion(rect, label.spacing, label.spacing, !barAlongX)
                 : undefined;
-        // Only bind the text to the bar (and hide it when it overflows) when `inside` is the sole
-        // placement. A cascade with a non-inside fallback lets a label that cannot fit inside escape to
-        // that placement, so hiding it for failing the inside fit would wrongly drop a placeable label.
+        // Bind to the bar only when `inside` is the sole placement; a cascade's non-inside fallback
+        // can still place a label that fails the inside fit.
         const insideOnly = toArray(label.placement).every((p) => p === 'inside');
         const container =
             barRegion && insideOnly ? insideBarContainer(barRegion, expandPlacementLabelBoxExtent(label)) : undefined;
@@ -967,9 +966,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const labelTextParams = { datum, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, legendItemName };
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y).domain;
 
-        // The engine refits a routed label to each candidate, knowing a rotated label measures against
-        // the bar's other axis and that each placement offers its own room; fitting here would bind every
-        // candidate to the first placement's upright budget (see barSeries).
+        // The engine refits a routed label per candidate; fitting here would bind every candidate to
+        // the first placement's upright budget (see barSeries).
         const fitText = (text: NormalisedTextOrSegments) =>
             ctx.labelRoutesThroughEngine
                 ? { text, fontSize: undefined }
@@ -1114,9 +1112,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
         const low = labels[0] as Mutable<RangeBarNodeLabelDatum>;
         const high = labels[1] as Mutable<RangeBarNodeLabelDatum>;
-        // On a reversed value axis the low value sits at the rect's high edge and vice versa, so the two
-        // baked anchors belong to the opposite labels; swap their positions (each keeps its own value text).
-        // The cascade path below re-bakes reversed-aware candidates, so this only affects the direct path.
+        // A reversed value axis puts each baked anchor at the other label's edge, so swap positions
+        // (text stays put). Only affects the direct path; the cascade below re-bakes reversed-aware.
         if (ctx.yReversed) {
             [low.x, high.x] = [high.x, low.x];
             [low.y, high.y] = [high.y, low.y];

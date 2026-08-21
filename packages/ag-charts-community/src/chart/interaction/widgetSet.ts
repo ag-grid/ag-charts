@@ -111,10 +111,8 @@ export class AxisWidgets {
         this.pruneEntry(axisId, entry);
     }
 
-    // Bounds are routed through these setters because an interactive axis nests its title inside the
-    // region widget (positioned relative to the region origin) while a non-interactive one positions it
-    // in canvas coordinates. Region and title bounds arrive from independent `layout:complete` listeners
-    // in an unspecified order, so both are stored and the position re-derived on every update.
+    // Region and title bounds arrive from independent `layout:complete` listeners in an unspecified
+    // order, so both are stored and the title position re-derived on every update.
 
     setRegionBounds(axisId: AxisID, bounds: BoxBounds): void {
         const entry = this.getEntry(axisId);
@@ -167,9 +165,8 @@ export class AxisWidgets {
         return entry;
     }
 
-    // Move the standalone title element out of the DOM manager and into the region widget. The
-    // domManager entry must be cleared first, otherwise a later re-attach would be a no-op (addChild
-    // is keyed by id and returns the existing element).
+    // Clear the domManager entry before re-parenting: `addChild` is keyed by id, so a later re-attach
+    // would otherwise be a no-op.
     private nestTitle(axisId: AxisID, entry: AxisEntry): void {
         if (!entry.region || !entry.text) return;
         this.ctx.domManager.removeChild('canvas-proxy', this.titleId(axisId));

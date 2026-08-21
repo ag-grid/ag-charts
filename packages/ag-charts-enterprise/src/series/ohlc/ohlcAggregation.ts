@@ -18,9 +18,7 @@ type DataModel = _ModuleSupport.DataModel<any, any, any>;
 export type OhlcSeriesDataAggregationFilter = ExtremesAggregationFilter;
 export type OhlcPartialAggregationResult = ExtremesPartialAggregationResult;
 
-// ============================================================================
-// ADAPTER LAYER: Scale integration
-// ============================================================================
+// Adapter layer: scale integration.
 
 function aggregateOhlcData(
     xValues: any[],
@@ -39,9 +37,7 @@ function aggregateOhlcData(
     });
 }
 
-// ============================================================================
-// INTEGRATION LAYER: Memoization and DataModel integration
-// ============================================================================
+// Integration layer: memoization and DataModel integration.
 
 const memoizedAggregateOhlcData = simpleMemorize2(aggregateOhlcData);
 

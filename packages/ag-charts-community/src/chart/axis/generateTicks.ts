@@ -142,9 +142,8 @@ export function estimateScaleTickCount<TScale extends Scale<TDatum, number, Tick
     const rangeExtent = findRangeExtent(range);
     const zoomExtent = findRangeExtent(visibleRange);
 
-    // Ordinal-time tick steps are discrete (time-interval-based), so reducing tickCount
-    // doesn't always produce fewer ticks. minTickCount must be 0 to let the binary search
-    // in buildTickData exit when ticks stop changing — otherwise the overlap loop hangs.
+    // Ordinal-time tick steps are discrete, so a lower tickCount need not yield fewer ticks;
+    // minTickCount must be 0 or buildTickData's search cannot terminate.
     const isOrdinalTime = OrdinalTimeScale.is(scale);
 
     if (CategoryScale.is(scale) || (isOrdinalTime && domain.length < 1000)) {
@@ -285,7 +284,6 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
         primaryTickCount != null &&
         ContinuousScale.is(scale)
     ) {
-        // AG-10654 Just use normal ticks for categorical axes.
         secondaryAxisTicks = calculateNiceSecondaryAxis(scale, domain, primaryTickCount, reverse, visibleRange);
     }
 

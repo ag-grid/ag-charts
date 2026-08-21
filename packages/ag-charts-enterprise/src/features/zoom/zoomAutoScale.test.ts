@@ -265,9 +265,7 @@ describe('ZoomAutoScale', () => {
         expect(zoomListener.mock.mock.calls[0][0]?.autoScaledAxes).toBeUndefined();
         zoomListener.mock.mockClear();
 
-        // Enable autoScaling;
-        // (1)  Expect zoom on both X and Y axes.
-        // (2)  Expect the Y ranges to have been multiplied by 100.
+        // Enable autoScaling: (1) zoom on both axes, (2) Y ranges multiplied by 100.
         await chart.updateDelta({
             data: options.data!.map(({ input, output }) => ({ input, output: output * 100 })),
             zoom: { autoScaling: { enabled: true } },

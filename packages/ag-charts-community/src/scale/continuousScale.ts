@@ -118,10 +118,8 @@ export abstract class ContinuousScale<D extends number | bigint | Date, I = numb
         const { range } = this;
         const clamp = options?.clamp ?? this.defaultClamp;
 
-        // Full-precision BigInt ratio for linear scales: keeps adjacent high-magnitude bigints monotonic
-        // where a float64 narrow would collapse them. Finite Number values (e.g. a zero baseline) must
-        // also take this path, as the narrowed d0Cache/d1Cache endpoints may be ±Infinity for a bigint
-        // domain. Log/time scales narrow to Number below.
+        // A float64 narrow collapses adjacent high-magnitude bigints, and for a bigint domain the narrowed
+        // endpoints may be ±Infinity — so finite Numbers must take this path too.
         if (this.d0Big != null && this.d1Big != null && this.transform == null) {
             if (typeof value === 'bigint' || (typeof value === 'number' && Number.isFinite(value))) {
                 return convertBigInt(value, this.d0Big, this.d1Big, range, clamp);

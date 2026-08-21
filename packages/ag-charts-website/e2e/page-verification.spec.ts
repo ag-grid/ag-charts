@@ -21,10 +21,7 @@ declare global {
 /** Inline script the site policy cannot authorise, used to prove CSP capture still works. */
 const CSP_SELF_CHECK_SCRIPT = 'window.__agCspSelfCheck = true;';
 
-// A smoke suite: only a page failing to load or render fails a test, so it deliberately avoids
-// util.ts's zero-tolerance setupIntrinsicAssertions. Everything else, CSP violations included, is
-// annotated for the post-deploy report — a Google Tag Manager edit invalidates an inline-script
-// hash outside this repo, and must not turn every page red.
+// A smoke suite: only load/render failures fail a test; everything else is annotated for the report.
 // Chromium writes the policy name with spaces in some messages and hyphens in others.
 const isCspIssue = (msg: string) => /Content[- ]Security[- ]Policy|Refused to (load|execute|connect)/i.test(msg);
 
@@ -72,9 +69,7 @@ function setupPageVerificationAssertions() {
                 return;
             }
             if (msg.type() !== 'warning' && msg.type() !== 'error') return;
-            // The message's own location, not page.url(): a violation inside an iframe is
-            // reported against that frame's document, and a hash has to be matched to the
-            // page that needs it.
+            // The message's own location, not page.url(): an iframe violation names its own document.
             handle(msg.text(), '[Console]', msg.location()?.url || page.url());
         });
 
@@ -188,12 +183,8 @@ test.describe('Page Verification', () => {
         await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     });
 
-    // Sense-check the standalone example runner across frameworks by loading a couple of
-    // examples directly at their framework-specific URLs and asserting a chart renders. This
-    // exercises each framework's example compiler head-on — in particular the vanilla
-    // (JavaScript) build. The docs-page inline runner defaults to the TypeScript variant, so it
-    // can render while the vanilla compiler is broken; loading the `vanilla` URL directly is what
-    // actually catches that. gotoExample waits for the chart canvas and its render-stable state.
+    // The docs-page inline runner defaults to TypeScript, so only these direct URLs catch a broken
+    // vanilla compiler.
     const exampleRenderChecks = [
         { pageSlug: 'quick-start', example: 'basic-example' },
         { pageSlug: 'bar-series', example: 'simple-bar' },

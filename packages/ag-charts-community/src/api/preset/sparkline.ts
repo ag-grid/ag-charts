@@ -104,11 +104,8 @@ function gridLinePreset(
     return gridLineOpts;
 }
 
-// The x value is prepended to the default content only when it is both meaningful and
-// has somewhere to go, matching the Grid's historical sparkline default tooltip:
-//  - `datumKey === 'y'` marks number-array input, where x is a synthesised index — omit it.
-//  - a user-supplied title takes the label slot, leaving the value as y-only.
-// y is rendered raw (no `.toFixed(2)`) to match that Grid default.
+// The x value is prepended to the default content only when it is both meaningful and has somewhere to
+// go, matching the Grid's sparkline default tooltip (which also renders y raw, without `.toFixed(2)`).
 const defaultTooltipContent = (
     xValue: unknown,
     yValue: unknown,

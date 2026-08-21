@@ -14,13 +14,8 @@ type ScopeProvider = _ModuleSupport.ScopeProvider;
 type ProcessedData = _ModuleSupport.ProcessedData<any>;
 type DataModel = _ModuleSupport.DataModel<any, any, any>;
 
-// Type aliases for RangeBar-specific usage
 export type RangeBarSeriesDataAggregationFilter = ExtremesAggregationFilter;
 export type RangeBarPartialAggregationResult = ExtremesPartialAggregationResult;
-
-// ============================================================================
-// ADAPTER LAYER: Scale integration
-// ============================================================================
 
 function aggregateRangeBarData(
     xValues: any[],
@@ -38,10 +33,6 @@ function aggregateRangeBarData(
         yNeedsValueOf,
     });
 }
-
-// ============================================================================
-// INTEGRATION LAYER: Memoization and DataModel integration
-// ============================================================================
 
 const memoizedAggregateRangeBarData = simpleMemorize2(aggregateRangeBarData);
 

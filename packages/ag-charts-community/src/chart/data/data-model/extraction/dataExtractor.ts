@@ -592,9 +592,8 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             // Leave unobserved columns undefined rather than guessing 'number', so type assertions don't false-positive.
             columnValueType.push(typeTracker.type);
             columnHasIsoStrings.push(typeTracker.type === 'date' && sawIsoStrings(tzTracker));
-            // A string-free column is its own epoch representation: seed the cache so the domain and
-            // aggregation paths skip the per-call string scan (ISO-string columns are seeded lazily
-            // when extendDomainFromEpochColumn parses them below).
+            // A string-free column is its own epoch representation, so seeding the cache lets the domain
+            // and aggregation paths skip their per-call string scan.
             if (!typeTracker.sawString) {
                 seedEpochColumnIdentity(column);
             }

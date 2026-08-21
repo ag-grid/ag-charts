@@ -293,9 +293,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
 
     private update() {
         this.groupNode.visible = this.cartesianSeries.visible;
-        // Series-level dimming (highlight and selection) is expressed as group opacity, so it must be
-        // re-applied on every update - otherwise a data-selection change leaves the group at the
-        // opacity a previous highlight happened to set (CRT-1186).
+        // Series-level dimming is expressed as group opacity, so it must be re-applied on every update.
         this.groupNode.opacity = this.cartesianSeries.getOpacity();
         const nodeData = this.getNodeData();
         this.sceneSelection.update(nodeData ?? []);

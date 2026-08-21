@@ -387,9 +387,8 @@ describe('label itemStyler participates in placement', () => {
                         // Padding with neither fill nor border, so there is no box to pad.
                         return { padding: 14 };
                     case 'wide':
-                        // Reserves a box far wider than its text, so its neighbour `near` can no longer sit
-                        // above its own point and cascades below instead. Styled per placement, so the box the
-                        // cascade tested above is not the one drawn below.
+                        // Reserves a box far wider than its text, so its neighbour `near` cascades below its point;
+                        // styled per placement, so the box the cascade tested above is not the one drawn below.
                         return placement === 'top'
                             ? { fill: '#ffd9d9', padding: { top: 4, bottom: 4, left: 30, right: 30 } }
                             : { fill: '#d9f2d9', padding: 4 };

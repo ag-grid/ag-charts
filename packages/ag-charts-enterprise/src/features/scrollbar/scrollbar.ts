@@ -52,9 +52,7 @@ export class Scrollbar extends AbstractModuleInstance {
 
     private readonly scrollPanner = new ZoomScrollPanner();
 
-    // Scrollbar is only created when the `scrollbar` subtree is configured, so assert presence
-    // here and rely on SCROLLBAR_THEME for field-level defaults (including horizontal/vertical
-    // sub-objects, which the theme always populates via SCROLLBAR_ORIENTATION_THEME).
+    // Scrollbar is only created when the `scrollbar` subtree is configured, so assert presence here.
     private get opts(): _ModuleSupport.NormalisedScrollbarOptions {
         return this.ctx.chartState.getValue('options', 'scrollbar')!;
     }
@@ -437,9 +435,8 @@ export class Scrollbar extends AbstractModuleInstance {
             zoomManager.getAxisZooms()
         );
 
-        // At the extent the pan is a no-op; committing it would persist a span left marginally below 1 by
-        // floating-point noise, tripping the `span < 1` auto-visibility check. Report capped to let the
-        // page scroll instead.
+        // At the extent the pan is a no-op; committing it would leave a span marginally below 1 from
+        // floating-point noise, tripping the `span < 1` auto-visibility check. Report capped instead.
         const next = newAxisZooms[axisId];
         const current = zoomManager.getAxisZoom(axisId);
         if (isNumberEqual(next.min, current.min) && isNumberEqual(next.max, current.max)) {

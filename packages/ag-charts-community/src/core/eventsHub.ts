@@ -370,9 +370,7 @@ export interface ZoomSaveMementoEvent {
 }
 
 export interface ZoomLoadMementoEvent {
-    // Note: `zoom` is intentionally mutable. At the time of writing, only one feature (autoScaling) depends on zoom
-    // memento events, so it's safe because we do not have multiple writers. We may need to consider adding a
-    // `constrain()` method to this event.
+    // `zoom` is intentionally mutable: autoScaling is the sole consumer, so there are no competing writers.
     zoom: DefinedZoomState;
     readonly memento: DeepReadonly<ZoomMemento> | undefined;
     readonly navigatorModule: boolean;

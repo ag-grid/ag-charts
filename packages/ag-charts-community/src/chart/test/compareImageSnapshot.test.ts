@@ -239,10 +239,8 @@ describe('compareImageSnapshot scene capture', () => {
             { c: 'C', v: 3 },
         ]);
 
-        // Deliberately do NOT seed a baseline, so the comparison "differs" regardless of snapshot
-        // policy — a freshly-written baseline locally, a failed match under CI's write-nothing mode.
-        // Either way diff-mode capture must fire; the comparison's own pass/fail is mode-dependent and
-        // not this test's subject, so its outcome is intentionally ignored.
+        // No baseline is seeded, so the comparison always differs whatever the snapshot policy; only
+        // the diff-mode capture is under test, so the comparison's own outcome is ignored.
         process.env.AG_SCENE_SNAPSHOTS = 'diff';
         await compareImageSnapshot(chart!, ctx, {
             ...IMAGE_SNAPSHOT_DEFAULTS,

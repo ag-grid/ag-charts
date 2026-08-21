@@ -95,9 +95,8 @@ test.describe('interactive-tooltip', () => {
                 await expectChartScreenshot(page, page, 'interactive-tooltip-visible.png');
                 const expectedRenders: string = await getSceneRenders(page);
 
-                // Click the centre of the link, not its top-left corner: text bbox edges are
-                // sub-pixel and engine-specific, and on Firefox the corner lands just outside the
-                // anchor, so the link's click handler never runs.
+                // Click the centre of the link, not its top-left corner: text bbox edges are sub-pixel and
+                // engine-specific, and on Firefox the corner lands just outside the anchor.
                 const bbox = await getBoundingBoxByText(page, 'Click here');
                 await page.mouse.click(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2);
                 await expectChartScreenshot(page, page, 'interactive-tooltip-visible.png');

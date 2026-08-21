@@ -20,18 +20,14 @@ import communityMenu from '@ag-website-shared/content/community/community-menu.j
 
 const SOCIAL_IMAGE_URL = 'images/campaigns/beyond-the-prompt/social-card.png';
 
-// Featured faces for the hero (use the SVG illustrations).
-// Order is intentional: the middle slot drops down in the layout to create a
-// small zigzag, so the bookend slots (1 and 3) sit at the natural top while
-// slot 2 takes the dropped position.
+// Order matters: the layout drops the middle slot to form a zigzag.
 const HERO_FACES = [
     { name: 'Maggie', src: 'images/campaigns/beyond-the-prompt/svg/maggie.svg' },
     { name: 'Stephen', src: 'images/campaigns/beyond-the-prompt/svg/stephen.svg' },
     { name: 'Matt Pocock', src: 'images/campaigns/beyond-the-prompt/svg/matt-pocock.svg' },
 ];
 
-// Photos from the day, shown as a black-and-white carousel (webp conversions
-// of the event photography).
+// Photos from the day, shown as a black-and-white carousel.
 const GALLERY_IMAGES = [
     'images/campaigns/beyond-the-prompt/gallery/gallery-01.webp',
     'images/campaigns/beyond-the-prompt/gallery/gallery-02.webp',
@@ -66,10 +62,8 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/communi
 
 {
     /*
-    Page-only global override: the campaign uses a #F2F2F2 page background, but the
-    html/body still default to white from the global design system so over-scroll
-    (macOS bounce, mobile rubber-band) flashes white. Scope this to the page by
-    only emitting it from this .astro file.
+    Page-only global override: without it, over-scroll flashes the design system's white
+    html/body background against this page's grey.
 */
 }
 <style is:global>
@@ -79,11 +73,8 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/communi
     }
 
     /*
-        Brand-coloured text selection. `::selection` is a pseudo-element and
-        can't be hashed by CSS Modules, so we route it through `is:global`,
-        but because this <style> block lives in a page component, it's
-        only emitted into the bundle for this route, so other pages keep
-        the browser default.
+        `is:global` because `::selection` is a pseudo-element CSS Modules cannot hash; being a page
+        component, it is still only emitted into this route's bundle.
     */
     ::selection {
         background-color: #f43800;
@@ -258,12 +249,8 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/communi
                                             loading="lazy"
                                         />
                                         {/*
-                                        Re-shaded variant for the orange hover state. Sits on top of
-                                        the default illustration via `position: absolute` so the two
-                                        portraits crossfade in place when the card is hovered. The
-                                        wrap turns orange in CSS at the same time, so the orange-bg
-                                        SVG's dither/knockout reads correctly. Decorative; the
-                                        first <img> already carries the speaker's name as alt text.
+                                        Hover variant, faded in over the default illustration.
+                                        Decorative: the first <img> carries the speaker's name.
                                     */}
                                         {speaker.imageOrange && (
                                             <img

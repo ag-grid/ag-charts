@@ -873,12 +873,8 @@ describe('HistogramSeries', () => {
         );
     });
 
-    // Initial/remove/add/update animations are covered structurally by the
-    // 'animation -test page actions' trajectory CASEs below.
-
-    // One CASE per transition the histogram-series-test page exercises (initial load, Randomise,
-    // Remove/binning). Bins are Rects that reveal from the value baseline, so these mirror the bar
-    // suite's revealFromBaseline / height-reflow patterns.
+    // One CASE per transition the histogram-series-test page exercises; bins are Rects that reveal
+    // from the value baseline, mirroring the bar suite's patterns.
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
 
@@ -894,8 +890,7 @@ describe('HistogramSeries', () => {
             [18, 24],
             [24, 30],
         ];
-        // Per-bin frequencies (all < the pinned y-max of 10, so the reflows below never rescale):
-        //   DATA_A over BINS_3 -> [5, 3, 3];  DATA_B over BINS_3 -> [2, 4, 4].
+        // Per-bin frequencies (DATA_A -> [5, 3, 3], DATA_B -> [2, 4, 4]) stay under the pinned y-max of 10.
         const DATA_A = [1, 2, 3, 5, 7, 11, 12, 15, 21, 25, 28];
         const DATA_B = [1, 2, 11, 12, 15, 18, 21, 22, 25, 28];
 
@@ -903,8 +898,7 @@ describe('HistogramSeries', () => {
             { type: 'histogram', xKey: 'x', bins, label: { enabled: false } },
         ];
 
-        // Pinned x (via the fixed bins) and y (0-10) domains keep every data update provably
-        // non-scale-affecting, so only the bins themselves move.
+        // Pinned x and y domains keep every data update provably non-scale-affecting.
         const histogramOptions = (mode?: 'integrated'): AgCartesianChartOptions => {
             const options: AgCartesianChartOptions = {
                 data: DATA_A.map((x) => ({ x })),
@@ -931,8 +925,8 @@ describe('HistogramSeries', () => {
             expect(node, key).toBeDefined();
             expect(node!.height).toBeLessThanOrEqual(0.1);
         };
-        // Anti-vacuity for a reveal: EVERY bin (not just the first) must start collapsed at the
-        // baseline, so the height `increases` cannot pass for a bin that snapped straight to full height.
+        // Anti-vacuity: every bin must start collapsed, so `increases` cannot pass for a bin that
+        // snapped straight to full height.
         const expectAllBinsStartCollapsed = (frame: SceneGeometrySample) => {
             const keys = rectKeys(frame);
             expect(keys.length, 'bins at frame 0').toBeGreaterThan(0);
@@ -941,12 +935,10 @@ describe('HistogramSeries', () => {
             }
         };
 
-        // Frequency labels are disabled (invisible), but the series still re-fades their opacity on a
-        // value/structure change. They never paint, so their opacity churn is not a behaviour to pin.
+        // Disabled labels never paint, so their opacity churn is not a behaviour to pin.
         const labelsIgnored = { 'series[*]/labels/text[*]': 'any' } as const;
 
-        // Bins grow from the value baseline: height increases and the top edge (y) rises during the
-        // named phase, while the band coordinates only absorb a sub-pixel crisp snap (bounded).
+        // Bins grow from the value baseline; the band coordinates only absorb a sub-pixel crisp snap.
         const revealFromBaseline = (phase: 'initial' | 'add'): SceneNodeExpectation => {
             const holds = { during: [phase, 'trailing'], expect: 'bounded' } as const;
             return {
@@ -957,15 +949,11 @@ describe('HistogramSeries', () => {
             };
         };
 
-        // Auto-binning (no explicit `bins`): a data update that shifts the extent recomputes the bin
-        // set from the data. The bins re-key structurally and snap to their new boundaries at frame 0
-        // (x/width hold — a boundary that tweened horizontally would break `revealFromBaseline`), then
-        // the fresh collapsed set grows from the baseline — the same reveal the explicit binning-change
-        // takes, exercised through the data-driven auto-bin path the retired snapshots covered.
+        // Auto-binning: an extent-shifting update re-keys the bin set, which snaps to its new boundaries
+        // at frame 0 and then grows from the baseline.
         it('auto-binning: a data update that shifts the extent re-bins and grows from the baseline', async () => {
-            // The x-axis view is pinned so only the bins (computed from the data, not the axis) move on
-            // the update — an unpinned axis would reflow its ticks as the extent grows and drown the bin
-            // reveal in axis animation. y is pinned to keep the counts provably non-scale-affecting.
+            // The axis views are pinned so only the bins move; an unpinned axis would drown the bin
+            // reveal in tick animation.
             const autoOptions = (data: number[]): AgCartesianChartOptions =>
                 prepareTestOptions({
                     data: data.map((x) => ({ x })),
@@ -983,15 +971,12 @@ describe('HistogramSeries', () => {
             );
             const beforeBins = rectCount(before);
 
-            // Anti-vacuity: the wider extent genuinely re-binned (a different bin set), and every new
-            // bin starts collapsed at the baseline.
+            // Anti-vacuity: the wider extent genuinely re-binned and every new bin starts collapsed.
             expect(rectCount(after)).not.toBe(beforeBins);
             expectAllBinsStartCollapsed(trajectory[0]);
             expectSceneTrajectory(trajectory, {
                 'series[*]/rect[*]': {
-                    // Empty auto-bins legitimately stay flat at zero, so the wildcard only bounds the
-                    // reveal; the populated bins' actual growth is asserted below. x/width snap to the
-                    // new boundaries (guarded below) with a sub-pixel crisp-rounding wobble.
+                    // Empty auto-bins legitimately stay flat at zero, so the wildcard only bounds the reveal.
                     height: { during: ['add', 'trailing'], expect: 'bounded' },
                     y: { during: ['add', 'trailing'], expect: 'bounded' },
                     x: 'any',
@@ -999,8 +984,7 @@ describe('HistogramSeries', () => {
                 },
                 ...labelsIgnored,
             });
-            // The new boundaries snap in: each bin's width is already at its settled value on frame 0
-            // (within crisp-pixel noise), not tweening across the ~13px bin-width change from the old set.
+            // The new boundaries snap in on frame 0 rather than tweening across the bin-width change.
             for (const key of rectKeys(trajectory[0])) {
                 const snap = Math.abs(trajectory[0].get(key)!.width - after.get(key)!.width);
                 expect(snap, `${key} width snaps to its new boundary`).toBeLessThan(2);
@@ -1028,9 +1012,7 @@ describe('HistogramSeries', () => {
             });
         });
 
-        // "Randomise" — same bins, new totals: bar heights reflow (each bin either way) during the
-        // update phase; the bands hold. captureSnap (not captureUpdate): the disabled labels re-fade
-        // their opacity from frame 0, tripping captureUpdate's whole-scene start anchor.
+        // Same bins, new totals: bar heights reflow during the update phase while the bands hold.
         it('data update: bin heights reflow toward their new totals during the update phase', async () => {
             const options = histogramOptions();
             const proxy = AgCharts.create(options);
@@ -1057,9 +1039,7 @@ describe('HistogramSeries', () => {
             });
         });
 
-        // "Remove"/binning change — a new bin set replaces the old one. The old rects are dropped and
-        // a fresh set snaps in collapsed at the baseline (frame 0), then grows during the add phase.
-        // captureSnap: the rects re-key structurally at frame 0, so captureUpdate's start anchor trips.
+        // A new bin set replaces the old one: the old rects drop and the fresh set snaps in collapsed then grows.
         it('binning change: a new bin set snaps in collapsed then grows from the baseline', async () => {
             const options = histogramOptions();
             const proxy = AgCharts.create(options);
@@ -1092,8 +1072,7 @@ describe('HistogramSeries', () => {
             });
         });
 
-        // Endpoint sanity guards: the animated route must settle at exactly the pixels a snapped
-        // render of the same options produces (see expectAnimatedEndpointsMatchStatic).
+        // The animated route must settle at exactly the pixels a snapped render of the same options produces.
         it('sanity: data update endpoints match static renders', async () => {
             const options = histogramOptions();
             chart = AgCharts.create(options);
@@ -1113,7 +1092,6 @@ describe('HistogramSeries', () => {
         });
     });
 
-    // See https://ag-grid.atlassian.net/browse/AG-8641
     describe('explicit binCount', () => {
         test('with 0 decimal places', async () => {
             const options: AgChartOptions = {
@@ -1155,15 +1133,13 @@ describe('HistogramSeries', () => {
         });
     });
 
-    // CRT-1043: Invisible histogram series must still populate nodeData so the remove animation
-    // has actual positions to animate from rather than empty data (which causes no animation).
+    // An invisible series must still populate nodeData so the remove animation has positions to animate from.
     describe('legend toggle nodeData (CRT-1043)', () => {
         const animate = spyOnAnimationManager();
 
         it('should populate nodeData for invisible histogram series after legend toggle', async () => {
             animate(1200, 1);
 
-            // Use the histogram-with-specified-bins example — the original reproduction case.
             const options: AgChartOptions = { ...GALLERY_EXAMPLES.HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE.options };
             prepareTestOptions(options);
 
@@ -1184,10 +1160,8 @@ describe('HistogramSeries', () => {
             expect(nodeData!.some((d: any) => d.frequency > 0)).toBe(true);
         });
 
-        // Verify that bar Rect nodes have intermediate heights during the remove animation,
-        // proving the animation system has real positional data to interpolate from (the CRT-1043
-        // fix). Visual snapshots are not used because axis domain collapse on a single-series chart
-        // makes intermediate frames visually blank despite the animation working internally.
+        // Axis domain collapse makes intermediate frames visually blank, so geometry is asserted directly
+        // rather than through visual snapshots.
         it('should have bar rects at intermediate heights during legend toggle animation', async () => {
             animate(1200, 1);
 

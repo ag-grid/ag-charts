@@ -2060,9 +2060,8 @@ test.describe('state', () => {
             });
 
             test.describe('highlight persists on resize (preventDefault)', () => {
-                // The highlight-update fires two redraws when resizing. Looks fine to the end-user, but e2e
-                // image-snapshot comparison fails because it compares in intermediate frame.
-                // See https://ag-grid.atlassian.net/browse/AG-16704?focusedCommentId=103437
+                // The highlight-update fires two redraws when resizing, so an e2e image comparison can land on the
+                // intermediate frame.
                 test.skip('screenshots', async ({ page }) => {
                     await expectChartScreenshot(page, canvas, 'interactive-tooltip-inactive.png');
 
@@ -2099,8 +2098,7 @@ test.describe('state', () => {
                     expect(await popChartEvents(page)).toEqual([activeChangeDeactivateMousePrevented]);
 
                     await growTextArea(page);
-                    // FIXME: When testing this manually, I only get one activeChange deactivation event. But in the e2e
-                    // test multiple dom:resize events are firing for some reason.
+                    // Multiple dom:resize events fire under e2e, so more than one deactivation is expected.
                     expect(await popChartEvents(page)).toEqual([
                         activeChangeDeactivateMousePrevented,
                         activeChangeDeactivateMousePrevented,

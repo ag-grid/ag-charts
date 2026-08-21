@@ -16,13 +16,8 @@ import {
 import type { DateRange } from './types';
 import { MANAGER, MY_ORDERS, mySpendTrend } from './workspace';
 
-// Runs under a DST-observing zone (see vitest.config.tz.ts). Every bucket the engine builds is
-// anchored to local midnight and stepped by calendar field, while the instants it sorts into them
-// are absolute. A fixed-24h step drifts an hour off midnight past a transition, which either
-// straddles two buckets or drops a datum between them — neither of which a UTC run can show.
-//
-// The demo's own quarter is a summer one with no transition in it, so the ranges below are built
-// around the transitions themselves rather than taken from the range presets.
+// Runs under a DST-observing zone (see vitest.config.tz.ts): buckets are anchored to local midnight
+// and stepped by calendar field, which a UTC run cannot exercise, so the ranges below straddle transitions.
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 

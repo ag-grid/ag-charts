@@ -21,17 +21,13 @@ type DragOrigin = {
 };
 
 function makeMouseDrag<K extends DragEvents>(type: K, origin: DragOrigin, sourceEvent: MouseEvent): DragWidgetEvent<K> {
-    // [offsetX, offsetY] is relative to the sourceEvent.target, which can be another element
-    // such as a legend button. Therefore, calculate [offsetX, offsetY] relative to the axis
-    // element that fired the 'mousedown' event.
+    // sourceEvent's [offsetX, offsetY] is relative to its own target (which may be e.g. a legend
+    // button), so re-base it on the element that fired the 'mousedown'.
     const originDeltaX = sourceEvent.pageX - origin.pageX;
     const originDeltaY = sourceEvent.pageY - origin.pageY;
 
-    // FIXME: This is not entirely honest. At the time of writing, there's a weird quirk where dragging an axis can
-    // cause the HTML bounds to change, with change produce a twitch-like animation. The axis bounds change because
-    // the tick labels change/move, which causes the bounds to be recalculated. The ideal solution would be for the
-    // axis element bounds to remain constant when the user drags the mouse, but unfortunately that's very difficult
-    // to achieve. As a workaround, just calculate currentXY relative to the origin (before any resizes happened).
+    // FIXME: dragging an axis moves its tick labels, which resizes the axis element and makes the drag
+    // twitch. Measure against the pre-resize origin instead of the live element bounds.
     const currentX = origin.currentX + originDeltaX;
     const currentY = origin.currentY + originDeltaY;
 
@@ -93,12 +89,8 @@ function makeTouchDrag<K extends DragEvents>(
 }
 
 const GlobalCallbacks: {
-    // The 'mousedown' event get fired on the target DOM element and all its ancestors that have 'mousedown' event
-    // listeners. However, we only want 1 DOM element to handle the dragging operation because doing so involves adding
-    // temporary capture event listeners to the global `window` object. Therefore, this property much be static.
-    //
-    // As a consequence, the widget `'drag-*'` events do not support propagation; but that's sufficient for us because
-    // we do not yet have a use-case when propagation is needed for drag events.
+    // Static because a drag adds temporary capture listeners on `window`, so exactly one element may
+    // own it — which is why the widget `'drag-*'` events do not support propagation.
     globalMouseDragCallbacks?: MouseDragCallbacks;
     globalTouchDragCallbacks?: TouchDragCallbacks;
 } = {};

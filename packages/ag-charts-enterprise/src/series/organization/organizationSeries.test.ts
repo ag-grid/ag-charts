@@ -208,9 +208,8 @@ const TALL_ORG_CHART: AgChartOptions = {
     ],
 };
 
-// Square-aspect overflow with nodes densely spread over both axes, so zoom-centred snapshots do not
-// land in whitespace. Both axes share one scale taken from the least-zoomed axis, so tests asserting
-// symmetric x/y zoom need fits that are comparable on both axes.
+// Square-aspect overflow: both axes share one scale from the least-zoomed axis, so tests asserting
+// symmetric x/y zoom need comparable fits on both axes.
 const SQUARE_OVERFLOW_ORG_CHART: AgChartOptions = {
     data: (() => {
         const data: { id: string; name: string; job: string; location: string; parentId: string | null }[] = [
@@ -1944,10 +1943,8 @@ describe('OrganizationSeries', () => {
             const requestUpdateCount = () =>
                 emitSpy.mock.calls.filter(([event]) => event === 'chart:request-update').length;
 
-            // Two requests, not one: the highlight itself changes (it now carries the hovered part), so
-            // the highlight pipeline asks for a repaint and the series asks for the SERIES_UPDATE that
-            // re-resolves expander paint. They coalesce into a single frame; what matters is that the
-            // count is bounded and that an unchanged hover costs nothing at all (below).
+            // Two requests: one repaint for the highlight change and one SERIES_UPDATE to re-resolve
+            // expander paint. They coalesce into a single frame, so only the bound matters.
             await hoverAction(pillCentre.x, pillCentre.y)(chart);
             await waitForChartStability(chart);
             expect(requestUpdateCount()).toBe(2);
@@ -2011,9 +2008,8 @@ describe('OrganizationSeries', () => {
                 .cast(_ModuleSupport.BBox).value;
             expect(seriesRect.containsPoint(2, 2)).toBe(false);
 
-            // Outside the series rect, so the bubble chain drops the series-area element and a real
-            // 'mouseleave' fires on it. The clear is debounced by `highlightManager.unhighlightDelay`
-            // (100ms), so advance real time past it.
+            // Outside the series rect a real 'mouseleave' fires, but the clear is debounced by
+            // `highlightManager.unhighlightDelay`, so advance past it.
             await hoverAction(2, 2)(chart);
             await waitForChartStability(chart, deproxy(chart).ctx.highlightManager.unhighlightDelay + 50);
 
@@ -2084,8 +2080,7 @@ describe('OrganizationSeries', () => {
         );
 
         it('cuts out the pill outline rather than its bounding box when the expander is rounded', async () => {
-            // A stadium-shaped pill against a card border thick enough to reach into the corner
-            // arcs: the border still has to run through the wedges between the arc and the pill's
+            // The card border must still run through the wedges between the corner arcs and the pill's
             // box, which a rectangular cut-out would erase.
             const options = buildOptions({ cornerRadius: 40, strokeWidth: 1, fillOpacity: 0 }, { strokeWidth: 20 });
             prepareEnterpriseTestOptions(options);
@@ -2160,9 +2155,8 @@ describe('OrganizationSeries', () => {
 
     describe('drag-to-select hit-testing', () => {
         it('should hit-test against the card only, excluding the expander pill overhang', async () => {
-            // Default direction ('vertical' → 'down') puts the expander pill at the bottom of each
-            // parent card, overhanging below it. A drag-rect touching only that overhang must not
-            // pick the node; only overlap with the card itself counts.
+            // The expander pill overhangs below each parent card; a drag-rect touching only that
+            // overhang must not pick the node.
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
@@ -2472,9 +2466,8 @@ describe('OrganizationSeries', () => {
         });
 
         it('AG-17253 pt2 should clip overflow when both maxWidth and maxHeight are narrow', async () => {
-            // 50x50 card with theme-default top image (50x50): image fills the card and text has
-            // no space; both image bleed (rounded corners clipping) and text overflow must be
-            // contained.
+            // The theme-default 50x50 top image fills the card entirely, so both image bleed and text
+            // overflow must be contained.
             const options: AgChartOptions = {
                 data: OVERFLOW_DATA,
                 series: [
@@ -2504,9 +2497,8 @@ describe('OrganizationSeries', () => {
         // The windows below must be narrower than the content-fits floor, otherwise they request a
         // zoom further out than allowed and are refused outright, leaving the initial view.
         it('should render zoomed-in centred (x/y: 0.4–0.6)', async () => {
-            // SQUARE_OVERFLOW_ORG_CHART is required: with comparable fitX and fitY the requested
-            // xRange and yRange survive being reduced to one shared scale. SIMPLE_ORG_CHART would snap
-            // zoom back to fit, and the wide-only OVERFLOWING_ORG_CHART would widen yRange.
+            // Only SQUARE_OVERFLOW_ORG_CHART has comparable fitX and fitY, so the requested ranges
+            // survive being reduced to one shared scale.
             const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
@@ -2518,9 +2510,8 @@ describe('OrganizationSeries', () => {
         });
 
         it('should render zoomed-in off-centre (x/y: 0.51–0.59)', async () => {
-            // A viewport's worth of padding sits on each side, so this fixture's content only spans
-            // ratios ~0.375–0.625. Framing off-centre while still filling the viewport with content
-            // therefore needs a deeper zoom than the centred case, and a window kept inside that span.
+            // Padding on each side leaves content spanning only ratios ~0.375–0.625, so framing
+            // off-centre needs a deeper zoom and a window kept inside that span.
             const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
@@ -2919,9 +2910,8 @@ describe('OrganizationSeries', () => {
             });
         });
 
-        // Collapsing to declutter a large chart is the most natural way to combine the two features,
-        // so an expander click must leave the selection alone in both directions — including the
-        // selection of nodes the collapse hides.
+        // An expander click must leave the selection alone in both directions, including the selection
+        // of nodes the collapse hides.
         describe('data selection', () => {
             const nodeIds = new Caster(SIMPLE_ORG_CHART.data).assertNonNullish().value.map((datum) => datum.id);
 
@@ -3076,10 +3066,8 @@ describe('OrganizationSeries', () => {
         });
 
         it('should not move an interacted node that is already fully visible', async () => {
-            // The reflow moves the node in content space whether or not it was at risk of clipping, so
-            // holding its place on screen is a stronger requirement than simply not panning. Gary Garcia
-            // stays where he was; the tree rearranges around him. Note his card is redrawn larger,
-            // because shrinking the content raises the content-fits floor and so zooms in about him.
+            // The reflow moves the node in content space regardless, so holding its screen position is a
+            // stronger requirement than not panning; the card is redrawn larger as the fits-floor rises.
             await createChart();
 
             await clickItem('Gary Garcia', OrganizationNodeTag.Expander);
@@ -3140,9 +3128,8 @@ describe('OrganizationSeries', () => {
             ['content that fits the viewport', SIMPLE_ORG_CHART],
         ];
 
-        // Holds the window size and moves only its midpoint, as a drag does. A request that also
-        // resizes the window is refused outright once the chart sits at a zoom limit — which is
-        // always the case for content that fits, since it never scales up past native size.
+        // Moves only the window's midpoint, as a drag does: a request that also resizes it is refused
+        // outright at a zoom limit, which content that fits is always at.
         async function createPanned(fixture: AgChartOptions, toFarEnd: boolean) {
             const options: AgChartOptions = { ...fixture };
             prepareEnterpriseTestOptions(options);
@@ -3212,9 +3199,7 @@ describe('OrganizationSeries', () => {
         });
     });
 
-    // Organization extends the network series base and never drives the animation manager, so node
-    // cards and links never tween. Pinned by a minimal guard rather than a trajectory suite, since
-    // there is no motion to describe.
+    // Organization never drives the animation manager, so a minimal guard replaces a trajectory suite.
     describe('does not animate', () => {
         const frames = spyOnAnimationFrames();
 
@@ -3259,11 +3244,8 @@ describe('OrganizationSeries', () => {
             expect(afterCount).toBeGreaterThan(beforeCount);
             // The full new layout is present on the first captured frame (nothing grows/fades in).
             expect(cardKeys(trajectory[0]).length).toBe(afterCount);
-            // Whole-scene constancy from the first frame proves the snap. expectNoAnimation is unusable
-            // here: the vertical step-connector links have a degenerate x-extent, so their sampled
-            // top-station values are non-finite, which its finiteness check rejects. expectSceneSamplesMatch
-            // compares those NaN stations by identity (NaN matches NaN), so it still fails on any tween
-            // while tolerating the intrinsic degenerate geometry.
+            // expectNoAnimation rejects the step connectors' non-finite sampled stations; expectSceneSamplesMatch
+            // compares NaN by identity, so it still catches a tween while tolerating that geometry.
             for (const frame of trajectory) {
                 expectSceneSamplesMatch(frame, trajectory[0]);
             }

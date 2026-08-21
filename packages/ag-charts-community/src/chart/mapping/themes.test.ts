@@ -349,9 +349,8 @@ describe('themes.ts', () => {
         });
     });
 
-    // A preset's `themeTemplate` is baked into the `ChartTheme` instance, so both caches must key on
-    // the preset name. Without that, the first chart on a page decides which template every later
-    // chart sharing that theme value gets.
+    // A preset's `themeTemplate` is baked into the `ChartTheme` instance, so both caches must key on the
+    // preset name, or the first chart on a page decides the template for every later one.
     describe('theme caching across presets', () => {
         setupMockConsole();
 

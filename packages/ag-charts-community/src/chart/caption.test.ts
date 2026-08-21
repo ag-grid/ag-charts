@@ -905,9 +905,8 @@ describe('Caption', () => {
         // The trailing positive click in each case proves the listener is wired up at all, so the
         // preceding `not.toHaveBeenCalled()` cannot pass for the wrong reason.
         describe('TC1: only present captions are interactive', () => {
-            // The chart-level listener is used here because it needs no per-caption configuration:
-            // adding a `subtitle` key at all would give it the theme's default text and make it a
-            // real caption.
+            // The chart-level listener needs no per-caption configuration: adding a `subtitle` key at all would
+            // give it the theme's default text and make it a real caption.
             test('an unconfigured subtitle and footnote are not clickable', async () => {
                 const captionClick = vi.fn();
                 chart = await createChart({

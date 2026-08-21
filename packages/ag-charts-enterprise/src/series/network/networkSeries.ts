@@ -174,9 +174,8 @@ export abstract class AbstractNetworkSeries<
     // same ratios mean a different scale and position, which is what this allows us to correct.
     private zoomedPaddedBounds?: PaddedBounds;
 
-    // What the next update should bring into view, and how: `centre` puts the item at the middle of
-    // the viewport, `reveal` only pans far enough to stop it being clipped. Absent, the chart opens
-    // showing all of its content. Consumed once applied, which is what stops later updates re-panning.
+    // `centre` puts the item mid-viewport, `reveal` only pans far enough to unclip it; absent, the
+    // chart opens showing all content. Cleared once applied, so later updates do not re-pan.
     private pendingView?: {
         itemId: NetworkSeriesVertexID;
         intent: 'centre' | 'reveal';
@@ -492,8 +491,7 @@ export abstract class AbstractNetworkSeries<
         if (!seriesRect || !contentBBox || minScale == null || minScale <= 0) return;
 
         // Sized against the largest viewport the content is ever seen through, so the padding covers
-        // every reachable zoom rather than depending on the current one. Content smaller than the
-        // viewport never scales up past native size, so the fit scale alone would understate this.
+        // every reachable zoom rather than only the current one.
         const padX = seriesRect.width / minScale / 2;
         const padY = seriesRect.height / minScale / 2;
 
@@ -557,9 +555,8 @@ export abstract class AbstractNetworkSeries<
 
         const reveal = this.getRevealSpan(padded);
         if (reveal) {
-            // Anchoring the item where it already sat is what keeps a visible one still: the reflow
-            // moves it in content space, and this puts that movement back. Only an item that was
-            // already clipped is then panned, and only as far as it takes to show it.
+            // Anchoring the item where it already sat holds a visible one still against the reflow;
+            // only an already-clipped item is panned, and only far enough to show it.
             const from = this.getAnchoredCentre(reveal, sizes) ?? held ?? this.getWindowCentre();
 
             return {

@@ -12,9 +12,8 @@ interface Props {
 
 const { headFragment } = Astro.props as Props;
 
-// The security examples pin `style-src` to `'self'` and nonces to assert behaviour under a strict
-// policy, so a cross-origin stylesheet would be blocked and log the very console error they check
-// for. Leave those examples on the fallback font.
+// Examples that pin their own `style-src` would block this cross-origin stylesheet and log the
+// console error they exist to check for; leave those on the fallback font.
 const declaresOwnCsp = headFragment?.includes('Content-Security-Policy') ?? false;
 
 const FONT_HREF = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap';

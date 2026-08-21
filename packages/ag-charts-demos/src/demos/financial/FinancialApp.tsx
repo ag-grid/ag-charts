@@ -21,9 +21,8 @@ const SPEED_OPTIONS = [
     { value: '250', label: '4×' },
 ];
 
-// Shared default visible time window (in minutes) that every chart aligns to:
-// FinancialChart's trailing window, PeerPerformance's range, and the peer heatmap's
-// bucket count (buckets are one minute each). Driven by the title-bar range buttons.
+// Shared default visible window (minutes) that FinancialChart, PeerPerformance and the peer heatmap
+// (one bucket per minute) all align to; driven by the title-bar range buttons.
 const SHARED_WINDOW_MINUTES = 120;
 
 // Range-button choices for the shared time window, in trailing minutes.

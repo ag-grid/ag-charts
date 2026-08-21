@@ -385,9 +385,7 @@ export class SeriesAreaManager extends BaseManager {
                 this.announceMode = 'never';
             }
 
-            // The focus indicator & label might be outdated, but the current focus isn't changing. Therefore, just
-            // refresh the focus indicator & label, but without emitting the 'series:focus-change' event (doing so would
-            // trigger and infinite redraw loop).
+            // Focus isn't changing, so refresh without emitting 'series:focus-change' — that loops the redraw.
             this.refreshFocus();
         }
     }
@@ -1287,9 +1285,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private clearUnpreventable(): void {
         this.activeState.lastActive = undefined;
-        // FIXME: onClearUI() & clearHighlight() dispatch an 'activeChange' event which include a
-        // preventDefault() method. Calling preventDefault() in this case would have no effect. Perhaps the
-        // 'activeChange' event might need an additional property like `readonly preventable: boolean`.
+        // FIXME: the 'activeChange' event dispatched below exposes a preventDefault() that has no effect here.
         this.pickManager.onClearUI();
         this.clearHighlight(false);
         this.clearTooltip(false);

@@ -1,23 +1,16 @@
-/* The Signal theme's two families, only for this demo — this stylesheet ships in the
-   procurement chunk, so the other demos never request them. Imported here rather than linked
-   from the document head because the demos harness has no per-demo head; the effect is the
-   same, and canvas text never triggers a font download, so the charts rely on the document
-   FontFaceSet to load them and re-measure. */
+/* Canvas text never triggers a font download, so the charts rely on the document
+   FontFaceSet to load these and re-measure. */
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&family=Inter:wght@400;500;600&family=Red+Hat+Text:ital,wght@0,300..700;1,300..700&display=swap');
-/* Procurement dashboard chrome. Scoped under .pc-app so it never leaks into other
-   demos. Chart visuals come from the AG Charts theme; this file styles the surrounding
-   layout, cards and Radix controls. Structure is carried by hairline borders rather
-   than elevation. */
+/* Dashboard chrome, scoped under .pc-app so it never leaks into other demos. Chart
+   visuals come from the AG Charts theme, not from here. */
 
 /* Tokens live on the app root and on portalled content (Radix menus mount at
    document.body, outside .pc-app). */
 .pc-app,
 .pc-portal {
     /* --- Signal theme tokens -------------------------------------------------------
-       The palette, verbatim from the theme spec. Scoped to the app root rather than
-       `:root` for the same reason the rest of this file is: the demos harness loads every
-       demo's stylesheet into one document, and tokens on `:root` would restyle the others.
-       Mirrored in JS by chartTheme.ts, which canvas needs literal values for — change both. */
+       On the app root, not `:root`: the harness loads every demo's stylesheet into one
+       document. Mirrored as literals in chartTheme.ts for canvas — change both. */
     --font-heading: 'Manrope', sans-serif;
     --font-body: 'Red Hat Text', 'Inter', sans-serif;
 
@@ -47,12 +40,8 @@
     --color-danger-bg: #fce3e1;
     --color-danger-text: #a11f1f;
 
-    /* Dataviz — categorical series only, assigned in this order.
-       Earthenware hues in the accent's own register: clay leads, and the cool slots are muted to
-       the same chroma so a chart reads as part of the brand rather than beside it. The order is
-       the colour-vision-deficiency mechanism, not a preference — it is validated as a sequence,
-       so slots must not be reordered or cycled. --chart-7 is the baseline/"other" slot and is
-       deliberately below the chroma floor: it does no identity work. */
+    /* Dataviz — categorical series only. The order is the colour-vision-deficiency mechanism
+       and is validated as a sequence, so slots must not be reordered or cycled. */
     --chart-1: #b96b30; /* clay */
     --chart-2: #0e8fa6; /* lagoon */
     --chart-3: #8a4a9e; /* plum */
@@ -61,14 +50,12 @@
     --chart-6: #8a7a15; /* bronze */
     --chart-7: #8c8680; /* warm neutral — baseline series only */
 
-    /* A tint of the accent for selected and highlighted rows. Mixed from the token rather
-       than picked, because the theme defines no accent tint and a selection needs to read as
-       the accent rather than as another surface. */
+    /* Mixed rather than picked: the theme defines no accent tint, and a selection must read
+       as the accent rather than as another surface. */
     --color-accent-soft: color-mix(in srgb, var(--color-accent) 8%, var(--color-panel));
 
     /* --- app-semantic aliases onto the theme tokens ---------------------------------
-       Every rule below this block addresses these, so the app has one place where a
-       component's intent ("a hairline", "the warning ink") meets the palette. */
+       Every rule below addresses these, so component intent meets the palette in one place. */
     --pc-bg: var(--color-bg);
     --pc-panel: var(--color-panel);
     --pc-panel-2: var(--color-panel-alt);
@@ -82,9 +69,8 @@
     --pc-accent: var(--color-accent);
     --pc-accent-strong: var(--color-accent-hover);
     --pc-accent-soft: var(--color-accent-soft);
-    /* Status comes in three parts, and which one a rule wants is the whole point: `-text` is
-       legible as type, the saturated fill is not — it is for indicator glyphs, signal rules
-       and chart marks. `-soft` is the badge tint the `-text` ink sits on. */
+    /* Status in three parts: `-text` is the only one legible as type, the saturated fill is for
+       glyphs, rules and chart marks, and `-soft` is the badge tint `-text` sits on. */
     --pc-ok: var(--color-success-text);
     --pc-ok-fill: var(--color-success);
     --pc-ok-soft: var(--color-success-bg);
@@ -109,9 +95,7 @@
     font-size: 14px;
 }
 
-/* Headings carry the display face; everything else inherits the body face from the root. The
-   page and card titles are named as well as their elements, so the face survives either being
-   re-tagged. */
+/* Page and card titles are named as well as tagged, so the display face survives a re-tag. */
 .pc-app :is(h1, h2, h3, h4, h5, h6),
 .pc-page-title,
 .pc-card-title,
@@ -419,9 +403,8 @@
     gap: 4px;
     overflow: hidden;
 }
-/* The theme's signature motif, and deliberately not on every tile: a 3px rule in the saturated
-   status ink marks a metric that wants acting on. A healthy figure states itself in the ink and
-   the glyph — giving it a rule too would make the motif decoration and cost it its meaning. */
+/* Deliberately not on every tile: the rule marks a metric that wants acting on, and giving a
+   healthy figure one too would reduce the motif to decoration. */
 .pc-kpi.is-warn::before,
 .pc-kpi.is-bad::before {
     content: '';
@@ -810,9 +793,8 @@
     border-color: var(--pc-accent);
 }
 /* Inline actions sit inside cards and list rows, so they run shorter than a page control. */
-/* Square rather than text-width, and the glyph is stroked so it reads at this size. Borderless: two
-   outlined buttons per row would draw a column of boxes down a grid that is otherwise all hairlines.
-   The border stays in the box model as transparent, so the icon does not shift on hover or focus. */
+/* Borderless, because outlined buttons would draw a column of boxes down an all-hairline grid.
+   The border stays in the box model as transparent so the icon does not shift on hover or focus. */
 .pc-icon-btn {
     width: 34px;
     padding: 0;
@@ -991,9 +973,8 @@
 }
 /* Fills its facet, bands included: taking the band out of the plot instead would leave the outer
    two facets with shorter plots than the rest. */
-/* Spans the plot area rather than the whole row — the band margins are discounted exactly as the
-   label column discounts them — and centres the pie inside that, so the pie sits level with the bars
-   it summarises rather than with the row's midpoint. */
+/* Spans the plot area rather than the whole row, discounting the band margins as the label column
+   does, so the pie sits level with the bars it summarises. */
 .pc-facet-split {
     align-self: stretch;
     display: flex;
@@ -1039,9 +1020,8 @@
 }
 
 /* ---- AG Grid host ---- */
-/* Numeric columns are the right-aligned ones, so they are the seam for tabular figures: every
-   number and in-table date the grid renders arrives through them, and equal-width digits are what
-   let a column of them be scanned down rather than read. */
+/* Right-aligned cells are the seam every grid-rendered number passes through, and equal-width
+   digits are what let a column of them be scanned rather than read. */
 .pc-app .ag-right-aligned-cell {
     font-variant-numeric: tabular-nums;
 }
@@ -1050,10 +1030,8 @@
        of scrolling. */
     width: 100%;
 }
-/* The theme's status badge: a tint, the matching ink for the label, and the saturated fill on the
-   indicator only. The indicator stays the status glyph rather than becoming a plain dot — it is
-   the non-colour channel this grid's accessibility rests on, and the theme allows the fill on an
-   icon. */
+/* The indicator stays a status glyph rather than a plain dot: it is the non-colour channel this
+   grid's accessibility rests on. */
 .pc-status-cell {
     display: inline-flex;
     align-items: center;

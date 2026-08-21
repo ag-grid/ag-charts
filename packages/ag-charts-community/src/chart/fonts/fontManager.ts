@@ -26,11 +26,8 @@ export class FontManager {
         }
     }
 
-    // Canvas text never triggers a font download, so externally-referenced fonts (icon fonts,
-    // user `@font-face`) may be unavailable when the chart first measures and draws. Force their
-    // load via the FontFaceSet API and re-render once they settle; `check()` skips already-loaded
-    // fonts. Each spec is a weight/style shorthand (e.g. `900 16px "Font Awesome 6 Free"`) so
-    // families that ship a file per weight load the one the options reference.
+    // Canvas text never triggers a font download, so externally-referenced fonts must be loaded
+    // explicitly. Each spec is a weight/style shorthand, e.g. `900 16px "Font Awesome 6 Free"`.
     public waitForFonts(fontSpecs?: Set<string>) {
         if (!fontSpecs || fontSpecs.size === 0) return;
 
@@ -61,10 +58,7 @@ export class FontManager {
         });
     }
 
-    // The document `FontFaceSet` outlives individual charts, so a cached verdict must be invalidated
-    // whenever the set changes. Attached lazily: SSR has no font set, and only the first real
-    // `waitForFonts` call proves one exists. Font availability is per-document, so a swapped set
-    // (a chart moved into another document) invalidates every verdict cached against the old one.
+    // Font availability is per-document, so cached verdicts are invalidated whenever the set changes.
     private watchFontSet(fontSet: FontFaceSet) {
         if (this.watchedFontSet === fontSet || !('addEventListener' in fontSet)) return;
         this.unwatchFontSet();

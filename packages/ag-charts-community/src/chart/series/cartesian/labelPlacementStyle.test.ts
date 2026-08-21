@@ -127,10 +127,8 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
             expect(firstVisibleLabelStyle().color).toBe('#ff0000');
         });
 
-        // The per-placement colour rule, split one chart per placement (the mock canvas only snapshots
-        // the first chart created per test). Inside default is the box-readable chartBackgroundColor,
-        // outside default is the textColor; a top-level label.color beats either default, and a
-        // per-placement colour beats the top-level value only for its own placement.
+        // One chart per placement, because the mock canvas only snapshots the first chart created per test.
+        // Inside defaults to chartBackgroundColor and outside to textColor; label.color beats either.
         const COLOUR_CASES: Array<[string, object, string]> = [
             ['inside default resolves chartBackgroundColor', { placement: 'inside-center' }, 'white'],
             ['outside default resolves textColor', { placement: 'outside-end' }, '#464646'],
@@ -291,9 +289,8 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
             });
         });
 
-        // The top level opts every border out, yet insideStyle's stroke still shows the inside ones.
-        // An itemStyler outranks both, enabling an outside border ('B') and removing an inside one
-        // ('C'); unlike a configured placement style it must state `enabled` to turn one on.
+        // insideStyle's stroke still shows inside borders despite the top level opting every border out; an
+        // itemStyler outranks both but, unlike a placement style, must state `enabled` to turn one on.
         it('resolves border.enabled independently per placement, including itemStyler overrides', async () => {
             await renderAndSnapshot(
                 cascadeBarOptions({

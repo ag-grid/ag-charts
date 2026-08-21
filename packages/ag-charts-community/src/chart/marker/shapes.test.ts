@@ -27,9 +27,6 @@ describe('Marker Shapes', () => {
         await compareImageSnapshot(chart, ctx);
     };
 
-    // CRT-991: Verify pin marker shape renders correctly with large stroke widths.
-    // The fix simplified the pin shape geometry to avoid mitring artifacts
-    // that appeared as spikes when using large strokeWidth values.
     describe('CRT-991 pin marker with large stroke', () => {
         it('should render pin marker without artifacts at normal stroke width', async () => {
             const options: AgChartOptions = {

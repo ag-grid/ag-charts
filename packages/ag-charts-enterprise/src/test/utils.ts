@@ -18,17 +18,14 @@ setupEnterpriseModules();
 
 // Frame-trajectory spec fragments shared by the funnel-family suites (funnel, cone-funnel, pyramid).
 
-// Item-label fade-in shared by BaseFunnelSeries and pyramid: labels snap to opacity 0 on the first
-// frame and fade to 1 during add/trailing. Non-vacuous only alongside a frame-0 collapsed guard (see funnelLabelOpacities).
+// Non-vacuous only alongside a frame-0 collapsed guard (see funnelLabelOpacities).
 export const funnelLabelFadeIn: PhasedPropertyExpectation = {
     during: ['add', 'trailing'],
     expect: ['increases', 'bounded'],
     settlesAt: 1,
 };
 
-// A funnel connector or pyramid body path revealing from a collapsed edge: bbox widens, near edge
-// recedes, deep path stations stay non-finite until the shape opens out. Pass the phase window the
-// motion runs in, or omit it to check across the whole trajectory.
+// A path revealing from a collapsed edge; omit `during` to check across the whole trajectory.
 export function funnelPathReveal(during?: PhasedPropertyExpectation['during']): SceneNodeExpectation {
     const phase = (expectation: readonly TrajectoryExpectation[]): ScenePropertyExpectation =>
         during == null ? expectation : { during, expect: expectation };

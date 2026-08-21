@@ -35,9 +35,7 @@ export interface PartialBarAggregationResult {
     computeRemaining?: () => BarSeriesDataAggregationFilter[];
 }
 
-// ============================================================================
-// CORE LAYER: Pure, testable aggregation functions
-// ============================================================================
+// Core layer: pure, testable aggregation functions
 
 /**
  * Computes multi-level aggregation filters for bar chart data.
@@ -262,9 +260,7 @@ export function computeBarAggregationPartial(
     return { immediate: [immediateLevel], computeRemaining };
 }
 
-// ============================================================================
-// ADAPTER LAYER: Scale integration
-// ============================================================================
+// Adapter layer: scale integration
 
 /**
  * Aggregates bar data for rendering optimization (low-level adapter).
@@ -289,9 +285,7 @@ function aggregateBarData(
     });
 }
 
-// ============================================================================
-// INTEGRATION LAYER: Memoization
-// ============================================================================
+// Integration layer: memoization
 
 /**
  * Memoized version of aggregateBarData for internal use.

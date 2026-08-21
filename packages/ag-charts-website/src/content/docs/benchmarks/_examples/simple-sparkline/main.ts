@@ -10,9 +10,8 @@ import { random } from './randomHelpers';
 
 // (window as any).agChartsDebug = 'scene:stats';
 
-// No `theme` block: theme overrides resolve differently across the versions this
-// benchmark is used to compare, so head-vs-base numbers would not be comparable.
-// Grid styles sparklines through top-level options anyway.
+// No `theme` block: theme overrides resolve differently across the versions this benchmark compares,
+// so head-vs-base numbers would not line up. Grid styles sparklines through top-level options anyway.
 const options: AgSparklineOptions = {
     container: document.getElementById('myChart'),
     background: {
@@ -29,9 +28,8 @@ const options: AgSparklineOptions = {
 };
 /* @ag-options-end */
 
-// Nearly half of the documented Grid sparkline configurations put a function in options
-// (itemStyler, tooltip.renderer, formatter). A function anywhere in the options tree
-// disables the per-chart structural cache, so every measured operation is run both ways.
+// A function anywhere in the options tree (itemStyler, tooltip.renderer, formatter) disables the
+// per-chart structural cache, so every measured operation is run both ways.
 const optionsWithStyler: AgSparklineOptions = {
     ...options,
     marker: {
@@ -103,9 +101,8 @@ async function performGridBatchCreation(batchOptions: AgSparklineOptions): Promi
     return elapsed;
 }
 
-// A cell's chart instance outlives a value/size change, so the batches below are built once
-// per test case and reused across iterations. Plain and styler batches coexist because the
-// harness runs setup() once for all variants of a test case.
+// A cell's chart instance outlives a value/size change, so batches are built once per test case in
+// setup() and reused across iterations and variants.
 interface ChartBatch {
     options: AgSparklineOptions;
     charts: AgChartInstance<AgSparklineOptions>[];

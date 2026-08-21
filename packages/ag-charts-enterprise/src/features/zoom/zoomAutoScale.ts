@@ -157,10 +157,8 @@ export class ZoomAutoScaler {
         zoom: { min: number; max: number },
         padding: number
     ): ZoomMinMax | undefined {
-        // Because xScale is only updated after a chart update, working out a visible range
-        // will be calculated with unpredictable - but always accurate - numbers
-        // However, floating point rounding causes issues when doing that
-        // Instead, set the xScale to a consistent range, then just unset it after
+        // The scale ranges are only refreshed on chart update, so pin them to [0, 1] for the duration
+        // of this calculation and restore them after, avoiding floating-point rounding artefacts.
         const xScale = xAxis.scale;
         const xScaleRange = xScale.range;
         xScale.range = [0, 1];

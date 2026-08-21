@@ -92,10 +92,8 @@ export class HighlightManager {
         const currentHighlightPart = this.getActiveHighlightPart();
         const highlightChanged =
             !this.isEqual(currentHighlight, previousHighlight) || currentHighlightPart !== previousHighlightPart;
-        // When the caller omits `inViewport` and the highlight hasn't changed, preserve the existing
-        // value — callers that don't know the viewport state (e.g. legend observer clearing its own
-        // entry) must not spuriously reset the flag to `true` and re-show crosshairs for a frozen
-        // datum that has since been panned off-screen.
+        // Callers that don't know the viewport state omit `inViewport`; resetting the flag to `true`
+        // there would re-show crosshairs for a datum since panned off-screen.
         const highlightInViewport: boolean = inViewport ?? (highlightChanged ? true : this.highlightInViewport);
 
         if (highlightChanged || this.highlightInViewport !== highlightInViewport) {

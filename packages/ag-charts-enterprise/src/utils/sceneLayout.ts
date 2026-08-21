@@ -20,10 +20,8 @@ export function layoutScenesRow(
         if (Array.isArray(scene)) {
             for (const scene_ of scene) {
                 layoutSetX(scene_, x);
-                // Correct each scene's bbox left edge before computeChildrenBBox measures the
-                // column width — backing-box padding extends the bbox past the anchor point, so
-                // width would be over-counted without this shift. Note: callers that apply a
-                // subsequent text-alignment pass (e.g. realign()) will overwrite x for rendering.
+                // Must precede computeChildrenBBox: backing-box padding extends the bbox past the
+                // anchor point, so the column width is over-counted without this shift.
                 alignSceneLeftEdge(scene_, x);
             }
             x += _ModuleSupport.Group.computeChildrenBBox(scene).width + gap;
@@ -61,10 +59,8 @@ export function layoutScenesColumn(
     }
 }
 
-// Position the scene so its bbox top sits at `targetY`. Text nodes with backing-box
-// padding return a bbox that extends `padding` above `scene.y` — without this shift,
-// a fixed `scene.y` would let the box overflow above its slot and shrink the gap to
-// the previous sibling.
+// Align by bbox top rather than `scene.y`, so a text node's backing-box padding cannot overflow
+// above its slot and eat the gap to the previous sibling.
 function alignSceneTopEdge(scene: PositionedScene, targetY: number) {
     const overflow = targetY - scene.getBBox().y;
     if (overflow !== 0) layoutSetY(scene, sceneY(scene) + overflow);
@@ -75,9 +71,8 @@ function alignSceneLeftEdge(scene: PositionedScene, targetX: number) {
     if (overflow !== 0) layoutSetX(scene, sceneX(scene) + overflow);
 }
 
-// Position the scene horizontally within [left, right] by its bbox rather than its anchor
-// point, so a text node's backing box — which extends the bbox beyond the anchor by its
-// padding, asymmetrically when the padding is per-side — stays inside the bounds.
+// Align by bbox rather than anchor point, so a text node's backing box — which may pad each side
+// differently — stays inside the bounds.
 export function alignSceneX(scene: PositionedScene, left: number, right: number, align: ResolvedTextAlign): void {
     const target = alignedX(left, right, align);
     layoutSetX(scene, target);

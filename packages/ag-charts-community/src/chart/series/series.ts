@@ -896,11 +896,8 @@ export abstract class Series<
         const hasItemStylers = this.hasItemStylers();
 
         if (!hasItemStylers && currentHighlightState === previousHighlightState) {
-            // `getHighlightState` is probed above without a datumIndex, so a datum-level highlight of
-            // this series and a series-level one (e.g. from focusing a legend item) both report
-            // HighlightState.Series. They style the series' *other* items differently — dimmed with
-            // `unhighlightedItem` vs not dimmed at all — so a transition between the two still needs a
-            // redraw, otherwise the previous state's dimming is left on screen.
+            // Datum-level and series-level highlights both report HighlightState.Series here, yet dim
+            // the series' other items differently, so a transition between them still needs a redraw.
             const datumLevelnessChanged =
                 currentHighlightState === HighlightState.Series &&
                 this.isDatumHighlight(currentHighlightedDatum) !== this.isDatumHighlight(previousHighlightedDatum);
@@ -1136,9 +1133,7 @@ export abstract class Series<
     }
 
     protected pickNodesInBBoxPredicate(): PickNodesInBBoxPredicate {
-        // By default, pickNodesInBBox just used boxes for hit-testing because it's easier and faster. Series with more
-        // complicated shapes (e.g. sectors or pie/donut, paths for maps) need to override this predicate to implement
-        // their own hit-testing computation.
+        // Box hit-testing by default; series with complex shapes (pie sectors, map paths) override this.
         const { containment } = this.properties.selection;
         const unreachable = (a: never): never => a;
         switch (containment) {
@@ -1165,9 +1160,8 @@ export abstract class Series<
                     continue;
                 }
 
-                // Note: Some series-type include `datum` values in the scene-graph that not assignable to `TDatum`.
-                // For example: line-series `SegmentedPath` include segmentation data in `datum`). So add some basic
-                // check for `datumIndex` to filter out datums that definitely not assignable to `TDatum`.
+                // Some series attach non-`TDatum` values to scene nodes (e.g. line-series segmentation data),
+                // so require a `datumIndex` to filter those out.
                 if (typeof child.datum === 'object' && child.datum != null && 'datumIndex' in child.datum) {
                     const result = callback(child);
                     if (result !== undefined) {
@@ -1216,10 +1210,8 @@ export abstract class Series<
     }
 
     private callListeners(event: SeriesListenerEvent & { readonly defaultPrevented?: boolean }): boolean {
-        // Redundancy Type-Check: Ensure that the listeners[event.type] parameter type is correct.
-        // Example: make sure listeners['seriesNodeClick'] is type Listeners<AgNodeClickEvent<'seriesNodeClick'>> and so
-        // on for all other event types. We do this because converting seriesListener/chartListener to type
-        // `(arg:any)=>void` loosens the type-safety (so that we can call it).
+        // The `satisfies Rules` checks look redundant but restore the per-event-type safety lost by
+        // widening the listeners to `Listener<any>`.
         type Rules = undefined | { [K in (typeof event)['type']]?: Listener<Extract<typeof event, { type: K }>> };
         type UserListener = Listener<any> | undefined;
         const seriesListener: UserListener = (this.properties.listeners satisfies Rules)?.[event.type];
@@ -1599,7 +1591,7 @@ export abstract class Series<
             markerNode.updatePath();
             markerNode.checkPathDirty();
 
-            // AG-12745 Calculate the marker size to ensure that the focus indicator is correct.
+            // Measure the built path so the focus indicator matches the custom marker's real size.
             const bb = markerNode.getBBox();
             if (point != null && bb.isFinite()) {
                 const center = bb.computeCenter();

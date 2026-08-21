@@ -133,11 +133,8 @@ describe('Sparkline', () => {
     });
 
     describe('optimisation probes (AG-17227)', () => {
-        // These tests assert that the perf-critical caches and shared-resource registries
-        // are actually being hit for sparklines. They use the `agChartsDebug` selector to
-        // capture lightweight probe messages emitted at each optimisation boundary; if a
-        // refactor stops the optimisation from triggering (different cache key shape,
-        // wrong mode flag, etc.), the probe count changes and the test fails loudly.
+        // Probe messages are emitted at each optimisation boundary, so a refactor that stops an
+        // optimisation from triggering changes the counts asserted below.
 
         setupMockConsole({ includeAllLevels: true });
 
@@ -450,8 +447,7 @@ describe('Sparkline', () => {
         });
 
         it('omits the x value when a user renderer supplies only a title', async () => {
-            // Regression (AG-17227): a title-only renderer must not let the default content
-            // leak the x value into the value slot — the Grid suppressed x when a title was set.
+            // A title-only renderer must not let the default content leak the x value into the value slot.
             const instance = AgCharts.__createSparkline({
                 type: 'line',
                 data: [

@@ -242,15 +242,13 @@ describe('GradientLegend', () => {
         // Arrow hidden before any node is highlighted.
         expect(gradientLegend?.arrowSelection.at(0)?.visible).toBe(false);
 
-        // Sunburst sectors do not hit-test in jsdom, so drive the highlight
-        // directly with a real node datum (carrying series + colorValue), exactly
-        // as a hover would.
+        // Sunburst sectors do not hit-test in jsdom, so drive the highlight directly with a real node datum.
         const datum = series.rootNode.children[0].children[0];
         expect(datum?.colorValue).not.toBeNull();
         chartInstance.ctx.highlightManager.updateHighlight(chartInstance.id, datum);
         await waitForChartStability(chart);
 
-        // Arrow now indicates the hovered node, matching treemap.
+        // The arrow indicates the hovered node, matching treemap.
         expect(gradientLegend?.arrowSelection.at(0)?.visible).toBe(true);
     });
 
@@ -376,9 +374,8 @@ describe('GradientLegend', () => {
     });
 
     it('AG-9758 should hide arrow when hovered value is outside colorScale.domain', async () => {
-        // Data values span 10-50. With an explicit domain of [45, 100], the
-        // centre cell (value 30) falls outside the visible axis range, so the
-        // highlight arrow must not render — otherwise it points off-scale.
+        // With an explicit domain of [45, 100] the centre cell (value 30) falls outside the visible axis
+        // range, so the highlight arrow must not render.
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
             series: [

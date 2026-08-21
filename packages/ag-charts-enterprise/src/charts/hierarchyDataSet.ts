@@ -141,9 +141,7 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
             }
         }
 
-        // applyToTypedArray's block copy assumes survivors keep their relative order. Duplicate
-        // dataIdKey values (warned about elsewhere) can break that; if so, drop selections rather
-        // than risk an out-of-bounds copy.
+        // applyToTypedArray's block copy assumes survivors keep their relative order.
         for (let k = 1; k < survivorNewIndices.length; k++) {
             if (survivorNewIndices[k] <= survivorNewIndices[k - 1]) {
                 survivorNewIndices.length = 0;

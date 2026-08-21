@@ -209,9 +209,8 @@ function secondWalk(v: TreeNode, m: number, layout: TreeLayout) {
     }
 }
 
-// After the second walk the parent nodes are positioned at the centre of their immediate children.
-// If we want the parent nodes to be positioned at the centre of the subtree for which they are roots,
-// we need a third walk to adjust the positions.
+// The second walk centres a parent over its immediate children; a third walk is needed to centre it
+// over the whole subtree it roots.
 function thirdWalk(v: TreeNode) {
     const { children } = v;
     let leafCount = 0;

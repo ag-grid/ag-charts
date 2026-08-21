@@ -48,10 +48,8 @@ function wrapTextTier(
     });
 }
 
-// The expander pill straddles the card's edge, so the card's border runs behind it and a
-// translucent expander fill lets that border show through the pill. The exclusion is punched out
-// of the border only — the card's fill is left intact so its background stays continuous under
-// the pill rather than becoming a hole.
+// The expander pill straddles the card's edge: the exclusion is punched out of the border only, so
+// the card's fill stays continuous under a translucent pill rather than becoming a hole.
 class OrganizationCardRect extends _ModuleSupport.Rect {
     private exclusion?: _ModuleSupport.BBox;
     private exclusionCornerRadius = 0;
@@ -84,9 +82,8 @@ class OrganizationCardRect extends _ModuleSupport.Rect {
         ctx.restore();
     }
 
-    // Winding-rule hole: the card's bounds anti-clockwise, the pill's footprint clockwise, so the
-    // default nonzero rule keeps everything but the pill — the construction `SegmentedPath` uses
-    // for its gaps.
+    // Winding-rule hole: card bounds anti-clockwise, pill footprint clockwise, so the nonzero rule
+    // keeps everything but the pill.
     private getExclusionPath(exclusion: _ModuleSupport.BBox) {
         const { x, y, width, height, strokeWidth, exclusionPath, exclusionCornerRadius } = this;
         const key = [
@@ -117,9 +114,8 @@ class OrganizationCardRect extends _ModuleSupport.Rect {
         exclusionPath.lineTo(x1, y0);
         exclusionPath.closePath();
 
-        // Follow the pill's own rounded outline, not its bounding box: a card border thick enough
-        // to reach into the pill's corner arcs would otherwise lose the segments that run outside
-        // the pill but inside its box, leaving the border gapped either side of the control.
+        // Follow the pill's rounded outline, not its bounding box, or a thick card border loses the
+        // segments running outside the pill but inside its box.
         if (exclusionCornerRadius > 0) {
             exclusionPath.roundRect(exclusion.x, exclusion.y, exclusion.width, exclusion.height, exclusionCornerRadius);
         } else {
@@ -131,11 +127,8 @@ class OrganizationCardRect extends _ModuleSupport.Rect {
 }
 
 export class OrganizationNode extends _ModuleSupport.TranslatableGroup<OrganizationDatum> {
-    // Field initialisation order is the scene-graph z-order: card border (`shapeNode`) at
-    // the bottom, image + text tiers in `contentGroup` above it, and the expander pill is
-    // appended later in `updateExpanderNode` so it stays visually on top. `contentGroup`
-    // also carries the conditional clip applied in `updateBBox` when `maxWidth`/`maxHeight`
-    // clamp the card under its intrinsic content size.
+    // Field initialisation order is the scene-graph z-order: card border below, `contentGroup`
+    // above it, and the expander pill appended later in `updateExpanderNode` so it stays on top.
     private readonly shapeNode = this.appendChild(new OrganizationCardRect({ tag: OrganizationNodeTag.Card }));
     private readonly contentGroup = this.appendChild(new _ModuleSupport.Group());
     private imageNode?: _ModuleSupport.Rect;
@@ -278,9 +271,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             this.shapeNode.setStrokeExclusion(undefined, 0);
         }
 
-        // Conditional clip: only when `regularBBox` clamped the card under its intrinsic
-        // size (i.e. `maxWidth`/`maxHeight` kicked in). With no overflow we leave the
-        // contentGroup unclipped so the per-frame `ctx.save/clip/restore` cost is zero.
+        // OPTIMIZATION: clip only on overflow, so the common case pays no per-frame save/clip/restore.
         const intrinsic = this.intrinsicCardSize;
         const overflows =
             intrinsic != null &&
@@ -433,7 +424,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             index++;
         }
 
-        // Trim trailing nodes so labels from a previously-bound datum don't leak after reuse.
+        // Trim trailing nodes so labels from an earlier datum don't leak after reuse.
         for (let i = labels.length; i < this.labelNodes.length; i++) {
             this.labelNodes[i]?.remove();
         }

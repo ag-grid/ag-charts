@@ -729,9 +729,8 @@ function isUserOptionCheck(graph: OptionsGraphInterface, vertex: VertexInterface
     if (path === UNRESOLVABLE_PATH) return false;
     if (graph.hasUserOption(path)) return true;
 
-    // Theme overrides are user-authored, so they satisfy the check even though they resolve on their own edge.
-    // The exception is enablement inferred from styling: a theme may propagate an explicit `enabled`, but
-    // styling alone must not switch a feature on, otherwise every themed style implies its own feature.
+    // Theme overrides are user-authored, so they satisfy the check - except for enablement inferred from
+    // styling, which would otherwise let every themed style switch its own feature on.
     const infersEnablement = pathArray.at(-1) === 'enabled' && path.at(-1) !== 'enabled';
     return !infersEnablement && graph.hasThemeOverride(path);
 }
