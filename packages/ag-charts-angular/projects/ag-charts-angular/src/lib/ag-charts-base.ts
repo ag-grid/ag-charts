@@ -63,11 +63,8 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
     // Returns a patched copy rather than mutating the consumer's options: event-style callbacks
     // (listeners, context-menu actions) are wrapped to re-enter the Angular zone the chart runs outside.
     private patchChartOptions(propsOptions: any): any {
-        // Every deref below - and the `container` merge at the end - assumes an options object, so an
-        // invalid `[options]` input either crashes here with a raw TypeError or reaches the chart as a
-        // valid `{ container }` object that `AgCharts.create()`'s own check cannot reject. Validate
-        // first, and build from what comes back - an empty object carrying the diagnostic when the
-        // input is unusable, so the chart reports it rather than the component throwing.
+        // Every deref below assumes an options object, so validate first and build from what comes back;
+        // otherwise an invalid `[options]` input throws a raw TypeError instead of a chart diagnostic.
         propsOptions = AgChartsAPI.__validateOptionsArgument(propsOptions, `<${this.selector}> \`options\` input`);
 
         const patched: any = { ...propsOptions };

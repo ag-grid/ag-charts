@@ -62,9 +62,8 @@ export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSerie
     readonly yValue: NonNullable<CartesianSeriesNodeDatum['yValue']>;
     readonly point: NonNullable<CartesianSeriesNodeDatum['point']>;
     readonly labelText?: NormalisedTextOrSegments;
-    // WARNING! This selected-state is related to cross-filtering which is not an officially documented or supported
-    // feature. It has nothing to do with the official data selection API in the options contract. Do not use, or use
-    // with extreme caution.
+    // WARNING! This selected-state belongs to cross-filtering, an undocumented and unsupported feature;
+    // it is unrelated to the data selection API in the options contract. Use with extreme caution.
     readonly crossFilterSelected: boolean | undefined;
     style?: NormalisedSeriesMarkerStyle;
 }

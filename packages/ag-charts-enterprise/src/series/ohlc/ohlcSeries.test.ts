@@ -167,10 +167,8 @@ describe('OhlcSeries', () => {
         await compareSnapshot(AgCharts.create(options));
     });
 
-    // OHLC and candlestick share `OhlcSeriesBase`, which implements no animation hooks (only a direct
-    // `resetDatumAnimation`) — so, like candlestick, every action SNAPS: the whole layout lands instantly
-    // and completely on the first captured frame. These contracts lock that in: adding animation support
-    // later must revisit them deliberately.
+    // `OhlcSeriesBase` implements no animation hooks, so every action must land completely on the
+    // first captured frame; adding animation support means revisiting these contracts.
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
         let chart: AgChartInstance | undefined;
@@ -180,10 +178,8 @@ describe('OhlcSeries', () => {
             chart = undefined;
         });
 
-        // The y-axis is pinned (0..10, all OHLC values inside it) so a data change never rescales the
-        // value axis: bar heights reflect the data alone. The ordinal-time x-axis is left unpinned so
-        // add/remove exercise the real band reflow (the layout snaps to the new band count). Winter
-        // (January) dates resolve to GMT under the suite's Europe/London TZ.
+        // The y-axis is pinned so bar heights reflect the data alone; the x-axis is left unpinned so
+        // add/remove exercise the real band reflow.
         const barData = () => [
             { date: new Date(2023, 0, 1), low: 2, open: 4, close: 6, high: 8 },
             { date: new Date(2023, 0, 2), low: 3, open: 6, close: 4, high: 7 },
@@ -201,8 +197,7 @@ describe('OhlcSeries', () => {
                 },
             }) as AgCartesianChartOptions;
 
-        // Each bar is one Path node keyed by its date; the Date stringifies with a timezone suffix, so
-        // match on the leading `Day Mon DD YYYY`.
+        // The Date key stringifies with a timezone suffix, so match on the leading `Day Mon DD YYYY`.
         const barKeys = (sample: SceneGeometrySample) =>
             [...sample.keys()].filter((k) => /^series\[0\]\/path\[/.test(k));
         const barCount = (sample: SceneGeometrySample) => barKeys(sample).length;
@@ -212,9 +207,8 @@ describe('OhlcSeries', () => {
             return key!;
         };
 
-        // A drawn OHLC bar has three subpaths (high-low line, open tick, close tick) spanning a real
-        // high-to-low pixel height — the anti-vacuity guard that the node is rendered at full size, not
-        // parked collapsed at a baseline waiting to grow.
+        // Anti-vacuity: three subpaths over a real pixel height means the bar is drawn at full size,
+        // not parked collapsed at a baseline waiting to grow.
         const expectDrawnAtFullRange = (sample: SceneGeometrySample, key: string) => {
             const node = sample.get(key);
             expect(node, key).toBeDefined();
@@ -222,9 +216,6 @@ describe('OhlcSeries', () => {
             expect(node!.height, `${key} height`).toBeGreaterThan(20);
         };
 
-        // OHLC implements no animation hooks and skips its batch on every update, so a data change
-        // SNAPS: the whole layout (surviving bars rebanding, axis reflow) already sits at its settled
-        // state on the first captured frame.
         const captureSnap = (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
             chart = AgCharts.create(options);
             return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);
@@ -234,9 +225,7 @@ describe('OhlcSeries', () => {
             chart = AgCharts.create(ohlcOptions());
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
-            // Anti-vacuity: every bar is already drawn at full high-to-low height on frame 0. A reveal
-            // would start collapsed here and grow, which expectNoAnimation would then catch — so the two
-            // assertions together are non-vacuous (expectNoAnimation alone passes on a blank scene).
+            // Anti-vacuity: expectNoAnimation alone passes on a blank scene.
             expect(barCount(trajectory[0])).toBe(3);
             for (const key of barKeys(trajectory[0])) {
                 expectDrawnAtFullRange(trajectory[0], key);
@@ -251,14 +240,11 @@ describe('OhlcSeries', () => {
                 chart!.update({ ...ohlcOptions(), data })
             );
             const changed = barKey(after, 'Tue Jan 03 2023');
-            // Anti-vacuity: the changed bar genuinely grew, and it is already at that taller height on
-            // frame 0 — the snap, not a tween.
             expect(after.get(changed)!.height, 'changed bar grew').toBeGreaterThan(before.get(changed)!.height + 30);
             expect(
                 Math.abs(trajectory[0].get(changed)!.height - after.get(changed)!.height),
                 'changed bar at full height on frame 0'
             ).toBeLessThan(1);
-            // The other bars never moved across the update.
             const held = barKey(before, 'Sun Jan 01 2023');
             expect(Math.abs(after.get(held)!.height - before.get(held)!.height), 'untouched bar held').toBeLessThan(1);
             expectNoAnimation(trajectory);
@@ -271,13 +257,10 @@ describe('OhlcSeries', () => {
                     data: [...barData(), { date: new Date(2023, 0, 4), low: 2, open: 5, close: 7, high: 9 }],
                 })
             );
-            // Anti-vacuity: the bar count grew and the entrant is drawn at full size on frame 0.
             expect(barCount(before)).toBe(3);
             expect(barCount(after)).toBe(4);
             expect(barCount(trajectory[0])).toBe(4);
             expectDrawnAtFullRange(trajectory[0], barKey(trajectory[0], 'Wed Jan 04 2023'));
-            // The bands genuinely re-flowed: a survivor moved a wide margin from its 3-band position,
-            // yet it is already at its new x on frame 0 (snapped, not sliding across).
             const survivor = barKey(before, 'Sun Jan 01 2023');
             expect(Math.abs(after.get(survivor)!.x - before.get(survivor)!.x), 'survivor rebanded').toBeGreaterThan(5);
             expect(
@@ -291,12 +274,9 @@ describe('OhlcSeries', () => {
             const { before, trajectory, after } = await captureSnap(ohlcOptions(), () =>
                 chart!.update({ ...ohlcOptions(), data: barData().slice(0, 2) })
             );
-            // Anti-vacuity: the bar count shrank and the dropped bar is already gone on frame 0 (a
-            // fade-out would keep it present and collapsing over the trajectory).
             expect(barCount(before)).toBe(3);
             expect(barCount(after)).toBe(2);
             expect(barKeys(trajectory[0]).some((k) => k.startsWith('series[0]/path[Tue Jan 03 2023'))).toBe(false);
-            // The survivors genuinely widened their bands, snapped in place on frame 0.
             const survivor = barKey(before, 'Sun Jan 01 2023');
             expect(Math.abs(after.get(survivor)!.x - before.get(survivor)!.x), 'survivor rebanded').toBeGreaterThan(5);
             expect(
@@ -306,9 +286,7 @@ describe('OhlcSeries', () => {
             expectNoAnimation(trajectory);
         });
 
-        // Endpoint sanity guards: the (snapped) animated route must settle at exactly the pixels a
-        // static render of the same options produces. In-memory pixel comparison — no new image
-        // snapshot. One chart per test: the mock canvas only snapshots the first chart created.
+        // One chart per test: the mock canvas only snapshots the first chart created.
         it('sanity: update value endpoints match static renders', async () => {
             const before = ohlcOptions();
             const data = barData();

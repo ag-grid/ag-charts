@@ -12,7 +12,7 @@
         "production",
         "!{projectRoot}/vitest.config.mjs",
         "{workspaceRoot}/external/ag-website-shared/**",
-        "{projectRoot}/.astro/cache/sitemap/**",
+        "{projectRoot}/.astro/cache/sitemap/sitemap-0.xml",
         {
           "externalDependencies": ["npm:astro"]
         },

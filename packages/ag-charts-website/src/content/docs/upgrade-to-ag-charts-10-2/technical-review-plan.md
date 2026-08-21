@@ -25,7 +25,7 @@
 
 ### 1. External Links Verification
 
-- **Release Post**: https://blog.ag-grid.com/whats-new-in-ag-charts-10-2/
+- **Release Post**: https://www.ag-grid.com/blog/whats-new-in-ag-charts-10-2/
     - Verify link is accessible and contains AG Charts 10.2 information
     - Cross-check deprecation information matches
 - **Changelog Link**: /changelog/?fixVersion=10.2.0

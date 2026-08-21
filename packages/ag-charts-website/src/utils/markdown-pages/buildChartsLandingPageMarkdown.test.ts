@@ -12,8 +12,7 @@ import { buildChartsLandingPageMarkdown } from './buildChartsLandingPageMarkdown
 
 const SITE_ROOT = 'https://www.ag-grid.com/';
 
-// The real content the pages render, so a section type added to a landing page without a matching
-// branch in the builder shows up as missing output rather than as a silent gap.
+// The real page content, so a section type with no branch in the builder shows up as missing.
 const PAGES: Array<[string, ChartsLandingPageContent]> = [
     ['javascript-charts', javascriptCharts as ChartsLandingPageContent],
     ['react-charts', reactCharts as ChartsLandingPageContent],

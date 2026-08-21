@@ -29,13 +29,8 @@ import { BubbleSeries } from './bubbleSeries';
 import { bubbleSeriesOptionsDef } from './bubbleSeriesOptionsDef';
 import { predictCartesianAxis } from './util';
 
-// Shared theme fragments used by scatter as well. The colour scale is an enterprise feature:
-// the $if/$isPackageType pair resolves the whole colorScale sub-tree to a default divergingColors
-// palette when ag-charts-enterprise is registered, and undefined otherwise. Community resolved
-// options therefore never contain a colorScale from the theme, which lets the enterprise()
-// validator on `colorScale` fire on any user-supplied value without false positives from theme
-// defaults.
-//
+// Shared with scatter. The $if/$isPackageType pair resolves colorScale to a palette only under
+// enterprise, so the `colorScale` enterprise() validator never fires on a community theme default.
 export const BUBBLE_SCATTER_COLOR_SCALE_THEME: Operation | WithThemeParams<AgColorScale> = {
     fills: {
         $if: [

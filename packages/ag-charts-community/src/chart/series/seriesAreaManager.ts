@@ -67,7 +67,7 @@ import {
 } from './series';
 import type { DatumIndex, FireNodeEventParams, SeriesNodeDatum } from './seriesTypes';
 import { SelectionState } from './seriesTypes';
-import { getDatumRefPoint } from './util';
+import { getDatumRefPoint, isDatumHighlight } from './util';
 
 type FocusAnnounceMode = 'always' | 'never' | 'when-changed';
 
@@ -205,9 +205,8 @@ export class SeriesAreaManager extends BaseManager {
     private _device: HoverDevice = 'pointer';
 
     private setHoverDevice(desiredDevice: HoverDevice): void {
-        // Keyboard and Pointer interactions are still permitted on Frozen charts. However, we shouldn't update the
-        // hoverDevice when we receive Keyboard/Pointer events, because we should still be honouring the `setState`
-        // requested active highlight/tooltip.
+        // Frozen charts still accept keyboard/pointer interaction, but must keep honouring the
+        // `setState` active highlight/tooltip.
         if (desiredDevice === 'setState' || !this.isState(InteractionState.Frozen)) {
             this._device = desiredDevice;
         }
@@ -248,7 +247,7 @@ export class SeriesAreaManager extends BaseManager {
         if (chart.ctx.domManager.mode === 'normal') {
             this.focusIndicator = new FocusIndicator(this.swapChain);
             this.focusIndicator.overrideFocusVisible(
-                chart.ctx.chartState.getValue('options', 'mode') === 'integrated' ? false : undefined // AG-13197
+                chart.ctx.chartState.getValue('options', 'mode') === 'integrated' ? false : undefined
             );
         }
 
@@ -380,22 +379,13 @@ export class SeriesAreaManager extends BaseManager {
             this.focus.pendingViewportFocus = undefined;
             this.pickViewportFocus(pendingViewportFocus);
         } else if (this.isState(InteractionState.Focusable) && this.focusIndicator?.isFocusVisible()) {
-            // This function is usually called when something in the scene is redrawn such as a resize, or zoompan
-            // change. In such a case, we need to update the bounds of the focus indicator, but not aria-label. Hence
-            // setting mode='never' to avoid announcing the change.
-            //
-            // However, this method can also be called after an overlay is missed, such as after async data is loaded
-            // (AG-15228). The overlay also updates the aria-label in the swapchain, so we want to announce the series
-            // focus when the overlay is dismissed. We use mode='always', so ensure that the change is announced even
-            // when no focus indices have changed.
-            //
+            // A plain redraw (resize, zoom/pan) must move the focus indicator silently, but a
+            // dismissed overlay has rewritten the swapchain aria-label and must be re-announced.
             if (this.announceMode !== 'always') {
                 this.announceMode = 'never';
             }
 
-            // The focus indicator & label might be outdated, but the current focus isn't changing. Therefore, just
-            // refresh the focus indicator & label, but without emitting the 'series:focus-change' event (doing so would
-            // trigger and infinite redraw loop).
+            // Focus isn't changing, so refresh without emitting 'series:focus-change' — that loops the redraw.
             this.refreshFocus();
         }
     }
@@ -442,9 +432,8 @@ export class SeriesAreaManager extends BaseManager {
         this.clearAll();
 
         if (this.pickManager.wasActivationPrevented()) {
-            // AG-16704 TC2; when the user calls preventDefault() an activeChange with `source: 'user-interaction'`
-            // (meaning we have hover-device 'pointer' or 'keyboard'), then we'll need to redraw the highlight rather
-            // than clear it. Let's switch to the `setState` internally to do that.
+            // A prevented 'user-interaction' activeChange must redraw the highlight rather than
+            // clear it, which requires the 'setState' hover device.
             if (activeHighlight !== undefined) {
                 this.setHoverDevice('setState');
                 this.activeState.lastActive = {
@@ -630,20 +619,15 @@ export class SeriesAreaManager extends BaseManager {
             this.chart.ctx.animationManager.skipCurrentBatch();
         }
 
-        // Synthetic Touch click events do not always put the series-area into focus, but we want these events to
-        // put the series-area into focus regardless of whether anything is highlighted or not. We want to
-        // programmatically focus on the HTMLElement before firing the API click event. This ensure that we keep
-        // Touch UX consistent with Mouse UX.
+        // Synthetic touch clicks do not always focus the series-area; focus it before the API click
+        // event so touch UX matches mouse UX.
         if (event.device === 'touch' && current === this.chart.ctx.widgets.seriesWidget) {
             this.focusIndicator?.focus({ preventScroll: true, focusVisible: false });
         }
         if (!this.isState(InteractionState.Clickable)) return;
 
-        // Check whether the `event.sourceEvent` targets on the series-area, or the back of the chart. The logic is
-        // different for `seriesWidget` and `containerWidget` because on the `seriesWidget` the target is one of the
-        // focus swapchain elements (descendants of `seriesWidget`). Whereas with `containerWidget` we want an exact
-        // match with the target because we want to ignore events target is the `seriesWidget` (which is a descendant of
-        // `containerWidget`).
+        // `seriesWidget` hits land on a swapchain descendant, so test containment; `containerWidget`
+        // needs an exact match to exclude the `seriesWidget` nested inside it.
         if (current === this.chart.ctx.widgets.seriesWidget) {
             if (!current.getElement().contains(event.sourceEvent.target as Node | null)) {
                 return;
@@ -897,9 +881,8 @@ export class SeriesAreaManager extends BaseManager {
         const canvasPoint: CanvasPoint = this.toCanvasCoordinates(event);
         const coordinates: AgCoordinates | undefined = this.chart.ctx.chartService.toAgCoordinates(canvasPoint);
 
-        // A dedicated control (e.g. the org-chart expander) owns its clicks: it still drives its own
-        // interaction via the `series-area:click` event emitted by the caller, but must not also
-        // reach the user's node click / double-click listeners (AG-17947).
+        // A dedicated control (e.g. the org-chart expander) owns its clicks: it drives itself via
+        // `series-area:click`, and must not also reach the user's node click listeners.
         const firesUserClickListeners = updated.active.series.firesUserClickListeners(pickedNodes.target);
 
         // `matches` is the flat, hit-test-ordered pick, spanning every series that overlapped the point.
@@ -935,14 +918,8 @@ export class SeriesAreaManager extends BaseManager {
             }
             return { node: updated.active, target: pickedNodes.target };
         } else if (event.type === 'dblclick') {
-            // See: AG-11737#TC3, AG-11676
-            //
-            // The Zoom module's double-click handler resets the zoom, but only if there isn't an
-            // exact match on a node. This is counter-intuitive, and there's no built-in mechanism
-            // in the InteractionManager / RegionManager for the Zoom module to listen to non-exact
-            // series-rect double-clicks. As a workaround, we'll set this boolean to tell the Zoom
-            // double-click handler to ignore the event whenever we are double-clicking exactly on
-            // a node.
+            // The Zoom module has no way to listen for non-exact series-rect double-clicks, so flag
+            // exact node hits here and let its reset-zoom handler skip them.
             event.preventZoomDblClick = distance === 0;
 
             if (firesUserClickListeners) {
@@ -995,10 +972,8 @@ export class SeriesAreaManager extends BaseManager {
     ): UpdatePickedFocusInputs | PickedFocusStatus.SERIES_NOT_FOUND {
         const { otherIndexDelta, datumIndexDelta } = inputs;
         if (this.chart.chartType === 'standalone') {
-            // Some chart type (treemap, sunburst, gauges) can only have 1 series. So we'll repurpose the focus.seriesIndex
-            // value. Hierarchical charts use arrowup/down to change depth and gauges use arrowup/down to change datum type
-            // (bar/needle, targets). This allows the hierarchical and gauge charts to piggyback on the base keyboard handling
-            // implementation.
+            // Single-series chart types (treemap, sunburst, gauges) repurpose focus.seriesIndex for
+            // depth / datum type, so they can reuse the base keyboard handling.
             this.focus.series = this.focus.sortedSeries[0];
             const datumIndex = this.focus.datumIndex;
             const otherIndex = this.focus.seriesIndex;
@@ -1115,15 +1090,14 @@ export class SeriesAreaManager extends BaseManager {
                     return PickedFocusStatus.PAN_REQUIRED;
                 }
             }
-            // AG-14102 Check if focusBBox is still completely outside the viewport (e.g. panning is disabled), and
-            // move/clip it if needed.
+            // Move/clip the focus box when it is entirely outside the viewport (e.g. panning off).
             const { x1, x2, y1, y2 } = Vec4.from(focusBBox);
             const nw = hoverRect.containsPoint(x1, y1);
             const ne = hoverRect.containsPoint(x2, y1);
             const sw = hoverRect.containsPoint(x1, y2);
             const se = hoverRect.containsPoint(x2, y2);
             if (!(nw || ne || sw || se)) {
-                // Move the focus box, insuring that we keeping 2px padding on all sides (AG-13067)
+                // Move the focus box, keeping 2px padding on all sides
                 const hoverBounds = Vec4.from(hoverRect);
                 pick.movedBounds = focusBBox.clone();
 
@@ -1196,8 +1170,7 @@ export class SeriesAreaManager extends BaseManager {
         let mode: 'always' | 'never';
 
         if (this.announceMode === 'when-changed') {
-            // AG-13874 If all deltas are 0, it means that we're tabbing in (always announce). Otherwise, announce
-            // the datum pick only if the indices have changed.
+            // All-zero deltas mean a tab-in, which always announces; otherwise only on a change.
             const shouldAnnouncePick =
                 (datumIndexDelta === 0 && otherIndexDelta === 0) ||
                 oldDatumIndex !== pick.datumIndex ||
@@ -1246,11 +1219,8 @@ export class SeriesAreaManager extends BaseManager {
         if (dataSelectionStateText === undefined) {
             return withInstructions(datumText);
         } else {
-            // When using the Arrow/Tab keys, announce the 'selected/unselected' state at the end.
-            //
-            // When changing the selection state using the Space/Enter keys, announce the state first because that's the
-            // most relevant information. This is how most screenreaders prioritise selection state on native elements
-            // like a HTML tickbox.
+            // Screenreaders lead with selection state on native controls, so Space/Enter announces
+            // it first; arrow/tab navigation announces it last.
             switch (source) {
                 case 'keynav':
                     return withInstructions([datumText, dataSelectionStateText].join(', '));
@@ -1315,9 +1285,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private clearUnpreventable(): void {
         this.activeState.lastActive = undefined;
-        // FIXME: onClearUI() & clearHighlight() dispatch an 'activeChange' event which include a
-        // preventDefault() method. Calling preventDefault() in this case would have no effect. Perhaps the
-        // 'activeChange' event might need an additional property like `readonly preventable: boolean`.
+        // FIXME: the 'activeChange' event dispatched below exposes a preventDefault() that has no effect here.
         this.pickManager.onClearUI();
         this.clearHighlight(false);
         this.clearTooltip(false);
@@ -1413,9 +1381,8 @@ export class SeriesAreaManager extends BaseManager {
                 opts?.defaultCb();
             });
         } else {
-            // The topmost scene node under the pointer only survives as far as `PickedNodes`; a series
-            // that renders several parts per node names the one that was hit, so the highlight can
-            // carry it (e.g. the org-chart expander pill versus the card behind it).
+            // `PickedNodes` is the last place the hit scene node survives, so a multi-part series
+            // must name the part here for the highlight to carry it.
             const highlightPart = active.series.getHighlightPart(opts?.target ?? pickedNodes?.target);
             this.pickManager.maybeActivate(active, () => {
                 this.chart.ctx.highlightManager.updateHighlight(this.id, active, false, undefined, highlightPart);
@@ -1510,10 +1477,19 @@ export class SeriesAreaManager extends BaseManager {
         // all series need updating since their visual highlight state changes.
         const suppressionChanged = event.highlightSuppressed !== !lastHighlightEnabled;
 
-        // NOTE: There's a rendering bug with on `seriesToUpdate` branch when calling `setState`; All series that
-        // aren't included in the `seriesToUpdate` property get reset to an unhighlighted style. The root cause for
-        // this is unknown, further investigation may be required.
-        if (this.getHoverDevice() === 'setState' || newSeries == null || lastSeries == null || suppressionChanged) {
+        // Known bug: on the `seriesToUpdate` branch, `setState` resets every excluded series to an
+        // unhighlighted style — hence the full update for that case.
+        const sharedHighlight =
+            this.chart.highlight.mode === 'shared' &&
+            (isDatumHighlight(event.currentHighlight) || isDatumHighlight(event.previousHighlight));
+
+        if (
+            this.getHoverDevice() === 'setState' ||
+            newSeries == null ||
+            lastSeries == null ||
+            suppressionChanged ||
+            sharedHighlight
+        ) {
             this.update(ChartUpdateType.SERIES_UPDATE, { clearCallbackCache: true });
         } else {
             this.update(ChartUpdateType.SERIES_UPDATE, {
@@ -1524,9 +1500,8 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onHighlightSelectionUpdate(event: HighlightSelectionUpdatedEvent): void {
-        // When the chart is frozen, we want the chart to automatically remove the crosshair & tooltip when the frozen
-        // active datum leaves the viewport (e.g. if user zoom/pans the view). Checking whether the highlighted node
-        // intersects with the viewport is an expensive computation, but we only need to do this on frozen charts.
+        // OPTIMIZATION: the viewport-intersection test is expensive, and only frozen charts need it
+        // — to drop the crosshair and tooltip when the frozen datum is zoomed/panned out of view.
         if (!this.isState(InteractionState.Frozen) || !this.seriesRect) {
             this.activeState.highlightInViewport = true;
             return;
@@ -1607,8 +1582,7 @@ export class SeriesAreaManager extends BaseManager {
         return series.tooltipEnabled ?? this.chart.tooltip.enabled;
     }
 
-    // Do not return undefined tooltip content if we're obtaining it to update the series-area aria-label.
-    // (CRT-869, CRT-901, CRT-871, CRT-909).
+    // Never returns undefined for the 'aria-label' purpose.
     private getTooltipContent(datum: SeriesNodeDatum, purpose: 'aria-label'): TooltipContent[];
     private getTooltipContent(datum: SeriesNodeDatum, purpose: 'tooltip'): TooltipContent[] | undefined;
     private getTooltipContent(datum: SeriesNodeDatum, purpose: 'aria-label' | 'tooltip'): TooltipContent[] | undefined {

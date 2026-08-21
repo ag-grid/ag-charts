@@ -7,9 +7,8 @@ import { setupEnterpriseModules } from '../setup';
 
 setupEnterpriseModules();
 
-// Enterprise counterpart to the community `labelOverflowDefaults` suite: proves the overflow-control coupling reaches
-// the enterprise series templates, including waterfall's per-item label nesting and range-area's newly added
-// collision block.
+// Enterprise counterpart to the community `labelOverflowDefaults` suite: proves the overflow-control
+// coupling reaches the enterprise series templates.
 describe('label overflow defaults (enterprise)', () => {
     type SeriesLabel = { wrapping?: unknown; truncate?: unknown; collision?: { alwaysShow?: unknown } };
 

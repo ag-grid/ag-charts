@@ -46,9 +46,7 @@ describe('resolveDataset', () => {
     });
 
     it('rejects a commodity outside the supported set, however consistent the feed is', () => {
-        // The whole feed agrees on it — catalogue, budget and manager — so nothing else here
-        // catches it, and it would otherwise resolve into a `Commodity` the union does not hold
-        // and the workspace's `Record<Commodity, …>` maps have no entry for.
+        // Nothing else catches it, and it would resolve into a `Commodity` the union does not hold.
         const raw = clone();
         const [entry] = raw.catalogue;
         const renamed = 'Unobtainium';
@@ -116,8 +114,7 @@ describe('resolveDataset', () => {
     });
 
     it('rejects an order line from a supplier the catalogue does not approve', () => {
-        // The sunburst lays a leaf out per approved supplier and looks spend up against it, so an
-        // unapproved line would drop out of that chart while still counting in the grid and tiles.
+        // The sunburst lays out one leaf per approved supplier, so an unapproved line drops out of that chart.
         const raw = clone();
         const line = raw.purchaseOrders[0];
         const approved = raw.catalogue
@@ -135,10 +132,7 @@ describe('resolveDataset', () => {
     });
 
     it("rejects an order line booked onto another lane's shipment", () => {
-        // A shipment's value and contents are summed from its lines while its lane comes from the
-        // shipment record, so a line off the lane spends against the wrong supplier and plant.
-        // The shipment is what moves here, not the line: moving the line would take it off its
-        // material's approved suppliers too, and that is a different rule failing.
+        // A line off its lane spends against the wrong supplier and plant; move the shipment, not the line.
         const shipped = STATIC_DATASET.purchaseOrders.find((order) => order.shipmentId != null)!;
         const lane = STATIC_DATASET.shipments.find((shipment) => shipment.shipmentId === shipped.shipmentId)!;
         const otherSupplier = STATIC_DATASET.suppliers.find((s) => s.supplierId !== lane.supplierId)!;
@@ -173,8 +167,7 @@ describe('resolveDataset', () => {
     });
 
     it('rejects an order promised or received before it was raised', () => {
-        // Lead time is measured from the order date, so a date before it is a negative lead time
-        // averaged into the slip and lead-time charts rather than an obviously broken record.
+        // Lead time is measured from the order date, so an earlier date averages a negative into the charts.
         const early = clone();
         const [line] = early.purchaseOrders;
         line.expectedDate = new Date(new Date(line.orderDate).getTime() - 86_400_000).toISOString();

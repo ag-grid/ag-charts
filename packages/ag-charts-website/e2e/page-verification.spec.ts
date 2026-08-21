@@ -21,23 +21,11 @@ declare global {
 /** Inline script the site policy cannot authorise, used to prove CSP capture still works. */
 const CSP_SELF_CHECK_SCRIPT = 'window.__agCspSelfCheck = true;';
 
-// This is a smoke test suite: a page failing to load or render (checked via the assertions
-// in each test, plus gotoUrl/gotoExample's own title/canvas checks) is the only way a test
-// fails here. Everything else the page reports (console errors/warnings, uncaught exceptions,
-// dev-server hydration noise, CSP violations) is recorded as a test annotation for visibility
-// without failing the test. CSP is annotated rather than asserted because the policy
-// authorises inline scripts injected by tags authored in Google Tag Manager, outside this
-// repo: editing a tag there invalidates its hash, which must not turn every page in the suite
-// red. The post-deploy workflow reports those annotations to the team that owns the policy
-// instead. This intentionally doesn't use the shared setupIntrinsicAssertions from util.ts —
-// that helper's zero-tolerance behaviour is right for the feature-level e2e specs that use it,
-// but wrong for a post-deploy smoke test.
+// A smoke suite: only load/render failures fail a test; everything else is annotated for the report.
 // Chromium writes the policy name with spaces in some messages and hyphens in others.
 const isCspIssue = (msg: string) => /Content[- ]Security[- ]Policy|Refused to (load|execute|connect)/i.test(msg);
 
-// Console messages that are known browser/environment noise unrelated to the site under
-// test. Matched by substring so new message formats stay filtered; this is report hygiene
-// only, not a safety mechanism, since none of it fails the test anyway.
+// Known browser/environment noise, matched by substring so new message formats stay filtered.
 const KNOWN_NOISE = [
     '[astro-island]', // Astro dev-server hydration artefact, doesn't occur in production builds
     'GL Driver Message',
@@ -81,9 +69,7 @@ function setupPageVerificationAssertions() {
                 return;
             }
             if (msg.type() !== 'warning' && msg.type() !== 'error') return;
-            // The message's own location, not page.url(): a violation inside an iframe is
-            // reported against that frame's document, and a hash has to be matched to the
-            // page that needs it.
+            // The message's own location, not page.url(): an iframe violation names its own document.
             handle(msg.text(), '[Console]', msg.location()?.url || page.url());
         });
 
@@ -97,10 +83,8 @@ function setupPageVerificationAssertions() {
 
 const REPORT_CSP_VIOLATION_BINDING = '__agReportCspViolation';
 
-// The browser's own violation event, rather than the console text: it reports the effective
-// directive, what was blocked and whether the policy enforced or merely reported it, and it
-// catches violations that never reach the console at all (a blocked eval surfaces as an
-// exception the calling script can swallow).
+// The browser's own violation event carries the effective directive and enforcement mode, and
+// catches violations that never reach the console (a blocked eval the calling script swallows).
 async function watchCspViolations(page: Page, testInfo: TestInfo): Promise<void> {
     await page.exposeBinding(REPORT_CSP_VIOLATION_BINDING, (_source, violation: CspViolationRecord) => {
         testInfo.annotations.push({ type: CSP_VIOLATION_ANNOTATION, description: JSON.stringify(violation) });
@@ -199,12 +183,8 @@ test.describe('Page Verification', () => {
         await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     });
 
-    // Sense-check the standalone example runner across frameworks by loading a couple of
-    // examples directly at their framework-specific URLs and asserting a chart renders. This
-    // exercises each framework's example compiler head-on — in particular the vanilla
-    // (JavaScript) build. The docs-page inline runner defaults to the TypeScript variant, so it
-    // can render while the vanilla compiler is broken; loading the `vanilla` URL directly is what
-    // actually catches that. gotoExample waits for the chart canvas and its render-stable state.
+    // The docs-page inline runner defaults to TypeScript, so only these direct URLs catch a broken
+    // vanilla compiler.
     const exampleRenderChecks = [
         { pageSlug: 'quick-start', example: 'basic-example' },
         { pageSlug: 'bar-series', example: 'simple-bar' },
@@ -244,9 +224,8 @@ test.describe('Page Verification', () => {
 
     // --- CSP capture ---
 
-    // Since no test fails on a CSP violation any more, a break in the capture path would
-    // otherwise be invisible: the suite would stay green while quietly reporting nothing.
-    // Serving an inline script the policy cannot authorise proves the whole path still works.
+    // No test fails on a CSP violation, so a break in the capture path is otherwise invisible:
+    // serving an unauthorised inline script proves the whole path still works.
     test('captures a blocked inline script with the hash needed to authorise it', async ({ page }, testInfo) => {
         // Route the URL the run actually resolved, so this holds for a build deployed under a
         // path prefix as well as at a domain root.
@@ -261,9 +240,8 @@ test.describe('Page Verification', () => {
         });
         await page.reload();
 
-        // Only what the injected reload provoked is this test's own doing: anything the first
-        // navigation reported is a real violation and stays in the report. Removing it before
-        // the assertions means a failure here cannot leak the synthetic violation either.
+        // Only the injected reload's violations are synthetic; the first navigation's are real and
+        // stay in the report.
         const synthetic = annotations
             .slice(beforeInjection)
             .filter(

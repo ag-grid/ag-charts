@@ -20,20 +20,16 @@ test.describe('css variables', () => {
                 await gotoExample(page, url);
                 await expectChartScreenshot(page, page.locator(SELECTORS.canvas), 'initial-value.png');
 
-                // Expect the colours to change
                 await page.getByText('Change CSS Variable').click();
                 await expectChartScreenshot(page, page.locator(SELECTORS.canvas), 'changed-value.png');
 
-                // Expect the theme to change and keep the new colours
                 await page.getByTitle('Change to Default Theme').click();
                 await expectChartScreenshot(page, page.locator(SELECTORS.canvas), 'changed-theme.png');
 
-                // Expect the theme to stay the same and the colours to change
                 await page.getByTitle('Change to Default Theme').click();
                 await page.getByText('Change CSS Variable').click();
                 await expectChartScreenshot(page, page.locator(SELECTORS.canvas), 'change-value-same-theme.png');
 
-                // Expect the theme to change and the colours to change
                 await page.getByTitle('Change to Paper Theme').click();
                 await page.getByText('Change CSS Variable').click();
                 await expectChartScreenshot(page, page.locator(SELECTORS.canvas), 'change-value-and-theme.png');
@@ -56,9 +52,8 @@ test.describe('css variables', () => {
         await expect(page.locator('#status')).toContainText('Mode: Dark');
         await expectChartScreenshot(page, charts, 'css-variables-dark-mode-dark.png');
 
-        // Toggling again must re-resolve the CSS variables and repaint back to the original light
-        // appearance (still without an explicit chart.update()) — the reverse of the transition above,
-        // which no other baseline exercises. The restored image is expected to match the initial light one.
+        // Toggling back must re-resolve the CSS variables and repaint to the original light appearance,
+        // still without an explicit chart.update().
         await page.getByText('Toggle Dark Mode').click();
         await waitForAllChartUpdates(page);
         await expect(page.locator('#status')).toContainText('Mode: Light');

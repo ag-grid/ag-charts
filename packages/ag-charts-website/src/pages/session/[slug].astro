@@ -4,9 +4,7 @@ import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { SESSIONS, sessionSlug, youtubeId } from '@utils/beyondThePromptSessions';
 import styles from '../../pages-styles/session.module.scss';
 
-// One real, crawlable page per recorded session. On the Beyond the Prompt page
-// the same URL opens the recording in a modal; visited directly (deep link,
-// refresh, search result) it renders this standalone page.
+// Standalone crawlable page per session; the same URL opens as a modal from Beyond the Prompt.
 export function getStaticPaths() {
     return SESSIONS.filter((session) => session.youtubeUrl).map((session) => ({
         params: { slug: sessionSlug(session.title) },

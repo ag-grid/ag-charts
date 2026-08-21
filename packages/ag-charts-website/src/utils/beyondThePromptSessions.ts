@@ -33,14 +33,11 @@ export type Session = {
     title: string;
     speakers?: SessionSpeaker[];
     description?: string;
-    // YouTube watch URL for the recorded session. Sessions with one become a
-    // link to /session/<slug>, which opens the recording in a modal on the main
-    // page and is a real page when visited directly.
+    // Presence of a URL is what promotes a session to its own /session/<slug> page.
     youtubeUrl?: string;
 };
 
-// Single-track running order, talks only. Breaks, registration, the welcome and
-// the closing remarks are intentionally omitted now the event has run.
+// Single-track running order, talks only: breaks and registration are deliberately omitted.
 export const SESSIONS: Session[] = [
     {
         title: 'Opening Keynote',
@@ -132,16 +129,9 @@ export type Speaker = {
     title: string;
     bio: string;
     image: string;
-    // Re-shaded variant designed for orange backgrounds. The ditherpattern
-    // and knockout values are tuned for #F43800; we crossfade to it on
-    // card hover (Speakers grid) and use it directly in the agenda hover
-    // overlay, where the row turns orange behind the portrait.
+    // Variant re-shaded for the #F43800 hover background; crossfaded in on hover.
     imageOrange?: string;
-    // Some speaker SVGs are exported as full-figure portraits with very tall,
-    // narrow aspect ratios (e.g. Mats 193×352, John 232×388). Using the
-    // default `object-fit: cover` on a 4:5 box clips ~140px off the bottom.
-    // Setting `imageFit: 'contain'` switches just those cards to fit-the-whole
-    // SVG while staying anchored to the bottom of the frame.
+    // Opt-out of `object-fit: cover` for full-figure portraits, which it clips on a 4:5 box.
     imageFit?: 'contain';
 };
 
@@ -255,38 +245,31 @@ export const SPEAKERS: Speaker[] = [
     },
 ];
 
-// Slugify a session title for its /session/<slug> URL.
 export const sessionSlug = (title: string): string =>
     title
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '');
 
-// Slug for the 30x30 / 120x120 speaker-head PNGs, e.g. "John Masterson" ->
-// "john-masterson".
 export const headSlug = (name: string): string =>
     name
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '');
 
-// Pull the 11-character video id out of a YouTube watch / youtu.be / embed URL.
 export const youtubeId = (url: string): string | null => {
     const match = url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/);
     return match ? match[1] : null;
 };
 
-// Branded 1600x900 thumbnails live in /images/.../thumbnails/<slug>.webp, one per
-// speaker. Group talks pick a single representative speaker; the rest default to
-// their (only) speaker.
+// Representative speaker for group talks, which have no single obvious thumbnail.
 const THUMB_OVERRIDE: Record<string, string> = {
     'Opening Keynote': 'john-masterson',
     'Product Roadmap': 'johan-isaksson',
     'How agentic AI Is reshaping software engineering': 'maggie-appleton',
 };
 
-// Speakers we have a thumbnail image for. Sessions whose chosen speaker is not
-// here (Patrick Rau, Steve Ruiz) fall back to the YouTube thumbnail.
+// Speakers with a branded thumbnail; the rest fall back to the YouTube thumbnail.
 const THUMBS_AVAILABLE = new Set([
     'john-masterson',
     'david-khourshid',
@@ -300,14 +283,12 @@ const THUMBS_AVAILABLE = new Set([
     'patrick-rau',
 ]);
 
-// The branded thumbnail slug for a session, or null to fall back to YouTube.
 export const sessionThumbSlug = (session: Session): string | null => {
     const slug = THUMB_OVERRIDE[session.title] ?? (session.speakers ? headSlug(session.speakers[0].name) : '');
     return THUMBS_AVAILABLE.has(slug) ? slug : null;
 };
 
-// Talk runtimes (minutes, rounded to the nearest 5) keyed by YouTube id, taken
-// from each recording's actual length.
+// Runtimes in minutes, rounded to the nearest 5, keyed by YouTube id.
 const DURATION_MINS: Record<string, number> = {
     'XY30-iUTB3E': 25,
     uMvTAF280so: 30,
@@ -322,7 +303,6 @@ const DURATION_MINS: Record<string, number> = {
     mcHscAcv288: 30,
 };
 
-// Rounded runtime in minutes for a session's recording, or null if unknown.
 export const sessionDurationMins = (session: Session): number | null => {
     const id = session.youtubeUrl ? youtubeId(session.youtubeUrl) : null;
     return id ? (DURATION_MINS[id] ?? null) : null;

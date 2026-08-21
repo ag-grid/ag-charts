@@ -111,16 +111,8 @@ export class AxisWidgets {
         this.pruneEntry(axisId, entry);
     }
 
-    // Bounds must be routed through these setters (rather than the widgets' own `setBounds`) because
-    // the axis title text lives in one of two coordinate systems depending on interactivity:
-    //   - Non-interactive axis: there is no region, so the title is a standalone element in the
-    //     canvas-proxy container and is positioned in canvas coordinates.
-    //   - Interactive axis: the title is nested inside the region widget, whose bounds are a subset
-    //     of the canvas bounds. A nested element is positioned relative to the region's origin, not
-    //     the canvas, so the title's canvas bounds must be translated by the region origin.
-    // The region bounds (from the interaction feature) and title bounds (from the caption) arrive
-    // from independent `layout:complete` listeners in an unspecified order, so both are stored and
-    // the title position is re-derived on every update — never depending on which arrived last.
+    // Region and title bounds arrive from independent `layout:complete` listeners in an unspecified
+    // order, so both are stored and the title position re-derived on every update.
 
     setRegionBounds(axisId: AxisID, bounds: BoxBounds): void {
         const entry = this.getEntry(axisId);
@@ -173,9 +165,8 @@ export class AxisWidgets {
         return entry;
     }
 
-    // Move the standalone title element out of the DOM manager and into the region widget. The
-    // domManager entry must be cleared first, otherwise a later re-attach would be a no-op (addChild
-    // is keyed by id and returns the existing element).
+    // Clear the domManager entry before re-parenting: `addChild` is keyed by id, so a later re-attach
+    // would otherwise be a no-op.
     private nestTitle(axisId: AxisID, entry: AxisEntry): void {
         if (!entry.region || !entry.text) return;
         this.ctx.domManager.removeChild('canvas-proxy', this.titleId(axisId));

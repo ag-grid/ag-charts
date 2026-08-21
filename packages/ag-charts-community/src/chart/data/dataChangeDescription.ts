@@ -260,9 +260,7 @@ export class DataChangeDescription {
      * ```
      */
     forEachPreservedIndex(callback: (sourceIndex: number, destIndex: number) => void): void {
-        // Lazily calculate preserved index mappings on-demand
-        // Preserved indices are those not in removedIndices set
-        // Their destination is: original position + totalPrependCount - (number of removals before them)
+        // A preserved index maps to: original position + totalPrependCount - removals before it.
         const { originalLength, removedIndices, totalPrependCount } = this.indexMap;
 
         let removalsBeforeCount = 0;
@@ -449,9 +447,8 @@ export class DataChangeDescription {
         }
 
         if (totalSpliceInserted > totalPrependCount + totalAppendCount) {
-            // Slow path: mid-array insertions shift destination indices beyond what
-            // forEachPreservedIndex computes, so we collect their positions and apply
-            // an additional shift per preserved element.
+            // Mid-array insertions shift destinations beyond what forEachPreservedIndex computes,
+            // so each preserved element needs an extra shift.
             const midInsertions = this.collectMidArrayInsertions();
             this.forEachPreservedIndex(function copyPreservedWithInsertionShift(srcIdx, baseDestIdx) {
                 let shift = 0;

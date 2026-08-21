@@ -22,8 +22,7 @@ interface TrafficDatum {
     id: string;
 }
 
-// A datum's `dataIdKey` value. Must be a string: the selection API treats a numeric
-// itemId as a raw datum index rather than looking it up by id.
+// Must be a string: the selection API treats a numeric itemId as a raw datum index.
 const dayId = (d: Date) => String(d.getTime());
 
 // Fixed series id so selections can be addressed by (seriesId, itemId) via the API.
@@ -86,8 +85,7 @@ export function TrafficChart({
             id: dayId(d.date),
             value: def.daily(d),
             value_prev: dailyPrevious[i] ? def.daily(dailyPrevious[i]) : undefined,
-            // The previous series plots against `date` (current x), so keep its real
-            // date for the tooltip.
+            // The previous series plots against the current x, so keep its real date for the tooltip.
             date_prev: dailyPrevious[i]?.date,
         }));
 
@@ -203,8 +201,7 @@ export function TrafficChart({
             },
             listeners: {
                 selectionChange: ({ source }) => {
-                    // Ignore our own `setSelection`/`clearSelection` (api-call) echoes;
-                    // only user interaction should push a new selection upward.
+                    // Ignore our own api-call echoes; only user interaction should push a new selection upward.
                     if (source === 'api-call') return;
                     onSelectionChange(selectionToDays(chartRef.current?.getSelection() ?? []));
                 },
@@ -212,9 +209,7 @@ export function TrafficChart({
         };
     }, [metric, daily, dailyPrevious, annotations, onSelectionChange]);
 
-    // Drive the chart selection from the shared source of truth (chart clicks, grid
-    // filter edits, metric switches all flow through here). Skips when already in
-    // sync, which breaks the chart→state→chart loop.
+    // Driven from the shared source of truth; skips when already in sync, breaking the chart->state->chart loop.
     useEffect(() => {
         const chart = chartRef.current;
         if (!chart) return;
@@ -226,14 +221,11 @@ export function TrafficChart({
         }
     }, [selectedDays, metric]);
 
-    // Signature of the day domain (not the values), so filter-driven re-aggregation
-    // doesn't count as a range change.
+    // Signature of the day domain, not the values, so filter-driven re-aggregation is not a range change.
     const domainKey =
         daily.length > 0 ? `${daily[0].date.getTime()}:${daily.at(-1)!.date.getTime()}:${daily.length}` : '';
 
-    // A date-range change rebuilds the domain; drop any selection that no longer
-    // applies. Skip the initial mount so the forced redraw from `clearSelection`
-    // doesn't cancel the chart's entry animation.
+    // Drop selections the rebuilt domain does not hold; skip the initial mount so the entry animation survives.
     const mountedDomain = useRef(domainKey);
     useEffect(() => {
         if (mountedDomain.current === domainKey) return;

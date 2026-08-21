@@ -57,9 +57,7 @@ describe('SizeMonitor', () => {
         it('should report content-box size matching ResizeObserver contentRect', () => {
             const sizeMonitor = new SizeMonitor(createMockAgDocument());
 
-            // Element with 17px padding on all sides (clientWidth includes padding).
-            // clientWidth=1200, padding=17+17=34, so content-box width = 1166.
-            // clientHeight=620, padding=17+17=34, so content-box height = 586.
+            // clientWidth/clientHeight include padding, so the content box is 1166 by 586.
             const element = mockElement({
                 clientWidth: 1200,
                 clientHeight: 620,

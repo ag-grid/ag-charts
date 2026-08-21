@@ -93,12 +93,9 @@ export function setupIntrinsicAssertions(
         return false;
     }
 
-    // Create setup functions that can be called with any test instance
     testFn.beforeEach(async ({ page }, testInfo) => {
         consoleWarnOrErrors = [];
-        // Check if this is a 404 test by examining the test title
         config.ignore404s = titlePathIncludes(testInfo, 'should 404 on') || titlePathIncludes(testInfo, '[ignore404s]');
-        // Check if console warnings should be ignored for this test
         config.ignoreConsoleWarnings = titlePathIncludes(testInfo, '[ignoreConsoleWarnings]');
 
         if (opts?.viewportSize) {
@@ -106,7 +103,7 @@ export function setupIntrinsicAssertions(
         }
 
         page.on('console', (msg: any) => {
-            // Capture Chrome violation/intervention warnings (emitted as 'log' type with [Violation]/[Intervention] prefix).
+            // Chrome emits violations/interventions as 'log', so they need capturing separately.
             if (msg.type() === 'log') {
                 const text = msg.text();
                 if (text.startsWith('[Violation]') || text.startsWith('[Intervention]')) {
@@ -115,27 +112,22 @@ export function setupIntrinsicAssertions(
                 return;
             }
 
-            // We only care about warnings/errors.
             if (msg.type() !== 'warning' && msg.type() !== 'error') return;
 
-            // We don't care about the AG Charts license error message.
+            // AG Charts licence banner.
             if (msg.text().startsWith('*')) return;
 
-            // Ignore Firefox Quirks Mode warning.
             if (msg.text().includes('This page is in Quirks Mode')) return;
 
             // Caller-supplied patterns to ignore (e.g. staging-specific noise not relevant to other specs).
             if (opts.ignoreConsolePatterns?.some((p) => msg.text().includes(p))) return;
 
-            // WebGL GPU driver performance messages are browser/OS noise unrelated to the application.
+            // Browser/OS noise.
             if (msg.text().includes('GL Driver Message')) return;
 
-            // Permissions-Policy feature violations (e.g. compute-pressure) are emitted by the browser
-            // when a third-party script probes a feature the server-level Permissions-Policy disallows.
-            // This is browser/third-party noise unrelated to the application.
+            // Emitted when a third-party script probes a feature the server-level policy disallows.
             if (msg.text().includes('Permissions policy violation')) return;
 
-            // Ignore 404s when expected
             const notFoundMatcher = /the server responded with a status of 404/;
             if (msg.location().url.includes('/favicon.ico')) return;
             if (notFoundMatcher.test(msg.text())) {
@@ -312,10 +304,8 @@ export async function expectAnimationOccurred(wrapper: Locator, minTimeMs: numbe
     expect(animationTime).toBeGreaterThan(minTimeMs);
 }
 
-// `.ag-charts-canvas-proxy` is `pointer-events: none` (container.css), so Playwright's actionability
-// hit-test resolves the point to <html>/<body> rather than the locator and `locator.hover()` times out
-// on WebKit. Move the mouse directly instead, exactly as `dragCanvas` below already does — the pointer
-// events the chart listens for are identical, and the path is engine-agnostic.
+// `.ag-charts-canvas-proxy` is `pointer-events: none`, so Playwright's hit-test resolves to <html> and
+// `locator.hover()` times out on WebKit; move the mouse directly, as `dragCanvas` below does.
 export async function hoverCanvas(page: Page, position: { x: number; y: number }) {
     const point = await canvasToPageTransformer(page);
     const p = point(position.x, position.y);

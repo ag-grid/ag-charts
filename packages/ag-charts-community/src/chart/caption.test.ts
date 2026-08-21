@@ -126,8 +126,7 @@ describe('Caption', () => {
         });
     });
 
-    // AG-16511: An enabled caption with empty `text` should still reserve a line of
-    // layout space — only `enabled: false` reclaims the space.
+    // An enabled caption with empty `text` still reserves a line of layout space; only `enabled: false` reclaims it.
     describe('AG-16511 empty caption text reserves layout space', () => {
         const seriesOptions = {
             data: [
@@ -212,8 +211,7 @@ describe('Caption', () => {
         });
     });
 
-    // AG-11688: adding the box feature must not drop the pre-existing `padding` inset for
-    // captions that have no background box (e.g. the financial preset's `title: { padding: 4 }`).
+    // Captions with no background box must still get their `padding` inset.
     describe('AG-11688 caption padding without a background box', () => {
         const seriesOptions = {
             data: [
@@ -250,7 +248,7 @@ describe('Caption', () => {
         });
     });
 
-    // AG-11688: title/subtitle/footnote captions accept a background fill/border box.
+    // Title/subtitle/footnote captions accept a background fill/border box.
     describe('AG-11688 caption background box', () => {
         const seriesOptions = {
             data: [
@@ -389,9 +387,8 @@ describe('Caption', () => {
             expect(boxedSeriesY).toBeGreaterThan(unboxedSeriesY);
         });
 
-        // A plain-text box grows the caption bbox by its padding; a rich-text (segment) box does
-        // not, so the layout compensates. The compensation must reserve the same space as the
-        // plain-text box, not double-count the padding against the caption's inset position.
+        // A rich-text box does not grow the caption bbox, so the layout compensates — without
+        // double-counting the padding against the caption's inset position.
         test('boxed rich-text caption does not double-count box padding vs plain text', async () => {
             chart = await createChart({
                 ...seriesOptions,
@@ -423,10 +420,8 @@ describe('Caption', () => {
             expect(richTitleY - plainTitleY).toBeLessThan(boxPadding.top + boxPadding.bottom);
         });
 
-        // A boxed caption renders into a layer sized to node.getBBox(); if the segment bbox omits
-        // the box padding the box top is clipped. Its getBBox must include the box like plain text.
-        // `truncate: false` keeps the padded title from wrapping to an empty (zero-height) bbox in
-        // the small mock layout.
+        // The caption layer is sized to node.getBBox(), so a segment bbox omitting the box padding clips
+        // the box top. `truncate: false` stops the padded title wrapping to a zero-height bbox here.
         test('boxed rich-text title bbox includes the box like plain text (no clip)', async () => {
             chart = await createChart({
                 ...seriesOptions,
@@ -446,8 +441,7 @@ describe('Caption', () => {
         });
     });
 
-    // CRT-1041: Footnote caption with multi-line rich text should have correct bounding box
-    // for the accessibility proxy element.
+    // A multi-line rich-text footnote must report the correct bounds for its accessibility proxy element.
     describe('CRT-1041 footnote caption bounds', () => {
         function assertProxyBoundsMatchCanvas(caption: ChartCaption) {
             const canvasBBox = Transformable.toCanvas(caption.node);
@@ -535,9 +529,7 @@ describe('Caption', () => {
     });
 
     describe('image segments', () => {
-        // Captions accept `ContentSegment[]` directly (caption.ts), so `block: true` image segments
-        // render through the same Text shape as treemap labels. These snapshots capture how block
-        // images behave inside the centred caption layout.
+        // Captions accept `ContentSegment[]` directly, so `block: true` image segments render through the same Text shape.
         const iconSvg = (letter: string, fill: string) =>
             `data:image/svg+xml;utf8,${encodeURIComponent(
                 `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36">` +
@@ -869,13 +861,9 @@ describe('Caption', () => {
             });
         });
 
-        // A caption click must not double up as a click on the chart background. The chart-level
-        // `click` listener only fires for events targeting the chart container itself, so a caption
-        // click is already excluded — these tests pin that down so it cannot regress silently.
+        // The chart-level `click` listener only fires for the chart container itself, so a caption click must not reach it.
         describe('AC4/AC5: interaction with the chart-background handler', () => {
-            // Control for the two negative assertions below: proves the chart `click` listener really
-            // is reachable in this setup, so "not called" means the caption excluded it rather than
-            // the test never being able to trigger it.
+            // Control for the negative assertions below: the chart `click` listener really is reachable here.
             test('a click on the chart background does fire the chart `click` listener', async () => {
                 const chartClick = vi.fn();
                 chart = await createChart(chartOptions({ listeners: { click: chartClick } }));
@@ -917,9 +905,8 @@ describe('Caption', () => {
         // The trailing positive click in each case proves the listener is wired up at all, so the
         // preceding `not.toHaveBeenCalled()` cannot pass for the wrong reason.
         describe('TC1: only present captions are interactive', () => {
-            // The chart-level listener is used here because it needs no per-caption configuration:
-            // adding a `subtitle` key at all would give it the theme's default text and make it a
-            // real caption.
+            // The chart-level listener needs no per-caption configuration: adding a `subtitle` key at all would
+            // give it the theme's default text and make it a real caption.
             test('an unconfigured subtitle and footnote are not clickable', async () => {
                 const captionClick = vi.fn();
                 chart = await createChart({

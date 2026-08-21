@@ -138,9 +138,7 @@ describe('TreemapSeries', () => {
         const nodeAtPath = (series: TreemapSeries, path: number[]): any =>
             path.reduce<any>((node, idx) => node?.children[idx], (series as any).rootNode);
 
-        // The highlight selection contains only the active highlight node; its rect fill
-        // reflects whatever getItemStyle resolved. 'lime'/'cyan' means the highlight style
-        // applied; any other fill means highlighting was suppressed.
+        // Highlight selection holds only the active highlight node, so its fill reveals whether highlighting applied.
         const highlightFill = (series: any): string | undefined => {
             const rect = Array.from(series.highlightSelection.nodes())[0] as any;
             return rect?.fill;
@@ -309,8 +307,7 @@ describe('TreemapSeries', () => {
         });
 
         describe('block-leading image segments', () => {
-            // Letters drawn as vector paths rather than <text> so glyph rendering is identical
-            // across operating systems (system fonts differ between macOS and CI).
+            // Vector paths rather than <text> keep glyph rendering identical across OS font sets.
             const LETTER_PATHS: Record<string, string> = {
                 A: 'M13 25L18 11L23 25M15.5 19.5L20.5 19.5',
                 B: 'M14 11L14 25M14 11L19 11Q23 11 23 14.5Q23 18 19 18L14 18M14 18L20 18Q24 18 24 21.5Q24 25 20 25L14 25',
@@ -398,10 +395,6 @@ describe('TreemapSeries', () => {
             );
 
             it('lays two adjacent block-leading image segments side-by-side and keeps both inside the tile', async () => {
-                // Regression for AG-15933: a formatter returning two `block: true` images at the
-                // start of the label (no `\n` between them) must render both side-by-side as a
-                // leading strip, with text flowing to the right and both images contained inside
-                // their tile.
                 const options: AgChartOptions = {
                     animation: { enabled: false },
                     data: [
@@ -453,9 +446,7 @@ describe('TreemapSeries', () => {
             });
 
             it("drops oversized block image under default 'hide' so text still renders inside the tile", async () => {
-                // Test canvas is 800x600 (prepareEnterpriseTestOptions); split into four tiles each
-                // ~400x300 of usable label space. An image declared at 1200x1200 exceeds every tile,
-                // so the default 'hide' strategy must drop the image and keep the text-only label.
+                // Test canvas is 800x600, split into four ~400x300 tiles; a 1200x1200 image exceeds every tile.
                 const options: AgChartOptions = {
                     animation: { enabled: false },
                     data: [
@@ -497,14 +488,10 @@ describe('TreemapSeries', () => {
                 prepareEnterpriseTestOptions(options);
                 chart = AgCharts.create(options);
                 await compare();
-                // Image is dropped before reaching the renderer, so no image load is attempted.
                 expectWarningsCalls().toHaveLength(0);
             });
 
             it('keeps every rendered block-leading image inside its tile across mixed tile sizes', async () => {
-                // Regression: each tile's rendered image-box (including padding/backgroundFill)
-                // must stay within its tile bounds. Repros the docs `inline-images-treemap`
-                // example, mixing very small tiles where the image would otherwise be tight.
                 const options: AgChartOptions = {
                     animation: { enabled: false },
                     data: [
@@ -574,17 +561,12 @@ describe('TreemapSeries', () => {
                 prepareEnterpriseTestOptions(options);
                 chart = deproxy(AgCharts.create(options));
                 stubChartImageLoader(chart);
-                // The visual snapshot is the guard: an image overflowing its tile shifts pixels
-                // against the committed baseline. Small tiles drop their image, larger tiles keep it.
+                // Snapshot guards against an image overflowing its tile and shifting pixels.
                 await compare();
                 expectWarningsCalls().toHaveLength(0);
             });
 
             it('centres a leading+trailing block-image label inside short tiles without vertical overflow', async () => {
-                // AG-15933: a formatter returning a leading block image, middle-aligned text, and a
-                // trailing block image rendered mis-centred (~18px off) on a 'middle' baseline,
-                // overflowing short tiles. Repros the docs example at a narrow/tall size that yields
-                // several short tiles.
                 const block = (name: string) => ({
                     type: 'image' as const,
                     url: ICONS[name] ?? ICONS.Alpha,
@@ -646,8 +628,6 @@ describe('TreemapSeries', () => {
                 prepareEnterpriseTestOptions(options);
                 chart = deproxy(AgCharts.create(options));
                 stubChartImageLoader(chart);
-                // The ~18px mis-centring this guards against is a visual regression: a label
-                // overflowing its short tile shifts pixels against the committed baseline.
                 await compare();
                 expectWarningsCalls().toHaveLength(0);
             });
@@ -774,7 +754,6 @@ describe('TreemapSeries', () => {
 
         const checkHighlight = async (chartInstance: any) => {
             await hoverChartNodes(chartInstance, ({ series }) => {
-                // Check the highlighted marker
                 const highlightNode = testParams.getHighlightNode(chartInstance, series);
                 expect(highlightNode).toBeDefined();
                 expect(highlightNode.fill).toEqual('lime');
@@ -787,12 +766,10 @@ describe('TreemapSeries', () => {
             offset?: { x: number; y: number }
         ) => {
             await hoverChartNodes(chartInstance, async ({ x, y }) => {
-                // Perform click
                 await clickAction(x + (offset?.x ?? 0), y + (offset?.y ?? 0))(chartInstance);
                 await waitForChartStability(chartInstance);
             });
 
-            // Check click handler
             const nodeCount = chartInstance.series.reduce(
                 (sum, series) => sum + testParams.getNodeData(series).length,
                 0
@@ -803,17 +780,14 @@ describe('TreemapSeries', () => {
         it(`should render tooltip correctly`, async () => {
             chart = await createChart({ hasTooltip: true });
             await hoverChartNodes(chart, ({ series, item }) => {
-                // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-charts-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(false);
 
-                // Check the tooltip text
                 const values = testParams.getDatumValues(item, series);
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
 
-            // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
             await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             const tooltip = document.querySelector('.ag-charts-tooltip');
@@ -877,7 +851,6 @@ describe('TreemapSeries', () => {
         const cartesianTestParams = {
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getTooltipRenderedValues: (params) => [params.xValue, params.yValue],
-            // Returns a highlighted marker
             getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
         } as Parameters<typeof testPointerEvents>[0];
 
@@ -1139,8 +1112,7 @@ describe('TreemapSeries', () => {
             const withOption = await createChart(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } });
             const after = groupNames.map((name) => stylesByName(withOption)[name].stroke);
 
-            // Depths must resolve distinct strokes for the comparison to discriminate — a rotated
-            // stroke index would collapse depth 2 back onto depth 0.
+            // Depths must resolve distinct strokes, or a rotated index would collapse depth 2 onto depth 0.
             expect(before.every((stroke) => stroke != null)).toBe(true);
             expect(new Set(before).size).toBeGreaterThan(1);
             expect(after).toEqual(before);
@@ -1162,8 +1134,7 @@ describe('TreemapSeries', () => {
         });
 
         it('accepts non-string colour values', async () => {
-            // A validator rejecting the gradient object emits an unknown-option warning, which
-            // setupMockConsole() turns into a failure.
+            // A validator rejecting the gradient object would emit a warning, which setupMockConsole() fails on.
             const series = await createChart(DEEP_DATA, {
                 group: {
                     fills: [{ type: 'gradient', colorStops: [{ color: 'green' }, { color: 'white' }] }, '#00ff00'],
@@ -1191,8 +1162,7 @@ describe('TreemapSeries', () => {
             });
             const styles = stylesByName(series);
 
-            // The strokes array is shorter than fills, so a tile index wrapped on the wrong
-            // array would resolve `undefined` for the third and fourth roots.
+            // strokes is shorter than fills, so a wrong-array index wrap would resolve `undefined` here.
             for (const [rootIndex, root] of ['E', 'F', 'G', 'H'].entries()) {
                 expect(styles[`${root}-x`].stroke).toBe(strokes[rootIndex % strokes.length]);
             }
@@ -1543,9 +1513,7 @@ describe('TreemapSeries', () => {
             await proxy.update(prepareEnterpriseTestOptions(buildOptions(fullData)));
             await waitForChartStability(chart);
 
-            // Jan.14 dwarfs every other datum, so the new layout places it top-left.
-            // Hovering near the top-left also overlaps where Mar.10's tile was positioned
-            // before the update, which is the scenario covered by the regression.
+            // Jan.14 dwarfs every other datum, so the new layout places it top-left, overlapping Mar.10's old position.
             const { x, y } = chart.seriesRect!;
             await hoverAction(x + 30, y + 30)(chart);
             await waitForChartStability(chart);
@@ -1601,9 +1569,7 @@ describe('TreemapSeries', () => {
             options.height = height;
             return options;
         };
-        // The same layout with only the dominant group — the reference the collapsing groups' space
-        // must be reclaimed to. With the small groups dropped from the partition, the survivor should
-        // occupy exactly what it occupies when they are absent from the data altogether.
+        // Reference layout: the survivor's expected bbox once the small groups are absent entirely.
         const bigOnlyAt = (width: number, height: number): AgChartOptions => {
             const options = prepareEnterpriseTestOptions({
                 data: [{ name: 'Big', children: [{ name: 'b', size: 100000 }] }],
@@ -1615,9 +1581,7 @@ describe('TreemapSeries', () => {
             return options;
         };
 
-        // A laid-out group with no laid-out child renders only its own padding/background — a
-        // content-less tile occupying space no real tile fills. Every rendered group must contain
-        // at least one rendered child.
+        // A laid-out group with no laid-out child renders only its own padding — every rendered group must contain a rendered child.
         const contentlessGroups = (series: TreemapSeries): string[] => {
             const result: string[] = [];
             (series as any).rootNode?.walk((node: any) => {
@@ -1646,8 +1610,6 @@ describe('TreemapSeries', () => {
             await waitForChartStability(chart);
             const series = chart.series[0] as TreemapSeries;
 
-            // Anti-vacuity: the treemap actually rendered its dominant tile, so the assertion runs
-            // against a laid-out chart rather than a blank scene.
             expect(renderedTileCount(series)).toBeGreaterThan(0);
             expect(contentlessGroups(series)).toEqual([]);
         });
@@ -1680,9 +1642,7 @@ describe('TreemapSeries', () => {
             expect(withSmalls).toBeDefined();
             expect(withoutSmalls).toBeDefined();
 
-            // Reclaimed layout is the smalls-free layout: leaving the collapsing groups in the
-            // partition (rendering nothing but reserving their slice) shrinks the survivor by ~1.4px
-            // here, so a 0.5px tolerance fails on the hide-only behaviour and passes on reclamation.
+            // Reserving-but-hiding the collapsed groups' slice (rather than reclaiming it) shrinks the survivor by ~1.4px.
             const tol = 0.5;
             expect(Math.abs(withSmalls!.x - withoutSmalls!.x)).toBeLessThan(tol);
             expect(Math.abs(withSmalls!.y - withoutSmalls!.y)).toBeLessThan(tol);
@@ -1690,8 +1650,7 @@ describe('TreemapSeries', () => {
             expect(Math.abs(withSmalls!.height - withoutSmalls!.height)).toBeLessThan(tol);
         });
 
-        // Shrinking to where the groups collapse must not leave descendant tiles rendered at their
-        // stale large-layout positions (a tile outside the current, smaller series rect).
+        // Shrinking past the point groups collapse must not leave descendant tiles at their stale, larger-layout positions.
         const nestedGroups = () =>
             Array.from({ length: 6 }, (_, g) => ({
                 name: `G${g}`,
@@ -1739,20 +1698,14 @@ describe('TreemapSeries', () => {
         });
     });
 
-    // These model the org-chart reset()/randomise() actions — a deep-shuffle of the hierarchy tree
-    // followed by a re-render. Probing the frame trajectory (see the animation-trajectory-tests
-    // rule) shows the treemap does NOT animate: the animation batch is skipped for both the initial
-    // load and every data update, so tiles snap straight to their laid-out geometry on the first
-    // frame and hold. These CASEs assert that faithfully — a regression that started tweening tile
-    // rects (or failed to lay them out at all) would break them — rather than inventing motion.
+    // Models the org-chart reset()/randomise() actions (deep-shuffle + re-render); the treemap does not
+    // animate these, so tiles must snap straight to their laid-out geometry on the first frame.
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
 
         type OrgNode = { title: string; total?: number; children?: OrgNode[] };
 
-        // A fixed three-level tree; `reversed` deep-reverses child order at every level, a
-        // deterministic stand-in for the page's randomise() that reshapes the layout while keeping
-        // the tree shape (so no tile enters or leaves — the reshuffle is a pure re-layout).
+        // `reversed` deep-reverses child order at every level: a deterministic stand-in for randomise() that keeps the tree shape.
         const ORG_DATA: OrgNode[] = [
             {
                 title: 'A',
@@ -1792,10 +1745,7 @@ describe('TreemapSeries', () => {
         const laidOutTiles = (sample: SceneGeometrySample) =>
             rectEntries(sample).filter(([, r]) => r.visible !== 0 && r.width > 10 && r.height > 10);
 
-        // A treemap is a laminar family of tiles: any two tiles are either disjoint or one fully
-        // contains the other — never a partial overlap. This is the containment contract ("children
-        // stay within parent bounds") expressed from geometry alone, so it survives a reshuffle
-        // re-pointing sampler keys at reused rect instances (the key path stops tracking the datum).
+        // A treemap is a laminar family of tiles: any two are either disjoint or one fully contains the other, never a partial overlap.
         const tol = 1.5;
         const encloses = (outer: Record<string, number>, inner: Record<string, number>) =>
             outer.x - tol <= inner.x &&
@@ -1832,8 +1782,7 @@ describe('TreemapSeries', () => {
                 );
             }).length;
 
-        // A treemap reshuffle snaps at frame 0 (surviving tiles jump to their new rects), so capture
-        // with captureSnap rather than captureUpdate's before-anchored flow.
+        // Reshuffle snaps at frame 0, so use captureSnap rather than captureUpdate's before-anchored flow.
         const captureReshuffle = (create: AgChartOptions, next: AgChartOptions) => {
             const proxy = AgCharts.create(create);
             chart = deproxy(proxy);
@@ -1847,8 +1796,6 @@ describe('TreemapSeries', () => {
             const trajectory = await frames.captureAnimationFrames(proxy, sample);
             await frames.runToEnd(proxy);
 
-            // No animation batch ran, and no node moved across the captured frames; the laminar
-            // containment invariant holds on every (already-settled) frame.
             expect(
                 trajectory.phaseIntervals.every((interval) => interval.length === 0),
                 'no animation phase ran'
@@ -1856,9 +1803,7 @@ describe('TreemapSeries', () => {
             expectNoAnimation(trajectory);
             expectSceneTrajectory(trajectory, {}, { frameInvariants: [tilesAreLaminar] });
 
-            // Anti-vacuity: the very first frame already carries the complete laid-out treemap (all
-            // eight leaf/group tiles at full size), so "no animation" is asserted against a rendered
-            // layout, not a blank scene that never drew.
+            // Guards against a vacuous pass on a blank scene: frame 0 must already carry a fully laid-out treemap.
             expect(laidOutTiles(trajectory[0]).length, 'laid-out tiles at frame 0').toBeGreaterThanOrEqual(8);
         });
 
@@ -1877,17 +1822,12 @@ describe('TreemapSeries', () => {
             expectNoAnimation(trajectory);
             expectSceneTrajectory(trajectory, {}, { frameInvariants: [tilesAreLaminar] });
 
-            // Frame 0 already equals the settled after-state (the snap), and the reshuffle genuinely
-            // re-laid the tiles — otherwise "no animation" would pass vacuously on an unchanged scene.
+            // Guards against a vacuous pass: confirms the reshuffle actually re-laid the tiles.
             expectSceneSamplesMatch(trajectory[0], after);
             expect(layoutChanges(before, after), 'tiles whose position/size moved').toBeGreaterThan(4);
         });
 
-        // The org-chart page also promised highlight state behaves through reshuffles. After a
-        // reshuffle rebuilds the tile tree, highlighting a node from the NEW tree must bind the
-        // highlight to that node and render it at the node's live tile — the reused-instance trap
-        // (datum bindings re-pointed onto recycled rects) would otherwise surface a stale tile at
-        // the wrong position.
+        // After a reshuffle rebuilds the tile tree, highlighting a node from the new tree must bind to that node's live tile, not a stale recycled rect.
         const withHighlight = (data: OrgNode[]): AgChartOptions =>
             prepareEnterpriseTestOptions({
                 data,

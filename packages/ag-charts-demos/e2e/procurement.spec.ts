@@ -7,15 +7,8 @@ import {
     watchConsole,
 } from './chart-assertions';
 
-// Behaviour coverage for the commodity-manager workspace. What this spec owns is what makes the demo
-// a workspace rather than a dashboard: it opens already scoped to one person, the worklist that leads
-// it resolves in place, and each tab's selection stays on the tab that made it. None of that is
-// reachable from a render-only assertion, because every interaction is a canvas click or a button
-// press.
-//
-// demo-charts.spec.ts covers the landing tab's charts alongside the other demos; the per-tab chart
-// population is asserted here, because Radix unmounts inactive tab content and the generic sweep
-// only ever sees My orders.
+// demo-charts.spec.ts covers the landing tab's charts; per-tab chart population is asserted here
+// because Radix unmounts inactive tab content and the generic sweep only ever sees My orders.
 
 const DEMO_ID = 'procurement';
 
@@ -24,15 +17,11 @@ const DEMO_ID = 'procurement';
  * what catches a chart that silently stopped rendering.
  */
 const TABS = [
-    // Arrival schedule, the delivery map, the on-time tile's gauge and the at-risk tile's segmented
-    // bar.
+    // Arrival schedule, the delivery map, the on-time gauge and the at-risk segmented bar.
     { name: 'My orders', charts: 4 },
-    // Cost-vs-delivery scatter, cost of rejected material, the supplier trend, and a slip histogram
-    // plus a late-share donut for each of the five suppliers she owns — so this count moves if the
-    // roster does.
+    // Per-supplier charts, so this count moves if the roster does.
     { name: 'My suppliers', charts: 13 },
-    // The spend-YTD tile's gauge, then budget burn-up, the monthly spend trend, the sunburst and
-    // supplier concentration.
+    // The spend-YTD gauge, budget burn-up, monthly spend trend, sunburst and supplier concentration.
     { name: 'My spend', charts: 6 },
 ] as const;
 
@@ -127,8 +116,7 @@ test.describe(DEMO_ID, () => {
 
         const first = items.first();
         const title = await first.locator('.pc-attention-title').textContent();
-        // Scoped to the action group: the item's body is itself a button (it selects the item's
-        // context), and pressing that resolves nothing.
+        // Scoped to the action group: the item's body is itself a button, and pressing it resolves nothing.
         await first.locator('.pc-attention-actions').getByRole('button').first().click();
 
         await expect(items).toHaveCount(before - 1);

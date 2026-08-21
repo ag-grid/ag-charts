@@ -14,13 +14,8 @@ type ScopeProvider = _ModuleSupport.ScopeProvider;
 type ProcessedData = _ModuleSupport.ProcessedData<any>;
 type DataModel = _ModuleSupport.DataModel<any, any, any>;
 
-// Type aliases for RangeArea-specific usage
 export type RangeAreaSeriesDataAggregationFilter = ExtremesAggregationFilter;
 export type RangeAreaPartialAggregationResult = ExtremesPartialAggregationResult;
-
-// ============================================================================
-// ADAPTER LAYER: Scale integration
-// ============================================================================
 
 function aggregateRangeAreaData(
     xValues: any[],
@@ -38,10 +33,6 @@ function aggregateRangeAreaData(
         yNeedsValueOf,
     });
 }
-
-// ============================================================================
-// INTEGRATION LAYER: Memoization and DataModel integration
-// ============================================================================
 
 const memoizedAggregateRangeAreaData = simpleMemorize2(aggregateRangeAreaData);
 

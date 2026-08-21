@@ -179,16 +179,8 @@ export class ChartSync extends AbstractModuleInstance {
 
             const zoom = this.prepareZoomUpdate();
 
-            // Zoom.updateSyncZoom emits change-requests with `changeType: 'sync'`. This allows the ChartSync to ignore
-            // these change-requests. Otherwise, we end with infinite recursion on `updateSyncZoom`, caused by ChartSync:
-            //
-            // 1. Let Chart A and Chart B be synchronised charts.
-            // 2. User interacts with Chart A (updates the zoom).
-            // 3. ChartSync of Chart B calls `updateSyncZoom`.
-            // 4. ChartSync of Chart A calls `updateSyncZoom`.
-            // 5. ChartSync of Chart B calls `updateSyncZoom`.
-            // 6. Add so on...
-            //
+            // updateSyncZoom emits change-requests with `changeType: 'sync'` so ChartSync ignores them; without
+            // that, two synchronised charts recurse into each other's updateSyncZoom forever.
             if (e.source !== 'sync') {
                 debug('ChartsSyncManager.enabledZoomSync()', chart.id, zoom);
                 zoomModule.updateSyncZoom(zoom);

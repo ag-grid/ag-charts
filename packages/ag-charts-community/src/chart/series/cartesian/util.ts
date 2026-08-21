@@ -42,9 +42,8 @@ export function calculateSegments(
     const bandwidth = scale.bandwidth ?? 0;
     const offset = applyOffset ? ((scale.step ?? 0) - bandwidth) / 2 : 0;
 
-    // The margin to use to ensure a clip path touches one side of the canvas,
-    // and either exceeds or touches the other side.
-    // It's required to use a margin here so a reverse-axis animation animates with the same center
+    // Margin so a clip path touches one side of the canvas and exceeds or touches the other, which keeps
+    // a reverse-axis animation centred on the same point.
     const horizontalMargin = Math.max(seriesRect.x, chartSize.width - (seriesRect.x + seriesRect.width));
     const verticalMargin = Math.max(seriesRect.y, chartSize.height - (seriesRect.y + seriesRect.height));
 

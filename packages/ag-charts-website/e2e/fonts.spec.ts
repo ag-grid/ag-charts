@@ -11,9 +11,8 @@ import {
 
 const GOOGLE_FONT_FAMILIES = ['Pacifico', 'DM Serif Text', 'Orbitron'];
 
-// Recorded Google Fonts CDN responses, replayed so the test never depends on the live
-// CDN being reachable (which made the `networkidle` wait hang and time out in CI).
-// Re-record with `UPDATE_FONT_HAR=1` if the example's fonts change.
+// Recorded Google Fonts CDN responses, replayed so the `networkidle` wait never depends on the live
+// CDN. Re-record with `UPDATE_FONT_HAR=1` if the example's fonts change.
 const FONT_HAR = 'e2e/fixtures/google-fonts.har.zip';
 const FONT_CDN = /fonts\.(googleapis|gstatic)\.com/;
 

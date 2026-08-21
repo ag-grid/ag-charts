@@ -116,9 +116,8 @@ describe('MapShapeSeries', () => {
             await waitForChartStability(chart);
         };
 
-        // Hovering raises the shape into the highlight overlay so it draws above overlapping series; a
-        // highlight-disabled series must leave the overlay empty. The enabled case (raises) guards the
-        // disabled case (does not) from passing vacuously.
+        // Hovering raises the shape into the highlight overlay; a highlight-disabled series must leave
+        // the overlay empty, and the enabled case guards that from passing vacuously.
         it.each([
             { enabled: true, raisedShapes: 1 },
             { enabled: false, raisedShapes: 0 },
@@ -136,8 +135,7 @@ describe('MapShapeSeries', () => {
             await hoverFirstShape(seriesImpl);
 
             // The hover-update optimisation skips re-rendering a highlight-disabled series, so drive the
-            // render directly to populate the overlay — the overlay must stay empty regardless of what
-            // re-renders the series while it holds the active highlight.
+            // render directly: the overlay must stay empty however the series is re-rendered.
             seriesImpl.update();
             await waitForChartStability(chart);
 

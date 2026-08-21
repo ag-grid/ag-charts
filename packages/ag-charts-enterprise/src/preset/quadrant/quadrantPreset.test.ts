@@ -279,8 +279,7 @@ describe('Quadrant Preset', () => {
             const options: AgQuadrantChartOptions = { ...PIVOT_NUMERIC, alignAxesToPivot };
             prepareEnterpriseTestOptions(options);
 
-            // The mock canvas only backs the first chart created in a test, so the round trip has to
-            // drive one chart through `update()` rather than re-create it.
+            // The mock canvas only backs the first chart created in a test, so reuse one chart.
             chart = AgCharts.createQuadrantChart(options);
             await waitForChartStability(chart);
             const initialImage = ctx.snapshot();
@@ -296,9 +295,8 @@ describe('Quadrant Preset', () => {
     );
 });
 
-// The quadrant preset's styling lives in its module `themeTemplate`, which is baked into the
-// resolved `ChartTheme`. Charts sharing a theme value must not inherit each other's preset
-// template, in either creation order.
+// The preset `themeTemplate` is baked into the resolved `ChartTheme`, so charts sharing a theme
+// value must not inherit each other's preset template.
 describe('Quadrant Preset theme isolation', () => {
     const DATA = NUMERIC.data;
 

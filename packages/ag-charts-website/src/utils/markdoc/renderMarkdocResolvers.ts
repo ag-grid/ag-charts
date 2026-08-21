@@ -66,9 +66,7 @@ export function createChartsMarkdownResolvers({ siteRoot }: { siteRoot?: string 
                 if (!fileName || !contents.files?.[fileName]) {
                     return null;
                 }
-                // Strip the harness the example generator injects (dark-mode switcher, console
-                // logging, e2e theme setup) so the reader/LLM sees the same clean source as the
-                // on-page code viewer.
+                // Strip the generator-injected harness so the source matches the on-page viewer.
                 const files = { ...contents.files };
                 stripOutExampleGeneratorCode(files);
                 const cleanCode = files[fileName].trim();
@@ -82,7 +80,6 @@ export function createChartsMarkdownResolvers({ siteRoot }: { siteRoot?: string 
                     liveUrl,
                 };
             } catch {
-                // Missing example — degrade gracefully.
                 return null;
             }
         },
@@ -92,8 +89,7 @@ export function createChartsMarkdownResolvers({ siteRoot }: { siteRoot?: string 
 
         readPartial: ({ file, pageName }) => {
             try {
-                // Partials live alongside the page's examples; step up from the `_examples` dir
-                // to the page's content root.
+                // Partials live alongside the examples, one level up from the `_examples` dir.
                 const pageDir = path.dirname(getExamplesPath({ pageName }));
                 return readFileSync(path.join(pageDir, file)).toString();
             } catch {
@@ -121,8 +117,7 @@ export function createChartsMarkdownResolvers({ siteRoot }: { siteRoot?: string 
 
         resolveImageSrc: async ({ imagePath, pageName }) => {
             try {
-                // Resolve through Astro's asset pipeline (same as the on-page Image component) so
-                // the URL actually resolves; a naive /docs/<page>/<path> URL 404s.
+                // Must go through Astro's asset pipeline; a naive /docs/<page>/<path> URL 404s.
                 const { imageSrc } = await getPageImages({ pageName, imagePath });
                 return imageSrc ? toAbsoluteUrl(imageSrc, siteRoot) : imagePath;
             } catch {

@@ -419,10 +419,8 @@ export class SankeySeries extends FlowProportionSeries<
             columnWeights[sortedColumns[i].index] = Math.pow(10, sortedColumns.length - i - 1);
         }
 
-        // Sort nodes within columns by their weight plus the weight of their links, influenced by the column weight.
-        // An initial pass sorts nodes exclusively by their own weight. The second pass then applies an influence
-        // from their neighbours based on the now sorted index and column weight. This ensures nodes are always
-        // sorted into groups next to their neighbours, even with close or identical neighbour sizes.
+        // Two passes: first sort nodes by their own weight, then re-weight by neighbour influence, so nodes
+        // group next to their neighbours even when sizes are close or identical.
         for (const column of columns) {
             for (const node of column.nodes) {
                 if ('ghost' in node && node.ghost) {
@@ -886,7 +884,7 @@ export class SankeySeries extends FlowProportionSeries<
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
         const selectionState = this.getSelectionStateString(datumIndex);
         const candidateState = this.getCandidateStateString(datumIndex);
-        // `style` is the resolved node style; its `fill` no longer carries unresolved colour refs.
+        // `style` is the resolved node style, so its `fill` never carries unresolved colour refs.
         const fill = this.filterItemStylerFillParams(style.fill as NormalisedColorType) ?? style.fill;
 
         return {

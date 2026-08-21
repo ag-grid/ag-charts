@@ -85,12 +85,7 @@ export class CartesianChart extends Chart {
         for (const axis of this.axes) {
             const pick = axis.pickValue(point);
             if (pick) {
-                // `Rules` serves as a compile-time check to ensure that we're correctly broadcasting objects that match
-                // the AgAxisCoordinates shape in the API:
-                //
-                //     NonNullable<...>     - check that we're not broadcasting internal-only properties from `pick`.
-                //     RequireOptional<...> - check that we're not forgetting to broadcast optional API properties.
-                //
+                // `Rules` compile-time checks the broadcast object against the public AgAxisCoordinates shape.
                 type Rules = RequireOptional<NonNullable<(typeof result)[keyof typeof result]>>;
                 const { boundSeries, direction, domain, index, value } = pick;
                 const axisResult: Rules = { boundSeries, direction, domain, index, value };
@@ -222,9 +217,7 @@ export class CartesianChart extends Chart {
         return { clipSeries, seriesRect, visible: !overflows };
     }
 
-    // Iteratively try to resolve axis widths - since X axis width affects Y axis range,
-    // and vice-versa, we need to iteratively try and find a fit for the axes and their
-    // ticks/labels.
+    // X axis width affects Y axis range and vice-versa, so the fit has to be found iteratively.
     private resolveAxesLayout(layoutBox: BBox, scrollbars: ScrollbarLayoutMap) {
         let newState;
         let prevState;
@@ -505,8 +498,7 @@ export class CartesianChart extends Chart {
             if (crossPosition == null) {
                 axis.crossAxisTranslation.x = 0;
                 axis.crossAxisTranslation.y = 0;
-                // An axis that has `crossAt` but no cross position was hidden by `sticky: false`, so only
-                // restore visibility for axes that are no longer crossing at all.
+                // A `crossAt` axis without a cross position was hidden by `sticky: false`.
                 if (axis.options.crossAt?.value == null) {
                     axis.setAxisVisible(true);
                 }

@@ -248,7 +248,7 @@ describe('Zoom', () => {
             await prepareChart();
             await scrollAction(cx, cy, -10000)(chart);
             // Should not zoom in
-            // @todo(AG-15504) - we should zoom in as far as possible
+            // TODO: we should zoom in as far as possible
             await compare();
         });
 
@@ -323,10 +323,8 @@ describe('Zoom', () => {
         });
 
         it('should not warn when zooming a large-x-value bar chart fully in', async () => {
-            // x-values at/above Number.MAX_SAFE_INTEGER lose float64 precision (consecutive integers
-            // collapse to the same double), which at full zoom-in yields a fitted bar window with a
-            // ratio marginally above 1. The offsets are added at runtime so the source carries no
-            // precision-losing literal.
+            // x-values at/above Number.MAX_SAFE_INTEGER lose float64 precision, so full zoom-in yields a fitted
+            // bar window with a ratio marginally above 1. Offsets are applied at runtime to keep literals exact.
             const base = Number.MAX_SAFE_INTEGER;
             const revenues = [120, 150, 130, 170, 160];
             const largeXBarOptions: AgChartOptions = {
@@ -588,9 +586,8 @@ describe('Zoom', () => {
                 }
             }
 
-            // Drags from the axis grab point toward the plot edge, capturing the zoomed span shortly before the
-            // edge, at the edge, and after continuing past it. The zoom must keep updating right up to the axis
-            // end (not stall before it) and stop there (not continue past it).
+            // Captures the zoomed span before, at and past the plot edge: the zoom must keep updating right up
+            // to the axis end and stop there.
             async function dragToEdge(
                 axis: 'x' | 'y',
                 grab: { x: number; y: number },
@@ -1053,7 +1050,7 @@ describe('Zoom', () => {
         const resetZoomState = {
             rangeX: {
                 end: { __type: 'date', value: '2022-06-30T23:00:00.000Z' },
-                // FIXME(AG-16401): Seems there's a bug with rangeX.start in Node.js (not reproducible in Chrome).
+                // FIXME: rangeX.start behaves differently in Node.js (not reproducible in Chrome).
                 // start: { __type: 'date', value: '2021-01-01T00:00:00.000Z' },
             },
             rangeY: {
@@ -1358,8 +1355,8 @@ describe('Zoom', () => {
         });
     });
 
-    // CRT-1042: Scrolling mousewheel on axis area should zoom AND call preventDefault.
-    // CRT-1050: Non-cancelable wheel events (trackpad inertia) should be ignored on axes.
+    // Scrolling the mousewheel on an axis area should zoom and call preventDefault; non-cancelable wheel
+    // events (trackpad inertia) should be ignored on axes.
     describe('CRT-1042/1050 axis wheel zoom', () => {
         it('should zoom the y-axis via wheel scroll and call preventDefault (CRT-1042)', async () => {
             await prepareChart({
@@ -1666,9 +1663,8 @@ describe('Zoom', () => {
 
             legend.onHover(new MouseEvent('mouseenter'), items[1]);
 
-            // The hover must be dropped before it reaches either manager: highlight application is
-            // separately gated on the state queue, so the tooltip calls are what distinguish the
-            // guard returning early from a highlight that merely never lands.
+            // Highlight application is separately gated on the state queue, so the tooltip calls are what
+            // distinguish the guard returning early from a highlight that merely never lands.
             expect(updateTooltip).not.toHaveBeenCalled();
             expect(removeTooltip).not.toHaveBeenCalled();
             expect(highlightManager.getActiveHighlight()).toBeUndefined();

@@ -112,15 +112,9 @@ const LINE_CHART_NO_CATEGORY_AXIS: AgCartesianChartOptions = {
 const PHASE_RATIOS = [0.05, 0.31, 0.68];
 
 // --- Scene-graph assertion helpers ---
-//
-// The mock animation system (spyOnAnimationManager + forceTimeJump) advances flash animations
-// inline during animationManager.animate(). Because flash uses the 'update' phase
-// (animationDelay=0.25, animationDuration=0.5), fillOpacity is only non-zero between ~25%-75%
-// of the total animation timeline. At other ratios the animation hasn't started or has completed.
-//
-// These helpers therefore assert structural properties (fill, area, band count) that persist
-// regardless of animation timing. fillOpacity is only checked for suppression tests (always 0)
-// and at a known mid-animation ratio where we can guarantee the flash is visible.
+
+// Flash uses the 'update' phase (delay 0.25, duration 0.5), so fillOpacity is non-zero only between
+// ~25%-75% of the timeline; these helpers assert timing-independent structure instead.
 
 function getFlashModule(chartInstance: AgChartInstance) {
     return deproxy(chartInstance).modulesManager.getModule<any>('flashOnUpdate');

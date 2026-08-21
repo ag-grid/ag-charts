@@ -110,7 +110,7 @@ This is a migration guide documenting breaking changes, behavior changes, and up
 
 ### Links to Verify
 
-- Release blog post URL: https://blog.ag-grid.com/whats-new-in-ag-charts-11/
+- Release blog post URL: https://www.ag-grid.com/blog/whats-new-in-ag-charts-11/
 - Linear Gauge documentation link: `./linear-gauge/#bullet-series`
 
 ## Known Exceptions

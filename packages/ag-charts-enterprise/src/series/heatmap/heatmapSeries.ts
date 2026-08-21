@@ -99,10 +99,8 @@ interface HeatmapItemStyleContext {
 
 /** Context object caching expensive lookups for createNodeData(). */
 interface HeatmapSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNodeDataContext<HeatmapNodeDatum> {
-    // Override yKey to be required for heatmap
     readonly yKey: string;
 
-    // Heatmap-specific positioning
     readonly xOffset: number;
     readonly yOffset: number;
     readonly width: number;
@@ -110,7 +108,6 @@ interface HeatmapSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNo
     readonly textAlignFactor: number;
     readonly verticalAlignFactor: number;
 
-    // Heatmap-specific data
     readonly yValues: any[];
     readonly colorKey: string | undefined;
     readonly colorName: string | undefined;
@@ -118,7 +115,6 @@ interface HeatmapSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNo
     readonly colorDomain: number[];
     readonly itemPadding: number;
 
-    // Label support
     readonly labels: HeatmapLabelDatum[];
     labelIndex: number;
 
@@ -224,8 +220,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
             if (domain != null) {
                 const colorScaleProps = this.properties.colorScale;
-                // Collapse to the midpoint colour for a degenerate single-value domain so the
-                // diverging palette doesn't render with its endpoints.
+                // A degenerate single-value domain collapses to the midpoint colour, so a diverging
+                // palette doesn't render with its endpoints.
                 if (domain[0] === domain[1] && colorScaleProps.fills.length > 0) {
                     const midIndex = Math.floor(colorScaleProps.fills.length / 2);
                     const mid = colorScaleProps.fills[midIndex];
@@ -324,7 +320,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
      */
     protected override populateNodeData(ctx: HeatmapSeriesNodeDatumContext): void {
         for (const [datumIndex, datum] of ctx.rawData.entries()) {
-            // Use shared utility for create/update logic
             const nodeDatum = upsertNodeDatum(
                 ctx,
                 { datumIndex, datum },
@@ -366,7 +361,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     ): HeatmapSeriesNodeDatumContext | undefined {
         const { dataModel, processedData, contextNodeData } = this;
 
-        // Need dataModel and processedData for data resolution
         if (!dataModel || !processedData) return undefined;
 
         const { xKey, xName, yKey, yName, colorKey, colorName, itemPadding } = this.properties;
@@ -392,7 +386,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const canIncrementallyUpdate = contextNodeData?.nodeData != null && processedData.changeDescription != null;
 
         return {
-            // Base context fields
             xAxis,
             yAxis,
             xScale,
@@ -408,7 +401,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             nodes: canIncrementallyUpdate ? contextNodeData.nodeData : [],
             nodeIndex: 0,
 
-            // Heatmap-specific positioning
             xOffset: (xScale.bandwidth ?? 0) / 2,
             yOffset: (yScale.bandwidth ?? 0) / 2,
             width,
@@ -417,7 +409,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             textAlignFactor: textAlignFactors[resolveTextAlign(textAlign, this.ctx.domManager.isRtl)],
             verticalAlignFactor: verticalAlignFactors[verticalAlign],
 
-            // Heatmap-specific data
             yValues,
             colorKey,
             colorName,
@@ -425,7 +416,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             colorDomain,
             itemPadding,
 
-            // Label support - labels are always rebuilt from scratch (not incrementally updated)
+            // Labels are always rebuilt from scratch, never incrementally updated.
             labels: [],
             labelIndex: 0,
 
@@ -494,7 +485,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         const colorValue = colorValues?.[datumIndex];
 
-        // Update properties
         mutableNode.datumIndex = datumIndex;
         mutableNode.datum = datum;
         mutableNode.yKey = yKey;
@@ -506,17 +496,14 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         mutableNode.height = height;
         mutableNode.missing = colorValues != null && colorValue == null;
 
-        // Update point in place
         const mutablePoint = mutableNode.point;
         mutablePoint.x = x;
         mutablePoint.y = y;
         mutablePoint.size = 0;
 
-        // Update midPoint in place
         mutableNode.midPoint.x = x;
         mutableNode.midPoint.y = y;
 
-        // Update style
         mutableNode.style = this.getItemStyle(
             { datumIndex, datum, colorValue },
             false,
@@ -540,7 +527,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const x = xScale.convert(xDatum) + xOffset;
         const y = yScale.convert(yDatum) + yOffset;
 
-        // Skip creating nodes for data with invalid keys (not in domain)
         if (!Number.isFinite(x) || !Number.isFinite(y)) {
             return undefined;
         }
@@ -589,8 +575,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         const sizeFittingHeight = () => ({ width, height, meta: null });
         const labels = formatLabels(
-            // Preserve `ContentSegment[]` (including image segments) instead of flattening to plain
-            // text, so image-bearing labels render like treemap rather than dropping the image.
+            // Preserve `ContentSegment[]` rather than flattening, so image-bearing labels keep images.
             labelText,
             this.properties.label,
             undefined,
@@ -856,7 +841,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const allowNullKeys = this.properties.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return;
 
-        // Per-datum suppression: only datums with a missing colour value are non-tooltip-bearing.
         // Independent of `isColorScaleValid()` so an invalidly-configured scale doesn't take out
         // tooltips for datums whose own data is fine.
         if (colorKey != null && colorValue == null) {

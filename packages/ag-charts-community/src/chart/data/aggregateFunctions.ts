@@ -168,8 +168,7 @@ export function trailingAccumulatedValue(): DatumPropertyDefinition<any>['proces
             if (typeof datum !== 'bigint' && !isFiniteNumber(datum)) {
                 return datum;
             }
-            // Promote the seed before capturing the trailing value so a bigint column's first
-            // trailing entry is 0n, keeping the whole column uniformly bigint (AG-16608 AC #10).
+            // Promote the seed before capturing the trailing value so a bigint column stays uniformly bigint.
             if (typeof datum === 'bigint' && typeof value !== 'bigint') {
                 value = 0n;
             }

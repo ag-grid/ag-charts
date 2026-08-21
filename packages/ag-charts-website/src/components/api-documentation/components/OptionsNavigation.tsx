@@ -97,7 +97,7 @@ export function OptionsNavigation({
     const handleClick = (navData: NavigationData) => {
         if (location?.pathname === navData.pathname && location.hash.substring(1) === navData.hash) {
             scrollIntoViewById(navData.hash);
-            selection?.setSelection(navData); // trigger change for highlighting selection
+            selection?.setSelection(navData);
         } else {
             selection?.setSelection(navData);
             navigateToSelection(navData);
@@ -187,9 +187,8 @@ function NavProperty({
     const isInterfaceArray = config.specialTypes?.[memberType] === 'InterfaceArray';
     const isInterfaceRecord = config.specialTypes?.[memberType] === 'InterfaceRecord';
     const hasNestedPages = config.specialTypes?.[memberType] === 'NestedPage';
-    // Expand union members into their discriminated interface variants: both a direct union alias
-    // (e.g. `text: TextOrSegments`) and the cross-line shape (an empty interface whose heritage is a
-    // union alias). Special-type members navigate to their own pages, so they are excluded.
+    // Expand union members into their discriminated variants, covering both a direct union alias and an
+    // empty interface whose heritage is one; special-type members navigate to their own pages instead.
     const unionVariants =
         !isInterfaceArray && !isInterfaceRecord && !hasNestedPages
             ? getAliasedUnionVariants(interfaceRef, reference)
@@ -382,15 +381,12 @@ function NavTypedUnionProperty({
     const reference = useContext(ApiReferenceContext);
     const config = useContext(ApiReferenceConfigContext);
     const navData = getNavigationDataFromPath(path, config.specialTypes);
-    // The variant interface is the terminal path entry. `navData.pageInterface` only advances to
-    // the variant for members registered as InterfaceArray/Record special types; an inline aliased
-    // union (e.g. a cross-line member) leaves it pointing at the page's root interface, so resolving
-    // from it would render the root interface's members instead of the variant's.
+    // `navData.pageInterface` only advances to the variant for InterfaceArray/Record special types;
+    // for an inline aliased union it still points at the page's root interface.
     const variantType = path[path.length - 1].type;
     const interfaceRef = reference?.get(variantType);
-    // An inline aliased-union variant shares its page with the root interface, so a page-level match
-    // would auto-expand it for any selection on that page. Require the selection to sit inside this
-    // variant's own subtree instead. Separate-page variants (InterfaceArray) keep the page-match.
+    // An inline aliased-union variant shares its page with the root interface, so it must match on its own
+    // subtree rather than the page, or any selection on that page auto-expands it.
     const isInlineUnion = navData.pageInterface !== variantType;
 
     const [isExpanded, toggleExpanded] = useAutoExpand(() => {

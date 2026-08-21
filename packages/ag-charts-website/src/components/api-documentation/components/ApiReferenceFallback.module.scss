@@ -1,9 +1,8 @@
 @use 'design-system' as *;
 
 /*
-    Mirror the two-column geometry the hydrated <ApiReferencePage> produces (its
-    `.container.layout-grid` + `.objectViewOuter` + `.referenceOuter`) so the swap from the
-    fallback to the React app does not shift the page horizontally.
+    Mirrors the two-column geometry the hydrated <ApiReferencePage> produces, so the swap to the
+    React app does not shift the page horizontally.
 */
 
 .navPlaceholder {
@@ -11,12 +10,8 @@
     margin-left: calc(var(--layout-horizontal-margins) * -1);
 
     @media screen and (max-width: $breakpoint-options-medium) {
-        /*
-            Below this breakpoint the navigation tree is hidden and the nav stacks above the
-            content as a single search box. Reserve its height so the content does not drop on
-            hydration: the nav's top padding ($spacing-size-5) plus the search box (its text
-            line-box + vertical padding of $spacing-size-3 + 1px border top and bottom).
-        */
+        /* Reserves the stacked search box's height (nav top padding + text line-box + padding +
+            borders) so the content does not drop on hydration. */
         min-height: calc(#{$spacing-size-5} + var(--text-fs-base) * var(--text-lh-base) + #{$spacing-size-3} + 2px);
     }
 
@@ -36,9 +31,7 @@
     margin-left: calc(var(--layout-gap) * -1);
 
     @media screen and (max-width: $breakpoint-options-medium) {
-        /* Below this breakpoint the content spans full width with no negative bleed, matching
-           the hydrated `.referenceOuter`; without this the body sits ~32px too far left (and
-           off-screen) until hydration snaps it back. */
+        /* Full width with no negative bleed, matching the hydrated `.referenceOuter`. */
         margin-left: 0;
     }
 

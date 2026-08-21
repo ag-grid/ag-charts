@@ -364,8 +364,7 @@ export class ChartTheme {
                         placement: { $path: ['/tooltip/position/placement', undefined] },
                         xOffset: { $path: ['/tooltip/position/xOffset', 0] },
                         yOffset: { $path: ['/tooltip/position/yOffset', 0] },
-                        // Chart-anchored tooltips default to `0` (backwards-compatible with the
-                        // pre-AG-17064 flush behaviour); pointer/node use a 12px gap.
+                        // Chart-anchored tooltips sit flush; pointer/node use a 12px gap.
                         offset: {
                             $path: [
                                 '/tooltip/position/offset',

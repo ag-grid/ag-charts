@@ -128,9 +128,8 @@ export const getImportMap = ({ framework }: { framework: ExampleFramework }): Im
         const [packageName, entryPoint] = wrapper;
         imports[packageName] = esmEntryPoint(packageName, entryPoint);
 
-        // Every framework generator injects `import clone from 'clone'` to copy the options
-        // object; only the plain TypeScript one does not. npm ships it as CommonJS, which
-        // native resolution cannot load, so it comes from esm.sh.
+        // Every framework generator injects `import clone from 'clone'`; npm ships it as CommonJS,
+        // which native resolution cannot load, so it comes from esm.sh.
         imports.clone = `https://esm.sh/clone@${CLONE_VERSION}`;
     }
 

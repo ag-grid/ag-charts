@@ -36,26 +36,12 @@ export class DataSelectionChangeMap {
     }
 
     private remember(seriesId: SeriesId, data: DataSet, datumIndex: number): Hash {
-        // The hash should be both fast and collision-free for our inputs.
-        // While `JSON.stringify` guarantees uniqueness, it is slower and creates
-        // unnecessary allocations compared to simple string concatenation.
-        //
-        // A naive `${seriesId}-${itemId}` approach is unsafe when `itemId` is a string.
-        // For example:
-        //   { seriesId: 'a',   itemId: '1-b' }  -> "a-1-b"
-        //   { seriesId: 'a-1', itemId: 'b'   }  -> "a-1-b"
-        //
-        // In this code path, `datumIndex` is always a number, which removes that ambiguity.
-        // However, using '-' as a delimiter is still unsafe due to negative numbers:
-        //   { seriesId: 'a-', datumIndex: 1  }  -> "a--1"
-        //   { seriesId: 'a',  datumIndex: -1 }  -> "a--1"
-        //
-        // Using a non-numeric delimiter like '|' avoids this issue.
+        // The delimiter must be non-numeric: with '-', seriesId 'a-' at index 1 and seriesId 'a' at
+        // index -1 both hash to "a--1".
         const hash = `${seriesId}|${datumIndex}` as Hash;
 
-        // FIXME(2016-05-20): The `has()` calls serves to avoid the unnecessary object-memory allocation via
-        // `makeChangeItem` which can cause GC memory churn. We could eventually switch to getOrInsertComputed()
-        // (available since Feb 2026) some day.
+        // FIXME(2016-05-20): `has()` avoids the `makeChangeItem` allocation and its GC churn; replace with
+        // getOrInsertComputed() once that is targetable.
         if (!this.memory.has(hash)) {
             this.memory.set(hash, makeChangeItem(seriesId, data, datumIndex));
         }

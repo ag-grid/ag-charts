@@ -213,7 +213,6 @@ export class DataModel<
             }
         }
 
-        // Create shared context for all subsystems
         const ctx: DataModelContext<D, K> = {
             keys: this.keys,
             values: this.values,
@@ -354,9 +353,8 @@ export class DataModel<
     ): DomainWithMetadata<any> {
         const domain = this.resolvers.getDomain(scope, searchId, type, processedData);
 
-        // Attach sort metadata so downstream consumers (e.g. aggregationDomain) can take the
-        // O(1) sorted-domain fast path. Key columns expose richer metadata (including
-        // uniqueness); value columns expose only their sort order.
+        // Attach sort metadata so downstream consumers can take the O(1) sorted-domain fast path; key columns
+        // also expose uniqueness, value columns only their sort order.
         if (domain.length > 0) {
             if (type === 'key') {
                 const sortMetadata = this.getKeySortMetadata(scope, searchId, processedData);
@@ -560,7 +558,6 @@ export class DataModel<
         const { groupProcessors } = this;
         const { columns } = processedData;
 
-        // Verify all processors support reprocessing
         for (const processor of groupProcessors) {
             if (!processor.supportsReprocessing) {
                 throw new Error(

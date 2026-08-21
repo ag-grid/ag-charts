@@ -94,8 +94,7 @@ describe('AgCharts', () => {
             height: sparklineOptions.height! + 50,
             data: sparklineOptions.data!.toReversed(),
             container: () => getDocument().createElement('div'),
-            // A `context` change must stay on the fast path: the Grid cell renderer passes
-            // a fresh per-row `context` on every `update()`, and slow setup would negate it.
+            // The Grid cell renderer passes a fresh per-row `context` on every `update()`, so it must stay on the fast path.
             context: { row: 1, cellData: 0.42 },
         };
 
@@ -332,7 +331,7 @@ describe('AgCharts', () => {
                 width: 200,
                 height: 50,
                 data: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
-                marker: { enabled: false, fill: { type: 'gradient' } }, // Previously failed due to dev mode + user option mutation bug.
+                marker: { enabled: false, fill: { type: 'gradient' } },
             };
             prepareTestOptions(options, container);
 
@@ -350,8 +349,6 @@ describe('AgCharts', () => {
             return false;
         }
 
-        // Styler results are validated at the `callbackDefs` layer, which runs the generic `color`
-        // validator over each returned property, so the container is irrelevant to the outcome.
         it('warns once and drops an itemStyler fill in an unsupported color format', async () => {
             const options: AgChartOptions = {
                 data: [
@@ -414,8 +411,7 @@ describe('AgCharts', () => {
         });
     });
     describe('invalid options', () => {
-        // The reports go to `console.error`, which `setupMockConsole` asserts is clean at teardown;
-        // reading through here consumes them the way `expectWarningsCalls` does for warnings.
+        // `setupMockConsole` asserts `console.error` is clean at teardown, so reading through here consumes the reports.
         function expectErrorCalls() {
             const errorMock = console.error as Mock;
             const { calls } = errorMock.mock;
@@ -426,8 +422,7 @@ describe('AgCharts', () => {
         const expectedError =
             /^AG Charts - AgCharts\.create\(\) requires a non-empty options object; a minimal chart specifies a `container` and `series` \(or `data`\)\./;
 
-        // Reported, not thrown (AG-18240): `create()` has to hand back an instance the caller can
-        // destroy, and a wrapper cannot usefully translate an exception thrown from its own render.
+        // Reported, not thrown: `create()` must still hand back an instance the caller can destroy.
         it.each([
             ['no argument', undefined],
             ['undefined', undefined],
@@ -461,8 +456,6 @@ describe('AgCharts', () => {
             (chart as unknown) = undefined;
         });
 
-        // The error reaches the same feed as every option-validation error, so a chart configured with
-        // `validations.overlayLevel` shows it in the overlay rather than the caller having to catch.
         it('records the error as a validation issue the overlay can show', () => {
             chart = AgCharts.create(undefined as any);
             expectErrorCalls().toHaveLength(1);
@@ -474,9 +467,7 @@ describe('AgCharts', () => {
             ]);
         });
 
-        // The framework wrappers merge their own `container` in before delegating, so `undefined` and `3`
-        // both reach create() as a valid `{ container }` object. They check the raw prop through here,
-        // and the diagnostic rides along with the options they build from.
+        // Framework wrappers merge their own `container` in before delegating, so both `undefined` and `3` arrive as a valid `{ container }` object.
         it('reports the caller the wrapper names, via __validateOptionsArgument', () => {
             const wrapperOptions = AgCharts.__validateOptionsArgument<object | undefined>(
                 undefined,
@@ -492,8 +483,6 @@ describe('AgCharts', () => {
             ]);
         });
 
-        // A wrapper re-checks the prop on every update, and the chart is already alive by then, so the
-        // report has to survive the update path too - not just create.
         it('reports a wrapper prop that turns invalid on update', async () => {
             chart = AgCharts.create({ container, data: [{ x: 'a', y: 1 }] } as AgChartOptions);
             await chart.waitForUpdate();
@@ -529,8 +518,7 @@ describe('AgCharts', () => {
                     ),
                 ],
             ]);
-            // A preset that could not be applied warns on its way through; the argument report is the
-            // finding under test, and the warning is consumed so teardown's clean-console check holds.
+            // Consume the unapplied-preset warning so teardown's clean-console check holds.
             expectWarningsCalls();
         });
 
@@ -547,8 +535,7 @@ describe('AgCharts', () => {
         });
 
         it('does not throw for a non-empty object that is missing `container` or `series`', async () => {
-            // The check reports arguments that cannot be options; per-option problems stay on the
-            // existing warn-and-continue path, and `container` is optional by design.
+            // `container` is optional by design; per-option problems stay on the warn-and-continue path.
             expect(() => (chart = AgCharts.create({ foo: true } as any))).not.toThrow();
             await chart.waitForUpdate();
 

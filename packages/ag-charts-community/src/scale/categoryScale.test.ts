@@ -117,8 +117,7 @@ describe('CategoryScale', () => {
         scale.paddingOuter = 0.06;
         scale.round = true;
 
-        // `round` yields whole-pixel band widths, but band origins stay exact so bands remain centred
-        // on their true position; device-pixel crispness is applied at render time.
+        // `round` yields whole-pixel band widths, but band origins stay exact so bands stay centred.
         expect(scale.convert('A')).toBe(7.5);
         expect(scale.convert('B')).toBe(104.5);
         expect(scale.convert('C')).toBe(201.5);
@@ -194,15 +193,11 @@ describe('CategoryScale', () => {
 });
 
 describe('GroupedCategoryScale', () => {
-    // CRT-992: Verify that animation eligibility is correctly tracked.
-    // The fix ensures initial load animations work (animatable=true on first domain set)
-    // while preventing animations when domain changes (animatable=false on subsequent changes).
     describe('CRT-992 animatable property', () => {
         test('should be animatable on initial domain set', () => {
             const scale = new GroupedCategoryScale<string[]>();
             expect(scale.animatable).toBe(true);
 
-            // First domain set - should remain animatable
             scale.domain = [
                 ['A', 'B'],
                 ['C', 'D'],
@@ -219,7 +214,6 @@ describe('GroupedCategoryScale', () => {
             ];
             expect(scale.animatable).toBe(true);
 
-            // Same domain - should remain animatable
             scale.domain = [
                 ['A', 'B'],
                 ['C', 'D'],
@@ -236,7 +230,6 @@ describe('GroupedCategoryScale', () => {
             ];
             expect(scale.animatable).toBe(true);
 
-            // Different domain - should not be animatable
             scale.domain = [
                 ['X', 'Y'],
                 ['Z', 'W'],
@@ -250,7 +243,6 @@ describe('GroupedCategoryScale', () => {
             scale.domain = [];
             expect(scale.animatable).toBe(true);
 
-            // Add items - domain changed
             scale.domain = [['A', 'B']];
             expect(scale.animatable).toBe(false);
         });

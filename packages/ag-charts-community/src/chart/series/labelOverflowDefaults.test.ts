@@ -4,10 +4,8 @@ import type { AgBarSeriesOptions, AgCartesianChartOptions, AgLineSeriesOptions }
 
 import { ChartOptions } from '../../module/optionsModule';
 
-// Setting any one overflow-control label property (`maxWidth`, `maxHeight`, `wrapping`, `truncate`, or an
-// array-valued `placement`/`orientation`) resolves the unset ones to a coherent set; every trigger reads by
-// presence, not by value. These assertions read resolved options rather than pixels, so they pin the
-// theme-template precedence itself rather than a rendering.
+// Setting any one overflow-control label property resolves the unset ones to a coherent set. These
+// assertions read resolved options rather than pixels, pinning the theme-template precedence itself.
 describe('label overflow defaults', () => {
     type SeriesLabel = { wrapping?: unknown; truncate?: unknown; collision?: { alwaysShow?: unknown } };
 

@@ -9,10 +9,8 @@
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
-/* While an interaction owns the cursor (e.g. a drag in progress), the pinned cursor is set on the
- * wrapper. Proxy elements — navigator sliders, axis regions, legend buttons — set their own cursor
- * inline, which would otherwise win wherever the pointer travels, so defer to the pinned cursor.
- * `!important` is required to override those inline styles. */
+/* `!important` is required: proxy elements set their own cursor inline, which would otherwise win
+ * over the cursor pinned on the wrapper for the duration of an interaction. */
 .ag-charts-wrapper--cursor-locked .ag-charts-proxy-elem {
     cursor: inherit !important;
 }

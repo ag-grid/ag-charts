@@ -47,9 +47,8 @@ test.describe('security', () => {
                 await gotoExample(page, url);
                 await waitForAllChartUpdates(page);
 
-                // zoom.buttons.visible: 'always' keeps the zoom toolbar and its icons mounted from load. The
-                // strict `img-src 'self' data:` policy must permit every icon the toolbar and context menu
-                // load; a blocked icon surfaces as a console error and fails the intrinsic assertions.
+                // The strict `img-src 'self' data:` policy must permit every toolbar and context-menu icon;
+                // a blocked icon surfaces as a console error and fails the intrinsic assertions.
                 await expect(page.locator('.ag-charts-toolbar__icon').first()).toBeVisible();
                 await expectChartScreenshot(page, page, 'strict-csp-icons-toolbar.png', { animations: 'disabled' });
 
@@ -68,9 +67,8 @@ test.describe('security', () => {
                 await gotoExample(page, url);
                 await waitForAllChartUpdates(page);
 
-                // The watcher injects an `@property` <style> element per variable. Under a nonce-only
-                // `style-src` an un-nonced element is blocked, which surfaces as a console error and
-                // fails the intrinsic assertions, and leaves the chart unable to see later changes.
+                // The watcher injects an `@property` <style> element per variable; under a nonce-only
+                // `style-src` an un-nonced element is blocked and the chart stops seeing later changes.
                 const watcher = page.locator('style[data-variable-name="--my-brand-colour"]');
                 await expect(watcher).toHaveCount(1);
                 // Read the IDL property, not the attribute: browsers empty the `nonce` content

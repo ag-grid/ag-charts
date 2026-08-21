@@ -787,10 +787,8 @@ describe('Annotations', () => {
             expect(state.annotations![0]).toMatchObject({ type: 'vertical-line', value: serialisedValue });
         });
 
-        // The same annotation y-value supplied as `number` and as encoded `bigint` must render
-        // pixel-identically and without errors. Uses the standard time-axis options; only `y`
-        // (and channel heights) carry the widened values. Provided state must be pre-encoded
-        // (the memento contract), so bigints travel in the `{ __type: 'bigint' }` form.
+        // The same y-value supplied as `number` and as encoded `bigint` must render pixel-identically.
+        // Provided state must be pre-encoded (the memento contract), hence the `{ __type: 'bigint' }` form.
         const big = (value: bigint) => ({ __type: 'bigint' as const, value: value.toString() });
         const X_START = { __type: 'date' as const, value: '2024-03-01' };
         const X_END = { __type: 'date' as const, value: '2024-09-01' };
@@ -934,9 +932,7 @@ describe('Annotations', () => {
 
     describe('axis label alignment with the axis (AG-18182)', () => {
         // A horizontal-line annotation's axis label belongs to the y axis, so its distance from the
-        // axis line has to come from the y axis's own layout. It used to be taken from the x axis's,
-        // which is why reducing axes.number.label.spacing moved the y axis's own tick labels inwards
-        // and left the annotation label behind.
+        // axis line has to come from the y axis's own layout, not the x axis's.
         const withLabelSpacing = (ySpacing: number, xSpacing: number): AgCartesianChartOptions => ({
             ...EXAMPLE_OPTIONS,
             axes: {
@@ -973,8 +969,7 @@ describe('Annotations', () => {
 
         it("tracks the y axis's own label spacing", async () => {
             // Widening the y axis's label spacing pushes the axis line inwards by the same amount, so
-            // an annotation label that follows the y axis stays put next to the tick labels it aligns
-            // with. Reading the x axis's spacing instead left it on the moved axis line.
+            // an annotation label that follows the y axis stays put next to the tick labels it aligns with.
             expect(await axisLabelXWith(45, 5)).toBeCloseTo(await axisLabelXWith(5, 5), 5);
         });
 

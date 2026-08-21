@@ -398,10 +398,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
             if (clipBBox == null) {
                 clipBBox = undefined;
             } else if (centreDirection === 'x') {
-                // Snap the clip's category dimension with the same centre-snap the body uses, so the
-                // clip edges land on the body edges regardless of how the clip coordinate arrived
-                // (raw on a static render, pre-snapped from an animation). Mismatched snaps here shift
-                // a clipped edge by a device pixel and make an animated bar settle off a static one.
+                // The clip must use the body's centre-snap, or an animated bar settles off a static one.
                 const { start: cx, length: cw } = this.alignCentre(clipBBox.x, clipBBox.width, this.crispCentreScratch);
                 clipBBox = new BBox(cx, this.align(clipBBox.y), cw, this.align(clipBBox.y, clipBBox.height));
             } else if (centreDirection === 'y') {

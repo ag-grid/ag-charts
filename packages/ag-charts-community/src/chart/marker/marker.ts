@@ -73,9 +73,8 @@ class InternalMarker<D = any> extends Path<D> {
         return this.distanceSquaredLocal(x, y);
     }
 
-    // Local-space hit-test, shared by both pick entry points so neither transforms twice: the
-    // public distanceSquared() is transform-wrapped by the MatrixTransform mixin, while
-    // isPointInPath() is reached via pickNode() which has already inverse-transformed the point.
+    // Shared by both pick entry points so neither transforms twice: distanceSquared() is
+    // transform-wrapped by MatrixTransform, while pickNode() already inverse-transforms the point.
     protected distanceSquaredLocal(x: number, y: number): number {
         const anchor = Marker.anchor(this.shape);
         const dx = x - this.x + (anchor.x - 0.5) * this.size;
@@ -128,9 +127,8 @@ class InternalMarker<D = any> extends Path<D> {
         const tx = shape === 'square' ? align(pixelRatio, ax - pathHalfSize) + pathHalfSize : ax;
         const ty = shape === 'square' ? align(pixelRatio, ay - pathHalfSize) + pathHalfSize : ay;
 
-        // fillStroke configures gradients/patterns/strokes before ctx.translate is applied, so
-        // any bbox they reference must be expressed in origin (post-translate) coordinates.
-        // Shift the marker bbox (and fillBBox, if present) by (-tx, -ty) and pass them through.
+        // fillStroke references gradient/pattern bboxes before ctx.translate is applied, so shift
+        // the marker bbox (and fillBBox, if present) by (-tx, -ty) into origin coordinates.
         const baseBBox = super.getBBox();
         DRAW_BBOX_SCRATCH.x = baseBBox.x - tx;
         DRAW_BBOX_SCRATCH.y = baseBBox.y - ty;

@@ -224,9 +224,7 @@ describe('Sparkline Preset', () => {
             await compare();
         });
 
-        // These mirror the `#prepareOptions > sparkline preset` fixtures in optionsModule.test.ts
-        // case-for-case: that suite pins the resolved option tree, these pin what it renders, so a
-        // change visible only at draw time (crisp, marker handling, label layout) cannot slip past both.
+        // Renders the same cases optionsModule.test.ts pins as a resolved option tree.
         const parityData = [1, 3, 2, 5, 4];
 
         function markerItemStyler(params: { highlightState?: string }) {

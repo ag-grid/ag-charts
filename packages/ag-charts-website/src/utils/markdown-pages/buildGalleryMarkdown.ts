@@ -1,11 +1,11 @@
 import { toAbsoluteUrl } from '@ag-website-shared/markdoc/toAbsoluteUrl';
+import { GALLERY_CTAS } from '@components/gallery/galleryCtas';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 
 import galleryData from '../../content/gallery/data.json';
+import { withDefaultFramework } from './withDefaultFramework';
 
-// Shape of the slice of the gallery collection this twin consumes (see data.json). The
-// `series` field is an array of groups, each group a list of chart types holding their
-// gallery examples — matching how gallery.astro iterates and renders them.
+// The slice of the gallery collection this twin consumes; shaped to how gallery.astro iterates.
 interface GalleryExampleEntry {
     title: string;
     name: string;
@@ -20,8 +20,7 @@ interface GalleryContent {
     series: GallerySeries[][];
 }
 
-// The gallery page links each example via getPageUrl(name) → /gallery/<name>/, rendered by
-// src/pages/gallery/[pageName].astro.
+// Must match the /gallery/<name>/ URLs the page builds via getPageUrl.
 function galleryExampleUrl(name: string, siteRoot?: string): string {
     return toAbsoluteUrl(urlWithBaseUrl(`/gallery/${name}/`), siteRoot);
 }
@@ -45,6 +44,9 @@ export function buildGalleryMarkdown({ siteRoot }: { siteRoot?: string } = {}): 
         frontmatter,
         '# AG Charts Gallery',
         'Browse the AG Charts gallery of chart examples, grouped by chart type. Each example links to a live, interactive demo.',
+        GALLERY_CTAS.map(
+            (cta) => `[${cta.title}](${toAbsoluteUrl(urlWithBaseUrl(withDefaultFramework(cta.url)), siteRoot)})`
+        ).join(' | '),
     ];
 
     for (const chartType of series.flat()) {

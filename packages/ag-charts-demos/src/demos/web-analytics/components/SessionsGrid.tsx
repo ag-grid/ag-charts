@@ -22,9 +22,7 @@ export interface SessionsGridHandle {
     clearFilters: () => void;
 }
 
-// Session-level detail for the selected range. The When column's date filter and
-// the traffic chart selection are kept in sync: a chart selection sets the filter,
-// and editing the filter updates the chart (both via the shared `selectedDays`).
+// The When column filter and the traffic chart selection are kept in sync via the shared `selectedDays`.
 export const SessionsGrid = forwardRef<SessionsGridHandle, SessionsGridProps>(function SessionsGrid(
     { sessions, selectedDays, onFilterDaysChange, onColumnFiltersChange },
     ref
@@ -34,16 +32,13 @@ export const SessionsGrid = forwardRef<SessionsGridHandle, SessionsGridProps>(fu
     const applyingFilter = useRef(false);
     const defaultColDef = useMemo(() => baseColDef<Session>(), []);
 
-    // Emit the current column filter model so the traffic chart can re-aggregate
-    // both its series (current and previous period) on the sessions that pass it.
+    // Emit the filter model so the traffic chart re-aggregates both series on the sessions that pass it.
     const emitFilterModel = useCallback(
         (api: GridApi<Session>) => onColumnFiltersChange(api.getFilterModel()),
         [onColumnFiltersChange]
     );
 
-    // Push the current selection into the When column filter, so the grid header
-    // shows it applied and the user can inspect it. Skips when the filter already
-    // selects those days, which also breaks the filter→chart→filter feedback loop.
+    // Skips when the filter already selects those days, which breaks the filter->chart->filter loop.
     const applyDateFilter = useCallback((api: GridApi<Session>, days: Date[]) => {
         const current = dateFilterModelToDays(api.getColumnFilterModel('timestamp'));
         if (current && sameDaySet(current, days)) return;
@@ -51,8 +46,7 @@ export const SessionsGrid = forwardRef<SessionsGridHandle, SessionsGridProps>(fu
         void api
             .setColumnFilterModel('timestamp', buildDateFilterModel(days))
             .then(() => api.onFilterChanged())
-            // A rejection here must not leave the guard latched, which would silently
-            // stop the grid from ever driving the chart selection again.
+            // A latched guard would silently stop the grid from ever driving the chart selection again.
             .finally(() => {
                 applyingFilter.current = false;
             });
@@ -87,8 +81,7 @@ export const SessionsGrid = forwardRef<SessionsGridHandle, SessionsGridProps>(fu
         if (apiRef.current) applyDateFilter(apiRef.current, selectedDays);
     }, [applyDateFilter, selectedDays]);
 
-    // On any filter change, mirror the When filter onto the chart selection and
-    // re-emit the non-When-filtered sessions that feed the chart.
+    // Mirror the When filter onto the chart selection and re-emit the non-When-filtered sessions.
     const onFilterChanged = useCallback(
         ({ api }: FilterChangedEvent<Session>) => {
             if (applyingFilter.current) return;
@@ -127,8 +120,7 @@ export const SessionsGrid = forwardRef<SessionsGridHandle, SessionsGridProps>(fu
                 headerName: 'Visitor',
                 minWidth: 100,
                 filter: 'agSetColumnFilter',
-                // A string value (not the raw boolean) so the grid shows text
-                // instead of its default boolean checkmark rendering.
+                // A string value, so the grid shows text instead of its default boolean checkmark rendering.
                 valueGetter: ({ data }) => (data?.isNewVisitor ? 'New' : 'Returning'),
             },
             { field: 'landingPage', headerName: 'Landing', minWidth: 110, filter: 'agSetColumnFilter' },

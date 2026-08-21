@@ -67,8 +67,7 @@ export const areaSeriesOptionsDef: OptionsDefs<AgAreaSeriesOptions> = {
     normalizedTo: number,
 };
 
-// WARNING! This selectedKey is related to cross-filtering which is not an officially documented or supported
-// feature. It has nothing to do with the official data selection API in the options contract. Do not use, or use with
-// extreme caution.
+// WARNING! This selectedKey belongs to cross-filtering, an undocumented and unsupported feature; it is
+// unrelated to the data selection API in the options contract. Use with extreme caution.
 // @ts-expect-error undocumented option
 areaSeriesOptionsDef.selectedKey = undocumented(string);

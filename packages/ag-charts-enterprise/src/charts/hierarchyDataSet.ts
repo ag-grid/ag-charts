@@ -141,9 +141,7 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
             }
         }
 
-        // applyToTypedArray's block copy assumes survivors keep their relative order. Duplicate
-        // dataIdKey values (warned about elsewhere) can break that; if so, drop selections rather
-        // than risk an out-of-bounds copy.
+        // applyToTypedArray's block copy assumes survivors keep their relative order.
         for (let k = 1; k < survivorNewIndices.length; k++) {
             if (survivorNewIndices[k] <= survivorNewIndices[k - 1]) {
                 survivorNewIndices.length = 0;
@@ -269,12 +267,10 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
                 const rootId = this.getIdValue(rootItem);
 
                 if (rootId === id) {
-                    // Root-level item: standard replacement via pendingReplacements
                     state.updatedOriginalIndices.add(idx);
                     state.pendingReplacements ??= new Map();
                     state.pendingReplacements.set(id, newDatum);
                 } else if (this.replaceNestedItem(rootItem, id, newDatum)) {
-                    // Nested item: walk tree and replace in-place
                     state.updatedOriginalIndices.add(idx);
                 }
                 toUpdate.delete(id);
@@ -320,11 +316,9 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
                     const rootId = this.getIdValue(rootItem);
 
                     if (rootId === id) {
-                        // Root-level: mark for removal
                         state.removedOriginalIndices.add(idx);
                         state.virtualLength--;
                     } else if (this.removeNestedItem(rootItem, id)) {
-                        // Nested: walk tree and splice in-place, mark root as updated
                         state.updatedOriginalIndices.add(idx);
                     }
                     idsToRemove.delete(id);

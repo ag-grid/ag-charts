@@ -170,7 +170,6 @@ describe('Validation utils', () => {
             expect(isValid<{ value: string }>({ value: undefined }, { value: required(string) })).toBe(false);
         });
 
-        // should check the description in the logger
         test('attachDescription adds a description to a validator', () => {
             const describedValidator = attachDescription(
                 (value: unknown, context) => string(value, context) && value !== '',
@@ -469,12 +468,10 @@ describe('Validation utils', () => {
                 )
             );
 
-            // Verify defaulting.
             expect(runValidator(isTypeUnionOfFoo, {})).toBe(false);
             expect(runValidator(isTypeUnionOfFoo, { aa: true })).toBe(false);
             expect(runValidator(isTypeUnionOfFoo, { bb: 1 })).toBe(true);
 
-            // Verify non-defaulting cases too.
             expect(runValidator(isTypeUnionOfFoo, { type: 'a' })).toBe(true);
             expect(runValidator(isTypeUnionOfFoo, { type: 'a', aa: true })).toBe(true);
             expect(runValidator(isTypeUnionOfFoo, { type: 'b', bb: 1 })).toBe(true);
@@ -801,10 +798,8 @@ describe('Validation utils', () => {
         });
 
         it('still accepts none, a named color, hex, rgb() and hsl()', () => {
-            // var(--brand) is deliberately not pinned here: jsdom's CSSStyleDeclaration (unlike
-            // a real browser) rejects an unresolved var() reference as a specified color value
-            // outright, so isColor's var()-passthrough can only be observed with the
-            // container-based mockCssVarColorSupport shim, which is enterprise-only.
+            // var(--brand) is deliberately not pinned here: jsdom rejects an unresolved var() reference as a
+            // specified color value, so isColor's var() passthrough is only observable via an enterprise-only shim.
             expect(isValid({ c: 'none' }, { c: color })).toBe(true);
             expect(isValid({ c: 'red' }, { c: color })).toBe(true);
             expect(isValid({ c: '#ff5733' }, { c: color })).toBe(true);
@@ -812,12 +807,8 @@ describe('Validation utils', () => {
             expect(isValid({ c: 'hsl(145, 63%, 42%)' }, { c: color })).toBe(true);
         });
 
-        // D1 guard: this change deliberately rejects only the four named formats via
-        // isUnsupportedColorFormat, ahead of the existing browser parse — it must not narrow
-        // the validator wholesale. currentColor renders today and must keep validating; the
-        // corresponding hwb()/color-mix()/oklch() pins live in color.test.ts against
-        // isUnsupportedColorFormat directly, because jsdom's CSS engine here does not
-        // implement those functions, so parseColor() rejects them regardless of this change.
+        // The hwb()/color-mix()/oklch() pins live in color.test.ts, as jsdom's CSS engine rejects those
+        // regardless; here only `currentColor` distinguishes a targeted rejection from a blanket one.
         it('still accepts currentColor (D1 guard: not narrowed wholesale)', () => {
             expect(isValid({ c: 'currentColor' }, { c: color })).toBe(true);
         });

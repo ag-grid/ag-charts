@@ -180,9 +180,8 @@ export class Crosshair
         this.updateSelections(crosshairKeys);
 
         if (!options.snap && this.activeHighlight) {
-            // AG-16861 TC9. If we're hovering over a candlestick and click it, then this fires a layout:complete
-            // event. But we don't need to refresh the positioning of the Y-axis (non-snapping); the non-snap
-            // positioning can stay as-is to stay in sync with the mouse position.
+            // A non-snapping crosshair tracks the mouse position, so a layout:complete raised by clicking a node
+            // must not reposition it.
             return;
         }
 
@@ -205,7 +204,6 @@ export class Crosshair
         const { labels, ctx } = this;
         const labelOpts = this.options?.label;
         for (const key of keys) {
-            // Lazy creation of labels if enabled.
             if (labelOpts?.enabled) {
                 labels[key] ??= new CrosshairLabel(ctx.domManager, key, this.axisCtx.axisId);
             }
@@ -284,7 +282,7 @@ export class Crosshair
     }
 
     private onMouseOut() {
-        // AG-16861 TC9: non-snap crosshairs respond to mouse movements on frozen charts and snap crosshairs don't
+        // Non-snap crosshairs respond to mouse movements on frozen charts; snap crosshairs don't.
         const snap = this.options?.snap ?? true;
         const mask: _ModuleSupport.InteractionState = snap
             ? InteractionState.Hoverable
@@ -407,10 +405,8 @@ export class Crosshair
         const isYKey = seriesKeyProperties.includes('yKey') && matchingAxisId;
         const isXKey = seriesKeyProperties.includes('xKey') && matchingAxisId;
 
-        // `cumulativeValueExact` keeps full precision for a bigint plotted value (the narrowed
-        // `cumulativeValue` would float64-round it). Histogram exposes a raw, area-independent
-        // `aggregatedValue` for callbacks rather than the plotted height, so prefer the plotted value
-        // (`cumulativeValueExact`/`cumulativeValue`) when present.
+        // Prefer the plotted value: `cumulativeValueExact` keeps full precision for a bigint, and
+        // histogram's `aggregatedValue` is raw and area-independent rather than the plotted height.
         const datumValue = cumulativeValueExact ?? cumulativeValue ?? aggregatedValue;
         if (isYKey && datumValue !== undefined) {
             const position = axisCtx.scale.convert(datumValue) + halfBandwidth;
@@ -455,9 +451,8 @@ export class Crosshair
         // A renderer's own text is interpolated as-is, so only the text we format ourselves is marked.
         const text = forceLtrNumbersIn(this.formatScaleText(value), this.ctx.domManager.isRtl);
         const defaults: AgCrosshairLabelRendererResult = { text };
-        // Returning `undefined` (or `null`, defensively) from the renderer falls through to the
-        // default formatted value, matching the documented Renderer<P, R> contract. Empty strings
-        // still render an empty label.
+        // Returning `undefined` (or `null`, defensively) falls through to the default formatted value,
+        // per the documented Renderer<P, R> contract; empty strings still render an empty label.
         const rendered = this.options?.label.renderer?.({ value, fractionDigits });
         if (rendered == null) {
             return label.toLabelHtml(defaults);
@@ -477,13 +472,10 @@ export class Crosshair
         const axisPosition = this.axisCtx.position;
         let padding = this.axisLayout.label.spacing + this.axisLayout.tickSize;
 
-        // `crossAt` moves the axis line off its `position` edge, so follow it by the same offset —
-        // otherwise the label annotates a line that is no longer there.
+        // `crossAt` moves the axis line off its `position` edge, so the label must follow by the same offset.
         const crossOffset = this.axisLayout.crossAxisTranslation ?? { x: 0, y: 0 };
 
-        // Use CSS translate percentages to avoid synchronous dimension reads.
-        // translate(-50%, 0) centres horizontally; translate(0, -50%) centres vertically;
-        // translate(-100%, ...) offsets by the element's full width/height.
+        // CSS translate percentages avoid synchronous dimension reads.
         if (this.axisCtx.direction === ChartAxisDirection.X) {
             padding -= 4;
             const isBottom = axisPosition === 'bottom';

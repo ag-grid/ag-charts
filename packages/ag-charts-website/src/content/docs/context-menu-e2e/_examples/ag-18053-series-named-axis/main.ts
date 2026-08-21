@@ -8,9 +8,7 @@ import { AgCharts, AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterpr
 
 ModuleRegistry.registerModules([AllEnterpriseModule]);
 
-// AG-18053: `axes` names only the left `y` axis. The bottom axis is created implicitly from the series'
-// `xKey`, and the right-hand axis is named by `series[1].yKeyAxis` but never declared under `axes`.
-// Right-clicking any of the three must report a usable `axisId`.
+// Only the left axis is declared under `axes`; right-clicking any of the three must report a usable `axisId`.
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: [

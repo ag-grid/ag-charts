@@ -9,11 +9,8 @@ import { SITE_301_REDIRECTS, type SimpleRedirectRule } from './redirects';
 
 export type HtaccessEnv = Extract<CspEnv, 'staging' | 'production'>;
 
-// Rollout state for removing 'unsafe-eval' from the production main-site CSP.
-// While 'report-only', production keeps enforcing the previous policy (which
-// allows 'unsafe-eval' everywhere) and reports violations of the tightened
-// path-scoped split. Flip to 'enforce' once the report-only window is clean.
-// Staging always enforces the split.
+// Rollout state for removing 'unsafe-eval' from the production main-site CSP. Staging always
+// enforces the split; flip this to 'enforce' once production's report-only window is clean.
 export const PRODUCTION_CSP_PHASE: 'report-only' | 'enforce' = 'enforce';
 
 export function getHtaccessContent(options: { env: HtaccessEnv }) {
@@ -46,10 +43,8 @@ Options -Indexes
 }
 
 function getCspContent(env: HtaccessEnv): string {
-    // Staging enforces the split immediately. Production keeps enforcing the previous
-    // policy (which allows 'unsafe-eval' on every page) and reports the tightened split
-    // via Report-Only until the validation window is clean. The Report-Only <If> override
-    // matters: without it, every example-runner page would report eval violations.
+    // The Report-Only <If> override is load-bearing: without it every example-runner page
+    // would report eval violations.
     if (env === 'staging' || PRODUCTION_CSP_PHASE === 'enforce') {
         return getScopedCspHtaccessBlock({ env }, 'enforce');
     }
@@ -59,11 +54,8 @@ ${getScopedCspHtaccessBlock({ env }, 'report-only')}`;
 }
 
 export function getRedirectRules() {
-    // mod_alias `RedirectMatch` matches against the full request URL-path (e.g. `/charts/react/`),
-    // even when the .htaccess lives inside the base folder — unlike mod_rewrite, it does not strip
-    // the directory prefix. So patterns must be base-aware to match the deployed paths. Rule
-    // definitions stay base-relative (`^/react/?$`); the base is spliced in here, matching how
-    // `from` rules get the base via `urlWithBaseUrl`.
+    // Unlike mod_rewrite, mod_alias does not strip the directory prefix, so patterns must carry
+    // the base; rule definitions stay base-relative and it is spliced in here.
     const basePath = (SITE_BASE_URL ?? '').replace(/\/$/, '');
     const toBaseAwarePattern = (fromPattern: string) =>
         fromPattern.startsWith('^') ? `^${basePath}${fromPattern.slice(1)}` : `${basePath}${fromPattern}`;
@@ -95,28 +87,19 @@ export function getRedirectRules() {
 }
 
 export function getMarkdownNegotiationRules() {
-    // Charts is deployed under SITE_BASE_URL (`/charts`), and REQUEST_URI carries that prefix
-    // (as with the mod_alias redirects above — Apache does not strip it here either). %1 must be
-    // the document-root-relative path so both the on-disk `-f` test and the rewrite target resolve
-    // to the real .md under /charts, so the base is captured inside %1 (leading slash excluded),
-    // not matched outside it. The set of negotiable pages comes from CHARTS_MARKDOWN_PAGE_GROUPS,
-    // the same registry the dev-server plugin uses.
+    // %1 must be document-root-relative for both the on-disk `-f` test and the rewrite target to
+    // resolve, so the base is captured inside it rather than matched outside.
     const basePath = (SITE_BASE_URL ?? '').replace(/\/$/, '');
     const baseRelative = basePath.replace(/^\//, '');
     const capturePrefix = baseRelative ? `${baseRelative}/` : '';
     const pages = markdownPathAlternation();
     const negotiatedPath = `^/(${capturePrefix}(?:${pages}))/?$`;
-    // Match the same single-page shape as negotiatedPath so Vary: Accept is only appended to the
-    // pages that actually content-negotiate — not every nested URL under /<base>/<framework>/
-    // (framework landing pages, example routes, assets), which would fragment shared caches.
+    // Must match negotiatedPath's shape exactly, or Vary: Accept lands on non-negotiating URLs
+    // and fragments shared caches.
     const varyScope = `^${basePath}/(?:${pages})/?$`;
 
-    // Content-negotiate docs pages to their per-page markdown variant when a client asks
-    // for it via Accept: text/markdown (typically an AI agent — browsers never send this, so HTML
-    // stays the default). The .md files are generated at build time next to the HTML. This is an
-    // internal rewrite (no redirect, URL unchanged), gated by an on-disk check so a path without a
-    // .md twin is left untouched. Charts has no other rewrite context, so negotiation gets its own
-    // minimal mod_rewrite block (identical in both environments).
+    // Serve the per-page markdown twin on Accept: text/markdown. An internal rewrite gated by an
+    // on-disk check, so a path with no twin is left untouched.
     return `<IfModule mod_rewrite.c>
     RewriteEngine On
 
@@ -142,14 +125,14 @@ export function getMarkdownNegotiationRules() {
 }
 
 export function getAstroRedirectRules(): AstroUserConfig['redirects'] {
-    // Only for simple redirects, not pattern matches. Gone rules have no `to`, so skip them.
+    // Gone rules have no `to`, so skip them.
     const simpleRedirects = SITE_301_REDIRECTS.filter(
         (redirect) => Boolean((redirect as SimpleRedirectRule).from) && !(redirect as { gone?: true }).gone
     ) as SimpleRedirectRule[];
 
     return Object.fromEntries(
         simpleRedirects.map(({ from, to }) => {
-            // NOTE: Don't need to add base to the `from` side, as Astro handles that
+            // Astro adds the base to the `from` side.
             return [from, urlWithBaseUrl(to)];
         })
     );

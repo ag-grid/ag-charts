@@ -1,21 +1,26 @@
+import type { Page } from '@playwright/test';
+
 import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
+    SELECTORS,
     canvasToPageTransformer,
     createConsoleLogs,
     delay,
     gotoExample,
+    hoverCanvas,
+    locateCanvas,
     setupIntrinsicAssertions,
     toExamplePageUrl,
     toExamplePageUrls,
 } from './util';
 
-test.describe('collapse', () => {
+test.describe('organization-series', () => {
     setupIntrinsicAssertions(test);
 
-    const consoleLogs = createConsoleLogs();
+    test.describe('collapse', () => {
+        const consoleLogs = createConsoleLogs();
 
-    test.describe('organization-series', () => {
         for (const { framework, url } of toExamplePageUrls('org-chart-e2e', 'e2e-org-chart-collapse')) {
             test.describe(`for ${framework}`, () => {
                 test('collapse only on expander click', async ({ page }) => {
@@ -102,6 +107,73 @@ test.describe('collapse', () => {
                 ])
             );
             consoleLogs.clear();
+        });
+    });
+
+    test.describe('active-node', () => {
+        const ACTIVE_ITEM_ID = 'Priya Nair';
+
+        /**
+         * Empty space *inside* the series area: the band above the topmost card once the view has
+         * centred on the active item. A miss outside the series rect — the caption band, or the
+         * padding at the canvas edges — produces no pick at all, so it would not exercise the
+         * unhighlight.
+         */
+        const EMPTY_SERIES_AREA_Y = 90;
+
+        /**
+         * Both halves of the feature land in a page screenshot: the highlight stroke on the card in
+         * the canvas, and the tooltip in the DOM beside it. The tooltip assertion is kept as the
+         * synchronisation point, since it retries where a screenshot of a chart mid-update would
+         * only be re-taken until it happened to settle.
+         */
+        async function expectActiveItemTooltip(page: Page, visible: boolean) {
+            const tooltip = page.locator(SELECTORS.tooltip);
+            if (!visible) {
+                await expect(tooltip).toBeHidden();
+                return;
+            }
+            await expect(tooltip).toBeVisible();
+            await expect(tooltip).toContainText(ACTIVE_ITEM_ID);
+        }
+
+        test.beforeEach(async ({ page }) => {
+            await gotoExample(page, toExamplePageUrl('org-chart-e2e', 'e2e-org-chart-active-node', 'vanilla').url);
+        });
+
+        test('setState highlights the active node and shows its tooltip', async ({ page }) => {
+            await expectActiveItemTooltip(page, false);
+            await expectChartScreenshot(page, page, 'org-chart-active-node-initial.png', { animations: 'disabled' });
+
+            await page.locator('#mySetActive').click();
+
+            await expectActiveItemTooltip(page, true);
+            await expectChartScreenshot(page, page, 'org-chart-active-node-set.png', { animations: 'disabled' });
+        });
+
+        test('clearing the active item removes the highlight and tooltip', async ({ page }) => {
+            await page.locator('#mySetActive').click();
+            await expectActiveItemTooltip(page, true);
+
+            await page.locator('#myClearActive').click();
+
+            await expectActiveItemTooltip(page, false);
+            await expectChartScreenshot(page, page, 'org-chart-active-node-cleared.png', { animations: 'disabled' });
+        });
+
+        test('hovering empty space drops the highlight and tooltip', async ({ page }) => {
+            await page.locator('#mySetActive').click();
+            await expectActiveItemTooltip(page, true);
+
+            const { width } = await locateCanvas(page);
+            await hoverCanvas(page, { x: width / 2, y: EMPTY_SERIES_AREA_Y });
+
+            // A pointer that picks nothing unhighlights on `highlightManager.unhighlightDelay`, so
+            // wait for the tooltip to go before capturing the repaint that same clear triggers.
+            await expectActiveItemTooltip(page, false);
+            await expectChartScreenshot(page, page, 'org-chart-active-node-hover-empty.png', {
+                animations: 'disabled',
+            });
         });
     });
 });

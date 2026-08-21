@@ -35,8 +35,11 @@ const updateHtml = (darkmode: boolean | undefined) => {
         iframe.contentWindow?.postMessage(darkModeEvent);
     });
 
-    // Send on event on page for charts that are embedded on the page
-    window.dispatchEvent(new CustomEvent('message', { detail: darkModeEvent }));
+    // Notifies charts embedded directly in the page. Deliberately not called `message`: a
+    // CustomEvent has no `origin`, and reCAPTCHA's api.js parses `event.origin` as a URL on
+    // every window `message`, so impersonating a postMessage breaks the captcha on any page
+    // carrying the contact form.
+    window.dispatchEvent(new CustomEvent('ag-color-scheme-change', { detail: darkModeEvent }));
 };
 
 $darkmode.listen(updateHtml);

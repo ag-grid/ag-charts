@@ -8,12 +8,8 @@ import {
     watchConsole,
 } from './chart-assertions';
 
-// Depth coverage for the demos, on top of the generic smoke test in demos.spec.ts —
-// which only asserts that *a* chart and *a* canvas exist, and so passes even if
-// every chart but one silently failed to render.
-//
-// web-analytics is covered by its own spec, which layers tab switching on the same
-// assertions; it is excluded here rather than duplicated.
+// Depth coverage for the demos: demos.spec.ts only asserts that *a* chart and *a* canvas exist, so it
+// passes even if every chart but one silently failed to render. web-analytics has its own spec.
 
 interface DemoCase {
     id: string;
@@ -32,22 +28,17 @@ const DEMOS: DemoCase[] = [
     { id: 'pie', population: { structural: 1 } },
     {
         id: 'financial',
-        // Main financial chart, peer spread heatmap, peer performance chart, 3 gauges,
-        // plus a sparkline cell per visible row across the three ticker grids. Those
-        // grids virtualise, so the cell count tracks the viewport and only gets a floor.
+        // The ticker grids virtualise, so their sparkline cell count tracks the viewport and only gets a floor.
         population: { structural: 6, minInGrid: 20 },
         settle: async (page) => {
-            // Drive the stream through the app's own control rather than reaching into
-            // its internals, so the test exercises the same path a user does.
+            // Drive the stream through the app's own control, so the test exercises the path a user does.
             await page.getByRole('button', { name: /Pause/ }).click();
             await expect(page.getByRole('button', { name: /Live/ })).toBeVisible();
         },
     },
     {
         id: 'procurement',
-        // The landing tab only: arrival schedule, the in-transit map, the on-time tile's gauge and
-        // the at-risk tile's segmented bar. Radix unmounts inactive tab content, so the other tabs'
-        // charts are covered in procurement.spec.ts, which keeps the per-tab counts.
+        // The landing tab only: Radix unmounts inactive tab content, so the other tabs are covered in procurement.spec.ts.
         population: { structural: 4 },
     },
 ];

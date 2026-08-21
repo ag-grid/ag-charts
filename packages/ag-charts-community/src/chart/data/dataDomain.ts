@@ -364,9 +364,8 @@ export class BandedDomain<T = any> extends BandedStructure<DomainBand<T>> implem
         for (const band of this.bands) {
             if (!band.isDirty) continue;
 
-            // Reset the band's domain with sorted mode configuration if applicable
-            // Note: During rolling window updates, sort orders are invalidated BEFORE
-            // domain recomputation, so sortOrder will be undefined and sorted mode won't be enabled.
+            // During rolling window updates, sort orders are invalidated before domain recomputation,
+            // so sortOrder is undefined here and sorted mode is deliberately not enabled.
             const subDomain = this.domainFactory();
             if (this.isDiscrete && this.sortOrder !== undefined && this.isUnique) {
                 if (DiscreteDomain.is(subDomain)) {

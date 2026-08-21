@@ -158,9 +158,7 @@ function removeRandomElem() {
         return;
     }
 
-    // Assign a new array rather than splicing in place: `update()` diffs data arrays by
-    // reference, so an in-place mutation of the array the chart already holds is not
-    // detected as a change and nothing would re-render.
+    // `update()` diffs data arrays by reference, so mutating the held array in place would not re-render.
     series[seriesIndex].data = data.filter((_, index) => index !== datumIndex);
 
     chart.update(options);

@@ -57,9 +57,8 @@ export class HeatmapSeriesProperties extends CartesianSeriesProperties<AgHeatmap
     @Property
     strokeWidth: number = 0;
 
-    // Declared before `label` so that an explicit `label.textAlign` applied afterwards wins:
-    // BaseProperties.set() applies decorated properties in declaration order. Left without
-    // initialisers because the proxy setter runs on initialiser assignment, before `label` exists.
+    // Declared before `label` so an explicit `label.textAlign` wins: BaseProperties.set() applies
+    // properties in declaration order, and an initialiser here would fire before `label` exists.
     @Property
     @ProxyPropertyOnWrite('label', 'textAlign')
     textAlign?: TextAlign;

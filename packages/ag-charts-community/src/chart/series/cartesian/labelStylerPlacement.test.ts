@@ -72,9 +72,8 @@ describe('label itemStyler participates in placement', () => {
     };
 
     it('reserves the styled box, so a padded label clears the point by its own box edge', async () => {
-        // A `top` label sits `gap + spacing` above its point measured from the box edge, so adding 20px of
-        // bottom padding to the drawn box moves the text 20px further up. Without the styled reservation
-        // the text would not move at all and the drawn box would overlap the marker.
+        // A `top` label clears its point from the box edge, so 20px of bottom padding must move the
+        // text 20px further up; without the styled reservation the box would overlap the marker.
         const plain = await labelYs(lineChart({}));
         const padded = await labelYs(lineChart({ itemStyler: () => ({ fill: '#eeeeee', padding: 20 }) }));
 
@@ -388,9 +387,8 @@ describe('label itemStyler participates in placement', () => {
                         // Padding with neither fill nor border, so there is no box to pad.
                         return { padding: 14 };
                     case 'wide':
-                        // Reserves a box far wider than its text, so its neighbour `near` can no longer sit
-                        // above its own point and cascades below instead. Styled per placement, so the box the
-                        // cascade tested above is not the one drawn below.
+                        // Reserves a box far wider than its text, so its neighbour `near` cascades below its point;
+                        // styled per placement, so the box the cascade tested above is not the one drawn below.
                         return placement === 'top'
                             ? { fill: '#ffd9d9', padding: { top: 4, bottom: 4, left: 30, right: 30 } }
                             : { fill: '#d9f2d9', padding: 4 };
@@ -484,9 +482,8 @@ describe('label itemStyler participates in placement', () => {
                 grow: 'top',
                 keep: 'top',
             });
-            // Padding only counts where there is a box to pad. `none`, `pad` and `fill` share a point height and
-            // a `top` placement, so `pad` — padded but boxless — sits exactly where the unstyled label does,
-            // while `fill` clears its point by the 8px its box adds beneath the text.
+            // Padding only counts where there is a box to pad, so boxless `pad` lands on `none` while
+            // `fill` clears its point by the 8px its box adds beneath the text.
             const ys = drawnLabelYs(0);
             expect(ys.pad).toBeCloseTo(ys.none, 5);
             expect(ys.fill).toBeCloseTo(ys.none - 8, 5);

@@ -7,9 +7,8 @@ import {
     fontWithSize,
 } from './textWrapper';
 
-// Mock only the canvas leaf, as textWrapper.test.ts does, but scale the metrics with the font so the
-// font-size search has something to search over: a grapheme is `fontSize` px wide and a line
-// `1.5 * fontSize` px tall. Kept in its own file because the sibling suite pins a fixed glyph width.
+// Metrics scale with the font so the font-size search has something to search over; kept out of the
+// sibling suite, which pins a fixed glyph width.
 vi.mock('../canvas', () => ({
     createCanvasContext: () => ({
         font: '10px',

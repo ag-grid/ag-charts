@@ -602,9 +602,8 @@ export class ChordSeries extends FlowProportionSeries<
 
         if (cornerRadius <= 0 || innerRadius <= 0) return;
 
-        // Mirrors the inner-corner clamp in scene/shape/sector.ts — the later scaling passes there
-        // cannot reduce it further, because all four of a chord node's corner radii are equal and
-        // this clamp already fits each one within both the sweep and the radial length.
+        // Mirrors the inner-corner clamp in scene/shape/sector.ts; sector's later scaling passes
+        // cannot reduce it further as all four corner radii here are equal.
         const adjustedSweep = node.endAngle - node.startAngle - (2 * inset) / innerRadius;
         const cornerDistance = adjustedSweep > 0 ? 2 * innerRadius * Math.sin(adjustedSweep / 2) : 0;
         const radius = Math.floor(
@@ -634,8 +633,7 @@ export class ChordSeries extends FlowProportionSeries<
 
         const fillBBox = this.getShapeFillBBox();
 
-        // An itemStyler can vary cornerRadius per node, and the link has to follow whatever the
-        // node is actually drawn with. Resolved once per node rather than once per link end.
+        // An itemStyler can vary cornerRadius per node, and the link must follow how the node is drawn.
         const nodeEdges = new Map<ChordNodeDatum, ChordLinkNodeEdge | undefined>();
         const nodeEdge = (node: ChordNodeDatum) => {
             if (!nodeEdges.has(node)) {

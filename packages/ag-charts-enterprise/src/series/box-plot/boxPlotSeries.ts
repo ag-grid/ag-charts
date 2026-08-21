@@ -227,8 +227,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const { dataModel, processedData, contextNodeData } = this;
         if (!dataModel || !processedData) return undefined;
 
-        // Never reuse the previous node array while hidden — pair with the populateNodeData() guard
-        // below so a hidden box-plot resolves to empty node data (CRT-1144).
+        // Never reuse cached node data while hidden — pairs with the populateNodeData() guard
+        // below so a hidden box-plot resolves to empty node data.
         const canIncrementallyUpdate =
             this.visible && contextNodeData?.nodeData != null && processedData.changeDescription != null;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
@@ -335,12 +335,10 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const scaledValues = params.scaledValues;
         const mutableNode = node as Mutable<BoxPlotNodeDatum>;
 
-        // Update datum and index
         mutableNode.datum = params.datum;
         mutableNode.datumIndex = params.datumIndex;
         mutableNode.bandwidth = barWidth;
 
-        // Update scaledValues in place
         const mutableScaledValues = mutableNode.scaledValues;
         mutableScaledValues.xValue = scaledValues.xValue;
         mutableScaledValues.minValue = scaledValues.minValue;
@@ -349,7 +347,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         mutableScaledValues.q3Value = scaledValues.q3Value;
         mutableScaledValues.maxValue = scaledValues.maxValue;
 
-        // Compute midPoint
         const height = Math.abs(scaledValues.q3Value - scaledValues.q1Value);
         const midX = scaledValues.xValue;
         const midY = Math.min(scaledValues.q3Value, scaledValues.q1Value) + height / 2;
@@ -357,7 +354,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const midPointX = isVertical ? midX : midY;
         const midPointY = isVertical ? midY : midX;
 
-        // Update midPoint in place (or create if missing)
         if (mutableNode.midPoint) {
             mutableNode.midPoint.x = midPointX;
             mutableNode.midPoint.y = midPointY;
@@ -365,7 +361,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             mutableNode.midPoint = { x: midPointX, y: midPointY };
         }
 
-        // Update focusRect in place
         const focusRect = mutableNode.focusRect;
         if (isVertical) {
             focusRect.x = midPointX - barWidth / 2;
@@ -400,7 +395,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             labelData: [],
             scales: this.calculateScaling(),
             visible: this.visible,
-            // Set by assembleResult()
             groupScale: undefined,
             styles: undefined as unknown as _ModuleSupport.SeriesNodeStyleContext<NormalisedBoxPlotSeriesStyle>,
             segments: undefined,
@@ -411,11 +405,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
      * Populate node data by iterating over raw data.
      */
     protected override populateNodeData(ctx: BoxPlotSeriesNodeDatumContext): void {
-        // A hidden box-plot must leave no shapes behind. Box-plot belongs to the bar grouping, so the
-        // base createNodeData() still calls populateNodeData() while hidden (the ungrouped early-return
-        // does not apply). Unlike bar it has no datum hide animation (no animationResetFns), so any nodes
-        // produced here would re-project the stale box geometry through the current y-scale and render
-        // stretched (CRT-1144). Produce no nodes when hidden so the series renders nothing.
+        // Bar-grouped series still reach here while hidden, and box-plot has no datum hide animation,
+        // so any node produced would render stale geometry stretched through the current y-scale.
         if (!this.visible) return;
 
         // Scratch objects for reuse across iterations
@@ -434,7 +425,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             scaledValues: scaledValuesScratch,
         };
 
-        // Main iteration loop
         for (let datumIndex = 0; datumIndex < ctx.rawData.length; datumIndex++) {
             const datum = ctx.rawData[datumIndex];
             const xValue = ctx.xValues[datumIndex];
@@ -458,7 +448,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             paramsScratch.datumIndex = datumIndex;
             paramsScratch.datum = datum;
 
-            // Use shared utility for create/update logic
             upsertNodeDatum(
                 ctx,
                 paramsScratch,
@@ -725,10 +714,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const selectionState = toSelectionString(selectionStateEnum);
         const candidateState = toSelectionString(candidateStateEnum);
 
-        // Do not allow any of the returned properties to be `undefined`.
-        // Exceptions:
-        // -   `fill` is a required color property that can be a string or a partial-object.
-        // -   `yName` key has no `yKey` fallback like `xName`.
+        // No returned property may be `undefined`, except `fill` (string or partial-object) and
+        // `yName` (no `yKey` fallback like `xName` has).
         type T = ReturnType<BoxPlotSeries['makeStylerParams']>;
         type Rules = CallbackParamRules<
             DeepRequired<Omit<T, 'yName' | 'selectionState' | 'candidateState'>, 'fill'> &

@@ -232,9 +232,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
             const isHighlight = highlightedDatum?.datumIndex === datum.datumIndex;
             const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-            // Only report `isCollapsed` for nodes whose descendants would actually be hidden;
-            // a leaf id present in `collapsedManager` is a no-op visually and would mislead
-            // styler consumers about the rendered tree state.
+            // A leaf id present in `collapsedManager` hides nothing, so reporting it as collapsed
+            // would mislead styler consumers about the rendered tree state.
             const isCollapsed =
                 allChildren > 0 && datum.itemId != null && this.ctx.collapsedManager.isCollapsed(datum.itemId);
 
@@ -342,8 +341,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         let vertex = this.graph.findVertexById(id);
         if (!vertex) return;
 
-        // Iterate up the parents until we reach the root node, which does not have a datumIndex, and expand the full
-        // ancestry to ensure the active node is visible.
+        // The root has no datumIndex; the whole ancestry is expanded so the active node is visible.
         const ids: OrganizationVertexID[] = [];
         const idValues = dataModel.resolveKeysById(this, 'idValue', processedData);
         while (
@@ -386,16 +384,13 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return target?.tag === Expander;
     }
 
-    // The expander pill is a distinct part of the node, so hovering it is reported through the highlight
-    // selection rather than re-picked here: the manager has already performed this pick, and this hook is
-    // where the part it hit gets a name. Highlight roll-up is unchanged — the highlighted datum is the
-    // node either way.
+    // The manager has already performed the pick; this hook only names the part it hit.
     override getHighlightPart(target: _ModuleSupport.Node<unknown> | undefined): string | undefined {
         return this.isExpanderTarget(target) ? EXPANDER_HIGHLIGHT_PART : undefined;
     }
 
-    // One signal for both directions: the highlight carries the hovered part while the pointer is over the
-    // pill, and drops it — or drops the highlight entirely, on leave, pan or zoom — the moment it is not.
+    // The highlight carries the hovered part while the pointer is over the pill, and drops it the
+    // moment it is not.
     private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
         const { currentHighlight, currentHighlightPart } = event;
         const datumIndex =
@@ -417,17 +412,14 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SERIES_UPDATE });
     }
 
-    // A pointer click toggles collapse only when it lands on the expander pill; `clickToExpand`
-    // widens that to the whole card. Keyboard Enter/Space activations arrive with no pointer target,
-    // so they toggle exactly when `clickToExpand` is enabled — restoring the pre-Alt+Up/Down behaviour.
+    // A pointer click toggles collapse only on the expander pill, which `clickToExpand` widens to the
+    // whole card. Keyboard activations carry no pointer target, so they toggle only when it is enabled.
     override hasBuiltinListener(target: _ModuleSupport.Node<unknown> | undefined): boolean {
         return this.isExpanderTarget(target) || this.properties.node.clickToExpand;
     }
 
-    // Expanding/collapsing is a distinct interaction from activating a node, so the expander pill
-    // keeps its clicks to itself (AG-17947). Note this is deliberately independent of
-    // `clickToExpand`: a card-body click still fires the node events even when it also toggles, so
-    // consumers get a consistent event surface and can `preventDefault()` if they want.
+    // Expanding is a distinct interaction from activating a node, so the expander pill keeps its
+    // clicks to itself; a card-body click still fires the node events even when it also toggles.
     override firesUserClickListeners(target: _ModuleSupport.Node<unknown> | undefined): boolean {
         return !this.isExpanderTarget(target);
     }
@@ -495,8 +487,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const itemId = vertex.value as string;
         const isCollapsed = this.ctx.collapsedManager.isCollapsed(itemId);
         const collapsedState = this.ctx.localeManager.t(isCollapsed ? 'ariaOrgChartCollapsed' : 'ariaOrgChartExpanded');
-        // Alt+Down/Up always toggle a node, so advertise them unconditionally. Enter/Space only
-        // toggle when `clickToExpand` is enabled (see `hasBuiltinListener`), so only mention them then.
+        // Enter/Space only toggle when `clickToExpand` is enabled (see `hasBuiltinListener`).
         const instructions = [
             this.ctx.localeManager.t(isCollapsed ? 'ariaDescriptionExpandNode' : 'ariaDescriptionCollapseNode'),
         ];
@@ -551,9 +542,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return node.getShapeBBox();
     }
 
-    // Drag-to-select hit-tests against the card only. The default predicate uses the node's
-    // full bbox, which for an org node also spans the expander pill's overhang, so a drag-rect
-    // touching only the pill would wrongly pick the node.
+    // Hit-test the card only: the default full-bbox predicate also spans the expander pill's overhang,
+    // so a drag-rect touching only the pill would wrongly pick the node.
     protected override pickNodesInBBoxPredicate() {
         const { containment } = this.properties.selection;
         return (selectionBox: BoxBounds, node: _ModuleSupport.Node): boolean => {
@@ -621,9 +611,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return parts.join(', ');
     }
 
-    // Returns the next focus vertex per the spatial model, or `undefined` for a no-op (ArrowUp
-    // at the top tier, ArrowDown into a leaf) so focus stays put. ArrowDown on a collapsed node
-    // automatic expands it.
+    // Returns `undefined` for a no-op so focus stays put; ArrowDown on a collapsed node expands it.
     private resolveFocusVertex(
         current: Vertex<OrganizationVertex, OrganizationEdge>,
         siblingDelta: number,

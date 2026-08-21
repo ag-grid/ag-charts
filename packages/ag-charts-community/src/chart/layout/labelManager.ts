@@ -53,10 +53,8 @@ export class LabelManager {
             return;
         }
 
-        // updateLabels runs on every SERIES_UPDATE, including hover/highlight. Placement inputs (label
-        // data and obstacles, both derived from node data) and the bounds are unchanged then, so reuse
-        // the cached placement rather than re-sorting, rebuilding the obstacle index and re-solving. The
-        // placement is still re-applied below, since that also refreshes per-datum highlight styling.
+        // SERIES_UPDATE also fires on hover/highlight, where the placement inputs are unchanged, so
+        // reuse the cached solve; it is still re-applied below to refresh per-datum highlight styling.
         const signature = placementSignature(visibleSeries, bounds);
         let placedLabels = this.lastPlacedLabels;
         if (placedLabels == null || signature !== this.lastPlacementSignature) {

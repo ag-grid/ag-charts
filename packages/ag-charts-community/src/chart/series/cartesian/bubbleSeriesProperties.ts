@@ -61,9 +61,8 @@ export class BubbleScatterSeriesProperties extends CartesianSeriesProperties<AgB
     @Property
     colorKey?: string;
 
-    // WARNING! This selectedKey is related to cross-filtering which is not an officially documented or supported
-    // feature. It has nothing to do with the official data selection API in the options contract. Do not use, or use
-    // with extreme caution.
+    // WARNING! Cross-filtering only, which is neither documented nor supported, and is unrelated to the
+    // data selection API in the options contract.
     @Property
     selectedKey: string | undefined;
 

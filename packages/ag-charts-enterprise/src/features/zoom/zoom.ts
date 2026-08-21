@@ -67,9 +67,8 @@ type ZoomOpts = NormalisedZoomOptions & { enableIndependentAxes?: boolean };
 
 const DISABLED_OPTS: ZoomOpts = { enabled: false } as ZoomOpts;
 
-// `zoomManager` is optional on _ModuleSupport.ChartRegistry, but the zoom module registers it in
-// its own `register()` hook, so it is guaranteed present whenever Zoom is
-// instantiated. Narrow once here rather than asserting `!` at every call site.
+// `zoomManager` is optional on ChartRegistry, but the zoom module registers it during its own
+// `register()` hook, so it is always present here. Narrow once rather than asserting `!` everywhere.
 export type ZoomCtx = Omit<DynamicContext<_ModuleSupport.ChartRegistry>, 'zoomManager'> & {
     readonly zoomManager: _ModuleSupport.ZoomManager;
 };
@@ -105,25 +104,8 @@ export class Zoom extends AbstractModuleInstance {
 
     private hoveredAxisId?: AxisID;
     private hoveredAxisDirection?: ChartAxisDirection;
-    // Tech-Debt: Widget & DragInterpreter do not capture the pointer, so the first mousemove event in DragInterpreter
-    // that triggers the drag-start event can target a different element.
-    //
-    // For example:
-    //
-    // 1.  mousedown the left-most pixel of the .ag-charts-series-area element.
-    //     Effect: drag-start/drag-move deferred.
-    //
-    // 2.  mousemove to the left by 1 pixel:
-    //     Effect: fires on X-axis onAxisMouseEnter() callback.
-    //
-    // 3.  mousemove to the left by 2 more pixels:
-    //     Effect: fires the deferred drag-start/drag-move events, but onSeriesAreaDragStart needs to do nothing if
-    //     you're dragging an axis.
-    //
-    // Workaround: Listen for un-deferred drag-start so that onSeriesAreaDragStart knows what axis was hovered when
-    // the mousedown event occurred.
-    //
-    // This workaround will become obsolete if-and-when Widget drag-* events capture the pointer.
+    // DragInterpreter does not capture the pointer, so a deferred drag-start can be reported against a different
+    // element; recorded from the un-deferred drag-start so the axis the mousedown hit is known.
     private draggedAxisId?: AxisID;
 
     // State
@@ -160,7 +142,7 @@ export class Zoom extends AbstractModuleInstance {
             this.isZoomValid.bind(this)
         );
 
-        // FIXME(AG-8627 TC10; AG-16414) `minVisibleItems` should have its own zoom:change-request handling
+        // FIXME: `minVisibleItems` should have its own zoom:change-request handling
         const minVisibleItemsCallback = (event: _ModuleSupport.ZoomChangeRequestEvent): void => {
             if (this.opts.minVisibleItems > 0) {
                 const restrictions = event.stateAsDefinedZoom();
@@ -339,7 +321,6 @@ export class Zoom extends AbstractModuleInstance {
 
         if (this.draggedAxisId) return;
 
-        // Determine which ZoomDrag behaviour to use.
         let newDragState = DragState.None;
 
         const selectionOpts = this.selectionOpts;
@@ -450,10 +431,8 @@ export class Zoom extends AbstractModuleInstance {
         this.updateAxisCursor(event.direction, event);
     }
 
-    // Computes and applies the axis-hover cursor (ew/ns-resize, or grab in pan mode). Extracted from the
-    // mouseenter handler so it can also be re-applied on drag end: releasing the mouse while still hovering
-    // the axis must keep the resize cursor, but no fresh `mouseenter` fires because the pointer never left
-    // the axis region. The optional `event` is only present on the mouseenter path.
+    // Also called from drag-end: releasing the mouse over the axis must keep the resize cursor, but no
+    // fresh `mouseenter` fires since the pointer never left. `event` is only present on that mouseenter path.
     private updateAxisCursor(
         direction: ChartAxisDirection,
         event?: _ModuleSupport.ZoomInteractionAxisMouseEvent<'mouseenter'>
@@ -609,10 +588,7 @@ export class Zoom extends AbstractModuleInstance {
         }
 
         axisDragger.stop();
-        // The pointer never left the axis region during the drag, so no `mouseenter` will re-fire to restore
-        // the hover cursor. Re-apply it here when still hovering an axis; otherwise clear it. In the released-
-        // off-axis case `hoveredAxisId` may momentarily be stale, but the drag machinery synthesises a
-        // `mouseleave` immediately after this handler, which clears it again.
+        // No `mouseenter` re-fires here, so restore the hover cursor manually when still on the axis.
         if (this.hoveredAxisId != null && this.hoveredAxisDirection != null) {
             this.updateAxisCursor(this.hoveredAxisDirection);
         } else {
@@ -980,8 +956,6 @@ export class Zoom extends AbstractModuleInstance {
 
     private updateChanges(sourcing: _ModuleSupport.UpdateZoomSourcing, changes: _ModuleSupport.CoreZoomState) {
         // TODO: constrainZoom should operate on a partial CoreZoomState instead of DefinedZoomState.
-        // For compatibility, we calculate the final DefinedZoomState for constrainZoom to continue to work without
-        // breaking the behaviour.
         const partialZoom = toZoomState(changes) ?? {};
         const currentZoom = this.getZoom();
         this.updateZoom(sourcing, {

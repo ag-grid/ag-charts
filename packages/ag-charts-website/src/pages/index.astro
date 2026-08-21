@@ -106,13 +106,16 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/index.m
             </div>
         </div>
 
-        <LandingPageSection
-            tag={sections.gallery.tag}
-            heading={sections.gallery.heading}
-            ctaTitle={sections.gallery.ctaTitle}
-            ctaUrl={urlWithBaseUrl(sections.gallery.ctaUrl)}
-            ctaId={sections.gallery.ctaId}
-        >
+        <LandingPageSection tag={sections.gallery.tag} heading={sections.gallery.heading}>
+            <div class={styles.gallerySectionCtas}>
+                {
+                    sections.gallery.ctas.map((cta) => (
+                        <a id={cta.id} href={urlWithBaseUrl(cta.url)} class="button-tertiary">
+                            {cta.title} <Icon name="chevronRight" />
+                        </a>
+                    ))
+                }
+            </div>
             <HomepageGalleryExamples />
         </LandingPageSection>
 
@@ -225,9 +228,8 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/index.m
 </Layout>
 
 {
-    /* Externalised to a 'self' script (config via data- attributes) so the site CSP
-    can drop script-src 'unsafe-inline' — see public/scripts/site-header-scroll.js.
-    Classic non-deferred script so document.currentScript resolves. */
+    /* Externalised so the site CSP can drop script-src 'unsafe-inline'; classic and non-deferred
+    so `document.currentScript` resolves. */
 }
 <script
     is:inline

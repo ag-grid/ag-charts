@@ -471,15 +471,11 @@ describe('RangeAreaSeries', () => {
         await compare();
     });
 
-    // The initial-load reveal, asserted over the whole animation trajectory (see the
-    // animation-trajectory-tests rule) rather than as per-ratio image snapshots. The band and its
-    // two stroke lines are revealed by a left-to-right clip swipe, the low/high markers scale in
-    // from zero size, and the datum labels fade in.
+    // Initial load: the band and its stroke lines reveal via a left-to-right clip swipe, markers scale in from zero, labels fade in.
     describe('initial animation', () => {
         const frames = spyOnAnimationFrames();
 
-        // The path geometry is drawn in full from frame 0 while a clip window sweeps across the plot
-        // (clip:x grows); clip drops to 0 once the mask lifts, so clip:x is present only during the sweep.
+        // clip:x is only present during the sweep — it drops to 0 once the mask lifts.
         const swipeReveal = (): SceneNodeExpectation => ({
             'clip:x': ['increases', 'progresses', 'bounded'],
             clip: 'any',
@@ -544,8 +540,6 @@ describe('RangeAreaSeries', () => {
             });
         });
 
-        // Pixel endpoint guard replacing the deleted 0%/100% ratio snapshots: the animated reveal
-        // must settle at exactly what a snapped render of the same options produces.
         it('reveal endpoints match a static render', async () => {
             const options: AgChartOptions = { ...RANGE_AREA_OPTIONS };
             prepareEnterpriseTestOptions(options);

@@ -119,7 +119,7 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
             axes: {
                 number: {
                     interval: { maxSpacing: 45 },
-                    // AG-17247: set formatter here so it takes precedence over label.format (a global formatter
+                    // Set the formatter here so it takes precedence over label.format (a global formatter
                     // would not), while still falling back to label.format when it returns undefined.
                     label: { format: '.2f', formatter: { $path: '/formatter' } },
                 },

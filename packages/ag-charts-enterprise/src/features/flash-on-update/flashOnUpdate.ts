@@ -45,9 +45,7 @@ function classifyDiffCategories(
 ): Map<string, FlashAnimationPhase> {
     const phases = new Map<string, FlashAnimationPhase>();
     for (const seriesDiff of diffs.flatMap((diff) => Object.values(diff))) {
-        // Moved categories are only flashed when animations are enabled, where position interpolation
-        // gives visual context for the move. Without animation, the move is instant and invisible.
-        // Since moved keys are a subset of updated, exclude them when animations are skipped.
+        // Moved keys are a subset of updated, and without animation the move is instant and invisible.
         const excludeFromUpdate = animationsSkipped ? seriesDiff.moved : undefined;
         setPhaseIfAbsent(phases, seriesDiff.updated, 'update', excludeFromUpdate);
         for (const key of seriesDiff.removed) phases.set(key, 'remove');
@@ -174,9 +172,8 @@ export class FlashOnUpdate extends AbstractModuleInstance {
         this.axisCtx = findPrimaryCategoryAxisContext(this.ctx);
     }
 
-    // For grouped-category axes, domain values are arrays (e.g. ['UK', 'North']) but diff keys
-    // are stringified arrays (e.g. 'UK,North'). Scan the domain to find the matching array value
-    // so scale.convert() receives the correct type.
+    // Grouped-category domain values are arrays (['UK', 'North']) while diff keys are stringified,
+    // so the array value has to be recovered before scale.convert().
     private resolveDomainValue(key: string): unknown {
         const domain = this.axisCtx?.scale.domain;
         if (!domain?.length || !Array.isArray(domain[0])) return key;
@@ -285,15 +282,14 @@ export class FlashOnUpdate extends AbstractModuleInstance {
         const animationsSkipped = this.ctx.animationManager.isSkipped();
 
         if (animationsSkipped) {
-            // Removed categories no longer exist on the new scale and cannot be flashed.
+            // Removed categories are absent from the new scale and cannot be flashed.
             for (const [key, phase] of categoryPhases) {
                 if (phase === 'remove') categoryPhases.delete(key);
             }
         }
 
-        // When categories are added or removed with animations enabled, the band scale changes so
-        // all bands visually reposition. Mark unclassified domain keys as 'update' so they flash too.
-        // Skipped when animations are disabled since positions snap instantly.
+        // A category count change shifts the band scale, repositioning every band — so unclassified
+        // domain keys flash as updates too.
         if (!animationsSkipped && this.hasScaleChange(categoryPhases)) {
             const domain = this.axisCtx?.scale.domain ?? [];
             for (const d of domain) {

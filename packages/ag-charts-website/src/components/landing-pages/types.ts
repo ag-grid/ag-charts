@@ -1,8 +1,6 @@
 import type { LandingPageSectionType } from '@ag-website-shared/components/landing-pages/types';
 
-// ============================================================================
-// AG Charts Specific Section Types
-// ============================================================================
+// AG Charts specific section types.
 
 export interface GalleryShowcaseSection {
     type: 'gallery-showcase';
@@ -210,9 +208,7 @@ export interface ChartTypesShowcaseSection {
     };
 }
 
-// ============================================================================
-// Landing Page Content
-// ============================================================================
+// Landing page content.
 
 /**
  * Every section an AG Charts landing page can hold: the charts-specific ones above plus the

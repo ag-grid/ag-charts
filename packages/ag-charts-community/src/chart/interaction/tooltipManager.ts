@@ -86,23 +86,16 @@ export class TooltipManager {
     }
 
     public removeTooltip(callerId: string, meta?: TooltipMeta, delayed: boolean = false): void {
-        // Case 1: Immediate removal (default behaviour - backward compatible)
         if (delayed && this.removeDelay > 0) {
-            // Case 2: Delayed removal
-            // Check if we already have a pending removal for this caller
-            // This prevents resetting the countdown (same fix as highlights)
+            // A repeat call must not restart the countdown, only refresh the position.
             const existingPending = this.pendingRemovals.get(callerId);
             if (existingPending) {
-                // Already pending - optionally update position if meta provided
-                // This allows tooltip position to update during delay (future enhancement)
                 if (meta) {
                     existingPending.lastMeta = meta;
                 }
-                // Don't reset countdown - let it continue
                 return;
             }
 
-            // First delayed removal call - start the countdown
             const scheduler = debouncedCallback(() => {
                 this.applyPendingRemoval(callerId);
             });

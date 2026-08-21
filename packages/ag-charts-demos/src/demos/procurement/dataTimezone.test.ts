@@ -16,13 +16,8 @@ import {
 import type { DateRange } from './types';
 import { MANAGER, MY_ORDERS, mySpendTrend } from './workspace';
 
-// Runs under a DST-observing zone (see vitest.config.tz.ts). Every bucket the engine builds is
-// anchored to local midnight and stepped by calendar field, while the instants it sorts into them
-// are absolute. A fixed-24h step drifts an hour off midnight past a transition, which either
-// straddles two buckets or drops a datum between them — neither of which a UTC run can show.
-//
-// The demo's own quarter is a summer one with no transition in it, so the ranges below are built
-// around the transitions themselves rather than taken from the range presets.
+// Runs under a DST-observing zone (see vitest.config.tz.ts): buckets are anchored to local midnight
+// and stepped by calendar field, which a UTC run cannot exercise, so the ranges below straddle transitions.
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -99,8 +94,7 @@ it.each(DST_DAYS)('tiles week buckets across the %s transition by calendar day',
         if (index > 0) expect(bucket.start).toBe(buckets[index - 1].end);
     }
 
-    // The bucket holding the transition is 23 or 25 hours off 7 × 24h, and must still cover exactly
-    // seven calendar days — a fixed-168h tile would slip an hour and start mid-day thereafter.
+    // The bucket holding a transition must still cover exactly seven calendar days.
     const straddling = buckets.filter((bucket) => bucket.end - bucket.start !== 7 * DAY_MS);
     expect(straddling.length).toBe(1);
     for (const bucket of buckets) {
@@ -165,13 +159,11 @@ it.each(DST_DAYS)('runs the burn-up over consecutive calendar days across the %s
         if (index > 0) {
             const previous = points[index - 1].date;
             const next = new Date(previous.getFullYear(), previous.getMonth(), previous.getDate() + 1);
-            // Indexed by a UTC day count but labelled by calendar arithmetic: if the two disagree
-            // past a transition, a day is repeated or skipped here.
+            // Indexed by a UTC day count but labelled by calendar arithmetic; disagreement repeats or skips a day.
             expect(point.date.getTime()).toBe(next.getTime());
         }
     }
 
-    // Every order lands on a day inside the series, so the last figure is the full total. An order
-    // whose day index falls outside the array is dropped silently, and this is what catches it.
+    // An order whose day index falls outside the array is dropped silently, and this catches it.
     expect(points.at(-1)!.committed).toBeCloseTo(sumSpend(orders), 4);
 });

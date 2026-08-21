@@ -53,22 +53,18 @@ function builtSitemapPaths(): string[] {
     );
 }
 
-// Gate on a *complete* build: an absent dist (a plain unit run) or a half-written one (a build in
-// flight) skips rather than fails, since neither says anything about page coverage. The site has
-// ~750 pages, so this threshold cannot be met by a partial build of the non-docs pages alone.
+// Gate on a complete build: an absent or half-written dist says nothing about page coverage.
 const sitemapPaths = builtSitemapPaths();
 const hasCompleteBuild = sitemapPaths.length > 500;
 
-// The site is served under a base (`/charts`), which the sitemap carries but `dist` does not — the
-// dist root *is* that base. The site root is the shortest path in any sitemap, so it gives the base
-// without depending on the env the build ran under.
+// The sitemap carries the `/charts` base but dist does not, so strip it; the shortest sitemap
+// path is the site root, which yields the base whatever env the build ran under.
 const sitemapBase = hasCompleteBuild
     ? sitemapPaths.reduce((shortest, path) => (path.length < shortest.length ? path : shortest)).replace(/\/$/, '')
     : '';
 const baseRelative = (pathname: string) => pathname.slice(sitemapBase.length) || '/';
 
-// The invariant this whole feature rests on: an agent can append `.md` to any URL in the sitemap.
-// Requires a build (`nx build ag-charts-website`); skipped otherwise so unit runs stay fast.
+// The invariant the feature rests on: `.md` can be appended to any URL in the sitemap.
 describe.runIf(hasCompleteBuild)('every sitemap URL has a .md twin in dist', () => {
     const missing = sitemapPaths.filter((pathname) => {
         const trimmed = baseRelative(pathname).replace(/\/$/, '');
@@ -77,8 +73,7 @@ describe.runIf(hasCompleteBuild)('every sitemap URL has a .md twin in dist', () 
         return !existsSync(join(DIST, twin));
     });
 
-    // Guard against a vacuous pass: if filtering ever empties the set, the assertions below would
-    // hold trivially and the check would silently stop protecting anything.
+    // Guard against a vacuous pass: an empty set would make the assertions below hold trivially.
     it('checks a full sitemap', () => {
         expect(sitemapPaths.length).toBeGreaterThan(500);
         expect(sitemapBase).toBe('/charts');
@@ -99,10 +94,8 @@ describe.runIf(hasCompleteBuild)('every sitemap URL has a .md twin in dist', () 
     });
 
     describe('the API reference twins', () => {
-        // These fan out from the generated interface reference rather than from a content
-        // collection, so a change to the generator can drop them from the build — or, since the
-        // builders degrade to an empty table rather than throwing, reduce them to a stub with
-        // frontmatter and no properties. Only a built twin can show either.
+        // These fan out from the generated interface reference, and the builders degrade to an
+        // empty table rather than throwing, so only a built twin can show a generator break.
         const apiPages = sitemapPaths.filter((pathname) => /\/(?:options|themes-api)(?:\/|$)/.test(pathname));
         const twinBody = (path: string) =>
             readFileSync(join(DIST, `${baseRelative(path).replace(/^\/|\/$/g, '')}.md`), 'utf8');
@@ -132,8 +125,7 @@ describe.runIf(hasCompleteBuild)('every sitemap URL has a .md twin in dist', () 
     });
 
     it('leaves the contact result pages out of the sitemap entirely', () => {
-        // Post-submission confirmations: robots-disallowed, so listing them would contradict
-        // robots.txt. They have no twin by design (see sitemap.ts).
+        // Post-submission confirmations are robots-disallowed and have no twin by design.
         const relative = sitemapPaths.map(baseRelative);
         expect(relative).not.toContain('/contact/success/');
         expect(relative).not.toContain('/contact/failure/');

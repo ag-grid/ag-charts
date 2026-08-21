@@ -180,7 +180,6 @@ test.describe('context-menu', () => {
 
         for (const [name, x, y, expectedHtmlText] of cases) {
             test(name, async ({ page }) => {
-                // Check that (x,y) coord are clicking the correct HTML element that we expect.
                 const rightClickedTextContent = await page.evaluate(
                     (args) => document.elementFromPoint(args.x, args.y)?.textContent ?? '',
                     { x, y }
@@ -582,10 +581,8 @@ test.describe('context-menu', () => {
             return {
                 showOn: 'axis',
                 defaultItems: ['download'],
-                // The `axis` scope carries no domain-space `coordinates` — the pointer is over the axis, not
-                // the plot, so there is no point to resolve in the other direction. Only the `series-area`,
-                // `series-node` and `cross-line` scopes populate it. Asserted rather than omitted so that
-                // starting to populate it here has to be a deliberate change to this expectation.
+                // Only the `series-area`, `series-node` and `cross-line` scopes carry domain-space
+                // `coordinates`; asserted rather than omitted so populating it here is a deliberate change.
                 coordinates: undefined,
                 ...commonArg,
                 ...pointArgs,
@@ -630,7 +627,7 @@ test.describe('context-menu', () => {
             });
         }
 
-        // The reported case: `axes` names only the left `y` axis, so the bottom axis is implicit.
+        // `axes` names only the left `y` axis, so the bottom axis is implicit.
         test.describe('example: only the y axis is declared', () => {
             test.beforeEach(async ({ page }) => {
                 await gotoExample(page, toExamplePageUrl('context-menu-e2e', 'ag-18053-implicit-axis', 'vanilla').url);

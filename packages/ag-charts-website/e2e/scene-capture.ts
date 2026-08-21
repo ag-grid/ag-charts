@@ -2,10 +2,8 @@ import type { Locator, Page } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, parse } from 'node:path';
 
-// Import the sampler from its source module directly, not via the `ag-charts-test` package entry.
-// The barrel eagerly loads skia-canvas (a native addon) through mock-canvas, and the package's built
-// `dist` is not present in the Playwright CI container; the source module (transpiled by Playwright)
-// depends only on ag-charts-core, so both problems are avoided while keeping a single shared source.
+// The `ag-charts-test` barrel eagerly loads skia-canvas via mock-canvas and its built `dist` is absent
+// in the Playwright CI container, so import the sampler source module (core-only) directly.
 import {
     type SerializedSceneRoots,
     sampleSerializedRoots,
@@ -24,9 +22,8 @@ function sceneCaptureMode(): SceneCaptureMode {
 
 function writeSceneSnapshots(name: string, roots: SerializedSceneRoots[]): void {
     if (roots.length === 0) return;
-    // Mirror Playwright's resolved screenshot path so the scene JSON carries the same project and
-    // platform identity as its screenshot (e.g. `chart-chromium-linux`) and cannot collide when the
-    // same test runs under multiple projects.
+    // Mirror Playwright's resolved screenshot path so the scene JSON carries the same project and platform
+    // identity (e.g. `chart-chromium-linux`) and cannot collide across projects.
     const screenshot = parse(test.info().snapshotPath(name, { kind: 'screenshot' }));
     const dir = join(screenshot.dir, '__scene_snapshots__');
     mkdirSync(dir, { recursive: true });
@@ -58,8 +55,7 @@ export async function expectChartScreenshot(
         await expect(target).toHaveScreenshot(name, options);
         return;
     }
-    // Capture whatever the screenshot outcome — the JSON explains a pixel change and must be written
-    // even on an image diff, mirroring the unit compareImageSnapshot.
+    // The JSON explains a pixel change, so it must be written even when the screenshot comparison fails.
     let screenshotError: unknown;
     let screenshotFailed = false;
     try {
@@ -73,8 +69,8 @@ export async function expectChartScreenshot(
         const roots = (await evalPageFunction(page, 'captureScenes')) as SerializedSceneRoots[];
         writeSceneSnapshots(name, roots);
     } catch (captureError) {
-        // A missing scene artifact must not hide behind a passing screenshot, so fail the test on a
-        // capture error. When the screenshot also failed, that is the more actionable error — keep it.
+        // A missing scene artifact must not hide behind a passing screenshot; when the screenshot also failed,
+        // that is the more actionable error.
         if (!screenshotFailed) {
             throw captureError;
         }

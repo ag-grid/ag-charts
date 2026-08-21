@@ -34,9 +34,7 @@ export class GradientLegend extends AbstractModuleInstance {
 
     data: _ModuleSupport.GradientLegendDatum[] = [];
 
-    // GradientLegend is only created when the `gradientLegend` subtree is configured,
-    // so assert presence here and rely on the module's themeTemplate (which spreads
-    // LEGEND_CONTAINER_THEME) for field-level defaults.
+    // Only constructed when the `gradientLegend` subtree is configured, so the value is always present.
     private get opts(): NormalisedGradientLegendOptions {
         return this.ctx.chartState.getValue('options', 'gradientLegend')!;
     }
@@ -61,9 +59,7 @@ export class GradientLegend extends AbstractModuleInstance {
                 }
             }),
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.onStartLayout(e)),
-            // When node highlighting is suppressed the series-update path is skipped, so nothing
-            // flushes the highlight observer. Request a render so the arrow tracks the hovered node
-            // regardless of the series' highlight.enabled setting.
+            // Suppressed highlighting skips the series-update path, so nothing else flushes the highlight observer.
             ctx.eventsHub.on('highlight:change', (event) => {
                 if (event.highlightSuppressed) {
                     ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });

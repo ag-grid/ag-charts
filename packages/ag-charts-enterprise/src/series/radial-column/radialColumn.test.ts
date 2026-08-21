@@ -369,12 +369,7 @@ describe('RadialColumnSeries', () => {
         await compare();
     });
 
-    // The public animation data actions — initial load, add/remove/update data — asserted over the whole
-    // animation trajectory (see the animation-trajectory-tests rule) rather than as per-ratio image
-    // snapshots. Only the empty→ready reveal animates: each column grows radially from a shared baseline
-    // while the labels fade in during the trailing phase. A data update, add, or partial remove on an
-    // already-populated series falls through to PolarSeries.animateWaitingUpdateReady, which snaps to the
-    // settled state with no tween — the snap CASEs pin exactly that.
+    // Only the empty→ready reveal animates (columns grow radially from a shared baseline); data updates, adds and removes fall through to PolarSeries.animateWaitingUpdateReady and snap with no tween.
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
 
@@ -385,7 +380,7 @@ describe('RadialColumnSeries', () => {
             { quarter: `Q3'22`, air: 4.14, winds: 3.34 },
             { quarter: `Q4'22`, air: 3.48, winds: 3.56 },
         ];
-        // A pinned radius axis keeps the scaling fixed across data mutations, so only the marks move.
+        // Pinned radius axis keeps scaling fixed across data mutations, so only the marks move.
         const radialOptions = (data: Row[] = RC_DATA): AgPolarChartOptions =>
             prepareEnterpriseTestOptions<AgPolarChartOptions>({
                 data: [...data],
@@ -405,9 +400,7 @@ describe('RadialColumnSeries', () => {
             [...sample].filter(([key]) => /^series\[\d+\]\/path\[/.test(key));
         const pathCount = (sample: SceneGeometrySample) => pathEntries(sample).length;
 
-        // Farthest AABB corner from the polar centre (origin in contentGroup coords). A radial column
-        // grows outward at its own angle, so no single bbox dimension tracks the growth on its own; this
-        // derived radius rises monotonically with the column's radial extent regardless of orientation.
+        // Farthest AABB corner from the polar centre: unlike a single bbox dimension, this rises monotonically with a column's radial extent regardless of its angle.
         const outerExtent = (sample: SceneGeometrySample, key: string): number | undefined => {
             const v = sample.get(key);
             if (v == null) return undefined;
@@ -418,7 +411,6 @@ describe('RadialColumnSeries', () => {
         const extents = (trajectory: SceneGeometrySample[], key: string): number[] =>
             trajectory.map((f) => outerExtent(f, key)).filter((v): v is number => v != null);
 
-        // The per-column label containers fade in during the trailing phase, after the columns have grown.
         const labelFadeIn: Record<string, SceneNodeExpectation> = {
             'series[0]/labels/text[*]': {
                 opacity: { during: 'trailing', expect: ['increases', 'bounded'] },
@@ -431,8 +423,7 @@ describe('RadialColumnSeries', () => {
                 y: 'any',
             },
         };
-        // The labels start collapsed at opacity ~0 on the first captured frame, so the fade-in specs above
-        // cannot pass vacuously — a regression that snapped them straight to full opacity would trip this.
+        // Guards the fade-in specs above against passing vacuously if labels snapped straight to full opacity.
         const expectLabelsStartHidden = (trajectory: SceneGeometrySample[]) => {
             const hidden = [...trajectory[0]].filter(([key]) => /^series\[\d+\]\/labels\/text\[.+\]$/.test(key));
             expect(hidden.length, 'label nodes at frame 0').toBeGreaterThan(0);
@@ -440,10 +431,7 @@ describe('RadialColumnSeries', () => {
                 expect(props.opacity, `${key} opacity at frame 0`).toBeLessThanOrEqual(0.01);
             }
         };
-        // Columns are matched `any` (a narrow rotated column path leaves some x-stations un-crossed, i.e.
-        // legitimately NaN, which the whole-scene constancy check would reject). The rest of the scene —
-        // pinned axes and the labels — must still hold constant, and every column's radial extent must not
-        // move a pixel across the captured frames: the snap contract with no tween anywhere.
+        // Columns are matched `any`: a narrow rotated column path legitimately leaves some x-stations NaN, which the whole-scene constancy check would otherwise reject.
         const expectMarksSnapped = (trajectory: SceneGeometrySample[]) => {
             expectSceneTrajectory(trajectory, { 'series[0]/path[*]': 'any', 'series[1]/path[*]': 'any' });
             for (const [key] of pathEntries(trajectory[0])) {
@@ -461,8 +449,6 @@ describe('RadialColumnSeries', () => {
             const pathKeys = pathEntries(sampleScene()).map(([key]) => key);
             expect(pathKeys).toHaveLength(8);
 
-            // Every column shares one collapsed baseline extent at frame 0 and grows to its own target —
-            // a snap regression would show frame 0 already at the (distinct) targets.
             const baselines = pathKeys.map((key) => extents(trajectory, key)[0]);
             const finals = pathKeys.map((key) => extents(trajectory, key).at(-1)!);
             const baseline = baselines[0];
@@ -514,9 +500,8 @@ describe('RadialColumnSeries', () => {
             );
 
             const key = `series[0]/path[Q1'22]`;
-            // The update actually moved the air columns (anti-vacuity for the snap assertion below)...
+            // Anti-vacuity: confirm the update genuinely moved the column before asserting it snapped.
             expect(outerExtent(after, key)! - outerExtent(before, key)!, 'air column grew').toBeGreaterThan(20);
-            // ...and it landed fully formed on the first captured frame, then held.
             expect(
                 Math.abs(outerExtent(trajectory[0], key)! - outerExtent(after, key)!),
                 'snapped at frame 0'
@@ -536,9 +521,7 @@ describe('RadialColumnSeries', () => {
 
             expect(pathCount(after), 'two columns added').toBe(8);
             expect(pathCount(trajectory[0]), 'added columns present from frame 0').toBe(8);
-            // Entrants are drawn at FULL size from the first frame, not collapsed then held: a
-            // stuck-collapsed entrant sits at the ~148px reveal baseline, so a >170px floor rejects it
-            // while every real column (>=187px here) clears it. Snapped ⇒ frame 0 already == after.
+            // A >170px floor rejects a stuck-collapsed entrant (which would sit at the ~148px reveal baseline) while every real column (>=187px here) clears it.
             for (const key of [`series[0]/path[Q4'22]`, `series[1]/path[Q4'22]`]) {
                 expect(outerExtent(after, key)!, `${key} entrant at full size`).toBeGreaterThan(170);
                 expect(
@@ -564,8 +547,6 @@ describe('RadialColumnSeries', () => {
             expectMarksSnapped(trajectory);
         });
 
-        // Endpoint sanity guards: the animated reveal into `before` and the snapped transition into `after`
-        // must settle at exactly the pixels a non-animated render of the same options produces.
         it('sanity: update-data endpoints match static renders', async () => {
             const before = radialOptions();
             const proxy = AgCharts.create(before);
@@ -596,7 +577,6 @@ describe('RadialColumnSeries', () => {
             });
         });
 
-        // Runtime option toggles from the retired page, driven with update() on a populated chart.
         const stackedOptions = (data: Row[] = RC_DATA): AgPolarChartOptions => ({
             ...radialOptions(data),
             series: (radialOptions(data).series as AgRadialColumnSeriesOptions[]).map((s) => ({
@@ -620,8 +600,7 @@ describe('RadialColumnSeries', () => {
         });
         const negativeData = RC_DATA.map((d) => ({ ...d, air: -d.air, winds: -d.winds }));
 
-        // Toggling stackGroup rebuilds the series' node set (grouped→stacked), which re-runs the
-        // empty→ready reveal: the fresh stacked columns grow from a shared baseline, they do NOT snap.
+        // Toggling stackGroup rebuilds the series' node set, re-running the empty→ready reveal rather than snapping.
         it('toggle stacked: stacked columns reveal-grow from a shared baseline', async () => {
             const proxy = AgCharts.create(radialOptions());
             chart = deproxy(proxy);
@@ -639,8 +618,7 @@ describe('RadialColumnSeries', () => {
             expect(stackedKeys.length, 'stacked columns present across all frames').toBe(8);
             const baselines = stackedKeys.map((key) => extents(trajectory, key)[0]);
             const finals = stackedKeys.map((key) => extents(trajectory, key).at(-1)!);
-            // Shared collapsed baseline at frame 0, distinct targets — a snap would show frame 0 already
-            // spread across the (distinct) targets instead of bunched at the baseline.
+            // Anti-vacuity: a snap would show frame 0 already spread across the (distinct) targets.
             for (const [i, value] of baselines.entries()) {
                 expect(value, `${stackedKeys[i]} baseline`).toBeCloseTo(baselines[0], 0);
             }
@@ -660,8 +638,6 @@ describe('RadialColumnSeries', () => {
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, stackedOptions());
         });
 
-        // Flipping the data sign re-lays out every column on the opposite side of the baseline; the
-        // radius axis spans both signs so nothing clips. This is a data update ⇒ it snaps, no tween.
         it('flip data sign: columns move across the baseline and snap', async () => {
             const before = signedOptions(RC_DATA);
             const proxy = AgCharts.create(before);
@@ -696,8 +672,6 @@ describe('RadialColumnSeries', () => {
             );
         });
 
-        // Reversing the radius axis re-maps every column's radial extent (bars now grow from the outer
-        // edge inward); another option update that snaps rather than tweening.
         it('reverse radius axis: columns remap and snap', async () => {
             const before = radialOptions();
             const proxy = AgCharts.create(before);

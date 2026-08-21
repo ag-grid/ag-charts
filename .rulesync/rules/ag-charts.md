@@ -39,6 +39,10 @@ After meaningful chart changes, also run:
 -   `yarn nx test ag-charts-enterprise`
 -   `yarn nx test:e2e ag-charts-website`
 
+## Review guidelines
+
+-   **Hot-path impact:** a chart renders up to a million datums at 60Hz, so the same edit is free in one file and costs frame time in another. Gate with `node tools/hot-paths/detect.js --range <base>...<head>`; three dots make the range the fork point to the head, so nothing merged into the base since counts as part of the change. `--pr <number>` derives that range from a PR and `--base latest` scores the working tree including untracked files — prefer the explicit range when the revisions under review must not move mid-review. The detector is deterministic and sub-second. Output is JSON on stdout, with the schema in the `hot-paths` skill — read the `triggered` boolean, since the exit status is 0 whatever the verdict; add `--summary` for a human-readable form instead. When it reports `triggered`, load the `hot-paths` skill for the tiers, invariants, historical regression shapes, and how to evidence a claim. Do not assert a performance cost without naming the loop or caller that makes it hot.
+
 ## Tooling Health Check
 
 On the **first response** of a conversation, verify that project skills are available by checking the system-reminder skill list. If **any** of the canary skills are missing, display a one-time warning before doing anything else. Do not repeat the warning on subsequent responses.

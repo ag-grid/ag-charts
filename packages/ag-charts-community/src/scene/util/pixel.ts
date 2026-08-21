@@ -86,11 +86,8 @@ export function alignCentre(
         return out;
     }
     const centreDev = (start + length / 2) * pixelRatio;
-    // Snap the centre exactly as `Line.render` snaps a stroke of this device width, so a bar lands on
-    // the identical device pixel a matching-parity gridline uses (AG-17856). Odd widths keep the
-    // centre on a pixel centre, even widths on a boundary; both nearest to the true centre, leaving
-    // only the unavoidable half-pixel parity gap against an odd (1px) gridline or a marker at the
-    // exact datum centre.
+    // Snap the centre exactly as `Line.render` snaps a stroke of this device width, so a bar lands on the
+    // same device pixel a matching-parity gridline uses.
     const centreSnapDev = snapDeviceCentre(centreDev, lengthDev);
     const startDev = centreSnapDev - lengthDev / 2;
     out.start = startDev / pixelRatio;

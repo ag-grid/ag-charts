@@ -1,9 +1,7 @@
 import { type AgDataTransaction } from 'ag-charts-community';
 
-// Minimal transactions to turn `prev` into `next`. Both are trailing slices of the same growing
-// series, so retained items form one contiguous run and additions only ever sit at the front or
-// back, never the interior. `idOf` must line up with the chart's `dataIdKey`; `valueEquals` marks a
-// retained-but-changed item as an `update` and is omitted for immutable data points.
+// Both are trailing slices of one growing series, so additions only ever sit at the front or back.
+// `idOf` must line up with the chart's `dataIdKey`.
 export function diffWindow<T>(
     prev: readonly T[],
     next: readonly T[],

@@ -35,12 +35,8 @@ export class RangeLookup {
     }
 
     private populateBuffer(allValues: number[][]): void {
-        // NOTE: This function has been optimized for performance over readability.
-        // Key optimizations:
-        // - Use bit shifts (<< 1, >>> 1) instead of Math.trunc(x * 2) / Math.trunc(x / 2)
-        // - Use x === x for NaN check (NaN is the only value where x !== x)
-        // - Pre-compute buffer offsets to minimize repeated calculations
-        // - Cache min/max values in local variables to reduce array reads
+        // OPTIMIZATION: performance over readability — bit shifts for the tree indexing, `x === x`
+        // NaN checks, hoisted buffer offsets and locals for the min/max accumulators.
         const { maxLevelSize, buffer } = this;
         const leafOffset = maxLevelSize - 1;
 

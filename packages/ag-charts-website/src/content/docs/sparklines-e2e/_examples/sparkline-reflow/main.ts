@@ -56,8 +56,7 @@ function createSparklines() {
     }
 }
 
-// Simulates Grid calling instance.update() with new row data — matches
-// SparklineCellRenderer.refresh() which uses full update(), not updateDelta().
+// Mirrors SparklineCellRenderer.refresh(), which uses full update(), not updateDelta().
 function updateSparklines() {
     for (const chart of charts) {
         chart.update({
@@ -67,21 +66,17 @@ function updateSparklines() {
     }
 }
 
-// Simulates Grid scroll: destroy visible sparklines (returning them to pool),
-// then create new ones from pool with fresh data — matches the destroy/recreate
-// cycle that occurs as rows scroll in and out of the viewport.
+// Mirrors the Grid's destroy/recreate pooling cycle as rows scroll in and out of the viewport.
 function scrollSparklines() {
     const container = document.getElementById('sparklineContainer');
     if (!container) return;
 
-    // Destroy existing sparklines (returns to pool).
     for (const chart of charts) {
         chart.destroy();
     }
     charts.length = 0;
     container.innerHTML = '';
 
-    // Recreate from pool with new data.
     for (let i = 0; i < SPARKLINE_COUNT; i++) {
         const div = document.createElement('div');
         div.style.width = '200px';

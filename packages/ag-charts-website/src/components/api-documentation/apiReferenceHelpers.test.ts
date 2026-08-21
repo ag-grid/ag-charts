@@ -43,15 +43,8 @@ const contextMenuReference = () =>
         })
     );
 
-// Regression for the themes-api page failing to load with "RangeError: Maximum call stack size
-// exceeded". The crash was not infinite recursion — `extractSearchData` builds a finite but very
-// large index (the AgChartTheme tree reaches ~150k entries), and the previous implementation
-// assembled it with `results.push(...childArray)`. Spreading a child array as call arguments
-// overflows V8's argument limit (~125k in Node, lower in browsers) and throws. The fix flattens the
-// recursion into a shared accumulator so no large array is ever spread as arguments.
-//
-// This builds a non-cyclic Root -> Wide -> Leaf structure whose Wide subtree expands to
-// breadth + breadth^2 entries, comfortably above the argument limit, reproducing the overflow.
+// A Root -> Wide -> Leaf structure whose Wide subtree expands to breadth + breadth^2 entries: enough to
+// overflow V8's argument limit if the index is assembled by spreading child arrays into `push`.
 function makeLargeReference(breadth: number) {
     const member = (name: string, type: string) => ({ kind: 'member', name, type, optional: false });
     const reference: Record<string, unknown> = {
@@ -73,9 +66,8 @@ function makeLargeReference(breadth: number) {
 describe('formatUnionSignature', () => {
     const iface = (name: string) => ({ kind: 'interface' as const, name, members: [] });
 
-    // Mirrors `TextOrSegments = TextValue | ContentSegment[]` where ContentSegment is a nested union
-    // alias of two interfaces. The interfaces render as variant rows elsewhere, so the signature must
-    // spell out the aliases but never inline the interface bodies.
+    // A nested union alias of two interfaces: the signature must spell out the aliases but never inline the
+    // interface bodies, which render as variant rows elsewhere.
     const reference = new Map<string, any>(
         Object.entries({
             TextOrSegments: alias('TextOrSegments', union('TextValue', { kind: 'array', type: 'ContentSegment' })),
@@ -168,9 +160,8 @@ describe('formatTypeToCode', () => {
         expect(code).toContain('interface AgBarSeriesOptions');
     });
 
-    // Mirrors `AgChartContextMenuEvent = AgChartEvent<'contextMenuEvent', TContext>`: the resolved
-    // node keeps `type: T` / `context?: TContext` members but carries a genericsMap that binds them.
-    // The code block must substitute the generics just like the member table does.
+    // The resolved node keeps `type: T` / `context?: TContext` members but carries a genericsMap binding them,
+    // so the code block must substitute the generics just like the member table does.
     it('substitutes generic type parameters using the node genericsMap', () => {
         const eventNode = {
             kind: 'interface' as const,
@@ -192,9 +183,8 @@ describe('formatTypeToCode', () => {
         expect(code).not.toContain('context?: TContext;');
     });
 
-    // Mirrors `AgSeriesSegmentation<SegmentOptions = AgSeriesShapeSegmentOptions>` with a
-    // `segments: SegmentOptions[]` member: the generic is wrapped in an array, so it must resolve
-    // to the default's element type rather than the raw parameter name.
+    // The generic is wrapped in an array (`segments: SegmentOptions[]`), so it must resolve to the default's
+    // element type rather than the raw parameter name.
     it('substitutes an array-wrapped generic parameter using its default', () => {
         const segmentationNode = {
             kind: 'interface' as const,
@@ -417,7 +407,6 @@ describe('extractSearchData', () => {
 
         const run = () => extractSearchData(reference as any, reference.get('Root'), [{ name: 'r', type: 'Root' }]);
 
-        // Pre-fix this threw "Maximum call stack size exceeded" while spreading the Wide subtree.
         expect(run).not.toThrow();
         // Root(1) + Wide members(breadth) + Leaf members per Wide member(breadth^2).
         expect(run()).toHaveLength(1 + breadth + breadth * breadth);

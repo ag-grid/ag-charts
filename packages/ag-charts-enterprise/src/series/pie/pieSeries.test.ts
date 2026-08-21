@@ -29,10 +29,8 @@ describe('PieSeries', () => {
         (chart as any) = undefined;
     });
 
-    // AG-12391 - Test for switching data with overlapping non-unique keys rendering incorrectly.
-    // This is a pixel-correctness check of how overlapping sectors composite at the settled render,
-    // kept as a stored-baseline image snapshot per the animation-trajectory-tests classification rule.
-    // Sector MOTION during the switch is covered structurally by the 'switching data animation' CASE below.
+    // Pixel-correctness check of overlapping-sector compositing at the settled render; sector
+    // MOTION during the switch is covered structurally by the 'switching data animation' CASE below.
     describe('switching data', () => {
         const animate = spyOnAnimationManager();
 
@@ -79,10 +77,8 @@ describe('PieSeries', () => {
         });
     });
 
-    // Sector MOTION during the overlapping-key switch above. Non-unique keys can't be paired old→new,
-    // so the ring re-lays-out and snaps to its settled geometry on the first frame rather than
-    // tweening — the enterprise override of community pie, whose unique-key tweening path is covered
-    // in the community pieSeries.test.ts trajectory suite.
+    // Non-unique keys can't be paired old→new, so the ring re-lays-out and snaps to its settled
+    // geometry on the first frame rather than tweening.
     describe('switching data animation', () => {
         const frames = spyOnAnimationFrames();
 
@@ -106,18 +102,15 @@ describe('PieSeries', () => {
                 chart.updateDelta({ data: [...data, ...data] })
             );
 
-            // Anti-vacuity: the switch genuinely reshaped the ring — duplicating the keys doubles the
-            // sector count and re-layouts the outer radius — so a constant trajectory is a real snap,
-            // not a pin over an unchanged scene.
+            // The ring genuinely reshapes (sector count doubles, outer radius changes), so a
+            // constant trajectory below is a real snap, not a pin over an unchanged scene.
             expect(sectorCount(before)).toBe(3);
             expect(sectorCount(after)).toBe(6);
             const beforeOuter = sectorEntries(before)[0][1].outerRadius;
             const afterOuter = sectorEntries(after)[0][1].outerRadius;
             expect(Math.abs(afterOuter - beforeOuter), 'outer radius re-layout').toBeGreaterThan(10);
 
-            // The re-laid-out six-sector ring is already at its settled geometry on the first captured
-            // frame (contrast a tween, which would grow the entrants and shrink survivors over the
-            // trajectory) and holds constant thereafter.
+            // Already at settled geometry on the first captured frame, not tweened in.
             expect(sectorCount(trajectory[0])).toBe(6);
             expectNoAnimation(trajectory);
         });
