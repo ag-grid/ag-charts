@@ -175,3 +175,51 @@ test('benchmark map: the cap covers every changed type, or names what it dropped
         assert.ok(covered || flagged, `${type} is neither in the command nor named in a note`);
     }
 });
+
+test('globToRegExp: /**/ matches zero directories', () => {
+    const re = globToRegExp('packages/*/src/chart/series/**/*Node.ts');
+    assert.ok(re.test('packages/ag-charts-community/src/chart/series/fooNode.ts'), 'a direct child must match');
+    assert.ok(re.test('packages/ag-charts-community/src/chart/series/cartesian/fooNode.ts'));
+    assert.ok(!re.test('packages/a/b/src/chart/series/fooNode.ts'), '* must not cross a directory');
+});
+
+test('insideLoop: a multiline array callback is a loop, not a scope boundary', () => {
+    // Prettier splits the arrow onto its own line once the call does not fit, and
+    // the body is still per-item work.
+    const lines = [
+        'function build(data) {',
+        '    return data.map(',
+        '        (datum) => {',
+        '            return { x: datum.x };',
+        '        }',
+        '    );',
+        '}',
+    ];
+    const hit = insideLoop(lines, 4);
+    assert.ok(hit, 'the body of a multiline .map() callback runs per item');
+    assert.equal(hit.line, 2, 'the enclosing loop is the .map( call');
+});
+
+test('insideLoop: a real function boundary still ends the walk', () => {
+    const lines = [
+        '    for (const d of data) {',
+        '        register(d);',
+        '    }',
+        '',
+        '    private helper() {',
+        '        compute();',
+        '    }',
+    ];
+    assert.equal(insideLoop(lines, 6), null, 'a method boundary must stop the outward walk');
+});
+
+test('benchmark map: shared series bases recommend the scaled examples', () => {
+    for (const path of [
+        'packages/ag-charts-community/src/chart/series/series.ts',
+        'packages/ag-charts-community/src/chart/series/dataModelSeries.ts',
+        'packages/ag-charts-community/src/chart/series/cartesian/cartesianSeries.ts',
+    ]) {
+        const { command } = recommend([path]);
+        assert.ok(command, `${path} runs in every scaled example and must name something to measure`);
+    }
+});

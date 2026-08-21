@@ -142,6 +142,13 @@ const RULES = [
     { re: /(continuousScale|linearScale)/i, types: ['number'] },
     { re: /(bandScale|ordinalScale|categoryAxis)/i, types: ['category'] },
 
+    // Shared series bases — no concrete series in the path, but every scaled
+    // example runs them, so the workflow must still name something to measure.
+    {
+        re: /\/chart\/series\/[a-z][a-zA-Z]*\.ts$|cartesianSeries|dataModelSeries|polarSeries|abstractBarSeries/,
+        names: ['high-perf-bar', 'high-perf-line', 'high-perf-area', 'large-dataset', 'enterprise-1M-line-series'],
+    },
+
     // Subsystems — pick the examples whose measured phase covers them.
     { re: /\/chart\/axis\//, names: ['axes-1M-number', 'axes-1M-time', 'axes-1M-unit-time', 'axes-1M-ordinal-time'] },
     {

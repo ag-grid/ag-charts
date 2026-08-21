@@ -35,17 +35,28 @@ function git(args) {
     return execFileSync('git', args, { cwd: REPO_ROOT, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
 }
 
+// Sentinels for the wildcard forms, so the literal text can be escaped in one pass
+// without the escape touching the replacements. Control characters cannot occur in
+// a path pattern, so they are unambiguous.
+const SLASH_GLOBSTAR = '\u0000';
+const GLOBSTAR = '\u0001';
+const STAR = '\u0002';
+
 function globToRegExp(glob) {
-    // `**` crosses directory boundaries, `*` does not; everything else is literal.
+    // `/**/` matches zero or more directories, so `series/**/*Node.ts` covers a
+    // direct child as well as a nested one. A bare `**` crosses directory
+    // boundaries, `*` does not, and everything else is literal.
     const source = glob
-        .split('**')
-        .map((part) =>
-            part
-                .split('*')
-                .map((lit) => lit.replace(/[.+?^${}()|[\]\\]/g, '\\$&'))
-                .join('[^/]*')
-        )
-        .join('.*');
+        .replace(/\/\*\*\//g, SLASH_GLOBSTAR)
+        .replace(/\*\*/g, GLOBSTAR)
+        .replace(/\*/g, STAR)
+        .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
+        .split(SLASH_GLOBSTAR)
+        .join('/(?:.*/)?')
+        .split(GLOBSTAR)
+        .join('.*')
+        .split(STAR)
+        .join('[^/]*');
     return new RegExp(`^${source}$`);
 }
 
@@ -90,7 +101,10 @@ function resolveRange(argv) {
         const baseRef = execFileSync('gh', ['pr', 'view', pr, '--json', 'baseRefName', '-q', '.baseRefName'], {
             encoding: 'utf8',
         }).trim();
-        git(['fetch', '--quiet', 'origin', head, baseRef]);
+        // An explicit refspec for the base: fetching it by name alone leaves
+        // updating `origin/<baseRef>` to git's opportunistic behaviour, and a stale
+        // remote-tracking ref would silently move the merge-base.
+        git(['fetch', '--quiet', 'origin', head, `+refs/heads/${baseRef}:refs/remotes/origin/${baseRef}`]);
         let base = git(['merge-base', `origin/${baseRef}`, head]).trim();
 
         if (base === head) {
@@ -219,8 +233,7 @@ function signalsIn({ added, context }) {
 }
 
 const LOOP_OPENER_RE = /\b(for|while)\s*\(|\.(forEach|map|filter|reduce|flatMap)\(/;
-const BLOCK_BOUNDARY_RE =
-    /\b(function\b|=>\s*\{|class\b|constructor\b|override\b|private\b|protected\b|public\b|static\b)/;
+const BLOCK_BOUNDARY_RE = /\b(function\b|class\b|constructor\b|override\b|private\b|protected\b|public\b|static\b)/;
 
 /**
  * Whether a line executes inside a loop, by walking outwards through decreasing
