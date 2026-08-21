@@ -184,13 +184,6 @@ export class GroupedCategoryAxis extends CategoryAxis<
             const depth = maxDepth - datum.depth;
             depthLabelMaxSize[depth] ??= 0;
 
-            const isLeaf = !datum.children.length;
-            if (isLeaf && step < MIN_CATEGORY_SPACING) continue;
-            if (!optionsMap[depth]?.enabled || !inRange(datum.screen, range)) continue;
-
-            let maxWidth = (datum.leafCount || 1) * step;
-            if (maxWidth < MIN_CATEGORY_SPACING) continue;
-
             const tickIndex = index - 1;
             const value = (datum.refId == null ? undefined : this.tickValues?.[datum.refId]) ?? [];
             const inputText = tickFormatter(value, tickIndex, depth);
@@ -204,6 +197,14 @@ export class GroupedCategoryAxis extends CategoryAxis<
                 along: [datum.screen - alongHalfWidth, datum.screen + alongHalfWidth],
                 depth,
             });
+
+            const isLeaf = !datum.children.length;
+            if (isLeaf && step < MIN_CATEGORY_SPACING) continue;
+            if (!optionsMap[depth]?.enabled || !inRange(datum.screen, range)) continue;
+
+            let maxWidth = (datum.leafCount || 1) * step;
+            if (maxWidth < MIN_CATEGORY_SPACING) continue;
+
             let text = inputText;
             const labelStyles = this.getLabelStyles(
                 { value, formattedValue: text, depth, index: tickIndex },
