@@ -98,6 +98,15 @@ export class SizeMonitor {
     private checkSize(entry: Entry | undefined, element: HTMLElement, width: number, height: number) {
         if (!entry) return;
 
+        // Both producers are normalised to whole pixels here, because they do not agree on
+        // fractional ones: `clientWidth`/`clientHeight` are spec-rounded integers, while the
+        // ResizeObserver reports an exact fractional `contentRect`. At a fractional container
+        // size the two would otherwise report a size change that never happened, one that
+        // cancels a chart's entry animation just after it mounts (AG-18087). Rounding matches
+        // what Scene.resize() does with the size it is eventually given.
+        width = Math.round(width);
+        height = Math.round(height);
+
         if (width !== entry.size?.width || height !== entry.size?.height) {
             const pixelRatio = this.pixelRatioObserver?.pixelRatio ?? 1;
             entry.size = { width, height, pixelRatio };

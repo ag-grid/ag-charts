@@ -115,6 +115,56 @@ describe('SizeMonitor', () => {
         });
     });
 
+    describe('AG-18087: fractional container sizes are reported as whole pixels', () => {
+        it('should not fire a second resize when the container width is fractional', () => {
+            const sizeMonitor = new SizeMonitor(createMockAgDocument());
+
+            // A 345.5px container: clientWidth is spec-rounded to 346, contentRect stays 345.5.
+            const element = mockElement({ clientWidth: 346, clientHeight: 400 });
+
+            const sizes: Size[] = [];
+            sizeMonitor.observe(element, (size) => sizes.push({ ...size }));
+
+            expect(sizes).toHaveLength(1);
+            expect(sizes[0]).toMatchObject({ width: 346, height: 400 });
+
+            fireResizeObserver(element, 345.5, 400);
+
+            expect(sizes).toHaveLength(1);
+        });
+
+        it('should fire, with a whole-pixel size, when a fractional size crosses a pixel', () => {
+            const sizeMonitor = new SizeMonitor(createMockAgDocument());
+
+            const element = mockElement({ clientWidth: 346, clientHeight: 400 });
+
+            const sizes: Size[] = [];
+            sizeMonitor.observe(element, (size) => sizes.push({ ...size }));
+            expect(sizes).toHaveLength(1);
+
+            fireResizeObserver(element, 344.4, 400);
+
+            expect(sizes).toHaveLength(2);
+            expect(sizes[1]).toMatchObject({ width: 344, height: 400 });
+        });
+
+        it('should round the content-box size the synchronous initial read derives', () => {
+            const sizeMonitor = new SizeMonitor(createMockAgDocument());
+
+            const element = mockElement({ clientWidth: 346, clientHeight: 400, paddingLeft: '0.5px' });
+
+            const sizes: Size[] = [];
+            sizeMonitor.observe(element, (size) => sizes.push({ ...size }));
+
+            expect(sizes[0]).toMatchObject({ width: 346, height: 400 });
+
+            // The ResizeObserver's view of the same content box.
+            fireResizeObserver(element, 345.5, 400);
+
+            expect(sizes).toHaveLength(1);
+        });
+    });
+
     describe('refresh() re-reads an observed element after it gains a size', () => {
         it('emits the laid-out size when a detached element is later attached', () => {
             const sizeMonitor = new SizeMonitor(createMockAgDocument());

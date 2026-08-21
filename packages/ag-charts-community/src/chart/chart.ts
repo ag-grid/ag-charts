@@ -798,11 +798,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     resetAnimations() {
-        // Reset animation state. reset() stops the current batch and dispatches its stopped
-        // callbacks, one of which sets the phase to 'ready' — so declare the phase after it,
-        // not before, or the phase this method exists to set is immediately overwritten.
-        this.ctx.animationManager.reset();
-
         this.chartAnimationPhase = 'initial';
 
         for (const series of this.series) {
@@ -812,7 +807,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
             axis.resetAnimation(this.chartAnimationPhase);
         }
 
+        // Reset animation state.
         this.animationRect = undefined;
+        this.ctx.animationManager.reset();
     }
 
     skipAnimations() {
@@ -1454,8 +1451,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if (width == null || height == null || !isFiniteNumber(width) || !isFiniteNumber(height)) return;
 
         if (scene.resize(width, height, pixelRatio)) {
-            // reset() stops the running batch, which flips chartAnimationPhase to 'ready'.
-            const initialPhase = this.chartAnimationPhase === 'initial';
             animationManager.reset();
 
             // A caught update error emits no layout:complete, so a shown validation overlay would freeze
@@ -1466,26 +1461,10 @@ export abstract class Chart implements ModuleInstance, ChartService {
             if ((this.width == null || this.height == null) && this._firstAutoSize) {
                 skipAnimations = false;
                 this._firstAutoSize = false;
-            } else if (initialPhase) {
+            } else if (this.chartAnimationPhase === 'initial') {
                 // A resize during the initial phase (e.g. the size monitor re-measuring
                 // after a series-type switch) must not cancel the pending entry animation.
                 skipAnimations = false;
-                for (const series of this.series) {
-                    series.resetAnimation('initial');
-                }
-                for (const axis of this.axes) {
-                    axis.resetAnimation('initial');
-                }
-                // processLayout() skips the re-armed batch if the layout rect moved under it.
-                this.animationRect = undefined;
-            }
-
-            if (!skipAnimations) {
-                // reset() dispatched the stopped batch's callbacks, one of which reports the entry
-                // animation as finished. It has not finished — this resize is keeping it alive — so
-                // restore the phase, or a later resize in the same initial phase reads 'ready' and
-                // cancels it. The dropped callbacks are re-registered by the update() below.
-                this.chartAnimationPhase = 'initial';
             }
 
             let updateType = ChartUpdateType.PERFORM_LAYOUT;
