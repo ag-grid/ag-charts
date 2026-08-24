@@ -107,6 +107,14 @@ describe('probedFitRegion over a shape with a hole', () => {
         const [left] = region.spanAt(-10, 10);
         expect(left).toBeCloseTo(-50, 1);
     });
+
+    test('stops at the hole rather than reporting the room beyond it', () => {
+        // Anchored on the left arm, the reach to the right leaves the annulus at the hole and enters it
+        // again 100px further on: the room reported is the near arm's, not the far one's.
+        const region = probedFitRegion({ x: -100, y: 0 }, annulus(50, 200), 400);
+        const [, right] = region.spanAt(0, 0);
+        expect(right).toBeCloseTo(50, 1);
+    });
 });
 
 describe('insetFitRegion', () => {

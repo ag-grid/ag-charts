@@ -47,48 +47,55 @@ export function trapezoidFitRegion(trapezoid: TrapezoidBounds, anchorSpan: numbe
  * that need probing are not convex: an annulus sector is closest to its hole between the edges of a band
  * that straddles the centre line, so an edge-only test reaches into the hole unseen. This samples the
  * band rather than proving it, so a shape that narrows sharply within one row can still be over-reported.
+ *
+ * Nor is containment monotonic along the ray, for the same reason: a wide annulus sector is left through
+ * its hole and entered again beyond it, so a plain bisection over `[0, limit]` can settle on the far arm
+ * and report room across the gap. The reach is therefore bracketed by a coarse outward scan of `scans`
+ * samples first, and bisected only inside the interval where the shape was first left.
  */
 export function probedFitRegion(
     anchor: { x: number; y: number },
     contains: (x: number, y: number) => boolean,
     limit: number,
     steps = 20,
-    rows = 5
+    rows = 5,
+    scans = 8
 ): FitRegion {
+    const probe = (inside: (t: number) => boolean) => {
+        const coarse = Math.max(1, scans);
+        let lo = 0;
+        let hi = limit;
+        for (let i = 1; i <= coarse; i += 1) {
+            const t = (limit * i) / coarse;
+            if (!inside(t)) {
+                hi = t;
+                break;
+            }
+            lo = t;
+        }
+        if (lo === limit) return limit;
+        for (let i = 0; i < steps; i += 1) {
+            const t = (lo + hi) / 2;
+            if (inside(t)) {
+                lo = t;
+            } else {
+                hi = t;
+            }
+        }
+        return lo;
+    };
     const reach = (top: number, bottom: number, direction: number) => {
         const sampled = Math.max(2, rows);
         const step = (bottom - top) / (sampled - 1);
-        const insideBand = (x: number) => {
+        return probe((t) => {
+            const x = anchor.x + direction * t;
             for (let i = 0; i < sampled; i += 1) {
                 if (!contains(x, anchor.y + top + step * i)) return false;
             }
             return true;
-        };
-        let lo = 0;
-        let hi = limit;
-        for (let i = 0; i < steps; i += 1) {
-            const t = (lo + hi) / 2;
-            if (insideBand(anchor.x + direction * t)) {
-                lo = t;
-            } else {
-                hi = t;
-            }
-        }
-        return lo;
+        });
     };
-    const vertical = (direction: number) => {
-        let lo = 0;
-        let hi = limit;
-        for (let i = 0; i < steps; i += 1) {
-            const t = (lo + hi) / 2;
-            if (contains(anchor.x, anchor.y + direction * t)) {
-                lo = t;
-            } else {
-                hi = t;
-            }
-        }
-        return lo;
-    };
+    const vertical = (direction: number) => probe((t) => contains(anchor.x, anchor.y + direction * t));
     return {
         // Wrapping asks for the same band once per candidate word, and each ask is a pair of bisections
         // over a containment test, so the answer is memoised for the label's own short-lived region.
