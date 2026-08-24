@@ -1724,15 +1724,20 @@ export class DonutSeries extends PolarSeries<
                         text.y = rect.centerY;
                         // The wedge itself bounds the text, so it replaces the inscribed rect's container
                         // rather than being capped by it; the rect still anchors the label.
-                        const region = insetFitRegion(
-                            probedFitRegion(
-                                { x: rect.centerX, y: rect.centerY },
-                                (x, y) => isPointInSector(x, y, sectorBounds),
-                                Math.abs(outerRadius) * 2
-                            ),
-                            Math.max(labelPadding.left, labelPadding.right),
-                            Math.max(labelPadding.top, labelPadding.bottom)
-                        );
+                        // Probing the wedge bisects a containment test per sector, so it is only worth
+                        // doing once the user has opted into fitting; without it the region goes unused.
+                        const region =
+                            sectorFit == null
+                                ? undefined
+                                : insetFitRegion(
+                                      probedFitRegion(
+                                          { x: rect.centerX, y: rect.centerY },
+                                          (x, y) => isPointInSector(x, y, sectorBounds),
+                                          Math.abs(outerRadius) * 2
+                                      ),
+                                      Math.max(labelPadding.left, labelPadding.right),
+                                      Math.max(labelPadding.top, labelPadding.bottom)
+                                  );
                         // The wedge's own extent bounds the block, and it holds more room to one side of
                         // the anchor than the other, so the fit also says where to draw the text.
                         const fitted = fitLabelTextToRegion(
