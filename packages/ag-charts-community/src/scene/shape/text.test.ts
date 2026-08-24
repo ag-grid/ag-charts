@@ -7,6 +7,7 @@ import type { TextWrap } from 'ag-charts-types';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { expectWarningMessages, setupMockConsole } from '../../util/test/mockConsole';
+import { BBox } from '../bbox';
 import type { IScene } from '../node';
 import { RotatableText, Text } from './text';
 
@@ -324,6 +325,60 @@ describe('Text', () => {
 
             const imageData = extractImageData(canvasCtx);
             expect(imageData).toMatchImageSnapshot();
+        });
+    });
+
+    describe('getLineBoxes', () => {
+        const mockScene = setUpMockScene(canvasCtx);
+
+        function textNode(box?: { padding: number }) {
+            const node = Object.assign(new Text(), BASE_OPTIONS, { x: 100, y: 50, text: 'AAAAAA\nBB\nCCCC' });
+            node.setScene(mockScene);
+            if (box != null) node.setBoxing({ fill: 'red', padding: box.padding });
+            return node;
+        }
+
+        function union(boxes: BBox[]) {
+            const x = Math.min(...boxes.map((b) => b.x));
+            const y = Math.min(...boxes.map((b) => b.y));
+            return new BBox(
+                x,
+                y,
+                Math.max(...boxes.map((b) => b.x + b.width)) - x,
+                Math.max(...boxes.map((b) => b.y + b.height)) - y
+            );
+        }
+
+        it('gives one box per line, stacked without gaps or overlap', () => {
+            const boxes = textNode().getLineBoxes();
+            expect(boxes).toHaveLength(3);
+            expect(boxes[1].y).toBeCloseTo(boxes[0].y + boxes[0].height, 5);
+            expect(boxes[2].y).toBeCloseTo(boxes[1].y + boxes[1].height, 5);
+            expect(boxes[0].width).toBeGreaterThan(boxes[1].width);
+        });
+
+        it('covers exactly the block bounds', () => {
+            const node = textNode();
+            expect(union(node.getLineBoxes())).toEqual(node.getBBox());
+        });
+
+        it('covers exactly the block bounds when the label is boxed', () => {
+            const node = textNode({ padding: 4 });
+            expect(union(node.getLineBoxes())).toEqual(node.getBBox());
+        });
+
+        it('charges the box padding to the outer edges only', () => {
+            const plain = textNode().getLineBoxes();
+            const boxed = textNode({ padding: 4 }).getLineBoxes();
+            // Every line widens, but only the first and last take a vertical share of the padding.
+            expect(boxed.map((b) => b.width - 8)).toEqual(plain.map((b) => b.width));
+            expect(boxed.map((b) => b.height)).toEqual([plain[0].height + 4, plain[1].height, plain[2].height + 4]);
+        });
+
+        it('returns the block bounds themselves for a single line', () => {
+            const node = Object.assign(new Text(), BASE_OPTIONS, { x: 100, y: 50, text: 'AAAAAA' });
+            node.setScene(mockScene);
+            expect(node.getLineBoxes()).toEqual([node.getBBox()]);
         });
     });
 

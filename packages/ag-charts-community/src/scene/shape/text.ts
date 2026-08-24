@@ -364,6 +364,44 @@ export class Text<D = unknown> extends Shape<D> {
         return this.computeTextBBox();
     }
 
+    /**
+     * One box per rendered line, together covering {@link getBBox}. A label fitted to a shape rather than
+     * to a rectangle overhangs its own bounding box by construction, so containment has to be judged line
+     * by line — the block box answers a question the text never asked.
+     */
+    getLineBoxes(): BBox[] {
+        const bbox = this.getBBox();
+        const { lineMetrics } = isArray(this.text)
+            ? this.getSegmentMetrics(this.text)
+            : cachedTextMeasurer(this).measureLines(this.lines);
+        if (lineMetrics.length <= 1) return [bbox];
+
+        // A box's padding belongs to the block's outer edge, not to every row, and getBBox has already
+        // taken it: the rows tile the text itself and then claim back only the edges they sit against.
+        const padding = this.boxing == null ? undefined : resolvePadding(this.boxPadding);
+        const isRtl = this.scene?.isRtl;
+        const last = lineMetrics.length - 1;
+        let top = bbox.y + (padding?.top ?? 0);
+        return lineMetrics.map((line, index) => {
+            const box = new BBox(
+                this.x - Text.calcLeftOffset(line.width, this.textAlign, isRtl),
+                top,
+                line.width,
+                line.height
+            );
+            top += line.height;
+            if (padding != null) {
+                box.grow({
+                    left: padding.left,
+                    right: padding.right,
+                    top: index === 0 ? padding.top : 0,
+                    bottom: index === last ? padding.bottom : 0,
+                });
+            }
+            return box;
+        });
+    }
+
     getPlainText() {
         return toPlainText(this.text);
     }
