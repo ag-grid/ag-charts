@@ -25,9 +25,8 @@ export interface AgConeFunnelSeriesLabelOptions<TDatum, TParams, TContext = Cont
      */
     placement?:
         | AgConeFunnelSeriesLabelPlacement
-        | AgConeFunnelSeriesLabelPlacement[]
         | AgConeFunnelSeriesLabelPlacementAlias
-        | AgConeFunnelSeriesLabelPlacementAlias[];
+        | (AgConeFunnelSeriesLabelPlacement | AgConeFunnelSeriesLabelPlacementAlias)[];
 }
 
 export interface AgConeFunnelSeriesStageLabelOptions<
