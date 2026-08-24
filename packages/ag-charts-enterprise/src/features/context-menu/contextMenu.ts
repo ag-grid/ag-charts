@@ -179,9 +179,9 @@ export class ContextMenu extends AbstractModuleInstance {
         });
     }
 
-    private axisRegion(pick: _ModuleSupport.AxisValuePick): AxisParams {
-        const { axisId, boundSeries, direction, domain, value, index } = pick;
-        return { showOn: 'axis', axisId, boundSeries, direction, domain, value, index };
+    private axisRegion(pick: _ModuleSupport.AxisValuePick): CallbackParamRules<AxisParams> {
+        const { axisId, boundSeries, direction, domain, value, index, depth } = pick;
+        return { showOn: 'axis', axisId, boundSeries, direction, domain, value, index, depth };
     }
 
     private crossLineRegions(picks: ContextShowOnMap['cross-line']['context']): CrossLineParams[] {
@@ -611,7 +611,7 @@ export class ContextMenu extends AbstractModuleInstance {
         } else if (ContextMenuRegistry.checkCallback('axis', showOn, callback)) {
             return () => {
                 if (this.pickedAxisCtx) {
-                    const { axisId, direction, boundSeries, domain, value, index } = this.pickedAxisCtx;
+                    const { axisId, direction, boundSeries, domain, value, index, depth } = this.pickedAxisCtx;
                     const callers: Caller[] = [this.pickedAxisCtx.caller, this.ctx.chartService];
                     const apiEvent: CallbackParamRules<AgAxisContextMenuActionEvent<never>> = {
                         type: 'axisContextMenuAction',
@@ -622,6 +622,7 @@ export class ContextMenu extends AbstractModuleInstance {
                         domain,
                         value,
                         index,
+                        depth,
                     };
                     callWithContext(callers, callback, apiEvent);
                 } else {

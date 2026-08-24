@@ -62,6 +62,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
 
     private computedLayout?: ComputedGroupAxisLayout = undefined;
     private tickTreeLayout?: TreeLayout = undefined;
+    private tickValues?: GroupedCategoryKey[] = undefined;
     private tickNodes?: Map<GroupedCategoryKey, TreeNode> = undefined;
     private leafNodeToKey?: Map<TreeNode, GroupedCategoryKey> = undefined;
     private filterTickCache?: {
@@ -183,26 +184,29 @@ export class GroupedCategoryAxis extends CategoryAxis<
             const depth = maxDepth - datum.depth;
             depthLabelMaxSize[depth] ??= 0;
 
+            if (!optionsMap[depth]?.enabled || !inRange(datum.screen, range)) continue;
+
+            const tickIndex = index - 1;
+            const value = (datum.refId == null ? undefined : this.tickValues?.[datum.refId]) ?? [];
+            const inputText = tickFormatter(value, tickIndex, depth);
+            const alongHalfWidth = ((datum.leafCount || 1) * step) / 2;
+            pickIdentities.push({
+                index: tickIndex,
+                value,
+                formattedValue: inputText,
+                along: [datum.screen - alongHalfWidth, datum.screen + alongHalfWidth],
+                depth,
+            });
+
             const isLeaf = !datum.children.length;
             if (isLeaf && step < MIN_CATEGORY_SPACING) continue;
-            if (!optionsMap[depth]?.enabled || !inRange(datum.screen, range)) continue;
 
             let maxWidth = (datum.leafCount || 1) * step;
             if (maxWidth < MIN_CATEGORY_SPACING) continue;
 
-            const inputText = tickFormatter(datum.label, index - 1);
-            // Captured here so a click cannot disagree with the formatter; the perpendicular extent is
-            // only known once the row sizes below have been summed.
-            const alongHalfWidth = ((datum.leafCount || 1) * step) / 2;
-            pickIdentities.push({
-                index: index - 1,
-                value: datum.label ?? '',
-                along: [datum.screen - alongHalfWidth, datum.screen + alongHalfWidth],
-                depth,
-            });
             let text = inputText;
             const labelStyles = this.getLabelStyles(
-                { value: datum.index, formattedValue: text, depth },
+                { value, formattedValue: text, depth, index: tickIndex },
                 depthOptions[depth]?.label
             );
 
@@ -268,6 +272,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
         // labels still resolve to the group they sit under.
         this.pickTickData = pickIdentities.map(({ depth, ...identity }) => ({
             ...identity,
+            depth,
             cross: [
                 depth === 0 ? 0 : tickSizeAtDepth[depth - 1],
                 depth === maxDepth - 1 ? Infinity : tickSizeAtDepth[depth],
@@ -769,6 +774,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
         const domain: GroupedCategoryKey[] = this.dataDomain.domain.map(convertIntegratedCategoryValue);
 
         const { layout, tickNodes } = treeLayout(domain);
+        this.tickValues = domain;
         this.tickTreeLayout = layout;
         this.tickNodes = tickNodes;
         this.leafNodeToKey = new Map<TreeNode, GroupedCategoryKey>();

@@ -21,6 +21,7 @@ import {
     CleanupRegistry,
     WeakCache,
     ZIndexMap,
+    arraysEqual,
     callWithContext,
     clamp,
     clampArray,
@@ -38,10 +39,12 @@ import type {
     AgBaseAxisLabelStyleOptions,
     AgContextMenuGetItemsParamsAlways,
     AgContextMenuGetItemsParamsAxis,
+    AgGroupedCategoryValue,
     AgTimeAxisFormattableLabelUnitFormat,
     AgTimeInterval,
     AgTimeIntervalUnit,
     AnyFormatterSource,
+    CategoryFormatterParams,
     CssColor,
     DateFormatterStyle,
     FormatterParams,
@@ -74,7 +77,8 @@ import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../c
 import type { CrossLine } from '../crossline/crossLine';
 import { FormatManager } from '../formatter/formatManager';
 import type { ISeries, ISeriesProperties, SeriesNodeDatum } from '../series/seriesTypes';
-import { type AxisLabelFormatterCache, createAxisLabelFormatterCache, formatAxisLabelValue } from './axisLabelUtil';
+import type { AxisLabelFormatterCache } from './axisLabelUtil';
+import { createAxisLabelFormatterCache, formatAxisLabelValue, getAxisLabelSideFlag } from './axisLabelUtil';
 import type { TickInterval } from './axisTick';
 import { type AxisGroupDatumTranslation, NiceMode, type TickDatum } from './axisUtil';
 import type { AnyTimeInterval } from './generateTicksUtils';
@@ -83,6 +87,10 @@ export interface AxisPickDatum {
     readonly index: number;
     readonly value: AgAxisValue;
     readonly along: readonly [number, number];
+
+    // 2D Optionals (e.g. `grouped-category`):
+    readonly formattedValue?: NormalisedTextOrSegments;
+    readonly depth?: number;
     readonly cross?: readonly [number, number];
 }
 
@@ -123,6 +131,12 @@ export type AxisTickFormatParams =
     | {
           type: 'category';
       };
+
+interface AxisTickIdentity {
+    readonly index: number;
+    readonly depth?: number;
+    readonly formattedValue?: NormalisedTextOrSegments;
+}
 
 interface TickLayout<D, TickLayoutMeta> {
     niceDomain: D[];
@@ -206,7 +220,7 @@ function unsafeClamp(scale: Scale<unknown, unknown, unknown>, value: AgAxisValue
         const [min, max] = [scale.domainMin, scale.domainMax] as [Date, Date];
         return new Date(clamp(min.getTime(), value.getTime(), max.getTime()));
     } else {
-        return value satisfies string;
+        return value satisfies string | AgGroupedCategoryValue;
     }
 }
 
@@ -624,7 +638,12 @@ export abstract class Axis<
     }
 
     protected getLabelStyles(
-        params: { value: number; formattedValue: NormalisedTextOrSegments | undefined; depth?: number },
+        params: {
+            value: unknown;
+            formattedValue: NormalisedTextOrSegments | undefined;
+            depth?: number;
+            index?: number;
+        },
         additionalStyles?: AgBaseAxisLabelStyleOptions,
         label: NormalisedBaseAxisLabelOptions = this.options.label
     ) {
@@ -936,7 +955,7 @@ export abstract class Axis<
         inputFractionDigits?: number,
         inputTimeInterval?: AgTimeInterval | AgTimeIntervalUnit,
         dateStyle: DateFormatterStyle = 'long'
-    ): (value: any, index: number) => NormalisedTextOrSegments {
+    ): (value: any, index: number, depth?: number) => NormalisedTextOrSegments {
         const { moduleCtx } = this;
         const label = this.options.label;
         const { formatManager } = moduleCtx;
@@ -984,16 +1003,20 @@ export abstract class Axis<
         };
 
         const formatterCache = this.formatterCache;
-        return (value: any, index: number): NormalisedTextOrSegments => {
+        return (value: any, index: number, depth?: number): NormalisedTextOrSegments => {
             const formatParams = this.datumFormatParams(value, params, fractionDigits, timeInterval, dateStyle);
             // For time axis, the datum is aligned. However, for ticks, we don't want to align the datum.
             formatParams.value = value;
+            if (depth != null) {
+                (formatParams as CategoryFormatterParams<unknown, unknown>).depth = depth;
+            }
 
             return (
                 formatAxisLabelValue(currentLabel, formatterCache, f, formatParams, index, {
                     specifier,
                     dateStyle,
                     truncateDate,
+                    depth,
                 }) ??
                 formatManager.format(f, formatParams, options) ??
                 formatManager.defaultFormat(formatParams, options)
@@ -1093,10 +1116,31 @@ export abstract class Axis<
         const { type, value } = formatParams;
 
         const f = this.createCallWithContext(contextProvider);
+
+        // Formatting an arbitrary datum rather than a rendered tick, so there is no tick index to hand the
+        // label formatter. Where the value is one this axis stacks in rows — `grouped-category` — the tick
+        // it belongs to does carry an identity, and the formatter must see the same one a click reports.
+        // Resolving it means scanning the tick data, so this stays inside the branch that consumes it:
+        // formatting a datum runs on every pointer move that moves a crosshair.
+        const formatWithAxisLabel = () => {
+            const identity = this.options.label.formatter == null ? undefined : this.resolveTickIdentity(value);
+            const rowIdentity = identity?.depth == null ? undefined : identity;
+            return formatAxisLabelValue(
+                this.options.label,
+                this.formatterCache,
+                f,
+                formatParams,
+                rowIdentity?.index ?? Number.NaN,
+                // Only the callback is told the depth. `formatParams` keeps none, so the default
+                // formatting a tooltip or crosshair falls back to stays the whole joined path.
+                rowIdentity && { depth: rowIdentity.depth, dateStyle: undefined, truncateDate: undefined }
+            );
+        };
+
         const result =
             label?.formatValue(f, type, value, params ?? formatParams) ??
             formatManager.format(f, formatParams, { allowNull }) ??
-            formatAxisLabelValue(this.options.label, this.formatterCache, f, formatParams, Number.NaN) ??
+            formatWithAxisLabel() ??
             formatManager.defaultFormat(formatParams);
 
         return isArray(result) ? result : String(result);
@@ -1279,14 +1323,21 @@ export abstract class Axis<
     }
 
     pickValue(point: CanvasPoint): AxisValuePick | undefined {
+        // One-Dimensional "Position" (all axes):
         // Canvas space is the only frame every caller shares, so the conversion to axis-local space happens here once.
         const origin = this.getLayoutTranslation();
         const localX = point.canvasX - origin.x;
         const localY = point.canvasY - origin.y;
         const vertical = this.isVertical();
         const position = vertical ? localY : localX;
-        // Ticks stack outwards from the axis line, so only the distance from it selects a row.
-        const crossPosition = Math.abs(vertical ? localX : localY);
+        // Two-Dimensional "Cross Position" (Grouped Category):
+        // Ticks stack outwards from the axis line, so only the distance from it selects a row. Measured
+        // signed, towards the side the labels are on, and floored at zero: a point on the series-area side
+        // of the line reads as the row against the line, so a click in the plot resolves to a leaf rather
+        // than being folded onto whichever outer row it mirrors onto. Points beyond the outermost labels
+        // need no ceiling — that row already extends to infinity.
+        const outwardSign = getAxisLabelSideFlag(this.mirrored) * (vertical ? 1 : -1);
+        const crossPosition = Math.max(0, outwardSign * (vertical ? localX : localY));
 
         const invertValue = unsafeInvert(this.scale, position);
         const scaleValue = unsafeClamp(this.scale, invertValue);
@@ -1309,6 +1360,7 @@ export abstract class Axis<
             axisId: this.userKey,
             value,
             index,
+            depth: picked?.depth,
             direction: this.direction,
             boundSeries: this.formatterBoundSeries.get(),
             domain,
@@ -1353,6 +1405,18 @@ export abstract class Axis<
         }
 
         return nearest;
+    }
+
+    private resolveTickIdentity(value: unknown): AxisTickIdentity | undefined {
+        for (const datum of this.pickTickData) {
+            if (datum.depth != null && datum.depth !== 0) continue;
+
+            const matches =
+                isArray(datum.value) && isArray(value) ? arraysEqual(datum.value, value) : datum.value === value;
+            if (matches) {
+                return { index: datum.index, depth: datum.depth, formattedValue: datum.formattedValue };
+            }
+        }
     }
 
     pickBand(point: Point): AxisBandDatum | undefined {

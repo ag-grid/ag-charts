@@ -87,8 +87,8 @@ export class CartesianChart extends Chart {
             if (pick) {
                 // `Rules` compile-time checks the broadcast object against the public AgAxisCoordinates shape.
                 type Rules = RequireOptional<NonNullable<(typeof result)[keyof typeof result]>>;
-                const { boundSeries, direction, domain, index, value } = pick;
-                const axisResult: Rules = { boundSeries, direction, domain, index, value };
+                const { boundSeries, depth, direction, domain, index, value } = pick;
+                const axisResult: Rules = { boundSeries, depth, direction, domain, index, value };
                 result[pick.axisId] = axisResult;
             }
         }
