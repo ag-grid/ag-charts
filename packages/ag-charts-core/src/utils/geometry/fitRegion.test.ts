@@ -92,6 +92,23 @@ describe('probedFitRegion', () => {
     });
 });
 
+describe('probedFitRegion over a shape with a hole', () => {
+    // A donut wedge is an annulus sector, so it is not convex: a band straddling the centre line comes
+    // closest to the hole between its edges, and testing only the edges lets the reach dip into it.
+    const annulus = (inner: number, outer: number) => (x: number, y: number) => {
+        const r2 = x * x + y * y;
+        return r2 >= inner * inner && r2 <= outer * outer;
+    };
+
+    test("does not reach into the hole between a band's edges", () => {
+        const region = probedFitRegion({ x: 100, y: 0 }, annulus(50, 200), 200);
+        // The band spans y in [-10, 10], so it is closest to the origin at y = 0: the reach inward has to
+        // stop at the hole's radius, not at where the band's own edges clear it.
+        const [left] = region.spanAt(-10, 10);
+        expect(left).toBeCloseTo(-50, 1);
+    });
+});
+
 describe('insetFitRegion', () => {
     test('holds the text clear of the edge on both axes', () => {
         const region = insetFitRegion(rect(120, 40), 10, 5);

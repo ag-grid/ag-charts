@@ -41,22 +41,34 @@ export function trapezoidFitRegion(trapezoid: TrapezoidBounds, anchorSpan: numbe
 /**
  * A region probed from a containment test, for shapes with no closed form: at each band the horizontal
  * reach is bisected outward from the anchor on both sides, and the two are reported as they are, so a
- * caller can use the wider side rather than folding it away. `contains` must be a convex shape's test —
- * the band's two edges then bind the whole band.
+ * caller can use the wider side rather than folding it away.
+ *
+ * A band is tested at `rows` evenly spaced rows rather than at its two edges alone, because the shapes
+ * that need probing are not convex: an annulus sector is closest to its hole between the edges of a band
+ * that straddles the centre line, so an edge-only test reaches into the hole unseen. This samples the
+ * band rather than proving it, so a shape that narrows sharply within one row can still be over-reported.
  */
 export function probedFitRegion(
     anchor: { x: number; y: number },
     contains: (x: number, y: number) => boolean,
     limit: number,
-    steps = 20
+    steps = 20,
+    rows = 5
 ): FitRegion {
     const reach = (top: number, bottom: number, direction: number) => {
+        const sampled = Math.max(2, rows);
+        const step = (bottom - top) / (sampled - 1);
+        const insideBand = (x: number) => {
+            for (let i = 0; i < sampled; i += 1) {
+                if (!contains(x, anchor.y + top + step * i)) return false;
+            }
+            return true;
+        };
         let lo = 0;
         let hi = limit;
         for (let i = 0; i < steps; i += 1) {
             const t = (lo + hi) / 2;
-            const x = anchor.x + direction * t;
-            if (contains(x, anchor.y + top) && contains(x, anchor.y + bottom)) {
+            if (insideBand(anchor.x + direction * t)) {
                 lo = t;
             } else {
                 hi = t;
