@@ -287,11 +287,13 @@ function wrapTextToRegion(
     align: RegionAlign
 ): FittedRegionText {
     const limit = Math.min(options.maxHeight ?? Infinity, region.extentAbove + region.extentBelow);
-    const lineHeight = measureText(text, options.font).height;
     if (isArray(text)) {
         return { text: refineSegmentsToRegion(text, options, region, align, limit), offsetX: 0 };
     }
 
+    // One line's height, not the measured block's: a source carrying its own line breaks would otherwise
+    // size every band to the whole block and wrap each line against a row it never occupies.
+    const lineHeight = cachedTextMeasurer(options.font).lineHeight();
     const source = toTextString(text);
     const wanted = survivingCharacters(source);
     const maxLines = Math.max(1, Math.floor(limit / Math.max(1, lineHeight)));

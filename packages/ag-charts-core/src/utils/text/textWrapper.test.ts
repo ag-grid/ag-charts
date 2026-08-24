@@ -1078,6 +1078,24 @@ describe('fitLabelText bounded by a shape', () => {
         expect(result.endsWith(E)).toBe(true);
     });
 
+    it('sizes a band from one line, not from the whole of a multi-line source', () => {
+        // A wide top row and a narrow one below it, and a source that already carries its own line break.
+        // Each line has to be measured against the row it lands in; taking the band from the block's whole
+        // height puts the first line in the narrow row and mangles text that had room to spare.
+        const region: FitRegion = {
+            spanAt: (_top, bottom) => (bottom <= LINE_HEIGHT ? [-100, 100] : [-10, 10]),
+            extentAbove: 0,
+            extentBelow: 2 * LINE_HEIGHT,
+        };
+        expect(
+            fitLabelText(
+                'AAAABBBB\nX',
+                { region, regionAlign: 'start', wrapping: 'on-space', overflowStrategy: 'ellipsis' },
+                font
+            )
+        ).toBe('AAAABBBB\nX');
+    });
+
     it('centres the block where the room is when the shape is lopsided about the anchor', () => {
         // All the room lies to the left of the anchor: a block centred on the anchor could only use twice
         // the 10px on its right, so the fit moves it into the 100px the shape actually offers.
