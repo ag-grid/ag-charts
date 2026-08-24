@@ -21,6 +21,8 @@ import {
     extent,
     findDiscreteColorBinLabel,
     formatValue,
+    insetFitRegion,
+    maskFitRegion,
     measurePlacedLabel,
     placedLabelFit,
     rescaleVisibleRange,
@@ -29,6 +31,7 @@ import {
     toArray,
     toNumber,
     toPlainText,
+    withFitRegion,
 } from 'ag-charts-core';
 import {
     type AgBubbleSeriesItemStylerParams,
@@ -81,7 +84,12 @@ import {
 } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
-import { type MarkerLabelRect, markerLabelRect } from '../../marker/markerLabelRect';
+import {
+    type MarkerLabelRect,
+    type MarkerRowSpans,
+    markerLabelRect,
+    markerRowSpans,
+} from '../../marker/markerLabelRect';
 import { type TooltipContent, type TooltipContentDataRow, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { IndexSetBucketLookupManager } from '../bucketLookupFeature';
 import {
@@ -249,6 +257,8 @@ interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<Bubble
     readonly labelAnchor: Point;
     readonly labelInsideOffset: Point | undefined;
     readonly labelInsideRect: MarkerLabelRect | undefined;
+    /** The marker outline the label's text is bounded by, rather than the rect inscribed in it. */
+    readonly labelInsideMask: MarkerRowSpans | undefined;
     readonly labelInsideSize: { width: number; height: number } | undefined;
     readonly labelTextDomain: any[];
     readonly labelPadding: { left: number; right: number; top: number; bottom: number };
@@ -693,6 +703,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             // Truncation container applies only when `inside` is the sole placement; a mixed list
             // measures full text so directional fallbacks aren't constrained to the marker.
             labelInsideRect: insideOnly ? insideRect : undefined,
+            labelInsideMask: insideOnly ? markerRowSpans(marker.shape) : undefined,
             labelInsideSize:
                 !insideOnly && insideRect ? { width: insideRect.width, height: insideRect.height } : undefined,
             labelTextDomain,
@@ -976,7 +987,28 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                   height: Math.max(0, markerSize * rect.height - 2 * threshold),
               }
             : undefined;
-        const boundedFit = boundLabelFit(ctx.labelFit, container);
+        // The marker's own outline bounds the text; the inscribed rect still sizes the container and, via
+        // `labelInsideOffset`, anchors the label at its centre.
+        const region =
+            ctx.labelInsideMask == null || rect == null
+                ? undefined
+                : insetFitRegion(
+                      maskFitRegion(ctx.labelInsideMask, markerSize, {
+                          x: rect.cx * markerSize,
+                          y: rect.cy * markerSize,
+                      }),
+                      threshold,
+                      threshold
+                  );
+        // With a region the marker's outline bounds the width; the inscribed rect still bounds the height
+        // and carries the collision threshold's inset.
+        const boundedFit =
+            region == null
+                ? boundLabelFit(ctx.labelFit, container)
+                : withFitRegion(
+                      boundLabelFit(ctx.labelFit, { width: Infinity, height: container?.height ?? Infinity }),
+                      region
+                  );
         scratch.nodeLabel = measurePlacedLabel(labelText, ctx.label, ctx, boundedFit);
         // The marker container is per datum, so the fit the engine re-applies per candidate must carry
         // this datum's bound rather than the series-level policy.
