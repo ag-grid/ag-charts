@@ -113,7 +113,7 @@ describe('SizeMonitor', () => {
         });
     });
 
-    describe('AG-18087: fractional container sizes are reported as whole pixels', () => {
+    describe('AG-18087: a fractional container size does not fire a spurious resize', () => {
         it('should not fire a second resize when the container width is fractional', () => {
             const sizeMonitor = new SizeMonitor(createMockAgDocument());
 
@@ -131,7 +131,7 @@ describe('SizeMonitor', () => {
             expect(sizes).toHaveLength(1);
         });
 
-        it('should fire, with a whole-pixel size, when a fractional size crosses a pixel', () => {
+        it('should fire, with the exact size, when a fractional size crosses a pixel', () => {
             const sizeMonitor = new SizeMonitor(createMockAgDocument());
 
             const element = mockElement({ clientWidth: 346, clientHeight: 400 });
@@ -143,10 +143,11 @@ describe('SizeMonitor', () => {
             fireResizeObserver(element, 344.4, 400);
 
             expect(sizes).toHaveLength(2);
-            expect(sizes[1]).toMatchObject({ width: 344, height: 400 });
+            // The change test rounds; the size handed to consumers stays exact.
+            expect(sizes[1]).toMatchObject({ width: 344.4, height: 400 });
         });
 
-        it('should round the content-box size the synchronous initial read derives', () => {
+        it('should not fire again when the observer confirms the initial content box', () => {
             const sizeMonitor = new SizeMonitor(createMockAgDocument());
 
             const element = mockElement({ clientWidth: 346, clientHeight: 400, paddingLeft: '0.5px' });
@@ -154,7 +155,8 @@ describe('SizeMonitor', () => {
             const sizes: Size[] = [];
             sizeMonitor.observe(element, (size) => sizes.push({ ...size }));
 
-            expect(sizes[0]).toMatchObject({ width: 346, height: 400 });
+            // clientWidth is spec-rounded to 346; minus the 0.5px padding the content box is 345.5.
+            expect(sizes[0]).toMatchObject({ width: 345.5, height: 400 });
 
             // The ResizeObserver's view of the same content box.
             fireResizeObserver(element, 345.5, 400);
