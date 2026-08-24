@@ -63,7 +63,7 @@ const CONE_FUNNEL_RTL_SWAP: Record<AgConeFunnelSeriesLabelPlacement, AgConeFunne
  * the two sides.
  */
 export function funnelPlacementAxes(barAlongX: boolean, categoryReversed: boolean) {
-    return { isVertical: barAlongX, isUpward: !barAlongX !== categoryReversed };
+    return { isVertical: barAlongX, isUpward: barAlongX === categoryReversed };
 }
 
 /**
