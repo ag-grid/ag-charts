@@ -793,12 +793,15 @@ export abstract class BaseFunnelSeries<
         const collideWith = label.collision.resolveCollideWith();
         const threshold = label.collision.threshold ?? 0;
         const fitFor = resolveLabelFitDescriptors(label, box, !label.collision.alwaysShow);
-        const resolveStyle = createBarCandidateStyleResolver(this, label, this.labelStylerParams());
+        const stylerParams = this.labelStylerParams();
         const data: PointLabelDatum[] = [];
         for (const labelDatum of this.contextNodeData?.labelData ?? []) {
             if (labelDatum.text === '' || labelDatum.candidates == null) continue;
+            // The styler is promised the funnel-family placement, not the bar placement the geometry runs
+            // on, so this datum's own placement is what the resolver reports back.
+            const reported = labelDatum.placement ?? this.defaultLabelPlacement();
             const styled = styledBarLabelBox(
-                resolveStyle,
+                createBarCandidateStyleResolver(this, label, stylerParams, undefined, () => reported),
                 labelDatum,
                 this.toBarPlacement(labelDatum.placement),
                 'horizontal',

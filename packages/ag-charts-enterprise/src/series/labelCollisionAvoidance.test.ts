@@ -1080,6 +1080,25 @@ describe('label collision avoidance', () => {
                 }
             });
 
+            it('reports only funnel placements to the label itemStyler', async () => {
+                const captured: (string | undefined)[] = [];
+                const itemStyler = (params: { placement?: string }) => {
+                    captured.push(params.placement);
+                    return {};
+                };
+                await render(
+                    options({
+                        placement: ['outside-before', 'inside-center'],
+                        collision: { alwaysShow: false },
+                        itemStyler,
+                    })
+                );
+                expect(captured.length).toBeGreaterThan(0);
+                for (const placement of captured) {
+                    expect(['outside-before', 'inside-center']).toContain(placement);
+                }
+            });
+
             it('swaps the two sides when the category axis is reversed', async () => {
                 const axes = (reverse: boolean) => ({
                     x: { type: 'number' },
@@ -1291,6 +1310,25 @@ describe('label collision avoidance', () => {
                 for (const [index, label] of before.entries()) {
                     expect(label.y).toBeLessThan(centre[index].y);
                     expect(after[index].y).toBeGreaterThan(centre[index].y);
+                }
+            });
+
+            it('reports only pyramid placements to the label itemStyler', async () => {
+                const captured: (string | undefined)[] = [];
+                const itemStyler = (params: { placement?: string }) => {
+                    captured.push(params.placement);
+                    return {};
+                };
+                await render(
+                    options({
+                        placement: ['outside-before', 'inside-center'],
+                        collision: { alwaysShow: false },
+                        itemStyler,
+                    })
+                );
+                expect(captured.length).toBeGreaterThan(0);
+                for (const placement of captured) {
+                    expect(['outside-before', 'inside-center']).toContain(placement);
                 }
             });
 
