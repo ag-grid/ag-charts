@@ -505,11 +505,11 @@ describe('Grouped Category', () => {
                     rawValue(['Drink', 'Soda', 'Pepsi']),
                     rawValue(['Drink', 'Tea', 'Green']),
                 ]);
-                crosshairFormatter.mock.calls.forEach(([arg]) => {
+                for (const [arg] of crosshairFormatter.mock.calls) {
                     expect(arg).not.toHaveProperty('depth');
                     expect(arg).not.toHaveProperty('index');
                     expect(arg).not.toHaveProperty('formattedValue');
-                });
+                }
             });
 
             test('label renderer', async () => {
@@ -523,11 +523,11 @@ describe('Grouped Category', () => {
                     rawValue(['Drink', 'Soda', 'Pepsi']),
                     rawValue(['Drink', 'Tea', 'Green']),
                 ]);
-                crosshairRenderer.mock.calls.forEach(([arg]) => {
+                for (const [arg] of crosshairFormatter.mock.calls) {
                     expect(arg).not.toHaveProperty('depth');
                     expect(arg).not.toHaveProperty('index');
                     expect(arg).not.toHaveProperty('formattedValue');
-                });
+                }
             });
         });
     });
