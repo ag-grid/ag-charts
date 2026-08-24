@@ -103,11 +103,7 @@ describe('BaseProperties', () => {
     });
 
     it('AG-16048 should clear a nested PropertiesArray without throwing when set(null) is called', () => {
-        // Regression: BaseProperties.clear() walks every decorated field where isProperties(value)
-        // returns true — which includes PropertiesArray. Prior to AG-16048 pt4 follow-up, clear()
-        // threw `TypeError: currentValue.clear is not a function` when reaching an array-typed
-        // child. This happens whenever a parent property is set to null (e.g. when the enterprise()
-        // validator strips a community-supplied colorScale in ag-charts-community bundles).
+        // BaseProperties.clear() walks every field where isProperties(value) holds, and that includes PropertiesArray.
         class Item extends BaseProperties<{ value: string }> {
             @Property
             value!: string;

@@ -167,6 +167,89 @@ export const DONUT_SERIES_INNER_TEXT: AgPolarChartOptions = {
     ],
 };
 
+export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS: AgPolarChartOptions = {
+    title: {
+        text: 'Market Share',
+    },
+    data: DATA_MARKET_SHARE,
+    series: [
+        {
+            type: 'donut',
+            angleKey: 'share',
+            innerRadiusRatio: 0.9,
+            cornerRadius: 20,
+            sectorSpacing: 1,
+            innerCircle: {
+                fill: '#c9fdc9',
+            },
+        },
+    ],
+};
+
+// Wide spacing over a deep ring: the filled band has to cover the spacing strips too, or they read
+// as slots cut into it.
+export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_SPACED: AgPolarChartOptions = {
+    title: {
+        text: 'Market Share',
+    },
+    data: DATA_MARKET_SHARE,
+    series: [
+        {
+            type: 'donut',
+            angleKey: 'share',
+            innerRadiusRatio: 0.7,
+            cornerRadius: 30,
+            sectorSpacing: 3,
+            innerCircle: {
+                fill: '#c9fdc9',
+            },
+        },
+    ],
+};
+
+// A wide `sectorSpacing` insets each sector's painted edges, so the band has to stop where the
+// sectors' own outer edge does rather than at the requested corner radius.
+export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_WIDE_SPACING: AgPolarChartOptions = {
+    title: {
+        text: 'Market Share',
+    },
+    data: DATA_MARKET_SHARE,
+    series: [
+        {
+            type: 'donut',
+            angleKey: 'share',
+            innerRadiusRatio: 0.9,
+            cornerRadius: 20,
+            sectorSpacing: 20,
+            innerCircle: {
+                fill: '#c9fdc9',
+            },
+        },
+    ],
+};
+
+// Translucent sector fills composite over whatever sits behind them, so the band under the sectors
+// must be erased - anywhere it survives it tints the slice.
+export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_TRANSLUCENT: AgPolarChartOptions = {
+    title: {
+        text: 'Market Share',
+    },
+    data: DATA_MARKET_SHARE,
+    series: [
+        {
+            type: 'donut',
+            angleKey: 'share',
+            innerRadiusRatio: 0.7,
+            cornerRadius: 30,
+            sectorSpacing: 1,
+            fillOpacity: 0.4,
+            innerCircle: {
+                fill: '#c9fdc9',
+            },
+        },
+    ],
+};
+
 export const DONUT_SERIES_RATIO: AgPolarChartOptions = {
     title: {
         text: 'Market Share',

@@ -12,7 +12,7 @@
         "production",
         "!{projectRoot}/vitest.config.mjs",
         "{workspaceRoot}/external/ag-website-shared/**",
-        "{projectRoot}/.astro/cache/sitemap/**",
+        "{projectRoot}/.astro/cache/sitemap/sitemap-0.xml",
         {
           "externalDependencies": ["npm:astro"]
         },
@@ -88,6 +88,12 @@
       "command": "tsx scripts/csp/preview-csp.ts --port=${PORT}",
       "options": {
         "cwd": "packages/ag-charts-website"
+      },
+      "configurations": {
+        "staging": { "args": "--env staging" },
+        "production": { "args": "--env production" },
+        "report-only": { "args": "--mode report-only" },
+        "staging-report-only": { "args": "--env staging --mode report-only" }
       }
     },
     "lint:eslint": {},

@@ -27,6 +27,4 @@ export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
 };
 
 // @ts-expect-error undocumented option
-treemapSeriesOptionsDef.undocumentedGroupFills = undocumented(arrayOf(color));
-// @ts-expect-error undocumented option
 treemapSeriesOptionsDef.undocumentedGroupStrokes = undocumented(arrayOf(color));

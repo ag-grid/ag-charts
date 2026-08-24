@@ -165,33 +165,25 @@ export const PAGE_TITLES = PAGES.map((p) => p.title);
 
 // --- session pool generation --------------------------------------------------
 
-// A fixed history window ending on a stable "today", so the date pickers and
-// generated data line up run-to-run. Long enough that the largest range (90 days)
-// always has a full previous period of the same length to compare against.
+// A fixed history window ending on a stable "today", long enough for a full previous 90-day period.
 export const HISTORY_DAYS = 210;
 export const DATA_END = new Date('2026-07-23T00:00:00');
 
-// Aggregation buckets by local midnight, so days must advance by calendar day: a
-// fixed 24h step drifts off midnight in a DST zone and straddles two buckets.
+// Buckets are local midnight, so a fixed 24h step drifts in a DST zone and straddles two buckets.
 const addDays = (date: Date, days: number) => new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
 
 export const DATA_START = addDays(DATA_END, -(HISTORY_DAYS - 1));
 
-// Local midnight per day plus the exclusive end of the last, so day i spans
-// DAY_BOUNDS[i]..DAY_BOUNDS[i + 1] — always exactly one calendar day.
+// Local midnight per day plus the exclusive end of the last, so day i is exactly one calendar day.
 const DAY_BOUNDS = Array.from({ length: HISTORY_DAYS + 1 }, (_, i) => addDays(DATA_START, i).getTime());
 
-// Average daily sessions before seasonality; weekends dip, and there is a mild
-// upward trend across the window plus event-driven spikes (see SPIKES).
+// Average daily sessions before seasonality, trend and event spikes.
 const BASE_DAILY = 95;
 
-// How many of the most recently minted visitors a returning session can draw from.
-// Roughly a month's worth, so the default range sees a realistic 1.4 sessions per
-// visitor; widening it pushes that back towards 1:1.
+// Roughly a month of visitors, so the default range sees about 1.4 sessions per visitor.
 const RETURNING_VISITOR_POOL = 1500;
 
-// Event positions as days before DATA_END, so they stay anchored near "today"
-// regardless of the history-window length. Shared by the spikes and annotations.
+// Days before DATA_END, so events stay anchored near "today" whatever the history length.
 const fromEnd = (daysBeforeEnd: number) => HISTORY_DAYS - 1 - daysBeforeEnd;
 const EVENT_OFFSET = {
     outage: fromEnd(59),
@@ -200,8 +192,7 @@ const EVENT_OFFSET = {
     release: fromEnd(14),
 };
 
-// Day-offset → multiplier spikes, aligned with the seeded annotations so a
-// campaign launch visibly lifts traffic.
+// Aligned with the seeded annotations so a campaign launch visibly lifts traffic.
 const SPIKES: Record<number, number> = {
     [EVENT_OFFSET.springLaunch]: 1.6,
     [EVENT_OFFSET.creatorCollab]: 1.35,
@@ -218,9 +209,7 @@ function dailyVolume(dayIndex: number, rand: () => number): number {
     return Math.round(BASE_DAILY * weekendFactor * trend * noise * spike);
 }
 
-// Cumulative probability of a session reaching at least step k (index 0..4). Index 0 is
-// 1 (every session lands); the rest define the funnel's natural narrowing. Must stay
-// non-increasing, so every step-to-step conditional derived from it lands in 0..1.
+// Must stay non-increasing, so every derived step-to-step conditional lands in 0..1.
 const STEP_REACH = [1, 0.58, 0.24, 0.12, 0.055];
 
 function funnelStepReached(rand: () => number, isNew: boolean, channel: Channel): number {
@@ -228,8 +217,7 @@ function funnelStepReached(rand: () => number, isNew: boolean, channel: Channel)
     const loyaltyBoost = isNew ? 1 : 1.35;
     const channelBoost = channel === 'Paid' || channel === 'Social' ? 0.85 : 1.05;
     const cohortBoost = loyaltyBoost * channelBoost;
-    // Scale the cumulative curve once, then walk it as conditional step-to-step
-    // probabilities — boosting each conditional instead would compound per step.
+    // Walk the scaled curve as conditionals; boosting each conditional instead would compound per step.
     const reachAtLeast = (step: number) => (step === 0 ? 1 : STEP_REACH[step] * cohortBoost);
     let reached = 0;
     for (let step = 1; step < STEP_REACH.length; step++) {
@@ -253,8 +241,7 @@ function buildJourney(rand: () => number, step: number): string[] {
         if (pageStage <= 1 && rand() < 0.5) continue;
         journey.push(path);
     }
-    // A session credited with reaching stage 1 must show at least one stage-1
-    // page, or the funnel and page aggregates disagree.
+    // A session credited with stage 1 must show a stage-1 page, or funnel and page aggregates disagree.
     if (step >= 1 && !journey.some((path) => PAGE_STAGE.get(path)! === 1)) {
         const stageOnePages = STAGE_ORDER.filter((path) => PAGE_STAGE.get(path) === 1);
         journey.splice(1, 0, stageOnePages[Math.floor(rand() * stageOnePages.length)]);
@@ -266,10 +253,7 @@ function generateSessions(): Session[] {
     const rand = seededRandom(20260723);
     const sessions: Session[] = [];
     let seq = 0;
-    // Visitor IDs are minted once per first-ever session; a returning session reuses one
-    // already seen. Sampling only recent visitors keeps a returning visitor's earlier
-    // sessions close enough to co-occur in a dashboard range, so unique visitors sit
-    // meaningfully below session count rather than tracking it 1:1.
+    // Sampling only recent visitors keeps unique visitors meaningfully below session count.
     let visitorSeq = 0;
     const knownVisitors: string[] = [];
     for (let day = 0; day < HISTORY_DAYS; day++) {
@@ -383,8 +367,7 @@ const startOfDay = (ms: number) => {
     return d.getTime();
 };
 
-// Next local midnight. Stepping by calendar day (not a fixed 24h) stays aligned to
-// local midnight across DST transitions, so day buckets keep matching session keys.
+// Calendar-day stepping stays aligned to local midnight across DST transitions.
 const nextDayStart = (ms: number) => {
     const d = new Date(ms);
     d.setDate(d.getDate() + 1);
@@ -496,24 +479,20 @@ export function funnel(range: DateRange): FunnelStep[] {
             sessionsEntering,
             sessionsCompleting,
             dropOffCount,
-            // Share of this step's entrants that never reached the next one, so the
-            // rate and the count always describe the same transition.
+            // Share of this step's entrants, so the rate and the count describe the same transition.
             dropOffRate: sessionsEntering === 0 ? 0 : dropOffCount / sessionsEntering,
         };
     });
 }
 
-// Layered path-flow nodes. Keeping the flow strictly left-to-right across layers
-// guarantees the Sankey stays acyclic and readable regardless of raw journeys.
+// Strictly left-to-right layers, so the Sankey stays acyclic regardless of raw journeys.
 // The most page positions (levels) the journey Sankey shows before an Exit node.
 const MAX_JOURNEY_LEVELS = 5;
 
-// A journey node is tagged with its 1-based position so the same page at
-// different depths stays in its own column, keeping the flow acyclic.
+// Tagged with its 1-based position so the same page at different depths keeps its own column.
 const journeyNode = (position: number, path: string) => `${position}. ${PAGE_TITLE.get(path) ?? path}`;
 
-// Node names contain spaces, so links are keyed on a delimiter that never appears
-// in a name rather than a plain space.
+// Node names contain spaces, so links are keyed on a delimiter that never appears in a name.
 const LINK_SEP = ' ~> ';
 
 // Terminal nodes: a journey either genuinely ends, or runs past MAX_JOURNEY_LEVELS.
@@ -537,8 +516,7 @@ export function pathLinks(range: DateRange): PathLink[] {
             } else if (i === s.pagePath.length - 1) {
                 add(from, `${i + 2}. ${EXIT_NODE}`);
             } else {
-                // Truncated by MAX_JOURNEY_LEVELS — terminate in its own node so the
-                // flow is conserved rather than disappearing at the last shown level.
+                // Truncated journeys terminate in their own node so the flow is conserved.
                 add(from, `${i + 2}. ${CONTINUES_NODE}`);
             }
         }
@@ -549,8 +527,7 @@ export function pathLinks(range: DateRange): PathLink[] {
             return { from, to, size };
         })
         .sort((a, b) => {
-            // Emit terminal links last so, with node sort 'data', terminal nodes are
-            // encountered last and settle at the bottom of each column.
+            // Emit terminal links last so, with node sort 'data', terminal nodes settle at the bottom of each column.
             const terminalDelta = Number(isTerminalNode(a.to)) - Number(isTerminalNode(b.to));
             return terminalDelta === 0 ? b.size - a.size : terminalDelta;
         });

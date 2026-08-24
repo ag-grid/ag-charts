@@ -112,6 +112,15 @@ describe('Chart highlighting', () => {
         return fallback?.[datumIndex] ?? fallback?.[0];
     };
 
+    // The base render layer of a cartesian series; the highlighted item itself is painted
+    // separately by `highlightGroup`, so every base node reflects the "unhighlighted" style.
+    const baseLayerFillOpacities = (chartInstance: Chart, seriesIndex: number): number[] => {
+        const series = chartInstance.series[seriesIndex] as unknown as {
+            datumSelection: { nodes(): Array<{ fillOpacity: number }> };
+        };
+        return series.datumSelection.nodes().map((node) => node.fillOpacity);
+    };
+
     const runHighlightSnapshot = async (testCase: HighlightTestCase) => {
         chart = await createChart(testCase.options);
         const highlightDatum = testCase.getDatum?.(chart) ?? defaultHighlightDatum(chart, testCase);
@@ -701,24 +710,13 @@ describe('Chart highlighting', () => {
     });
 
     describe('Datum-level to series-level highlight transition', () => {
-        // A legend item's highlight is series-level: `datumIndex` is NaN (see `toHighlightNodeDatum`
-        // in legend.ts, string-itemId branch). Keyboard focus moving from a bar to the legend
-        // therefore transitions datum-level -> series-level on the same series.
+        // Legend items highlight at series level, with `datumIndex` set to NaN.
         const legendStyleHighlight = (series: Chart['series'][number], itemId: string): HighlightNodeDatum => ({
             series,
             itemId,
             datum: undefined,
             datumIndex: Number.NaN,
         });
-
-        // The base render layer of a cartesian series; the highlighted item itself is painted
-        // separately by `highlightGroup`, so every base node reflects the "unhighlighted" style.
-        const baseLayerFillOpacities = (chartInstance: Chart, seriesIndex: number): number[] => {
-            const series = chartInstance.series[seriesIndex] as unknown as {
-                datumSelection: { nodes(): Array<{ fillOpacity: number }> };
-            };
-            return series.datumSelection.nodes().map((node) => node.fillOpacity);
-        };
 
         const twoSeriesOptions = () =>
             prepareTestOptions<AgCartesianChartOptions>({
@@ -756,12 +754,10 @@ describe('Chart highlighting', () => {
                 expect(fillOpacity).toBeLessThan(1);
             }
 
-            // Series-level highlight of the *same* series, from a different caller — this mirrors
-            // Tab moving focus out of the series area and into a legend item.
+            // Series-level highlight of the same series, as when focus moves into a legend item.
             chart.ctx.highlightManager.updateHighlight('legend', legendStyleHighlight(chart.series[0], 'apples'));
             await waitForChartStability(chart);
 
-            // Regression (CRT-1155): the stale `unhighlightedItem` dimming used to be left on screen.
             expect(baseLayerFillOpacities(chart, 0)).toEqual([1, 1, 1, 1]);
         });
 
@@ -833,6 +829,396 @@ describe('Chart highlighting', () => {
             chart.ctx.highlightManager.updateHighlight('legend', legendStyleHighlight(chart.series[0], 'apples'));
             await waitForChartStability(chart);
             expect(chart.series[0].highlightGroup.visible).toBe(false);
+        });
+    });
+
+    describe('highlight.mode: shared', () => {
+        // Mirrors how `barSeries.ts#makeItemStylerParams` derives the string an `itemStyler` would see:
+        // the currently active highlight, resolved through the same public `getHighlightStateString`.
+        const stateAt = (chartInstance: Chart, seriesIndex: number, datumIndex: number, isHighlight = false) => {
+            const activeHighlight = chartInstance.ctx.highlightManager.getActiveHighlight();
+            return chartInstance.series[seriesIndex].getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        };
+
+        const twoBarSeriesOptions = (mode?: 'single' | 'shared') =>
+            prepareTestOptions<AgCartesianChartOptions>({
+                data: categoryData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                legend: { enabled: false },
+                ...(mode ? { highlight: { mode } } : {}),
+                series: [
+                    { type: 'bar', xKey: 'category', yKey: 'apples' },
+                    { type: 'bar', xKey: 'category', yKey: 'oranges' },
+                ],
+            });
+
+        it('lifts the non-hovered series item at the hovered category to unhighlighted-item', async () => {
+            const options = twoBarSeriesOptions('shared');
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            const hoveredDatum = defaultHighlightDatum(chart, {
+                name: 'q2-apples',
+                options,
+                seriesIndex: 0,
+                datumIndex: 1,
+            });
+            expect(hoveredDatum).toBeDefined();
+
+            chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+            await waitForChartStability(chart);
+
+            // The hovered node itself.
+            expect(stateAt(chart, 0, 1, true)).toBe('highlighted-item');
+
+            // The hovered series' own other items are unchanged from single mode.
+            expect(stateAt(chart, 0, 0)).toBe('unhighlighted-item');
+            expect(stateAt(chart, 0, 2)).toBe('unhighlighted-item');
+            expect(stateAt(chart, 0, 3)).toBe('unhighlighted-item');
+
+            // The non-hovered series' item at the same category (Q2) is lifted out of series dimming.
+            expect(stateAt(chart, 1, 1)).toBe('unhighlighted-item');
+            // Its other items remain series-dimmed.
+            expect(stateAt(chart, 1, 0)).toBe('unhighlighted-series');
+            expect(stateAt(chart, 1, 2)).toBe('unhighlighted-series');
+            expect(stateAt(chart, 1, 3)).toBe('unhighlighted-series');
+        });
+
+        it('leaves a series wholly unhighlighted-series when it has no item at the hovered category', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: categoryData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                legend: { enabled: false },
+                highlight: { mode: 'shared' },
+                series: [
+                    { type: 'bar', xKey: 'category', yKey: 'apples' },
+                    {
+                        type: 'bar',
+                        xKey: 'category',
+                        yKey: 'oranges',
+                        // Omits the 'Q2' category the hover below targets.
+                        data: categoryData.filter((d) => d.category !== 'Q2'),
+                    },
+                ],
+            });
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            const hoveredDatum = defaultHighlightDatum(chart, {
+                name: 'q2-apples',
+                options,
+                seriesIndex: 0,
+                datumIndex: 1,
+            });
+            expect(hoveredDatum).toBeDefined();
+
+            chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+            await waitForChartStability(chart);
+
+            for (let datumIndex = 0; datumIndex < 3; datumIndex += 1) {
+                expect(stateAt(chart, 1, datumIndex)).toBe('unhighlighted-series');
+            }
+        });
+
+        it('matches on the category value, not the datum index, when a series omits an earlier category', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: categoryData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                legend: { enabled: false },
+                highlight: { mode: 'shared' },
+                series: [
+                    { type: 'bar', xKey: 'category', yKey: 'apples' },
+                    {
+                        type: 'bar',
+                        xKey: 'category',
+                        yKey: 'oranges',
+                        // Drops 'Q2', so this series holds 'Q3' at index 1 where the hovered series holds it at 2.
+                        data: categoryData.filter((d) => d.category !== 'Q2'),
+                    },
+                ],
+            });
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            const hoveredDatum = defaultHighlightDatum(chart, {
+                name: 'q3-apples',
+                options,
+                seriesIndex: 0,
+                datumIndex: 2,
+            });
+            expect(hoveredDatum).toBeDefined();
+
+            chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+            await waitForChartStability(chart);
+
+            expect(stateAt(chart, 1, 1)).toBe('unhighlighted-item');
+            expect(stateAt(chart, 1, 0)).toBe('unhighlighted-series');
+            expect(stateAt(chart, 1, 2)).toBe('unhighlighted-series');
+        });
+
+        it('leaves a scatter series (no category concept) wholly unhighlighted-series', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: cartesianSeriesData,
+                axes: {
+                    x: { position: 'bottom', type: 'number' },
+                    y: { position: 'left', type: 'number' },
+                },
+                legend: { enabled: false },
+                highlight: { mode: 'shared' },
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'seriesA' },
+                    { type: 'scatter', xKey: 'x', yKey: 'seriesB' },
+                ],
+            });
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            const hoveredDatum = defaultHighlightDatum(chart, {
+                name: 'line-datum',
+                options,
+                seriesIndex: 0,
+                datumIndex: 1,
+            });
+            expect(hoveredDatum).toBeDefined();
+
+            chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+            await waitForChartStability(chart);
+
+            for (let datumIndex = 0; datumIndex < cartesianSeriesData.length; datumIndex += 1) {
+                expect(stateAt(chart, 1, datumIndex)).toBe('unhighlighted-series');
+            }
+        });
+
+        it('is unaffected by a series-level (legend-focus) highlight, which carries a NaN datumIndex', async () => {
+            const options = twoBarSeriesOptions('shared');
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            const legendHighlight: HighlightNodeDatum = {
+                series: chart.series[0],
+                itemId: 'apples',
+                datum: undefined,
+                datumIndex: Number.NaN,
+            };
+
+            chart.ctx.highlightManager.updateHighlight(chart.id, legendHighlight);
+            await waitForChartStability(chart);
+
+            for (let datumIndex = 0; datumIndex < 4; datumIndex += 1) {
+                expect(stateAt(chart, 1, datumIndex)).toBe('unhighlighted-series');
+            }
+        });
+
+        it('is provably the non-default: highlight.mode left unset behaves like single mode', async () => {
+            const options = twoBarSeriesOptions();
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            const hoveredDatum = defaultHighlightDatum(chart, {
+                name: 'q2-apples',
+                options,
+                seriesIndex: 0,
+                datumIndex: 1,
+            });
+            expect(hoveredDatum).toBeDefined();
+
+            chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+            await waitForChartStability(chart);
+
+            // Without an explicit `mode`, the non-hovered series' item at the same category stays
+            // series-dimmed - proving the default is 'single', not 'shared'.
+            expect(stateAt(chart, 1, 1)).toBe('unhighlighted-series');
+        });
+
+        it('repaints the previously-matched item when the hover moves to a different category (no itemStyler)', async () => {
+            const options = twoBarSeriesOptions('shared');
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            const datumQ2 = defaultHighlightDatum(chart, { name: 'q2', options, seriesIndex: 0, datumIndex: 1 });
+            const datumQ3 = defaultHighlightDatum(chart, { name: 'q3', options, seriesIndex: 0, datumIndex: 2 });
+            expect(datumQ2).toBeDefined();
+            expect(datumQ3).toBeDefined();
+
+            chart.ctx.highlightManager.updateHighlight(chart.id, datumQ2);
+            await waitForChartStability(chart);
+
+            const afterQ2 = baseLayerFillOpacities(chart, 1);
+            expect(afterQ2[1]).toBeGreaterThan(afterQ2[0]);
+            expect(afterQ2[0]).toBe(afterQ2[2]);
+            expect(afterQ2[2]).toBe(afterQ2[3]);
+
+            chart.ctx.highlightManager.updateHighlight(chart.id, datumQ3);
+            await waitForChartStability(chart);
+
+            const afterQ3 = baseLayerFillOpacities(chart, 1);
+            // Without invalidating the repaint on a shared-match change, the Q2 item stays lit.
+            expect(afterQ3[2]).toBeGreaterThan(afterQ3[0]);
+            expect(afterQ3[1]).toBe(afterQ3[0]);
+            expect(afterQ3[3]).toBe(afterQ3[0]);
+        });
+
+        it('resolves the same states for highlight.range node and tooltip', async () => {
+            // The range only decides the pick intent, so it must not change the resolved states.
+            const statesForRange = async (range: 'node' | 'tooltip') => {
+                const options = twoBarSeriesOptions('shared');
+                options.highlight = { mode: 'shared', range };
+                chart = await createChart(options);
+                await waitForChartStability(chart);
+
+                // Inside the Q2 bar of the first series.
+                await hoverAction(285, 300)(chart);
+                await waitForChartStability(chart);
+
+                const activeHighlight = chart.ctx.highlightManager.getActiveHighlight();
+                expect(activeHighlight?.series).toBe(chart.series[0]);
+                expect(activeHighlight?.datumIndex).toBe(1);
+
+                const states = [0, 1].map((seriesIndex) =>
+                    [0, 1, 2, 3].map((datumIndex) => stateAt(chart, seriesIndex, datumIndex))
+                );
+
+                chart.destroy();
+                (chart as unknown) = undefined;
+
+                return states;
+            };
+
+            const nodeStates = await statesForRange('node');
+            expect(nodeStates[1]).toEqual([
+                'unhighlighted-series',
+                'unhighlighted-item',
+                'unhighlighted-series',
+                'unhighlighted-series',
+            ]);
+            expect(await statesForRange('tooltip')).toEqual(nodeStates);
+        });
+
+        it('repaints a third series when the hover moves to a different series and category', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: categoryData.map((d, index) => ({ ...d, pears: 2 + index })),
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                legend: { enabled: false },
+                highlight: { mode: 'shared' },
+                series: [
+                    { type: 'bar', xKey: 'category', yKey: 'apples' },
+                    { type: 'bar', xKey: 'category', yKey: 'oranges' },
+                    { type: 'bar', xKey: 'category', yKey: 'pears' },
+                ],
+            });
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            const datumQ2 = defaultHighlightDatum(chart, { name: 'q2', options, seriesIndex: 0, datumIndex: 1 });
+            const datumQ3 = defaultHighlightDatum(chart, { name: 'q3', options, seriesIndex: 1, datumIndex: 2 });
+            expect(datumQ2).toBeDefined();
+            expect(datumQ3).toBeDefined();
+
+            chart.ctx.highlightManager.updateHighlight(chart.id, datumQ2);
+            await waitForChartStability(chart);
+
+            const afterQ2 = baseLayerFillOpacities(chart, 2);
+            expect(afterQ2[1]).toBeGreaterThan(afterQ2[0]);
+
+            // Shared mode widens the update beyond the hovered series, so the third series repaints too.
+            chart.ctx.highlightManager.updateHighlight(chart.id, datumQ3);
+            await waitForChartStability(chart);
+
+            const afterQ3 = baseLayerFillOpacities(chart, 2);
+            expect(afterQ3[2]).toBeGreaterThan(afterQ3[0]);
+            expect(afterQ3[1]).toBe(afterQ3[0]);
+        });
+
+        describe('visual regression', () => {
+            it('renders the items at the hovered category lit across every contributing series', async () => {
+                const options = twoBarSeriesOptions('shared');
+                chart = await createChart(options);
+                await waitForChartStability(chart);
+
+                const datumQ2 = defaultHighlightDatum(chart, { name: 'q2', options, seriesIndex: 0, datumIndex: 1 });
+                const datumQ3 = defaultHighlightDatum(chart, { name: 'q3', options, seriesIndex: 0, datumIndex: 2 });
+                expect(datumQ2).toBeDefined();
+                expect(datumQ3).toBeDefined();
+
+                chart.ctx.highlightManager.updateHighlight(chart.id, datumQ2);
+                await waitForChartStability(chart);
+                await compare();
+
+                // The lit pair must move with the hover, leaving nothing lit at the previous category.
+                chart.ctx.highlightManager.updateHighlight(chart.id, datumQ3);
+                await waitForChartStability(chart);
+                await compare();
+            });
+
+            it('renders a series contributing no item at the hovered category dimmed as a whole', async () => {
+                const options = prepareTestOptions<AgCartesianChartOptions>({
+                    data: categoryData,
+                    axes: {
+                        x: { position: 'bottom', type: 'category' },
+                        y: { position: 'left', type: 'number' },
+                    },
+                    legend: { enabled: false },
+                    highlight: { mode: 'shared' },
+                    series: [
+                        { type: 'bar', xKey: 'category', yKey: 'apples' },
+                        {
+                            type: 'bar',
+                            xKey: 'category',
+                            yKey: 'oranges',
+                            data: categoryData.filter((d) => d.category !== 'Q2'),
+                        },
+                    ],
+                });
+
+                chart = await createChart(options);
+                await waitForChartStability(chart);
+
+                const hoveredDatum = defaultHighlightDatum(chart, {
+                    name: 'q2-apples',
+                    options,
+                    seriesIndex: 0,
+                    datumIndex: 1,
+                });
+                expect(hoveredDatum).toBeDefined();
+
+                chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+                await waitForChartStability(chart);
+                await compare();
+            });
+
+            it('renders single mode unchanged for the same hover', async () => {
+                const options = twoBarSeriesOptions('single');
+                chart = await createChart(options);
+                await waitForChartStability(chart);
+
+                const hoveredDatum = defaultHighlightDatum(chart, {
+                    name: 'q2-apples',
+                    options,
+                    seriesIndex: 0,
+                    datumIndex: 1,
+                });
+                expect(hoveredDatum).toBeDefined();
+
+                chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+                await waitForChartStability(chart);
+                await compare();
+            });
         });
     });
 

@@ -10,18 +10,40 @@ import type {
     AgChartTheme,
     AgLineSeriesOptions,
     AgNumberAxisOptions,
+    AgSparklineOptions,
     SeriesType,
 } from 'ag-charts-types';
 
 import { sanitizeThemeModules } from '../chart/factory/processModuleOptions';
+import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import * as examples from '../chart/test/examples';
 import { ChartTheme } from '../chart/themes/chartTheme';
 import { VERSION } from '../version';
+import { CategoryAxisModule } from './axis-modules/categoryAxisModule';
+import { NumberAxisModule } from './axis-modules/numberAxisModule';
 import { ChartOptions } from './optionsModule';
 import { __clearStructuralCacheForTests } from './optionsStructuralCache';
 
 function prepareOptions<T extends AgChartOptions>(userOptions: T, logger?: Logger): T {
     const chartOptions = new ChartOptions(userOptions, {} as T, {}, {}, {}, undefined, false, false, undefined, logger);
+    return chartOptions.processedOptions;
+}
+
+// Mirrors AgCharts.__createSparkline() -> createOrUpdate(): no base options, the user options as the
+// new options, and the sparkline preset metadata.
+function prepareSparklineOptions(userOptions: AgSparklineOptions, logger?: Logger): AgChartOptions {
+    const chartOptions = new ChartOptions(
+        undefined,
+        userOptions as AgChartOptions,
+        {},
+        {},
+        { presetType: 'sparkline', pool: true, domMode: 'minimal', withDragInterpretation: false },
+        undefined,
+        false,
+        false,
+        undefined,
+        logger
+    );
     return chartOptions.processedOptions;
 }
 
@@ -466,6 +488,31 @@ describe('ChartOptions', () => {
             expect(message).toContain("'line'");
         });
 
+        it('reports the missing module for the default series type when no series are provided', () => {
+            // Restore exactly what was registered: the stacking/grouping suite below registers its own
+            // ad-hoc series definitions at collection time, which re-registering the bundle would drop.
+            const registeredModules = [...ModuleRegistry.listModules()];
+            ModuleRegistry.reset();
+            ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
+            try {
+                prepareOptions({} as AgChartOptions);
+            } finally {
+                ModuleRegistry.reset();
+                ModuleRegistry.registerModules(registeredModules);
+            }
+
+            const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+            expect(messages.some((m) => m.includes('LineSeriesModule'))).toBe(true);
+        });
+
+        it('stays silent when the default series type has a registered module', () => {
+            prepareOptions({} as AgChartOptions);
+
+            expect(console.error).not.toHaveBeenCalled();
+            expect(console.warn).not.toHaveBeenCalled();
+        });
+
         it('warns when a series type is unknown and suggests valid types', () => {
             prepareOptions({
                 series: [{ type: 'lien' as any, xKey: 'x', yKey: 'y' }],
@@ -566,6 +613,46 @@ describe('ChartOptions', () => {
         });
     });
 
+    describe('top-level object option type warnings', () => {
+        const objectKeys = [
+            'animation',
+            'annotations',
+            'contextMenu',
+            'flashOnUpdate',
+            'navigator',
+            'scrollbar',
+            'selection',
+            'sync',
+            'tooltip',
+            'zoom',
+        ] as const;
+
+        const baseOptions = (extra: object): AgCartesianChartOptions =>
+            ({
+                data: [{ x: 'a', y: 1 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                ...extra,
+            }) as AgCartesianChartOptions;
+
+        it.each(objectKeys)('warns exactly once when `%s` is set to `true`, and ignores the value', (key) => {
+            const processedOptions = prepareOptions(baseOptions({ [key]: true }));
+
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            const [message] = (console.warn as Mock).mock.calls[0];
+            expect(message).toContain(`Option \`${key}\` cannot be set to \`true\`; expecting an object, ignoring.`);
+            expect(processedOptions[key as keyof AgCartesianChartOptions]).not.toBe(true);
+        });
+
+        it('warns exactly once when `series` is set to `true`, and ignores the value', () => {
+            const processedOptions = prepareOptions({ data: [{ x: 'a', y: 1 }], series: true } as any);
+
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            const [message] = (console.warn as Mock).mock.calls[0];
+            expect(message).toContain('Option `series` cannot be set to `true`; expecting an array, ignoring.');
+            expect(processedOptions.series).not.toBe(true);
+        });
+    });
+
     describe('tooltip range warnings', () => {
         it('warns when tooltip.range is set to area for non-area series', () => {
             prepareOptions({
@@ -597,11 +684,44 @@ describe('ChartOptions', () => {
         });
     });
 
+    describe('highlight.mode option', () => {
+        it('does not warn when highlight.mode is left unset', () => {
+            const options = prepareOptions<AgCartesianChartOptions>({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            expect(console.warn).not.toHaveBeenCalled();
+            expect((options as any).highlight?.mode).toBeUndefined();
+        });
+
+        it('accepts highlight.mode: shared', () => {
+            const options = prepareOptions<AgCartesianChartOptions>({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                highlight: { mode: 'shared' },
+            });
+
+            expect(console.warn).not.toHaveBeenCalled();
+            expect((options as any).highlight?.mode).toBe('shared');
+        });
+
+        it('rejects an invalid highlight.mode and drops it', () => {
+            const options = prepareOptions<AgCartesianChartOptions>({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                highlight: { mode: 'invalid' as any },
+            });
+
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.includes('Option `highlight.mode` cannot be set to `"invalid"`'))).toBe(true);
+            expect(messages.some((m) => m.includes("expecting a keyword such as 'single' or 'shared'"))).toBe(true);
+            // The invalid value is dropped rather than substituted, so `ChartHighlight`'s own
+            // `mode = 'single'` property default applies at the chart-instance level.
+            expect((options as any).highlight?.mode).toBeUndefined();
+        });
+    });
+
     describe('circular opaque payloads (CRT-1143 regression)', () => {
-        // AG Grid's cross-filter integration passes `context: this` - a component instance whose object
-        // graph contains back-references; a `context` can equally be a plain object that references
-        // itself. A full `update()` diffs the options and walks the diff, which must skip these opaque
-        // pass-throughs by name rather than by type, or it follows the cycle into a stack overflow.
+        // A `context` may hold self-references (AG Grid's cross-filter passes a component instance), so
+        // the `update()` diff walk must skip these opaque pass-throughs by name or it overflows the stack.
         class CrossFilterContext {
             readonly self = this;
             readonly gui: { owner: CrossFilterContext };
@@ -1091,7 +1211,7 @@ describe('ChartOptions', () => {
                       "border": {
                         "enabled": false,
                       },
-                      "color": "#181d1f",
+                      "color": "#ffffff",
                     },
                     "outsideStyle": {
                       "border": {
@@ -1175,7 +1295,7 @@ describe('ChartOptions', () => {
                       "border": {
                         "enabled": false,
                       },
-                      "color": "#181d1f",
+                      "color": "#ffffff",
                     },
                     "outsideStyle": {
                       "border": {
@@ -1666,7 +1786,7 @@ describe('ChartOptions', () => {
                       "border": {
                         "enabled": false,
                       },
-                      "color": "#181d1f",
+                      "color": "#ffffff",
                     },
                     "outsideStyle": {
                       "border": {
@@ -1750,7 +1870,7 @@ describe('ChartOptions', () => {
                       "border": {
                         "enabled": false,
                       },
-                      "color": "#181d1f",
+                      "color": "#ffffff",
                     },
                     "outsideStyle": {
                       "border": {
@@ -2241,7 +2361,7 @@ describe('ChartOptions', () => {
                       "border": {
                         "enabled": false,
                       },
-                      "color": "#181d1f",
+                      "color": "#ffffff",
                     },
                     "outsideStyle": {
                       "border": {
@@ -2325,7 +2445,7 @@ describe('ChartOptions', () => {
                       "border": {
                         "enabled": false,
                       },
-                      "color": "#181d1f",
+                      "color": "#ffffff",
                     },
                     "outsideStyle": {
                       "border": {
@@ -2975,7 +3095,6 @@ describe('ChartOptions', () => {
             expect(preparedOptions.tooltip?.enabled).toBe(false);
             expect(preparedOptions.tooltip?.range).toBe(theme.config.line.tooltip.range);
 
-            // Disabled modules now keep their options object.
             expect(preparedOptions.legend).not.toBeUndefined();
         });
 
@@ -3695,6 +3814,137 @@ describe('ChartOptions', () => {
         });
     });
 
+    // Pins the post-theme-merge `processedOptions` for the documented AG Grid sparkline colDefs, so any
+    // change to how the preset's theme template is layered shows up as a snapshot diff.
+    describe('#prepareOptions > sparkline preset', () => {
+        beforeEach(__clearStructuralCacheForTests);
+
+        const sparklineData = [1, 3, 2, 5, 4];
+
+        function sparklineTooltipRenderer(params: { xValue: any; yValue: any }) {
+            return { title: String(params.xValue), content: String(params.yValue) };
+        }
+
+        function markerItemStyler(params: { highlightState?: string }) {
+            return params.highlightState === 'highlighted-item' ? { size: 7 } : { size: 0 };
+        }
+
+        function labelFormatter(params: { value: any }) {
+            return `${params.value}%`;
+        }
+
+        it('resolves a bar sparkline with user-supplied axis styling', () => {
+            const options: AgSparklineOptions = {
+                type: 'bar',
+                direction: 'vertical',
+                fill: '#fac858',
+                data: sparklineData,
+                axis: { type: 'category', stroke: '#cccccc', strokeWidth: 2, visible: true },
+            };
+
+            const preparedOptions = prepareSparklineOptions(options);
+
+            expect(preparedOptions).toMatchSnapshot();
+        });
+
+        it('resolves a horizontal bar sparkline with user-supplied axis styling', () => {
+            const options: AgSparklineOptions = {
+                type: 'bar',
+                direction: 'horizontal',
+                min: 0,
+                max: 6,
+                fill: '#5470c6',
+                data: sparklineData,
+                axis: { type: 'category', stroke: '#cccccc', strokeWidth: 2, visible: true },
+            };
+
+            const preparedOptions = prepareSparklineOptions(options);
+
+            expect(preparedOptions).toMatchSnapshot();
+        });
+
+        it('resolves a line sparkline with top-level padding', () => {
+            const options: AgSparklineOptions = {
+                type: 'line',
+                stroke: 'rgb(124, 255, 178)',
+                strokeWidth: 2,
+                data: sparklineData,
+                padding: { top: 5, bottom: 5 },
+            };
+
+            const preparedOptions = prepareSparklineOptions(options);
+
+            expect(preparedOptions).toMatchSnapshot();
+        });
+
+        it('resolves an area sparkline with fill opacity and a marker styler', () => {
+            const options: AgSparklineOptions = {
+                type: 'area',
+                fill: 'rgba(216, 204, 235, 0.3)',
+                fillOpacity: 0.5,
+                stroke: 'rgb(119,77,185)',
+                data: sparklineData,
+                marker: { enabled: true, size: 0, itemStyler: markerItemStyler },
+                axis: { type: 'category', stroke: 'rgb(204, 204, 235)' },
+            };
+
+            const preparedOptions = prepareSparklineOptions(options);
+
+            expect(preparedOptions).toMatchSnapshot();
+        });
+
+        it('resolves a line sparkline with a tooltip renderer and a marker styler', () => {
+            const options: AgSparklineOptions = {
+                type: 'line',
+                stroke: 'rgb(124, 255, 178)',
+                data: sparklineData,
+                marker: { enabled: true, size: 0, itemStyler: markerItemStyler },
+                tooltip: { renderer: sparklineTooltipRenderer },
+            };
+
+            const preparedOptions = prepareSparklineOptions(options);
+
+            expect(preparedOptions).toMatchSnapshot();
+        });
+
+        it('resolves a bar sparkline with labels and a label formatter', () => {
+            const options: AgSparklineOptions = {
+                type: 'bar',
+                direction: 'vertical',
+                fill: '#fac858',
+                data: sparklineData,
+                padding: { top: 10, bottom: 10 },
+                label: {
+                    enabled: true,
+                    color: '#999999',
+                    placement: 'inside-end',
+                    fontSize: 7.5,
+                    padding: 1,
+                    formatter: labelFormatter,
+                },
+            };
+
+            const preparedOptions = prepareSparklineOptions(options);
+
+            expect(preparedOptions).toMatchSnapshot();
+        });
+
+        it('resolves a line sparkline with a user theme override', () => {
+            const options: AgSparklineOptions = {
+                type: 'line',
+                stroke: 'rgb(124, 255, 178)',
+                data: sparklineData,
+                // The preset's own theme sets `keyboard: { enabled: false }`, so this pins which
+                // layer wins when the user overrides the same key.
+                theme: { overrides: { common: { keyboard: { enabled: true } } } },
+            };
+
+            const preparedOptions = prepareSparklineOptions(options);
+
+            expect(preparedOptions).toMatchSnapshot();
+        });
+    });
+
     describe('displayNullData propagation', () => {
         it('should propagate displayNullData to series allowNullKeys', () => {
             const options: AgCartesianChartOptions = {
@@ -3751,8 +4001,8 @@ describe('ChartOptions', () => {
                 subtitle: { text: 'S', fontFamily: 'CustomFont, sans-serif' },
             } as AgChartOptions);
 
-            // Weight is part of the spec so a family that ships a separate file per weight
-            // (e.g. FontAwesome solid vs regular) loads the file the options actually reference.
+            // Weight is part of the spec: a family shipping one file per weight (e.g. FontAwesome solid
+            // vs regular) must load the file the options reference.
             expect(fonts).toContain('900 16px "Font Awesome 6 Free"');
             expect(fonts).toContain('16px CustomFont');
             expect([...fonts].some((spec) => spec.includes('sans-serif'))).toBe(false);
@@ -3999,8 +4249,7 @@ describe('ChartOptions', () => {
             expect(prepared.series[0].strokeWidth).toBe(2);
         });
 
-        // Themes style; they do not activate. Styling a border through a theme must not switch it on, while an
-        // explicit `enabled` still decides — integrated charts configure exclusively through overrides.
+        // Themes style; they do not activate. Only an explicit `enabled` switches a border on.
         it('does not enable a feature from styling supplied through theme overrides', () => {
             const prepared: any = prepareOptions(
                 barOptions({ label: { border: { stroke: 'rgb(190, 55, 55)' } } }) as any
@@ -4079,13 +4328,13 @@ describe('ChartOptions', () => {
         });
     });
 
-    describe('validations.consoleLogLevel', () => {
-        const invalidOptions = (extra?: object): AgChartOptions =>
-            ({
-                series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 'notanumber' as any }],
-                ...extra,
-            }) as AgChartOptions;
+    const invalidOptions = (extra?: object): AgChartOptions =>
+        ({
+            series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 'notanumber' as any }],
+            ...extra,
+        }) as AgChartOptions;
 
+    describe('validations.consoleLogLevel', () => {
         it('silences first-render validation warnings when set to `none`, without silencing validation itself', () => {
             const chartOptions = new ChartOptions(
                 invalidOptions({ validations: { consoleLogLevel: 'none' } }),
@@ -4164,6 +4413,268 @@ describe('ChartOptions', () => {
 
             expect(console.warn).toHaveBeenCalled();
             expect(updated.validationIssues.length).toBeGreaterThan(0);
+        });
+    });
+
+    describe('validations.throwOn', () => {
+        it('does not throw for the default (option absent), and still logs the existing warning', () => {
+            const chartOptions = new ChartOptions(invalidOptions(), {} as AgChartOptions, {}, {}, {});
+
+            expect(console.warn).toHaveBeenCalled();
+            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+        });
+
+        it('does not throw when explicitly set to `none`', () => {
+            expect(
+                () =>
+                    new ChartOptions(
+                        invalidOptions({ validations: { throwOn: 'none' } }),
+                        {} as AgChartOptions,
+                        {},
+                        {},
+                        {}
+                    )
+            ).not.toThrow();
+
+            expect(console.warn).toHaveBeenCalled();
+        });
+
+        it.each(['loud', null, 42])(
+            'does not throw for an unrecognised throwOn value (%s), and the union validator still reports it',
+            (badValue) => {
+                let chartOptions!: ChartOptions<AgChartOptions>;
+                expect(() => {
+                    chartOptions = new ChartOptions(
+                        invalidOptions({ validations: { throwOn: badValue } }),
+                        {} as AgChartOptions,
+                        {},
+                        {},
+                        {}
+                    );
+                }).not.toThrow();
+
+                expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.throwOn')).toBe(true);
+                const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+                expect(messages.some((m) => m.includes('validations.throwOn'))).toBe(true);
+            }
+        );
+
+        it('throws on a warning-severity option error, naming the option path in the message', () => {
+            expect(
+                () =>
+                    new ChartOptions(
+                        invalidOptions({ validations: { throwOn: 'warning' } }),
+                        {} as AgChartOptions,
+                        {},
+                        {},
+                        {}
+                    )
+            ).toThrowError(/^AG Charts - validations\.throwOn: warning - `series\[0\]\.strokeWidth`: /);
+        });
+
+        it('writes the console record before throwing (AC2)', () => {
+            expect(
+                () =>
+                    new ChartOptions(
+                        invalidOptions({ validations: { throwOn: 'warning' } }),
+                        {} as AgChartOptions,
+                        {},
+                        {},
+                        {}
+                    )
+            ).toThrow();
+
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
+        });
+
+        it('throws for the first qualifying issue rather than collecting the whole batch first (AC3)', () => {
+            const options: AgChartOptions = {
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        strokeWidth: 'notanumber' as any,
+                        lineDash: 'notanarray' as any,
+                    },
+                ],
+                validations: { throwOn: 'warning' },
+            } as AgChartOptions;
+
+            expect(() => new ChartOptions(options, {} as AgChartOptions, {}, {}, {})).toThrow();
+
+            expect(console.warn).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not throw at `error` for a warning-severity option error (nothing in the option pass is error-severity)', () => {
+            expect(
+                () =>
+                    new ChartOptions(
+                        invalidOptions({ validations: { throwOn: 'error' } }),
+                        {} as AgChartOptions,
+                        {},
+                        {},
+                        {}
+                    )
+            ).not.toThrow();
+
+            expect(console.warn).toHaveBeenCalled();
+        });
+
+        it('throws at `deprecation` too, since the threshold is inclusive of every louder severity', () => {
+            expect(
+                () =>
+                    new ChartOptions(
+                        invalidOptions({ validations: { throwOn: 'deprecation' } }),
+                        {} as AgChartOptions,
+                        {},
+                        {},
+                        {}
+                    )
+            ).toThrowError(/^AG Charts - validations\.throwOn: warning - /);
+        });
+
+        it('re-validates and throws again on a warm update, rather than carrying validation issues forward (S6/D4)', () => {
+            const validOptions: AgChartOptions = {
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                validations: { throwOn: 'warning' },
+            } as AgChartOptions;
+
+            const base = new ChartOptions(validOptions, {} as AgChartOptions, {}, {}, {});
+            expect(console.warn).not.toHaveBeenCalled();
+
+            expect(
+                () => new ChartOptions(base, invalidOptions({ validations: { throwOn: 'warning' } }), {}, {}, {})
+            ).toThrow();
+        });
+
+        it('does not throw when fail-fast is suppressed for the CSS-refresh re-construction', () => {
+            expect(
+                () =>
+                    new ChartOptions(
+                        invalidOptions({ validations: { throwOn: 'warning' } }),
+                        {} as AgChartOptions,
+                        {},
+                        {},
+                        {},
+                        undefined,
+                        false,
+                        true
+                    )
+            ).not.toThrow();
+        });
+
+        describe('unregistered modules (AC5)', () => {
+            const unregisteredAxisOptions = (extra?: object): AgChartOptions =>
+                ({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: { type: 'ordinal-time', position: 'bottom' },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    ...extra,
+                }) as any;
+
+            it('throws at `error` for a dropped axis module, after the console record is written', () => {
+                const logger = new Logger();
+
+                expect(() =>
+                    prepareOptions(unregisteredAxisOptions({ validations: { throwOn: 'error' } }), logger)
+                ).toThrow(/required modules are not registered/);
+
+                const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
+                expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+            });
+
+            it('silently drops the unregistered module at `none`, exactly as today', () => {
+                const logger = new Logger();
+
+                expect(() => prepareOptions(unregisteredAxisOptions(), logger)).not.toThrow();
+
+                const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
+                expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+            });
+
+            it('throws at `error` for a dropped plugin module too, not just series/axes', () => {
+                const logger = new Logger();
+                const options = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    zoom: { enabled: true },
+                    validations: { throwOn: 'error' },
+                } as AgChartOptions;
+
+                expect(() => prepareOptions(options, logger)).toThrow(/required modules are not registered/);
+
+                const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
+                expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+            });
+        });
+    });
+
+    describe('validations.onErrorRaised', () => {
+        const badStrokeWidthOptions = (validations?: object) =>
+            ({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 'notanumber' }],
+                validations,
+            }) as unknown as AgChartOptions;
+
+        // `onErrorRaised` is wired up on the `Chart`, absent at this level, so assert on
+        // `validationIssues`, the array the listener is fed from.
+        it('records an issue whose message matches the console warning content', () => {
+            const chartOptions = new ChartOptions(badStrokeWidthOptions(), {} as AgChartOptions, {}, {}, {});
+
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(chartOptions.validationIssues).toContainEqual({
+                severity: 'warning',
+                message:
+                    'Option `series[0].strokeWidth` cannot be set to `"notanumber"`; expecting a number greater than or equal to 0, ignoring.',
+                code: 'series[0].strokeWidth',
+            });
+            expect(messages).toContain(
+                'AG Charts - Option `series[0].strokeWidth` cannot be set to `"notanumber"`; expecting a number greater than or equal to 0, ignoring.'
+            );
+        });
+
+        it('records the issue independently of `consoleLogLevel` silencing the console', () => {
+            const chartOptions = new ChartOptions(
+                badStrokeWidthOptions({ consoleLogLevel: 'none' }),
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(chartOptions.validationIssues).toContainEqual({
+                severity: 'warning',
+                message:
+                    'Option `series[0].strokeWidth` cannot be set to `"notanumber"`; expecting a number greater than or equal to 0, ignoring.',
+                code: 'series[0].strokeWidth',
+            });
+        });
+
+        it('rejects a non-function `onErrorRaised` without throwing', () => {
+            let chartOptions: ChartOptions | undefined;
+            expect(() => {
+                chartOptions = new ChartOptions(
+                    {
+                        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                        validations: { onErrorRaised: 'not-a-function' as any },
+                    } as AgChartOptions,
+                    {} as AgChartOptions,
+                    {},
+                    {},
+                    {}
+                );
+            }).not.toThrow();
+
+            expect(chartOptions!.validationIssues).toContainEqual({
+                severity: 'warning',
+                message:
+                    'Option `validations.onErrorRaised` cannot be set to `"not-a-function"`; expecting a function, ignoring.',
+                code: 'validations.onErrorRaised',
+            });
         });
     });
 });

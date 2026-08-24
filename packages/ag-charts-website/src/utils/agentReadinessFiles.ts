@@ -64,13 +64,11 @@ function buildLinks({ siteRoot, chartsDocsPrefix }: AgentReadinessInput): AgentR
  */
 export function buildLlmsTxt(input: AgentReadinessInput): string {
     const l = buildLinks(input);
-    // Only advertise the `.md` convention when those routes are actually built. Nearly every page
-    // in the sitemap has a twin (enforced by the post-build check in markdownPages.test.ts), so
-    // this states the rule rather than enumerating pages that would drift out of date.
+    // State the `.md` rule rather than enumerate pages, which would drift out of date.
     const markdownLine =
         input.includeMarkdownDocs === false
             ? ''
-            : `\n- Markdown versions: append \`.md\` to any page URL listed in the sitemap for a clean Markdown copy (e.g. ${l.quickStart.replace(/\/$/, '')}.md), or send \`Accept: text/markdown\`. Docs pages are resolved for the framework in the URL. The homepage is the one URL with no \`.md\` suffix - its copy is ${l.homepageMarkdown}. The Options and Themes API reference pages are the exception and have no Markdown version.`;
+            : `\n- Markdown versions: append \`.md\` to any page URL listed in the sitemap for a clean Markdown copy (e.g. ${l.quickStart.replace(/\/$/, '')}.md), or send \`Accept: text/markdown\`. Docs pages are resolved for the framework in the URL. The homepage is the one URL with no \`.md\` suffix - its copy is ${l.homepageMarkdown}.`;
     return `# AG Charts
 > High-performance JavaScript Charting library, framework-agnostic with React, Angular and Vue support. Free Community and paid Enterprise editions. Current major version: v${input.majorVersion}.
 
@@ -95,12 +93,11 @@ export function buildLlmsTxt(input: AgentReadinessInput): string {
  */
 export function buildAgentsMd(input: AgentReadinessInput): string {
     const l = buildLinks(input);
-    // Advertise the markdown twins only when they are built (see includeMarkdownDocs). Nearly
-    // every page in the sitemap has one, so state the rule rather than listing pages.
+    // State the `.md` rule rather than enumerate pages, which would drift out of date.
     const markdownBullet =
         input.includeMarkdownDocs === false
             ? ''
-            : `\n- **Markdown for LLMs:** append \`.md\` to any page URL listed in the [sitemap](${l.sitemap}) (e.g. ${l.quickStart.replace(/\/$/, '')}.md), or request the page with \`Accept: text/markdown\`. Docs pages are resolved for the framework in the URL. The homepage is the one URL with no \`.md\` suffix - its copy is ${l.homepageMarkdown}. The Options and Themes API reference pages are the exception and have no Markdown version.`;
+            : `\n- **Markdown for LLMs:** append \`.md\` to any page URL listed in the [sitemap](${l.sitemap}) (e.g. ${l.quickStart.replace(/\/$/, '')}.md), or request the page with \`Accept: text/markdown\`. Docs pages are resolved for the framework in the URL. The homepage is the one URL with no \`.md\` suffix - its copy is ${l.homepageMarkdown}.`;
     return `# AG Charts - guide for AI coding assistants
 
 - **What it is:** high-performance JavaScript Charting library. Framework-agnostic, with React, Angular and Vue wrappers. Community (free) and Enterprise (licensed) editions.

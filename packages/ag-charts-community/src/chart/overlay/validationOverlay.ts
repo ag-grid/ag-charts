@@ -87,6 +87,10 @@ export function getValidationOverlay({ agDocument, localeManager, grouped, onDis
     const container = agDocument.createElement('div', BASE);
     const panel = agDocument.createElement('div', `${BASE}__panel`);
 
+    // The panel is a modal dialog over the chart, so a right-click on it must not open the chart's
+    // context menu; preventDefault marks the bubbling event so the context-menu registry skips it.
+    panel.addEventListener('contextmenu', (event) => event.preventDefault());
+
     const header = agDocument.createElement('div', `${BASE}__header`);
     const summary = agDocument.createElement('div', `${BASE}__summary`);
     summary.textContent = summaryText(localeManager, grouped);
@@ -94,20 +98,24 @@ export function getValidationOverlay({ agDocument, localeManager, grouped, onDis
 
     const actions = agDocument.createElement('div', `${BASE}__actions`);
 
-    const copyButton = agDocument.createElement('button', `${BASE}__button ${BASE}__copy`);
-    copyButton.type = 'button';
-    copyButton.textContent = localeManager.t('overlayValidationCopy');
-    copyButton.addEventListener('click', () => {
-        // writeText rejects when the clipboard is unavailable (denied permission, insecure context,
-        // unfocused document); swallow it and leave the button label unchanged.
-        agDocument.navigator?.clipboard
-            ?.writeText(diagnosticText(grouped))
-            .then(() => {
-                copyButton.textContent = localeManager.t('overlayValidationCopied');
-            })
-            .catch(() => undefined);
-    });
-    actions.appendChild(copyButton);
+    // Offer Copy only when the clipboard is writable. An insecure context or a sandboxed iframe
+    // leaves no writeText, so a rendered button would be guaranteed to fail on click.
+    const clipboard = agDocument.navigator?.clipboard;
+    if (clipboard != null && typeof clipboard.writeText === 'function') {
+        const copyButton = agDocument.createElement('button', `${BASE}__button ${BASE}__copy`);
+        copyButton.type = 'button';
+        copyButton.textContent = localeManager.t('overlayValidationCopy');
+        copyButton.addEventListener('click', () => {
+            // writeText can still reject when permission is denied at click time; swallow it.
+            clipboard
+                .writeText(diagnosticText(grouped))
+                .then(() => {
+                    copyButton.textContent = localeManager.t('overlayValidationCopied');
+                })
+                .catch(() => undefined);
+        });
+        actions.appendChild(copyButton);
+    }
 
     const dismissButton = agDocument.createElement('button', `${BASE}__button ${BASE}__dismiss`);
     dismissButton.type = 'button';

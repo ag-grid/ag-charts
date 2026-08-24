@@ -24,6 +24,7 @@ export type {
 export { FormatManager } from './chart/formatter/formatManager';
 export type { TransferableResources } from './chart/chart';
 export type { ChartService } from './chart/chartService';
+export { numberAxisOptionsDefs } from './chart/axesOptionsDefs';
 export {
     angleCategoryAxisOptionsDefs,
     angleNumberAxisOptionsDefs,
@@ -391,6 +392,7 @@ export { getCrossLineValue, validateCrossLineValue } from './chart/crossline/cro
 export type { CrossLine, CrossLineType, PolarCrossLine } from './chart/crossline/crossLine';
 export { getCrossLinesPlugin } from './chart/crossline/getCrossLinesPlugin';
 export { calculateLabelTranslation } from './chart/crossline/crossLineLabelPosition';
+export { bandRangeExpansion, isValidScaleValue } from './chart/scaleValue';
 export {
     buildColorCategoryLegendData,
     buildGradientLegendDatum,

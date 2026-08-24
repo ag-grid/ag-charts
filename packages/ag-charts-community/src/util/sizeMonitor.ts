@@ -34,10 +34,7 @@ export class SizeMonitor {
             }
         });
 
-        // The resize observer should most pixel ratio changes
-        // with the exception of moving the browser to a monitor with a different scaling
-        // The resize observer will re-read the pixel ratio
-        // so make sure this fires after the resize observer to avoid double rendering
+        // Must fire after the resize observer, which re-reads the pixel ratio, to avoid double rendering.
         let animationFrame: NodeJS.Timeout;
         this.pixelRatioObserver = new PixelRatioObserver(
             agDocument,
@@ -52,12 +49,8 @@ export class SizeMonitor {
         if (this.documentReady) {
             this.observeWindow();
         } else {
-            // Add load listener, so we can check if the main document is ready and all styles are loaded,
-            // and if it is then attach any queued requests for resize monitoring.
-            //
-            // If we attach before document.readyState === 'complete', then additional incorrect resize events
-            // are fired, leading to multiple re-renderings on chart initial load. Waiting for the
-            // document to be loaded irons out this browser quirk.
+            // Attaching before `readyState === 'complete'` fires spurious resize events, re-rendering
+            // the chart several times on initial load.
             this.removeLoadListener = agDocument.attachListener('load', this.onLoad);
         }
     }
@@ -125,9 +118,8 @@ export class SizeMonitor {
         }
     }
 
-    // Synchronously read an element's size for cases the ResizeObserver may not cover: a
-    // cross-window observer can defer its first callback until the window gains focus, and an
-    // element observed while detached gets no layout-driven callback until it is attached.
+    // Covers cases the ResizeObserver misses: a cross-window observer defers its first callback until
+    // the window gains focus, and a detached element gets none until attached.
     private readSize(entry: Entry, element: HTMLElement) {
         // Content-box dimensions match ResizeObserver's contentRect, avoiding a spurious
         // second resize from border-box/content-box mismatch.

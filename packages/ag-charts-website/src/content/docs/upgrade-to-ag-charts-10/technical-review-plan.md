@@ -16,7 +16,7 @@ This is a migration guide documenting breaking changes, behavior changes, and de
 ### Examples Referenced
 
 - **No interactive examples**: This page contains no code examples to test
-- **External link**: Release blog post at https://blog.ag-grid.com/whats-new-in-ag-charts-10/
+- **External link**: Release blog post at https://www.ag-grid.com/blog/whats-new-in-ag-charts-10/
 
 ### Features Documented
 

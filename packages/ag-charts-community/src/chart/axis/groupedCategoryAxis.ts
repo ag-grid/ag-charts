@@ -27,7 +27,7 @@ import { Transformable } from '../../scene/transformable';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import type { ChartLayout } from '../chartAxis';
 import { createDatumId } from '../data/processors';
-import type { LabelNodeDatum } from './axis';
+import type { AxisPickDatum, LabelNodeDatum } from './axis';
 import { getAxisLabelSideFlag } from './axisLabelUtil';
 import type { GridLineStyleTickDatum } from './cartesianAxis';
 import { CategoryAxis } from './categoryAxis';
@@ -62,6 +62,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
 
     private computedLayout?: ComputedGroupAxisLayout = undefined;
     private tickTreeLayout?: TreeLayout = undefined;
+    private tickValues?: GroupedCategoryKey[] = undefined;
     private tickNodes?: Map<GroupedCategoryKey, TreeNode> = undefined;
     private leafNodeToKey?: Map<TreeNode, GroupedCategoryKey> = undefined;
     private filterTickCache?: {
@@ -157,6 +158,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
         this.tickTreeLayout?.resize(this.scale.range, this.scale.step, this.scale.inset, this.scale.bandwidth);
 
         if (!this.tickTreeLayout?.depth) {
+            this.pickTickData = [];
             return { bbox: BBox.zero, spacing: 0, tickSizeAtDepth: [], tickLabelLayout: [] };
         }
 
@@ -177,21 +179,34 @@ export class GroupedCategoryAxis extends CategoryAxis<
         type LabelCacheEntry = { text: any; styles: any; truncatedText: string | undefined };
         const labelDataCache = new Map<number, LabelCacheEntry>();
         const depthLabelMaxSize: Record<number, number> = {};
+        const pickIdentities: (Omit<AxisPickDatum, 'cross'> & { depth: number })[] = [];
         for (const [index, datum] of treeLabels.entries()) {
             const depth = maxDepth - datum.depth;
             depthLabelMaxSize[depth] ??= 0;
 
+            if (!optionsMap[depth]?.enabled || !inRange(datum.screen, range)) continue;
+
+            const tickIndex = index - 1;
+            const value = (datum.refId == null ? undefined : this.tickValues?.[datum.refId]) ?? [];
+            const inputText = tickFormatter(value, tickIndex, depth);
+            const alongHalfWidth = ((datum.leafCount || 1) * step) / 2;
+            pickIdentities.push({
+                index: tickIndex,
+                value,
+                formattedValue: inputText,
+                along: [datum.screen - alongHalfWidth, datum.screen + alongHalfWidth],
+                depth,
+            });
+
             const isLeaf = !datum.children.length;
             if (isLeaf && step < MIN_CATEGORY_SPACING) continue;
-            if (!optionsMap[depth]?.enabled || !inRange(datum.screen, range)) continue;
 
             let maxWidth = (datum.leafCount || 1) * step;
             if (maxWidth < MIN_CATEGORY_SPACING) continue;
 
-            const inputText = tickFormatter(datum.label, index - 1);
             let text = inputText;
             const labelStyles = this.getLabelStyles(
-                { value: datum.index, formattedValue: text, depth },
+                { value, formattedValue: text, depth, index: tickIndex },
                 depthOptions[depth]?.label
             );
 
@@ -252,6 +267,17 @@ export class GroupedCategoryAxis extends CategoryAxis<
             spacingSum += optionsMap[d]?.spacing ?? 0;
             tickSizeAtDepth[d] = labelSum + spacingSum;
         }
+
+        // One row per depth, stacked outwards; the outermost runs to infinity so clicks beyond the
+        // labels still resolve to the group they sit under.
+        this.pickTickData = pickIdentities.map(({ depth, ...identity }) => ({
+            ...identity,
+            depth,
+            cross: [
+                depth === 0 ? 0 : tickSizeAtDepth[depth - 1],
+                depth === maxDepth - 1 ? Infinity : tickSizeAtDepth[depth],
+            ] as const,
+        }));
 
         // Second pass: position labels using cached data
         const idGenerator = createIdsGenerator();
@@ -748,6 +774,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
         const domain: GroupedCategoryKey[] = this.dataDomain.domain.map(convertIntegratedCategoryValue);
 
         const { layout, tickNodes } = treeLayout(domain);
+        this.tickValues = domain;
         this.tickTreeLayout = layout;
         this.tickNodes = tickNodes;
         this.leafNodeToKey = new Map<TreeNode, GroupedCategoryKey>();

@@ -1,3 +1,4 @@
+import type { FitRegionMask } from 'ag-charts-core';
 import type { AgMarkerShape } from 'ag-charts-types';
 
 import { getSharedMarkerPath } from './markerPathCache';
@@ -38,7 +39,50 @@ export function markerLabelRect(shape: AgMarkerShape | undefined): MarkerLabelRe
     return rect;
 }
 
-function computeLabelRect(shape: AgMarkerShape): MarkerLabelRect | undefined {
+const rowCache = new Map<AgMarkerShape, FitRegionMask | undefined>();
+
+/**
+ * The per-row inside spans of a marker shape, in fractions of the marker diameter, analysed once per shape
+ * and cached. The same mask {@link markerLabelRect} reduces to one rectangle, kept whole so a label can use
+ * the room a row actually offers.
+ */
+export function markerRowSpans(shape: AgMarkerShape | undefined): FitRegionMask | undefined {
+    if (shape == null) return undefined;
+    if (!rowCache.has(shape)) {
+        rowCache.set(shape, computeRowSpans(shape));
+    }
+    return rowCache.get(shape);
+}
+
+function computeRowSpans(shape: AgMarkerShape): FitRegionMask | undefined {
+    const sampled = sampleShape(shape);
+    if (sampled == null) return undefined;
+
+    const { bbox, inside, cellW, cellH } = sampled;
+    const best = largestInsideRect(inside);
+    if (best == null) return undefined;
+
+    // A row is only usable through the run the label sits in: a shape with a notch or two lobes (a heart,
+    // a star) has inside cells either side of ground that is outside it.
+    const anchorCol = Math.round((best.c0 + best.c1) / 2);
+    const rows: (readonly [number, number] | undefined)[] = [];
+    for (let row = 0; row < GRID; row++) {
+        const at = (col: number) => inside[row * GRID + col];
+        if (!at(anchorCol)) {
+            rows.push(undefined);
+            continue;
+        }
+        let lo = anchorCol;
+        let hi = anchorCol;
+        while (lo > 0 && at(lo - 1)) lo--;
+        while (hi < GRID - 1 && at(hi + 1)) hi++;
+        // Spans run centre-of-cell to centre-of-cell, matching how the rectangle search reads the mask.
+        rows.push([bbox.x + (lo + 0.5) * cellW, bbox.x + (hi + 0.5) * cellW]);
+    }
+    return { rows, top: bbox.y, rowHeight: cellH };
+}
+
+function sampleShape(shape: AgMarkerShape) {
     const path = getSharedMarkerPath(shape, 1);
     const bbox = path.computeBBox();
     if (bbox.width <= 0 || bbox.height <= 0) {
@@ -56,7 +100,16 @@ function computeLabelRect(shape: AgMarkerShape): MarkerLabelRect | undefined {
             inside[row * GRID + col] = pointInPolygons(x, y, polygons);
         }
     }
+    return { bbox, inside, cellW, cellH };
+}
 
+function computeLabelRect(shape: AgMarkerShape): MarkerLabelRect | undefined {
+    const sampled = sampleShape(shape);
+    if (sampled == null) {
+        return undefined;
+    }
+
+    const { bbox, inside, cellW, cellH } = sampled;
     const best = largestInsideRect(inside);
     if (best == null) {
         return undefined;

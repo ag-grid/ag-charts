@@ -6,9 +6,11 @@ import {
     AgCaptionListeners,
     AgChartInstance,
     AgChartLegendListeners,
+    AgCharts as AgChartsAPI,
     AgContextMenuGetItemsCallback,
     AgContextMenuItem,
     AgContextMenuOptions,
+    AgCrossLineListeners,
     AgSeriesListeners,
 } from 'ag-charts-community';
 
@@ -25,6 +27,9 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
     protected ngZone!: NgZone;
 
     protected abstract createChart(options: Options): any;
+
+    /** The element name this component is used as, so an options error names the tag the author wrote. */
+    protected abstract readonly selector: string;
 
     ngAfterViewInit(): void {
         const options = this.patchChartOptions(this.options);
@@ -58,6 +63,10 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
     // Returns a patched copy rather than mutating the consumer's options: event-style callbacks
     // (listeners, context-menu actions) are wrapped to re-enter the Angular zone the chart runs outside.
     private patchChartOptions(propsOptions: any): any {
+        // Every deref below assumes an options object, so validate first and build from what comes back;
+        // otherwise an invalid `[options]` input throws a raw TypeError instead of a chart diagnostic.
+        propsOptions = AgChartsAPI.__validateOptionsArgument(propsOptions, `<${this.selector}> \`options\` input`);
+
         const patched: any = { ...propsOptions };
 
         if (propsOptions.listeners) {
@@ -74,10 +83,7 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
         if (propsOptions.axes) {
             // `axes` is a dictionary keyed by axis name, not an array.
             patched.axes = Object.fromEntries(
-                Object.entries<any>(propsOptions.axes).map(([axisKey, axis]) => [
-                    axisKey,
-                    axis?.listeners ? { ...axis, listeners: this.patchListeners(axis.listeners) } : axis,
-                ])
+                Object.entries<any>(propsOptions.axes).map(([axisKey, axis]) => [axisKey, this.patchAxis(axis)])
             );
         }
         for (const captionKey of ['title', 'subtitle', 'footnote'] as const) {
@@ -89,8 +95,35 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
         if (propsOptions.contextMenu) {
             patched.contextMenu = this.patchContextMenu(propsOptions.contextMenu);
         }
+        if (typeof propsOptions.validations?.onErrorRaised === 'function') {
+            patched.validations = {
+                ...propsOptions.validations,
+                onErrorRaised: this.wrapZoneAction(propsOptions.validations.onErrorRaised),
+            };
+        }
         patched.container ??= this._nativeElement;
 
+        return patched;
+    }
+
+    // An axis carries listeners at two levels: its own, and one per cross line. Both re-enter the zone.
+    private patchAxis(axis: any): any {
+        if (!axis) return axis;
+
+        let patched = axis;
+        if (axis.listeners) {
+            patched = { ...patched, listeners: this.patchListeners(axis.listeners) };
+        }
+        if (Array.isArray(axis.crossLines)) {
+            patched = {
+                ...patched,
+                crossLines: axis.crossLines.map((crossLine: any) =>
+                    crossLine?.listeners
+                        ? { ...crossLine, listeners: this.patchListeners(crossLine.listeners) }
+                        : crossLine
+                ),
+            };
+        }
         return patched;
     }
 
@@ -101,6 +134,7 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
             | AgBaseChartListeners<any>
             | AgAxisListeners
             | AgCaptionListeners
+            | AgCrossLineListeners
     ): any {
         const config: any = listenerConfig;
         const patched: any = {};

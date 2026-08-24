@@ -73,6 +73,26 @@ In this configuration:
 - The drop offs use an opacity of the same fills. This can be changed in [the drop off options](#reference-AgFunnelSeriesOptions-dropOff).
 - The Funnel Series is reversed by providing the data items in the reverse order.
 
+## Labels
+
+Each stage can show its value with `label`, positioned along the stage axis.
+
+```js format="snippet"
+{
+    label: {
+        enabled: true,
+        placement: ['inside-center', 'outside-after'],
+    },
+}
+```
+
+In this configuration:
+
+- `inside-center` centres the label in the stage, and `outside-after` places it after the stage along the stage axis.
+- Providing `placement` as an ordered array allows a label that does not fit inside its stage to fall back to the outside position.
+
+See [Series Labels](./series-labels/) for the full set of label, placement and collision options.
+
 ## API Reference
 
 {% tabs %}

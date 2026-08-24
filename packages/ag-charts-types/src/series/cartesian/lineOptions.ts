@@ -8,6 +8,7 @@ import type {
 import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoidanceOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type {
+    AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
     AgChartLabelOptions,
     AgSeriesLabelPlacementStyleOptions,
@@ -43,6 +44,7 @@ export interface AgLineSeriesLabelOptions<TDatum, TParams, TContext = ContextDef
     extends
         AgChartLabelOptions<TDatum, TParams, TContext>,
         AgChartLabelCollisionFitOptions,
+        AgChartLabelAutoFontSizeOptions,
         AgSeriesLabelPlacementStyleOptions {
     /**
      * Placement of the label in relation to the data point. Either a single placement or an ordered

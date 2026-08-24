@@ -13,10 +13,13 @@ import {
     commonSeriesThemeableOptionsDefs,
     defined,
     deprecated,
+    deprecatedValue,
     fillOptionsDef,
+    fontOptionsDef,
     highlightOptionsDef,
     interpolationOptionsDefs,
     labelAutoFontSizeOptionsDefs,
+    labelBoxOptionsDef,
     labelCollisionFitOptionsDefs,
     labelCollisionPlacementDef,
     labelOrientationDef,
@@ -40,6 +43,7 @@ import {
     shapeSegmentation,
     string,
     strokeOptionsDef,
+    textAlign,
     tooltipOptionsDefs,
     undocumentedLabelFitOptionsDefs,
     union,
@@ -59,6 +63,7 @@ import {
     type AgConeFunnelSeriesThemeableOptions,
     type AgFunnelSeriesStyle,
     type AgFunnelSeriesThemeableOptions,
+    type AgHeatmapSeriesLabelStyle,
     type AgHeatmapSeriesStyle,
     type AgHeatmapSeriesThemeableOptions,
     type AgMapLineBackgroundThemeableOptions,
@@ -223,10 +228,12 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
     node: {
         width: positiveNumber,
         spacing: positiveNumber,
+        cornerRadius: positiveNumber,
         itemStyler: callbackDefs<AgChordSeriesNodeStyle>({
             ...fillOptionsDef,
             ...strokeOptionsDef,
             ...lineDashOptionsDef,
+            cornerRadius: positiveNumber,
         }),
         ...fillOptionsDef,
         ...strokeOptionsDef,
@@ -238,14 +245,38 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
 
 Object.assign(chordSeriesThemeableOptionsDef.label, without(undocumentedLabelFitOptionsDefs, ['maxWidth']));
 
+const funnelPlacementDef = unionOrArray(
+    'inside-center',
+    'inside-before',
+    'inside-after',
+    'outside-before',
+    'outside-after'
+);
+
+const coneFunnelPlacementDef = unionOrArray(
+    'before-start',
+    'before-center',
+    'before-end',
+    'middle-start',
+    'middle-center',
+    'middle-end',
+    'after-start',
+    'after-center',
+    'after-end',
+    deprecatedValue('before', 'Use `before-center` instead.'),
+    deprecatedValue('middle', 'Use `middle-center` instead.'),
+    deprecatedValue('after', 'Use `after-center` instead.')
+);
+
 export const coneFunnelSeriesThemeableOptionsDef: OptionsDefs<AgConeFunnelSeriesThemeableOptions> = {
     direction: union('horizontal', 'vertical'),
     fills: arrayOf(colorUnion),
     strokes: arrayOf(colorOrRef),
     label: {
-        spacing: positiveNumber,
-        placement: union('before', 'middle', 'after'),
         ...seriesLabelOptionsDefs,
+        ...labelCollisionFitOptionsDefs,
+        placement: coneFunnelPlacementDef,
+        spacing: positiveNumber,
     },
     stageLabel: {
         placement: union('before', 'after'),
@@ -270,6 +301,7 @@ export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeabl
         ...lineDashOptionsDef,
     }),
     spacingRatio: ratio,
+    cornerRadius: positiveNumber,
     crisp: boolean,
     dropOff: {
         enabled: boolean,
@@ -282,7 +314,13 @@ export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeabl
         format: numberFormatValidator,
         ...commonAxisLabelOptionsDefs,
     },
-    label: seriesLabelOptionsDefs,
+    label: {
+        ...seriesLabelOptionsDefs,
+        ...labelCollisionFitOptionsDefs,
+        ...labelPlacementStyleDefs,
+        placement: funnelPlacementDef,
+        spacing: positiveNumber,
+    },
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
     ...without(commonSeriesThemeableOptionsDefs, ['showInLegend']),
@@ -293,8 +331,8 @@ export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeabl
 
 export const heatmapSeriesThemeableOptionsDef: OptionsDefs<AgHeatmapSeriesThemeableOptions> = {
     title: string,
-    textAlign: union('left', 'center', 'right'),
-    verticalAlign: union('top', 'middle', 'bottom'),
+    textAlign: deprecated(textAlign, 'Use `label.textAlign` instead.'),
+    verticalAlign: deprecated(union('top', 'middle', 'bottom'), 'Use `label.verticalAlign` instead.'),
     itemPadding: positiveNumber,
     cornerRadius: positiveNumber,
     itemStyler: callbackDefs<AgHeatmapSeriesStyle>({
@@ -302,7 +340,20 @@ export const heatmapSeriesThemeableOptionsDef: OptionsDefs<AgHeatmapSeriesThemea
         ...strokeOptionsDef,
     }),
     showInMiniChart: boolean,
-    label: autoSizedLabelOptionsDefs,
+    label: {
+        ...autoSizedLabelOptionsDefs,
+        // The full `textAlign` union: the deprecated top-level option forwards into here, so it must
+        // still accept the `start`/`end` values that option supports.
+        textAlign,
+        verticalAlign: union('top', 'middle', 'bottom'),
+        itemStyler: callbackDefs<AgHeatmapSeriesLabelStyle>({
+            enabled: boolean,
+            ...labelBoxOptionsDef,
+            ...fontOptionsDef,
+            textAlign,
+            verticalAlign: union('top', 'middle', 'bottom'),
+        }),
+    },
     tooltip: tooltipOptionsDefs,
     colorScale: colorScaleOptionsDef,
     ...commonSeriesThemeableOptionsDefs,
@@ -431,6 +482,7 @@ export const organizationSeriesThemeableOptionsDef: OptionsDefs<AgOrganizationSe
     direction: union('horizontal', 'vertical'),
     reverse: boolean,
     expander: defined,
+    layout: defined,
     link: defined,
     node: defined,
     tooltip: tooltipOptionsDefs,
@@ -448,7 +500,13 @@ export const pyramidSeriesThemeableOptionsDef: OptionsDefs<AgPyramidSeriesThemea
     }),
     fills: arrayOf(colorUnion),
     strokes: arrayOf(colorOrRef),
-    label: seriesLabelOptionsDefs,
+    label: {
+        ...seriesLabelOptionsDefs,
+        ...labelCollisionFitOptionsDefs,
+        ...labelPlacementStyleDefs,
+        placement: funnelPlacementDef,
+        spacing: positiveNumber,
+    },
     stageLabel: {
         spacing: positiveNumber,
         placement: union('before', 'after'),
@@ -657,6 +715,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
         width: positiveNumber,
         spacing: positiveNumber,
         minSpacing: and(positiveNumber, lessThanOrEqual('spacing')),
+        cornerRadius: positiveNumber,
         alignment: union('left', 'center', 'right', 'justify'),
         verticalAlignment: union('top', 'bottom', 'center'),
         sort: union('data', 'ascending', 'descending', 'auto'),
@@ -716,7 +775,8 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         gap: positiveNumber,
         padding: positiveNumber,
         cornerRadius: positiveNumber,
-        textAlign: union('left', 'center', 'right'),
+        fills: arrayOf(colorUnion),
+        textAlign,
         interactive: boolean,
         highlight: {
             enabled: boolean,
@@ -734,7 +794,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         gap: positiveNumber,
         padding: positiveNumber,
         cornerRadius: positiveNumber,
-        textAlign: union('left', 'center', 'right'),
+        textAlign,
         verticalAlign: union('top', 'middle', 'bottom'),
         label: {
             ...autoSizedLabelOptionsDefs,

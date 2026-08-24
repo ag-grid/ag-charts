@@ -44,6 +44,28 @@ export function sectorBox({ startAngle, endAngle, innerRadius, outerRadius }: Se
     return new BBox(x0, y0, x1 - x0, y1 - y0);
 }
 
+/**
+ * True when the whole of `box` lies inside the sector. The angular range and the outer radius are settled
+ * by the corners, but the hole is not: a box reaching across the centre line comes closest to the origin
+ * at the middle of an edge, and a corner test would let it dip into the hole unseen.
+ */
+export function isBoxInSector(box: BoxBounds, sector: SectorBoundaries) {
+    const x1 = box.x + box.width;
+    const y1 = box.y + box.height;
+    if (
+        !isPointInSector(box.x, box.y, sector) ||
+        !isPointInSector(x1, box.y, sector) ||
+        !isPointInSector(x1, y1, sector) ||
+        !isPointInSector(box.x, y1, sector)
+    ) {
+        return false;
+    }
+    const nearestX = Math.min(Math.max(0, box.x), x1);
+    const nearestY = Math.min(Math.max(0, box.y), y1);
+    const innerRadius = Math.min(sector.innerRadius, sector.outerRadius);
+    return nearestX ** 2 + nearestY ** 2 >= innerRadius ** 2;
+}
+
 export function isPointInSector(x: number, y: number, sector: SectorBoundaries) {
     const radius = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
     const { innerRadius, outerRadius } = sector;
@@ -223,10 +245,8 @@ export function boxOverlapsSector(box: BoxBounds, sector: SectorBoundaries): boo
 }
 
 // https://ag-grid.atlassian.net/wiki/spaces/AG/pages/3090087939/Sector+Corner+Radii
-// We only care about values between 0 and 1
-// An analytic solution may exist, but I can't find it
-// Instead, use interval bisection between these two values
-// Pass in negative values for outer radius, positive for inner
+// Interval bisection over [0, 1]; no analytic solution is known.
+// Pass in negative values for outer radius, positive for inner.
 export function radiiScalingFactor(r: number, sweep: number, a: number, b: number) {
     if (a === 0 && b === 0) return 0;
 

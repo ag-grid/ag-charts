@@ -83,7 +83,7 @@ describe('Tooltip', () => {
 
     describe('Realtime', () => {
         it('should update tooltip correctly', async () => {
-            // See AG-10409: The tooltip should update when the mouse stays in place but the data is updated.
+            // The tooltip should update when the mouse stays in place but the data is updated.
             const opts: AgChartOptions = prepareTestOptions({});
             opts.data = [
                 { step: 0, voltage: 1.362460821419385 },
@@ -674,11 +674,8 @@ describe('Tooltip', () => {
             chart = await createChart(options);
             await waitForChartStability(chart);
 
-            // Enable fake timers
-            // Vitest migration: only fake setTimeout/clearTimeout. Faking requestAnimationFrame
-            // breaks jsdom's rAF permanently — vi.useRealTimers() fails to restore it after
-            // multiple fake/real cycles, leaving rAF callbacks silently undelivered. The tooltip
-            // delay mechanism uses setTimeout, so that's all we need to control here.
+            // Only fake setTimeout/clearTimeout: faking requestAnimationFrame breaks jsdom's rAF permanently, as
+            // vi.useRealTimers() cannot restore it. The tooltip delay uses setTimeout.
             vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
 
             // Show tooltip

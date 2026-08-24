@@ -1,28 +1,27 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Vec2, type Vertex, clamp } from 'ag-charts-core';
+import { Vec2, type Vertex } from 'ag-charts-core';
 import type { AgNetworkSeriesTreeLayoutDirection } from 'ag-charts-types';
 
-import { NetworkLayout, type NetworkLayoutUpdateOptions } from './networkLayout';
+import {
+    NetworkDirectionalLayout,
+    type NetworkDirectionalLayoutUpdateOptions,
+    NetworkDirectionalSwitchLayout,
+} from './networkDirectionalLayout';
 import type { NetworkLinkInterpolation } from './networkTypes';
+import { pathWithElbows } from './networkUtils';
 
 type TBBox = _ModuleSupport.BBox;
 const { BBox } = _ModuleSupport;
 
-interface ContentBoundsAccumulator {
-    count: number;
-    left: number;
-    top: number;
-    right: number;
-    bottom: number;
-}
-
-export interface NetworkTreeLayoutUpdateOptions<TVertex, TEdge> extends NetworkLayoutUpdateOptions<TVertex, TEdge> {
+export interface NetworkTreeLayoutUpdateOptions<TVertex, TEdge> extends NetworkDirectionalLayoutUpdateOptions<
+    TVertex,
+    TEdge
+> {
     nodeHeight?: number;
     nodeWidth?: number;
     nodeMaxHeight?: number;
     nodeMaxWidth?: number;
 
-    hiddenOnCollapse: boolean;
     regularDimensions: boolean;
 
     direction: AgNetworkSeriesTreeLayoutDirection;
@@ -34,34 +33,29 @@ export interface NetworkTreeLayoutUpdateOptions<TVertex, TEdge> extends NetworkL
 }
 
 /**
- * A Network Tree Layout presents the nodes in a hierarchical non-circular network, for example an org chart or family
+ * A Network Tree Layout presents the nodes in a directed acyclic network, for example an org chart or family
  * tree.
  */
-export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TEdge> {
+export class NetworkTreeLayout<TVertex, TEdge> extends NetworkDirectionalSwitchLayout<
+    TVertex,
+    TEdge,
+    NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
+    NetworkTreeHorizontalLayout<TVertex, TEdge> | NetworkTreeVerticalLayout<TVertex, TEdge>
+> {
     private direction?: AgNetworkSeriesTreeLayoutDirection;
-    private directionalLayout?: NetworkTreeDirectionalLayout<TVertex, TEdge>;
 
-    update(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>) {
-        this.calculateRegularDimensions(options);
-
-        if (this.direction !== options.direction || this.directionalLayout == null) {
+    override getInternalLayout(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>) {
+        if (this.direction !== options.direction || this.internalLayout == null) {
             this.direction = options.direction;
 
             if (options.direction === 'left' || options.direction === 'right') {
-                this.directionalLayout = new NetworkTreeHorizontalLayout<TVertex, TEdge>();
+                return new NetworkTreeHorizontalLayout<TVertex, TEdge>();
             } else {
-                this.directionalLayout = new NetworkTreeVerticalLayout<TVertex, TEdge>();
+                return new NetworkTreeVerticalLayout<TVertex, TEdge>();
             }
         }
 
-        this.directionalLayout.resetContentBBox();
-        this.directionalLayout.resetNodeBBoxes();
-        const { containerBBox } = this.directionalLayout.updateNodes(options, undefined, this.regularBBox);
-        this.contentBBox = this.directionalLayout.getContentBBox() ?? containerBBox;
-    }
-
-    getNodeBBox(vertex: Vertex<TVertex, TEdge>) {
-        return this.directionalLayout?.getNodeBBox(vertex);
+        return this.internalLayout;
     }
 
     protected override calculateRegularDimensions(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>) {
@@ -87,202 +81,11 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
     }
 }
 
-abstract class NetworkTreeDirectionalLayout<TVertex, TEdge> {
-    // Avoids `containerBBox`, whose recursive sibling-merge over-accumulates height to O(N).
-    readonly contentBoundsAccumulator: ContentBoundsAccumulator = {
-        count: 0,
-        left: 0,
-        top: 0,
-        right: 0,
-        bottom: 0,
-    };
-
-    protected nodeBBoxes: Map<Vertex<TVertex, TEdge>, TBBox> = new Map();
-
-    protected abstract addNodesGroupBBoxOuterSpacing(
-        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
-        groupBBox: TBBox,
-        prevHasVisibleChildren: boolean
-    ): void;
-
-    protected abstract addNodesGroupBBoxInnerSpacing(
-        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
-        groupBBox: TBBox,
-        vertices: Vertex<TVertex, TEdge>[],
-        index: number,
-        hasVisibleChildren: boolean
-    ): void;
-
-    protected abstract getNodesLayoutBBox(
-        mergedChildrenBBoxes: TBBox | undefined,
-        nodeBBox: TBBox,
-        groupBBox: TBBox
-    ): TBBox;
-
-    protected abstract getChildrenGroupBBox(
-        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
-        nodeBBox: TBBox,
-        groupBBox: TBBox,
-        prevHasVisibleChildren: boolean
-    ): TBBox;
-
-    protected abstract getNodesContainerBBox(
-        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
-        groupBBox: TBBox,
-        descendentsContainerBBox: TBBox
-    ): TBBox;
-
-    protected abstract drawLink(
-        path: _ModuleSupport.ExtendedPath2D,
-        parentBBox: TBBox,
-        childBBox: TBBox,
-        interpolation: NetworkLinkInterpolation,
-        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>
-    ): void;
-
-    getNodeBBox(vertex: Vertex<TVertex, TEdge>) {
-        return this.nodeBBoxes.get(vertex);
-    }
-
-    updateNodes(
-        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
-        groupBBox: TBBox = new BBox(0, 0, 0, 0),
-        regularBBox?: TBBox
-    ): {
-        containerBBox: TBBox;
-        childrenBBoxes: { vertex: Vertex<TVertex, TEdge>; bbox: TBBox }[];
-    } {
-        const { getDatumNodeBBox, getLinkInterpolation, layoutDatumNode, layoutLinkNode, vertices } = options;
-        const layoutBBoxes = [];
-
-        // Iterate through the sibling vertices calculating their layout positions.
-        let index = -1;
-        let prevHasVisibleChildren = false;
-        for (const vertex of vertices) {
-            index++;
-
-            let nodeBBox = getDatumNodeBBox(vertex);
-            if (!nodeBBox && options.hiddenOnCollapse) continue;
-
-            nodeBBox = regularBBox ?? nodeBBox;
-            if (!nodeBBox) continue;
-
-            this.addNodesGroupBBoxOuterSpacing(options, groupBBox, prevHasVisibleChildren);
-
-            // Layout children before their parent so that the parent can be aligned to match the children.
-            const { descendentsContainerBBox, childrenBBoxes, mergedChildrenBBoxes, childrenCount } =
-                this.updateChildren(
-                    options,
-                    vertex,
-                    groupBBox,
-                    nodeBBox,
-                    regularBBox,
-                    prevHasVisibleChildren || index === 0
-                );
-
-            const hasVisibleChildren =
-                childrenCount > 0 && mergedChildrenBBoxes != null && mergedChildrenBBoxes.width > 0;
-            prevHasVisibleChildren = hasVisibleChildren;
-
-            const layoutBBox = this.getNodesLayoutBBox(mergedChildrenBBoxes, nodeBBox, groupBBox);
-
-            // Request the series to layout the node per the calculated bbox. Override the layoutBBox for the accumulator
-            // if the node extends outside its default size, e.g. for an expander pill.
-            const positionedBBox = layoutDatumNode(vertex, layoutBBox, regularBBox);
-            if (positionedBBox) this.nodeBBoxes.set(vertex, positionedBBox);
-
-            layoutBBoxes.push({ vertex, bbox: layoutBBox });
-            this.accumulateContentBounds(positionedBBox ?? layoutBBox);
-
-            // Merge the bboxes into the group.
-            if (descendentsContainerBBox) {
-                const containerBBox = this.getNodesContainerBBox(options, groupBBox, descendentsContainerBBox);
-                groupBBox = BBox.merge([groupBBox, containerBBox, layoutBBox]);
-            } else {
-                groupBBox = BBox.merge([groupBBox, layoutBBox]);
-            }
-
-            this.addNodesGroupBBoxInnerSpacing(options, groupBBox, vertices, index, hasVisibleChildren);
-
-            // Request the series to layout the links between children and their parents.
-            if (childrenBBoxes) {
-                for (const { vertex: childVertex, bbox } of childrenBBoxes) {
-                    const interpolation = getLinkInterpolation(vertex, childVertex);
-                    layoutLinkNode(childVertex, (path: _ModuleSupport.ExtendedPath2D) =>
-                        this.drawLink(path, layoutBBox, bbox, interpolation, options)
-                    );
-                }
-            }
-        }
-
-        return { containerBBox: groupBBox, childrenBBoxes: layoutBBoxes };
-    }
-
-    resetContentBBox() {
-        this.contentBoundsAccumulator.count = 0;
-    }
-
-    // Vertices omitted by this layout pass — collapsed, or gone with replaced data — must not leave
-    // stale coordinates behind for `getNodeBBox` to hand back, nor keep their graph objects alive.
-    resetNodeBBoxes() {
-        this.nodeBBoxes.clear();
-    }
-
-    getContentBBox() {
-        const acc = this.contentBoundsAccumulator;
-        if (acc.count === 0) return;
-
-        return new BBox(acc.left, acc.top, acc.right - acc.left, acc.bottom - acc.top);
-    }
-
-    private updateChildren(
-        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
-        vertex: Vertex<TVertex, TEdge>,
-        groupBBox: TBBox,
-        nodeBBox: TBBox,
-        regularBBox: TBBox | undefined,
-        prevHasVisibleChildren: boolean
-    ) {
-        const { graph } = options;
-        const children = graph.neighboursWithEdgeValue(vertex, 'child' as TEdge) as Vertex<TVertex, TEdge>[];
-        const isCollapsed = options.isVertexCollapsed(vertex);
-        if (!children || children.length == 0 || isCollapsed) return { childrenCount: 0 };
-
-        const childrenGroupBBox = this.getChildrenGroupBBox(options, nodeBBox, groupBBox, prevHasVisibleChildren);
-        const { containerBBox, childrenBBoxes } = this.updateNodes(
-            { ...options, vertices: children },
-            childrenGroupBBox,
-            regularBBox
-        );
-
-        return {
-            descendentsContainerBBox: containerBBox,
-            childrenBBoxes,
-            mergedChildrenBBoxes:
-                childrenBBoxes.length > 0 ? BBox.merge(childrenBBoxes.map(({ bbox }) => bbox)) : undefined,
-            childrenCount: children.length,
-        };
-    }
-
-    private accumulateContentBounds(bbox: TBBox) {
-        const acc = this.contentBoundsAccumulator;
-        if (acc.count === 0) {
-            acc.left = bbox.x;
-            acc.top = bbox.y;
-            acc.right = bbox.x + bbox.width;
-            acc.bottom = bbox.y + bbox.height;
-            acc.count = 1;
-            return;
-        }
-        if (bbox.x < acc.left) acc.left = bbox.x;
-        if (bbox.y < acc.top) acc.top = bbox.y;
-        if (bbox.x + bbox.width > acc.right) acc.right = bbox.x + bbox.width;
-        if (bbox.y + bbox.height > acc.bottom) acc.bottom = bbox.y + bbox.height;
-        acc.count++;
-    }
-}
-
-class NetworkTreeVerticalLayout<TVertex, TEdge> extends NetworkTreeDirectionalLayout<TVertex, TEdge> {
+class NetworkTreeVerticalLayout<TVertex, TEdge> extends NetworkDirectionalLayout<
+    TVertex,
+    TEdge,
+    NetworkTreeLayoutUpdateOptions<TVertex, TEdge>
+> {
     protected override addNodesGroupBBoxOuterSpacing(
         options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
         groupBBox: TBBox,
@@ -307,7 +110,12 @@ class NetworkTreeVerticalLayout<TVertex, TEdge> extends NetworkTreeDirectionalLa
         }
     }
 
-    protected override getNodesLayoutBBox(mergedChildrenBBoxes: TBBox | undefined, nodeBBox: TBBox, groupBBox: TBBox) {
+    protected override getNodeLayoutBBox(
+        _options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
+        nodeBBox: TBBox,
+        groupBBox: TBBox,
+        mergedChildrenBBoxes?: TBBox
+    ) {
         const x = mergedChildrenBBoxes
             ? // When a node has children, align it centred to those immediate children, but not all descendents.
               mergedChildrenBBoxes.x + mergedChildrenBBoxes.width / 2 - nodeBBox.width / 2
@@ -371,53 +179,18 @@ class NetworkTreeVerticalLayout<TVertex, TEdge> extends NetworkTreeDirectionalLa
         const elbow1 = Vec2.add(start, Vec2.from(0, elbowDist));
         const elbow2 = Vec2.sub(end, Vec2.from(0, elbowDist));
 
-        const cornerRadius = clamp(
-            0,
-            interpolation.cornerRadius ?? 0,
-            Math.min(Math.abs(start.x - end.x), Math.abs(start.y - end.y))
-        );
+        const radius = interpolation.cornerRadius ?? 0;
 
         path.clear();
-        path.moveTo(start.x, start.y);
-        path.lineTo(elbow1.x, elbow1.y);
-        if (cornerRadius > 0) {
-            if (start.x > end.x) {
-                path.lineTo(elbow2.x + cornerRadius, elbow2.y);
-                if (options.direction === 'up') {
-                    path.arc(
-                        elbow2.x + cornerRadius,
-                        elbow2.y - cornerRadius,
-                        cornerRadius,
-                        Math.PI / 2,
-                        Math.PI,
-                        false
-                    );
-                } else {
-                    path.arc(
-                        elbow2.x + cornerRadius,
-                        elbow2.y + cornerRadius,
-                        cornerRadius,
-                        -Math.PI / 2,
-                        Math.PI,
-                        true
-                    );
-                }
-            } else if (start.x < end.x) {
-                path.lineTo(elbow2.x - cornerRadius, elbow2.y);
-                if (options.direction === 'up') {
-                    path.arc(elbow2.x - cornerRadius, elbow2.y - cornerRadius, cornerRadius, Math.PI / 2, 0, true);
-                } else {
-                    path.arc(elbow2.x - cornerRadius, elbow2.y + cornerRadius, cornerRadius, -Math.PI / 2, 0, false);
-                }
-            }
-        } else {
-            path.lineTo(elbow2.x, elbow2.y);
-        }
-        path.lineTo(end.x, end.y);
+        pathWithElbows(path, start, [elbow1, elbow2], end, [0, radius, radius]);
     }
 }
 
-class NetworkTreeHorizontalLayout<TVertex, TEdge> extends NetworkTreeDirectionalLayout<TVertex, TEdge> {
+class NetworkTreeHorizontalLayout<TVertex, TEdge> extends NetworkDirectionalLayout<
+    TVertex,
+    TEdge,
+    NetworkTreeLayoutUpdateOptions<TVertex, TEdge>
+> {
     protected override addNodesGroupBBoxOuterSpacing(
         options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
         groupBBox: TBBox,
@@ -442,7 +215,12 @@ class NetworkTreeHorizontalLayout<TVertex, TEdge> extends NetworkTreeDirectional
         }
     }
 
-    protected override getNodesLayoutBBox(mergedChildrenBBoxes: TBBox | undefined, nodeBBox: TBBox, groupBBox: TBBox) {
+    protected override getNodeLayoutBBox(
+        _options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
+        nodeBBox: TBBox,
+        groupBBox: TBBox,
+        mergedChildrenBBoxes?: TBBox
+    ) {
         const y = mergedChildrenBBoxes
             ? // When a node has children, align it centred to those immediate children, but not all descendents.
               mergedChildrenBBoxes.y + mergedChildrenBBoxes.height / 2 - nodeBBox.height / 2
@@ -506,48 +284,9 @@ class NetworkTreeHorizontalLayout<TVertex, TEdge> extends NetworkTreeDirectional
         const elbow1 = Vec2.add(start, Vec2.from(elbowDist, 0));
         const elbow2 = Vec2.sub(end, Vec2.from(elbowDist, 0));
 
-        const cornerRadius = clamp(
-            0,
-            interpolation.cornerRadius ?? 0,
-            Math.min(Math.abs(start.x - end.x), Math.abs(start.y - end.y))
-        );
+        const radius = interpolation.cornerRadius ?? 0;
 
         path.clear();
-        path.moveTo(start.x, start.y);
-        path.lineTo(elbow1.x, elbow1.y);
-        if (cornerRadius > 0) {
-            if (start.y > end.y) {
-                path.lineTo(elbow2.x, elbow2.y + cornerRadius);
-                if (options.direction === 'left') {
-                    path.arc(elbow2.x - cornerRadius, elbow2.y + cornerRadius, cornerRadius, 0, -Math.PI / 2, true);
-                } else {
-                    path.arc(
-                        elbow2.x + cornerRadius,
-                        elbow2.y + cornerRadius,
-                        cornerRadius,
-                        -Math.PI,
-                        -Math.PI / 2,
-                        false
-                    );
-                }
-            } else if (start.y < end.y) {
-                path.lineTo(elbow2.x, elbow2.y - cornerRadius);
-                if (options.direction === 'left') {
-                    path.arc(elbow2.x - cornerRadius, elbow2.y - cornerRadius, cornerRadius, 0, Math.PI / 2, false);
-                } else {
-                    path.arc(
-                        elbow2.x + cornerRadius,
-                        elbow2.y - cornerRadius,
-                        cornerRadius,
-                        Math.PI,
-                        Math.PI / 2,
-                        true
-                    );
-                }
-            }
-        } else {
-            path.lineTo(elbow2.x, elbow2.y);
-        }
-        path.lineTo(end.x, end.y);
+        pathWithElbows(path, start, [elbow1, elbow2], end, [0, radius, radius]);
     }
 }

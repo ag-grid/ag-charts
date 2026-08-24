@@ -26,6 +26,7 @@ import {
     spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { classCast } from 'ag-charts-test';
 
 import {
     funnelLabelFadeIn,
@@ -34,6 +35,8 @@ import {
     prepareEnterpriseTestOptions,
     renderEnterpriseChartImage,
 } from '../../test/utils';
+import { FunnelConnector } from './funnelConnector';
+import { FunnelSeries } from './funnelSeries';
 
 const FUNNEL_EXAMPLE: AgChartOptions = {
     title: {
@@ -201,7 +204,6 @@ describe('FunnelSeries', () => {
 
         const checkHighlight = async (chartInstance: any) => {
             await hoverChartNodes(chartInstance, ({ series }) => {
-                // Check the highlighted node
                 const highlightNode = testParams.getHighlightNode(chartInstance, series);
                 expect(highlightNode).toBeDefined();
                 expect(highlightNode.fill).toEqual('lime');
@@ -214,12 +216,10 @@ describe('FunnelSeries', () => {
             offset?: { x: number; y: number }
         ) => {
             await hoverChartNodes(chartInstance, async ({ x, y }) => {
-                // Perform click
                 await clickAction(x + (offset?.x ?? 0), y + (offset?.y ?? 0))(chartInstance);
                 await waitForChartStability(chartInstance);
             });
 
-            // Check click handler
             const nodeCount = chartInstance.series.reduce(
                 (sum, series) => sum + testParams.getNodeData(series).length,
                 0
@@ -243,17 +243,14 @@ describe('FunnelSeries', () => {
         it(`should render tooltip correctly`, async () => {
             chart = await createChart({ hasTooltip: true });
             await hoverChartNodes(chart, ({ series, item }) => {
-                // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-charts-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(false);
 
-                // Check the tooltip text
                 const values = testParams.getDatumValues(item, series);
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
 
-            // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
             await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             const tooltip = document.querySelector('.ag-charts-tooltip');
@@ -311,7 +308,6 @@ describe('FunnelSeries', () => {
         const cartesianTestParams = {
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getTooltipRenderedValues: (params) => [params.datum[params.stageKey], params.datum[params.valueKey]],
-            // Returns a highlighted node
             getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
         } as Parameters<typeof testPointerEvents>[0];
 
@@ -711,6 +707,218 @@ describe('FunnelSeries', () => {
         });
     });
 
+    describe('cornerRadius', () => {
+        // Rect.serializeProps() omits the corner-radius fields, so read the nodes directly.
+        const contentNodes = (target: Chart) => {
+            const nodes: _ModuleSupport.Node[] = [];
+            const visit = (node: _ModuleSupport.Node) => {
+                nodes.push(node);
+                if (node instanceof _ModuleSupport.Group) {
+                    for (const child of node.children()) visit(child);
+                }
+            };
+            visit(classCast(target.series[0], FunnelSeries).contentGroup);
+            return nodes;
+        };
+
+        const segmentRects = (target: Chart) =>
+            contentNodes(target).filter((node): node is _ModuleSupport.Rect => node instanceof _ModuleSupport.Rect);
+
+        const dropOffConnectors = (target: Chart) =>
+            contentNodes(target).filter((node): node is FunnelConnector => node instanceof FunnelConnector);
+
+        const buildOptions = (cornerRadius?: number, direction?: 'horizontal' | 'vertical') => {
+            const options: AgChartOptions = {
+                data: [
+                    { group: 'Qualify', value: 7910 },
+                    { group: 'Develop', value: 8170 },
+                    { group: 'Propose', value: 7260 },
+                    { group: 'Close', value: 4460 },
+                ],
+                series: [
+                    {
+                        type: 'funnel',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        strokes: ['black'],
+                        strokeWidth: 4,
+                        cornerRadius,
+                        direction,
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            return options;
+        };
+
+        it('rounds every segment, with the stroke following the rounded shape', async () => {
+            chart = deproxy(AgCharts.create(buildOptions(16)));
+            await waitForChartStability(chart);
+
+            const rects = segmentRects(chart);
+            expect(rects).toHaveLength(4);
+            for (const rect of rects) {
+                expect(rect.topLeftCornerRadius).toBe(16);
+                expect(rect.topRightCornerRadius).toBe(16);
+                expect(rect.bottomRightCornerRadius).toBe(16);
+                expect(rect.bottomLeftCornerRadius).toBe(16);
+            }
+
+            await compare();
+        });
+
+        it('starts the drop-off connectors on the segments rounded corners', async () => {
+            chart = deproxy(AgCharts.create(buildOptions(16)));
+            await waitForChartStability(chart);
+
+            const rects = segmentRects(chart).sort((a, b) => a.y - b.y);
+            const connectors = dropOffConnectors(chart).sort((a, b) => a.y0 - b.y0);
+            expect(connectors).toHaveLength(3);
+
+            for (const [index, connector] of connectors.entries()) {
+                expect(connector.capsAlongX).toBe(true);
+                expect(connector.startCornerRadius).toBe(16);
+                expect(connector.endCornerRadius).toBe(16);
+
+                // The connector opens on the segment's bottom-left corner arc, never at the square
+                // corner, which is the cut-away the segment does not draw.
+                const { startCornerRadius: radius, x0, y0 } = connector;
+                const above = rects[index];
+                expect(x0).toBeCloseTo(above.x, 0);
+                expect(y0).toBeCloseTo(above.y + above.height, 0);
+
+                const centreX = x0 + radius;
+                const centreY = y0 - radius;
+                const [startX, startY] = connector.path.params;
+
+                expect(Math.hypot(startX - centreX, startY - centreY)).toBeCloseTo(radius);
+                expect(startX).toBeLessThanOrEqual(centreX);
+                expect(startY).toBeGreaterThanOrEqual(centreY + radius * Math.SQRT1_2 - 1e-6);
+                expect(startY).toBeLessThanOrEqual(centreY + radius + 1e-6);
+            }
+        });
+
+        it('defaults to square corners', async () => {
+            chart = deproxy(AgCharts.create(buildOptions()));
+            await waitForChartStability(chart);
+
+            const rects = segmentRects(chart);
+            expect(rects).toHaveLength(4);
+            for (const rect of rects) {
+                expect(rect.topLeftCornerRadius).toBe(0);
+                expect(rect.topRightCornerRadius).toBe(0);
+                expect(rect.bottomRightCornerRadius).toBe(0);
+                expect(rect.bottomLeftCornerRadius).toBe(0);
+            }
+
+            for (const connector of dropOffConnectors(chart)) {
+                expect(connector.startCornerRadius).toBe(0);
+                expect(connector.endCornerRadius).toBe(0);
+            }
+        });
+
+        it('rounds every segment in the horizontal direction too', async () => {
+            chart = deproxy(AgCharts.create(buildOptions(16, 'horizontal')));
+            await waitForChartStability(chart);
+
+            const rects = segmentRects(chart);
+            expect(rects).toHaveLength(4);
+            for (const rect of rects) {
+                expect(rect.topLeftCornerRadius).toBe(16);
+                expect(rect.bottomRightCornerRadius).toBe(16);
+            }
+
+            const connectors = dropOffConnectors(chart);
+            expect(connectors).toHaveLength(3);
+            for (const connector of connectors) {
+                expect(connector.capsAlongX).toBe(false);
+                expect(connector.startCornerRadius).toBe(16);
+                expect(connector.endCornerRadius).toBe(16);
+            }
+
+            await compare();
+        });
+    });
+
+    describe('stageLabel placement under RTL', () => {
+        // Stage labels are the category axis' labels, so their side is the axis position the funnel
+        // theme derives from `stageLabel.placement`.
+        const buildOptions = ({
+            enableRtl,
+            placement,
+            direction,
+            theme,
+        }: {
+            enableRtl: boolean;
+            placement?: 'before' | 'after';
+            direction?: 'horizontal' | 'vertical';
+            theme?: AgChartOptions['theme'];
+        }): AgChartOptions => {
+            const options: AgChartOptions = {
+                enableRtl,
+                theme,
+                data: [
+                    { group: 'Qualify', value: 7910 },
+                    { group: 'Develop', value: 8170 },
+                    { group: 'Propose', value: 7260 },
+                    { group: 'Close', value: 4460 },
+                ],
+                series: [
+                    {
+                        type: 'funnel',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        direction,
+                        stageLabel: placement == null ? undefined : { placement },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            return options;
+        };
+
+        const axisPosition = async (options: AgChartOptions, direction: 'x' | 'y') => {
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            return chart.axes[direction].position;
+        };
+
+        it.each([
+            { enableRtl: false, placement: 'before' as const, expected: 'left' },
+            { enableRtl: false, placement: 'after' as const, expected: 'right' },
+            { enableRtl: true, placement: 'before' as const, expected: 'right' },
+            { enableRtl: true, placement: 'after' as const, expected: 'left' },
+            { enableRtl: true, placement: undefined, expected: 'right' },
+        ])('places the stage labels $expected for placement=$placement, enableRtl=$enableRtl', async (testCase) => {
+            const { enableRtl, placement, expected } = testCase;
+            expect(await axisPosition(buildOptions({ enableRtl, placement }), 'y')).toBe(expected);
+        });
+
+        it('leaves the horizontal direction unmirrored', async () => {
+            const options = buildOptions({ enableRtl: true, placement: 'before', direction: 'horizontal' });
+            expect(await axisPosition(options, 'x')).toBe('top');
+        });
+
+        it('renders the stage labels on the mirrored side', async () => {
+            const options = buildOptions({ enableRtl: true, placement: 'before' });
+            options.data = [
+                { group: 'Qualification stage', value: 7910 },
+                { group: 'Development stage', value: 8170 },
+                { group: 'Proposal stage', value: 7260 },
+                { group: 'Closing stage', value: 4460 },
+            ];
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            await compare();
+        });
+
+        it('mirrors a theme-set placement too', async () => {
+            const theme = { overrides: { funnel: { series: { stageLabel: { placement: 'after' as const } } } } };
+            expect(await axisPosition(buildOptions({ enableRtl: true, theme }), 'y')).toBe('left');
+        });
+    });
+
     describe('animation', () => {
         const frames = spyOnAnimationFrames();
 
@@ -742,16 +950,13 @@ describe('FunnelSeries', () => {
             expect(Math.max(...opacities), 'labels hidden at frame 0').toBeLessThanOrEqual(0.01);
         };
 
-        // Initial load: each bar expands from its midpoint along the value axis (width grows, near edge
-        // recedes), the connector fan opens out (funnelPathReveal), and the labels fade in — the shared
-        // BaseFunnelSeries animation reused across the funnel-family suites.
         it('initial load: bars grow from the midpoint, connectors fan out and labels fade in', async () => {
             chart = deproxy(AgCharts.create(animated(DATA)));
             const sampler = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampler);
             await frames.runToEnd(chart);
 
-            // Anti-vacuity: every bar starts collapsed to a zero-width line, every label invisible.
+            // Anti-vacuity: every bar starts collapsed and every label invisible.
             for (const [key, props] of trajectory[0]) {
                 if (/^series\[0\]\/rect\[/.test(key)) {
                     expect(props.width, `${key} width at frame 0`).toBeLessThanOrEqual(0.5);
@@ -771,10 +976,7 @@ describe('FunnelSeries', () => {
             });
         });
 
-        // Data update: every bar tweens its width to the new value during the `update` phase and the
-        // labels re-fade; the connectors snap to their new positions on the first frame (base halts the
-        // connector motion on a waiting update). captureSnap because that connector snap trips
-        // captureUpdate's whole-scene start anchor.
+        // captureSnap because the connector snap trips captureUpdate's whole-scene start anchor.
         it('data update: bars tween to the new values while labels re-fade', async () => {
             const proxy = AgCharts.create(animated(DATA));
             chart = deproxy(proxy);
@@ -783,7 +985,6 @@ describe('FunnelSeries', () => {
                 proxy.updateDelta({ data: UPDATED })
             );
 
-            // Anti-vacuity: a named bar's width genuinely changes end-to-end, and labels re-fade from 0.
             const develop = 'series[0]/rect[Develop]';
             expect(Math.abs(after.get(develop)!.width - before.get(develop)!.width)).toBeGreaterThan(50);
             expectLabelsStartHidden(trajectory[0]);
@@ -797,15 +998,12 @@ describe('FunnelSeries', () => {
                 'series[0]/path[]': 'constant',
                 'series[0]/path[#2]': 'constant',
                 'series[0]/path[#3]': 'constant',
-                // The category axis redraws its tick lines as the bars revalue; that reflow is incidental
-                // to the bar animation under test (the endpoint guard covers its settled pixels).
+                // The axis tick reflow is incidental to the bar animation under test.
                 'axis[left]/*': 'any',
                 'axis[bottom]/*': 'any',
             });
         });
 
-        // Pixel endpoint guard: the animated reveal and the data update must each settle at exactly the
-        // pixels a snapped render of the same options produces.
         it('animated endpoints match a static render (initial load + data update)', async () => {
             const opts = animated(DATA);
             chart = AgCharts.create(opts);

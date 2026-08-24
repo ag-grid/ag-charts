@@ -21,7 +21,20 @@ export function convertStyles(code: string) {
     });
 }
 
+/**
+ * React needs boolean attributes as JSX expressions, and uncontrolled inputs to use the default*
+ * props. Runs before event conversion, while the tag is still plain HTML — once a handler becomes
+ * an arrow function its `>` breaks any regex that relies on `[^>]` to stay inside the tag.
+ */
+function convertBooleanAttributes(template: string) {
+    return template
+        .replace(/(<input[^>]*?\s)checked(?:="[^"]*")?(?=[\s/>])/g, '$1defaultChecked')
+        .replace(/(<[a-z][^>]*?\s)disabled(?:="[^"]*")?(?=[\s/>])/g, '$1disabled={true}');
+}
+
 export function convertTemplate(template: string) {
+    template = convertBooleanAttributes(template);
+
     // React events are case sensitive, so need to ensure casing is correct
     const caseSensitiveEvents = {
         dragover: 'onDragOver',
@@ -51,6 +64,8 @@ export function convertTemplate(template: string) {
 }
 
 export function convertFunctionalTemplate(template: string) {
+    template = convertBooleanAttributes(template);
+
     // React events are case sensitive, so need to ensure casing is correct
     const caseSensitiveEvents = {
         dragover: 'onDragOver',

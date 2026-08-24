@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test';
 
 import type { AgSelectionChangeEvent, AgSelectionChangeEventSource, AgSelectionItem } from 'ag-charts-types';
 
+import { PREVENT_DEFAULT_STUB, evalPageFunction, popPreventables } from './agE2E';
 import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
@@ -13,22 +14,9 @@ import {
     waitForChartUpdate,
 } from './util';
 
-// The example under test exposes three callables on `window.agE2E`:
-//   - initChartSelection(): selects 'New York' via chart.setSelection()
-//   - getChartSelection(): returns the current selection as an array
-//   - popEvents(): returns the selectionChange events emitted since the last call, then clears them
-// The wrappers below mirror the defensive style in state.spec.ts and wait for chart
-// stability so the destructive popEvents() accumulator is read at a settled point.
-
 type Datum = { population: number; city: string };
 type SelectionItem = AgSelectionItem<Datum>;
-
-// The structured-clone boundary of page.evaluate() strips the non-serialisable
-// `preventDefault` method (and any `undefined` `context`), so the events we read
-// back are plain objects of exactly these fields.
-type SelectionChangeEvent = Pick<AgSelectionChangeEvent<Datum, unknown>, 'type' | 'source' | 'added' | 'removed'>;
-
-const EXAMPLE_URL = toExamplePageUrl('selection-e2e', 'accessibility-click', 'vanilla').url;
+type SelectionChangeEvent = AgSelectionChangeEvent<Datum, unknown>;
 
 const NEW_YORK: SelectionItem = {
     seriesId: 'myBarSeries',
@@ -42,55 +30,33 @@ function selectionChange(
     added: SelectionItem[],
     removed: SelectionItem[]
 ): SelectionChangeEvent {
-    return { type: 'selectionChange', source, added, removed };
+    return {
+        type: 'selectionChange',
+        source,
+        added,
+        removed,
+        defaultPrevented: false,
+        preventDefault: PREVENT_DEFAULT_STUB,
+    };
 }
 
 async function initChartSelection(page: Page): Promise<void> {
-    await page.evaluate(() => {
-        const agE2E_initChartSelection: unknown = (window as any)?.agE2E?.initChartSelection;
-        if (agE2E_initChartSelection == null) {
-            throw new Error('window.agE2E.initChartSelection is not defined');
-        } else if (typeof agE2E_initChartSelection !== 'function') {
-            throw new Error('window.agE2E.initChartSelection is not a function');
-        }
-        agE2E_initChartSelection();
-    });
+    await evalPageFunction(page, 'initChartSelection');
     await waitForChartUpdate(page.locator(SELECTORS.wrapper));
 }
 
-async function getChartSelection(page: Page): Promise<SelectionItem[]> {
+async function getChartSelection(page: Page): Promise<unknown> {
     await waitForChartUpdate(page.locator(SELECTORS.wrapper));
-    const selection = await page.evaluate(() => {
-        const agE2E_getChartSelection: unknown = (window as any)?.agE2E?.getChartSelection;
-        if (agE2E_getChartSelection == null) {
-            throw new Error('window.agE2E.getChartSelection is not defined');
-        } else if (typeof agE2E_getChartSelection !== 'function') {
-            throw new Error('window.agE2E.getChartSelection is not a function');
-        }
-        return agE2E_getChartSelection();
-    });
-    expect(Array.isArray(selection)).toBe(true);
-    // Shape is guaranteed by AgChartInstance.getSelection() and survives structured clone intact.
-    return selection as SelectionItem[];
+    return await evalPageFunction(page, 'getChartSelection');
 }
 
-async function popEvents(page: Page): Promise<SelectionChangeEvent[]> {
+async function popEvents(page: Page): Promise<unknown> {
     await waitForChartUpdate(page.locator(SELECTORS.wrapper));
-    const events = await page.evaluate(() => {
-        const agE2E_popEvents: unknown = (window as any)?.agE2E?.popEvents;
-        if (agE2E_popEvents == null) {
-            throw new Error('window.agE2E.popEvents is not defined');
-        } else if (typeof agE2E_popEvents !== 'function') {
-            throw new Error('window.agE2E.popEvents is not a function');
-        }
-        return agE2E_popEvents();
-    });
-    expect(Array.isArray(events)).toBe(true);
-    return events as SelectionChangeEvent[];
+    return await popPreventables(page, 'popEvents');
 }
 
 async function openExampleAndFocusFirstDatum(page: Page): Promise<void> {
-    await gotoExample(page, EXAMPLE_URL);
+    await gotoExample(page, toExamplePageUrl('selection-e2e', 'accessibility-click', 'vanilla').url);
     await initChartSelection(page);
     await page.keyboard.press('Tab');
 }

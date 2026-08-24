@@ -1,4 +1,4 @@
-import type { InternalFramework, Library } from '@ag-grid-types';
+import type { InternalFramework } from '@ag-grid-types';
 import type { CollectionEntry } from 'astro:content';
 import fsPromise from 'fs/promises';
 import glob from 'glob';
@@ -47,6 +47,9 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
     'ag-charts-community/dist/**': 'packages/ag-charts-community/dist/**/*.{cjs,mjs,js,map}',
     'ag-charts-core/dist/**': 'packages/ag-charts-core/dist/**/*.{cjs,mjs,js,map}',
     'ag-charts-enterprise/dist/**': 'packages/ag-charts-enterprise/dist/**/*.{cjs,mjs,js,map}',
+    // Served so the import map can resolve it: an example's `ag-charts-types` import is
+    // usually type-only and so erased, but a value import would otherwise 404
+    'ag-charts-types/dist/**': 'packages/ag-charts-types/dist/**/*.{cjs,mjs,js,map}',
     'ag-charts-react/dist/**': 'packages/ag-charts-react/dist/**/*.{cjs,mjs,js,map}',
     'ag-charts-vue3/dist/**': 'packages/ag-charts-vue3/dist/**/*.{cjs,mjs,js,map}',
 
@@ -131,38 +134,6 @@ export const getDevFileList = () => {
     return Object.values(DEV_FILE_PATH_MAP).map((file) => {
         return pathJoin(distFolder.pathname, file);
     });
-};
-
-/**
- * Get url of example boiler plate files
- */
-export const getBoilerPlateUrl = ({
-    library,
-    internalFramework,
-}: {
-    library: Library;
-    internalFramework: InternalFramework;
-}) => {
-    let boilerPlateFramework;
-    switch (internalFramework) {
-        case 'reactFunctional':
-            boilerPlateFramework = 'react';
-            break;
-        case 'reactFunctionalTs':
-            boilerPlateFramework = 'react-ts';
-            break;
-        default:
-            boilerPlateFramework = internalFramework;
-            break;
-    }
-
-    const boilerplatePath = pathJoin(
-        SITE_BASE_URL,
-        '/example-runner',
-        `${library}-${boilerPlateFramework}-boilerplate`
-    );
-
-    return boilerplatePath;
 };
 
 /**

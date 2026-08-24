@@ -20,6 +20,8 @@ import type {
     AgChartLabelCollisionPlacement,
     AgChartLabelOrientation,
     AgChartLabelRegionPlacement,
+    AgConeFunnelSeriesLabelPlacement,
+    AgFunnelSeriesLabelPlacement,
 } from './collisionAvoidanceOptions';
 import type { ContextDefault, FontSize, OverflowStrategy, PixelSize, TextWrap } from './types';
 
@@ -46,7 +48,12 @@ export interface AgSeriesLabelPlacementStyleOptions {
 export interface AgChartLabelStylerParams<TDatum, TContext>
     extends AgChartCallbackParams<TDatum, TContext>, AgChartLabelStyleOptions {
     /** The resolved placement actually used to render this label. */
-    placement?: AgChartLabelCollisionPlacement | AgBarSeriesLabelPlacement | AgChartLabelRegionPlacement;
+    placement?:
+        | AgChartLabelCollisionPlacement
+        | AgBarSeriesLabelPlacement
+        | AgChartLabelRegionPlacement
+        | AgFunnelSeriesLabelPlacement
+        | AgConeFunnelSeriesLabelPlacement;
     /** The resolved orientation actually used to render this label (bar series only). */
     orientation?: AgChartLabelOrientation;
     /** The specific highlight state of the element. */

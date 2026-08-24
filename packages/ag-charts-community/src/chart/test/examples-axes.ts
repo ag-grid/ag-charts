@@ -1,5 +1,5 @@
 import { mapValues, mergeDefaults } from 'ag-charts-core';
-import type { AgCartesianChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions, TextAlign } from 'ag-charts-types';
 
 import { DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY_EXTENDED } from './data';
 import * as data from './data-axes';
@@ -334,6 +334,25 @@ export const COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES: AgCartesianChartOptions = {
     ...examples.ADV_COMBINATION_SERIES_CHART_EXAMPLE,
     series: examples.ADV_COMBINATION_SERIES_CHART_EXAMPLE.series?.map((s) => ({ ...s, visible: false })),
     legend: { enabled: false },
+};
+
+// Every override differs from the alignment its axis side computes by default, so none of the three
+// columns can move for a reason other than `textAlign`.
+const TEXT_ALIGN_BY_POSITION: Record<string, TextAlign> = { bottom: 'left', left: 'left', right: 'right' };
+
+export const AXIS_LABEL_TEXT_ALIGN: AgCartesianChartOptions = {
+    ...examples.ADV_COMBINATION_SERIES_CHART_EXAMPLE,
+    legend: { enabled: false },
+    axes: {
+        // Both vertical axes need labels of differing width: alignment within a uniform-width column
+        // is unobservable, since the column re-anchors to its widest label.
+        ...mapValues(examples.ADV_COMBINATION_SERIES_CHART_EXAMPLE.axes ?? {}, (axis) => ({
+            ...axis,
+            min: axis.position === 'right' ? 0 : undefined,
+            label: { textAlign: TEXT_ALIGN_BY_POSITION[axis.position ?? 'left'] },
+        })),
+        x: { type: 'category', position: 'bottom', label: { textAlign: TEXT_ALIGN_BY_POSITION.bottom } },
+    },
 };
 
 export const COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES_FIXED_DOMAIN: AgCartesianChartOptions = {

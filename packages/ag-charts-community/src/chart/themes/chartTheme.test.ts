@@ -491,9 +491,8 @@ describe('ChartTheme', () => {
             return (chart as any).ctx.chartState.getValue('options', 'legend');
         };
 
-        // Padding supplied via theme.overrides must resolve identically to the same padding supplied as direct chart
-        // options — previously the $applyPadding operation ignored theme overrides, dropping default sides / failing to
-        // expand a number, which broke legend layout.
+        // Padding supplied via theme.overrides must resolve identically to the same padding supplied
+        // as direct chart options.
         test('CRT-1145: legend.item.padding partial-side override matches direct options', async () => {
             const padding = { left: 15, right: 15 };
 

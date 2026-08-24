@@ -9,8 +9,7 @@ import { buildGalleryExampleMarkdown, galleryExampleDescription } from './buildG
 const SITE_ROOT = 'https://www.ag-grid.com/';
 const DIST = join(__dirname, '../../../../../dist/packages/ag-charts-website');
 
-// The real gallery entries the pages render, so a chart type added without a docs page or a
-// mis-shaped entry shows up here rather than in a broken twin.
+// The real gallery entries, so a chart type with no docs page shows up here, not in a broken twin.
 const EXAMPLES = getGalleryExamples({ galleryData });
 
 const buildFor = (exampleName: string) => {
@@ -78,9 +77,7 @@ describe('buildGalleryExampleMarkdown', () => {
     });
 });
 
-// The example source is read from the `generate-examples` output, which the unit-test target does
-// not build — so it is asserted against the twins a real build emitted instead. Requires
-// `nx build ag-charts-website`; skipped otherwise so unit runs stay fast.
+// Asserted against a real build's twins: the unit-test target does not run `generate-examples`.
 describe.runIf(existsSync(join(DIST, 'gallery/simple-bar.md')))('the built gallery twins', () => {
     const builtTwin = (exampleName: string) => readFileSync(join(DIST, `gallery/${exampleName}.md`), 'utf8');
 
@@ -99,7 +96,7 @@ describe.runIf(existsSync(join(DIST, 'gallery/simple-bar.md')))('the built galle
     });
 
     it('leaves the bulky data out of the twin itself', () => {
-        // This example's data module alone is ~60KB of coordinates; the twin must not carry it.
+        // This example's data module alone is ~60KB of coordinates.
         expect(builtTwin('scatter-with-large-data').length).toBeLessThan(20_000);
     });
 

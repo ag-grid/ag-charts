@@ -26,6 +26,18 @@ import { getInterfacesReference } from '@utils/server/getInterfacesReference';
 const MAX_DEPTH = 8;
 const MAX_ROWS = 1500;
 
+export interface ApiReferenceTableLimits {
+    /**
+     * Stop expanding nested members below this depth. Set it where the reference branches
+     * combinatorially — `AgChartTheme.overrides` repeats the whole chart tree once per chart type,
+     * so a full expansion runs to tens of thousands of rows — and say so on the page, since a
+     * caller-set depth truncates silently.
+     */
+    maxDepth?: number;
+    /** Stop after this many rows. Raise alongside a `maxDepth` wide enough to exceed the default. */
+    maxRows?: number;
+}
+
 // A union alias with dozens of variants (e.g. AgIconName, 53 string literals) makes an unreadable
 // cell; past this budget the alias name is left in place, still resolvable from the docs site.
 const MAX_UNION_SIGNATURE_CHARS = 120;
@@ -94,7 +106,13 @@ function formatMemberType(reference: ApiReferenceType, member: MemberNode): stri
  *
  * Pure (no filesystem access) so it is unit-testable; the entry point loads the reference.
  */
-export function buildApiReferenceTable(reference: ApiReferenceType, attributes: Record<string, unknown>): string {
+export function buildApiReferenceTable(
+    reference: ApiReferenceType,
+    attributes: Record<string, unknown>,
+    limits: ApiReferenceTableLimits = {}
+): string {
+    const maxDepth = limits.maxDepth ?? MAX_DEPTH;
+    const maxRows = limits.maxRows ?? MAX_ROWS;
     const id = interfaceId(attributes);
     if (!id) {
         return '';
@@ -121,22 +139,22 @@ export function buildApiReferenceTable(reference: ApiReferenceType, attributes: 
 
     const hideRequired = attributes.hideRequired === true;
     const rows: string[][] = [];
-    let capped = false;
+    let depthCapped = false;
+    let rowsCapped = false;
 
     function collectRows(
         node: InterfaceNode | TypeLiteralNode,
         memberConfig: ApiReferenceConfig,
         prefix: string,
         depth: number,
-        // The on-page tree needs no cycle guard, as each expansion is a fresh component reacting to
-        // a click. A single pre-order pass does — tracked per branch, so a type shared between two
-        // parents still expands under each of them.
+        // A single pre-order pass needs a cycle guard the on-page tree does not; track it per
+        // branch so a type shared between two parents still expands under each.
         ancestors: ReadonlySet<string>,
         typeArguments?: string[]
     ): void {
         for (const member of processMembers(node, memberConfig, typeArguments)) {
-            if (rows.length >= MAX_ROWS) {
-                capped = true;
+            if (rows.length >= maxRows) {
+                rowsCapped = true;
                 return;
             }
 
@@ -155,8 +173,8 @@ export function buildApiReferenceTable(reference: ApiReferenceType, attributes: 
             if (!nested || ancestors.has(nested.typeName)) {
                 continue;
             }
-            if (depth >= MAX_DEPTH) {
-                capped = true;
+            if (depth >= maxDepth) {
+                depthCapped = true;
                 continue;
             }
 
@@ -166,8 +184,8 @@ export function buildApiReferenceTable(reference: ApiReferenceType, attributes: 
                 path,
                 depth + 1,
                 new Set(ancestors).add(nested.typeName),
-                // Type arguments come from the member's own typeRef resolved through the declaring
-                // node's generics map, then apply to the target's members — as in NodeFactory.
+                // Resolve the member's own typeRef through the declaring node's generics map, as
+                // in NodeFactory.
                 buildTypeArguments(member, node.kind === 'interface' ? node.genericsMap : undefined)
             );
         }
@@ -175,10 +193,12 @@ export function buildApiReferenceTable(reference: ApiReferenceType, attributes: 
 
     collectRows(interfaceRef, config, '', 1, new Set([id]));
 
-    if (capped) {
+    // A caller-set depth is a deliberate policy the page states for itself, so only the default
+    // guard warns. The row cap is always a runaway backstop.
+    if (rowsCapped || (depthCapped && limits.maxDepth == null)) {
         // eslint-disable-next-line no-console
         console.warn(
-            `apiReference "${id}": nested expansion hit the ${MAX_ROWS}-row/${MAX_DEPTH}-level cap; table truncated.`
+            `apiReference "${id}": nested expansion hit the ${maxRows}-row/${maxDepth}-level cap; table truncated.`
         );
     }
 

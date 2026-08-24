@@ -7,9 +7,8 @@ import { THEME } from '../chartTheme';
 import { type Instrument, type PeerPerformanceFeed, type PerfRow, sectorPeers } from '../data';
 import { diffWindow } from '../windowTransaction';
 
-// Module-scope so these option pieces keep stable identities across renders; fresh
-// function identities per tick would force the chart's full slow-path options
-// processing instead of the data-only fast path.
+// Module-scope keeps these identities stable across renders; a fresh function per tick would force the
+// chart's full options processing instead of the data-only fast path.
 const PEER_TOOLTIP_RENDERER: NonNullable<NonNullable<AgLineSeriesOptions['tooltip']>['renderer']> = ({
     datum,
     yKey,
@@ -90,7 +89,7 @@ export function PeerPerformanceChart({ instrument, peerFeed, peerTick, windowMin
                         {
                             type: 'line',
                             value: 0,
-                            stroke: 'white',
+                            stroke: 'var(--fin-muted)',
                             strokeOpacity: 1,
                             strokeWidth: 1,
                         },

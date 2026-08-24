@@ -1,7 +1,7 @@
 import Code from '@ag-website-shared/components/code/Code';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import styles from '@ag-website-shared/components/reference-documentation/ApiReference.module.scss';
-import { navigate, scrollIntoViewById, useLocation } from '@ag-website-shared/utils/navigation';
+import { scrollIntoViewById } from '@ag-website-shared/utils/navigation';
 import type {
     InterfaceNode,
     MemberNode,
@@ -48,6 +48,7 @@ import {
     resolveAliasedUnion,
     resolveReferenceType,
 } from '../apiReferenceHelpers';
+import { navigateToSelection, useApiReferenceLocation } from '../apiReferenceRouting';
 import { SelectionContext } from './OptionsNavigation';
 import { type CollapsibleType, PropertyTitle, PropertyType } from './Properties';
 
@@ -191,7 +192,7 @@ function UnionVariantNode({
 }) {
     const [isExpanded, toggleExpanded, setExpanded] = useToggle();
     const config = useContext(ApiReferenceConfigContext);
-    const location = useLocation();
+    const location = useApiReferenceLocation();
     const docs = parseJsDocs(variant.node.docs);
     const { discriminator } = variant;
     const displayName = discriminator ? `[${discriminator.key}='${discriminator.value}']` : variant.anchorSegment;
@@ -279,7 +280,7 @@ export function ApiReference({
     const reference = useContext(ApiReferenceContext);
     const config = useContext(ApiReferenceConfigContext);
     const interfaceRef = reference?.get(id);
-    const location = useLocation();
+    const location = useApiReferenceLocation();
 
     // include / exclude / prioritise scope the top-level interface only; nested interfaces
     // and union variants must render their full member set.
@@ -335,7 +336,7 @@ function NodeFactory({ member, anchorId, genericsMap, prefixPath = [], ...props 
     const [isSignatureExpanded, toggleSignature, setSignatureExpanded] = useToggle();
     const interfaceRef = useMemberAdditionalDetails(member);
     const config = useContext(ApiReferenceConfigContext);
-    const location = useLocation();
+    const location = useApiReferenceLocation();
 
     const hasMembers = hasMembersNode(interfaceRef);
     const hasNestedPages = config.specialTypes?.[getMemberType(member)] === 'NestedPage';
@@ -497,7 +498,7 @@ function ApiReferenceRow({
                                     pageTitle: { name: memberName },
                                 };
                                 selection?.setSelection(selectionState);
-                                navigate(selectionState, { state: selectionState });
+                                navigateToSelection(selectionState);
                             }}
                         >
                             See property details <Icon name="arrowRight" />
@@ -596,9 +597,7 @@ function useMemberAdditionalDetails(member: MemberNode): MemberAdditionalDetails
         return resolvedDetails;
     }
 
-    // Union of named interfaces: a direct union alias (`fill`), an empty interface whose heritage is
-    // a union alias (axis-specific cross-lines), or a union mixing primitives with named interfaces
-    // (`format`). Expand into the named interface variants; primitive members are dropped from the list.
+    // Expand a union of named interfaces into its variants; primitive members are dropped from the list.
     const aliasedUnion = resolveAliasedUnion(
         resolvedDetails && !Array.isArray(resolvedDetails) ? resolvedDetails : undefined,
         reference

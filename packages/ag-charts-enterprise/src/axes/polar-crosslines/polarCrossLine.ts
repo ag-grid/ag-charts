@@ -1,4 +1,4 @@
-import type { AgBaseCrossLineLabelOptions } from 'ag-charts-community';
+import type { AgBaseCrossLineLabelOptions, AgCrossLineListeners } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     BaseProperties,
@@ -94,6 +94,11 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
 
     @Property
     label = new PolarCrossLineLabel();
+
+    // Accepted so the shared cross-line options surface validates on polar axes, but never invoked:
+    // polar cross lines are not hit-testable.
+    @Property
+    listeners?: AgCrossLineListeners<unknown>;
 
     scale?: Scale<any, number> = undefined;
     clippedRange: [number, number] = [-Infinity, Infinity];

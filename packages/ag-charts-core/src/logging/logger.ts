@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
 
-// Minimum console severity a Logger emits (higher = quieter). The default of 0 admits every message,
-// so a default Logger's output matches an ungated one.
+// Minimum console severity a Logger emits (higher = quieter); the default of 0 admits every message.
 const SEVERITY = { deprecation: 1, warn: 2, error: 3 } as const;
 
 /** The public `validations.consoleLogLevel` scale, as an inclusive threshold. */
@@ -157,9 +156,8 @@ export class Logger {
         const index = this.groups.lastIndexOf(group);
         if (index === -1) return;
 
-        // Concurrent async groups can close out of order, and console grouping is a stack: closing this
-        // group has to close everything opened inside it, or the console stays grouped for good. Their
-        // own close is then a no-op, having been dropped from the stack here.
+        // Console grouping is a stack and concurrent async groups can close out of order, so closing this
+        // group must also close everything opened inside it. Their own close is then a no-op.
         for (let i = this.groups.length - 1; i >= index; i--) {
             if (this.groups[i].opened) {
                 console.groupEnd();

@@ -1,0 +1,5 @@
+{
+    "renewalWarnDays": 30,
+    "onTimeTarget": 0.9,
+    "qualityTarget": 0.9
+}

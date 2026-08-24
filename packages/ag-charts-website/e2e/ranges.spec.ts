@@ -83,9 +83,8 @@ test.describe('range buttons', () => {
         await page.getByText('3 Months (calendar)').click();
         await expectChartScreenshot(page, canvas, 'range-buttons-actions-calendar.png');
 
-        // Value Pair and All Domain Function animate the zoom to a new x/y-domain.
-        // Move the mouse off the chart and wait for the animation to settle before
-        // each capture, otherwise the screenshot can land mid-transition.
+        // These animate the zoom to a new domain: move the mouse off the chart and let it settle, otherwise
+        // the screenshot lands mid-transition.
         await page.getByText('Value Pair').click();
         await page.mouse.move(0, 0);
         await waitForChartUpdate(wrapper);
@@ -104,10 +103,8 @@ test.describe('range buttons', () => {
         await page.keyboard.type('+');
 
         await page.getByText('Visible Window Function').click();
-        // Move the mouse off the chart area to avoid hover-state differences on
-        // zoom-pan toolbar buttons, and wait for the chart animation to settle
-        // before capturing the screenshot. Without these guards the forward-nav
-        // button's hover/enabled transition produces a flaky 24x24 diff region.
+        // Move the mouse off the chart and let the animation settle: the forward-nav button's hover/enabled
+        // transition otherwise produces a flaky 24x24 diff region.
         await page.mouse.move(0, 0);
         await waitForChartUpdate(wrapper);
         await expectChartScreenshot(page, canvas, 'range-buttons-actions-visible-window-function.png');
@@ -135,7 +132,6 @@ test.describe('range buttons', () => {
         await expectChartScreenshot(page, canvas, 'range-buttons-dropdown-4.png');
     });
 
-    // CRT-705: Disabling and re-enabling ranges should correctly restore the button toolbar.
     test('enable/disable toggle restores buttons', async ({ page }) => {
         const { url } = toExamplePageUrl('range-buttons-e2e', 'enable-disable', 'vanilla');
         await gotoExample(page, url);

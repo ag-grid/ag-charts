@@ -12,12 +12,15 @@ import type {
     FontWeight,
     PixelSize,
     Ratio,
+    TextAlign,
     TextWrap,
 } from './types';
 
-export type AgAxisValue = number | bigint | string | Date;
+export type AgGroupedCategoryValue = (string | null)[];
 
-export type AgAxisDomain = number[] | bigint[] | string[] | Date[];
+export type AgAxisValue = number | bigint | string | Date | AgGroupedCategoryValue;
+
+export type AgAxisDomain = number[] | bigint[] | string[] | Date[] | AgGroupedCategoryValue[];
 
 export type AgAxisDirection = 'x' | 'y' | 'angle' | 'radius';
 
@@ -37,6 +40,8 @@ export interface AgAxisCoordinate {
     direction: AgAxisDirection;
     /** The index of the resolved value */
     index: number;
+    /** The depth of the resolved label on a `grouped-category` axis, counted outwards from the leaf labels, which are depth `0`. Undefined on every other axis type. */
+    depth?: number;
     /** Metadata about series bound to the axis the title belongs to. */
     boundSeries: AgAxisBoundSeries[];
     /** Computed domain of the axis */
@@ -217,6 +222,8 @@ export interface AgAxisLabelFormatterParams<TContext = ContextDefault> {
     readonly type: 'number' | 'date' | 'category';
     readonly value: any;
     readonly index: number;
+    /** The depth of the label on a `grouped-category` axis, counted outwards from the leaf labels, which are depth `0`. Undefined on every other axis type. */
+    readonly depth?: number;
     readonly fractionDigits?: number;
     readonly unit?: AgTimeIntervalUnit;
     readonly step?: number;
@@ -242,6 +249,18 @@ export interface AgBaseAxisLabelOptions<TContext = ContextDefault> extends AgBas
     enabled?: boolean;
     /** The rotation of the axis labels in degrees. Note: for integrated charts the default is 335 degrees, unless the axis shows grouped or default categories (indexes). The first row of labels in a grouped category axis is rotated perpendicular to the axis line. */
     rotation?: Degree;
+    /**
+     * The horizontal alignment of the axis labels. If unset, the alignment is derived from the axis position and the label rotation.
+     *
+     * On a vertical axis with unrotated labels this aligns each label within the axis's label column; on a horizontal axis, or whenever the labels are rotated, it aligns each label around its own anchor point.
+     *
+     * On a horizontal axis with a banded scale (`category`, `ordinal-time`) the labels align to the edges of the band each tick belongs to, rather than to the middle of the band where the tick sits.
+     *
+     * Honoured on cartesian axes (`number`, `category`, `time`, `log`, `ordinal-time`). Ignored on grouped-category, angle and radius axes, and on funnel / cone-funnel `stageLabel`.
+     *
+     * Default: `undefined`
+     */
+    textAlign?: TextAlign;
     /** Avoid axis label collision by automatically reducing the number of ticks displayed. If set to `false`, axis labels may collide. */
     avoidCollisions?: boolean;
     /** Minimum gap in pixels between the axis labels before being removed to avoid collisions. */

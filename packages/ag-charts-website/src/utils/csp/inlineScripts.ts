@@ -12,9 +12,8 @@
  * the Astro/Vite build graph.
  */
 
-// Dark-mode bootstrap. Runs render-blocking at the top of <body> so the first
-// paint is already in the correct theme (no flash); kept inline (not externalised)
-// to avoid adding a fetch before first paint. No server-injected values.
+// Must run render-blocking at the top of <body>, inline, or the first paint flashes the
+// wrong theme.
 export const DARK_MODE_INIT_SCRIPT = `
     const htmlEl = document.querySelector('html');
     const localDarkmode = localStorage['documentation:darkmode'];
@@ -85,14 +84,9 @@ export const DARK_MODE_INIT_SCRIPT = `
     document.addEventListener('astro:after-swap', applyAnnouncementVisibility);
 `;
 
-// Sets html[data-os="mac"] so the CSS in _inline.scss can show "⌘ Command" instead of
-// "^ Ctrl" in {% kbd %} tags, and the search bar can show "⌘ K" instead of "Ctrl K".
-// There's no build-time (nor pure-CSS) way to know the visitor's OS, so this runs
-// render-blocking at the top of <body> — same spot as the dark-mode script — to avoid a
-// flash of the wrong label. Feature-detects the Chromium-only User-Agent Client Hints
-// API first, then falls back to the older (deprecated but universally supported)
-// navigator.platform. iOS is matched too: those devices report "iPhone"/"iPad" rather
-// than "MacIntel" on older versions, and an attached Apple keyboard still uses Command.
+// Sets html[data-os="mac"] so _inline.scss can render ⌘ rather than Ctrl in kbd tags. The
+// visitor's OS is unknowable at build time, so this runs render-blocking to avoid a flash of
+// the wrong label; iOS counts as mac because an attached Apple keyboard uses Command.
 export const KBD_PLATFORM_INIT_SCRIPT = `
     const platform = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '';
     if (/(mac|iphone|ipod|ipad)/i.test(platform)) {
@@ -108,8 +102,7 @@ export const KBD_PLATFORM_INIT_SCRIPT = `
     }
 `;
 
-// Plausible analytics queue stub. The tagged-events script itself loads externally
-// (plausible.io, allow-listed); this only sets up window.plausible before it arrives.
+// Queue stub only; the tagged-events script itself loads externally from plausible.io.
 export const PLAUSIBLE_INIT_SCRIPT = `
     window.plausible =
         window.plausible ||
@@ -118,8 +111,7 @@ export const PLAUSIBLE_INIT_SCRIPT = `
         };
 `;
 
-// Pageview per client-side navigation. astro:page-load also fires on a hard load, where
-// the Plausible script has already sent one — hence skipping the first event.
+// astro:page-load also fires on a hard load, where Plausible has already sent a pageview.
 export const PLAUSIBLE_PAGE_LOAD_SCRIPT = `
     if (!globalThis.plausiblePageViewRegistered) {
         let firstLoad = true;

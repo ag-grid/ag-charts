@@ -1,33 +1,31 @@
+import type { Page, TestInfo } from '@playwright/test';
 import { readFileSync } from 'fs';
+import { createHash } from 'node:crypto';
 import { join } from 'path';
 
+import type { CspHashHint, CspViolationRecord } from '../src/utils/csp/cspViolationReport';
+import {
+    CSP_HASH_HINT_ANNOTATION,
+    CSP_VIOLATION_ANNOTATION,
+    parseCspHashHint,
+} from '../src/utils/csp/cspViolationReport';
 import { expect, test } from './fixture';
 import { gotoExample, gotoUrl, toExamplePageUrl, toPageUrl } from './util';
 
-// This is a smoke test suite: a page actually failing to load or render (checked via the
-// assertions in each test, plus gotoUrl/gotoExample's own title/canvas checks) is the main
-// way a test fails. The one other hard-fail signal is a genuinely enforced CSP violation —
-// something the browser actively blocked — since that's a real, actionable break we need to
-// know about immediately, distinct from routine console noise. Everything else (console
-// errors/warnings, uncaught exceptions, dev-server hydration noise, and report-only CSP
-// monitoring that hasn't blocked anything yet) is surfaced as a test annotation for
-// visibility in reports without failing the test. This intentionally doesn't use the shared
-// setupIntrinsicAssertions from util.ts — that helper's zero-tolerance behaviour is right for
-// the feature-level e2e specs that use it, but wrong for a post-deploy smoke test.
-const isCspIssue = (msg: string) => /Content-Security-Policy|Refused to (load|execute|connect)/i.test(msg);
-// An actual enforced block, as opposed to a report-only policy that's merely being
-// monitored ahead of enforcement. Enforced CSP violation messages vary in verb by
-// directive ("Refused to load/execute/connect...", "Refused to apply inline style...",
-// "Refused to frame...", "Refused to create a worker from...", "Refused to evaluate a
-// string as JavaScript...", etc.) so rather than enumerate every verb, treat any
-// CSP-related message that isn't marked report-only as enforced. Browsers prefix/suffix
-// report-only violation messages with "report-only" or "[Report Only]" text
-// (Chrome/Chromium use a space, not a hyphen, in the "[Report Only]" prefix).
-const isEnforcedCspViolation = (msg: string) => isCspIssue(msg) && !/report[ -]only/i.test(msg);
+declare global {
+    interface Window {
+        __agCspSelfCheck?: boolean;
+    }
+}
 
-// Console messages that are known browser/environment noise unrelated to the site under
-// test. Matched by substring so new message formats stay filtered; this is report hygiene
-// only, not a safety mechanism, since none of it fails the test anyway.
+/** Inline script the site policy cannot authorise, used to prove CSP capture still works. */
+const CSP_SELF_CHECK_SCRIPT = 'window.__agCspSelfCheck = true;';
+
+// A smoke suite: only load/render failures fail a test; everything else is annotated for the report.
+// Chromium writes the policy name with spaces in some messages and hyphens in others.
+const isCspIssue = (msg: string) => /Content[- ]Security[- ]Policy|Refused to (load|execute|connect)/i.test(msg);
+
+// Known browser/environment noise, matched by substring so new message formats stay filtered.
 const KNOWN_NOISE = [
     '[astro-island]', // Astro dev-server hydration artefact, doesn't occur in production builds
     'GL Driver Message',
@@ -38,20 +36,27 @@ const KNOWN_NOISE = [
 ];
 
 function setupPageVerificationAssertions() {
-    let cspViolations: string[] = [];
-
-    test.beforeEach(({ page }, testInfo) => {
-        cspViolations = [];
-
-        const handle = (text: string, annotationPrefix: string) => {
+    test.beforeEach(async ({ page }, testInfo) => {
+        const handle = (text: string, annotationPrefix: string, sourceUrl: string) => {
             if (text.startsWith('*')) return; // AG Charts license text
             if (KNOWN_NOISE.some((n) => text.includes(n))) return;
-            if (isEnforcedCspViolation(text)) {
-                cspViolations.push(text);
+            if (isCspIssue(text)) {
+                // What the console adds over the violation event is the hash the browser
+                // suggests for a blocked inline script, which the event doesn't carry.
+                const hint = parseCspHashHint(text, sourceUrl);
+                if (hint) {
+                    testInfo.annotations.push({
+                        type: CSP_HASH_HINT_ANNOTATION,
+                        description: JSON.stringify(hint),
+                    });
+                    return;
+                }
+                // Otherwise keep it visible in the report: the violation listener is installed
+                // on documents, so a worker's CSP failure reaches the console and nothing else.
+                testInfo.annotations.push({ type: 'warning', description: `[CSP] ${text}` });
                 return;
             }
-            const prefix = isCspIssue(text) ? '[CSP]' : annotationPrefix;
-            testInfo.annotations.push({ type: 'warning', description: `${prefix} ${text}` });
+            testInfo.annotations.push({ type: 'warning', description: `${annotationPrefix} ${text}` });
         };
 
         page.on('console', (msg) => {
@@ -59,22 +64,43 @@ function setupPageVerificationAssertions() {
             if (msg.type() === 'log') {
                 const text = msg.text();
                 if (text.startsWith('[Violation]') || text.startsWith('[Intervention]')) {
-                    handle(text, '[Console]');
+                    handle(text, '[Console]', msg.location()?.url || page.url());
                 }
                 return;
             }
             if (msg.type() !== 'warning' && msg.type() !== 'error') return;
-            handle(msg.text(), '[Console]');
+            // The message's own location, not page.url(): an iframe violation names its own document.
+            handle(msg.text(), '[Console]', msg.location()?.url || page.url());
         });
 
         page.on('pageerror', (err) => {
-            handle(`Uncaught exception: ${err.message}`, '[Exception]');
+            handle(`Uncaught exception: ${err.message}`, '[Exception]', page.url());
         });
-    });
 
-    test.afterEach(() => {
-        expect(cspViolations, 'CSP violations').toEqual([]);
+        await watchCspViolations(page, testInfo);
     });
+}
+
+const REPORT_CSP_VIOLATION_BINDING = '__agReportCspViolation';
+
+// The browser's own violation event carries the effective directive and enforcement mode, and
+// catches violations that never reach the console (a blocked eval the calling script swallows).
+async function watchCspViolations(page: Page, testInfo: TestInfo): Promise<void> {
+    await page.exposeBinding(REPORT_CSP_VIOLATION_BINDING, (_source, violation: CspViolationRecord) => {
+        testInfo.annotations.push({ type: CSP_VIOLATION_ANNOTATION, description: JSON.stringify(violation) });
+    });
+    await page.addInitScript((binding) => {
+        document.addEventListener('securitypolicyviolation', (event) => {
+            const report = (window as unknown as Record<string, (violation: CspViolationRecord) => void>)[binding];
+            report({
+                directive: event.effectiveDirective || event.violatedDirective,
+                blockedUri: event.blockedURI,
+                disposition: event.disposition,
+                sourceFile: event.sourceFile,
+                pageUrl: document.location.href,
+            });
+        });
+    }, REPORT_CSP_VIOLATION_BINDING);
 }
 
 function getGalleryExamples(): string[] {
@@ -157,12 +183,8 @@ test.describe('Page Verification', () => {
         await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     });
 
-    // Sense-check the standalone example runner across frameworks by loading a couple of
-    // examples directly at their framework-specific URLs and asserting a chart renders. This
-    // exercises each framework's example compiler head-on — in particular the vanilla
-    // (JavaScript) build. The docs-page inline runner defaults to the TypeScript variant, so it
-    // can render while the vanilla compiler is broken; loading the `vanilla` URL directly is what
-    // actually catches that. gotoExample waits for the chart canvas and its render-stable state.
+    // The docs-page inline runner defaults to TypeScript, so only these direct URLs catch a broken
+    // vanilla compiler.
     const exampleRenderChecks = [
         { pageSlug: 'quick-start', example: 'basic-example' },
         { pageSlug: 'bar-series', example: 'simple-bar' },
@@ -198,6 +220,59 @@ test.describe('Page Verification', () => {
         await page.getByRole('button', { name: 'Products' }).hover();
         await expect(page.getByRole('link', { name: /AG Grid/ }).first()).toBeVisible();
         await expect(page.getByRole('link', { name: /AG Studio/ }).first()).toBeVisible();
+    });
+
+    // --- CSP capture ---
+
+    // No test fails on a CSP violation, so a break in the capture path is otherwise invisible:
+    // serving an unauthorised inline script proves the whole path still works.
+    test('captures a blocked inline script with the hash needed to authorise it', async ({ page }, testInfo) => {
+        // Route the URL the run actually resolved, so this holds for a build deployed under a
+        // path prefix as well as at a domain root.
+        await gotoUrl(page, toPageUrl(''));
+        const annotations = testInfo.annotations;
+        const beforeInjection = annotations.length;
+
+        await page.route(page.url(), async (route) => {
+            const response = await route.fetch();
+            const body = (await response.text()).replace('</head>', `<script>${CSP_SELF_CHECK_SCRIPT}</script></head>`);
+            await route.fulfill({ response, body });
+        });
+        await page.reload();
+
+        // Only the injected reload's violations are synthetic; the first navigation's are real and
+        // stay in the report.
+        const synthetic = annotations
+            .slice(beforeInjection)
+            .filter(
+                (annotation) =>
+                    annotation.type === CSP_VIOLATION_ANNOTATION || annotation.type === CSP_HASH_HINT_ANNOTATION
+            );
+        annotations.splice(
+            0,
+            annotations.length,
+            ...annotations.filter((annotation) => !synthetic.includes(annotation))
+        );
+
+        expect(await page.evaluate(() => window.__agCspSelfCheck === true), 'injected script ran').toBe(false);
+
+        const violations = synthetic
+            .filter((annotation) => annotation.type === CSP_VIOLATION_ANNOTATION)
+            .map((annotation) => JSON.parse(annotation.description ?? '{}') as CspViolationRecord);
+        expect(violations, 'the injected script reported as blocked').toContainEqual(
+            expect.objectContaining({
+                blockedUri: 'inline',
+                disposition: 'enforce',
+                directive: expect.stringContaining('script-src'),
+            })
+        );
+
+        const hashes = synthetic
+            .filter((annotation) => annotation.type === CSP_HASH_HINT_ANNOTATION)
+            .map((annotation) => (JSON.parse(annotation.description ?? '{}') as CspHashHint).hash);
+        expect(hashes, 'the hash that would authorise the injected script').toContain(
+            `sha256-${createHash('sha256').update(CSP_SELF_CHECK_SCRIPT, 'utf8').digest('base64')}`
+        );
     });
 
     // --- All gallery example pages ---

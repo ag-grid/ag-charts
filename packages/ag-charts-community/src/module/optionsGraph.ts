@@ -66,7 +66,8 @@ export const createOptionsGraphMemoised = simpleMemorize(createOptionsGraph);
 export function createOptionsGraph(
     theme: ChartTheme,
     options: PlainObject,
-    cssVariables?: Record<string, string>
+    cssVariables?: Record<string, string>,
+    presetOptions?: PlainObject
 ): OptionsGraphAccessor {
     return debug.group('OptionsGraph.constructor()', () => {
         const optionsGraph = new OptionsGraph(
@@ -77,7 +78,8 @@ export function createOptionsGraph(
             theme.palette,
             theme.overrides,
             theme.getTemplateParameters(),
-            cssVariables
+            cssVariables,
+            presetOptions
         );
 
         return {
@@ -100,15 +102,12 @@ export function createOptionsGraph(
     });
 }
 
-// Opaque user pass-through payloads: stored shallow in the options graph and skipped by the
-// removal-sentinel scan in `optionsModule`. Never descended into, so user-supplied cycles in these
-// values (e.g. `context` set to a grid component or a self-referential object) cannot drive an
-// options walk into a stack overflow.
+// Opaque user pass-through payloads, never descended into — so a user-supplied cycle in one of
+// them (e.g. `context` holding a self-referential object) cannot overflow an options walk.
 export const SHALLOW_OPTION_KEYS = new Set<string>(['context', 'data', 'topology']);
 
-// Keys whose array value is an ordered scalar fallback list, not a structure to merge element-wise.
-// Descended shallow so a user array replaces the theme default wholesale instead of merging index-by-index.
-// Only array values qualify; a theme operation such as a `$path` reference is still descended and resolved.
+// Array values here are ordered fallback lists, so a user array replaces the theme default
+// wholesale rather than merging index-by-index. Non-array values are still descended.
 const ATOMIC_LIST_OPTION_KEYS = new Set<string>(['placement', 'orientation']);
 
 /**
@@ -216,7 +215,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         public readonly palette: PlainObject = {},
         private readonly overrides: PlainObject | undefined = undefined,
         private readonly internalParams: Map<unknown, unknown> = new Map(),
-        private cssVariables: Record<string, string> = {}
+        private cssVariables: Record<string, string> = {},
+        private readonly presetOptions: PlainObject = {}
     ) {
         super({
             cachedNeighboursEdge: PATH_EDGE,
@@ -530,6 +530,10 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         return resolved;
     }
 
+    getPresetValue(path: Array<string>): unknown {
+        return getPathSafe(this.presetOptions, path);
+    }
+
     getPathArray(vertex: Vertex<unknown>): Array<string> {
         return (this.findNeighbourValue(vertex, PATH_ARRAY_EDGE) as Array<string> | undefined) ?? [];
     }
@@ -703,15 +707,15 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
      */
     graftAndResolveOrphanValue(
         context: Vertex<unknown>,
-        path: string,
         ontoObject: unknown,
-        value: unknown,
+        path?: string,
+        value: unknown = undefined,
         edgeValue = this.graftEdge
     ) {
         const orphan: PlainObject = {};
         const orphanVertex = this.addVertex(orphan);
         const contextPathArray = this.getPathArray(context);
-        const pathArray = [...contextPathArray, path];
+        const pathArray = path ? [...contextPathArray, path] : contextPathArray;
         const pathVertex = this.findVertexAtPath(pathArray) ?? this.addVertex(path);
 
         this.value$1.set(pathArray.join('.'), value);
@@ -1027,9 +1031,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             this.resolvedRootAncestorsPaths.add(rootAncestorPath);
         }
 
-        // Resolve the full ancestor object if attempting to resolve a child before the ancestor. For example,
-        // `/series/0/type` must be resolved after `/series`, otherwise the de-duplication below will prevent
-        // subsequent resolving from filling out the full ancestor object.
+        // A root ancestor must resolve before its children, or the de-duplication below blocks the ancestor
+        // object from ever being filled out (`/series` before `/series/0/type`).
         if (!this.resolveFresh && pathArray.length > 1 && !this.resolvedRootAncestorsPaths.has(rootAncestorPath)) {
             const rootAncestorVertex = this.findVertexAtPath([rootAncestorPath]);
             if (rootAncestorVertex) {
@@ -1038,9 +1041,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             }
         }
 
-        // Only resolve vertices once, to prevent duplication of vertices and edges. This is only applied to when not
-        // partially resolving or using a custom path branch and also only for simple non-object values to avoid
-        // skipping unresolved children.
+        // Resolve each vertex once to avoid duplicate vertices and edges; restricted to simple values so that
+        // unresolved children are never skipped.
         if (!this.resolveFresh && this.userPartialOptions == null && object === this.resolved && pathArray.length > 0) {
             const resolvedVertexValue = getPathSafe(object, pathArray);
             if (resolvedVertexValue != null && !isPlainObject(resolvedVertexValue)) {

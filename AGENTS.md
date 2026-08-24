@@ -32,6 +32,10 @@ After meaningful chart changes, also run:
 -   `yarn nx test ag-charts-enterprise`
 -   `yarn nx test:e2e ag-charts-website`
 
+## Review guidelines
+
+-   **Hot-path impact:** a chart renders up to a million datums at 60Hz, so the same edit is free in one file and costs frame time in another. Gate with `node tools/hot-paths/detect.js --range <base>...<head>`; three dots make the range the fork point to the head, so nothing merged into the base since counts as part of the change. `--pr <number>` derives that range from a PR and `--base latest` scores the working tree including untracked files — prefer the explicit range when the revisions under review must not move mid-review. The detector is deterministic and sub-second. Output is JSON on stdout, with the schema in the `hot-paths` skill — read the `triggered` boolean, since the exit status is 0 whatever the verdict; add `--summary` for a human-readable form instead. When it reports `triggered`, load the `hot-paths` skill for the tiers, invariants, historical regression shapes, and how to evidence a claim. Do not assert a performance cost without naming the loop or caller that makes it hot.
+
 ## Tooling Health Check
 
 On the **first response** of a conversation, verify that project skills are available by checking the system-reminder skill list. If **any** of the canary skills are missing, display a one-time warning before doing anything else. Do not repeat the warning on subsequent responses.
@@ -46,13 +50,17 @@ Continue assisting the user after displaying the warning.
 
 ## Cloud sessions (Claude Code on the web)
 
-A cloud session starts with the toolchain, plugin skills and generated rules in place, but with a **dependency tree that has not run `postinstall`** — no patches, no built nx plugins. Builds, tests and lint are unreliable until you finish the job, once per session:
+A cloud session normally starts ready. It can instead come up with a **dependency tree that has not run `postinstall`** — no patches, no built nx plugins — in which case builds, tests and lint are unreliable until you finish the job, once per session. Check before assuming either way, using the doctor below; it reports in under a second.
+
+When the doctor says dependencies are pending:
 
 ```
 bash /home/user/ag-charts/external/ag-shared/scripts/install-for-cloud/finish-setup.sh
 ```
 
-Check first if unsure — it reports in under a second, and says whether anything is missing:
+This takes around 150 seconds, which is longer than the Bash tool's default 120 second timeout, so **pass an explicit `timeout` of at least 300000 ms**. Let its output through unfiltered rather than piping it to `tail`: on a timeout kill a pipeline buffer is discarded, so the one case where you need the output is the case where filtering loses all of it.
+
+The doctor, which is also what to run first if unsure:
 
 ```
 bash /home/user/ag-charts/external/ag-shared/scripts/install-for-cloud/cloud-doctor.sh

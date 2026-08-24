@@ -7,9 +7,9 @@ import {
     POLAR_AXIS_TYPE,
     SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
-import type { ExtensibleTheme } from 'ag-charts-types';
+import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
-export const RADIAL_BAR_SERIES_THEME: ExtensibleTheme<'radial-bar'> = {
+export const RADIAL_BAR_SERIES_THEME: ExtensibleSeriesTheme<'radial-bar'> = {
     series: {
         fill: {
             $applySwitch: [

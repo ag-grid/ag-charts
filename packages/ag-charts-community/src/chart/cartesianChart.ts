@@ -1,13 +1,5 @@
-import type { CanvasPoint, CurrentPoint, ModuleInstance, RequireOptional, Size } from 'ag-charts-core';
-import {
-    ActionOnSet,
-    ChartAxisDirection,
-    clampArray,
-    entries,
-    fromPairs,
-    groupBy,
-    toCurrentPoint,
-} from 'ag-charts-core';
+import type { CanvasPoint, ModuleInstance, RequireOptional, Size } from 'ag-charts-core';
+import { ActionOnSet, ChartAxisDirection, clampArray, entries, fromPairs, groupBy } from 'ag-charts-core';
 import type { AgCartesianAxisPosition, AgCoordinates } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
@@ -90,19 +82,13 @@ export class CartesianChart extends Chart {
 
     override toAgCoordinates(point: CanvasPoint): AgCoordinates {
         const result: AgCoordinates = {};
-        const seriesPoint: CurrentPoint = toCurrentPoint(point, this.seriesRect);
         for (const axis of this.axes) {
-            const pick = axis.pickValue(seriesPoint);
+            const pick = axis.pickValue(point);
             if (pick) {
-                // `Rules` serves as a compile-time check to ensure that we're correctly broadcasting objects that match
-                // the AgAxisCoordinates shape in the API:
-                //
-                //     NonNullable<...>     - check that we're not broadcasting internal-only properties from `pick`.
-                //     RequireOptional<...> - check that we're not forgetting to broadcast optional API properties.
-                //
+                // `Rules` compile-time checks the broadcast object against the public AgAxisCoordinates shape.
                 type Rules = RequireOptional<NonNullable<(typeof result)[keyof typeof result]>>;
-                const { boundSeries, direction, domain, index, value } = pick;
-                const axisResult: Rules = { boundSeries, direction, domain, index, value };
+                const { boundSeries, depth, direction, domain, index, value } = pick;
+                const axisResult: Rules = { boundSeries, depth, direction, domain, index, value };
                 result[pick.axisId] = axisResult;
             }
         }
@@ -201,7 +187,7 @@ export class CartesianChart extends Chart {
         }
 
         // Update the series area modules and always clip them to the series padded rect area.
-        this.seriesArea.update(seriesPaddedRect);
+        this.seriesArea.update(seriesRect, seriesPaddedRect);
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
             axes: fromPairs(this.axes.map((axis) => [axis.id, axis.getLayoutState()])),
@@ -231,9 +217,7 @@ export class CartesianChart extends Chart {
         return { clipSeries, seriesRect, visible: !overflows };
     }
 
-    // Iteratively try to resolve axis widths - since X axis width affects Y axis range,
-    // and vice-versa, we need to iteratively try and find a fit for the axes and their
-    // ticks/labels.
+    // X axis width affects Y axis range and vice-versa, so the fit has to be found iteratively.
     private resolveAxesLayout(layoutBox: BBox, scrollbars: ScrollbarLayoutMap) {
         let newState;
         let prevState;
@@ -346,10 +330,7 @@ export class CartesianChart extends Chart {
         }
 
         // adjust axis widths for crossAt axes and calculate cross positions
-        let crossPositions: Map<string, number> | undefined;
-        if (crossAtAxes.length > 0) {
-            crossPositions = this.calculateAxesCrossPositions(axisWidths, seriesRect, crossAtAxes);
-        }
+        const crossPositions = this.calculateAxesCrossPositions(axisWidths, seriesRect, crossAtAxes);
 
         const axisGroups = groupBy(this.axes, (axis) => axis.position ?? 'left');
 
@@ -391,9 +372,7 @@ export class CartesianChart extends Chart {
             });
         }
 
-        if (crossPositions != null) {
-            this.applyAxisCrossing(seriesRect, crossPositions);
-        }
+        this.applyAxisCrossing(seriesRect, crossPositions);
 
         return { clipSeries, seriesRect, axisAreaWidths: newAxisAreaWidths, overflows };
     }
@@ -449,9 +428,6 @@ export class CartesianChart extends Chart {
         seriesRect: BBox,
         visible: boolean
     ): void {
-        const crosshairModule = axis.getModuleMap().getModule<{ enabled: boolean }>('crosshair');
-        if (crosshairModule?.enabled) return;
-
         const annotationsModule = this.modulesManager.getModule('annotations');
         const hasAnnotations =
             annotationsModule?.enabled === true ||
@@ -478,8 +454,8 @@ export class CartesianChart extends Chart {
         crossPosition: number | undefined,
         seriesRect: BBox
     ): number {
-        const { titlePlacement, labelsPlacement } = axis.options.crossAt ?? {};
-        if (titlePlacement !== 'edge' && labelsPlacement !== 'edge') {
+        const { titlePlacement, labelPlacement } = axis.options.crossAt ?? {};
+        if (titlePlacement !== 'edge' && labelPlacement !== 'edge') {
             return this.calculateAxisBleedingWidth(axis, currentWidth, crossPosition, seriesRect);
         }
 
@@ -522,6 +498,10 @@ export class CartesianChart extends Chart {
             if (crossPosition == null) {
                 axis.crossAxisTranslation.x = 0;
                 axis.crossAxisTranslation.y = 0;
+                // A `crossAt` axis without a cross position was hidden by `sticky: false`.
+                if (axis.options.crossAt?.value == null) {
+                    axis.setAxisVisible(true);
+                }
                 continue;
             }
 

@@ -168,7 +168,6 @@ describe('ConeFunnelSeries', () => {
 
         const checkHighlight = async (chartInstance: any) => {
             await hoverChartNodes(chartInstance, ({ series }) => {
-                // Check the highlighted node
                 const highlightNode = testParams.getHighlightNode(chartInstance, series);
                 expect(highlightNode).toBeDefined();
                 expect(highlightNode.stroke).toEqual('lime');
@@ -181,12 +180,10 @@ describe('ConeFunnelSeries', () => {
             offset?: { x: number; y: number }
         ) => {
             await hoverChartNodes(chartInstance, async ({ x, y }) => {
-                // Perform click
                 await clickAction(x + (offset?.x ?? 0), y + (offset?.y ?? 0))(chartInstance);
                 await waitForChartStability(chartInstance);
             });
 
-            // Check click handler
             const nodeCount = chartInstance.series.reduce(
                 (sum, series) => sum + testParams.getNodeData(series).length,
                 0
@@ -210,17 +207,14 @@ describe('ConeFunnelSeries', () => {
         it(`should render tooltip correctly`, async () => {
             chart = await createChart({ hasTooltip: true });
             await hoverChartNodes(chart, ({ series, item }) => {
-                // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-charts-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(false);
 
-                // Check the tooltip text
                 const values = testParams.getDatumValues(item, series);
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
 
-            // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
             await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             const tooltip = document.querySelector('.ag-charts-tooltip');
@@ -464,6 +458,57 @@ describe('ConeFunnelSeries', () => {
         });
     });
 
+    describe('stageLabel placement under RTL', () => {
+        // The exhaustive placement matrix lives in funnelSeries.test.ts.
+        const axisPosition = async (enableRtl: boolean, placement: 'before' | 'after') => {
+            const options: AgChartOptions = {
+                enableRtl,
+                data: CONE_FUNNEL_EXAMPLE.data,
+                series: [{ type: 'cone-funnel', stageKey: 'group', valueKey: 'value', stageLabel: { placement } }],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            return chart.axes.y.position;
+        };
+
+        it.each([
+            { enableRtl: false, placement: 'before' as const, expected: 'left' },
+            { enableRtl: false, placement: 'after' as const, expected: 'right' },
+            { enableRtl: true, placement: 'before' as const, expected: 'right' },
+            { enableRtl: true, placement: 'after' as const, expected: 'left' },
+        ])('places the stage labels $expected for placement=$placement, enableRtl=$enableRtl', async (testCase) => {
+            const { enableRtl, placement, expected } = testCase;
+            expect(await axisPosition(enableRtl, placement)).toBe(expected);
+        });
+
+        it('renders the stage labels on the mirrored side', async () => {
+            const options: AgChartOptions = {
+                enableRtl: true,
+                data: [
+                    { group: 'Qualification stage', value: 7910 },
+                    { group: 'Development stage', value: 8170 },
+                    { group: 'Proposal stage', value: 7260 },
+                    { group: 'Closing stage', value: 4460 },
+                ],
+                series: [
+                    {
+                        type: 'cone-funnel',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        stageLabel: { placement: 'before' },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            await compare();
+        });
+    });
+
     describe('animation', () => {
         const frames = spyOnAnimationFrames();
 
@@ -499,16 +544,13 @@ describe('ConeFunnelSeries', () => {
             return line.x2 - line.x1;
         };
 
-        // Initial load: the connector fan opens out (funnelPathReveal) and the labels fade in — the
-        // shared BaseFunnelSeries animation — while the stage `Line` nodes snap straight to their final
-        // geometry (ConeFunnelSeries does not tween its datum lines).
         it('initial load: connectors fan out and labels fade in while the stage lines snap', async () => {
             chart = deproxy(AgCharts.create(animated(DATA)));
             const sampler = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampler);
             await frames.runToEnd(chart);
 
-            // Anti-vacuity: every connector starts collapsed to a zero-width edge, every label invisible.
+            // Anti-vacuity: every connector starts collapsed and every label invisible.
             for (const [key, props] of trajectory[0]) {
                 if (/^series\[0\]\/path\[/.test(key) && props.width != null) {
                     expect(props.width, `${key} width at frame 0`).toBeLessThanOrEqual(0.5);
@@ -521,14 +563,11 @@ describe('ConeFunnelSeries', () => {
                 'series[0]/path[#2]': funnelPathReveal('initial'),
                 'series[0]/path[#3]': funnelPathReveal('initial'),
                 'series[0]/labels/text[*]': { opacity: funnelLabelFadeIn },
-                // The datum lines hold at their settled geometry from the first frame (they snap).
                 'series[0]/line[*]': 'constant',
             });
         });
 
-        // Data update: the labels re-fade; the stage lines and the connectors both snap to their new
-        // positions on the first frame (base halts the connector motion on a waiting update, and the
-        // cone lines never tween). captureSnap because those snaps trip captureUpdate's start anchor.
+        // captureSnap because the line/connector snaps trip captureUpdate's start anchor.
         it('data update: labels re-fade while the lines and connectors snap', async () => {
             const proxy = AgCharts.create(animated(DATA));
             chart = deproxy(proxy);
@@ -537,7 +576,6 @@ describe('ConeFunnelSeries', () => {
                 proxy.updateDelta({ data: UPDATED })
             );
 
-            // Anti-vacuity: labels re-fade from 0, and a stage line genuinely reshapes end-to-end.
             expectLabelsStartHidden(trajectory[0]);
             expect(
                 Math.abs(lineSpan(after, 'series[0]/line[Develop]') - lineSpan(before, 'series[0]/line[Develop]'))
@@ -554,8 +592,6 @@ describe('ConeFunnelSeries', () => {
             });
         });
 
-        // Pixel endpoint guard: the animated reveal and the data update must each settle at exactly the
-        // pixels a snapped render of the same options produces.
         it('animated endpoints match a static render (initial load + data update)', async () => {
             const opts = animated(DATA);
             chart = AgCharts.create(opts);

@@ -25,6 +25,10 @@ function getFactory(bindings: any): string {
         return 'AgCharts.createGauge';
     }
 
+    if (typeStr.includes('Quadrant') || importNames.has('AgQuadrantChartOptions')) {
+        return 'AgCharts.createQuadrantChart';
+    }
+
     if (typeStr.includes('Sparkline') || importNames.has('AgSparklineOptions')) {
         return 'AgCharts.__createSparkline';
     }

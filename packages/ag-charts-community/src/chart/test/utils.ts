@@ -185,11 +185,8 @@ export async function compareImageSnapshot(
     const state = expect.getState().snapshotState as unknown as ImageSnapshotState;
     const before = { updated: state.updated ?? 0, unmatched: state.unmatched ?? 0, added: state.added ?? 0 };
 
-    // The scene JSON must share the exact identifier jest-image-snapshot resolves for the PNG. Rather
-    // than reconstruct that identifier (which would duplicate its kebab-casing and counter logic, and
-    // re-invoke a caller's customSnapshotIdentifier — doubling side effects, desyncing on a
-    // non-idempotent callback), inject a wrapper that reproduces the matcher's own resolution from the
-    // `defaultIdentifier` it supplies, then captures the single result for the JSON filename.
+    // The scene JSON must reuse the exact identifier jest-image-snapshot resolves for the PNG, so
+    // capture it from the matcher rather than reconstructing (and re-invoking) that resolution.
     let resolvedIdentifier = '';
     const { customSnapshotIdentifier } = options;
     const matcherOptions: MatchImageSnapshotOptions = {
@@ -222,9 +219,8 @@ export async function compareImageSnapshot(
             try {
                 writeSceneSnapshot(chartOrProxy, options, resolvedIdentifier);
             } catch (captureError) {
-                // Scene capture is an auxiliary CI artifact: a failure here must never replace the
-                // image-diff result it accompanies (a `finally` throw would mask the primary error).
-                // Report via stderr, not console.* — setupMockConsole() fails tests on console output.
+                // Scene capture is auxiliary and must never mask the image-diff result; stderr rather
+                // than console.*, which setupMockConsole() turns into a test failure.
                 process.stderr.write(`AG_SCENE_SNAPSHOTS: scene capture failed: ${String(captureError)}\n`);
             }
         }
@@ -308,9 +304,8 @@ export function prepareTestOptions<T extends AgChartOptions<any, any> | AgGaugeO
     }
 
     if (typeof options?.theme === 'object') {
-        // Override palette and params only if not provided. In dark mode let the dark theme supply
-        // colours, but still pin fontFamily to the bundled test font — the default font stack is
-        // unregistered and resolves to different system fonts per platform, breaking snapshots.
+        // fontFamily must stay pinned to the bundled test font even in dark mode: the default stack
+        // is unregistered and resolves per-platform, breaking snapshots.
         baseTestTheme = {
             ...options.theme,
             baseTheme: options.theme.baseTheme ?? baseTestTheme.baseTheme,
@@ -1637,16 +1632,11 @@ export function expectNoAnimation(trajectory: SceneGeometrySample[]): void {
 
 // Flag/range properties whose whole domain fits inside a 1px geometry tolerance — compare exactly.
 const EXACT_MATCH_PROPS = new Set(['opacity', 'visible', 'clip', 'cutout', 'subpaths']);
-// The Rect clip window duplicates the painted bounds it is intersected with (clipX0/clipY0 track
-// x/y, clipX1/clipY1 track x+width/y+height), so on a revealing rect it moves in lock-step with the
-// already-checked geometry. Treating it as default-`constant` would make every rect-reveal suite fail
-// on a redundant signal, so it is opt-in: asserted only when a node's spec names it (as the gauge
-// bar-reveal CASE does to exercise this reader), and otherwise left unchecked.
+// The Rect clip window duplicates the painted bounds it is intersected with, so it is opt-in:
+// defaulting it to `constant` would fail every rect-reveal suite on a redundant signal.
 const OPT_IN_PROPS = new Set(['clipX0', 'clipY0', 'clipX1', 'clipY1']);
-// These props live on a 0..1 (or 0/1) scale, so the pixel-scaled constant tolerance would let a value
-// drift halfway across its whole range unnoticed. Judge their constancy/bounds against a scale-honest
-// epsilon instead — loose enough to absorb interpolation float noise, tight enough to catch a stalled
-// fade or a drifting opacity.
+// Props on a 0..1 scale need their own epsilon: the pixel-scaled tolerance would let one drift
+// halfway across its range unnoticed.
 const EXACT_MATCH_TRAJECTORY_TOL = 1e-3;
 
 /**
@@ -1942,10 +1932,8 @@ export function expectSceneTrajectory(
             // they are left unchecked rather than defaulting to constant (see OPT_IN_PROPS).
             if (OPT_IN_PROPS.has(prop) && !explicitlyNamed) continue;
             const raw = expectation === 'constant' ? 'constant' : ((expectation as any)[prop] ?? 'constant');
-            // Flag/range props must be judged on their native 0..1 scale for constancy AND direction:
-            // at the pixel-scaled monotonic tolerance every per-frame opacity step fits both
-            // `increases` and `decreases`, making direction assertions vacuous. `progresses` keeps its
-            // own scale-free spread tolerance.
+            // Direction too, not just constancy: at the pixel-scaled tolerance every per-frame opacity
+            // step satisfies both `increases` and `decreases`, making those assertions vacuous.
             const propTolerances = EXACT_MATCH_PROPS.has(prop)
                 ? { ...tolerances, constant: EXACT_MATCH_TRAJECTORY_TOL, monotonic: EXACT_MATCH_TRAJECTORY_TOL }
                 : tolerances;
@@ -2064,8 +2052,16 @@ export function computeLegendBBox(chart: Chart): BBox {
     return new BBox(x, y, width, height);
 }
 
+export interface LegendTestItemNode {
+    datum?: { id: string; itemId?: string | number };
+    opacity?: number;
+    labelOpacity?: number;
+    marker?: { fill?: string; fillOpacity?: number; stroke?: string; strokeOpacity?: number; strokeWidth?: number };
+    line?: { stroke?: string; strokeOpacity?: number; lineDash?: number[] };
+}
+
 export interface LegendTestInternals {
-    itemSelection: { nodes(): { datum?: { id: string; itemId?: string | number } }[] };
+    itemSelection: { nodes(): LegendTestItemNode[] };
     onHover(event: FocusEvent | MouseEvent, node: unknown, fromKeyboardFocus?: boolean): void;
     onLeave(fromKeyboardFocus?: boolean): void;
 }
@@ -2079,9 +2075,11 @@ export function getCursor(chart: Chart | AgChartProxy): string {
     return ctx.domManager.getCursor();
 }
 
-export function withPreventDefault<E>(partial: Omit<E, 'preventDefault'> & { preventDefault?: never }) {
+type Without<E, Ks extends string> = Omit<E, Ks> & { [K in Ks]?: never };
+export function withPreventDefault<E>(partial: Without<E, 'preventDefault' | 'defaultPrevented'>) {
     return expect.objectContaining({
         ...partial,
+        defaultPrevented: expect.any(Boolean),
         preventDefault: expect.any(Function),
     });
 }

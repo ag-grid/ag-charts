@@ -33,6 +33,7 @@ import { barSeriesOptionsDef } from '../../chart/series/cartesian/barSeriesOptio
 import { lineSeriesOptionsDef } from '../../chart/series/cartesian/lineSeriesOptionsDef';
 import { VERSION } from '../../version';
 import { sparkline, sparklineDataPreset } from './sparkline';
+import { sparklineThemeTemplate } from './sparklineTheme';
 
 const commonSparklineOmit = [
     'showInLegend',
@@ -136,4 +137,6 @@ export const SparklinePresetModule: PresetModuleDefinition<AgSparklineOptions> =
 
     create: sparkline,
     processData: sparklineDataPreset,
+
+    themeTemplate: sparklineThemeTemplate,
 };

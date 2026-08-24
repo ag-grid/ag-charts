@@ -1,6 +1,5 @@
-import type { DynamicContext } from 'ag-charts-core';
-import { cachedTextMeasurer, isArray, measureTextSegments, toTextString } from 'ag-charts-core';
-import type { TextAlign } from 'ag-charts-types';
+import type { DynamicContext, ResolvedTextAlign } from 'ag-charts-core';
+import { cachedTextMeasurer, isArray, measureTextSegments, resolveTextAlign, toTextString } from 'ag-charts-core';
 
 import type { LayoutCompleteEvent } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
@@ -13,7 +12,7 @@ export class ChartCaptions {
     readonly subtitle: ChartCaption;
     readonly footnote: ChartCaption;
 
-    constructor(ctx: DynamicContext<ChartRegistry>) {
+    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
         this.title = new ChartCaption(ctx, 'title');
         this.subtitle = new ChartCaption(ctx, 'subtitle');
         this.footnote = new ChartCaption(ctx, 'footnote');
@@ -51,7 +50,7 @@ export class ChartCaptions {
             const opts = caption.opts;
             if ((opts.layoutStyle ?? 'block') !== 'overlay') continue;
 
-            const textAlign = opts.textAlign ?? 'center';
+            const textAlign = resolveTextAlign(opts.textAlign ?? 'center', this.ctx.domManager.isRtl);
             if (textAlign === 'left') {
                 caption.node.x = rect.x + caption.contentPadding.left;
             } else if (textAlign === 'right') {
@@ -64,7 +63,7 @@ export class ChartCaptions {
         }
     }
 
-    private computeX(align: TextAlign, layoutBox: BBox): number {
+    private computeX(align: ResolvedTextAlign, layoutBox: BBox): number {
         if (align === 'left') {
             return layoutBox.x;
         } else if (align === 'right') {
@@ -77,7 +76,7 @@ export class ChartCaptions {
         const opts = caption.opts;
         const font = captionFont(opts);
         const text = opts.text;
-        const textAlign = opts.textAlign ?? 'center';
+        const textAlign = resolveTextAlign(opts.textAlign ?? 'center', this.ctx.domManager.isRtl);
         const { left, right, top, bottom } = caption.contentPadding;
         // Inset the node so its text (and any background box) sits inside the layout edge. Only
         // left/right alignment gets a horizontal inset — a centred caption must stay centred.
@@ -87,8 +86,7 @@ export class ChartCaptions {
         } else if (textAlign === 'right') {
             xInset = -right;
         }
-        // Position the node even when text is empty so its bbox reserves a line of space —
-        // an `enabled: true` caption with `text: ''` should still occupy layout (AG-16511).
+        // An enabled caption with empty text must still reserve a line of layout space.
         caption.node.x = this.computeX(textAlign, layoutBox) + xInset;
         caption.node.y = layoutBox.y + (vAlign === 'top' ? top : layoutBox.height - bottom);
         caption.node.textBaseline = vAlign;
@@ -107,8 +105,7 @@ export class ChartCaptions {
         const bbox = caption.node.getBBox().clone();
         const spacing = opts.spacing ?? 0;
 
-        // Empty text yields a zero-height bbox from the Text node; reserve one line of font
-        // height so an enabled caption with `text: ''` still occupies layout space (AG-16511).
+        // Text reports a zero-height bbox for empty text; reserve a line so the caption still takes space.
         if (bbox.height === 0) {
             bbox.height = cachedTextMeasurer(captionFont(opts)).lineHeight();
             if (vAlign === 'bottom') bbox.y -= bbox.height;

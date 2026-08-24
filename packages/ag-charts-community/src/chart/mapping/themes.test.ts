@@ -1,6 +1,7 @@
 import type { Mock } from 'vitest';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
+import { ModuleRegistry, type PresetModuleDefinition } from 'ag-charts-core';
 import type {
     AgBarSeriesOptions,
     AgChartInstance,
@@ -13,7 +14,7 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
-import { sparkline } from '../../api/preset/sparkline';
+import { VERSION } from '../../version';
 import { sanitizeThemeModules } from '../factory/processModuleOptions';
 import {
     deproxy,
@@ -23,7 +24,8 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
-import { getChartTheme, themes } from './themes';
+import type { ChartTheme } from '../themes/chartTheme';
+import { __clearChartThemeCacheForTests, getChartTheme, themes } from './themes';
 
 describe('themes.ts', () => {
     describe('theme validation', () => {
@@ -293,14 +295,11 @@ describe('themes.ts', () => {
                 },
             };
 
-            const opts1 = sparkline({ type: 'line', data: [1, 2, 3], theme });
-            const opts2 = sparkline({ type: 'line', data: [4, 5, 6], theme });
+            const first = getChartTheme(theme, undefined, 'sparkline');
+            const second = getChartTheme(theme, undefined, 'sparkline');
 
-            // sparkline() memoises setInitialBaseTheme by input reference.
-            expect(opts1.theme).toBe(opts2.theme);
-
-            getChartTheme(opts1.theme);
-            getChartTheme(opts2.theme);
+            // The preset key must partition the cache without defeating it.
+            expect(second).toBe(first);
 
             const logs = themeCacheLogs();
             expect(logs).toHaveLength(2);
@@ -347,6 +346,106 @@ describe('themes.ts', () => {
             await collectGarbage();
 
             expect(collected.size).toBe(total);
+        });
+    });
+
+    // A preset's `themeTemplate` is baked into the `ChartTheme` instance, so both caches must key on the
+    // preset name, or the first chart on a page decides the template for every later one.
+    describe('theme caching across presets', () => {
+        setupMockConsole();
+
+        const PRESET_STROKE_WIDTH = 99;
+
+        beforeAll(() => {
+            ModuleRegistry.register({
+                type: 'preset',
+                name: 'test-preset',
+                version: VERSION,
+                options: {},
+                create: (options: unknown) => options,
+                themeTemplate: { line: { series: { strokeWidth: PRESET_STROKE_WIDTH } } },
+            } as PresetModuleDefinition<unknown>);
+
+            ModuleRegistry.register({
+                type: 'preset',
+                name: 'test-preset-with-base',
+                version: VERSION,
+                options: {},
+                create: (options: unknown) => options,
+                baseTheme: 'ag-vivid',
+            } as PresetModuleDefinition<unknown>);
+        });
+
+        beforeEach(() => {
+            __clearChartThemeCacheForTests();
+        });
+
+        const lineStrokeWidth = (theme: ChartTheme) =>
+            (theme.config as { line?: { series?: { strokeWidth?: number } } }).line?.series?.strokeWidth;
+
+        it('resolves a stock theme name to a different instance per preset', () => {
+            const withPreset = getChartTheme('ag-vivid', undefined, 'test-preset');
+            const withoutPreset = getChartTheme('ag-vivid');
+
+            expect(withPreset).not.toBe(withoutPreset);
+            expect(lineStrokeWidth(withPreset)).toBe(PRESET_STROKE_WIDTH);
+            expect(lineStrokeWidth(withoutPreset)).not.toBe(PRESET_STROKE_WIDTH);
+        });
+
+        it('resolves the default theme to a different instance per preset', () => {
+            const withPreset = getChartTheme(undefined, undefined, 'test-preset');
+            const withoutPreset = getChartTheme(undefined);
+
+            expect(withPreset).not.toBe(withoutPreset);
+            expect(lineStrokeWidth(withPreset)).toBe(PRESET_STROKE_WIDTH);
+            expect(lineStrokeWidth(withoutPreset)).not.toBe(PRESET_STROKE_WIDTH);
+        });
+
+        it('resolves an inline theme object to a different instance per preset', () => {
+            const themeOptions: AgChartTheme = { baseTheme: 'ag-vivid' };
+
+            const withPreset = getChartTheme(themeOptions, undefined, 'test-preset');
+            const withoutPreset = getChartTheme(themeOptions);
+
+            expect(withPreset).not.toBe(withoutPreset);
+            expect(lineStrokeWidth(withPreset)).toBe(PRESET_STROKE_WIDTH);
+            expect(lineStrokeWidth(withoutPreset)).not.toBe(PRESET_STROKE_WIDTH);
+        });
+
+        it('is independent of which preset resolved the theme value first', () => {
+            const presetFirst = getChartTheme('ag-material', undefined, 'test-preset');
+            const plainSecond = getChartTheme('ag-material');
+
+            __clearChartThemeCacheForTests();
+
+            const plainFirst = getChartTheme('ag-material');
+            const presetSecond = getChartTheme('ag-material', undefined, 'test-preset');
+
+            expect(lineStrokeWidth(presetFirst)).toBe(PRESET_STROKE_WIDTH);
+            expect(lineStrokeWidth(presetSecond)).toBe(PRESET_STROKE_WIDTH);
+            expect(lineStrokeWidth(plainSecond)).not.toBe(PRESET_STROKE_WIDTH);
+            expect(lineStrokeWidth(plainFirst)).not.toBe(PRESET_STROKE_WIDTH);
+        });
+
+        it('keeps a preset base theme when the user theme is rejected as invalid', () => {
+            const invalid = getChartTheme(true, undefined, 'test-preset-with-base');
+            const base = getChartTheme('ag-vivid', undefined, 'test-preset-with-base');
+
+            expect(invalid.palette.fills).toEqual(base.palette.fills);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`theme\` cannot be set to \`true\`; expecting a keyword such as 'ag-default', 'ag-default-dark', 'ag-sheets', 'ag-sheets-dark', 'ag-polychroma', 'ag-polychroma-dark', 'ag-vivid', 'ag-vivid-dark', 'ag-material', 'ag-material-dark', 'ag-financial' or 'ag-financial-dark' or an object, ignoring.",
+                ],
+              ]
+            `);
+        });
+
+        it('still returns one shared instance per theme value and preset pair', () => {
+            expect(getChartTheme('ag-sheets', undefined, 'test-preset')).toBe(
+                getChartTheme('ag-sheets', undefined, 'test-preset')
+            );
+            expect(getChartTheme('ag-sheets')).toBe(getChartTheme('ag-sheets'));
         });
     });
 });

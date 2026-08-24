@@ -71,9 +71,7 @@ export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTim
 
     protected override getLabelFormat(): string | Record<string, string> | undefined {
         const format = this.options.label.format;
-        // `AgTimeAxisFormattableLabelUnitFormat` is structurally a partial record of
-        // unit → format-string. Coerce here for compatibility with `AxisLayout` and
-        // `FormatManager` which both type the value as `Record<string, string>`.
+        // The unit → format-string map is structurally a Record, which is how AxisLayout types it.
         return typeof format === 'object' ? (format as Record<string, string>) : format;
     }
 

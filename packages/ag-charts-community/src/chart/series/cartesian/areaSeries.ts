@@ -20,10 +20,10 @@ import {
     extent,
     isContinuous,
     isDefined,
-    labelFitDescriptor,
     maxValue,
     mergeDefaults,
     minValue,
+    placedLabelFit,
     resolveLabelFit,
     toArray,
     toNumber,
@@ -1086,9 +1086,8 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     private computeMarkerCoordinate(ctx: AreaSeriesCreateNodeDatumContext, scratch: AreaNodeDatumScratch): void {
         let currY: AgNumericValue | undefined;
 
-        // if not normalized, the invalid data points will be processed as `undefined` in processData()
-        // if normalized, the invalid data points will be processed as 0 rather than `undefined`
-        // check if unprocessed datum is valid as we only want to show markers for valid points
+        // Normalisation turns invalid points into 0 rather than `undefined`, so validity must be
+        // judged from the unprocessed datum.
         if (
             isDefined(ctx.normalizedTo)
                 ? ctx.isContinuousY && isContinuous(scratch.yDatum)
@@ -1199,7 +1198,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 labelText,
                 point: { x: scratch.x, y: scratch.y, size: ctx.markerSize },
                 label: this.measureLabel(ctx, labelText),
-                fit: labelFitDescriptor(labelText, this.properties.label, ctx),
+                fit: placedLabelFit(labelText, this.properties.label, ctx),
                 anchor: ctx.labelAnchor,
                 insideOffset: ctx.labelInsideOffset,
                 insideSize: ctx.labelInsideSize,
@@ -1210,9 +1209,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         }
     }
 
-    // ============================================================================
     // Template Method Hooks
-    // ============================================================================
 
     /**
      * Populates the node data array by iterating over visible data.
@@ -1838,10 +1835,8 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
 
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
 
-        // The animation may clip spans
-        // When using smooth interpolation, the bezier spans are clipped using an approximation
-        // This can result in artefacting, which may be present on the final frame
-        // To remove this on the final frame, re-draw the series without animations
+        // Smooth interpolation clips bezier spans approximately, so re-draw un-animated to clear
+        // the artefacts left on the final frame.
         this.ctx.animationManager.animate({
             id: this.id,
             groupId: 'reset_after_animation',

@@ -1,7 +1,7 @@
 import { deviceDimension } from '../util/pixel';
 import { clearContext, debugContext } from './canvasUtil';
 
-// Work-around for typing issues with Angular 13+ (see AG-6969),
+// Work-around for typing issues with Angular 13+.
 type OffscreenCanvasRenderingContext2D = any;
 
 export interface CanvasOptions {
@@ -32,9 +32,8 @@ export class HdpiCanvas {
         this.element = options.canvasElement;
         this.pixelRatio = options.pixelRatio;
 
-        // Immediately apply width + height to avoid out-of-memory errors on iOS/iPadOS Safari.
-        // Safari needs a width and height set before calling getContext or the output can appear blurry
-        // Must also be `display: block` so the height doesn't get increased by `inline-block` layout
+        // iOS/iPadOS Safari runs out of memory or renders blurry unless width/height are set before
+        // getContext; `display: block` stops inline-block layout inflating the height.
         this.element.style.display = 'block';
         this.element.style.width = (width ?? this.width) + 'px';
         this.element.style.height = (height ?? this.height) + 'px';
@@ -44,8 +43,8 @@ export class HdpiCanvas {
         this.context = this.element.getContext('2d', { willReadFrequently })!;
         this.context.direction = this.direction;
 
-        // Apply the DPR transform at construction; the first Scene.resize callback may match
-        // the seeded width/height and be short-circuited by the equality check (AG-17372).
+        // Apply the DPR transform at construction: the first Scene.resize callback may match the
+        // seeded width/height and be short-circuited by its equality check.
         this.resize(width ?? this.width, height ?? this.height, this.pixelRatio);
 
         debugContext(this.context);

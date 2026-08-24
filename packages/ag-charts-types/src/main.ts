@@ -48,6 +48,7 @@ export * from './presets/gauge/commonOptions';
 export * from './presets/gauge/gaugeOptions';
 export * from './presets/gauge/linearGaugeOptions';
 export * from './presets/gauge/radialGaugeOptions';
+export * from './presets/quadrant/quadrantOptions';
 export * from './presets/sparkline/sparklineAxisOptions';
 export * from './presets/sparkline/sparklineOptions';
 export * from './series/cartesian/areaOptions';

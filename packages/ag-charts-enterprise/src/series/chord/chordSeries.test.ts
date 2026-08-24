@@ -4,6 +4,7 @@ import type {
     AgCartesianChartOptions,
     AgChartOptions,
     AgChordSeriesLinkItemStylerParams,
+    AgChordSeriesNodeItemStylerParams,
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
@@ -46,8 +47,7 @@ describe('ChordSeries', () => {
     };
 
     it('renders a bigint sizeKey without error (AG-16608)', async () => {
-        // Chord node-size accumulation must not mix a bigint size with a Number seed/divisor
-        // ("Cannot mix BigInt and other types").
+        // Node-size accumulation must not mix a bigint size with a Number seed/divisor.
         const options: AgChartOptions = {
             data: [
                 { from: 'A', to: 'B', size: 9_007_199_254_740_993n },
@@ -72,6 +72,60 @@ describe('ChordSeries', () => {
                         link: {
                             tension: 0.5,
                         },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render node cornerRadius', async () => {
+            // `sector.inset = strokeWidth / 2` shrinks the radial length before the corner radius is
+            // clamped to half of it, so these values guarantee visible rounding in the baseline.
+            const options: AgChartOptions = {
+                ...GALLERY_EXAMPLES.SIMPLE_CHORD_EXAMPLE.options,
+                series: [
+                    {
+                        ...(GALLERY_EXAMPLES.SIMPLE_CHORD_EXAMPLE.options.series![0] as any),
+                        type: 'chord',
+                        node: {
+                            width: 24,
+                            stroke: 'black',
+                            strokeWidth: 2,
+                            cornerRadius: 8,
+                            itemStyler: ({ label }: AgChordSeriesNodeItemStylerParams<unknown>) =>
+                                label === 'NIKE Brand' || label === 'Global' ? { cornerRadius: 2 } : {},
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render node cornerRadius against links narrower than a corner', async () => {
+            // Links narrower than the corner they meet, with opaque fills and no stroke, leave
+            // nothing to hide a gap or an overlap.
+            const options: AgChartOptions = {
+                data: [
+                    { from: 'Hub', to: 'Bulk', size: 100 },
+                    { from: 'Hub', to: 'Sliver', size: 2 },
+                    { from: 'Hub', to: 'Trace', size: 1 },
+                    { from: 'Bulk', to: 'Sliver', size: 40 },
+                    { from: 'Bulk', to: 'Trace', size: 3 },
+                ],
+                series: [
+                    {
+                        type: 'chord',
+                        fromKey: 'from',
+                        toKey: 'to',
+                        sizeKey: 'size',
+                        node: { width: 40, cornerRadius: 20, strokeWidth: 0 },
+                        link: { fillOpacity: 1 },
                     },
                 ],
             };
@@ -257,7 +311,6 @@ describe('ChordSeries', () => {
 
         const checkHighlight = async (chartInstance: any) => {
             await hoverChartNodes(chartInstance, ({ series }) => {
-                // Check the highlighted marker
                 const highlightNode = testParams.getHighlightNode(chartInstance, series);
                 expect(highlightNode).toBeDefined();
                 expect(highlightNode.fill).toEqual('lime');
@@ -270,12 +323,10 @@ describe('ChordSeries', () => {
             offset?: { x: number; y: number }
         ) => {
             await hoverChartNodes(chartInstance, async ({ x, y }) => {
-                // Perform click
                 await clickAction(x + (offset?.x ?? 0), y + (offset?.y ?? 0))(chartInstance);
                 await waitForChartStability(chartInstance);
             });
 
-            // Check click handler
             const nodeCount = chartInstance.series.reduce(
                 (sum, series) => sum + testParams.getNodeData(series).length,
                 0
@@ -286,17 +337,14 @@ describe('ChordSeries', () => {
         it(`should render tooltip correctly`, async () => {
             chart = await createChart({ hasTooltip: true });
             await hoverChartNodes(chart, ({ series, item }) => {
-                // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-charts-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(false);
 
-                // Check the tooltip text
                 const values = testParams.getDatumValues(item, series);
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
 
-            // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
             await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             const tooltip = document.querySelector('.ag-charts-tooltip');
@@ -353,7 +401,6 @@ describe('ChordSeries', () => {
         const cartesianTestParams = {
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getTooltipRenderedValues: (params) => [params.xValue, params.yValue],
-            // Returns a highlighted marker
             getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
         } as Parameters<typeof testPointerEvents>[0];
 
@@ -599,9 +646,7 @@ describe('ChordSeries', () => {
         expect(highlightedItemDatum).toEqual(linkNode.datum);
     });
 
-    // Chord extends FlowProportionSeries, whose resetAnimation() is a no-op and which never drives the
-    // animation manager, so nodes and links never tween. Pinned by a minimal guard rather than a
-    // trajectory suite, since there is no motion to describe.
+    // FlowProportionSeries never drives the animation manager, so nodes and links never tween.
     describe('does not animate', () => {
         const frames = spyOnAnimationFrames();
 
@@ -629,13 +674,11 @@ describe('ChordSeries', () => {
                 })
             );
 
-            // Anti-vacuity: the extra edge adds a node and a link, so the flow genuinely changed — a
-            // constant trajectory over it is a real snap, not a pin over an unchanged scene.
+            // Anti-vacuity: a constant trajectory is only meaningful if the flow genuinely changed.
             const beforeCount = flowKeys(before).length;
             const afterCount = flowKeys(after).length;
             expect(beforeCount).toBeGreaterThan(0);
             expect(afterCount).toBeGreaterThan(beforeCount);
-            // The full new layout is present on the first captured frame (nothing grows/fades in).
             expect(flowKeys(trajectory[0]).length).toBe(afterCount);
             expectNoAnimation(trajectory);
         });

@@ -1,16 +1,29 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
+import type { AgFunnelSeriesLabelPlacement } from '../../chart/collisionAvoidanceOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
-import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type {
+    AgChartLabelCollisionFitOptions,
+    AgChartLabelOptions,
+    AgSeriesLabelPlacementStyleOptions,
+} from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
-export type AgPyramidSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault> = AgChartLabelOptions<
-    TDatum,
-    TParams,
-    TContext
->;
+export interface AgPyramidSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
+    extends
+        AgChartLabelOptions<TDatum, TParams, TContext>,
+        AgChartLabelCollisionFitOptions,
+        AgSeriesLabelPlacementStyleOptions {
+    /**
+     * Where to render series labels relative to the stages. Either a single placement or an ordered
+     * fallback list tried in turn until one fits.
+     */
+    placement?: AgFunnelSeriesLabelPlacement | AgFunnelSeriesLabelPlacement[];
+    /** Distance between the stage edges and the text. */
+    spacing?: PixelSize;
+}
 
 export interface AgPyramidSeriesStageLabelOptions<
     TDatum,

@@ -193,7 +193,6 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         const mainFileName = getMainFileName(internalFramework);
 
         const { externalEventHandlers } = bindings;
-        const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
         let mainTs = vanillaToTypescript(deepCloneObject(typedBindings));
 
@@ -231,8 +230,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
                 [entryFileName]: mainTs,
                 'index.html': indexHtml,
             },
-            boilerPlateFiles,
-            // NOTE: `scriptFiles` not required, as system js handles import
+            // NOTE: `scriptFiles` not required, as the example runner's import map resolves them
             entryFileName,
             mainFileName,
         };
@@ -249,7 +247,6 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         const internalFramework = 'reactFunctional';
         const entryFileName = getEntryFileName(internalFramework);
         const mainFileName = getMainFileName(internalFramework);
-        const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
         let indexJsx = await vanillaToReactFunctional(
             deepCloneObject(bindings),
@@ -275,7 +272,6 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
                 [entryFileName]: indexJsx,
                 'index.html': indexHtml,
             },
-            boilerPlateFiles,
             // Other files, not including entry file
             scriptFiles: Object.keys(otherScriptFiles),
             entryFileName,
@@ -294,7 +290,6 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         const internalFramework: InternalFramework = 'reactFunctionalTs';
         const entryFileName = getEntryFileName(internalFramework);
         const mainFileName = getMainFileName(internalFramework);
-        const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
         let indexTsx = await vanillaToReactFunctionalTs(
             deepCloneObject(typedBindings),
@@ -320,8 +315,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
                 [entryFileName]: indexTsx,
                 'index.html': indexHtml,
             },
-            boilerPlateFiles,
-            // NOTE: `scriptFiles` not required, as system js handles import
+            // NOTE: `scriptFiles` not required, as the example runner's import map resolves them
             entryFileName,
             mainFileName,
         };
@@ -330,7 +324,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         const internalFramework: InternalFramework = 'angular';
         const entryFileName = getEntryFileName(internalFramework);
         const mainFileName = getMainFileName(internalFramework);
-        const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
+        const boilerPlateFiles = await getBoilerPlateFiles(internalFramework);
 
         let appComponent = await vanillaToAngular(deepCloneObject(typedBindings), [], suppressOptionsClone);
 
@@ -372,7 +366,6 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         const internalFramework: InternalFramework = 'vue3';
         const entryFileName = getEntryFileName(internalFramework);
         const mainFileName = getMainFileName(internalFramework);
-        const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
         // Vue 3 examples are TypeScript, so preserve top-level type declarations from the
         // typed bindings (the JS bindings strip them); the generic options type already
@@ -404,7 +397,6 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
                 [entryFileName]: mainJs,
                 'index.html': indexHtml,
             },
-            boilerPlateFiles,
             entryFileName,
             mainFileName,
         };

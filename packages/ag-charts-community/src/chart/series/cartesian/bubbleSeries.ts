@@ -5,6 +5,7 @@ import {
     type CandidateStyleResolver,
     ChartAxisDirection,
     type DomainWithMetadata,
+    type FitRegionMask,
     type LabelFit,
     type LabelFitDescriptor,
     type LabelPlacement,
@@ -20,17 +21,18 @@ import {
     dateToNumber,
     extent,
     findDiscreteColorBinLabel,
-    fitLabelTextOrOverflow,
     formatValue,
-    isArray,
-    labelFitDescriptor,
-    measureTextSegments,
+    insetFitRegion,
+    maskFitRegion,
+    measurePlacedLabel,
+    placedLabelFit,
     rescaleVisibleRange,
     resolveLabelFit,
     resolveSeriesLabelDefaults,
     toArray,
     toNumber,
     toPlainText,
+    withFitRegion,
 } from 'ag-charts-core';
 import {
     type AgBubbleSeriesItemStylerParams,
@@ -83,7 +85,7 @@ import {
 } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
-import { type MarkerLabelRect, markerLabelRect } from '../../marker/markerLabelRect';
+import { type MarkerLabelRect, markerLabelRect, markerRowSpans } from '../../marker/markerLabelRect';
 import { type TooltipContent, type TooltipContentDataRow, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { IndexSetBucketLookupManager } from '../bucketLookupFeature';
 import {
@@ -191,9 +193,7 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
     readonly count: number;
     readonly dilation: number;
     readonly area: number;
-    // WARNING! This selected-state is related to cross-filtering which is not an officially documented or supported
-    // feature. It has nothing to do with the official data selection API in the options contract. Do not use, or use
-    // with extreme caution.
+    // WARNING: internal cross-filtering state, unrelated to the public data-selection API. Do not use.
     readonly crossFilterSelected: boolean | undefined;
     style?: NormalisedSeriesMarkerStyle;
 }
@@ -251,6 +251,8 @@ interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<Bubble
     readonly labelAnchor: Point;
     readonly labelInsideOffset: Point | undefined;
     readonly labelInsideRect: MarkerLabelRect | undefined;
+    /** The marker outline the label's text is bounded by, rather than the rect inscribed in it. */
+    readonly labelInsideMask: FitRegionMask | undefined;
     readonly labelInsideSize: { width: number; height: number } | undefined;
     readonly labelTextDomain: any[];
     readonly labelPadding: { left: number; right: number; top: number; bottom: number };
@@ -617,9 +619,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         } = this.properties;
 
         const placements = toArray(label.placement);
-        // Only fit to the marker when `inside` is the sole placement; a mixed fallback list keeps
-        // full-size text and lets the engine reject an oversized inside candidate (via insideSize)
-        // so a directional fallback isn't constrained to the marker.
+        // Only fit to the marker when `inside` is the sole placement, so directional fallbacks stay full-size.
         const insideOnly = placements.length > 0 && placements.every((placement) => placement === 'inside');
         const insideRect = placements.includes('inside') ? markerLabelRect(marker.shape) : undefined;
         const collideWith = label.collision.resolveCollideWith();
@@ -628,11 +628,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
 
-        // Determine if we can incrementally update existing nodes
         const canIncrementallyUpdate =
             processedData.changeDescription != null && this.contextNodeData?.nodeData != null;
 
-        // Determine label text domain for formatting
         let labelTextDomain: any[];
         if (labelKey) {
             labelTextDomain = [];
@@ -695,6 +693,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             // Truncation container applies only when `inside` is the sole placement; a mixed list
             // measures full text so directional fallbacks aren't constrained to the marker.
             labelInsideRect: insideOnly ? insideRect : undefined,
+            labelInsideMask: insideOnly ? markerRowSpans(marker.shape) : undefined,
             labelInsideSize:
                 !insideOnly && insideRect ? { width: insideRect.width, height: insideRect.height } : undefined,
             labelTextDomain,
@@ -705,9 +704,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             labelFitOverflow: insideOnly && label.collision.alwaysShow ? labelFit : undefined,
             labelStyled: label.itemStyler != null,
             label,
-            // The series-area clamp is opt-in via `collideWith.seriesArea`. Inside-only labels are
-            // additionally exempt: fitted to and centred on their marker, an edge marker's label rides
-            // with the point, so only directional placements can spill past the series area.
+            // Inside-only labels ride with their marker, so only directional placements can spill out.
             plotRegion: insideOnly || !collideWith.seriesArea ? undefined : this.getSeriesPlotRegion(),
 
             // Other state
@@ -721,16 +718,13 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         };
     }
 
-    // ============================================================================
-    // Template Method Hooks
-    // ============================================================================
+    // Template method hooks.
 
     /**
      * Populates the node data array by iterating over visible data.
      * Strategy selection happens inside: simple or aggregation path.
      */
     protected override populateNodeData(ctx: BubbleSeriesNodeDatumContext): void {
-        // Set size scale range
         this.sizeScale.range = this.getSizeRange();
 
         // Pre-allocate scratch object for datum state
@@ -753,7 +747,6 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
         this.aggregateIndexSet = undefined;
 
-        // Strategy selection - delegate to specialized methods
         const { dataAggregation } = this;
         if (dataAggregation == null) {
             this.createNodeDataSimple(ctx, scratch);
@@ -886,7 +879,6 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
         const crossFilterSelected = ctx.crossFilterSelectedDataValues?.[datumIndex];
 
-        // Compute marker size
         const markerSize = sizeValue == null ? ctx.sizeScale.range[0] : ctx.sizeScale.convertClamped(sizeValue);
 
         // Compute label (skip expensive formatting if labels disabled)
@@ -900,7 +892,6 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
         const colorValue = ctx.colorDataValues?.[datumIndex];
 
-        // Populate scratch object
         scratch.datum = datum;
         scratch.xDatum = xDatum;
         scratch.yDatum = yDatum;
@@ -978,19 +969,30 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                   height: Math.max(0, markerSize * rect.height - 2 * threshold),
               }
             : undefined;
-        const boundedFit = boundLabelFit(ctx.labelFit, container);
-        const fittedText = fitLabelTextOrOverflow(labelText, boundedFit, ctx.labelFitOverflow, ctx.label);
-        let { width, height } = isArray(fittedText)
-            ? measureTextSegments(fittedText, ctx.label)
-            : ctx.labelTextMeasurer.measureLines(String(fittedText));
-
-        width += ctx.labelPadding.left + ctx.labelPadding.right;
-        height += ctx.labelPadding.bottom + ctx.labelPadding.top;
-
-        scratch.nodeLabel = { text: fittedText, width, height };
+        const region =
+            ctx.labelInsideMask == null || rect == null
+                ? undefined
+                : insetFitRegion(
+                      maskFitRegion(ctx.labelInsideMask, markerSize, {
+                          x: rect.cx * markerSize,
+                          y: rect.cy * markerSize,
+                      }),
+                      threshold,
+                      threshold
+                  );
+        // The marker's outline bounds the width; the inscribed rect still bounds the height, anchors the
+        // label at its centre via `labelInsideOffset`, and carries the collision threshold's inset.
+        const boundedFit =
+            region == null
+                ? boundLabelFit(ctx.labelFit, container)
+                : withFitRegion(
+                      boundLabelFit(ctx.labelFit, { width: Infinity, height: container?.height ?? Infinity }),
+                      region
+                  );
+        scratch.nodeLabel = measurePlacedLabel(labelText, ctx.label, ctx, boundedFit);
         // The marker container is per datum, so the fit the engine re-applies per candidate must carry
         // this datum's bound rather than the series-level policy.
-        scratch.nodeLabelFit = labelFitDescriptor(labelText, ctx.label, ctx, boundedFit);
+        scratch.nodeLabelFit = placedLabelFit(labelText, ctx.label, ctx, boundedFit);
     }
 
     /**
@@ -1041,7 +1043,6 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const mutableNode = node as Mutable<BubbleScatterNodeDatum>;
         const { x, y, markerSize, dilation } = scratch;
 
-        // Update basic properties
         mutableNode.datum = scratch.datum;
         mutableNode.datumIndex = datumIndex;
         mutableNode.xValue = scratch.xDatum;
@@ -1060,13 +1061,11 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         mutableNode.region = ctx.plotRegion;
         mutableNode.placement = ctx.labelPlacement;
 
-        // Update point in-place
         const mutablePoint = mutableNode.point;
         mutablePoint.x = x;
         mutablePoint.y = y;
         mutablePoint.size = Math.sqrt(dilation) * markerSize;
 
-        // Update midPoint in-place
         const mutableMidPoint = mutableNode.midPoint as Mutable<Point>;
         mutableMidPoint.x = x;
         mutableMidPoint.y = y;
@@ -1286,21 +1285,30 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         }
     }
 
+    // Maps a placed label inline rather than through `getHighlightLabelData`, since a bubble's label
+    // anchor is its `point` (carrying the marker size) rather than a plain `(x, y)`.
+    private placedLabelDatum(placed: PlacedLabel<BubbleScatterNodeDatum>): BubbleScatterNodeDatum {
+        return {
+            ...placed.datum,
+            placement: placed.placement ?? placed.datum.placement,
+            // A re-fitted label is fitted to the candidate the engine chose, so the node renders that
+            // text at that size rather than the up-front measurement the cascade started from.
+            label:
+                placed.datum.fit == null
+                    ? placed.datum.label
+                    : { text: placed.text, width: placed.width, height: placed.height, fontSize: placed.fontSize },
+            point: {
+                x: placed.x,
+                y: placed.y,
+                size: placed.datum.point.size,
+            },
+        };
+    }
+
     public override updatePlacedLabelData(labelData: PlacedLabel<BubbleScatterNodeDatum>[]) {
         this.placedLabelData = labelData;
         this.labelSelection.update(
-            labelData.map((v) => ({
-                ...v.datum,
-                placement: v.placement ?? v.datum.placement,
-                // A styled label is fitted to the candidate the engine chose, so the node renders that
-                // text at that size rather than the up-front measurement the cascade started from.
-                label: v.datum.fit == null ? v.datum.label : { text: v.text, width: v.width, height: v.height },
-                point: {
-                    x: v.x,
-                    y: v.y,
-                    size: v.datum.point.size,
-                },
-            })),
+            labelData.map((v) => this.placedLabelDatum(v)),
             (text) => {
                 text.pointerEvents = PointerEvents.None;
             }
@@ -1309,8 +1317,6 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         this.updateHighlightLabelSelection();
     }
 
-    // Maps the placed labels inline rather than through `getHighlightLabelData`, since a bubble's label
-    // anchor is its `point` (carrying the marker size) rather than a plain `(x, y)`.
     protected override updateHighlightLabelSelection() {
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const highlightItem =
@@ -1321,15 +1327,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 ? []
                 : this.placedLabelData
                       .filter((label) => label.datum.datumIndex === highlightItem.datumIndex)
-                      .map((label) => ({
-                          ...label.datum,
-                          placement: label.placement ?? label.datum.placement,
-                          point: {
-                              x: label.x,
-                              y: label.y,
-                              size: label.datum.point.size,
-                          },
-                      }));
+                      .map((label) => this.placedLabelDatum(label));
 
         this.highlightLabelSelection =
             this.updateLabelSelection({
@@ -1386,7 +1384,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             text.y = (datum.point?.y ?? 0) + offset.y;
             text.fontStyle = style.fontStyle;
             text.fontWeight = style.fontWeight;
-            text.fontSize = style.fontSize;
+            text.fontSize = datum.label.fontSize ?? style.fontSize;
             text.fontFamily = style.fontFamily;
             text.textBaseline = 'top';
             text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
@@ -1639,9 +1637,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             { resolveMarkerSubPath: [] }
         );
         if (resolvedColorFill != null) {
-            // `getMarkerStyle` does not apply the colour-scale fill — that lives in
-            // `updateDatumStyles`. Override so the tooltip swatch and fill-bound context match
-            // the on-canvas marker colour.
+            // `getMarkerStyle` omits the colour-scale fill, so apply it here to match the on-canvas marker.
             activeStyle.fill = resolvedColorFill;
         }
 

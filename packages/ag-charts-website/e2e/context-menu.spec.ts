@@ -12,6 +12,7 @@ import type {
     AgCrossLineContextMenuActionEvent,
 } from 'ag-charts-types';
 
+import { evalPageFunction } from './agE2E';
 import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
@@ -25,34 +26,14 @@ import {
     waitForChartUpdate,
 } from './util';
 
-async function popActions(page: Page): Promise<AgCaptionContextMenuActionEvent[]> {
+async function popActions(page: Page): Promise<unknown> {
     await waitForChartUpdate(page.locator(SELECTORS.wrapper));
-    const actions = await page.evaluate(() => {
-        const agE2E_popActions: unknown = (window as any)?.agE2E?.popActions;
-        if (agE2E_popActions == null) {
-            throw new Error('window.agE2E.popActions is not defined');
-        } else if (typeof agE2E_popActions !== 'function') {
-            throw new Error('window.agE2E.popActions is not a function');
-        }
-        return agE2E_popActions();
-    });
-    expect(Array.isArray(actions)).toBe(true);
-    return actions as AgCaptionContextMenuActionEvent[];
+    return evalPageFunction(page, 'popActions');
 }
 
-async function popGetItems(page: Page): Promise<AgContextMenuGetItemsParamsCaption[]> {
+async function popGetItems(page: Page): Promise<unknown> {
     await waitForChartUpdate(page.locator(SELECTORS.wrapper));
-    const getItems = await page.evaluate(() => {
-        const agE2E_popGetItems: unknown = (window as any)?.agE2E?.popGetItems;
-        if (agE2E_popGetItems == null) {
-            throw new Error('window.agE2E.popGetItems is not defined');
-        } else if (typeof agE2E_popGetItems !== 'function') {
-            throw new Error('window.agE2E.popGetItems is not a function');
-        }
-        return agE2E_popGetItems();
-    });
-    expect(Array.isArray(getItems)).toBe(true);
-    return getItems as AgContextMenuGetItemsParamsCaption[];
+    return evalPageFunction(page, 'popGetItems');
 }
 
 async function contextMenu(page: Page, point: ClientPoint) {
@@ -199,7 +180,6 @@ test.describe('context-menu', () => {
 
         for (const [name, x, y, expectedHtmlText] of cases) {
             test(name, async ({ page }) => {
-                // Check that (x,y) coord are clicking the correct HTML element that we expect.
                 const rightClickedTextContent = await page.evaluate(
                     (args) => document.elementFromPoint(args.x, args.y)?.textContent ?? '',
                     { x, y }
@@ -507,13 +487,13 @@ test.describe('context-menu', () => {
                 });
                 test('getItems', async ({ page }) => {
                     expect(await popGetItems(page)).toEqual([
-                        itemsEvent(PARAMS_yPrimary, { index: 1, value: closeTo(19.0659) }),
+                        itemsEvent(PARAMS_yPrimary, { index: 1, value: closeTo(20.4072) }),
                     ]);
                 });
                 test('actions', async ({ page }) => {
                     await runAction(page);
                     expect(await popActions(page)).toEqual([
-                        actionEvent(PARAMS_yPrimary, { index: 1, value: closeTo(19.0659) }),
+                        actionEvent(PARAMS_yPrimary, { index: 1, value: closeTo(20.4072) }),
                     ]);
                 });
             });
@@ -524,13 +504,13 @@ test.describe('context-menu', () => {
                 });
                 test('getItems', async ({ page }) => {
                     expect(await popGetItems(page)).toEqual([
-                        itemsEvent(PARAMS_yPrimary, { index: 3, value: closeTo(69.8443) }),
+                        itemsEvent(PARAMS_yPrimary, { index: 4, value: closeTo(71.1856) }),
                     ]);
                 });
                 test('actions', async ({ page }) => {
                     await runAction(page);
                     expect(await popActions(page)).toEqual([
-                        actionEvent(PARAMS_yPrimary, { index: 3, value: closeTo(69.8443) }),
+                        actionEvent(PARAMS_yPrimary, { index: 4, value: closeTo(71.1856) }),
                     ]);
                 });
             });
@@ -543,13 +523,13 @@ test.describe('context-menu', () => {
                 });
                 test('getItems', async ({ page }) => {
                     expect(await popGetItems(page)).toEqual([
-                        itemsEvent(PARAMS_ySecondary, { index: 1, value: closeTo(18682634.7305) }),
+                        itemsEvent(PARAMS_ySecondary, { index: 1, value: closeTo(20023952.0958) }),
                     ]);
                 });
                 test('actions', async ({ page }) => {
                     await runAction(page);
                     expect(await popActions(page)).toEqual([
-                        actionEvent(PARAMS_ySecondary, { index: 1, value: closeTo(18682634.7305) }),
+                        actionEvent(PARAMS_ySecondary, { index: 1, value: closeTo(20023952.0958) }),
                     ]);
                 });
             });
@@ -560,13 +540,13 @@ test.describe('context-menu', () => {
                 });
                 test('getItems', async ({ page }) => {
                     expect(await popGetItems(page)).toEqual([
-                        itemsEvent(PARAMS_ySecondary, { index: 3, value: closeTo(64479041.9162) }),
+                        itemsEvent(PARAMS_ySecondary, { index: 3, value: closeTo(65820359.2814) }),
                     ]);
                 });
                 test('actions', async ({ page }) => {
                     await runAction(page);
                     expect(await popActions(page)).toEqual([
-                        actionEvent(PARAMS_ySecondary, { index: 3, value: closeTo(64479041.9162) }),
+                        actionEvent(PARAMS_ySecondary, { index: 3, value: closeTo(65820359.2814) }),
                     ]);
                 });
             });
@@ -601,10 +581,8 @@ test.describe('context-menu', () => {
             return {
                 showOn: 'axis',
                 defaultItems: ['download'],
-                // The `axis` scope carries no domain-space `coordinates` — the pointer is over the axis, not
-                // the plot, so there is no point to resolve in the other direction. Only the `series-area`,
-                // `series-node` and `cross-line` scopes populate it. Asserted rather than omitted so that
-                // starting to populate it here has to be a deliberate change to this expectation.
+                // Only the `series-area`, `series-node` and `cross-line` scopes carry domain-space
+                // `coordinates`; asserted rather than omitted so populating it here is a deliberate change.
                 coordinates: undefined,
                 ...commonArg,
                 ...pointArgs,
@@ -649,7 +627,7 @@ test.describe('context-menu', () => {
             });
         }
 
-        // The reported case: `axes` names only the left `y` axis, so the bottom axis is implicit.
+        // `axes` names only the left `y` axis, so the bottom axis is implicit.
         test.describe('example: only the y axis is declared', () => {
             test.beforeEach(async ({ page }) => {
                 await gotoExample(page, toExamplePageUrl('context-menu-e2e', 'ag-18053-implicit-axis', 'vanilla').url);
@@ -682,7 +660,7 @@ test.describe('context-menu', () => {
                     direction: 'y',
                     domain: [0, 80],
                 },
-                { index: 2, value: closeTo(38.5574) }
+                { index: 2, value: closeTo(39.7814) }
             );
         });
 
@@ -705,7 +683,7 @@ test.describe('context-menu', () => {
                     direction: 'y',
                     domain: [0, 80000000],
                 },
-                { index: 2, value: closeTo(38557377.0492) }
+                { index: 2, value: closeTo(39781420.765) }
             );
         });
     });

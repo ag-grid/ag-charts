@@ -21,6 +21,7 @@ import {
     isDirectionNeutral,
     measureTextSegments,
     resolvePadding,
+    resolveTextAlign,
     toCanvasTextBaseline,
     toFontString,
     toPlainText,
@@ -59,19 +60,6 @@ export interface TextBoxingProperties {
     };
 }
 
-// The canvas resolves `start`/`end` against `ctx.direction`, which an individual text run may
-// override. Pinning them to a side keeps rendering in step with the scene-direction bounding box.
-function resolveTextAlign(textAlign: CanvasTextAlign, isRtl?: boolean): CanvasTextAlign {
-    switch (textAlign) {
-        case 'start':
-            return isRtl ? 'right' : 'left';
-        case 'end':
-            return isRtl ? 'left' : 'right';
-        default:
-            return textAlign;
-    }
-}
-
 export class Text<D = unknown> extends Shape<D> {
     static override readonly className = 'Text';
 
@@ -81,12 +69,8 @@ export class Text<D = unknown> extends Shape<D> {
 
     private richText?: Group;
     private textMap?: Map<Node, BoxBounds>;
-    // Cached `measureTextSegments` output for the current `text` array. Invalidated by:
-    //   - `onTextChange` (text reassignment)
-    //   - `markDirty` (any layout-affecting field — all of which use `@SceneChangeDetection`,
-    //     which calls `markDirty` via its onChange hook).
-    // Any future field that affects segment layout must either be `@SceneChangeDetection`-tracked
-    // or invalidate this cache explicitly, otherwise it will silently serve stale metrics.
+    // Any field affecting segment layout must be `@SceneChangeDetection`-tracked (which invalidates
+    // this via `markDirty`) or clear it explicitly, or it silently serves stale metrics.
     private segmentMetrics?: ReturnType<typeof measureTextSegments>;
     private generatingTextMap = false;
     private suppressedDirtyDuringGenerate = false;
@@ -121,9 +105,8 @@ export class Text<D = unknown> extends Shape<D> {
         if (isArray(this.text)) {
             this.lines = [];
             this.richText ??= new Group();
-            // Set parent so markDirty from segment children (e.g. ImageSegmentNode on async
-            // image load) propagates up through Text to any cached parent group; otherwise
-            // a titleGroup with renderToOffscreenCanvas would keep showing its stale bitmap.
+            // Parent is set so a segment child's markDirty (e.g. async image load) reaches a cached
+            // parent group, which would otherwise keep showing its stale bitmap.
             this.richText.parentNode = this;
             this.richText.setScene(this.scene);
             const children: Node[] = [];
@@ -138,9 +121,7 @@ export class Text<D = unknown> extends Shape<D> {
             }
             this.richText.append(children);
         } else {
-            // Reverting to plain text: drop the empty richText Group entirely so any external
-            // holder cannot keep it alive and inadvertently mark this Text dirty later. Children
-            // were already detached by `clear()` above.
+            // Drop the empty richText Group so an external holder cannot mark this Text dirty later.
             if (this.richText) {
                 this.richText.parentNode = undefined;
                 this.richText.setScene();
@@ -287,11 +268,8 @@ export class Text<D = unknown> extends Shape<D> {
                 return lineMetrics[0]?.ascent ?? 0;
 
             case 'middle': {
-                // The single-line shortcut uses text-baseline metrics to anchor the row tightly to
-                // the glyph middle. It is only valid for a pure-text line: a row carrying a
-                // block-image strip or an inline image has its ascent dominated by the image box,
-                // so the glyph offset no longer matches the row centre. Those rows (and multi-line
-                // labels) centre on height/2 instead, so the box centres on y.
+                // The glyph-middle shortcut is only valid for a pure-text line: an image box dominates
+                // the ascent, so those rows centre on height/2 instead.
                 const line = lineMetrics[0];
                 const isPureTextLine =
                     lineMetrics.length === 1 &&
@@ -342,8 +320,7 @@ export class Text<D = unknown> extends Shape<D> {
         if (bbox.y === y && this.boxing == null) return bbox;
 
         const segmentBBox = new BBox(bbox.x, y, bbox.width, bbox.height);
-        // Mirror the plain-text grow (computeTextBBox) so a boxed segment caption's bounds — and the
-        // render layer sized from them — include the box; without it the box top is clipped.
+        // Mirrors computeTextBBox so a boxed segment's bounds include the box, or its top is clipped.
         if (this.boxing != null) segmentBBox.grow(this.boxPadding);
         return segmentBBox;
     }
@@ -361,7 +338,7 @@ export class Text<D = unknown> extends Shape<D> {
         this.generateTextMap();
         if (this.textMap?.size) {
             const bbox = BBox.merge(this.textMap.values());
-            bbox.x = this.x - Text.calcLeftOffset(bbox.width, this.textAlign);
+            bbox.x = this.x - Text.calcLeftOffset(bbox.width, this.textAlign, this.scene?.isRtl);
             bbox.y = this.y;
             return bbox;
         }
@@ -374,6 +351,44 @@ export class Text<D = unknown> extends Shape<D> {
 
     getTextMeasureBBox() {
         return this.computeTextBBox();
+    }
+
+    /**
+     * One box per rendered line, together covering {@link getBBox}. A label fitted to a shape rather than
+     * to a rectangle overhangs its own bounding box by construction, so containment has to be judged line
+     * by line — the block box answers a question the text never asked.
+     */
+    getLineBoxes(): BBox[] {
+        const bbox = this.getBBox();
+        const { lineMetrics } = isArray(this.text)
+            ? this.getSegmentMetrics(this.text)
+            : cachedTextMeasurer(this).measureLines(this.lines);
+        if (lineMetrics.length <= 1) return [bbox];
+
+        // A box's padding belongs to the block's outer edge, not to every row, and getBBox has already
+        // taken it: the rows tile the text itself and then claim back only the edges they sit against.
+        const padding = this.boxing == null ? undefined : resolvePadding(this.boxPadding);
+        const isRtl = this.scene?.isRtl;
+        const last = lineMetrics.length - 1;
+        let top = bbox.y + (padding?.top ?? 0);
+        return lineMetrics.map((line, index) => {
+            const box = new BBox(
+                this.x - Text.calcLeftOffset(line.width, this.textAlign, isRtl),
+                top,
+                line.width,
+                line.height
+            );
+            top += line.height;
+            if (padding != null) {
+                box.grow({
+                    left: padding.left,
+                    right: padding.right,
+                    top: index === 0 ? padding.top : 0,
+                    bottom: index === last ? padding.bottom : 0,
+                });
+            }
+            return box;
+        });
     }
 
     getPlainText() {
@@ -401,8 +416,7 @@ export class Text<D = unknown> extends Shape<D> {
             this.generatingTextMap = false;
             if (this.suppressedDirtyDuringGenerate) {
                 this.suppressedDirtyDuringGenerate = false;
-                // Propagate the accumulated child-dirty signal up once now that the map is whole.
-                // Bypass our own override to avoid wiping the textMap we just built.
+                // Bypasses our own override, which would wipe the textMap just built.
                 super.markDirty();
             }
         }
@@ -417,10 +431,8 @@ export class Text<D = unknown> extends Shape<D> {
         const childNodes = this.richText!.children();
         const { width: totalWidth, lineMetrics } = this.getSegmentMetrics(text);
 
-        // Block-row strips anchor at `labelLeft` (the leftmost edge of the wrapped row), while
-        // single-segment lines anchor at `this.x - line.width / 2` so they centre on the label
-        // origin. That asymmetry is deliberate: block layouts have a fixed left edge so the
-        // strip+column geometry is preserved; line-only content centres as before.
+        // Block rows anchor at `labelLeft` to preserve strip+column geometry, while single-segment
+        // lines centre on the label origin. The asymmetry is deliberate.
         const labelLeft = this.x - totalWidth / 2;
         let offsetY = 0;
 
@@ -441,9 +453,8 @@ export class Text<D = unknown> extends Shape<D> {
         }
     }
 
-    // Lay out a block-image row: the leading image strip anchored at `labelLeft`, then the text
-    // column (`span` wrapped lines) flowing to its right. Returns the advanced offsetY, or null
-    // if the child-node supply diverged from the line metrics (caller abandons the map).
+    // Lays out a block-image row: image strip at `labelLeft`, text column to its right. Returns null
+    // if the child-node supply diverged from the line metrics, so the caller abandons the map.
     private layoutBlockRow(
         lineMetrics: ReturnType<typeof measureTextSegments>['lineMetrics'],
         lineIndex: number,
@@ -462,9 +473,8 @@ export class Text<D = unknown> extends Shape<D> {
         }
         const rowHeight = Math.max(stripHeight, innerColHeight);
 
-        // Lay out each image in the strip left-to-right. Each image anchors inside the row height
-        // per its own verticalAlign; the text column anchors independently per the first text
-        // segment's verticalAlign.
+        // Each image anchors inside the row height per its own verticalAlign; the text column anchors
+        // independently per the first text segment's.
         let stripX = labelLeft;
         for (let s = 0; s < strip.length; s++) {
             const blockSeg = strip[s];
@@ -524,15 +534,15 @@ export class Text<D = unknown> extends Shape<D> {
         for (const measured of segments) {
             const node = childNodes.next().value;
             if (!node) {
-                // Child supply diverged from the line metrics. Abandon the partial map so the next
-                // render rebuilds from scratch instead of serving a half-populated textMap.
+                // Child supply diverged from the line metrics; abandon the partial map so the next
+                // render rebuilds it.
                 this.abandonTextMap();
                 return offsetY + height;
             }
 
             if (measured.type === 'image') {
-                // The image box is placed relative to the text baseline per its verticalAlign; the
-                // text stays put. The line was already grown to contain this extent during measurement.
+                // The image box moves relative to the text baseline; measurement already grew the line
+                // to contain this extent.
                 const boxWidth = measured.textMetrics.width;
                 const boxHeight = measured.textMetrics.height;
                 const { above } = imageBoxAroundBaseline(
@@ -567,7 +577,6 @@ export class Text<D = unknown> extends Shape<D> {
     }
 
     // Anchor a child of `childHeight` inside a container of `totalHeight` according to verticalAlign.
-    // Used to position the block-leading image and its text column independently within the label.
     private static calcAnchoredOffset(verticalAlign: CanvasTextBaseline, totalHeight: number, childHeight: number) {
         const slack = Math.max(0, totalHeight - childHeight);
         switch (verticalAlign) {
@@ -636,14 +645,12 @@ export class Text<D = unknown> extends Shape<D> {
             const { width, height, lineMetrics } = this.getSegmentMetrics(this.text);
 
             let translateX = 0;
-            switch (this.textAlign) {
+            switch (resolveTextAlign(this.textAlign, renderCtx.direction === 'rtl')) {
                 case 'left':
-                case 'start':
                     translateX = width / 2;
                     break;
 
                 case 'right':
-                case 'end':
                     translateX = width / -2;
             }
 
@@ -672,11 +679,8 @@ export class Text<D = unknown> extends Shape<D> {
 
     override markDirty(property?: string) {
         if (this.generatingTextMap) {
-            // Child setters during buildTextMap trigger markDirty that propagates back here
-            // through richText.parentNode. Skip both the local-cache clear (would wipe entries
-            // mid-iteration) and the super.markDirty() propagation (would fan out N×K parent
-            // invalidations during the build). The accumulated dirty signal is flushed once at
-            // the end of generateTextMap.
+            // Child setters during buildTextMap re-enter here; clearing mid-iteration would wipe the
+            // map being built, and propagating would fan out N×K invalidations. Flushed once at the end.
             this.suppressedDirtyDuringGenerate = true;
             return;
         }
@@ -724,10 +728,17 @@ export class Text<D = unknown> extends Shape<D> {
     private renderBoxing(renderCtx: RenderContext, bbox?: BBox): void {
         if (!this.boxing) return;
 
-        // Use the static version of computeBBox instead of a dynamic version. The `boxing: Rect` shape is drawn
-        // using the same matrix transformation of the text, so we want to ignore translation/rotation/scale
-        // transformations from derived classes. We only need to measure the width/height of the untransformed text
-        const textBBox = bbox ?? Text.computeBBox(this.lines, this.x, this.y, this);
+        // The `boxing: Rect` shape shares the text's matrix, so measure the untransformed text and
+        // ignore any transform applied by derived classes.
+        const textBBox =
+            bbox ??
+            Text.computeBBox(this.lines, this.x, this.y, {
+                font: this,
+                lineHeight: this.lineHeight,
+                textAlign: this.textAlign,
+                textBaseline: this.textBaseline,
+                isRtl: renderCtx.direction === 'rtl',
+            });
         if (textBBox.width === 0 || textBBox.height === 0) return;
 
         const { x, y, width, height } = textBBox.grow(this.boxPadding);

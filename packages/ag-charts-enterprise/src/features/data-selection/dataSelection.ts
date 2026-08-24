@@ -104,15 +104,12 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         this.cleanup.register(
             () => this.dragRect.remove(),
             ctx.chartState.observe((get) => {
-                // AG-17570 The `chart.selection.enabled` option is not definitive, series can all enable the selection
-                // module through options like `series[].selection.enabled`, `series[].tile.selection.enabled` or
-                // `series[].group.selection.enabled`.
+                // Series can enable the module independently of `chart.selection.enabled`.
                 type EnabledMixin = { enabled?: boolean };
                 type SeriesOptionsMixins =
                     | { type: string; selection?: EnabledMixin; tile?: never; group?: never } // most series-types
                     | { type: 'treemap'; selection?: never; tile?: { selection?: EnabledMixin } }; // special-case
-                // static-assertion that option `series[type="treemap"].group.selection` does not exist.
-                // if this option gets added then the moduleEnabled condition would be incomplete.
+                // Adding `series[type="treemap"].group.selection` would make the condition below incomplete.
                 true satisfies AreMutuallyExclusive<keyof AgTreemapSeriesGroupOptions<unknown, unknown>, 'selection'>;
 
                 const selection: EnabledMixin = get('options', 'selection') ?? {};
@@ -245,7 +242,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
                 internalRefreshTargets = this.ctx.chartService.series;
             }
         }
-        // AG-17445 Use `finally` to cleanup if the `selectionChange` user-callback throws an error
+        // `finally` so cleanup still runs when the `selectionChange` user-callback throws.
         try {
             this.dispatchExternalSelectionChange('user-interaction', changes);
         } finally {
@@ -323,11 +320,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
         const changes = this.allocSelectionChanges();
         const shouldClearSelections: boolean = !hasAddToSelectionModifier(dragEndEvent);
-        // On a clear-and-replace drag every series sees a state transition
-        // (Item/OtherItem flips for each rendered marker), so dispatch the
-        // internal change to all of them — error-bar styling and other
-        // per-marker consumers wouldn't otherwise re-render the previously
-        // selected series.
+        // Clear-and-replace flips Item/OtherItem on every series, so all of them need the internal change.
         const changedSeries = new Set<Series>(shouldClearSelections ? this.ctx.chartService.series : undefined);
         if (shouldClearSelections) {
             clearAllSelections(changes, this.service);
@@ -385,10 +378,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private refreshCandidacyUnion(widgetEvent: _ModuleSupport.KeyboardWidgetEvent<'keydown' | 'keyup'>): void {
-        // The drag-move / drag-end events include the state of all modifiers in the events, therefore those event
-        // handlers always refresh the candidacyUnion count. However, the user can also press/release the modifier keys
-        // without moving the mouse; which would mean that any itemStyler callbacks that read candidateState would need
-        // to invoked again.
+        // Modifier keys can be pressed without any drag event, and itemStyler callbacks read candidateState.
         const oldCandidacyUnion = this.service.candidacyUnion;
         const newCandidacyUnion = hasAddToSelectionModifier(widgetEvent);
         if (oldCandidacyUnion !== newCandidacyUnion) {
@@ -445,6 +435,9 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         this.ctx.chartService.callListener({
             type: 'selectionChange',
             source,
+            get defaultPrevented() {
+                return defaultPrevented;
+            },
             preventDefault(): void {
                 defaultPrevented = true;
             },

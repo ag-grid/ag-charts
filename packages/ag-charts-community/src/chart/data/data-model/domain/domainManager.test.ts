@@ -96,7 +96,6 @@ function verifyBandingOptimization(
         expect(metadata!.domainBanding!.keyDefs).toBeDefined();
         expect(metadata!.domainBanding!.valueDefs).toBeDefined();
 
-        // Verify key domain banding
         const keyDefStats = metadata!.domainBanding!.keyDefs[0].stats;
         expect(keyDefStats).toBeDefined();
         expect(keyDefStats!.totalBands).toBeGreaterThan(1);
@@ -118,7 +117,6 @@ function verifyBandingOptimization(
             expect(keyDefStats!.dirtyBands).toBeGreaterThanOrEqual(expected.minDirtyBands);
         }
 
-        // Verify value domain banding
         const valueDefStats = metadata!.domainBanding!.valueDefs[0].stats;
         expect(valueDefStats).toBeDefined();
         expect(valueDefStats!.totalBands).toBeGreaterThan(1);
@@ -146,7 +144,6 @@ describe('DomainManager', () => {
     describe('banded domain optimization', () => {
         describe('append operations with banding', () => {
             it('should correctly update domain when appending to large dataset', () => {
-                // Create a data model with banding enabled for datasets > 100 items
                 const dataModel = new DataModel<any, any>(
                     {
                         props: [rangeKey('x'), value('y')],
@@ -155,7 +152,6 @@ describe('DomainManager', () => {
                     testLogger
                 );
 
-                // Create large initial dataset
                 const initialData = Array.from({ length: 200 }, (_, i) => ({
                     x: i,
                     y: i * 10,
@@ -185,7 +181,6 @@ describe('DomainManager', () => {
                 expect(reprocessed.domain.keys).toEqual([[0, 202]]);
                 expect(reprocessed.domain.values).toEqual([[0, 2020]]);
 
-                // Verify actual data
                 expect(reprocessed.keys[0].get('test')?.length).toBe(203);
                 expect(reprocessed.columns[0].length).toBe(203);
             });
@@ -201,7 +196,6 @@ describe('DomainManager', () => {
                     testLogger
                 );
 
-                // Create large initial dataset starting from 10
                 const initialData = Array.from({ length: 150 }, (_, i) => ({
                     x: i + 10,
                     y: (i + 10) * 10,
@@ -230,7 +224,6 @@ describe('DomainManager', () => {
                 expect(reprocessed.domain.keys).toEqual([[7, 159]]);
                 expect(reprocessed.domain.values).toEqual([[70, 1590]]);
 
-                // Verify data integrity
                 expect(reprocessed.keys[0].get('test')?.[0]).toBe(7);
                 expect(reprocessed.keys[0].get('test')?.[1]).toBe(8);
                 expect(reprocessed.keys[0].get('test')?.[2]).toBe(9);
@@ -282,9 +275,8 @@ describe('DomainManager', () => {
                     testLogger
                 );
 
-                // Create dataset with gaps
                 const initialData = Array.from({ length: 100 }, (_, i) => ({
-                    x: i * 2, // 0, 2, 4, 6, ...
+                    x: i * 2,
                     y: i * 20,
                 }));
                 const dataSet = new DataSet(initialData, testLogger);
@@ -298,7 +290,7 @@ describe('DomainManager', () => {
 
                 // Mixed operations: remove some middle values, add at both ends
                 dataSet.addTransaction({
-                    remove: [initialData[25], initialData[50], initialData[75]], // Remove 3 from middle
+                    remove: [initialData[25], initialData[50], initialData[75]],
                     prepend: [{ x: -2, y: -20 }],
                     append: [
                         { x: 200, y: 2000 },
@@ -376,7 +368,6 @@ describe('DomainManager', () => {
 
                 const processedData = dataModel.processData(sources);
 
-                // Remove entire first "band" worth of data (first 5 items)
                 const toRemove = initialData.slice(0, 5);
                 dataSet.addTransaction({ remove: toRemove });
 
@@ -410,11 +401,9 @@ describe('DomainManager', () => {
 
                 const processedData = dataModel.processData(sources);
 
-                // Verify initial domain with banding enabled
                 expect(processedData!.domain.keys).toEqual([[0, 9]]);
                 expect(processedData!.domain.values).toEqual([[0, 90]]);
 
-                // Add significant amount of data (double the size)
                 const appendData = Array.from({ length: 10 }, (_, i) => ({
                     x: i + 10,
                     y: (i + 10) * 10,
@@ -429,7 +418,6 @@ describe('DomainManager', () => {
                 expect(reprocessed.domain.values).toEqual([[0, 190]]);
                 expect(reprocessed.input.count).toBe(20);
 
-                // Remove half the data - items with x=0 to x=4
                 const toRemove = initialData.slice(0, 5);
                 dataSet.addTransaction({ remove: toRemove });
 
@@ -442,16 +430,13 @@ describe('DomainManager', () => {
                 expect(reprocessed2.domain.values).toEqual([[50, 190]]);
                 expect(reprocessed2.input.count).toBe(15);
 
-                // Remove more to drop below banding threshold
-                // Remove x=5 to x=9 and x=10 to x=16
-                // This should leave only x=17, x=18, x=19
+                // Drop below the banding threshold, leaving only x=17..19.
                 const toRemoveMore = [...initialData.slice(5), ...appendData.slice(0, 7)];
                 dataSet.addTransaction({ remove: toRemoveMore });
 
                 const reprocessed3 = dataModel.reprocessData(reprocessed2, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed3, sources);
 
-                // Check actual data in dataSet
                 const actualData = dataSet.data;
                 const actualXValues = actualData.map((d) => d.x).sort((a, b) => a - b);
                 const actualYValues = actualData.map((d) => d.y).sort((a, b) => a - b);
@@ -493,7 +478,6 @@ describe('DomainManager', () => {
                 expect(processedData!.domain.keys).toEqual([[0, 49]]);
                 expect(processedData!.domain.values).toEqual([[0, 490]]);
 
-                // Add enough data to trigger banding
                 const appendData = Array.from({ length: 60 }, (_, i) => ({
                     x: i + 50,
                     y: (i + 50) * 10,
@@ -502,7 +486,6 @@ describe('DomainManager', () => {
 
                 const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
-                // Should now use banding and still calculate correct domain
                 expect(reprocessed.domain.keys).toEqual([[0, 109]]);
                 expect(reprocessed.domain.values).toEqual([[0, 1090]]);
                 expect(reprocessed.input.count).toBe(110);
@@ -535,7 +518,6 @@ describe('DomainManager', () => {
                         targetBandCount,
                     });
 
-                    // Verify initial domain
                     verifyDomain(scenario.processedData!, {
                         keys: [[0, dataSize - 1]],
                         values: [[0, (dataSize - 1) * 10]],
@@ -547,7 +529,6 @@ describe('DomainManager', () => {
                     const reprocessed = scenario.dataModel.reprocessData(scenario.processedData!, undefined, undefined);
                     verifyReprocessMatchesBaseline(scenario.dataModel, reprocessed, scenario.sources);
 
-                    // Verify domain shifted correctly
                     verifyDomain(reprocessed, { ...expectedDomain, count: dataSize });
                 }
             );
@@ -561,9 +542,7 @@ describe('DomainManager', () => {
                     testLogger
                 );
 
-                // Create dataset with 1200 items
-                // Expected bands: 12 bands of 100 items each
-                // Band 0: [0, 100), Band 1: [100, 200), ..., Band 11: [1100, 1200)
+                // 1200 items form 12 bands of 100.
                 const initialData = Array.from({ length: 1200 }, (_, i) => ({
                     x: i,
                     y: i * 10,
@@ -573,19 +552,11 @@ describe('DomainManager', () => {
 
                 const processedData = dataModel.processData(sources);
 
-                // Verify initial domain
                 expect(processedData!.domain.keys).toEqual([[0, 1199]]);
                 expect(processedData!.domain.values).toEqual([[0, 11990]]);
 
-                // Simulate scrolling: remove 10 from start, append 10 at end
-                // Expected band behaviour after removal (indices shifted):
-                // Band 0: [0, 100) -> [0, 90) DIRTY (shrunk, needs rescan)
-                // Band 1: [100, 200) -> [90, 190) CLEAN (shifted down)
-                // ...
-                // Band 11: [1100, 1200) -> [1090, 1190) CLEAN (shifted down)
-                //
-                // Expected band behaviour after append:
-                // Band 11: [1090, 1190) -> [1090, 1200) DIRTY (extended to include new data)
+                // Scrolling leaves only band 0 (shrunk) and band 11 (extended) dirty; the middle bands
+                // merely shift index and stay clean.
                 const toRemove = initialData.slice(0, 10);
                 const toAppend = Array.from({ length: 10 }, (_, i) => ({
                     x: 1200 + i,
@@ -627,14 +598,11 @@ describe('DomainManager', () => {
                 expect(reprocessed2.domain.values).toEqual([[200, 12190]]);
                 expect(reprocessed2.input.count).toBe(1200);
 
-                // Verify the banding optimization worked on SECOND reprocess
-                // In a scrolling scenario with 1200 items and 12 bands:
-                // - Only 2 bands should be dirty (band 0 shrunk, band 11 extended)
-                // - That's 2/12 = 16.7% of bands scanned, not 100%
+                // Only 2 of 12 bands are dirty on the second reprocess, so ~17% is scanned rather than all.
                 verifyBandingOptimization(reprocessed2, {
                     shouldHaveBanding: true,
                     maxDirtyBands: 5, // At most ~40% of bands
-                    maxScanRatio: 0.5, // Less than 50% data scanned
+                    maxScanRatio: 0.5,
                 });
             });
 
@@ -676,7 +644,6 @@ describe('DomainManager', () => {
                     processedData = dataModel.reprocessData(processedData, undefined, undefined) as any;
                     verifyReprocessMatchesBaseline(dataModel, processedData, sources);
 
-                    // Verify domain is correct after each iteration
                     const expectedMinX = 10 * (iteration + 1);
                     const expectedMaxX = 1200 + 10 * (iteration + 1) - 1;
                     expect(processedData.domain.keys).toEqual([[expectedMinX, expectedMaxX]]);
@@ -687,19 +654,16 @@ describe('DomainManager', () => {
                     if (iteration > 0) {
                         verifyBandingOptimization(processedData, {
                             shouldHaveBanding: true,
-                            maxScanRatio: 0.5, // Less than 50% data scanned
+                            maxScanRatio: 0.5,
                         });
                     }
                 }
 
-                // After 5 scrolls (50 items removed from start, 50 added to end)
-                // Final range should be [50, 1249]
                 expect(processedData.domain.keys).toEqual([[50, 1249]]);
                 expect(processedData.domain.values).toEqual([[500, 12490]]);
             });
 
             it('should not reinitialize all bands during scrolling when data size is below threshold', () => {
-                // This test specifically verifies the fix for the bug where considerRebalancing()
                 const dataModel = new DataModel<any, any>(
                     {
                         props: [rangeKey('x'), value('y')],
@@ -729,15 +693,13 @@ describe('DomainManager', () => {
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
                 expect(reprocessed.domain.keys).toEqual([[1, 1200]]);
 
-                // Verify banding metadata is present and bands are created
-                // Note: On first reprocess after processData, all bands are initialized as dirty
-                // (banded domains are created for the first time during reprocessData)
+                // Banded domains are created during the first reprocessData, so every band starts dirty.
                 const metadata = reprocessed.optimizations;
                 expect(metadata?.domainBanding).toBeDefined();
 
                 const keyDefStats = metadata!.domainBanding!.keyDefs[0].stats;
                 expect(keyDefStats).toBeDefined();
-                expect(keyDefStats!.totalBands).toBe(5); // Should have 5 bands
+                expect(keyDefStats!.totalBands).toBe(5);
                 expect(keyDefStats!.dirtyBands).toBe(5); // First reprocess: all bands dirty (expected)
 
                 const valueDefStats = metadata!.domainBanding!.valueDefs[0].stats;
@@ -771,7 +733,6 @@ describe('DomainManager', () => {
                 expect(processedData!.domain.keys).toEqual([[0, 1199]]);
                 expect(processedData!.domain.values).toEqual([[0, 11990]]);
 
-                // Simulate scrolling: remove 1 from start, append 1 at end
                 // This is the exact pattern from the high-freq-multi-chart example
                 const toRemove = [initialData[0]];
                 const toAppend = [{ time: 1200, value: 12000 }];
@@ -792,10 +753,9 @@ describe('DomainManager', () => {
                 expect(metadata1).toBeDefined();
                 expect(metadata1!.keyDefs[0].stats?.dirtyBands).toBe(5); // First reprocess: all bands dirty (expected)
 
-                // Now do a SECOND transaction - this is where the optimization should kick in
-                // Note: We use the actual data object from the dataset, not the original initialData
+                // The second transaction must read the dataset's current data, not the original array.
                 const currentData = dataSet.data;
-                const toRemove2 = [currentData[0]]; // Remove first item from current data
+                const toRemove2 = [currentData[0]];
                 const toAppend2 = [{ time: 1201, value: 12010 }];
                 dataSet.addTransaction({
                     remove: toRemove2,
@@ -813,25 +773,21 @@ describe('DomainManager', () => {
                 // CRITICAL: Verify banding optimization is working on SECOND reprocess
                 const metadata2 = reprocessed2.optimizations;
 
-                // With proactive append optimization:
-                // - Band 0 (first) is dirty (affected by removal)
-                // - Last band creates a new band when full (smart append optimization)
-                // - After multiple appends, we may have 6 bands instead of 5
-                // - Middle bands (1-4) remain clean (only indices shifted)
-                // Total: 2/6 bands dirty = ~33% scan (even better than 40%!)
+                // Band 0 is dirty from the removal and a full last band spawns a new one on append, so ~2/6
+                // bands are dirty; the middle bands only shift index.
                 expect(metadata2?.domainBanding).toBeDefined();
 
                 const keyDefStats = metadata2!.domainBanding!.keyDefs[0].stats;
                 expect(keyDefStats).toBeDefined();
                 expect(keyDefStats!.totalBands).toBe(6); // Proactive append creates new band
-                expect(keyDefStats!.dirtyBands).toBe(2); // MUST be 2, not 6!
-                expect(keyDefStats!.scanRatio).toBeLessThan(0.5); // Better than 50% scan
+                expect(keyDefStats!.dirtyBands).toBe(2);
+                expect(keyDefStats!.scanRatio).toBeLessThan(0.5);
 
                 const valueDefStats = metadata2!.domainBanding!.valueDefs[0].stats;
                 expect(valueDefStats).toBeDefined();
                 expect(valueDefStats!.totalBands).toBe(6); // Proactive append creates new band
-                expect(valueDefStats!.dirtyBands).toBe(2); // MUST be 2, not 6!
-                expect(valueDefStats!.scanRatio).toBeLessThan(0.5); // Better than 50% scan
+                expect(valueDefStats!.dirtyBands).toBe(2);
+                expect(valueDefStats!.scanRatio).toBeLessThan(0.5);
             });
         });
 
@@ -859,7 +815,6 @@ describe('DomainManager', () => {
                 // Should handle discrete domains correctly
                 expect(processedData!.domain.keys).toEqual([['A', 'B', 'C', 'D', 'E']]);
 
-                // Add new category
                 dataSet.addTransaction({ append: [{ category: 'F', value: 1000 }] });
 
                 const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
@@ -880,9 +835,8 @@ describe('DomainManager', () => {
                     testLogger
                 );
 
-                // Simulate time-series data
                 const initialData = Array.from({ length: 1000 }, (_, i) => ({
-                    timestamp: i * 1000, // Millisecond timestamps
+                    timestamp: i * 1000,
                     value: Math.sin(i / 100) * 100,
                 }));
                 const dataSet = new DataSet(initialData, testLogger);
@@ -903,8 +857,8 @@ describe('DomainManager', () => {
 
                 // Should handle 100 new data points efficiently
                 expect(reprocessed.input.count).toBe(1100);
-                expect(reprocessed.domain.keys[0][0]).toBe(0); // Min timestamp
-                expect(reprocessed.domain.keys[0][1]).toBe(1099000); // Max timestamp
+                expect(reprocessed.domain.keys[0][0]).toBe(0);
+                expect(reprocessed.domain.keys[0][1]).toBe(1099000);
 
                 // Value domain should reflect the sine wave range
                 expect(reprocessed.domain.values[0][0]).toBeCloseTo(-100, 0);

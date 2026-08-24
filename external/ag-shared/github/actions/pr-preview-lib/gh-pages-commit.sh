@@ -28,6 +28,11 @@
 #   PUBLISH_BRANCH      optional   default 'gh-pages'
 #   MAX_ATTEMPTS        optional   default 5
 #   PUBLISH_REMOTE      optional   overrides the derived github.com remote (tests only)
+#
+# Outputs (when GITHUB_OUTPUT is set):
+#   commit_sha          the branch tip carrying this operation's content. Callers that address the
+#                       published files by immutable commit (e.g. a raw.githubusercontent.com URL)
+#                       need this — the branch name alone is served with a cache TTL and can move.
 set -euo pipefail
 
 : "${GH_TOKEN:?GH_TOKEN is required}"
@@ -95,6 +100,13 @@ cd "$TMP"
 git config user.name 'github-actions[bot]'
 git config user.email 'github-actions[bot]@users.noreply.github.com'
 
+# Report the tip that carries this operation's content, for callers that address published files by
+# commit rather than by branch name.
+emit_commit_sha() {
+    [ -n "${GITHUB_OUTPUT:-}" ] || return 0
+    echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+}
+
 apply_operation() {
     if [ "$MODE" = sync ]; then
         mkdir -p "$TARGET_PREFIX"
@@ -131,13 +143,17 @@ while :; do
 
     git add -A
     if git diff --cached --quiet; then
+        # Identical content is already on the branch, so HEAD (the tip we just fetched) serves it.
+        # Still an addressable result, so still report a sha.
         echo "No changes to '$TARGET_PREFIX' on '$PUBLISH_BRANCH'; nothing to commit."
+        emit_commit_sha
         exit 0
     fi
     git commit --quiet -m "$COMMIT_MESSAGE"
 
     if git push --quiet origin "HEAD:$PUBLISH_BRANCH"; then
         echo "Published '$TARGET_PREFIX' to '$PUBLISH_BRANCH' (attempt $attempt/$MAX_ATTEMPTS)."
+        emit_commit_sha
         exit 0
     fi
 

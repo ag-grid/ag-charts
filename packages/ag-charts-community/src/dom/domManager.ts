@@ -306,9 +306,8 @@ export class DOMManager extends BaseManager {
         return rootElements;
     }
 
-    // A replacement chart appends its own element to the same container, so anything left in that
-    // container's flow displaces it — this must happen before destroy(), which is queued behind any
-    // in-flight update.
+    // Must run before destroy(), which is queued behind any in-flight update: leftovers in the
+    // container's flow displace the replacement chart's element.
     detachFromContainer() {
         if (this.container != null) {
             this.sizeMonitor.unobserve(this.container);
@@ -329,9 +328,8 @@ export class DOMManager extends BaseManager {
 
         for (const el of Object.values(this.rootElements)) {
             for (const c of el.children.values()) {
-                // A transferred canvas (keepTransferableResources) may already have been re-parented
-                // into the replacement chart's DOM; only remove nodes this manager still owns so the
-                // deferred teardown doesn't orphan the live canvas.
+                // A transferred canvas may already belong to the replacement chart, so only remove
+                // nodes this manager still owns.
                 if (c.parentNode === el.element) {
                     c.remove();
                 }
@@ -396,18 +394,14 @@ export class DOMManager extends BaseManager {
         }
     };
 
-    // The disconnected→connected re-measure runs from updateStylesLocation, which only fires off a
-    // deferred flush. A container attached after all updates have settled schedules no further flush,
-    // so without this the chart latches its unmeasured pre-attachment size. Run the re-measure once
-    // on attachment, independent of flush timing.
+    // A container attached after all updates have settled schedules no further flush, so the
+    // re-measure must be driven from attachment rather than from flush timing.
     private observeAttachTransition(container: HTMLElement) {
         this.disconnectAttachObservers();
         if (this.mode === 'minimal' || this.initiallyConnected !== false) return;
 
-        // A MutationObserver on the document only sees light-DOM insertions; appending the container
-        // directly into a connected shadow root mutates the shadow tree, which the document cannot
-        // observe. An IntersectionObserver observes the target element itself, so it fires on
-        // connection across shadow boundaries — covering the case the MutationObserver misses.
+        // A document MutationObserver cannot see insertions into a shadow tree; the
+        // IntersectionObserver observes the element itself, so it fires across shadow boundaries.
         this.attachObserver = this.agDocument.createMutationObserver(this.onAttachTransition);
         this.attachObserver?.observe(container.ownerDocument.documentElement, { childList: true, subtree: true });
 
@@ -436,9 +430,7 @@ export class DOMManager extends BaseManager {
             this.addStyles(id, styles);
         }
 
-        // A container observed while detached had no laid-out size to read; now that it is
-        // attached, re-measure so the chart autosizes to fill it instead of latching the
-        // unmeasured pre-attachment state.
+        // A container observed while detached had no laid-out size, so re-measure on attachment.
         if (this.container != null) {
             this.sizeMonitor.refresh(this.container);
         }
@@ -503,16 +495,8 @@ export class DOMManager extends BaseManager {
             this.sizeMonitor.unobserve(this.container);
         }
 
-        // If the container was inside a shadow DOM, the styles are added to the container rather than the head
-        //
-        // If we change the container from inside a shadow DOM to outside, we need to remove these styles, because they
-        // can cause conflicts
-        //
-        // Conversely, if we go from outside to inside a shadow DOM, it's probably not safe to remove the styles from
-        // the head, because other charts may be depending on them
-        //
-        // Note we do this before relocating the new container to avoid temporarily adding new styles to the page,
-        // which may cause a style recalculation
+        // Shadow-DOM containers hold their own styles; drop them before relocating, both to avoid
+        // conflicts and to avoid a style recalculation. Styles in the head are shared, so stay.
         if (this.shadowDocumentRoot != null) {
             for (const id of this.rootElements['styles'].children.keys()) {
                 this.removeChild('styles', id);
@@ -522,9 +506,8 @@ export class DOMManager extends BaseManager {
         this.container = pendingContainer;
         this.pendingContainer = undefined;
         this.agDocument.setContainer(pendingContainer);
-        // Shadow-path watchers live on the shadow root, so a container move does not carry them
-        // along. Only drop the mirror when the resolved root actually changes — clearing it for a
-        // move within the same root would re-register duplicates over the existing watchers.
+        // Shadow-path watchers live on the shadow root; clearing the mirror for a move within the
+        // same root would re-register duplicates.
         const previousShadowRoot = this.shadowDocumentRoot?.getRootNode();
         this.shadowDocumentRoot = this.getShadowDocumentRoot(pendingContainer);
         if (this.shadowDocumentRoot?.getRootNode() !== previousShadowRoot) {
@@ -533,9 +516,8 @@ export class DOMManager extends BaseManager {
         this.initiallyConnected = pendingContainer.isConnected;
         this.observeAttachTransition(pendingContainer);
 
-        // If we moved from a shadow DOM to outside, we need to ensure the page styles are present
-        // Or if the container is added lazily, we need to ensure styles are added before the container
-        // This is a no-op if styles already exist
+        // Re-assert the page styles: a no-op unless the move left the shadow root, or the container
+        // arrived lazily and needs them in place first.
         for (const [id, styles] of this.styles) {
             this.addStyles(id, styles);
         }
@@ -776,9 +758,8 @@ export class DOMManager extends BaseManager {
             return this._cachedRawOverlayRect;
         }
 
-        // When the Popover API is supported, overlays are promoted to the top layer and
-        // escape ancestor `overflow` clipping, so we must not clamp to a scrollable
-        // ancestor. Browsers without Popover API support retain the clamp below.
+        // Popover overlays sit in the top layer and escape ancestor `overflow` clipping, so the
+        // scrollable-ancestor clamp must not apply to them.
         const scrollableContainer = this.popoverSupported() ? null : this.findScrollableContainer();
 
         if (scrollableContainer != null) {
@@ -889,7 +870,7 @@ export class DOMManager extends BaseManager {
 
         let styleElement: HTMLElement | undefined;
         if (this.styleContainer) {
-            // AG-13233 - User supplied root element, don't use heuristics.
+            // User supplied root element, don't use heuristics.
             styleElement = addStyleElement(this.styleContainer);
         } else if (this.initiallyConnected === false) {
             // Add to our DOM tree as we don't know if this is a shadow DOM case or not, or even necessarily
@@ -1178,12 +1159,8 @@ export class DOMManager extends BaseManager {
 
     private updateContainerClassName() {
         const { element, containerSize, minWidth, minHeight, autoWidth, autoHeight } = this;
-        // The canvas is centred within this box, so any disagreement between the two displaces the
-        // chart by half the difference. When the size came from the container rather than from an
-        // explicit options width/height the canvas is meant to fill the box exactly, so a
-        // disagreement is only ever a size that has not reconciled yet — centring it renders the
-        // chart partway down the container until it does. Align to the start instead; a caller who
-        // asked for a specific size still gets the smaller canvas centred.
+        // The canvas is centred in this box, which offsets the chart whenever the two disagree. On
+        // an auto size that disagreement is only ever an unreconciled size, so align to the start.
         element.classList.toggle(
             CONTAINER_MODIFIERS.safeHorizontal,
             containerSize != null && (autoWidth || minWidth >= containerSize.width)

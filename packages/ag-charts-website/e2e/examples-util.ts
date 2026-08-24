@@ -184,42 +184,51 @@ export function createTestCase(
 ) {
     const { url, status, framework, clickOrder, skipCanvasUpdateCheck, ignoreConsoleWarnings } = opts;
 
-    // Use a special test title suffix to indicate console warnings should be ignored
+    // The title suffix is how createConsoleLogs learns to ignore this test's warnings.
     const titleSuffix = ignoreConsoleWarnings ? ' [ignoreConsoleWarnings]' : '';
 
     if (status === 'ok') {
         testFn(`should load ${url}${titleSuffix}`, async ({ page }) => {
             test.slow(framework === 'angular', 'allow more time for Angular load times');
 
-            // Load example and wait for things to settle.
             await gotoExample(page, url);
 
             await initialCallback?.(page);
 
-            // Check we're dealing with a single canvas, otherwise things get tricky!
+            // Multi-canvas examples are out of scope for the control sweep below.
             const canvases = await page.locator('.ag-charts-wrapper').all();
             if (canvases.length > 1) return;
             const canvas = canvases[0];
 
-            // Try pressing the buttons to see if any errors are thrown.
-            const buttons = await page.locator('.example-controls > button').all();
-            if (clickOrder === 'reverse') buttons.reverse();
+            // A button group's radio is hidden, so its label is the clickable part.
+            const controls = await page
+                .locator('.example-controls > button, .example-controls .button-group > label')
+                .all();
+            if (clickOrder === 'reverse') controls.reverse();
 
-            for (const button of buttons) {
+            for (const control of controls) {
+                // Neither a disabled control nor an already-checked segment can redraw the chart.
+                const skip = await control.evaluate((el) => {
+                    const input = el instanceof HTMLLabelElement ? el.control : null;
+                    if (input instanceof HTMLInputElement) return input.checked || input.matches(':disabled');
+                    return el.matches(':disabled');
+                });
+                if (skip) continue;
+
                 const sceneRenderCount = Number(await canvas.getAttribute('data-scene-renders'));
 
-                await button.click();
+                await control.click();
 
-                const skip =
+                const skipUpdateCheck =
                     skipCanvasUpdateCheck === true ||
                     (Array.isArray(skipCanvasUpdateCheck) &&
-                        skipCanvasUpdateCheck.includes((await button.textContent()) ?? 'unknown'));
-                if (skip) {
+                        skipCanvasUpdateCheck.includes((await control.textContent()) ?? 'unknown'));
+                if (skipUpdateCheck) {
                     await page.waitForLoadState('networkidle');
                 } else {
                     await expect
                         .configure({
-                            message: `Pressing button ${await button.textContent()}`,
+                            message: `Pressing ${await control.textContent()}`,
                         })
                         .poll(async () => Number(await canvas.getAttribute('data-scene-renders')))
                         .toBeGreaterThan(sceneRenderCount);

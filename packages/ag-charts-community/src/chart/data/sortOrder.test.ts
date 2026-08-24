@@ -24,9 +24,8 @@ describe('valuesSortOrder', () => {
         expect(valuesSortOrder([1, null, 2, null, 3], false)).toBe(1);
     });
 
-    // Sort-order detection must treat bigint columns like number columns; bailing on
-    // `typeof primitive !== 'number'` would report every bigint column as unsorted, disabling
-    // the sorted fast-paths (extent / clipped-range) for bigint data.
+    // Bigint columns must be treated like number columns; bailing on `typeof primitive !== 'number'`
+    // would report every bigint column as unsorted and disable the sorted fast-paths.
     it('detects ascending bigint columns', () => {
         expect(valuesSortOrder([10n ** 22n, 10n ** 22n + 1n, 10n ** 22n + 2n], false)).toBe(1);
     });

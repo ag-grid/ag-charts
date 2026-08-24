@@ -65,8 +65,7 @@ export function generateLabelSecondaryLabelFontSizeCandidates(
                 ? (currentSecondaryLabelFontSize - secondaryLabelMinimumFontSize) / secondaryLabelTracks
                 : -1;
 
-        // Clamped so the last step lands exactly on the minimum: stepping past it would both render
-        // smaller than asked for and leave no candidate at which truncation is permitted.
+        // Clamped so the last step lands exactly on the minimum, rather than stepping past the smallest permitted size.
         if (labelProgress > secondaryLabelProgress) {
             currentLabelFontSize = Math.max(labelMinimumFontSize, currentLabelFontSize - 1);
         } else {
@@ -223,10 +222,8 @@ function formatSingleSegmentsLabel<Meta>(
     { padding }: LayoutParams,
     sizeFittingHeight: SizeFittingHeightFn<Meta>
 ): [LabelFormatting, Meta] | undefined {
-    // Per-segment fontSize overrides mean we can't usefully binary-search the base fontSize
-    // the way the plain-text path does — `minimumFontSize` is therefore not honoured for segment
-    // arrays. Set `fontSize` on individual segments to control sizing, or rely on the segment
-    // overflow handling (drop 'hide' images → truncate text → drop 'keep' images) to fit.
+    // Per-segment fontSize overrides rule out binary-searching a base fontSize, so `minimumFontSize`
+    // is not honoured for segment arrays; sizing instead relies on segment overflow handling.
     const sizeAdjust = 2 * padding;
     const baseFont = toBaseFont(props);
     const measurer = cachedTextMeasurer(baseFont);
@@ -321,11 +318,8 @@ function toBaseFont(props: AutoSizedBaseLabelOptions): FontOptions {
     };
 }
 
-// Inner fittings ignore the (height, canTruncate) arguments because the parent has already
-// apportioned the height — they hand back a fixed frame. The height is `usable + 2*padding`
-// because the consumers (formatSingleLabel / formatSingleSegmentsLabel) subtract their own
-// `2*padding` again to derive their canvas budget; round-tripping the padding here lets the
-// nested call do its standard math without a special case.
+// Height is `usable + 2*padding` so the nested consumer, which subtracts its own `2*padding`, can
+// derive its canvas budget without a special case.
 function fixedFitting<Meta>(
     width: number,
     usableHeight: number,
@@ -335,9 +329,7 @@ function fixedFitting<Meta>(
     return () => ({ width, height: usableHeight + 2 * padding, meta });
 }
 
-// Segments measure once at their declared font (no font-size bin-search), so the stacked
-// plain-text path doesn't apply. Apportion the available height between the two labels and
-// format each independently via formatSingleAny.
+// Segments measure once at their declared font (no bin-search), so the stacked plain-text path doesn't apply here.
 function formatStackedAnyLabels<Meta>(
     labelValue: NormalisedTextOrSegments,
     labelProps: AutoSizedLabelOptions,
@@ -372,8 +364,7 @@ function formatStackedAnyLabels<Meta>(
     });
 
     const labelAllottedHeight = Math.min(labelNaturalHeight, Math.max(0, availableHeight - secondaryNaturalHeight));
-    // If the secondary's natural height already swallows the budget, fall back to label-only
-    // (give the primary the full availableHeight) rather than starving it to zero.
+    // If the secondary's natural height already swallows the budget, give the primary the full availableHeight rather than starving it to zero.
     const labelHeightBudget = labelAllottedHeight > 0 ? labelAllottedHeight : availableHeight;
     const labelFormatted = formatSingleAny(
         labelValue,
@@ -405,10 +396,8 @@ function formatStackedAnyLabels<Meta>(
     };
 }
 
-// Natural unconstrained height when stacking against a peer. Plain-text strings would wrap to
-// availableWidth in the inner call, but at this point we only need a coarse share for
-// apportionment — line height is a reasonable lower bound; `formatSingleLabel`'s overflow path
-// handles wrapped multi-line text inside the apportioned budget.
+// Coarse share for apportionment, not the final wrapped size — line height is a reasonable lower bound,
+// and `formatSingleLabel`'s overflow path handles wrapped multi-line text within the apportioned budget.
 function naturalStackHeight(value: NormalisedTextOrSegments, font: FontOptions): number {
     if (isArray(value)) {
         return measureTextSegments(value, font).height;
@@ -431,8 +420,7 @@ export function formatLabels<Meta = never>(
     const labelIsSegments = isArray(labelValue);
     const secondaryIsSegments = isArray(secondaryLabelValue);
 
-    // Stacked plain-text path supports font-size bin-search. Segments measure once at the
-    // declared font size, so we fall back to formatting each label independently here.
+    // Segments measure once at the declared font size, unlike the bin-searched plain-text path, so fall back to formatting each label independently.
     if (labelValue != null && secondaryLabelValue != null) {
         if (!labelIsSegments && !secondaryIsSegments) {
             value = formatStackedLabels(
@@ -471,7 +459,6 @@ export function formatLabels<Meta = never>(
     }
 
     let secondaryLabelMeta: [LabelFormatting, Meta] | undefined;
-    // Only print secondary label on its own if the primary label was not specified
     if (value == null && labelValue == null && secondaryLabelValue != null) {
         secondaryLabelMeta = formatSingleAny(secondaryLabelValue, secondaryLabelProps, layoutParams, sizeFittingHeight);
     }

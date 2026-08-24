@@ -9,11 +9,20 @@ import type {
     VerticalAlign,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { Property } from 'ag-charts-core';
+import { Property, ProxyPropertyOnWrite } from 'ag-charts-core';
 
 import { AutoSizedLabel } from '../util/autoSizedLabel';
 
 const { CartesianSeriesProperties, ColorScaleProperties, makeSeriesTooltip } = _ModuleSupport;
+
+export class HeatmapLabelProperties extends AutoSizedLabel<AgHeatmapSeriesLabelFormatterParams> {
+    @Property
+    textAlign: TextAlign = 'center';
+
+    @Property
+    verticalAlign: VerticalAlign = 'middle';
+}
+
 export class HeatmapSeriesProperties extends CartesianSeriesProperties<AgHeatmapSeriesOptions> {
     @Property
     title?: string;
@@ -48,11 +57,15 @@ export class HeatmapSeriesProperties extends CartesianSeriesProperties<AgHeatmap
     @Property
     strokeWidth: number = 0;
 
+    // Declared before `label` so an explicit `label.textAlign` wins: BaseProperties.set() applies
+    // properties in declaration order, and an initialiser here would fire before `label` exists.
     @Property
-    textAlign: TextAlign = 'center';
+    @ProxyPropertyOnWrite('label', 'textAlign')
+    textAlign?: TextAlign;
 
     @Property
-    verticalAlign: VerticalAlign = 'middle';
+    @ProxyPropertyOnWrite('label', 'verticalAlign')
+    verticalAlign?: VerticalAlign;
 
     @Property
     itemPadding: number = 0;
@@ -64,7 +77,7 @@ export class HeatmapSeriesProperties extends CartesianSeriesProperties<AgHeatmap
     itemStyler?: Styler<AgHeatmapSeriesItemStylerParams<unknown>, AgHeatmapSeriesStyle>;
 
     @Property
-    readonly label = new AutoSizedLabel<AgHeatmapSeriesLabelFormatterParams>();
+    readonly label = new HeatmapLabelProperties();
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgHeatmapSeriesTooltipRendererParams<any>>();

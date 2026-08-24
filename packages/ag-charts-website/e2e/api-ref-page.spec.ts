@@ -88,27 +88,22 @@ test.describe('api-ref-page', () => {
         const siblingsAfter = await highlight.evaluate(countSiblings);
         expect(siblingsAfter).toBe(siblingsBefore + 2);
 
-        // Assert no warnings in console
         await consoleLogs.expectLogs([
             '%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold',
         ]);
     });
 
-    // `fill` is the `AgColorType` union of named interfaces. setupIntrinsicAssertions fails on any
-    // pageerror, guarding the variant recursion through NodeFactory.
+    // setupIntrinsicAssertions guards the union's variant recursion through NodeFactory against a pageerror.
     test('expands the fill union into discrete variant types and their properties', async ({ page }) => {
         await gotoUrl(page, toPageUrl('options/series/bar/#reference-AgBarSeriesOptions-fill'));
         await expect(getNavigationProperty(page, /^fill/)).toBeVisible();
 
-        // TC1: the "See available interfaces" action expands the union into discrete variant rows.
         await page.getByRole('button', { name: 'See available interfaces of fill', exact: true }).click();
 
-        // TC2: each named interface member of the union renders as its own variant row.
         const gradientVariant = page.locator('#reference-AgBarSeriesOptions-fill-gradient');
         await expect(gradientVariant).toBeVisible();
 
-        // TC3: a variant expands into its own properties as standard rows. The signature code block
-        // (`-details`) belongs to the separate "See more details" affordance and stays absent here.
+        // The signature code block (`-details`) belongs to the separate "See more details" affordance and stays absent here.
         await page.getByRole('button', { name: 'See child properties of gradient', exact: true }).click();
         await expect(page.locator('#reference-AgBarSeriesOptions-fill-gradient-rotation')).toBeVisible();
         await expect(page.locator('#reference-AgBarSeriesOptions-fill-details')).toHaveCount(0);
@@ -122,18 +117,15 @@ test.describe('api-ref-page', () => {
         await expect(rotation).toBeVisible();
     });
 
-    // The themes API page roots its search index at AgChartTheme, whose tree is far larger than the
-    // options page. Regression: building that index overflowed V8's argument limit and the page
-    // failed to load with "Maximum call stack size exceeded". setupIntrinsicAssertions captures any
-    // such pageerror and fails the test; the visible nav tree guards against a silently blank page.
+    // The themes API search index is far larger than the options page's, so building it must not
+    // exceed V8's argument limit; setupIntrinsicAssertions fails the test on the resulting pageerror.
     test('themes API page loads without overflowing', async ({ page }) => {
         await gotoUrl(page, toPageUrl('themes-api/'));
         await expect(getNavigationTree(page).locator(PROPERTY_NAME_SELECTOR).first()).toBeVisible();
     });
 
-    // The themes tree nests everything under `overrides`. Drilling overrides -> common -> axes
-    // renders every axis-type variant through the themeable types, mirroring the options-page axis
-    // surface. setupIntrinsicAssertions fails on the "type-literals" pageerror.
+    // Drilling overrides -> common -> axes renders every axis-type variant through the themeable
+    // types, mirroring the options-page axis surface.
     test('themes API page expands the common axes node into its axis-type variants', async ({ page }) => {
         await gotoUrl(page, toPageUrl('themes-api/'));
         await expect(getNavigationTree(page).locator(PROPERTY_NAME_SELECTOR).first()).toBeVisible();
@@ -145,9 +137,8 @@ test.describe('api-ref-page', () => {
         await expect(getNavigationProperty(page, /^number\b/)).toBeVisible();
     });
 
-    // A per-series override (here `bar`) exposes a themeable `series` node; expanding it renders the
-    // series themeable options. `\b` keeps the matcher off the sibling `seriesArea` node. Guarded by
-    // setupIntrinsicAssertions against the type-literals pageerror.
+    // A per-series override (here `bar`) exposes a themeable `series` node. `\b` keeps the matcher
+    // off the sibling `seriesArea` node.
     test('themes API page expands a series override into its themeable series properties', async ({ page }) => {
         await gotoUrl(page, toPageUrl('themes-api/'));
         await expect(getNavigationTree(page).locator(PROPERTY_NAME_SELECTOR).first()).toBeVisible();
@@ -183,9 +174,9 @@ test.describe('api-ref-page', () => {
         await selectSearchOption(page, 'series type bar');
         await page.keyboard.press('Enter');
 
-        const url = page.url();
-        expect(url).toContain('/options/series/bar/');
-        expect(url).toContain('#reference-AgBarSeriesOptions-type');
+        // Selecting a result hands off to Astro's router, which swaps in the target document, so
+        // the address bar catches up a tick after the keypress rather than during it.
+        await page.waitForURL(/\/options\/series\/bar\/#reference-AgBarSeriesOptions-type$/);
         await expect(page.locator('header h1')).toContainText("type = 'bar'");
     });
 
@@ -202,9 +193,8 @@ test.describe('api-ref-page', () => {
         await expect(getSearchInput(page)).toHaveValue('');
     });
 
-    // Property paths are wider than the search box, so the dropdown scrolls on both axes. Wheeling
-    // vertically moves the pointer onto a new option, selecting it, and that selection must leave
-    // the horizontal scroll position alone.
+    // The dropdown scrolls on both axes; wheeling vertically moves the pointer onto a new option,
+    // and that selection must leave the horizontal scroll position alone.
     test('keeps the horizontal scroll position when scrolling the results vertically', async ({ page }) => {
         await gotoUrl(page, toPageUrl('options/'));
         await waitForApiReady(page);
@@ -312,9 +302,7 @@ test.describe('api-ref-page', () => {
     });
 
     // The top-level `axes` node is the union of every axis type; expanding it renders all axis
-    // variants at once. setupIntrinsicAssertions fails on the "type-literals" pageerror, so this
-    // guards the whole axis surface against a nameless type-literal regression — the companion to
-    // the `series` expansion tests above.
+    // variants at once, guarding the whole axis surface against a nameless type-literal pageerror.
     test('expands the axes node into its axis-type variants', async ({ page }) => {
         await gotoUrl(page, toPageUrl('options/'));
         await waitForApiReady(page);
@@ -348,10 +336,8 @@ test.describe('api-ref-page', () => {
         await expect(page.locator('#reference-AgChartOptions-contextMenu-items-series-node')).toBeVisible();
     });
 
-    // On the number-axis page the `crossLines` member sits under the `{ type = 'number' ... }`
-    // nav node, which is collapsed by default. Deep-linking to a sibling axis property auto-expands
-    // that node (the path to the selection) so `crossLines` is reachable in the navigation tree,
-    // while leaving `crossLines` itself collapsed.
+    // `crossLines` sits under the `{ type = 'number' ... }` nav node, collapsed by default.
+    // Deep-linking to a sibling axis property auto-expands that node without expanding `crossLines`.
     const NUMBER_AXIS_URL = 'options/axes/number/#reference-AgNumberAxisOptions-nice';
 
     test('expands an axis cross-line member into its discriminated variants', async ({ page }) => {
@@ -418,8 +404,7 @@ test.describe('api-ref-page', () => {
     });
 
     // A mixed union keeps its non-interface members (here the primitive `PixelSize`) in a signature
-    // code block reached through "See more details", distinct from the "See available interfaces" variant
-    // rows. This guards the regression where expanding the union dropped the primitive members.
+    // code block reached through "See more details", distinct from the variant rows.
     test('preserves the primitive members of a mixed union in its signature block', async ({ page }) => {
         await gotoUrl(page, toPageUrl('options/'));
         await waitForApiReady(page);
@@ -444,9 +429,8 @@ test.describe('api-ref-page', () => {
         await expect(themeRow.locator('[class*="propNameExpander"]')).toHaveCount(0);
     });
 
-    // A special type (`series` -> AgChartSeriesOptions) has its own navigable per-type pages, so its
-    // "See more details" code block lists the union alias only: the variant `Ag…SeriesOptions` names
-    // appear, but their interface bodies are not inlined (which would be redundant noise here).
+    // `series` has its own navigable per-type pages, so its "See more details" code block lists
+    // the union alias only — the variant names appear, but their interface bodies are not inlined.
     test('special-type code block lists the union alias without inlining sub-interfaces', async ({ page }) => {
         await gotoUrl(page, toPageUrl('options/'));
         await waitForApiReady(page);
@@ -459,9 +443,8 @@ test.describe('api-ref-page', () => {
         await expect(details).not.toContainText('interface AgBarSeriesOptions');
     });
 
-    // The type text toggles the inline code block, but only for members that have one. A `code` member
-    // (`series`) is clickable and toggles its details; a plain primitive (`width`) has no code block,
-    // so its type text is inert and keeps the default cursor.
+    // The type text toggles the inline code block only for members that have one: `series` is
+    // clickable, but the primitive `width` has no code block so its type text stays inert.
     test('type text toggles the code block only for members that have one', async ({ page }) => {
         await gotoUrl(page, toPageUrl('options/'));
         await waitForApiReady(page);
@@ -480,9 +463,8 @@ test.describe('api-ref-page', () => {
         await expect(widthType).not.toHaveClass(/isClickable/);
     });
 
-    // Below the table breakpoint the row stacks and the right column drops onto its own line beneath
-    // the vertical side-line that marks an expanded union (drawn at left: 8px). The right column must
-    // be indented past that line so its description and toggle button don't collide with it.
+    // Below the table breakpoint the right column stacks beneath the vertical side-line that marks
+    // an expanded union (drawn at left: 8px), so it must be indented clear of that line.
     test('indents the stacked right column clear of the expansion side-line', async ({ page }) => {
         await page.setViewportSize({ width: 900, height: 900 });
         await gotoUrl(page, toPageUrl('options/'));

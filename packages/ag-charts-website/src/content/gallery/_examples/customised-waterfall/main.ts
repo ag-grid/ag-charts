@@ -76,6 +76,7 @@ const options: AgChartOptions<ReturnType<typeof getData>[0]> = {
                     label: {
                         enabled: true,
                         placement: 'inside-center',
+                        insideStyle: { color: { ref: 'textColor' } },
                         formatter: ({ value }) => (value ? `${value.toFixed(2)}%` : ''),
                     },
                 },

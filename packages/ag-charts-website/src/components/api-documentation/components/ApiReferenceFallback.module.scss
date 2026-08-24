@@ -1,0 +1,100 @@
+@use 'design-system' as *;
+
+/*
+    Mirrors the two-column geometry the hydrated <ApiReferencePage> produces, so the swap to the
+    React app does not shift the page horizontally.
+*/
+
+.navPlaceholder {
+    width: calc(100% + var(--layout-horizontal-margins) * 2);
+    margin-left: calc(var(--layout-horizontal-margins) * -1);
+
+    @media screen and (max-width: $breakpoint-options-medium) {
+        /* Reserves the stacked search box's height (nav top padding + text line-box + padding +
+            borders) so the content does not drop on hydration. */
+        min-height: calc(#{$spacing-size-5} + var(--text-fs-base) * var(--text-lh-base) + #{$spacing-size-3} + 2px);
+    }
+
+    @media screen and (min-width: $breakpoint-options-medium) {
+        width: calc(var(--layout-width-4-12) + var(--layout-horizontal-margins));
+        box-shadow: -1px 0 0 0 var(--color-border-primary);
+        border-right: 1px solid var(--color-border-primary);
+    }
+
+    @media screen and (min-width: $breakpoint-options-large) {
+        width: calc(var(--layout-width-3-12) + var(--layout-horizontal-margins));
+    }
+}
+
+.referenceContent {
+    width: calc(100% + var(--layout-gap) * 2);
+    margin-left: calc(var(--layout-gap) * -1);
+
+    @media screen and (max-width: $breakpoint-options-medium) {
+        /* Full width with no negative bleed, matching the hydrated `.referenceOuter`. */
+        margin-left: 0;
+    }
+
+    @media screen and (min-width: $breakpoint-options-medium) {
+        width: var(--layout-width-8-12);
+        margin-left: 0;
+    }
+
+    @media screen and (min-width: $breakpoint-options-large) {
+        width: var(--layout-width-9-12);
+    }
+
+    header {
+        padding-top: $spacing-size-8;
+        padding-bottom: $spacing-size-6;
+        margin-bottom: $spacing-size-4;
+        border-bottom: 1px solid var(--color-border-secondary);
+    }
+}
+
+.referenceList {
+    margin: 0;
+}
+
+.referenceRow {
+    padding: $spacing-size-4 0;
+    border-top: 1px solid var(--color-border-secondary);
+
+    dt {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: $spacing-size-2;
+    }
+
+    dd {
+        margin: $spacing-size-2 0 0;
+
+        &:empty {
+            margin: 0;
+        }
+    }
+}
+
+.propertyName {
+    font-weight: var(--text-bold);
+}
+
+.propertyType {
+    color: var(--color-fg-code);
+}
+
+.propertyDefault {
+    color: var(--color-fg-secondary);
+    font-size: var(--text-fs-sm);
+}
+
+.required {
+    color: red;
+    font-size: var(--text-fs-sm);
+}
+
+.recordAlias,
+.unionDiscriminator {
+    color: var(--color-fg-code);
+}

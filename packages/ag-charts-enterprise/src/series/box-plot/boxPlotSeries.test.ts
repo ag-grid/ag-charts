@@ -297,9 +297,7 @@ describe('BoxPlotSeries', () => {
         await compareSnapshot(AgCharts.create(options));
     });
 
-    // The grow-from-median reveal, asserted over the whole animation trajectory (see the
-    // animation-trajectory-tests rule) rather than as per-ratio image snapshots. Each box grows
-    // vertically about its median: scalingY sweeps 0 -> 1 while scalingX and everything else hold.
+    // Each box grows vertically about its median: scalingY sweeps 0 -> 1 while scalingX holds.
     describe('initial animation', () => {
         const frames = spyOnAnimationFrames();
 
@@ -320,8 +318,7 @@ describe('BoxPlotSeries', () => {
 
             for (const key of keys) {
                 const scalingY = trajectory.map((frame) => frame.get(key)!.scalingY);
-                // Anti-vacuity: the box collapses to nothing at frame 0 and settles at full height,
-                // so the directional spec below cannot pass flat.
+                // Anti-vacuity: without these the directional spec below could pass flat.
                 expect(scalingY[0], `${key} scalingY at frame 0`).toBeLessThanOrEqual(0.01);
                 expect(scalingY.at(-1)!, `${key} scalingY at final frame`).toBeCloseTo(1, 2);
                 expectMonotonic(scalingY, 'increasing');
@@ -337,13 +334,11 @@ describe('BoxPlotSeries', () => {
             deproxy(proxy).destroy();
         });
 
-        // Pixel endpoint guard replacing the deleted 0%/100% ratio snapshots: the animated reveal
-        // must settle at exactly what a snapped render of the same options produces.
+        // The animated reveal must settle at exactly what a snapped render of the options produces.
         it('reveal endpoints match a static render', async () => {
             const options: AgChartOptions = { ...BOX_PLOT_BAR_OPTIONS };
             prepareEnterpriseTestOptions(options);
-            // Widen each box's whiskers (still min < q1 < median < q3 < max) so the transition
-            // reshapes the render without producing invalid box-plot data.
+            // Widen whiskers, keeping min < q1 < median < q3 < max, so the render reshapes.
             const widened: AgChartOptions = {
                 ...options,
                 data: BOX_PLOT_BAR_OPTIONS.data!.map((d: any) => ({ ...d, min: d.min - 0.5, max: d.max + 0.5 })),
@@ -679,7 +674,6 @@ describe('BoxPlotSeries', () => {
             });
         });
         describe('highlights', () => {
-            // Manual-test version available at box-plot-series-test#styler-highlight-state
             beforeEach(async () => {
                 chart = AgCharts.create(
                     prepareEnterpriseTestOptions<O>({
@@ -768,7 +762,6 @@ describe('BoxPlotSeries', () => {
                     expect(popCalls()).toMatchSnapshot();
 
                     await hover(legendItem1);
-                    // Wait for delayed unhighlights to complete
                     await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
                     expect(popCalls()).toMatchSnapshot();
                 });
@@ -1223,9 +1216,8 @@ describe('BoxPlotSeries', () => {
         });
     });
 
-    // CRT-1144: In a box-plot + scatter combo, hiding the box-plot via the legend must remove its
-    // shapes. The scatter keeps the y-domain populated, so a hidden box-plot's stale nodes would
-    // otherwise re-project through a changed scale and render as stretched boxes.
+    // The scatter keeps the y-domain populated, so a hidden box-plot's stale nodes would otherwise
+    // re-project through a changed scale and render as stretched boxes.
     describe('hide on legend toggle (CRT-1144)', () => {
         const animate = spyOnAnimationManager();
 
@@ -1262,7 +1254,6 @@ describe('BoxPlotSeries', () => {
             const chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            // Hide the box-plot series (simulates a legend click), then settle the hide animation.
             animate(1200, 1);
             (options.series![0] as any).visible = false;
             await chart.update(options);

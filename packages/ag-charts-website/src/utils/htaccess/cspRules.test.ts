@@ -64,9 +64,7 @@ describe('cspRules', () => {
         });
 
         it('site scope authorises the (non-externalisable) Astro hydration scripts by hash', () => {
-            // Astro's framework-injected hydration scripts cannot be externalised, so
-            // they are pinned by hash (ASTRO_HYDRATION_SCRIPT_HASHES). Regenerate when
-            // bumping Astro — see cspRules.ts.
+            // Astro's hydration scripts cannot be externalised; regenerate on an Astro bump.
             const scriptSrc = getCspDirectives({ env: 'production', scope: 'site' })['script-src'];
             expect(scriptSrc).toContain("'sha256-BrDhGE1lwa85arfXcrBxSo+n37uVSX5CAROXnIM6Q+g='"); // <astro-island> runtime
             expect(scriptSrc).toContain("'sha256-QzWFZi+FLIx23tnm9SBU4aEgx4x8DsuASP07mfqol/c='"); // client:load
@@ -74,12 +72,42 @@ describe('cspRules', () => {
         });
 
         it('site scope authorises the GTM-injected ZoomInfo bootstrap by hash', () => {
-            // Authored in the shared GTM container (not this repo); hash captured from
-            // the browser CSP violation. Site only — examples keeps unsafe-inline.
+            // Authored in the shared GTM container; hash captured from the browser violation.
             const site = getCspDirectives({ env: 'production', scope: 'site' })['script-src'];
             expect(site).toContain("'sha256-41l+jvtOjBgKy9345IStB4j1gGPGFMVXADMHn1Acs6E='");
             const examples = getCspDirectives({ env: 'production', scope: 'examples' })['script-src'];
             expect(examples).not.toContain("'sha256-41l+jvtOjBgKy9345IStB4j1gGPGFMVXADMHn1Acs6E='");
+        });
+
+        it('site scope authorises the Enzuzo -> GTM consent bridge by hash', () => {
+            // Injected inline by the banner to pass the consent decision to GTM.
+            const site = getCspDirectives({ env: 'production', scope: 'site' })['script-src'];
+            expect(site).toContain("'sha256-NSYHvOQXo5WNxDt0/+l9AbSTx6N4CkkrbuSSa6ERhlo='");
+            const examples = getCspDirectives({ env: 'production', scope: 'examples' })['script-src'];
+            expect(examples).not.toContain("'sha256-NSYHvOQXo5WNxDt0/+l9AbSTx6N4CkkrbuSSa6ERhlo='");
+        });
+
+        it('derives the consent-bridge hash from the recorded script source', () => {
+            // If this fails the recorded source was edited: re-check it against a real browser
+            // rather than updating the expected digest.
+            expect(sha256Source('if (window.enzuzoGtmConsent) { window.enzuzoGtmConsent(); }')).toBe(
+                "'sha256-NSYHvOQXo5WNxDt0/+l9AbSTx6N4CkkrbuSSa6ERhlo='"
+            );
+        });
+
+        it('site scope authorises both GTM UTM-attribution tags by hash', () => {
+            // Hashable only because neither tag interpolates a GTM variable — see the note above
+            // GTM_UTM_CAPTURE_HASH in cspRules.ts.
+            const site = getCspDirectives({ env: 'production', scope: 'site' })['script-src'];
+            expect(site).toContain("'sha256-nsp/0430/yfuSNjsteV2fUwjHINMowl9qldFKy6PKJs='"); // page-view capture
+            expect(site).toContain("'sha256-7f34QP24yF/YC+G6zSHRCBZrBez6xFf6GbcGIXkZ4K0='"); // webhook POST
+        });
+
+        it('allows the Make webhook in connect-src for the attribution POST', () => {
+            const site = getCspDirectives({ env: 'production', scope: 'site' });
+            expect(site['connect-src']).toContain('https://hook.eu2.make.com');
+            // A fetch target, not a script source.
+            expect(site['script-src']).not.toContain('https://hook.eu2.make.com');
         });
 
         it('examples keeps unsafe-inline with no hashes; dev site keeps unsafe-inline (Phase B)', () => {
@@ -107,15 +135,8 @@ describe('cspRules', () => {
         });
 
         it('Astro hydration-script hashes are still verified for the installed Astro version', () => {
-            // The 'site' policy pins Astro's framework-injected hydration-runtime
-            // script hashes (ASTRO_HYDRATION_SCRIPT_HASHES). Astro emits and minifies
-            // these, so an upgrade can change them — leaving the pinned hashes stale
-            // and (since staging enforces this scope) blocking hydration across the site.
-            //
-            // This test fails when Astro is upgraded so the staleness is caught here
-            // rather than on staging. To fix it, regenerate the hashes and bump the
-            // version — see the "HOW TO REGENERATE AFTER AN ASTRO UPGRADE" steps above
-            // ASTRO_HYDRATION_SCRIPT_HASHES in cspRules.ts.
+            // Fails on an Astro upgrade so stale hydration hashes are caught here rather than
+            // by broken hydration on staging; see the regeneration steps in cspRules.ts.
             expect(astroPackageJson.version).toBe(ASTRO_HYDRATION_HASHES_VERIFIED_FOR);
         });
     });
@@ -133,9 +154,8 @@ describe('cspRules', () => {
         });
 
         it('keeps OneTrust allowed alongside it until the GTM cutover', () => {
-            // The GTM container is shared across grid/charts/studio, so one tag flip
-            // switches every site while their deploys land separately — both banners must
-            // stay loadable across that window.
+            // The shared GTM container flips all three sites at once, while their deploys land
+            // separately — both banners must stay loadable across that window.
             const site = getCspDirectives({ env: 'production', scope: 'site' });
             expect(site['script-src']).toContain('https://cdn.cookielaw.org');
             expect(site['connect-src']).toContain('https://cdn.cookielaw.org');
@@ -159,12 +179,49 @@ describe('cspRules', () => {
         });
     });
 
+    describe('LinkedIn Insight Tag', () => {
+        it('allows the tag SDK in script-src and its beacon hosts in connect-src', () => {
+            const site = getCspDirectives({ env: 'production', scope: 'site' });
+            // GTM injects the SDK as an external <script src>, so the origin is enough — no
+            // inline hash, unlike the ZoomInfo bootstrap.
+            expect(site['script-src']).toContain('https://snap.licdn.com');
+            // The website-actions beacon and the attribution trigger are a sendBeacon and a
+            // fetch rather than image pixels, so the permissive img-src does not cover them.
+            expect(site['connect-src']).toContain('https://px.ads.linkedin.com');
+        });
+
+        it('trusts no LinkedIn origin the shipped tag does not contact', () => {
+            // See the note above LINKEDIN_SDK_HOST in cspRules.ts.
+            const site = getCspDirectives({ env: 'production', scope: 'site' });
+            expect(site['img-src']).toContain('https:');
+            const unused = [
+                'https://px4.ads.linkedin.com',
+                'https://dc.ads.linkedin.com',
+                'https://p.adsymptotic.com',
+                'https://cdn.linkedin.oribi.io',
+                'https://gw.linkedin.oribi.io',
+                'https://sjs.bizographics.com',
+            ];
+            for (let i = 0, len = unused.length; i < len; ++i) {
+                expect(site['script-src']).not.toContain(unused[i]);
+                expect(site['connect-src']).not.toContain(unused[i]);
+            }
+        });
+
+        it('applies in every scope, since GTM loads the tag site-wide', () => {
+            const scopes = ['site', 'examples'] as const;
+            for (let i = 0, len = scopes.length; i < len; ++i) {
+                const directives = getCspDirectives({ env: 'production', scope: scopes[i] });
+                expect(directives['script-src']).toContain('https://snap.licdn.com');
+                expect(directives['connect-src']).toContain('https://px.ads.linkedin.com');
+            }
+        });
+    });
+
     describe('GA4 collect endpoints', () => {
         it('allows the apex host alongside the regional wildcard', () => {
-            // gtag picks its collect host per client: region1/2.google-analytics.com for
-            // EEA traffic, the apex analytics.google.com elsewhere. A `*.` host-source
-            // matches subdomains only, so without an entry of its own the apex beacon is
-            // blocked outright for those clients.
+            // A `*.` host-source matches subdomains only, so the apex host gtag uses outside
+            // the EEA needs an entry of its own.
             const directives = getCspDirectives({ env: 'production', scope: 'site' });
             expect(directives['connect-src']).toContain('https://*.analytics.google.com');
             expect(directives['connect-src']).toContain('https://analytics.google.com');

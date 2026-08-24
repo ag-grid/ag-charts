@@ -46,11 +46,8 @@ describe('Chart on a detached container with async data and a series-type switch
         return { container, attach };
     };
 
-    // Mirrors the AG Charts Studio flow: create on a detached element, switch the
-    // series type (cartesian -> polar chart-class swap) with empty data, then the
-    // data arrives asynchronously. jsdom fires no layout-driven ResizeObserver
-    // callback, so the chart's own attach-transition re-measure is the only thing
-    // that can size the chart in either case.
+    // Mirrors the Studio flow: create detached, swap the series type with empty data, then data arrives
+    // async. jsdom fires no ResizeObserver callback, so the attach-transition re-measure must size it.
     const runScenario = async (container: HTMLElement, attach: () => void, attachPhase: 'early' | 'late') => {
         proxy = AgCharts.create({ container, animation: { enabled: false } });
         await proxy.waitForUpdate();
@@ -88,13 +85,8 @@ describe('Chart on a detached container with async data and a series-type switch
         expect(await runScenario(container, attach, 'late')).toEqual([400, 250]);
     });
 
-    // A series-type switch replaces the chart instance via destroy({ keepTransferableResources }):
-    // the old chart is flagged destroyed and hands its scene to the replacement synchronously,
-    // but its teardown (which unsubscribes its dom:resize listener) is queued asynchronously. A
-    // container measurement arriving in that window must not be applied by the dead chart to the
-    // now-shared scene — otherwise it parks a pending size the live chart then treats as a no-op,
-    // leaving the chart unrendered until the next interaction (jsdom cannot model the real-browser
-    // timing of the full race, so this asserts the invariant directly).
+    // A series-type switch hands the scene to the replacement synchronously but queues the old chart's
+    // teardown, so a measurement arriving in that window must not be applied by the dead chart.
     it('does not resize the shared scene from a dom:resize delivered after the chart is destroyed', async () => {
         const { container, attach } = setupMeasurableContainer();
         attach();

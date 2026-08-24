@@ -424,7 +424,7 @@ describe('Scrollbar visibility on barWidth change', () => {
         });
     }
 
-    // AG-17008: Changing barWidth at runtime should trigger scrollbar when bars overflow.
+    // Changing barWidth at runtime should trigger the scrollbar when bars overflow.
     it('shows scrollbar after increasing barWidth beyond available space', async () => {
         const options = createOptions({ width: 10 });
 
@@ -446,7 +446,7 @@ describe('Scrollbar visibility on barWidth change', () => {
         });
     });
 
-    // AG-17008: Successive barWidth changes should each update the zoom correctly.
+    // Successive barWidth changes should each update the zoom correctly.
     it('updates zoom on each successive barWidth change', async () => {
         const options = createOptions();
 

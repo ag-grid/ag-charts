@@ -2,10 +2,8 @@ const startPrice = 100;
 const maxDailyPriceChange = 5;
 const days = 1000000;
 
-// Same random walk as axes-1M-number, linearly mapped into bigint space so the
-// only difference between the two benchmarks is the y-value type. The walk is
-// scaled to wei-style magnitudes and offset by a base larger than its swing, so
-// every value stays beyond Number.MAX_SAFE_INTEGER (2^53 - 1).
+// Same random walk as axes-1M-number mapped into bigint space, so y-value type is the only
+// difference. Scaled and offset so every value stays beyond Number.MAX_SAFE_INTEGER.
 const priceBase = 10_000_000_000_000_000_000_000n;
 const priceScale = 1_000_000_000_000n;
 

@@ -1,6 +1,7 @@
 import type {
     AgFunnelSeriesItemStylerParams,
     AgFunnelSeriesLabelFormatterParams,
+    AgFunnelSeriesLabelPlacement,
     AgFunnelSeriesOptions,
     AgFunnelSeriesStyle,
     AgFunnelSeriesTooltipRendererParams,
@@ -12,8 +13,27 @@ import { BaseProperties, Property } from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 
-const { Label, DropShadow, AbstractBarSeriesProperties, makeSeriesTooltip, SeriesLabelProperties } = _ModuleSupport;
-class FunnelSeriesLabel extends Label<AgFunnelSeriesLabelFormatterParams> {}
+const {
+    Label,
+    LabelPlacementStyle,
+    DropShadow,
+    AbstractBarSeriesProperties,
+    makeSeriesTooltip,
+    SeriesLabelProperties,
+} = _ModuleSupport;
+class FunnelSeriesLabel extends Label<AgFunnelSeriesLabelFormatterParams> {
+    @Property
+    placement: AgFunnelSeriesLabelPlacement = 'inside-center';
+
+    @Property
+    spacing: number = 0;
+
+    @Property
+    insideStyle = new LabelPlacementStyle();
+
+    @Property
+    outsideStyle = new LabelPlacementStyle();
+}
 
 class FunnelSeriesStageLabel extends SeriesLabelProperties {
     @Property
@@ -93,6 +113,9 @@ export class FunnelProperties
 
     @Property
     spacingRatio: number = 0;
+
+    @Property
+    cornerRadius: number = 0;
 
     @Property
     itemStyler?: Styler<AgFunnelSeriesItemStylerParams<unknown>, AgFunnelSeriesStyle>;

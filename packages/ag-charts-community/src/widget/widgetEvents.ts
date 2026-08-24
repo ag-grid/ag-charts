@@ -239,14 +239,12 @@ const WIDGET_META = {
             const { offsetX, offsetY, clientX, clientY } = sourceEvent;
             const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(current, sourceEvent);
 
-            // AG-10475 On Chrome (Windows), wheel clicks send deltaMode: 0 events with deltaY: -100 or +100.
-            // So we divide this by 100 to give us the desired step.
+            // Chrome (Windows) reports wheel clicks as deltaMode 0 with deltaY ±100; scale to a single step.
             const factor = sourceEvent.deltaMode === 0 ? 0.01 : 1;
             let deltaX = sourceEvent.deltaX * factor;
             let deltaY = sourceEvent.deltaY * factor;
 
-            // AG-11225 On Windows, unlike MacOS, wheel scrolls with shift do not automatically apply the vertical
-            // scrolling to the deltaX component of the event. So we normalise that here.
+            // Windows, unlike MacOS, does not fold shift-wheel scrolling into deltaX, so normalise it here.
             const swapXY = Math.abs(sourceEvent.deltaX) === 0 && sourceEvent.shiftKey;
             if (swapXY) {
                 [deltaX, deltaY] = [deltaY, deltaX];

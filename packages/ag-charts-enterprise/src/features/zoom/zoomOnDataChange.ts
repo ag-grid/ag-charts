@@ -13,18 +13,8 @@ const { userInteraction } = _ModuleSupport;
 
 type ZoomChangeState = _ModuleSupport.ZoomChangeState;
 
-// All axes scale-types can have their minimums & maximums represented as a number.
-// * For category-scales, it's indices.
-// * For time-scales, it's a timestamp.
-// * For continuous-scales, it's already a number
-// To keep the preserveDomain logic simple and axis-agnostic, we'll use that concept.
-//
-// * When data (unprocessed) is changed, we can interpolate the zoom.min and zoom.max ratios on these numeric scales to
-//   keep track of which part of the domain is visible (`toVisibleMinMax`).
-//
-// * Later on, after the data is process (i.e. axes scales are updated), we can use the inverse function
-//   `fromVisibleMinMax` to update the ratios such that same slice of the domain is visible.
-//
+// Every scale type can express its domain bounds as a number (category: indices, time: timestamps), so
+// preserveDomain interpolates ratios in that space: `toVisibleMinMax` on data change, `fromVisibleMinMax` after.
 type DomainMinMax = { domainMin: number; domainMax: number };
 type VisibleMinMax = { axisId: AxisID; visibleMin: number; visibleMax: number };
 
@@ -74,9 +64,7 @@ export interface ZoomOnDataChangeCtx extends Pick<
     _ModuleSupport.ChartRegistry,
     'chartState' | 'eventsHub' | 'axisManager' | 'logger'
 > {
-    // `zoomManager` is optional on _ModuleSupport.ChartRegistry, but ZoomOnDataChange is only ever
-    // instantiated by the zoom module, which guarantees its presence. Narrow once at
-    // the boundary so consumers don't need `!` assertions at every call site.
+    // Optional on ChartRegistry, but the zoom module is the only instantiator and guarantees it.
     readonly zoomManager: _ModuleSupport.ZoomManager;
     readonly cleanup: CleanupRegistry;
     readonly onConstrainChanges: (e: _ModuleSupport.ZoomChangeRequestEvent) => void;
@@ -88,12 +76,8 @@ export class ZoomOnDataChange {
     private desiredChanges?: DesiredChanges;
 
     constructor(private readonly ctx: ZoomOnDataChangeCtx) {
-        // When calling `AgCharts.create`, the data:update event is emitted before the axes ranges/scales are fully
-        // initialised. This causes the 'preserveDomain' strategy to read an uninitialised (and incorrect) domain, and
-        // this uninitialised domain therefore incorrectly constrains the initial zoom:change-request event.
-        // Fortunately, the ZoomOnDataChange class only needs to worry about data changes, not data initialisation.
-        // Therefore, we'll wait for the initial layout:complete event to be emitted before starting to listen for
-        // data:update events.
+        // The first data:update fires before the axis scales are initialised, so preserveDomain would read an
+        // uninitialised domain; only data changes matter here, so listen only after the first layout:complete.
         const { eventsHub, cleanup } = ctx;
         const onFirstDraw = () => {
             eventsHub.off('layout:complete', onFirstDraw);
@@ -123,7 +107,7 @@ export class ZoomOnDataChange {
         const changes = this.popDesiredChanges();
         if (changes) {
             e.constrainChanges(changes);
-            this.ctx.onConstrainChanges(e); // FIXME(AG-16414) remove this
+            this.ctx.onConstrainChanges(e); // FIXME: remove this
         }
     }
 
@@ -219,7 +203,7 @@ export class ZoomOnDataChange {
         const xaxes = this.ctx.zoomManager.getAxes().filter((a) => a.direction === ChartAxisDirection.X);
         for (const { id: axisId } of xaxes) {
             const ratios = this.ctx.zoomManager.getAxisZoom(axisId);
-            // CRT-1117: skip fully zoomed-out axes — avoids snapshotting a placeholder [0,1] domain on a
+            // Skip fully zoomed-out axes — avoids snapshotting a placeholder [0,1] domain on a
             // freshly-recreated axis and collapsing the zoom when re-interpolated against the real domain.
             if (ratios.min === 0 && ratios.max === 1) continue;
             const domainMinMax: DomainMinMax | undefined = this.computeDomainMinMax(axisId);

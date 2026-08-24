@@ -15,14 +15,8 @@ import ukTopology from './map-test/ukTopology.json';
 
 const ELLIPSIS = '…';
 
-// Consolidated cross-series coverage for the label-fit surface (`maxWidth`/`maxHeight`/`wrapping`/`truncate`) on
-// enterprise series. These are undocumented options, so labels are built untyped and cast at the AgCharts.create
-// boundary; `setupMockConsole` fails on any "property is unknown" warning. Each snapshot deliberately mixes label
-// lengths and item sizes so a single image exercises the whole spectrum — shown whole, wrapped, and
-// wrapped-then-ellipsised. Range-bar and waterfall fit their labels to the bar rect (truncation applies with no
-// explicit bound); range-area, radar and map-marker are representative of the explicit-bounds path. The remaining
-// explicit-bounds series (chord, sankey, map-line) share that same fit path and are covered by the community unit
-// tests plus these representatives, so they are intentionally not snapshotted.
+// The label-fit options are undocumented, so labels are built untyped and cast at the AgCharts.create
+// boundary; `setupMockConsole` fails the test on any "property is unknown" warning.
 describe('series label fit', () => {
     setupMockConsole();
 
@@ -39,9 +33,8 @@ describe('series label fit', () => {
         await compareImageSnapshot(chart, ctx);
     };
 
-    // Range-bar and range-area carry the fitted text flat on each `labelData` entry; waterfall, radar and map-marker
-    // nest it under `.label`. Either way `text` is the unfitted source, `fittedText` the text the placement engine
-    // fitted to the candidate it chose, and a label the engine dropped renders nothing at all.
+    // Range-bar and range-area carry the fitted text flat on each `labelData` entry; waterfall, radar and
+    // map-marker nest it under `.label`.
     type RenderedLabel = { text?: unknown; fittedText?: unknown; hidden?: boolean };
     const renderedText = (label: RenderedLabel | undefined) =>
         label == null || label.hidden === true ? '' : (label.fittedText ?? label.text);
@@ -65,10 +58,8 @@ describe('series label fit', () => {
     const perDatumLabel = (extra: object) => ({ enabled: true, formatter: (p: any) => p.datum.label, ...extra });
 
     it('wraps range-bar inside labels to the bar rect across bars of varied span', async () => {
-        // Each bar carries a yLow (bottom) and yHigh (top) label, both fit to the full bar rect. Spans are kept tall
-        // enough that the two labels stay separated: short labels sit on one line, longer ones wrap. Inside-rect
-        // truncation is covered cleanly by the waterfall case below — a range-bar span short enough to ellipsise is
-        // also too short to separate its low/high pair, so it is deliberately avoided here.
+        // Spans stay tall enough to keep each bar's low/high labels separated; a span short enough to
+        // ellipsise would overlap them, so inside-rect truncation is left to the waterfall case.
         const data = [
             { cat: 'A', low: 30, high: 70, label: 'One Two Three Four Five Six' },
             { cat: 'B', low: 5, high: 95, label: 'A long range label that wraps neatly' },
@@ -187,8 +178,6 @@ describe('series label fit', () => {
     });
 
     // `minimumFontSize` shrinks a bar-family label into its bar before wrapping, truncating or hiding it.
-    // Exact sizes are asserted off the scene graph, with one snapshot per series type for how they look;
-    // bar and histogram carry the community half of the same coverage.
     describe('minimumFontSize', () => {
         const FONT_SIZE = 20;
         // Enough bars that none is wide enough for its label at 20px, so the fit layer has to act.
@@ -277,15 +266,11 @@ describe('series label fit', () => {
             expect(rendered.some((node) => node.text.includes(ELLIPSIS))).toBe(true);
         });
 
-        // One image per series type, each packing the whole spectrum into a single render: labels that fit
-        // untouched, labels shrunk to fit, and labels that reach the floor and truncate from there. The
-        // scene-graph cases above pin the exact sizes; these pin how the sizes look side by side.
+        // The scene-graph cases above pin the exact sizes; these pin how they look side by side.
         describe('visual', () => {
             it('renders waterfall labels across the shrink spectrum', async () => {
-                // Waterfall styles its three item kinds separately, so a single series compares three
-                // configurations at matching bar widths: positives wrap and shrink together under a low
-                // floor, negatives shrink on one line to a 14px floor and truncate from there, and the total
-                // has no floor at all, truncating at the configured size.
+                // Waterfall styles its three item kinds separately, so one series compares three
+                // configurations at matching bar widths.
                 const spectrum = [
                     { cat: 'Opening', value: 60, label: 'Cash' },
                     { cat: 'Sales', value: 34, label: 'Merchandising revenue' },
@@ -323,10 +308,8 @@ describe('series label fit', () => {
             });
 
             it('renders range-bar labels across the shrink spectrum', async () => {
-                // A bar's low and high labels are both fit to the same rect, so the spread comes from the
-                // data: the per-datum texts run from short enough to render whole, through lengths that only
-                // fit once shrunk, to one that reaches the 8px floor and truncates. Wrapping stays off here,
-                // leaving this the one image that isolates shrinking on a single line.
+                // Both labels of a bar fit the same rect, so the spread comes from the data; wrapping stays
+                // off to isolate shrinking on a single line.
                 const spectrum = [
                     { cat: 'A', low: 10, high: 90, label: 'Bid' },
                     { cat: 'B', low: 15, high: 85, label: 'Lowest bid' },
@@ -423,5 +406,33 @@ describe('series label fit', () => {
             ],
         });
         expect(someTruncated(nestedLabelTexts(1))).toBe(true);
+    });
+    // A pyramid stage is a trapezoid, and the apex one is a triangle: the room a line of text gets depends on
+    // where in the stage it sits, so a long apex label wraps into the narrowing point rather than against one
+    // inscribed rectangle's width.
+    it('wraps a long value label into the narrowing apex of a pyramid', async () => {
+        await renderAndSnapshot({
+            data: [
+                { stage: 'Awareness', value: 20 },
+                { stage: 'Interest', value: 40 },
+                { stage: 'Consideration', value: 60 },
+                { stage: 'Purchase', value: 80 },
+            ],
+            legend: { enabled: false },
+            padding: { top: 20, right: 120, bottom: 20, left: 120 },
+            series: [
+                {
+                    type: 'pyramid',
+                    stageKey: 'stage',
+                    valueKey: 'value',
+                    label: {
+                        enabled: true,
+                        wrapping: 'on-space',
+                        truncate: true,
+                        formatter: () => 'A rather long value label that has to find room inside the stage it sits in',
+                    },
+                },
+            ],
+        });
     });
 });

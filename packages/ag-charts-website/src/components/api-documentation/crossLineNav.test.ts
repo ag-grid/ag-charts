@@ -9,11 +9,8 @@ import {
     processMembers,
 } from './apiReferenceHelpers';
 
-// Mirrors how the type generator emits an axis-specific cross-line option: an alias
-// (`AgCartesianCrossLineOptions`) emitted as an interface with no own members whose single heritage
-// is a union type alias (`AgBaseCrossLineOptions`) of discriminated variants. The per-axis label
-// type is supplied via the alias' genericsMap, so the variants' generic `label` member resolves to
-// it rather than to the base label type.
+// Mirrors how the type generator emits an axis-specific cross-line option: a member-less interface
+// whose single heritage is a union alias, with the per-axis label type supplied via genericsMap.
 const reference = new Map<string, any>(
     entries({
         AgCartesianCrossLineOptions: {

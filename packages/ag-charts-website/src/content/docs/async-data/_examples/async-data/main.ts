@@ -33,10 +33,8 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     dataSource: {
         getData: ({ windowStart, windowEnd, source }) => {
-            // Request the data from the server, this is an asynchronous call which may take up to 2500ms. In your
-            // application, replace this with a call to your server api.
-            // The navigator mini chart requests a coarse, full-range overview; the main chart requests the visible
-            // window, and the server returns higher-resolution data as the window narrows.
+            // Request the data from your server; this asynchronous call may take up to 2500ms.
+            // The mini chart requests a coarse full-range overview, the main chart the visible window.
             return source === 'mini-chart' ? FakeServer.get({}) : FakeServer.get({ windowStart, windowEnd });
         },
     },

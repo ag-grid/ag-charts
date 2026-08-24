@@ -31,6 +31,7 @@ export default defineConfig({
             'playwright-ctrf-json-reporter',
             { outputDir: '../../reports', outputFile: 'ag-charts-page-verification.json' },
         ],
+        ['./scripts/csp/cspViolationReporter.ts'],
     ],
     use: {
         ignoreHTTPSErrors: true,

@@ -18,6 +18,7 @@ import type {
     LineDashOptions,
     StrokeOptions,
     TextOptions,
+    TextOrSegments,
     Toggleable,
 } from '../cartesian/commonOptions';
 import type {
@@ -101,7 +102,7 @@ export interface AgDonutSeriesCalloutOptions<TDatum = DatumDefault, TContext = C
 
 export interface AgDonutInnerLabel extends TextOptions {
     /** The text to show in the inner label. */
-    text: string;
+    text: TextOrSegments;
     /** The spacing in pixels before and after the inner label. */
     spacing?: PixelSize;
 }
@@ -109,8 +110,8 @@ export interface AgDonutInnerLabel extends TextOptions {
 export interface AgDonutInnerLabelThemeOptions extends Omit<AgDonutInnerLabel, 'text'> {}
 
 export interface AgDonutInnerCircle {
-    /** The colour of the fill for the inner circle. */
-    fill: CssColor;
+    /** The fill for the inner circle. A colour string, or an object for a gradient, pattern, or image fill. */
+    fill: AgColorType;
     /** The opacity of the fill for the inner circle. */
     fillOpacity?: Opacity;
 }

@@ -6,6 +6,7 @@ import { MostActive } from './components/MostActive';
 import { PeerPerformanceChart } from './components/PeerPerformanceChart';
 import { PeerSpreadHeatmap } from './components/PeerSpreadHeatmap';
 import { ProfileGauges } from './components/ProfileGauges';
+import { TickerBadge } from './components/TickerCell';
 import { Toolbar } from './components/Toolbar';
 import { Trending } from './components/Trending';
 import { Watchlist } from './components/Watchlist';
@@ -20,9 +21,8 @@ const SPEED_OPTIONS = [
     { value: '250', label: '4×' },
 ];
 
-// Shared default visible time window (in minutes) that every chart aligns to:
-// FinancialChart's trailing window, PeerPerformance's range, and the peer heatmap's
-// bucket count (buckets are one minute each). Driven by the title-bar range buttons.
+// Shared default visible window (minutes) that FinancialChart, PeerPerformance and the peer heatmap
+// (one bucket per minute) all align to; driven by the title-bar range buttons.
 const SHARED_WINDOW_MINUTES = 120;
 
 // Range-button choices for the shared time window, in trailing minutes.
@@ -44,7 +44,7 @@ export const FinancialApp = () => {
         peerFeed,
         peerTick,
         ticker,
-        setTicker,
+        selectTicker,
         running,
         setRunning,
         speedMs,
@@ -57,12 +57,12 @@ export const FinancialApp = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
 
     // Selecting an instrument on a phone should reveal the chart it opened.
-    const selectTicker = useCallback(
+    const openInstrument = useCallback(
         (next: string) => {
-            setTicker(next);
+            selectTicker(next);
             setDrawerOpen(false);
         },
-        [setTicker]
+        [selectTicker]
     );
 
     const last = bars[bars.length - 1];
@@ -77,9 +77,9 @@ export const FinancialApp = () => {
 
             <div className="fin-body" data-drawer-open={drawerOpen}>
                 <div className="fin-sidebar fin-sidebar-left">
-                    <Watchlist quotes={quotes} activeTicker={ticker} onSelect={selectTicker} />
-                    <Trending rows={trending} activeTicker={ticker} onSelect={selectTicker} />
-                    <MostActive rows={mostActive} activeTicker={ticker} onSelect={selectTicker} />
+                    <Watchlist quotes={quotes} activeTicker={ticker} onSelect={openInstrument} />
+                    <Trending rows={trending} activeTicker={ticker} onSelect={openInstrument} />
+                    <MostActive rows={mostActive} activeTicker={ticker} onSelect={openInstrument} />
                 </div>
                 <div className="fin-drawer-overlay" onClick={() => setDrawerOpen(false)} />
 
@@ -94,6 +94,7 @@ export const FinancialApp = () => {
                                 ☰
                             </Button>
                             <div className="fin-quote">
+                                <TickerBadge ticker={instrument.ticker} />
                                 <span className="fin-quote-symbol">{instrument.name}</span>
                                 <span className="fin-quote-price">{last ? fmtPrice(last.close) : '—'}</span>
                                 <span className={change >= 0 ? 'fin-up' : 'fin-down'}>
@@ -122,7 +123,7 @@ export const FinancialApp = () => {
                     </div>
                     <div className="fin-detail-card fin-chart-card">
                         <div className="fin-chart-body">
-                            <FinancialChart key={ticker} bars={bars} windowMinutes={rangeMinutes} />
+                            <FinancialChart bars={bars} windowMinutes={rangeMinutes} ticker={ticker} />
                         </div>
                     </div>
 

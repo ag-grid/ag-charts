@@ -87,9 +87,8 @@ export class ZoomToolbar extends BaseProperties {
 
     private previousZoom?: DefinedZoomState;
 
-    // Cached container height to avoid an offsetHeight read (sync layout/reflow) on every
-    // layout:complete. Invalidated when the button count changes; the height otherwise depends
-    // only on theme/CSS, which is static for the lifetime of a button set.
+    // Cached to avoid an offsetHeight read (sync layout/reflow) on every layout:complete; the height
+    // depends only on the button count and static theme CSS.
     private cachedContainerHeight: number | undefined;
     private cachedButtonCount: number | undefined;
     private lastBottomY: number | undefined;
@@ -152,7 +151,6 @@ export class ZoomToolbar extends BaseProperties {
         const { buttons, container } = this;
         const { rect } = event.series;
 
-        // CRT-906 Fix the tooltip defaults when using custom zoom toolbars
         for (const b of buttons) {
             if (b.tooltip == null && b.label == null) {
                 const map = {

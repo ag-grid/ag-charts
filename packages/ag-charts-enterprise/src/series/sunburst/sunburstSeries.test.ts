@@ -356,7 +356,6 @@ describe('SunburstSeries', () => {
 
         const checkHighlight = async (chartInstance: any) => {
             await hoverChartNodes(chartInstance, ({ series }) => {
-                // Check the highlighted marker
                 const highlightNode = testParams.getHighlightNode(chartInstance, series);
                 expect(highlightNode).toBeDefined();
                 expect(highlightNode.fill).toEqual('lime');
@@ -369,12 +368,10 @@ describe('SunburstSeries', () => {
             offset?: { x: number; y: number }
         ) => {
             await hoverChartNodes(chartInstance, async ({ x, y }) => {
-                // Perform click
                 await clickAction(x + (offset?.x ?? 0), y + (offset?.y ?? 0))(chartInstance);
                 await waitForChartStability(chartInstance);
             });
 
-            // Check click handler
             const nodeCount = chartInstance.series.reduce(
                 (sum, series) => sum + testParams.getNodeData(series).length,
                 0
@@ -385,17 +382,14 @@ describe('SunburstSeries', () => {
         it(`should render tooltip correctly`, async () => {
             chart = await createChart({ hasTooltip: true });
             await hoverChartNodes(chart, ({ series, item }) => {
-                // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-charts-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(false);
 
-                // Check the tooltip text
                 const values = testParams.getDatumValues(item, series);
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
 
-            // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
             await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             const tooltip = document.querySelector('.ag-charts-tooltip');
@@ -459,7 +453,6 @@ describe('SunburstSeries', () => {
         const cartesianTestParams = {
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getTooltipRenderedValues: (params) => [params.xValue, params.yValue],
-            // Returns a highlighted marker
             getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
         } as Parameters<typeof testPointerEvents>[0];
 
@@ -1209,20 +1202,15 @@ describe('SunburstSeries', () => {
         });
     });
 
-    // These model the org-chart reset()/randomise() actions — a deep-shuffle of the hierarchy tree
-    // followed by a re-render. Probing the frame trajectory (see the animation-trajectory-tests
-    // rule) shows two distinct behaviours: the initial load scales the whole sector group up from
-    // nothing (scalingX/scalingY 0 -> 1), while a data reshuffle SNAPS — the animation batch is
-    // skipped, so every sector jumps to its new layout on the first frame and holds. These CASEs
-    // assert both faithfully rather than inventing per-sector tweens the series does not perform.
+    // Initial load scales the whole sector group up from nothing; a data reshuffle instead SNAPS,
+    // with every sector jumping to its new layout on the first frame (no per-sector tween).
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
 
         type OrgNode = { name: string; children: OrgNode[] };
 
-        // A fixed three-level tree; `reversed` deep-reverses child order at every level, a
-        // deterministic stand-in for the page's randomise() that reshapes the layout while keeping
-        // the tree shape (so no sector enters or leaves — the reshuffle is a pure re-layout).
+        // `reversed` deep-reverses child order at every level, reshaping the layout without any sector
+        // entering or leaving (a pure re-layout).
         const ORG_DATA: OrgNode[] = [
             {
                 name: 'A',
@@ -1259,11 +1247,8 @@ describe('SunburstSeries', () => {
         const SECTOR = /^series\[0\]\/sector\[/;
         const sectorEntries = (sample: SceneGeometrySample) => [...sample].filter(([key]) => SECTOR.test(key));
 
-        // Each sub-ring sector must nest inside a parent one ring inward: some sector's outerRadius
-        // equals this sector's innerRadius AND its angular span contains this one's. Derived from
-        // geometry, not the node key, because a reshuffle re-points sampler keys at reused sector
-        // instances — so the key path no longer tracks the datum's tree position. Depth-1 sectors
-        // (innerRadius ~ 0) sit on the invisible full-circle root and are exempt.
+        // Nesting is checked via geometry rather than node keys, since a reshuffle re-points sampler keys at
+        // reused instances. Depth-1 sectors (innerRadius ~ 0) sit on the invisible root and are exempt.
         const sectorsNestWithinParents: SceneFrameInvariant = {
             name: 'sub-sectors nest within a parent ring sector',
             check: (frame) => {
@@ -1318,9 +1303,7 @@ describe('SunburstSeries', () => {
                 { frameInvariants: [sectorsNestWithinParents] }
             );
 
-            // Anti-vacuity: the scale sweeps monotonically from ~0 to 1 (a no-op reveal, or one that
-            // jumped straight to full size, would fail here — scalingX is on a 0..1 scale where the
-            // spec's direction words alone are vacuous).
+            // scalingX must sweep monotonically from ~0 to 1, ruling out a no-op or straight-to-full-size reveal.
             const scalingX = trajectory.map((f) => f.get('series[0]/group[]')!.scalingX);
             expect(scalingX[0], 'scalingX at frame 0').toBeLessThanOrEqual(0.01);
             expect(scalingX.at(-1)!, 'scalingX at final frame').toBeCloseTo(1, 2);
@@ -1345,17 +1328,13 @@ describe('SunburstSeries', () => {
             expectNoAnimation(trajectory);
             expectSceneTrajectory(trajectory, {}, { frameInvariants: [sectorsNestWithinParents] });
 
-            // Frame 0 already equals the settled after-state (the snap), and the reshuffle genuinely
-            // reshaped the layout — otherwise "no animation" would pass vacuously on an unchanged scene.
+            // Frame 0 already equals the settled after-state, and the layout genuinely changed (not a vacuous pin).
             expectSceneSamplesMatch(trajectory[0], after);
             expect(layoutChanges(before, after), 'sectors whose angular span moved').toBeGreaterThan(4);
         });
 
-        // The org-chart page also promised highlight state behaves through reshuffles. After a
-        // reshuffle rebuilds the sector tree, highlighting a node from the NEW tree must bind the
-        // highlight to that node and render it at the node's live geometry — the reused-instance
-        // trap (datum bindings re-pointed onto recycled sectors) would otherwise surface a stale
-        // sector at the wrong position.
+        // After a reshuffle rebuilds the sector tree, highlighting a node from the new tree must bind
+        // to that node's live geometry, not a stale sector left over from a recycled instance.
         const withHighlight = (data: OrgNode[]): AgChartOptions =>
             prepareEnterpriseTestOptions({
                 data,

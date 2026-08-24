@@ -7,10 +7,8 @@ import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import { estimateScaleTickCount } from './generateTicks';
 import { withTemporaryDomain } from './generateTicksUtils';
 
-// AG-17065: for large ordinal-time domains with deep zoom, the binary search in
-// buildTickData needs to cover the full tick count range. If minTickCount is too
-// high relative to tickCount, the overlap loop iterates linearly instead of
-// converging via binary search, causing a hang.
+// A minTickCount close to tickCount makes buildTickData's overlap loop iterate linearly instead of
+// converging by binary search, which hangs on deeply zoomed ordinal-time domains.
 describe('estimateScaleTickCount', () => {
     function estimate(domainLength: number, rangeExtent: number, zoomExtent: number) {
         const scale = new OrdinalTimeScale();
@@ -32,8 +30,7 @@ describe('estimateScaleTickCount', () => {
     it('should allow full binary search range for large domains with deep zoom', () => {
         const result = estimate(10_000, 300, 0.002);
 
-        // The binary search range is (tickCount - minTickCount). For the search to
-        // converge efficiently, minTickCount must be much smaller than tickCount.
+        // The search only converges efficiently while minTickCount stays far below tickCount.
         const binarySearchRange = result.tickCount - result.minTickCount;
         expect(binarySearchRange).toBeGreaterThanOrEqual(result.tickCount * 0.9);
     });
@@ -46,9 +43,7 @@ describe('estimateScaleTickCount', () => {
     });
 });
 
-// AG-16608: a zoomed update runs tick generation through withTemporaryDomain. If the restore narrowed
-// the domain, the scale lost its exact bigint endpoints and adjacent high-magnitude bigints collapsed
-// onto one pixel. The restore must reinstate the exact endpoints.
+// The restore must reinstate exact bigint endpoints, or adjacent high-magnitude bigints collapse onto one pixel.
 describe('withTemporaryDomain', () => {
     it('restores exact bigint domain endpoints after temporarily narrowing for tick generation', () => {
         const lo = 9_007_199_254_740_990n;
@@ -63,8 +58,7 @@ describe('withTemporaryDomain', () => {
 
         expect(scale.convert(lo)).toBeLessThan(scale.convert(hi));
 
-        // Adjacent bigints ending ...995/996/997: above 2^53 these narrow onto a single float64 value, so a
-        // restore that dropped the exact endpoints collapses them onto one pixel (David's reported symptom).
+        // Above 2^53 these adjacent bigints share one float64 value, so only exact endpoints keep them distinct.
         const p5 = scale.convert(lo + 5n);
         const p6 = scale.convert(lo + 6n);
         const p7 = scale.convert(lo + 7n);

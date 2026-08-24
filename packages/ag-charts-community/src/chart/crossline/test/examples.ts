@@ -99,8 +99,8 @@ const createChartOptions = (rangeConfig: CrossLinesRangeConfig): Record<string, 
     return result;
 };
 
-// Fill-free base for the invalid examples: `fill`/`fillOpacity` are valid only on the `range`
-// variant, so spreading them here would add unrelated "unknown option" warnings to the line cases.
+// Fill-free base: `fill`/`fillOpacity` are valid only on the `range` variant, so spreading them
+// here would add unrelated "unknown option" warnings to the line cases.
 const baseInvalidCrossLineOptions = {
     stroke: '#5157b7',
     label: {
@@ -583,7 +583,7 @@ export const BAR_CROSSLINES: AgCartesianChartOptions = {
     },
 };
 
-// Dual-axis examples: crosslines on secondary/stacked axes (CRT-1084)
+// Dual-axis examples: crosslines on secondary/stacked axes.
 
 const dualAxisData = DATA_OIL_PETROLEUM.map((d) => ({
     ...d,

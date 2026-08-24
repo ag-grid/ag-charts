@@ -37,7 +37,6 @@ describe('computeLineAggregation', () => {
             expect(result).toBeDefined();
             expect(Array.isArray(result)).toBe(true);
             expect(result!.length).toBeGreaterThan(0);
-            // At threshold, should have at least one filter level
             const coarsestLevel = result![0];
             expect(coarsestLevel.maxRange).toBeLessThanOrEqual(64);
             expect(coarsestLevel.indices.length).toBeGreaterThan(0);
@@ -56,12 +55,9 @@ describe('computeLineAggregation', () => {
             expect(result).toBeDefined();
             expect(Array.isArray(result)).toBe(true);
             expect(result!.length).toBeGreaterThan(0);
-            // Large dataset should generate multiple compaction levels
-            // Verify compaction progression: each level should have double the maxRange of previous
             for (let i = 1; i < result!.length; i++) {
                 expect(result![i].maxRange).toBe(result![i - 1].maxRange * 2);
             }
-            // Coarsest level should stop at 64 or less, or have <= 10 indices
             const coarsestLevel = result![0];
             const stopConditionMet = coarsestLevel.maxRange <= 64 || coarsestLevel.indices.length <= 10;
             expect(stopConditionMet).toBe(true);
@@ -82,7 +78,6 @@ describe('computeLineAggregation', () => {
             expect(result).toBeDefined();
             expect(result!.length).toBeGreaterThan(1);
 
-            // Verify filters are ordered from coarse (low maxRange) to fine (high maxRange)
             for (let i = 1; i < result!.length; i++) {
                 expect(result![i].maxRange).toBeGreaterThan(result![i - 1].maxRange);
             }
@@ -100,7 +95,6 @@ describe('computeLineAggregation', () => {
 
             expect(result).toBeDefined();
 
-            // Coarser levels should generally have fewer or equal indices
             for (let i = 1; i < result!.length; i++) {
                 expect(result![i].indices.length).toBeGreaterThanOrEqual(result![i - 1].indices.length);
             }
@@ -118,7 +112,6 @@ describe('computeLineAggregation', () => {
 
             expect(result).toBeDefined();
 
-            // The coarsest level (first in array) should have maxRange <= 64 OR indices.length <= 10
             const coarsestLevel = result![0];
             const meetsStopCondition = coarsestLevel.maxRange <= 64 || coarsestLevel.indices.length <= 10;
             expect(meetsStopCondition).toBe(true);
@@ -139,7 +132,6 @@ describe('computeLineAggregation', () => {
 
             expect(result).toBeDefined();
 
-            // The minimum point should be included in at least one filter level
             const includesMin = result!.some((filter) => filter.indices.includes(500));
             expect(includesMin).toBe(true);
         });
@@ -157,7 +149,6 @@ describe('computeLineAggregation', () => {
 
             expect(result).toBeDefined();
 
-            // The maximum point should be included in at least one filter level
             const includesMax = result!.some((filter) => filter.indices.includes(1500));
             expect(includesMax).toBe(true);
         });
@@ -174,12 +165,9 @@ describe('computeLineAggregation', () => {
 
             expect(result).toBeDefined();
 
-            // For any filter level, verify that included indices are actually extrema
             const finestFilter = result![result!.length - 1];
             const includedYValues = Array.from(finestFilter.indices, (i) => yValues[i]);
 
-            // The included points should represent the visual envelope
-            // Check that we have both positive and negative extrema
             const hasPositive = includedYValues.some((y) => y > 0.9);
             const hasNegative = includedYValues.some((y) => y < -0.9);
 
@@ -219,14 +207,11 @@ describe('computeLineAggregation', () => {
             expect(result).toBeDefined();
             expect(result!.length).toBeGreaterThan(0);
 
-            // Null values should not be included in indices
             for (const filter of result!) {
                 expect(filter.indices.includes(100)).toBe(false);
                 expect(filter.indices.includes(200)).toBe(false);
                 expect(filter.indices.includes(300)).toBe(false);
-                // Verify that some valid indices are included (aggregation may skip some)
                 expect(filter.indices.length).toBeGreaterThan(0);
-                // Verify all included indices are valid (not null positions)
                 for (const index of filter.indices) {
                     expect([100, 200, 300].includes(index)).toBe(false);
                 }
@@ -244,9 +229,7 @@ describe('computeLineAggregation', () => {
             });
 
             expect(result).toBeDefined();
-            // Should still work with categorical X axis (uses indices instead of values)
             expect(result!.length).toBeGreaterThan(0);
-            // Verify indices are valid for categorical data
             for (const filter of result!) {
                 for (const index of filter.indices) {
                     expect(index).toBeGreaterThanOrEqual(0);
@@ -268,7 +251,6 @@ describe('computeLineAggregation', () => {
             expect(result).toBeDefined();
             expect(result!.length).toBeGreaterThan(0);
 
-            // Should include first and last points (global min/max)
             const finestFilter = result![result!.length - 1];
             expect(finestFilter.indices.includes(0)).toBe(true);
             expect(finestFilter.indices.includes(2999)).toBe(true);
@@ -488,9 +470,8 @@ describe('aggregateLineDataFromDataModel - bigint downsampling fidelity (high ma
 });
 
 describe('aggregateLineDataFromDataModel - bigint X downsampling fidelity (high magnitude, narrow range)', () => {
-    // The X column feeds the bucket assignment, which subtracts the domain min. When the X span is below the
-    // double ULP at that magnitude, that min must be subtracted in bigint before narrowing or every distinct X
-    // collapses onto one double: the whole series falls into a single bucket and the per-bucket X extrema are lost.
+    // The bucket assignment subtracts the domain min from the X column; when the X span is below the double
+    // ULP at that magnitude, that subtraction must happen in bigint before narrowing or every distinct X collapses onto one double.
     it('captures the true min/max X when the X span is below the double ULP at that magnitude', () => {
         const N = 2000;
         const BASE = 2n ** 60n + 123_456_789n; // off the power-of-2 boundary: uniform ULP (256) around it

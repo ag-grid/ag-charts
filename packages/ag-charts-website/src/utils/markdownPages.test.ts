@@ -38,14 +38,6 @@ describe('CHARTS_MARKDOWN_PAGE_GROUPS', () => {
 });
 
 /**
- * The Options and Themes API reference. Both render client-side from the generated interface
- * reference, so a twin would need a markdown rendering of that whole tree — a separate piece of
- * work, and the one documented gap in the "every sitemap URL has a twin" rule (`llms.txt` and
- * `AGENTS.md` say so explicitly).
- */
-const isApiReferencePage = (pathname: string) => /\/(?:options|themes-api)(?:\/|$)/.test(pathname);
-
-/**
  * Twins generated on production by grid's Jira cron (`scripts/jira/production/getCharts*` in the
  * ag-grid repo) rather than by this build, so they are absent from a local `dist` by design. Their
  * pages advertise the `.md` only in production for the same reason.
@@ -61,22 +53,18 @@ function builtSitemapPaths(): string[] {
     );
 }
 
-// Gate on a *complete* build: an absent dist (a plain unit run) or a half-written one (a build in
-// flight) skips rather than fails, since neither says anything about page coverage. The site has
-// ~750 pages, so this threshold cannot be met by a partial build of the non-docs pages alone.
+// Gate on a complete build: an absent or half-written dist says nothing about page coverage.
 const sitemapPaths = builtSitemapPaths();
 const hasCompleteBuild = sitemapPaths.length > 500;
 
-// The site is served under a base (`/charts`), which the sitemap carries but `dist` does not — the
-// dist root *is* that base. The site root is the shortest path in any sitemap, so it gives the base
-// without depending on the env the build ran under.
+// The sitemap carries the `/charts` base but dist does not, so strip it; the shortest sitemap
+// path is the site root, which yields the base whatever env the build ran under.
 const sitemapBase = hasCompleteBuild
     ? sitemapPaths.reduce((shortest, path) => (path.length < shortest.length ? path : shortest)).replace(/\/$/, '')
     : '';
 const baseRelative = (pathname: string) => pathname.slice(sitemapBase.length) || '/';
 
-// The invariant this whole feature rests on: an agent can append `.md` to any URL in the sitemap.
-// Requires a build (`nx build ag-charts-website`); skipped otherwise so unit runs stay fast.
+// The invariant the feature rests on: `.md` can be appended to any URL in the sitemap.
 describe.runIf(hasCompleteBuild)('every sitemap URL has a .md twin in dist', () => {
     const missing = sitemapPaths.filter((pathname) => {
         const trimmed = baseRelative(pathname).replace(/\/$/, '');
@@ -85,17 +73,14 @@ describe.runIf(hasCompleteBuild)('every sitemap URL has a .md twin in dist', () 
         return !existsSync(join(DIST, twin));
     });
 
-    // Guard against a vacuous pass: if filtering ever empties the set, the assertions below would
-    // hold trivially and the check would silently stop protecting anything.
+    // Guard against a vacuous pass: an empty set would make the assertions below hold trivially.
     it('checks a full sitemap', () => {
         expect(sitemapPaths.length).toBeGreaterThan(500);
         expect(sitemapBase).toBe('/charts');
     });
 
-    it('emits a .md file next to every page, bar the documented exceptions', () => {
-        const unexplained = missing.filter(
-            (pathname) => !isApiReferencePage(pathname) && !CRON_GENERATED_TWINS.includes(baseRelative(pathname))
-        );
+    it('emits a .md file next to every page, bar the documented exception', () => {
+        const unexplained = missing.filter((pathname) => !CRON_GENERATED_TWINS.includes(baseRelative(pathname)));
         expect(unexplained, `${unexplained.length} sitemap URLs have no .md twin`).toEqual([]);
     });
 
@@ -104,16 +89,33 @@ describe.runIf(hasCompleteBuild)('every sitemap URL has a .md twin in dist', () 
         // `Accept: text/markdown`, so the two must agree.
         const unroutable = sitemapPaths
             .map(baseRelative)
-            .filter((pathname) => pathname !== '/' && !isApiReferencePage(pathname) && !isNegotiable(pathname));
+            .filter((pathname) => pathname !== '/' && !isNegotiable(pathname));
         expect(unroutable, `${unroutable.length} pages have a twin but no negotiation rule`).toEqual([]);
     });
 
-    it('keeps the API reference exclusion honest — it is still in the sitemap and still untwinned', () => {
-        // If the reference gains twins, this fails and `isApiReferencePage` must go, rather than
-        // quietly staying as a place real gaps could hide.
-        const apiPages = sitemapPaths.filter(isApiReferencePage);
-        expect(apiPages.length).toBeGreaterThan(50);
-        expect(missing.filter(isApiReferencePage)).toEqual(apiPages);
+    describe('the API reference twins', () => {
+        // These fan out from the generated interface reference, and the builders degrade to an
+        // empty table rather than throwing, so only a built twin can show a generator break.
+        const apiPages = sitemapPaths.filter((pathname) => /\/(?:options|themes-api)(?:\/|$)/.test(pathname));
+        const twinBody = (path: string) =>
+            readFileSync(join(DIST, `${baseRelative(path).replace(/^\/|\/$/g, '')}.md`), 'utf8');
+        const propertyRows = (body: string) =>
+            body.split('\n').filter((line) => line.startsWith('| ') && !line.startsWith('| --- ')).length - 1;
+
+        it('covers every reference page in the sitemap', () => {
+            expect(apiPages.length).toBeGreaterThan(50);
+            expect(missing.filter((pathname) => apiPages.includes(pathname))).toEqual([]);
+        });
+
+        it('carries a populated property table on every one, not an empty shell', () => {
+            const empty = apiPages.filter((pathname) => propertyRows(twinBody(pathname)) < 1);
+            expect(empty, `${empty.length} reference twins have no properties`).toEqual([]);
+        });
+
+        it('resolves the root interfaces the two references hang off', () => {
+            expect(twinBody('/charts/options/')).toContain('Interface: `AgChartOptions`');
+            expect(twinBody('/charts/themes-api/')).toContain('Interface: `AgChartTheme`');
+        });
     });
 
     it('keeps the cron-generated exclusion free of stale entries', () => {
@@ -123,8 +125,7 @@ describe.runIf(hasCompleteBuild)('every sitemap URL has a .md twin in dist', () 
     });
 
     it('leaves the contact result pages out of the sitemap entirely', () => {
-        // Post-submission confirmations: robots-disallowed, so listing them would contradict
-        // robots.txt. They have no twin by design (see sitemap.ts).
+        // Post-submission confirmations are robots-disallowed and have no twin by design.
         const relative = sitemapPaths.map(baseRelative);
         expect(relative).not.toContain('/contact/success/');
         expect(relative).not.toContain('/contact/failure/');

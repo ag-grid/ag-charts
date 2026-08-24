@@ -20,8 +20,13 @@ class DOMManagerWidget extends NativeWidget {
     }
 }
 
+type AxisInteraction = {
+    widget: AxisWidget;
+    dragInterpreter: DragInterpreter;
+};
+
 type AxisEntry = {
-    region?: AxisWidget;
+    region?: AxisInteraction;
     text?: BoundedTextWidget;
     textNested: boolean;
     regionBounds?: BoxBounds;
@@ -67,7 +72,7 @@ export class AxisWidgets {
         const entry = this.entries.get(axisId);
         if (!entry?.text) return;
         if (entry.textNested && entry.region) {
-            entry.region.removeChildWidget(entry.text);
+            entry.region.widget.removeChildWidget(entry.text);
         }
         entry.text.destroy();
         entry.text = undefined;
@@ -76,15 +81,17 @@ export class AxisWidgets {
     }
 
     /** The axis interaction region, created on first request. Callers set bounds/pointer-events/listeners. */
-    acquireRegion(axisId: AxisID): AxisWidget {
+    acquireRegion(axisId: AxisID): AxisInteraction {
         const entry = this.getEntry(axisId);
         if (!entry.region) {
-            entry.region = this.ctx.proxyInteractionService.createProxyElement({
+            const widget = this.ctx.proxyInteractionService.createProxyElement({
                 type: 'axis',
                 domManagerId: axisId,
                 where: 'afterend',
                 role: 'region',
             });
+            const dragInterpreter = new DragInterpreter(widget);
+            entry.region = { widget, dragInterpreter };
             if (entry.text && !entry.textNested) {
                 this.nestTitle(axisId, entry);
             }
@@ -98,26 +105,19 @@ export class AxisWidgets {
         if (entry.text && entry.textNested) {
             this.unnestTitle(axisId, entry);
         }
-        entry.region.destroy();
+        entry.region.dragInterpreter.destroy();
+        entry.region.widget.destroy();
         entry.region = undefined;
         this.pruneEntry(axisId, entry);
     }
 
-    // Bounds must be routed through these setters (rather than the widgets' own `setBounds`) because
-    // the axis title text lives in one of two coordinate systems depending on interactivity:
-    //   - Non-interactive axis: there is no region, so the title is a standalone element in the
-    //     canvas-proxy container and is positioned in canvas coordinates.
-    //   - Interactive axis: the title is nested inside the region widget, whose bounds are a subset
-    //     of the canvas bounds. A nested element is positioned relative to the region's origin, not
-    //     the canvas, so the title's canvas bounds must be translated by the region origin.
-    // The region bounds (from the interaction feature) and title bounds (from the caption) arrive
-    // from independent `layout:complete` listeners in an unspecified order, so both are stored and
-    // the title position is re-derived on every update — never depending on which arrived last.
+    // Region and title bounds arrive from independent `layout:complete` listeners in an unspecified
+    // order, so both are stored and the title position re-derived on every update.
 
     setRegionBounds(axisId: AxisID, bounds: BoxBounds): void {
         const entry = this.getEntry(axisId);
         entry.regionBounds = bounds;
-        entry.region?.setBounds(bounds);
+        entry.region?.widget.setBounds(bounds);
         this.applyTitleBounds(entry);
     }
 
@@ -130,7 +130,8 @@ export class AxisWidgets {
     destroy(): void {
         for (const entry of this.entries.values()) {
             entry.text?.destroy();
-            entry.region?.destroy();
+            entry.region?.dragInterpreter.destroy();
+            entry.region?.widget.destroy();
         }
         this.entries.clear();
     }
@@ -164,20 +165,19 @@ export class AxisWidgets {
         return entry;
     }
 
-    // Move the standalone title element out of the DOM manager and into the region widget. The
-    // domManager entry must be cleared first, otherwise a later re-attach would be a no-op (addChild
-    // is keyed by id and returns the existing element).
+    // Clear the domManager entry before re-parenting: `addChild` is keyed by id, so a later re-attach
+    // would otherwise be a no-op.
     private nestTitle(axisId: AxisID, entry: AxisEntry): void {
         if (!entry.region || !entry.text) return;
         this.ctx.domManager.removeChild('canvas-proxy', this.titleId(axisId));
-        entry.region.addChild(entry.text);
+        entry.region.widget.addChild(entry.text);
         entry.textNested = true;
         this.applyTitleBounds(entry);
     }
 
     private unnestTitle(axisId: AxisID, entry: AxisEntry): void {
         if (!entry.region || !entry.text) return;
-        entry.region.removeChildWidget(entry.text);
+        entry.region.widget.removeChildWidget(entry.text);
         this.ctx.domManager.addChild('canvas-proxy', this.titleId(axisId), entry.text.getElement(), {
             where: 'afterend',
             query: '.ag-charts-series-area',

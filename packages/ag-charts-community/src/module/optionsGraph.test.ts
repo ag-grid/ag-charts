@@ -324,7 +324,6 @@ describe('OptionsGraph', () => {
 
     describe('location operations', () => {
         describe('$circular', () => {
-            // See AG-16931
             it('should resolve `$circular` operations', () => {
                 const themeConfig = {
                     line: {
@@ -589,9 +588,8 @@ describe('OptionsGraph', () => {
                 };
                 const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
                 expect(options).toStrictEqual({
-                    // TODO: `one` does not resolve since there is no operational dependency between `two` and `three`, the
-                    // dependency is only discovered through the plain value of `two` being used by `one`. If `one` is
-                    // after `three` in the object keys list, it would work.
+                    // TODO: `one` only resolves when it follows `three` in key order — the dependency is a
+                    // plain value rather than an operational one.
                     one: 'three-value',
                     two: './three',
                     three: 'three-value',

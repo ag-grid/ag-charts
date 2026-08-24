@@ -29,7 +29,6 @@ import { classCast } from 'ag-charts-test';
 import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
 import { HeatmapSeries } from './heatmapSeries';
 
-// Drives a hover at the canvas point of the given datum index and waits for chart stability.
 // Resolves nodeData fresh on every call so it stays valid across `proxy.update(...)` rebuilds.
 async function hoverDatumByIndex(chart: Chart, seriesIndex: number, datumIndex: number, hideDelay?: number) {
     const series = classCast(chart.series[seriesIndex], HeatmapSeries);
@@ -167,10 +166,8 @@ describe('HeatmapSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            // Clear the data
             await chart.updateDelta({ data: [] });
 
-            // Verify chart is cleared
             await compareImageSnapshot(chart, ctx);
         });
     });
@@ -587,9 +584,8 @@ describe('HeatmapSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
 
-            // Drive Legend.onHover directly rather than simulating canvas coordinates — the
-            // legend's own markerLabel nodes already carry the datum association, and the
-            // MouseEvent argument is only used for tooltip positioning, not highlight state.
+            // Drive Legend.onHover directly: its markerLabel nodes already carry the datum
+            // association, and the MouseEvent is only used for tooltip positioning.
             const legendModule = (chart as Chart).modulesManager.getModule<any>('legend');
             const items: any[] = [];
             legendModule.itemSelection.each((item: any) => items.push(item));
@@ -640,9 +636,8 @@ describe('HeatmapSeries', () => {
             await hoverAction(legendBBox.x + 5, legendBBox.y + legendBBox.height / 2)(chart);
             await waitForChartStability(chart);
 
-            // The bin's itemId is a bin index, not a datum index; feeding it through the
-            // highlight pipeline would either dim everything (heatmap/maps) or throw
-            // (treemap/sunburst whose datumIndex is a path array).
+            // A bin's itemId is a bin index, not a datum index, so it must never reach the
+            // highlight pipeline.
             expect(highlightManager.getActiveHighlight()).toBeUndefined();
         });
 
@@ -666,8 +661,7 @@ describe('HeatmapSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
 
-            // Discrete-bin items don't toggle and don't drive series highlight, so the
-            // pointer cursor would mislead users into expecting an interactive response.
+            // Discrete-bin items don't toggle, so a pointer cursor would imply interactivity.
             const legendButtons = document.querySelectorAll<HTMLElement>('button.ag-charts-proxy-elem[role="switch"]');
             expect(legendButtons.length).toBeGreaterThan(0);
             for (const button of Array.from(legendButtons)) {
@@ -711,8 +705,7 @@ describe('HeatmapSeries', () => {
             const legendData = series.getLegendData('category') as { label: { text: string } }[];
             const labels = legendData.map((d) => d.label.text);
 
-            // Compact-notation formatting should be applied to every bin boundary.
-            // Stops are 150000 / 500000 / 1000000; final bin runs to data max (1.5M).
+            // Stops are 150000 / 500000 / 1000000; the final bin runs to the data max (1.5M).
             expect(labels).toEqual(['43K–150K', '150K–500K', '500K–1M', '1M–1.5M']);
         });
     });
@@ -869,10 +862,6 @@ describe('HeatmapSeries', () => {
             );
         });
 
-        // AG-16046 pt2 regression: previously, hovering a missing-data datum left the prior
-        // neighbour's tooltip stuck because seriesAreaManager.showTooltip skipped the dismissal
-        // path when the per-series tooltipContent array came back empty. This drives the chart
-        // through real hover events to exercise that pipeline end-to-end.
         it('AG-16046: should dismiss tooltip when hovering a missing colorValue datum', async () => {
             const data: Array<{ year: string; person: string; spending?: number | null }> = [
                 { year: '2020', person: 'Florian', spending: 10 },
@@ -909,8 +898,6 @@ describe('HeatmapSeries', () => {
             expect(isTooltipVisible(chart)).toBe(false);
         });
 
-        // AG-16046 pt2 broadened semantic: when a series has tooltip.enabled = false, hovering
-        // it now also dismisses any prior tooltip via the same empty-content path.
         it('AG-16046: should dismiss tooltip when hovering a series with tooltip disabled', async () => {
             const data = [
                 { year: '2020', person: 'Florian', spending: 10 },
@@ -953,9 +940,7 @@ describe('HeatmapSeries', () => {
             );
             await waitForChartStability(chart);
 
-            // Re-resolve via the helper post-update — layout, scale domains and node identity
-            // may all have changed, so pre-update coordinates aren't guaranteed to land on the
-            // second datum.
+            // Re-resolve post-update: layout, scale domains and node identity may all have changed.
             await hoverDatumByIndex(chart, 0, 1, MIN_TOOLTIP_HIDE_DELAY);
             expect(isTooltipVisible(chart)).toBe(false);
         });
@@ -1107,9 +1092,7 @@ describe('HeatmapSeries', () => {
             await compare();
         });
 
-        // Mirrors plunker https://plnkr.co/edit/8wpS0AylLFG3GSsZ — baud rate (Even/Odd)
-        // grouped on X, line-rate category on Y (reversed). Guards the tick/cell
-        // alignment the user observed on that specific config.
+        // Guards tick/cell alignment for grouped X categories against a reversed Y axis.
         it('should render plunker 8wpS0AylLFG3GSsZ baud/parity scenario', async () => {
             const baudRates = [187.6, 187.7, 187.8];
             const parities = ['E', 'O'];
@@ -1321,9 +1304,7 @@ describe('HeatmapSeries', () => {
         });
     });
 
-    // Heatmap skips its animation batch (`animationManager.skipCurrentBatch()` in update()), so cells
-    // never tween — a data change lands the new layout on the first frame. Pinned by a minimal guard
-    // rather than a trajectory suite, since there is no motion to describe.
+    // Heatmap skips its animation batch, so a data change lands the new layout on the first frame.
     describe('does not animate', () => {
         const frames = spyOnAnimationFrames();
 
@@ -1424,6 +1405,244 @@ describe('HeatmapSeries', () => {
             for (const rect of rects) {
                 expect(rect.topLeftCornerRadius).toBe(0);
             }
+        });
+    });
+
+    describe('label alignment', () => {
+        const ITEM_PADDING = 12;
+
+        const buildOptions = (series: object) =>
+            prepareEnterpriseTestOptions({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        colorScale: { fills: [{ color: 'yellow' }, { color: 'red' }, { color: 'blue' }] },
+                        itemPadding: ITEM_PADDING,
+                        ...series,
+                    },
+                ],
+                legend: { enabled: false },
+            } as AgChartOptions);
+
+        // Anchor offset of the first label, relative to its cell centre, plus the padded cell span it
+        // should be a fraction of and the canvas alignment carried on the same datum.
+        const readAnchor = async (options: AgChartOptions) => {
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const series = classCast(chart.series[0], HeatmapSeries);
+            const context = series.contextNodeData;
+            expect(context).toBeDefined();
+
+            const labelDatum = context!.labelData[0];
+            expect(labelDatum).toBeDefined();
+            const nodeDatum = context!.nodeData.find((node) => node.datumIndex === labelDatum.datumIndex);
+            expect(nodeDatum).toBeDefined();
+
+            const anchor = {
+                dx: labelDatum.x - nodeDatum!.point.x,
+                dy: labelDatum.y - nodeDatum!.point.y,
+                xSpan: nodeDatum!.width - 2 * ITEM_PADDING,
+                ySpan: nodeDatum!.height - 2 * ITEM_PADDING,
+                textAlign: labelDatum.textAlign,
+                textBaseline: labelDatum.textBaseline,
+            };
+
+            chart.destroy();
+            (chart as unknown) = undefined;
+            return anchor;
+        };
+
+        it('anchors left, center and right to increasing x positions', async () => {
+            const left = await readAnchor(buildOptions({ label: { enabled: true, textAlign: 'left' } }));
+            const center = await readAnchor(buildOptions({ label: { enabled: true, textAlign: 'center' } }));
+            const right = await readAnchor(buildOptions({ label: { enabled: true, textAlign: 'right' } }));
+
+            expect(left.dx).toBeLessThan(center.dx);
+            expect(center.dx).toBeLessThan(right.dx);
+        });
+
+        it('anchors top, middle and bottom to increasing y positions', async () => {
+            const top = await readAnchor(buildOptions({ label: { enabled: true, verticalAlign: 'top' } }));
+            const middle = await readAnchor(buildOptions({ label: { enabled: true, verticalAlign: 'middle' } }));
+            const bottom = await readAnchor(buildOptions({ label: { enabled: true, verticalAlign: 'bottom' } }));
+
+            expect(top.dy).toBeLessThan(middle.dy);
+            expect(middle.dy).toBeLessThan(bottom.dy);
+        });
+
+        it('offsets the label by half the padded cell span, not its square', async () => {
+            const left = await readAnchor(buildOptions({ label: { enabled: true, textAlign: 'left' } }));
+            expect(left.xSpan).toBeGreaterThan(0);
+            expect(left.dx).toBeCloseTo(-0.5 * left.xSpan);
+
+            const bottom = await readAnchor(buildOptions({ label: { enabled: true, verticalAlign: 'bottom' } }));
+            expect(bottom.ySpan).toBeGreaterThan(0);
+            expect(bottom.dy).toBeCloseTo(0.5 * bottom.ySpan);
+        });
+
+        it('keeps the label centred by default', async () => {
+            const anchor = await readAnchor(buildOptions({ label: { enabled: true } }));
+
+            expect(anchor.dx).toBe(0);
+            expect(anchor.dy).toBe(0);
+            expect(anchor.textAlign).toBe('center');
+            expect(anchor.textBaseline).toBe('middle');
+        });
+
+        it('carries the glyph alignment matching the anchor', async () => {
+            const anchor = await readAnchor(
+                buildOptions({ label: { enabled: true, textAlign: 'right', verticalAlign: 'top' } })
+            );
+
+            expect(anchor.textAlign).toBe('right');
+            expect(anchor.textBaseline).toBe('top');
+        });
+
+        describe('per-cell alignment from a label styler', () => {
+            const TEXT_ALIGN_BY_YEAR: Record<string, 'left' | 'center' | 'right'> = {
+                '2020': 'left',
+                '2021': 'center',
+                '2022': 'right',
+            };
+            const VERTICAL_ALIGN_BY_PERSON: Record<string, 'top' | 'middle' | 'bottom'> = {
+                Florian: 'top',
+                Julian: 'middle',
+                Martian: 'bottom',
+            };
+            const TEXT_ALIGN_FACTORS = { left: -0.5, center: 0, right: 0.5 };
+            const VERTICAL_ALIGN_FACTORS = { top: -0.5, middle: 0, bottom: 0.5 };
+
+            const styledOptions = () =>
+                buildOptions({
+                    label: {
+                        enabled: true,
+                        itemStyler: ({ datum }: { datum: { year: string; person: string } }) => ({
+                            textAlign: TEXT_ALIGN_BY_YEAR[datum.year],
+                            verticalAlign: VERTICAL_ALIGN_BY_PERSON[datum.person],
+                        }),
+                    },
+                });
+
+            it('anchors every cell to the alignment its styler returned', async () => {
+                chart = deproxy(AgCharts.create(styledOptions()));
+                await waitForChartStability(chart);
+
+                const context = classCast(chart.series[0], HeatmapSeries).contextNodeData;
+                expect(context).toBeDefined();
+                expect(context!.labelData).toHaveLength(9);
+
+                for (const labelDatum of context!.labelData) {
+                    const nodeDatum = context!.nodeData.find((node) => node.datumIndex === labelDatum.datumIndex);
+                    expect(nodeDatum).toBeDefined();
+
+                    const textAlign = TEXT_ALIGN_BY_YEAR[labelDatum.datum.year];
+                    const verticalAlign = VERTICAL_ALIGN_BY_PERSON[labelDatum.datum.person];
+                    expect(labelDatum.textAlign).toBe(textAlign);
+                    expect(labelDatum.textBaseline).toBe(verticalAlign);
+                    expect(labelDatum.x - nodeDatum!.point.x).toBeCloseTo(
+                        TEXT_ALIGN_FACTORS[textAlign] * (nodeDatum!.width - 2 * ITEM_PADDING)
+                    );
+                    expect(labelDatum.y - nodeDatum!.point.y).toBeCloseTo(
+                        VERTICAL_ALIGN_FACTORS[verticalAlign] * (nodeDatum!.height - 2 * ITEM_PADDING)
+                    );
+                }
+            });
+
+            it('renders the nine styled cell alignments', async () => {
+                chart = deproxy(AgCharts.create(styledOptions()));
+                await waitForChartStability(chart);
+
+                await compareImageSnapshot(chart, ctx);
+            });
+        });
+
+        // `'start'`/`'end'` name a side of the paragraph, so the cell edge they anchor to has to
+        // follow the chart's direction.
+        describe('direction-relative alignments', () => {
+            it.each([
+                ['start', false, -0.5],
+                ['end', false, 0.5],
+                ['start', true, 0.5],
+                ['end', true, -0.5],
+            ] as const)('anchors %s to the %j-direction cell edge', async (textAlign, enableRtl, expectedFactor) => {
+                const anchor = await readAnchor({
+                    ...buildOptions({ label: { enabled: true, textAlign } }),
+                    enableRtl,
+                } as AgChartOptions);
+
+                expect(anchor.dx).toBeCloseTo(expectedFactor * anchor.xSpan);
+            });
+        });
+
+        // setupMockConsole() fails on any unasserted warning, so every case here must consume its deprecation notice.
+        describe('deprecated top-level options', () => {
+            it('warns and still applies the deprecated top-level values', async () => {
+                const anchor = await readAnchor(
+                    buildOptions({ label: { enabled: true }, textAlign: 'left', verticalAlign: 'bottom' })
+                );
+
+                expectWarningsCalls().toMatchInlineSnapshot(`
+                  [
+                    [
+                      "AG Charts - Option \`series[0].textAlign\` is deprecated. Use \`label.textAlign\` instead.",
+                    ],
+                    [
+                      "AG Charts - Option \`series[0].verticalAlign\` is deprecated. Use \`label.verticalAlign\` instead.",
+                    ],
+                  ]
+                `);
+
+                expect(anchor.dx).toBeCloseTo(-0.5 * anchor.xSpan);
+                expect(anchor.dy).toBeCloseTo(0.5 * anchor.ySpan);
+                expect(anchor.textAlign).toBe('left');
+                expect(anchor.textBaseline).toBe('bottom');
+            });
+
+            it('lets label.textAlign win over the deprecated top-level value', async () => {
+                const anchor = await readAnchor(
+                    buildOptions({
+                        label: { enabled: true, textAlign: 'right', verticalAlign: 'top' },
+                        textAlign: 'left',
+                        verticalAlign: 'bottom',
+                    })
+                );
+
+                expectWarningsCalls().toMatchInlineSnapshot(`
+                  [
+                    [
+                      "AG Charts - Option \`series[0].textAlign\` is deprecated. Use \`label.textAlign\` instead.",
+                    ],
+                    [
+                      "AG Charts - Option \`series[0].verticalAlign\` is deprecated. Use \`label.verticalAlign\` instead.",
+                    ],
+                  ]
+                `);
+
+                expect(anchor.dx).toBeCloseTo(0.5 * anchor.xSpan);
+                expect(anchor.dy).toBeCloseTo(-0.5 * anchor.ySpan);
+            });
+        });
+
+        describe('rendered output', () => {
+            const cases: [string, string, string][] = [
+                ['left', 'middle', 'left-middle'],
+                ['center', 'middle', 'center-middle'],
+                ['right', 'middle', 'right-middle'],
+                ['center', 'top', 'center-top'],
+                ['center', 'bottom', 'center-bottom'],
+            ];
+
+            it.each(cases)('renders %s / %s within the cell', async (textAlign, verticalAlign) => {
+                chart = deproxy(AgCharts.create(buildOptions({ label: { enabled: true, textAlign, verticalAlign } })));
+                await waitForChartStability(chart);
+
+                await compareImageSnapshot(chart, ctx);
+            });
         });
     });
 });

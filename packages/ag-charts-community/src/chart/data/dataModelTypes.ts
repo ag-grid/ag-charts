@@ -42,9 +42,7 @@ export interface BandedReducerStats extends Record<string, number> {
     cacheHits: number;
 }
 
-// Memory optimization: Shared frozen array for datumIndices in grouped data
-// when groupsUnique=true. All groups point to same [0] array since each
-// datum has relative offset 0 from its group start position.
+// OPTIMIZATION: with groupsUnique every datum sits at offset 0 in its group, so all groups share this array.
 export const SHARED_ZERO_INDICES: readonly number[] = Object.freeze([0]);
 
 export type ScopeId = string;
@@ -244,7 +242,7 @@ export interface OptimizationMetadata {
 
 export type DatumPropertyType = 'range' | 'category';
 
-// AG-10337 Keep track of the number of missing values in each per-series data array.
+// Keep track of the number of missing values in each per-series data array.
 export type MissMap = Map<string, number>;
 
 export type GroupingFn<K> = (keys: unknown[]) => K[];

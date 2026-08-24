@@ -2,9 +2,8 @@ import { expect, it } from 'vitest';
 
 import { DATA_END, DATA_START, HISTORY_DAYS, SESSIONS } from './data';
 
-// Runs under a DST-observing zone (see vitest.config.tz.ts). Aggregation buckets by
-// local midnight, so history must advance by calendar day: fixed 24h steps drift an
-// hour off midnight past a transition and spill sessions into the neighbouring bucket.
+// Runs under a DST-observing zone (see vitest.config.tz.ts). Aggregation buckets by local midnight,
+// so history must advance by calendar day; fixed 24h steps drift across a transition.
 
 const isMidnight = (d: Date) =>
     d.getHours() === 0 && d.getMinutes() === 0 && d.getSeconds() === 0 && d.getMilliseconds() === 0;
@@ -35,8 +34,7 @@ it('places every session inside the window', () => {
 });
 
 it('spreads sessions across exactly HISTORY_DAYS calendar days', () => {
-    // The load-bearing assertion: a fixed-24h generator drifts off midnight past a DST
-    // transition, so its days straddle two buckets and this count overshoots.
+    // A fixed-24h generator drifts off midnight past a DST transition, so this count overshoots.
     const days = new Set(SESSIONS.map((s) => localDayKey(s.timestamp)));
     expect(days.size).toBe(HISTORY_DAYS);
 });

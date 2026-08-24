@@ -7,8 +7,8 @@ import { getLabelText } from './label';
 describe('gauge getLabelText', () => {
     const ctx = { chartService: {} };
 
-    // AG-16608: the count-up animation override is Number-narrowed (a bigint can't be precisely tweened).
-    // The user formatter must still receive the raw bigint so callbacks preserve the value type.
+    // The count-up animation override is Number-narrowed, but the user formatter must still receive
+    // the raw bigint so callbacks preserve the value type.
     it('passes the raw bigint to the formatter even when the animation override narrows it', () => {
         const value = 9_007_199_254_740_993n; // Number.MAX_SAFE_INTEGER + 2
         let received: AgNumericValue | undefined;
@@ -20,7 +20,6 @@ describe('gauge getLabelText', () => {
             },
         };
 
-        // The fourth argument mimics the narrowed count-up tween value passed during animation.
         const text = getLabelText('gauge-id', ctx, datum, Number(value));
 
         expect(typeof received).toBe('bigint');

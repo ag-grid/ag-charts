@@ -93,9 +93,8 @@ type SeriesType =
 
 type Stacking = 'none' | 'stacked' | 'grouped' | 'normalized';
 
-// Series with no value-based x axis (polar, pyramid) or a categorical x axis
-// (heatmap). When the user selects ISO datetime these fall back to bigint data;
-// their category / stage values stay categorical regardless.
+// Series with no value-based x axis (polar, pyramid) or a categorical one (heatmap); these fall
+// back to bigint data when ISO datetime is selected.
 const NON_TIME_SERIES: ReadonlySet<SeriesType> = new Set<SeriesType>([
     'radial-bar',
     'radial-column',

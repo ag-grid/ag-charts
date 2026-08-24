@@ -215,3 +215,60 @@ describe('context menu zone patching', () => {
         expect(host.staticAction.inZone).toEqual([true]);
     });
 });
+
+@Component({
+    selector: `validations-host-component`,
+    standalone: true,
+    imports: [AgCharts],
+    template: ` <ag-charts [options]="options"></ag-charts>`,
+})
+class ValidationsHostComponent {
+    issueRaised: ActionRecord = { calls: 0, inZone: [] };
+
+    options: AgChartOptions = {
+        data: [
+            { type: 'A', earnings: 1 },
+            { type: 'B', earnings: 2 },
+        ],
+        series: [{ type: 'bar', xKey: 'type', yKey: 'earnings' }],
+        validations: {
+            onErrorRaised: recordedAction(this.issueRaised),
+        },
+    };
+}
+
+describe('validations.onErrorRaised zone patching', () => {
+    let host: ValidationsHostComponent;
+    let fixture: ComponentFixture<ValidationsHostComponent>;
+    let ngZone: NgZone;
+    let createChartSpy: jasmine.Spy;
+
+    beforeEach(async () => {
+        createChartSpy = spyOn(AgCharts.prototype as any, 'createChart').and.callThrough();
+
+        await TestBed.configureTestingModule({
+            imports: [ValidationsHostComponent, AgCharts],
+        }).compileComponents();
+
+        fixture = TestBed.createComponent(ValidationsHostComponent);
+        host = fixture.componentInstance;
+        ngZone = TestBed.inject(NgZone);
+        fixture.detectChanges();
+    });
+
+    afterEach(() => {
+        fixture.destroy();
+    });
+
+    it('runs the callback inside the Angular zone and leaves the consumer options untouched', () => {
+        const created = createChartSpy.calls.argsFor(0)[0] as AgChartOptions;
+        const patched = (created as any).validations.onErrorRaised;
+
+        expect(patched).not.toBe((host.options as any).validations.onErrorRaised);
+
+        ngZone.runOutsideAngular(() => patched({ level: 'error', message: 'boom' }));
+
+        expect(host.issueRaised.calls).toBe(1);
+        expect(host.issueRaised.inZone).toEqual([true]);
+    });
+});

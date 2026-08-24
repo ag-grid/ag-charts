@@ -71,6 +71,7 @@ export { FinancialChartModule } from './module-bundles/financial';
 export { AllGaugeModule } from './module-bundles/gauge';
 export { LicenseManager, AgChartsEnterpriseModule } from './module-bundles/integrated';
 export { AllPolarModule } from './module-bundles/polar';
+export { QuadrantChartModule } from './module-bundles/quadrant';
 export { AllMapSeriesModule } from './module-bundles/topology';
 
 // Globally registered enterprise setup

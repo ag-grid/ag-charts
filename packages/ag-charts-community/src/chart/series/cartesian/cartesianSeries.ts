@@ -1,10 +1,4 @@
-import type {
-    BoxBounds,
-    ChartAnimationPhase,
-    CollideWith,
-    NormalisedSeriesSegmentation,
-    Scaling,
-} from 'ag-charts-core';
+import type { ChartAnimationPhase, NormalisedSeriesSegmentation, Scaling } from 'ag-charts-core';
 import {
     ChartAxisDirection,
     Debug,
@@ -424,8 +418,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     // ============================================================================
     // createNodeData() Pattern Helpers
     // ============================================================================
-    // These methods support the optimized createNodeData() pattern with incremental updates.
-    // See series-performance-optimization.md for detailed documentation.
 
     /**
      * Determines if incremental node updates are possible based on common criteria.
@@ -476,18 +468,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     // ============================================================================
     // createNodeData() Template Method Pattern
     // ============================================================================
-    // The template method pattern pulls the common createNodeData() flow into the
-    // base class. Subclasses implement hooks to customize behaviour.
-    //
-    // Subclasses that have been migrated implement:
-    // - createNodeDatumContext() - cache expensive lookups
-    // - populateNodeData() - iterate and create/update datums
-    // - initializeResult() - create result object shell
-    //
-    // And optionally override:
-    // - validateCreateNodeDataPreconditions() - custom axis validation
-    // - finalizeNodeData() - custom cleanup (multiple arrays, sorting)
-    // - assembleResult() - add computed fields (segments)
 
     /**
      * Template method for creating node data.
@@ -536,9 +516,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     // ============================================================================
     // Template Method Hooks (Subclasses MUST implement when NOT overriding createNodeData)
     // ============================================================================
-    // Series that override createNodeData() entirely don't need these hooks.
-    // Series using the template method MUST implement createNodeDatumContext,
-    // populateNodeData, and initializeResult.
 
     /**
      * Creates the shared context for datum creation/update operations.
@@ -560,28 +537,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         throw new Error(
             `${this.constructor.name}: createNodeDatumContext() must be implemented when using the template method pattern`
         );
-    }
-
-    /**
-     * The series plot area as a label containment rect, in plot-local coordinates, so the
-     * seriesArea padding extends the rect into a negative origin. A label overflowing this rect
-     * spills past the series area (into the axis/padding zone) and must fail collision containment.
-     */
-    protected getSeriesPlotRegion(): BoxBounds | undefined {
-        const seriesRect = this.chart?.seriesRect;
-        if (seriesRect == null) return undefined;
-        const padding = this.chart?.seriesAreaPadding;
-        return {
-            x: -(padding?.left ?? 0),
-            y: -(padding?.top ?? 0),
-            width: seriesRect.width + (padding?.left ?? 0) + (padding?.right ?? 0),
-            height: seriesRect.height + (padding?.top ?? 0) + (padding?.bottom ?? 0),
-        };
-    }
-
-    /** The plot-area containment rect when the label opts into `collideWith.seriesArea`, else `undefined`. */
-    protected resolveLabelPlotRegion(collision: { resolveCollideWith(): CollideWith }): BoxBounds | undefined {
-        return collision.resolveCollideWith().seriesArea ? this.getSeriesPlotRegion() : undefined;
     }
 
     /**
@@ -672,9 +627,8 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     protected updateSelections() {
         const animationSkipUpdate = !this.opts.animationAlwaysUpdateSelections && this.ctx.animationManager.isSkipped();
         if (!this.visible && animationSkipUpdate) {
-            // Sync visibility even though we skip createNodeData(). Without this,
-            // _contextNodeData retains stale visible:true from before the series was
-            // hidden, causing a spurious animation on the next non-skipped update.
+            // createNodeData() is skipped here, so sync visibility manually or a stale `visible: true`
+            // triggers a spurious animation on the next non-skipped update.
             if (this._contextNodeData) {
                 this._contextNodeData.visible = false;
             }
@@ -952,11 +906,8 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         };
         const { predicate, iterator } = truthTable[`${where} + ${reverse}`];
 
-        // Binary-search for the node-datum shape (datumIndex) in the current viewport (hoverRect).
-        //
-        // The worst-case time complexity of a binary search is O(log_2(n)); so abort the loop if something goes wrong
-        // and we hit that bound. Math.log2(0) is -Infinity, so `currentIteration <= maxIterations` is false when length
-        // is 0.
+        // Binary-search the node data for a datum in the viewport, bailing out at the O(log2(n)) bound.
+        // Math.log2(0) is -Infinity, so an empty node array skips the loop entirely.
         let currentIteration = 0;
         const maxIterations = Math.ceil(Math.log2(this.contextNodeData.nodeData.length)) + 1;
         while (left <= right && currentIteration <= maxIterations) {

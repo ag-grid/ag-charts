@@ -40,8 +40,7 @@ import {
 import { SpatialIndex } from './spatialIndex';
 
 // jsdom has no canvas, so cachedTextMeasurer's real createCanvasContext throws. This stand-in gives
-// measureLabelText deterministic metrics (CHAR_WIDTH px per codepoint, LINE_HEIGHT px per line), scaled
-// by the measurer's font size so that restyling a label's font changes what it measures.
+// measureLabelText deterministic metrics, scaled by the measurer's font size.
 const { CHAR_WIDTH, BASE_FONT_SIZE } = vi.hoisted(() => ({ CHAR_WIDTH: 10, BASE_FONT_SIZE: 12 }));
 vi.mock('../canvas', () => ({
     createCanvasContext: () => ({
@@ -462,9 +461,7 @@ describe('placeLabels', () => {
     });
 
     it('resolves keep-series before droppable series regardless of declaration order', () => {
-        // Two series overlapping at the same point, with the droppable series declared FIRST. The keep
-        // series still resolves first (fixed obstacles seed the index before droppable labels), keeping
-        // its sole placement ('top'); the droppable series, resolved after it, falls back to 'bottom'.
+        // Fixed obstacles seed the index before droppable labels, so declaration order does not matter.
         const avoiding: PointLabelDatum = {
             point: { x: 200, y: 200, size: 0 },
             label: { text: 'A', width: 40, height: 12 },
@@ -552,10 +549,7 @@ describe('placeLabels', () => {
     });
 
     it('cascades a placement fallback list with avoidance off, mirroring line/area', () => {
-        // Line/area emit a `placement:'top'` datum and carry the fallback list on the series
-        // defaults; with `collisionAvoidance.enabled: false` the defaults avoid is false. The list
-        // is a directional fallback set, so 'top' (which overflows the top edge) must fall to
-        // 'bottom' regardless of avoidance.
+        // The list is a directional fallback set, so an overflowing 'top' falls to 'bottom' regardless.
         const datum: PointLabelDatum = {
             point: { x: 100, y: 0, size: 0 },
             label: { text: 'A', width: 40, height: 12 },
@@ -588,6 +582,39 @@ describe('placeLabels', () => {
         const result = placed.find((l) => l.datum === datum);
         expect(result).toBeDefined();
         expect(result!.placement === 'top' || result!.placement === 'bottom').toBe(true);
+    });
+
+    describe('kept candidate when every placement collides', () => {
+        // The label sits at (300, 200) with a 100x20 box and a 10px gap, so its `top` candidate spans
+        // x 250..350 / y 165..185 and its `left` candidate x 185..285 / y 190..210.
+        const buriedDatum = (): PointLabelDatum => ({
+            point: { x: 300, y: 200, size: 0 },
+            label: { text: 'A', width: 100, height: 20 },
+            anchor: undefined,
+            placement: 'top',
+            placements: ['top', 'left'],
+            gap: 10,
+            alwaysShow: true,
+        });
+
+        const keptPlacement = (box: BoxBounds) => {
+            const datum = buriedDatum();
+            const obstacle: LabelObstacle = { kind: 'rect', box, category: 'label' };
+            const placed = placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5, [obstacle]).get('s')!;
+            const result = placed.find((l) => l.datum === datum);
+            expect(result).toBeDefined();
+            return result!.placement;
+        };
+
+        it('keeps the least buried candidate, not the first one', () => {
+            // Buries `top` under the whole 100x20 box while only grazing `left` by 35x1.
+            expect(keptPlacement({ x: 250, y: 165, width: 100, height: 26 })).toBe('left');
+        });
+
+        it('keeps the first candidate when it is the least buried', () => {
+            // The mirror case: `left` is the deeply buried one, so the cascade stays at `top`.
+            expect(keptPlacement({ x: 185, y: 184, width: 100, height: 26 })).toBe('top');
+        });
     });
 
     it('takes a single placement unconditionally with avoidance off, even when it overflows', () => {
@@ -723,9 +750,7 @@ describe('placeLabels', () => {
     });
 
     it('measures own-marker clearance geometrically, so a diagonal keeps its longer corner gap', () => {
-        // Same `spacing` off the same marker, but a diagonal label is offset on both axes, so its nearest
-        // corner sits √2·(r + spacing) − r ≈ 18.3 from the marker rather than `spacing` = 10. A threshold
-        // of 12 reaches the marker from directly above and must not be counted as reaching it diagonally.
+        // A diagonal label's corner gap is √2·(r + spacing) − r ≈ 18.3, not `spacing` = 10.
         const labelled = (placement: 'top' | 'top-right'): PointLabelDatum => ({
             point: { x: 100, y: 100, size: 20 },
             label: { text: 'X', width: 30, height: 12 },
@@ -744,9 +769,7 @@ describe('placeLabels', () => {
     });
 
     it('keeps a label flush against the shared bounds at a positive threshold', () => {
-        // The threshold is clearance from obstacles, not an inset on the region a label is tested against:
-        // a box sitting exactly on the bounds edge stays contained however much clearance it asks for.
-        // Only a box that genuinely leaves the bounds is dropped.
+        // The threshold is clearance from obstacles, not an inset on the bounds.
         const centred = (y: number): PointLabelDatum => ({
             point: { x: 100, y, size: 0 },
             label: { text: 'A', width: 40, height: 12 },
@@ -812,9 +835,7 @@ describe('placeLabels', () => {
     });
 
     it('tolerates marker overlap when a negative threshold collapses the label box', () => {
-        // A label centred on a neighbouring series' marker overlaps it and is dropped at threshold 0. A
-        // negative threshold that shrinks the box past its own extent tolerates the overlap: a collapsed
-        // (non-positive) box must clear the marker circle, not spuriously collide with it.
+        // A negative threshold can collapse the label box, which must then clear the marker, not collide.
         const marker: PointLabelDatum = {
             point: { x: 100, y: 100, size: 16 },
             label: { text: '', width: 0, height: 0 },
@@ -1520,10 +1541,7 @@ describe('bar label placement helpers', () => {
         });
 
         it('excludes any-category obstacle overlapping the own box on the compass path', () => {
-            // A wide region the horizontal label fits, so the only thing that could reject it is an
-            // obstacle. A marker obstacle overlapping the label sits within the own box (the region), so
-            // the category-agnostic own-shape exclusion ignores it and the label keeps its first
-            // (horizontal) orientation rather than falling through to vertical.
+            // The own-shape exclusion is category-agnostic, so an obstacle inside the own box is ignored.
             const wideRegion: BoxBounds = { x: 0, y: 0, width: 200, height: 200 };
             const centred: OrientationAnchor = { x: 100, y: 100, textAlign: 'center', textBaseline: 'middle' };
             const target = { rotation: 0 };
@@ -1957,9 +1975,8 @@ describe('sectorLabelContainer', () => {
     });
 });
 
-// A datum carrying a fit descriptor has its text refitted to every candidate in turn, so a candidate
-// that can hold the whole text is not disqualified by an earlier candidate's truncation. The mocked
-// measurer above makes each character 10px wide and every line 20px tall.
+// Text is refitted per candidate, so an earlier candidate's truncation cannot disqualify a later one.
+// The mocked measurer makes each character 10px wide and every line 20px tall.
 describe('placeLabels per-candidate fit', () => {
     const bounds: BoxBounds = { x: 0, y: 0, width: 400, height: 400 };
     const FONT = { fontSize: 12, fontFamily: 'sans-serif' };
@@ -2372,5 +2389,96 @@ describe('placeLabels candidate styles', () => {
         const placed = place([bounded], styled.resolve)[0];
         expect(placed.text).toBe('W…');
         expect(placed.width).toBe(40);
+    });
+});
+
+describe('placeLabels collision shrink', () => {
+    const bounds: BoxBounds = { x: 0, y: 0, width: 400, height: 400 };
+    const FONT = { fontSize: 12, fontFamily: 'sans-serif' };
+    const TEXT = 'WWWWW';
+    const NO_PADDING = { top: 0, right: 0, bottom: 0, left: 0 };
+
+    /** A `TEXT` label anchored above `x`, free to shrink to `minimumFontSize` to clear an obstacle. */
+    const shrinkable = (x: number, overrides: Partial<PointLabelDatum> = {}): PointLabelDatum => ({
+        point: { x, y: 200, size: 0 },
+        label: { text: TEXT, width: 50, height: 20 },
+        fit: {
+            text: TEXT,
+            policy: { minimumFontSize: 6 },
+            font: FONT,
+            boxPadding: NO_PADDING,
+            boundByRegion: false,
+        },
+        anchor: undefined,
+        placement: 'top',
+        gap: 0,
+        alwaysShow: false,
+        ...overrides,
+    });
+
+    const place = (datums: PointLabelDatum[], obstacles: LabelObstacle[] = []) =>
+        placeLabels(new Map([['s', seriesLabels(datums)]]), bounds, 0, obstacles).get('s')!;
+
+    // Blocks everything left of x=180, so a 50px-wide label centred on x=200 overlaps it and a narrow
+    // enough one does not.
+    const leftBlocker: LabelObstacle = {
+        kind: 'rect',
+        box: { x: 100, y: 180, width: 80, height: 20 },
+        category: 'label',
+    };
+
+    it('shrinks a colliding label to the largest size that clears its obstacle', () => {
+        const [placed] = place([shrinkable(200)], [leftBlocker]);
+        // 10px still measures 41.7px wide and overlaps; 9px measures 37.5px and clears.
+        expect(placed.fontSize).toBe(9);
+        expect(placed.width).toBeCloseTo(37.5);
+        expect(placed.text).toBe(TEXT);
+    });
+
+    it('drops the label when it would still collide at minimumFontSize', () => {
+        const wide: LabelObstacle = {
+            kind: 'rect',
+            box: { x: 100, y: 180, width: 105, height: 20 },
+            category: 'label',
+        };
+        expect(place([shrinkable(200)], [wide])).toEqual([]);
+    });
+
+    it('does not shrink a label that places cleanly at its configured size', () => {
+        const [placed] = place([shrinkable(200)]);
+        expect(placed.fontSize).toBeUndefined();
+        expect(placed.width).toBe(50);
+    });
+
+    it('does not shrink a label whose fit carries no minimumFontSize', () => {
+        const datum = shrinkable(200, {
+            fit: { text: TEXT, policy: {}, font: FONT, boxPadding: NO_PADDING, boundByRegion: false },
+        });
+        expect(place([datum], [leftBlocker])).toEqual([]);
+    });
+
+    it('does not shrink a label carrying no fit descriptor at all', () => {
+        expect(place([shrinkable(200, { fit: undefined })], [leftBlocker])).toEqual([]);
+    });
+
+    it('keeps the full-size fallback when no size clears and the label is kept', () => {
+        const wide: LabelObstacle = {
+            kind: 'rect',
+            box: { x: 100, y: 180, width: 105, height: 20 },
+            category: 'label',
+        };
+        const [placed] = place([shrinkable(200, { alwaysShow: true })], [wide]);
+        expect(placed.fontSize).toBeUndefined();
+        expect(placed.width).toBe(50);
+    });
+
+    it('blocks a later label by the shrunken box rather than the full-size one', () => {
+        // The first label shrinks to 37.5px wide, so its box ends at x=218.75. A second label whose own
+        // box starts at x=220 clears that, where the unshrunk 50px box (ending at x=225) would not.
+        const placed = place([shrinkable(200), shrinkable(245)], [leftBlocker]);
+        expect(placed).toHaveLength(2);
+        expect(placed[0].fontSize).toBe(9);
+        expect(placed[1].fontSize).toBeUndefined();
+        expect(placed[1].x).toBeCloseTo(220);
     });
 });

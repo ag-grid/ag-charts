@@ -7,6 +7,7 @@ import type {
     CandidateLabelStyle,
     CandidateStyleResolver,
     DynamicContext,
+    FitRegion,
     FontOptions,
     IsAny,
     LabelFit,
@@ -17,6 +18,7 @@ import type {
     Point,
     PointLabelDatum,
     PositionedLabelCandidate,
+    RegionAlign,
 } from 'ag-charts-core';
 import {
     type NormalisedChartLabelStyleOptions,
@@ -37,6 +39,8 @@ import {
 import type {
     AgChartLabelOrientation,
     AgChartLabelStylerParams,
+    AgConeFunnelSeriesLabelPlacement,
+    AgFunnelSeriesLabelPlacement,
     AgMarkerShape,
     CssColor,
     HighlightState,
@@ -121,7 +125,12 @@ type LabelDatum = Point & {
      * placement-engine series carry the compass {@link LabelPlacement}; the rest carry the coarse
      * {@link ResolvedLabelPlacement}. Unset applies neither style.
      */
-    placement?: ResolvedLabelPlacement | BarLabelPlacement | LabelPlacement;
+    placement?:
+        | ResolvedLabelPlacement
+        | BarLabelPlacement
+        | LabelPlacement
+        | AgFunnelSeriesLabelPlacement
+        | AgConeFunnelSeriesLabelPlacement;
     /** Rotation in radians applied to the label node; `undefined`/`0` renders upright. */
     rotation?: number;
     /** Translation (px) sliding a region-bound label flush inside its region; `undefined`/`0` leaves it anchored. */
@@ -545,11 +554,12 @@ export function createBarCandidateStyleResolver<TParams>(
     series: SeriesLike,
     label: PlacementStyledLabel<TParams>,
     params: TParams,
-    labelPath?: string[]
+    labelPath?: string[],
+    reportPlacement?: (placement: BarLabelPlacement) => ResolvedPlacement['placement']
 ): BarCandidateStyleResolver | undefined {
     if (label.itemStyler == null) return undefined;
     return function resolveBarCandidateStyle(nodeDatum, placement, orientation) {
-        const resolved = { style: toResolvedPlacement(placement), reported: placement };
+        const resolved = { style: toResolvedPlacement(placement), reported: reportPlacement?.(placement) ?? placement };
         return resolveCandidateLabelStyle(series, label, params, labelPath, nodeDatum, resolved, orientation);
     };
 }
@@ -785,9 +795,8 @@ export function adjustLabelPlacement({
     // anchor. Pre-subtracting the drift keeps the glyph centred on the bar's cross-axis. Zero unrotated.
     const drift = boxPadding == null ? { x: 0, y: 0 } : rotatedGlyphDrift(rotation, boxPadding);
 
-    // Distance from the anchor to the (rotated) box edge facing the bar; equals boxPadding[facing] for an
-    // unrotated label, but grows with the box's cross-axis when the label is rotated. Added beyond
-    // `spacing` so the box edge — not the text — sits `spacing` from the bar, on whichever axis faces it.
+    // Distance from the anchor to the (rotated) box edge facing the bar; added beyond `spacing` so the box
+    // edge — not the text — sits `spacing` from the bar.
     const insetFor = (facing: keyof Required<PaddingOptions>) =>
         boxPadding == null ? 0 : rotatedLabelInset(facing, rotation, labelWidth, labelHeight, boxPadding);
 
@@ -837,8 +846,7 @@ export function adjustLabelPlacement({
 
     if (beside) {
         // Flip the side with a reversed category axis so `before`/`after` keep their physical meaning
-        // (column: before → left, after → right; horizontal bar: before → above, after → below). The
-        // facing box inset keeps the box edge — not the text — `spacing` from the bar.
+        // (column: before → left; horizontal bar: before → above).
         const after = beside.after !== crossReversed;
         if (isVertical) {
             const facing = after ? 'left' : 'right';
@@ -873,9 +881,18 @@ function orientedBarContainer(region: BoxBounds, rotationDeg: number, box: Requi
  * engine cascades over, plus the bar-specific `anchor` and granular `placement` written back onto the
  * label node when this candidate wins (its coarse inside/outside is derived from `placement`).
  */
-export interface BarPositionedCandidate extends PositionedLabelCandidate {
+export interface BarPositionedCandidate<
+    TPlacement extends string = BarLabelPlacement,
+> extends PositionedLabelCandidate {
     readonly anchor: OrientationAnchor;
-    readonly placement: BarLabelPlacement;
+    readonly placement: TPlacement;
+}
+
+/** Where a block of text hangs off its anchor, read from the baseline the anchor draws it on. */
+function regionAlignOf(textBaseline: CanvasTextBaseline): RegionAlign {
+    if (textBaseline === 'top' || textBaseline === 'hanging') return 'start';
+    if (textBaseline === 'bottom' || textBaseline === 'alphabetic') return 'end';
+    return 'center';
 }
 
 /**
@@ -890,22 +907,25 @@ export interface BarPositionedCandidate extends PositionedLabelCandidate {
  * `resolveStyle` makes each candidate's geometry the one its `itemStyler` resolves there, so the engine
  * reserves and tests the box that will actually be drawn and cascades on when the styled box does not fit.
  */
-export function buildBarLabelCandidates<TParams>({
+export function buildBarLabelCandidates<TParams, TPlacement extends string = BarLabelPlacement>({
     isUpward,
     isVertical,
     placements: placementList,
+    reportedPlacements,
     orientations,
     spacing,
     label,
     textWidth,
     textHeight,
     rect,
+    insideCrossRegion,
     crossReversed = false,
     rejectOutsideStart = false,
     rejectOutsideEnd = false,
     hideable = false,
     plotRegion,
     fitted = false,
+    shapeAt,
     text,
     styleDatum,
     resolveStyle,
@@ -913,6 +933,11 @@ export function buildBarLabelCandidates<TParams>({
     isUpward: boolean;
     isVertical: boolean;
     placements: readonly BarLabelPlacement[];
+    /**
+     * Public placement values, index-parallel with `placements`, reported on the winning candidate in
+     * place of the bar vocabulary a series maps onto.
+     */
+    reportedPlacements?: readonly TPlacement[];
     orientations: readonly AgChartLabelOrientation[];
     spacing: number;
     // The styled label; the box extent (padding + border) is resolved per candidate from its placement's
@@ -922,6 +947,12 @@ export function buildBarLabelCandidates<TParams>({
     textWidth: number;
     textHeight: number;
     rect: Bounds;
+    /**
+     * Supplies the cross-axis extent of the inside regions, for a `rect` with no thickness of its own
+     * (a divider line), whose inside region would otherwise reject every candidate. Containment along
+     * the rect is unaffected.
+     */
+    insideCrossRegion?: Bounds;
     crossReversed?: boolean;
     rejectOutsideStart?: boolean;
     rejectOutsideEnd?: boolean;
@@ -930,35 +961,41 @@ export function buildBarLabelCandidates<TParams>({
     plotRegion?: Bounds;
     /** Attach the per-candidate fit inputs the engine needs to re-fit the text to each candidate. */
     fitted?: boolean;
+    /**
+     * The shape an inside candidate's text is fitted to, for a series whose rect is only the bounding box
+     * of a non-rectangular mark. Each line is then wrapped to the width the shape offers where it lands.
+     */
+    shapeAt?: (anchor: OrientationAnchor) => FitRegion | undefined;
     /** Source text, re-measured under each candidate's styled font; required alongside `resolveStyle`. */
     text?: NormalisedTextOrSegments;
     /** The label's node datum, passed to `resolveStyle` as the styler's subject. */
     styleDatum?: SeriesNodeDatum;
     /** The `itemStyler` geometry at one candidate; unset leaves every candidate on the configured style. */
     resolveStyle?: BarCandidateStyleResolver;
-}): BarPositionedCandidate[] {
+}): BarPositionedCandidate<TPlacement>[] {
     // Drop the outside placements that would point into an adjacent stacked segment on that side, so the
     // cascade falls through to a beside/inside candidate rather than mislabelling the neighbour.
     const rejectsOutside = rejectOutsideStart || rejectOutsideEnd;
-    let effectivePlacements = placementList;
+    let effectiveIndices = placementList.map((_, index) => index);
     if (rejectsOutside) {
-        effectivePlacements = placementList.filter(
-            (placement) =>
-                !(placement === 'outside-start' && rejectOutsideStart) &&
-                !(placement === 'outside-end' && rejectOutsideEnd)
+        effectiveIndices = effectiveIndices.filter(
+            (index) =>
+                !(placementList[index] === 'outside-start' && rejectOutsideStart) &&
+                !(placementList[index] === 'outside-end' && rejectOutsideEnd)
         );
-        if (effectivePlacements.length === 0) {
+        if (effectiveIndices.length === 0) {
             // Nowhere left to put it, so drop a hideable label; one that must be shown needs a placement anyway.
             if (hideable) return [];
-            effectivePlacements = placementList;
+            effectiveIndices = placementList.map((_, index) => index);
         }
     }
 
-    // `plotRegion` is a collision-only boundary for outside/beside candidates (flushToRegion: false): a
-    // label overflowing it (e.g. into the axis-label zone) fails containment so the cascade falls through
-    // to the next placement, rather than being clamped into it or floating into the engine's wider bounds.
-    const candidates: BarPositionedCandidate[] = [];
-    for (const placement of effectivePlacements) {
+    // `plotRegion` is a collision-only boundary for outside/beside candidates: a label overflowing it fails
+    // containment so the cascade falls through, rather than being clamped into it.
+    const candidates: BarPositionedCandidate<TPlacement>[] = [];
+    for (const placementIndex of effectiveIndices) {
+        const placement = placementList[placementIndex];
+        const reportedPlacement = (reportedPlacements?.[placementIndex] ?? placement) as TPlacement;
         // Per-placement drawn-box extent: an inside candidate uses insideStyle, an outside one outsideStyle,
         // so their padding/border differences move the anchor and size the footprint independently.
         const placementBox = resolvePlacementLabelBoxExtent(
@@ -969,7 +1006,12 @@ export function buildBarLabelCandidates<TParams>({
         // Inside labels reserve `spacing` on the end they anchor against, so the gap survives the engine's
         // flush/containment (not just the anchor); centred labels reserve nothing.
         const insets = insideBarValueInsets(barValueAnchor(placement), isUpward, isVertical, spacing);
-        const insideRegion = isInside ? insideBarRegion(rect, insets.min, insets.max, isVertical) : undefined;
+        let insideRegion = isInside ? insideBarRegion(rect, insets.min, insets.max, isVertical) : undefined;
+        if (insideRegion != null && insideCrossRegion != null) {
+            insideRegion = isVertical
+                ? { ...insideRegion, x: insideCrossRegion.x, width: insideCrossRegion.width }
+                : { ...insideRegion, y: insideCrossRegion.y, height: insideCrossRegion.height };
+        }
         const region = insideRegion ?? plotRegion;
         for (const orientation of orientations) {
             // A styler can change the font and box per orientation as well as per placement, so the
@@ -999,7 +1041,7 @@ export function buildBarLabelCandidates<TParams>({
                 flushToRegion: isInside ? undefined : false,
                 rotation: rotationDeg || undefined,
                 anchor,
-                placement,
+                placement: reportedPlacement,
                 size: style == null ? undefined : { width, height },
                 hidden: style?.hidden,
                 // An outside candidate floats, so it offers no container and only the label's own
@@ -1007,6 +1049,8 @@ export function buildBarLabelCandidates<TParams>({
                 fitTo: fitted
                     ? {
                           container: insideRegion && orientedBarContainer(insideRegion, rotationDeg, boxPadding),
+                          shape: isInside ? shapeAt?.(anchor) : undefined,
+                          shapeAlign: regionAlignOf(anchor.textBaseline),
                           anchor,
                           padding: boxPadding,
                           font: style?.font,

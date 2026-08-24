@@ -3,9 +3,7 @@ import { buildContactMarkdown } from '@ag-website-shared/markdown-pages/buildCon
 import { DISABLE_MARKDOWN_DOCS, LIBRARY, SITE_URL } from '@constants';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 
-// Served at /contact.md — the markdown twin of the /contact page, built from the same shared copy
-// and links the page renders. Content-negotiates from the HTML URL on Accept: text/markdown (see
-// getMarkdownNegotiationRules in htaccessRules.ts).
+// Content-negotiated from the HTML URL on Accept: text/markdown — see getMarkdownNegotiationRules in htaccessRules.ts.
 export function GET() {
     if (DISABLE_MARKDOWN_DOCS) {
         return new Response(null, { status: 404 });

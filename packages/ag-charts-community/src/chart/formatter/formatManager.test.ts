@@ -254,7 +254,6 @@ describe('Format Manager', () => {
         expect(element.textContent).toMatchInlineSnapshot(`"product Apple iPhone iPhone 140.000 growth 5.000000"`);
     });
 
-    // AG-16604: Object values should be accessible in formatters (not converted to "[object Object]")
     it('should pass object values to category axis formatter without stringifying', async () => {
         const xFormatter = vi.fn();
         const objectCategory = { id: 1, label: 'Group A' };

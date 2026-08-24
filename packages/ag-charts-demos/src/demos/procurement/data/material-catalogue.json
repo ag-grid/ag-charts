@@ -1,0 +1,362 @@
+[
+    {
+        "commodity": "Steel & Metals",
+        "subcategories": [
+            {
+                "subcategory": "Carbon Steel",
+                "materials": [
+                    {
+                        "name": "Hot-Rolled Coil",
+                        "unit": "tonne",
+                        "listPrice": 780,
+                        "supplierIds": ["GLS", "RHA", "TAT"]
+                    },
+                    {
+                        "name": "Cold-Rolled Coil",
+                        "unit": "tonne",
+                        "listPrice": 930,
+                        "supplierIds": ["GLS", "RHA"]
+                    },
+                    {
+                        "name": "Steel Plate",
+                        "unit": "tonne",
+                        "listPrice": 850,
+                        "supplierIds": ["TAT", "GLS"]
+                    }
+                ]
+            },
+            {
+                "subcategory": "Stainless Steel",
+                "materials": [
+                    {
+                        "name": "304 Stainless Sheet",
+                        "unit": "tonne",
+                        "listPrice": 2650,
+                        "supplierIds": ["NIP", "RHA"]
+                    },
+                    {
+                        "name": "316 Stainless Bar",
+                        "unit": "tonne",
+                        "listPrice": 3430,
+                        "supplierIds": ["NIP", "RHA"]
+                    }
+                ]
+            },
+            {
+                "subcategory": "Galvanized Steel",
+                "materials": [
+                    {
+                        "name": "Galvanized Sheet",
+                        "unit": "tonne",
+                        "listPrice": 1060,
+                        "supplierIds": ["GLS", "TAT"]
+                    },
+                    {
+                        "name": "Galvannealed Coil",
+                        "unit": "tonne",
+                        "listPrice": 1210,
+                        "supplierIds": ["TAT", "GLS"]
+                    }
+                ]
+            },
+            {
+                "subcategory": "Specialty Alloys",
+                "materials": [
+                    {
+                        "name": "Titanium Alloy",
+                        "unit": "kg",
+                        "listPrice": 45,
+                        "supplierIds": ["NIP", "BAL"]
+                    },
+                    {
+                        "name": "Nickel Alloy",
+                        "unit": "kg",
+                        "listPrice": 30,
+                        "supplierIds": ["BAL", "NIP"]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "commodity": "Electronics & Components",
+        "subcategories": [
+            {
+                "subcategory": "Semiconductors",
+                "materials": [
+                    {
+                        "name": "Microcontrollers",
+                        "unit": "units",
+                        "listPrice": 4.2,
+                        "supplierIds": ["HSC", "SZM", "SCW"]
+                    },
+                    {
+                        "name": "Power ICs",
+                        "unit": "units",
+                        "listPrice": 2.85,
+                        "supplierIds": ["HSC", "SZM"]
+                    },
+                    {
+                        "name": "Sensors",
+                        "unit": "units",
+                        "listPrice": 6.4,
+                        "supplierIds": ["SCW", "HSC"]
+                    }
+                ]
+            },
+            {
+                "subcategory": "Connectors",
+                "materials": [
+                    {
+                        "name": "Board Connectors",
+                        "unit": "units",
+                        "listPrice": 0.72,
+                        "supplierIds": ["BCX", "SZM"]
+                    },
+                    {
+                        "name": "Wire Harnesses",
+                        "unit": "units",
+                        "listPrice": 11.4,
+                        "supplierIds": ["BCX", "SCW", "SZM"]
+                    }
+                ]
+            },
+            {
+                "subcategory": "PCBs",
+                "materials": [
+                    {
+                        "name": "4-Layer PCB",
+                        "unit": "units",
+                        "listPrice": 3.6,
+                        "supplierIds": ["SCW", "SZM"]
+                    },
+                    {
+                        "name": "Flex PCB",
+                        "unit": "units",
+                        "listPrice": 5.9,
+                        "supplierIds": ["HSC", "SCW"]
+                    }
+                ]
+            },
+            {
+                "subcategory": "Passive Components",
+                "materials": [
+                    {
+                        "name": "Capacitors",
+                        "unit": "units",
+                        "listPrice": 0.09,
+                        "supplierIds": ["SZM", "HSC"]
+                    },
+                    {
+                        "name": "Resistors",
+                        "unit": "units",
+                        "listPrice": 0.04,
+                        "supplierIds": ["SZM", "BCX"]
+                    },
+                    {
+                        "name": "Inductors",
+                        "unit": "units",
+                        "listPrice": 0.31,
+                        "supplierIds": ["SCW", "SZM"]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "commodity": "Plastics & Polymers",
+        "subcategories": [
+            {
+                "subcategory": "Resins",
+                "materials": [
+                    {
+                        "name": "ABS Resin",
+                        "unit": "kg",
+                        "listPrice": 2.35,
+                        "supplierIds": ["VGP", "GPC", "CPF"]
+                    },
+                    {
+                        "name": "Polypropylene Resin",
+                        "unit": "kg",
+                        "listPrice": 1.48,
+                        "supplierIds": ["GPC", "VGP"]
+                    }
+                ]
+            },
+            {
+                "subcategory": "Films",
+                "materials": [
+                    {
+                        "name": "PET Film",
+                        "unit": "kg",
+                        "listPrice": 3.1,
+                        "supplierIds": ["CPF", "VGP"]
+                    },
+                    {
+                        "name": "Barrier Film",
+                        "unit": "kg",
+                        "listPrice": 4.85,
+                        "supplierIds": ["VGP", "CPF"]
+                    }
+                ]
+            },
+            {
+                "subcategory": "Engineered Plastics",
+                "materials": [
+                    {
+                        "name": "Nylon 66",
+                        "unit": "kg",
+                        "listPrice": 5.6,
+                        "supplierIds": ["VGP", "GPC"]
+                    },
+                    {
+                        "name": "Polycarbonate",
+                        "unit": "kg",
+                        "listPrice": 4.15,
+                        "supplierIds": ["GPC", "CPF"]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "commodity": "Packaging Materials",
+        "subcategories": [
+            {
+                "subcategory": "Corrugate",
+                "materials": [
+                    {
+                        "name": "Corrugated Cases",
+                        "unit": "units",
+                        "listPrice": 1.15,
+                        "supplierIds": ["CSP", "MCT"]
+                    },
+                    {
+                        "name": "Corner Board",
+                        "unit": "m",
+                        "listPrice": 0.42,
+                        "supplierIds": ["MCT", "CSP"]
+                    }
+                ]
+            },
+            {
+                "subcategory": "Pallets",
+                "materials": [
+                    {
+                        "name": "Wood Pallets",
+                        "unit": "pallets",
+                        "listPrice": 16.5,
+                        "supplierIds": ["CSP", "MCT"]
+                    },
+                    {
+                        "name": "Plastic Pallets",
+                        "unit": "pallets",
+                        "listPrice": 48,
+                        "supplierIds": ["CSP"]
+                    }
+                ]
+            },
+            {
+                "subcategory": "Labels",
+                "materials": [
+                    {
+                        "name": "Thermal Labels",
+                        "unit": "units",
+                        "listPrice": 0.03,
+                        "supplierIds": ["CSP", "MCT"]
+                    },
+                    {
+                        "name": "RFID Labels",
+                        "unit": "units",
+                        "listPrice": 0.14,
+                        "supplierIds": ["CSP"]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "commodity": "Chemicals & Coatings",
+        "subcategories": [
+            {
+                "subcategory": "Solvents",
+                "materials": [
+                    {
+                        "name": "Industrial Solvent",
+                        "unit": "litre",
+                        "listPrice": 2.1,
+                        "supplierIds": ["ANK", "LYC"]
+                    },
+                    {
+                        "name": "Degreaser",
+                        "unit": "litre",
+                        "listPrice": 1.65,
+                        "supplierIds": ["ANK", "LYC"]
+                    }
+                ]
+            },
+            {
+                "subcategory": "Paints",
+                "materials": [
+                    {
+                        "name": "Powder Coating",
+                        "unit": "kg",
+                        "listPrice": 7.4,
+                        "supplierIds": ["LYC", "ANK"]
+                    },
+                    {
+                        "name": "Primer",
+                        "unit": "litre",
+                        "listPrice": 5.2,
+                        "supplierIds": ["LYC", "ANK"]
+                    }
+                ]
+            },
+            {
+                "subcategory": "Adhesives",
+                "materials": [
+                    {
+                        "name": "Structural Adhesive",
+                        "unit": "kg",
+                        "listPrice": 12.8,
+                        "supplierIds": ["LYC", "ANK"]
+                    },
+                    {
+                        "name": "Hot Melt Adhesive",
+                        "unit": "kg",
+                        "listPrice": 4.6,
+                        "supplierIds": ["ANK", "LYC"]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "commodity": "Fasteners & Hardware",
+        "subcategories": [
+            {
+                "subcategory": "Fasteners",
+                "materials": [
+                    {
+                        "name": "Hex Bolts",
+                        "unit": "units",
+                        "listPrice": 0.28,
+                        "supplierIds": ["OHF", "MLF"]
+                    },
+                    {
+                        "name": "Machine Screws",
+                        "unit": "units",
+                        "listPrice": 0.11,
+                        "supplierIds": ["OHF", "MLF"]
+                    },
+                    {
+                        "name": "Rivets",
+                        "unit": "units",
+                        "listPrice": 0.07,
+                        "supplierIds": ["MLF", "OHF"]
+                    }
+                ]
+            }
+        ]
+    }
+]

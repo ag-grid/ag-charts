@@ -1,13 +1,13 @@
-import type { NormalisedSeriesAreaBackgroundRegion, Scale } from 'ag-charts-core';
-import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
+import type { NormalisedSeriesAreaBackgroundRegion } from 'ag-charts-core';
 
+import type { AxisContext } from '../../module/axisContext';
 import type { Group } from '../../scene/group';
 
 export interface BackgroundRegion {
     labelGroup: Group;
     regionGroup: Group;
-    xScale?: Scale<any, number, number | AgTimeInterval | AgTimeIntervalUnit>;
-    yScale?: Scale<any, number, number | AgTimeInterval | AgTimeIntervalUnit>;
+    xAxis?: AxisContext;
+    yAxis?: AxisContext;
     setOptions(opts: NormalisedSeriesAreaBackgroundRegion): void;
     update(): void;
 }

@@ -517,6 +517,13 @@ export const ExpectedModules = new Map<string, ModulePlaceholder>(
             },
             {
                 type: 'preset',
+                name: 'quadrant',
+                chartType: 'cartesian',
+                enterprise: true,
+                moduleId: 'QuadrantChartModule',
+            },
+            {
+                type: 'preset',
                 name: 'sparkline',
                 moduleId: 'SparklinePresetModule',
             },

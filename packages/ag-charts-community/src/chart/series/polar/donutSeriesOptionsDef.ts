@@ -1,6 +1,7 @@
 import {
     type OptionsDefs,
     arrayOfDefs,
+    colorUnion,
     constant,
     fontOptionsDef,
     labelBoxOptionsDef,
@@ -9,6 +10,7 @@ import {
     ratio,
     required,
     string,
+    textOrSegments,
     undocumented,
 } from 'ag-charts-core';
 import type { AgDonutInnerLabel, AgDonutSeriesOptions, AgDonutSeriesThemeableOptions } from 'ag-charts-types';
@@ -20,7 +22,7 @@ export const donutSeriesThemeableOptionsDef: OptionsDefs<AgDonutSeriesThemeableO
     innerRadiusOffset: number,
     innerRadiusRatio: ratio,
     innerCircle: {
-        fill: string,
+        fill: colorUnion,
         fillOpacity: ratio,
     },
     innerLabels: {
@@ -36,7 +38,7 @@ export const donutSeriesOptionsDef: OptionsDefs<AgDonutSeriesOptions> = {
     type: required(constant('donut')),
     innerLabels: arrayOfDefs<AgDonutInnerLabel>(
         {
-            text: required(string),
+            text: required(textOrSegments),
             spacing: positiveNumber,
             ...fontOptionsDef,
             ...labelBoxOptionsDef,

@@ -52,10 +52,8 @@ export class DataWindowProcessor implements UpdateProcessor {
     }
 
     private onDataLoad() {
-        // A renderable-shaped load can still fail to render against the series keys; its gate-state
-        // rollback must survive until the chart confirms the render via `data:render-verdict`, so we
-        // do not discard it here. Until then an identical re-zoom stays short-circuited (correct: the
-        // load committed unless and until the verdict overturns it).
+        // A renderable-shaped load can still fail against the series keys, so its rollback state
+        // must survive until `data:render-verdict` confirms the render.
         this.ctx.animationManager.skip();
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.UPDATE_DATA });
     }
@@ -145,10 +143,8 @@ export class DataWindowProcessor implements UpdateProcessor {
 
         if (!shouldRefresh) return;
 
-        // Snapshot the gate state this request advances past, keyed by a per-request id, so a failed
-        // response can restore it and let an identical re-zoom re-issue the request (see onDataError).
-        // Keying by id keeps overlapping requests (dispatchOnlyLatest=false) from corrupting each
-        // other's rollback.
+        // Snapshot the gate state per request id so a failure can restore it (see onDataError)
+        // without overlapping requests corrupting each other's rollback.
         const requestId = this.requestCounter++;
         this.latestRequestId = requestId;
         this.errorRollbacks.set(requestId, { window: priorWindow, axisId: axis?.id, axisZoom: priorAxisZoom });

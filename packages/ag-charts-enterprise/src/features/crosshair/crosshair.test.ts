@@ -597,6 +597,70 @@ describe('Crosshair', () => {
         expect(visibleText(yLabels).some((t) => /\d/.test(t))).toBe(true);
     });
 
+    describe('RTL label text', () => {
+        const NEGATIVE_OPTIONS: AgCartesianChartOptions = {
+            enableRtl: true,
+            data: [
+                { x: 'ינואר', y: -45 },
+                { x: 'פברואר', y: 30 },
+                { x: 'מרץ', y: -20 },
+                { x: 'אפריל', y: 60 },
+            ],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            axes: {
+                y: { type: 'number', position: 'left', crosshair: { ...CROSSHAIR_OPTIONS, snap: false } },
+                x: { type: 'category', position: 'bottom', crosshair: { ...CROSSHAIR_OPTIONS, snap: false } },
+            },
+        };
+
+        const yLabelText = () =>
+            Array.from(
+                document.querySelectorAll<HTMLElement>(
+                    `.ag-charts-crosshair-label[data-axis-id="y"]:not(.ag-charts-crosshair-label--hidden)`
+                )
+            )
+                .map((el) => el.textContent?.trim() ?? '')
+                .filter((text) => text.length > 0);
+
+        const hoverOverNegativeValues = async (options: AgCartesianChartOptions) => {
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            await hoverAction(300, 450)(chart);
+            await waitForChartStability(chart);
+        };
+
+        it('keeps a negative default label value left-to-right', async () => {
+            await hoverOverNegativeValues({ ...NEGATIVE_OPTIONS });
+
+            const labels = yLabelText();
+            expect(labels.length).toBeGreaterThan(0);
+            expect(labels.some((text) => /‪-[\d.]+‬/.test(text))).toBe(true);
+        });
+
+        it('leaves a renderer-supplied label alone', async () => {
+            await hoverOverNegativeValues({
+                ...NEGATIVE_OPTIONS,
+                axes: {
+                    ...NEGATIVE_OPTIONS.axes,
+                    y: {
+                        type: 'number',
+                        position: 'left',
+                        crosshair: {
+                            ...CROSSHAIR_OPTIONS,
+                            snap: false,
+                            label: { renderer: ({ value }) => `<b>${value}</b>` },
+                        },
+                    },
+                },
+            });
+
+            const labels = yLabelText();
+            expect(labels.length).toBeGreaterThan(0);
+            expect(labels.some((text) => text.includes('‪'))).toBe(false);
+        });
+    });
+
     it('AG-16608 should follow the pointer over bigint axis domains without error', async () => {
         // Out-of-safe-range y-values: the crosshair label readback inverts the scale on a bigint domain.
         const BIG = 9_007_199_254_740_993n; // Number.MAX_SAFE_INTEGER + 2
@@ -619,5 +683,69 @@ describe('Crosshair', () => {
         await waitForChartStability(chart);
         await hoverAction(480, 250)(chart);
         await waitForChartStability(chart);
+    });
+
+    describe('label placement', () => {
+        // The label is a DOM element in the canvas overlay, so its placement is invisible to an image
+        // snapshot — read the positional styles instead.
+        const labelPlacement = (axisId: string) =>
+            Array.from(
+                document.querySelectorAll<HTMLElement>(
+                    `.ag-charts-crosshair-label[data-axis-id="${axisId}"]:not(.ag-charts-crosshair-label--hidden)`
+                )
+            ).map(({ style }) => `${style.left} ${style.top} (${style.translate})`);
+
+        const hoverWithAxes = async (axes: AgCartesianAxesOptions) => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: -10, y: -8 },
+                    { x: 0, y: 0 },
+                    { x: 10, y: 9 },
+                ],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes,
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            await hoverAction(480, 250)(chart);
+            await waitForChartStability(chart);
+        };
+
+        const axesAt = (crossAt?: { value: number }): AgCartesianAxesOptions => ({
+            x: { type: 'number', position: 'bottom', crosshair: { enabled: true, snap: false }, crossAt },
+            y: { type: 'number', position: 'left', crosshair: { enabled: true, snap: false }, crossAt },
+        });
+
+        it('should place labels against the axes at their position edges', async () => {
+            await hoverWithAxes(axesAt());
+
+            expect(labelPlacement('x')).toMatchInlineSnapshot(`
+              [
+                "480px 562px (-50% 0)",
+              ]
+            `);
+            expect(labelPlacement('y')).toMatchInlineSnapshot(`
+              [
+                "46px 250px (-100% -50%)",
+              ]
+            `);
+        });
+
+        it('should follow the axis lines when crossAt moves them off their position edges', async () => {
+            await hoverWithAxes(axesAt({ value: 0 }));
+
+            expect(labelPlacement('x')).toMatchInlineSnapshot(`
+              [
+                "480px 307px (-50% 0)",
+              ]
+            `);
+            expect(labelPlacement('y')).toMatchInlineSnapshot(`
+              [
+                "397px 250px (-100% -50%)",
+              ]
+            `);
+        });
     });
 });

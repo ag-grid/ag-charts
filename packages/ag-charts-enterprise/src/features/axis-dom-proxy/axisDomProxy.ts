@@ -1,6 +1,6 @@
 import type { AgAxisClickEvent } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { AxisID, CanvasPoint, DynamicContext } from 'ag-charts-core';
+import type { AxisID, CanvasPoint, CurrentPoint, DynamicContext } from 'ag-charts-core';
 import { AbstractModuleInstance, ChartAxisDirection, boxEmpty, callWithContext } from 'ag-charts-core';
 
 type AxisHit = { axisId: AxisID; direction: ChartAxisDirection };
@@ -19,6 +19,11 @@ function hasAxisClickListener(chartService: _ModuleSupport.ChartService, axisCtx
         axisCtx.listeners?.click != null ||
         axisCtx.listeners?.doubleClick != null
     );
+}
+
+function hasDraggableAxes(ctx: DynamicContext<_ModuleSupport.ChartRegistry>): boolean {
+    const options = ctx.chartState.getValue('options');
+    return !!(options?.zoom?.enabled && options.zoom.enableAxisDragging);
 }
 
 /**
@@ -152,7 +157,8 @@ export class AxisDOMProxy extends AbstractModuleInstance {
                 axis.bounds = new _ModuleSupport.BBox(bbox.x, bbox.y, bbox.width, bbox.height);
             }
             // Signal interactivity only on axes that actually have a click listener.
-            axis.div.setCursor(hasAxisClickListener(chartService, axisCtx) ? 'pointer' : undefined);
+            const needsCursor: boolean = !hasDraggableAxes(this.ctx) && hasAxisClickListener(chartService, axisCtx);
+            axis.div.setCursor(needsCursor ? 'pointer' : undefined);
         }
     }
 
@@ -217,7 +223,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
 
         // Annotate the overlapping axis so the series-area dispatch offers it as an additional region,
         // rather than dispatching a competing axis-only menu. This lets a node and an axis co-exist.
-        event.axis = this.pickAxisValue(axis.axisId, event.widgetEvent);
+        event.axis = this.pickAxisValue(axis.axisId, event);
     }
 
     private onSeriesAreaDoubleClick(event: _ModuleSupport.DragInterpreterDblClickEvent) {
@@ -297,8 +303,12 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         });
     }
 
-    private pickAxisValue(axisId: AxisID, widgetEvent: _Widget.MouseWidgetEvent<'contextmenu'>) {
-        return this.ctx.axisManager.getAxisIdContext(axisId)?.pickValue(widgetEvent);
+    private pickAxisValue(axisId: AxisID, point: Readonly<CanvasPoint>) {
+        return this.ctx.axisManager.getAxisIdContext(axisId)?.pickValue(point);
+    }
+
+    private toCanvasPoint(div: _Widget.AxisWidget, point: Readonly<CurrentPoint>): CanvasPoint {
+        return { canvasX: point.currentX + div.cssLeft(), canvasY: point.currentY + div.cssTop() };
     }
 
     /**
@@ -307,15 +317,17 @@ export class AxisDOMProxy extends AbstractModuleInstance {
      */
     private dispatchAxisClick(axisId: AxisID, widgetEvent: _Widget.MouseWidgetEvent<'click' | 'dblclick'>) {
         // Keyboard-synthetic clicks carry no pointer coordinates, so there is nothing to pick.
-        // Keyboard activation is out of scope for this feature (AG-9809).
         if (widgetEvent.device === 'keyboard') return;
 
+        const div = this.axes.find((axis) => axis.axisId === axisId)?.div;
+        if (!div) return;
+
         const axisCtx = this.ctx.axisManager.getAxisIdContext(axisId);
-        const pick = axisCtx?.pickValue(widgetEvent);
+        const pick = axisCtx?.pickValue(this.toCanvasPoint(div, widgetEvent));
         if (!axisCtx || !pick) return;
 
         const isDoubleClick = widgetEvent.type === 'dblclick';
-        const { direction, boundSeries, domain, value, index } = pick;
+        const { direction, boundSeries, domain, value, index, depth } = pick;
         const params = {
             event: widgetEvent.sourceEvent,
             axisId: pick.axisId,
@@ -324,6 +336,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
             domain,
             value,
             index,
+            depth,
         };
 
         const listener = isDoubleClick ? axisCtx.listeners?.doubleClick : axisCtx.listeners?.click;
@@ -347,7 +360,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         canvasX: number,
         canvasY: number
     ) {
-        const pick = this.pickAxisValue(axisId, widgetEvent);
+        const pick = this.pickAxisValue(axisId, { canvasX, canvasY });
         if (!pick) return;
 
         this.ctx.contextMenuRegistry?.dispatchContext('axis', { widgetEvent, canvasX, canvasY }, pick);
@@ -409,9 +422,11 @@ export class AxisDOMProxy extends AbstractModuleInstance {
     }
 
     private createAxisDOMProxy(axisId: AxisID, direction: ChartAxisDirection): ProxyAxis {
-        const div = this.ctx.widgets.axisWidgets.acquireRegion(axisId);
+        const axisInteraction = this.ctx.widgets.axisWidgets.acquireRegion(axisId);
+        const div = axisInteraction.widget;
+        const dragInterpretation = axisInteraction.dragInterpreter.events;
 
-        div.addListener('drag-start', (event) => {
+        dragInterpretation.on('drag-start', (event) => {
             if (!this.isEnabled() || !this.isEnabledDragging()) return;
             if (event.device === 'touch') {
                 event.sourceEvent.preventDefault();
@@ -419,16 +434,16 @@ export class AxisDOMProxy extends AbstractModuleInstance {
             this.draggingAxisId = axisId;
             this.ctx.eventsHub.emit('axis-dom-proxy:drag-start', { axisId, direction, event });
         });
-        div.addListener('drag-move', (event) => {
+        dragInterpretation.on('drag-move', (event) => {
             if (!this.isEnabled() || !this.isEnabledDragging()) return;
             this.ctx.eventsHub.emit('axis-dom-proxy:drag-move', { axisId, direction, event });
         });
-        div.addListener('drag-end', (event) => {
+        dragInterpretation.on('drag-end', (event) => {
             if (!this.isEnabled() || !this.isEnabledDragging()) return;
             this.draggingAxisId = undefined;
             this.ctx.eventsHub.emit('axis-dom-proxy:drag-end', { axisId, direction, event });
         });
-        div.addListener('dblclick', (event) => {
+        dragInterpretation.on('dblclick', (event) => {
             if (this.hasClickListeners()) this.dispatchAxisClick(axisId, event);
             if (!this.isEnabled() || !this.isEnabledDoubleClick()) return;
             this.ctx.eventsHub.emit('axis-dom-proxy:dblclick', { axisId, direction, event });
@@ -447,7 +462,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
             if (!this.isEnabled() || !this.isEnabledScrolling()) return;
             this.ctx.eventsHub.emit('axis-dom-proxy:wheel', { axisId, direction, event });
         });
-        div.addListener('click', (event) => {
+        dragInterpretation.on('click', (event) => {
             if (!this.hasClickListeners()) return;
             this.dispatchAxisClick(axisId, event);
         });

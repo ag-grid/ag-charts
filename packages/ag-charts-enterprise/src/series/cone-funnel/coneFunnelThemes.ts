@@ -4,11 +4,13 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_SINGLE_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
+    LABEL_OVERFLOW_ALWAYS_SHOW,
+    LABEL_OVERFLOW_DEFAULTS,
     SAFE_FILLS_OPERATION,
 } from 'ag-charts-core';
-import type { ExtensibleTheme } from 'ag-charts-types';
+import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
-export const CONE_FUNNEL_SERIES_THEME: ExtensibleTheme<'cone-funnel'> = {
+export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
     series: {
         direction: 'vertical',
         fills: {
@@ -47,12 +49,17 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleTheme<'cone-funnel'> = {
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         label: {
             ...LABEL_BOXING_DEFAULTS,
+            ...LABEL_OVERFLOW_DEFAULTS,
             enabled: true,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'textColor' },
-            placement: 'before',
+            collision: {
+                threshold: 4,
+                alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
+            },
+            placement: 'before-center',
             spacing: 4,
         },
         tooltip: {

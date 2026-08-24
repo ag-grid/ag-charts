@@ -47,61 +47,26 @@ export type CspDirectives = Record<string, string[]>;
 
 const SELF = "'self'";
 const NONE = "'none'";
-// In script-src, 'unsafe-inline' is now scope-specific: the 'site' policy
-// authorises its few known inline scripts by SHA-256 hash instead (see
-// SITE_SCRIPT_HASHES), while 'examples' still carries it. In style-src it stays
-// everywhere (charts theming/legacy styles inject <style> at runtime).
+// In script-src this is scope-specific ('examples' only; 'site' uses SITE_SCRIPT_HASHES);
+// in style-src it applies everywhere, as charts theming injects <style> at runtime.
 const UNSAFE_INLINE = "'unsafe-inline'";
-// Permits WebAssembly compilation without permitting JS eval() — narrower than
-// 'unsafe-eval'. Needed on every page: docs snippets are highlighted in the
-// browser by Shiki, whose oniguruma engine instantiates a WASM module
-// (see CodeShiki.tsx). Browsers that predate this token fall back to requiring
-// 'unsafe-eval' for WASM.
+// Narrower than 'unsafe-eval'; needed on every page because Shiki's oniguruma engine
+// instantiates a WASM module to highlight docs snippets.
 const WASM_UNSAFE_EVAL = "'wasm-unsafe-eval'";
-// Allowed only in the 'examples' scope: the example-runner documents load modules
-// with legacy SystemJS (fetches source over XHR and evals it) and the Angular
-// examples compile templates in the browser (JIT). The chart library itself does
-// not need it (see AG-11258), so ordinary pages no longer carry it.
+// 'examples' scope only: Angular JIT, in-page TypeScript transpilation and archived
+// versions' SystemJS all eval. The chart library itself does not need it.
 const UNSAFE_EVAL = "'unsafe-eval'";
 
-// SHA-256 hashes authorising the main-page inline <script>s in the 'site' scope
-// instead of 'unsafe-inline'. Derived from the SAME constants the pages render
-// (src/utils/csp/inlineScripts.ts) so the policy can never drift from what is
-// served — edit the script and the hash follows automatically. Added ONLY to the
-// 'site' scope: per CSP2+, the presence of a hash makes the browser ignore
-// 'unsafe-inline', so the 'examples' scope — which still relies on it — must NOT
-// carry them. Dev keeps 'unsafe-inline' (Vite/Astro inject their own inline scripts).
-// The homepage gallery script is externalised (not hashed) — it embeds build-hashed
-// CSS-module class names, which would make a static hash unstable.
-//
-// NB: this hashes the source string; the browser hashes the rendered bytes. They
-// match as long as Astro emits the inline script verbatim (verified in dev; the
-// production report-only window is the backstop before enforcing).
+// Derived from the same constants the pages render, so the policy cannot drift from what is
+// served. Must stay out of the 'examples' scope: per CSP2+ any hash makes the browser ignore
+// the 'unsafe-inline' that scope still relies on.
 const hashInlineScript = (source: string): string =>
     `'sha256-${createHash('sha256').update(source, 'utf8').digest('base64')}'`;
 
-// Astro injects a small, fixed set of inline hydration-runtime scripts that we
-// cannot externalise — they are emitted (and minified) by the framework, not
-// authored here. Every OTHER site inline script is externalised to a 'self' bundle
-// (the GTM bootstrap; the homepage gallery; FrameworkRedirectPage), so these are the
-// only inline scripts the 'site' scope authorises by hash.
-//
-// Because the rendered bytes are Astro's build-time output, there is no source
-// string to derive these from — they are pinned, and they change when Astro's
-// hydration runtime changes, i.e. on an Astro upgrade. ASTRO_HYDRATION_HASHES_VERIFIED_FOR
-// records the Astro version they were captured against; cspRules.test.ts fails when
-// the installed version no longer matches, so an upgrade cannot silently leave the
-// policy stale (which would block hydration site-wide — staging enforces this scope).
-//
-// === HOW TO REGENERATE AFTER AN ASTRO UPGRADE ===
-//   1. yarn nx build ag-charts-website
-//   2. yarn nx run ag-charts-website:preview:csp          (serves the build with the enforced policy)
-//   3. Open https://localhost:4601/ plus a page using each client: directive
-//      (load/idle/only/visible) and read the browser console: every blocked inline
-//      script logs the missing 'sha256-...' value in its CSP violation. (Equivalently,
-//      hash the inline <script> contents in dist and diff against the list below.)
-//   4. Replace the hashes below with the new values, and bump
-//      ASTRO_HYDRATION_HASHES_VERIFIED_FOR to the new Astro version.
+// Astro emits these inline, so there is no source string to derive them from — they are
+// pinned, and an Astro upgrade changes them. To regenerate: build, serve via
+// `preview:csp`, visit a page per client: directive and read the sha256 values out of the
+// console's CSP violations, then bump ASTRO_HYDRATION_HASHES_VERIFIED_FOR.
 export const ASTRO_HYDRATION_HASHES_VERIFIED_FOR = '6.1.9';
 const ASTRO_HYDRATION_SCRIPT_HASHES = [
     "'sha256-QzWFZi+FLIx23tnm9SBU4aEgx4x8DsuASP07mfqol/c='", // client:load bootstrap
@@ -111,19 +76,22 @@ const ASTRO_HYDRATION_SCRIPT_HASHES = [
     "'sha256-BrDhGE1lwa85arfXcrBxSo+n37uVSX5CAROXnIM6Q+g='", // <astro-island> hydration runtime
 ];
 
-// SHA-256 of the inline ZoomInfo (WebSights) bootstrap that the shared Google Tag
-// Manager container injects as a Custom HTML tag once the visitor accepts functional
-// cookie consent. Unlike the scripts above, this one is authored in GTM, not this
-// repo — so the value is taken from the browser's CSP violation report, NOT by
-// hashing the GTM source (GTM normalises the injected bytes, so the source does not
-// reproduce this digest).
-//
-// FRAGILE — this pins ZoomInfo's exact bytes. If the ZoomInfo tag in GTM is edited,
-// or ZoomInfo regenerates its loader snippet, the hash stops matching and ZoomInfo
-// silently fails to load for consenting users. The GTM tag carries a note pointing
-// back here; if it changes, replace this with the new console-reported hash (here and
-// in the ag-grid / ag-studio CSPs — the GTM container is shared). AG-17134.
+// Each pins a third party's exact bytes, so editing the tag silently stops it running. A tag is
+// only hashable while it interpolates no `{{…}}` macro, and re-deriving a digest means mirroring
+// it into the ag-grid and ag-studio CSPs, whose GTM container is the same one.
+
+// ZoomInfo (WebSights) bootstrap, injected once the visitor accepts functional cookie consent.
 const GTM_ZOOMINFO_HASH = "'sha256-41l+jvtOjBgKy9345IStB4j1gGPGFMVXADMHn1Acs6E='";
+
+// Hands the visitor's consent choice from the Enzuzo banner to GTM. A verbatim copy of
+// Enzuzo's bytes, not a source of truth — the digest is what matters, and cspRules.test.ts
+// pins the two together.
+const ENZUZO_GTM_CONSENT_BRIDGE_SCRIPT = 'if (window.enzuzoGtmConsent) { window.enzuzoGtmConsent(); }';
+
+// UTM attribution tags: a page-view capture and a form-submit POST to MAKE_WEBHOOK_HOST.
+// Both avoid GTM macros, which is what keeps these digests pinnable.
+const GTM_UTM_CAPTURE_HASH = "'sha256-nsp/0430/yfuSNjsteV2fUwjHINMowl9qldFKy6PKJs='";
+const GTM_UTM_WEBHOOK_HASH = "'sha256-7f34QP24yF/YC+G6zSHRCBZrBez6xFf6GbcGIXkZ4K0='";
 
 const SITE_SCRIPT_HASHES = [
     hashInlineScript(DARK_MODE_INIT_SCRIPT),
@@ -132,78 +100,60 @@ const SITE_SCRIPT_HASHES = [
     hashInlineScript(KBD_PLATFORM_INIT_SCRIPT),
     ...ASTRO_HYDRATION_SCRIPT_HASHES,
     GTM_ZOOMINFO_HASH,
+    hashInlineScript(ENZUZO_GTM_CONSENT_BRIDGE_SCRIPT),
+    GTM_UTM_CAPTURE_HASH,
+    GTM_UTM_WEBHOOK_HASH,
 ];
 
-// Enzuzo, the cookie-consent banner that replaces OneTrust. Like OneTrust before it,
-// the loader is a tag in the shared Google Tag Manager container rather than markup in
-// this repo, so nothing here references these origins directly — the CSP is the only
-// place the site declares them.
-//
-//  - app.enzuzo.com serves the banner bundle (/scripts/cookiebar/<uuid>) and is also the
-//    banner's apiHost: once loaded it XHRs its config, the cookie list and consent
-//    analytics from /api/public/... on the same origin.
-//  - gvl.enzuzo.com serves the IAB TCF Global Vendor List, fetched only when TCF mode is
-//    switched on in the Enzuzo console. Allowed up front so enabling TCF later is a
-//    console-only change; the TCF library itself comes from cdn.jsdelivr.net, already
-//    allowed below.
-//
-// The OneTrust origins below stay allowed alongside these until the GTM cutover: the
-// container is shared with ag-grid and ag-studio, so one tag flip switches all three
-// sites at once while their deploys land separately. Both banners must be loadable
-// across that window; removing OneTrust is a follow-up once Enzuzo is live.
-//
-// No script-src hash is needed: GTM injects the banner as an external <script src>, not
-// an inline snippet (contrast GTM_ZOOMINFO_HASH). The banner's CSS is injected as inline
-// <style>, which style-src 'unsafe-inline' already covers, and its logo image falls under
-// the permissive img-src.
-//
-// NB the banner has three `new Function` paths — templated banner text, "display fields",
-// and string-valued integration onConsent handlers — which throw under a policy without
-// 'unsafe-eval'. The first two are caught internally and degrade to empty output; the
-// third throws uncaught. We are not granting 'unsafe-eval' site-wide for a consent
-// banner, so keep the Enzuzo console configuration free of template placeholders and
-// string-bodied event handlers. See ag-grid#14772.
+// Enzuzo cookie-consent banner, loaded by a tag in the shared GTM container, so the CSP is the
+// only place the site declares these origins. Its `new Function` paths throw without
+// 'unsafe-eval', which we will not grant site-wide, so keep the Enzuzo console configuration
+// free of template placeholders and string-bodied event handlers.
+// React and React DOM ship no ES module build on npm, so the example runner's import map
+// resolves them through esm.sh.
+const ESM_SH_HOST = 'https://esm.sh';
+
 const ENZUZO_APP_HOST = 'https://app.enzuzo.com';
 const ENZUZO_GVL_HOST = 'https://gvl.enzuzo.com';
 
-// Apache <If> expression matching the URL paths that get the 'examples' scope.
-// Charts serves example-runner documents at both /gallery/examples/<name>/... and
-// /<framework>/<page>/examples/<name>/..., and the whole site sits under /charts in
-// production, so '/examples/' is not a leading prefix — match the segment anywhere.
-// '/archive/' covers archived doc versions (which ship the same runner).
+// LinkedIn Insight Tag, loaded by a tag in the shared GTM container, so the CSP is the only
+// place the site declares these origins. The rest of LinkedIn's published required-domains
+// list is deliberately absent: neither SDK payload references those hosts, and the pixels
+// they reach by redirect are already covered by the permissive img-src.
+const LINKEDIN_SDK_HOST = 'https://snap.licdn.com';
+const LINKEDIN_BEACON_HOST = 'https://px.ads.linkedin.com';
+
+// Make webhook receiving UTM attribution, POSTed by the GTM tag behind GTM_UTM_WEBHOOK_HASH.
+// The host is zone-specific, so it changes if the automation is recreated in another zone.
+const MAKE_WEBHOOK_HOST = 'https://hook.eu2.make.com';
+
+// Unanchored: the site sits under /charts and example runners appear at several depths, so
+// the segment has to match anywhere.
 export const EXAMPLES_PATH_CONDITION = '%{REQUEST_URI} =~ m#/(examples|archive)/#';
 
-// JS equivalent of EXAMPLES_PATH_CONDITION above, for the dev-server (agDevCsp) and
-// preview-server (preview-csp) middleware that scope the served CSP by URL path.
-// No leading anchor: the site is served under the /charts base, so '/examples/' is
-// not a leading prefix. Keep in sync with EXAMPLES_PATH_CONDITION.
+// Keep in sync with EXAMPLES_PATH_CONDITION; used by the dev- and preview-server middleware.
 export const EXAMPLES_PATH_REGEXP = /\/(examples|archive)\//;
 
-// 'self' resolves to www.ag-grid.com on production (charts lives under /charts) and
-// charts-staging.ag-grid.com on staging, so cross-subdomain references to the
-// production host need an explicit allowance. Harmless where 'self' already covers it.
+// 'self' is charts-staging.ag-grid.com on staging, so cross-subdomain references to the
+// production host need an explicit allowance.
 const AG_GRID_HOSTS = 'https://*.ag-grid.com';
 
-// The trial-licence form POSTs (via fetch) to a different Cloud Function per
-// environment (see PUBLIC_TRIAL_LICENCE_FORM_URL in the .env.build.* files). Same
-// origins as the grid site — the form is a shared ag-website-shared component.
+// Must match PUBLIC_TRIAL_LICENCE_FORM_URL in the .env.build.* files.
 const TRIAL_FORM_ORIGIN: Record<CspEnv, string> = {
     dev: 'https://us-central1-stripe-testing-19784.cloudfunctions.net',
     staging: 'https://us-central1-stripe-testing-19784.cloudfunctions.net',
     production: 'https://us-central1-aggrid-ecommerce.cloudfunctions.net',
 };
 
-// The license-pricing form also does a native POST to Salesforce Web-to-Lead — a
-// sandbox org in non-prod, the live org in production (see CONTACT_FORM_DATA in
-// external/ag-website-shared/src/constants.ts). Governed by form-action, not connect-src.
+// Salesforce Web-to-Lead target for the license-pricing form: a native POST, so this is
+// governed by form-action rather than connect-src.
 const SALESFORCE_FORM_ORIGIN: Record<CspEnv, string> = {
     dev: 'https://test.salesforce.com',
     staging: 'https://test.salesforce.com',
     production: 'https://webto.salesforce.com',
 };
 
-// Dev-server-only extras (HMR + cross-port preview). Never emitted for staging or
-// production. Charts dev server runs on 4600/4601 (see astro.config.mjs).
+// Dev-server-only extras (HMR + cross-port preview); never emitted for staging or production.
 const DEV_SCRIPT_SRC = ['https://localhost:4600', 'https://localhost:4601'];
 const DEV_CONNECT_SRC = ['https://localhost:4600', 'https://localhost:4601', 'ws://localhost:*', 'wss://localhost:*'];
 
@@ -222,8 +172,10 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             'https://www.googletagmanager.com',
             'https://www.google-analytics.com', // Universal Analytics analytics.js (GTM-injected after cookie consent)
             'https://cdn.jsdelivr.net',
+            ESM_SH_HOST, // example-runner: React's ES module build (npm ships CJS only)
             'https://js.zi-scripts.com', // ZoomInfo tag (injected via GTM)
             'https://*.zoominfo.com', // ZoomInfo FormComplete (trial form)
+            LINKEDIN_SDK_HOST, // LinkedIn Insight Tag SDK (injected via GTM)
             'https://www.google.com', // reCAPTCHA (license-pricing trial form)
             'https://www.gstatic.com', // reCAPTCHA
             'https://www.youtube.com', // YouTube iframe JS API (loads into the page)
@@ -233,10 +185,8 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             WASM_UNSAFE_EVAL,
             // 'unsafe-inline' (examples/dev) or SHA-256 hashes (site) added per scope below.
         ],
-        // 'unsafe-inline' stays: the charts theming/legacy styles inject <style>
-        // elements at runtime and static hosting rules out per-request nonces.
-        // cdnjs.cloudflare.com: the font-icons docs example loads the Font Awesome stylesheet
-        // (and its woff2 fonts) from there at runtime.
+        // 'unsafe-inline' is unavoidable: charts theming injects <style> at runtime and
+        // static hosting rules out per-request nonces.
         'style-src': [
             SELF,
             'https://fonts.googleapis.com',
@@ -251,13 +201,8 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             'https://cdnjs.cloudflare.com',
             'data:',
         ],
-        // Relaxed to https:. Images/media are open-ended (blog/showcase images, chart
-        // example assets) and a weak XSS vector — the strict script/connect/frame-src
-        // below carry the protection.
+        // Deliberately open: images are a weak XSS vector and the sources are open-ended.
         'img-src': [SELF, 'data:', 'blob:', 'https:'],
-        // NOTE: chart examples (maps, live data) fetch from many external hosts. These
-        // will surface as report-only violations during the validation window and need
-        // a decision (broaden vs allowlist) before flipping to enforce.
         'connect-src': [
             SELF,
             'data:', // sized SVG/data-URI images are fetched for resize injection (see imageLoader.ts)
@@ -270,21 +215,23 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             'https://analytics.google.com', // GA4 apex collect endpoint (not matched by the *. wildcard)
             'https://stats.g.doubleclick.net',
             'https://www.googletagmanager.com',
-            'https://cdn.jsdelivr.net', // example-runner SystemJS fetches modules as text (XHR)
+            'https://cdn.jsdelivr.net', // example-runner: framework and library ES modules
+            ESM_SH_HOST, // example-runner: React's ES module build
             'https://js.zi-scripts.com', // ZoomInfo
             'https://*.zoominfo.com', // ZoomInfo
+            LINKEDIN_BEACON_HOST, // LinkedIn Insight Tag: website-actions beacon and attribution-trigger fetch
             'https://www.google.com', // reCAPTCHA (api2/clr XHR)
             'https://cdn.cookielaw.org', // OneTrust config/JSON/asset XHR (GTM-injected, prod-only)
             'https://*.onetrust.com', // OneTrust geolocation + consent-receipt endpoints
             ENZUZO_APP_HOST, // Enzuzo banner config, cookie list and consent-analytics XHR
             ENZUZO_GVL_HOST, // Enzuzo-hosted IAB TCF Global Vendor List
+            MAKE_WEBHOOK_HOST, // UTM-attribution POST on form submit (injected via GTM)
             trialFormOrigin, // trial-licence form fetch POST
         ],
         'frame-src': [
             SELF,
-            // Chart PNG export clicks an <a download href="data:image/png;…">. Firefox routes that
-            // data: load through frame-src and blocks the download (Moz bug 1194734); Chromium honours
-            // the download attribute and never checks frame-src. img-src/media-src already allow data:.
+            // Firefox routes an <a download href="data:…"> through frame-src and blocks the
+            // chart PNG export without this (Moz bug 1194734).
             'data:',
             'https://www.googletagmanager.com',
             'https://www.youtube.com',
@@ -309,9 +256,7 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
     if (scope === 'examples') {
         directives['script-src'].push(UNSAFE_EVAL, UNSAFE_INLINE);
     } else if (env === 'dev') {
-        // Dev server (Vite/Astro) injects its own inline scripts for HMR/hydration
-        // that the static build does not; keep 'unsafe-inline' locally rather than
-        // block them. The hash-based site policy is validated on staging/production.
+        // Vite/Astro inject their own inline scripts for HMR that the static build does not.
         directives['script-src'].push(UNSAFE_INLINE);
     } else {
         // 'site' on staging/production: authorise the known inline scripts by hash.
@@ -382,7 +327,8 @@ export function getScopedCspHtaccessBlock(options: Omit<CspOptions, 'scope'>, mo
         getCspHtaccessBlock({ ...options, scope: 'site' }, mode),
         '',
         "# Example-runner documents and archived doc versions additionally need 'unsafe-eval'",
-        '# (SystemJS eval-loads modules; the Angular JIT compiler also compiles in the browser).',
+        '# (the Angular JIT compiler and the Plunker transpiler compile in the browser;',
+        '# archived versions additionally eval-load modules with SystemJS).',
         '# <If> sections merge after all other configuration, so this unset+set replaces the',
         '# header set above for matching requests.',
         `<If "${EXAMPLES_PATH_CONDITION}">`,

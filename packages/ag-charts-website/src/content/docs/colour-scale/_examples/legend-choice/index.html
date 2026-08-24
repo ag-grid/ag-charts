@@ -1,14 +1,59 @@
 <div class="example-controls">
     <div class="controls-row">
-        Mode:
-        <button onclick="setMode('continuous')">Continuous</button>
-        <button onclick="setMode('discrete')">Discrete</button>
-        <span class="gap-left">Gradient Legend:</span>
-        <button onclick="setGradientLegend(true)">On</button>
-        <button onclick="setGradientLegend(false)">Off</button>
-        <span class="gap-left">Category Legend:</span>
-        <button onclick="setCategoryLegend(true)">On</button>
-        <button onclick="setCategoryLegend(false)">Off</button>
+        <span>Mode:</span>
+        <div class="button-group gap-right" role="group" aria-label="Mode">
+            <input
+                type="radio"
+                id="mode-continuous"
+                name="mode"
+                value="continuous"
+                checked
+                onchange="modeChange(event)"
+            />
+            <label for="mode-continuous">Continuous</label>
+            <input type="radio" id="mode-discrete" name="mode" value="discrete" onchange="modeChange(event)" />
+            <label for="mode-discrete">Discrete</label>
+        </div>
+        <span>Gradient Legend:</span>
+        <div class="button-group gap-right" role="group" aria-label="Gradient Legend">
+            <input
+                type="radio"
+                id="gradient-on"
+                name="gradient-legend"
+                value="on"
+                checked
+                onchange="gradientLegendChange(event)"
+            />
+            <label for="gradient-on">On</label>
+            <input
+                type="radio"
+                id="gradient-off"
+                name="gradient-legend"
+                value="off"
+                onchange="gradientLegendChange(event)"
+            />
+            <label for="gradient-off">Off</label>
+        </div>
+        <span>Category Legend:</span>
+        <div class="button-group" role="group" aria-label="Category Legend">
+            <input
+                type="radio"
+                id="category-on"
+                name="category-legend"
+                value="on"
+                onchange="categoryLegendChange(event)"
+            />
+            <label for="category-on">On</label>
+            <input
+                type="radio"
+                id="category-off"
+                name="category-legend"
+                value="off"
+                checked
+                onchange="categoryLegendChange(event)"
+            />
+            <label for="category-off">Off</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

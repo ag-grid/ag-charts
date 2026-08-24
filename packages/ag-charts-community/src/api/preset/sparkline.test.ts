@@ -223,6 +223,121 @@ describe('Sparkline Preset', () => {
 
             await compare();
         });
+
+        // Renders the same cases optionsModule.test.ts pins as a resolved option tree.
+        const parityData = [1, 3, 2, 5, 4];
+
+        function markerItemStyler(params: { highlightState?: string }) {
+            return params.highlightState === 'highlighted-item' ? { size: 7 } : { size: 0 };
+        }
+
+        it('should render a bar sparkline with user-supplied axis styling', async () => {
+            const options = prepareSparklineOptions({
+                type: 'bar',
+                direction: 'vertical',
+                fill: '#fac858',
+                data: parityData,
+                axis: { type: 'category', stroke: '#cccccc', strokeWidth: 2, visible: true },
+            });
+
+            chart = AgCharts.__createSparkline(options);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+
+        it('should render a horizontal bar sparkline with user-supplied axis styling', async () => {
+            const options = prepareSparklineOptions({
+                type: 'bar',
+                direction: 'horizontal',
+                min: 0,
+                // Above the data's maximum, so the bars scale to distinguishable lengths. A `max`
+                // below it saturates every bar to full width, leaving no geometry to compare.
+                max: 6,
+                fill: '#5470c6',
+                data: parityData,
+                axis: { type: 'category', stroke: '#cccccc', strokeWidth: 2, visible: true },
+            });
+
+            chart = AgCharts.__createSparkline(options);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+
+        it('should render a line sparkline with top-level padding', async () => {
+            const options = prepareSparklineOptions({
+                type: 'line',
+                stroke: 'rgb(124, 255, 178)',
+                strokeWidth: 2,
+                data: parityData,
+                padding: { top: 5, bottom: 5 },
+            });
+
+            chart = AgCharts.__createSparkline(options);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+
+        it('should render an area sparkline with fill opacity and a marker styler', async () => {
+            const options = prepareSparklineOptions({
+                type: 'area',
+                fill: 'rgba(216, 204, 235, 0.3)',
+                fillOpacity: 0.5,
+                stroke: 'rgb(119,77,185)',
+                data: parityData,
+                marker: { enabled: true, size: 0, itemStyler: markerItemStyler },
+                axis: { type: 'category', stroke: 'rgb(204, 204, 235)' },
+            });
+
+            chart = AgCharts.__createSparkline(options);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+
+        it('should render a line sparkline with a tooltip renderer and a marker styler', async () => {
+            const options = prepareSparklineOptions({
+                type: 'line',
+                stroke: 'rgb(124, 255, 178)',
+                data: parityData,
+                marker: { enabled: true, size: 0, itemStyler: markerItemStyler },
+                tooltip: {
+                    renderer: (params) => ({ title: String(params.xValue), content: String(params.yValue) }),
+                },
+            });
+
+            chart = AgCharts.__createSparkline(options);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+
+        it('should render a bar sparkline with labels and a label formatter', async () => {
+            const options = prepareSparklineOptions({
+                type: 'bar',
+                direction: 'vertical',
+                fill: '#fac858',
+                data: parityData,
+                padding: { top: 10, bottom: 10 },
+                label: {
+                    enabled: true,
+                    color: '#999999',
+                    // Inside the bar: `outside-end` pushes the tallest bar's label off the top of
+                    // the canvas, losing the label most likely to move if layout changes.
+                    placement: 'inside-end',
+                    fontSize: 7.5,
+                    padding: 1,
+                    formatter: (params) => `${params.value}%`,
+                },
+            });
+
+            chart = AgCharts.__createSparkline(options);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
     });
 
     describe('#updateDelta', () => {

@@ -1,8 +1,8 @@
 import type {
     AxisID,
     BoxBounds,
+    CanvasPoint,
     ChartAxisDirection,
-    CurrentPoint,
     NormalisedTextOrSegments,
     Point,
     Scale,
@@ -38,6 +38,7 @@ export interface AxisValuePick {
     readonly axisId: string;
     readonly value: AgAxisValue;
     readonly index: number;
+    readonly depth?: number;
     readonly direction: ChartAxisDirection;
     readonly boundSeries: AgAxisBoundSeries[];
     readonly domain: AgAxisDomain;
@@ -71,10 +72,16 @@ export interface PolarAxisLayout {
 }
 
 export interface AxisContext {
-    context?: unknown;
-    /** User-supplied `axes[].listeners`, if any. */
-    readonly listeners?: AgAxisListeners<unknown>;
+    /**
+     * Context provider for user callbacks scoped to this axis. Carries `axes[].context` only when
+     * the user supplied one, so `callWithContext` falls through to the chart-level context otherwise.
+     */
+    readonly caller: { context?: unknown };
+    /** User listeners declared on this axis's options. */
+    readonly listeners: AgAxisListeners<unknown> | undefined;
     axisId: AxisID;
+    /** The key this axis was declared under in `axes`; `axisId` is the internal canonical id. */
+    readonly userAxisId: string;
     /** Static axis-type identifier (matches the axis module's name, e.g. `'number'`, `'angle-category'`). */
     readonly axisType: string;
     continuous: boolean;
@@ -107,8 +114,8 @@ export interface AxisContext {
     attachAxisOverlay(group: Group, slot: 'low' | 'mid' | 'high'): void;
     inRange(value: number, tolerance?: number): boolean;
     getRangeOverflow(value: number): number;
-    /** Pick the scale value at a current-point (click/contextmenu events), relative to axis-dom-proxy HTML element */
-    pickValue(point: CurrentPoint): AxisValuePick | undefined;
+    /** Pick the scale value at a canvas point (click/contextmenu events). */
+    pickValue(point: CanvasPoint): AxisValuePick | undefined;
     pickBand(point: Point): AxisBandDatum | undefined;
     measureBand(value: string): AxisBandMeasurement | undefined;
     /** Defined only on polar axes; cartesian axes leave it undefined. */

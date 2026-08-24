@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import { LtrEmbedding, PopDirectionalFormatting } from '../../types/text';
-import { forceLtrNumbers, isDirectionNeutral, toFontString } from './textUtils';
+import { forceLtrNumbers, forceLtrNumbersIn, isDirectionNeutral, resolveTextAlign, toFontString } from './textUtils';
+
+const mark = (text: string) => LtrEmbedding + text + PopDirectionalFormatting;
 
 describe('toFontString', () => {
     const baseFont = { fontSize: 14 };
@@ -111,8 +113,6 @@ describe('isDirectionNeutral', () => {
 });
 
 describe('forceLtrNumbers', () => {
-    const mark = (text: string) => LtrEmbedding + text + PopDirectionalFormatting;
-
     it.each([
         ['-5'],
         ['+5'],
@@ -191,5 +191,80 @@ describe('forceLtrNumbers', () => {
     it('leaves text carrying no number alone', () => {
         const text = 'Sales \u05DE\u05DB\u05D9\u05E8\u05D5\u05EA';
         expect(forceLtrNumbers(text)).toBe(text);
+    });
+});
+
+describe('forceLtrNumbersIn', () => {
+    it.each([['-5'], ['1,234.56'], ['-5.5%']])('leaves the neutral %j alone in an LTR paragraph', (text) => {
+        expect(forceLtrNumbersIn(text, false)).toBe(text);
+    });
+
+    it.each([['-5'], ['1,234.56'], ['-5.5%']])('marks the neutral %j in an RTL paragraph', (text) => {
+        expect(forceLtrNumbersIn(text, true)).toBe(mark(text));
+    });
+
+    it.each([[false], [true]])('marks a number beside RTL text whatever the paragraph direction (%j)', (isRtl) => {
+        expect(forceLtrNumbersIn('\u05DE\u05DB\u05D9\u05E8\u05D5\u05EA -5', isRtl)).toBe(
+            `\u05DE\u05DB\u05D9\u05E8\u05D5\u05EA ${mark('-5')}`
+        );
+    });
+
+    it.each([[false], [true]])('leaves a number following LTR text alone (%j)', (isRtl) => {
+        expect(forceLtrNumbersIn('Sales -5', isRtl)).toBe('Sales -5');
+    });
+
+    it.each([['33ms'], ['1 of 2'], ['b11.1.0 Time 33ms']])(
+        'leaves the LTR-only %j alone in an LTR paragraph',
+        (text) => {
+            expect(forceLtrNumbersIn(text, false)).toBe(text);
+        }
+    );
+
+    it('marks an LTR-only number leading the text in an RTL paragraph', () => {
+        expect(forceLtrNumbersIn('33ms', true)).toBe(mark('33ms'));
+    });
+});
+
+describe('resolveTextAlign', () => {
+    it.each([
+        ['left', 'left'],
+        ['center', 'center'],
+        ['right', 'right'],
+        ['start', 'left'],
+        ['end', 'right'],
+    ] as const)('resolves "%s" to "%s" in an LTR chart', (textAlign, expected) => {
+        expect(resolveTextAlign(textAlign, false)).toBe(expected);
+    });
+
+    it.each([
+        ['left', 'left'],
+        ['center', 'center'],
+        ['right', 'right'],
+        ['start', 'right'],
+        ['end', 'left'],
+    ] as const)('resolves "%s" to "%s" in an RTL chart', (textAlign, expected) => {
+        expect(resolveTextAlign(textAlign, true)).toBe(expected);
+    });
+
+    // A chart whose direction has not been established yet must read as LTR rather than throwing
+    // the caller into `undefined` - `isRtl` arrives as `boolean | undefined` from its own callers.
+    it.each([
+        ['left', 'left'],
+        ['center', 'center'],
+        ['right', 'right'],
+        ['start', 'left'],
+        ['end', 'right'],
+    ] as const)('treats an unknown direction as LTR when resolving "%s"', (textAlign, expected) => {
+        expect(resolveTextAlign(textAlign, undefined)).toBe(expected);
+    });
+
+    // The resolved values are the identity of the mapping, so a call site that resolves an already
+    // resolved alignment - or resolves twice under a different direction - cannot flip it.
+    it.each([[false], [true], [undefined]])('is idempotent under isRtl %j', (isRtl) => {
+        for (const textAlign of ['left', 'center', 'right', 'start', 'end'] as const) {
+            const resolved = resolveTextAlign(textAlign, isRtl);
+            expect(resolveTextAlign(resolved, isRtl)).toBe(resolved);
+            expect(resolveTextAlign(resolved, !isRtl)).toBe(resolved);
+        }
     });
 });

@@ -266,6 +266,7 @@ export const enterpriseModules = new Set([
     // Presets
     'GaugePresetModule',
     'PriceVolumePresetModule',
+    'QuadrantPresetModule',
 ]);
 
 // Bundle definitions - what each bundle includes
@@ -433,7 +434,9 @@ export const bundleContents = new Map([
             // Enterprise presets
             'GaugePresetModule',
             'PriceVolumePresetModule',
+            'QuadrantPresetModule',
             'FinancialChartModule',
+            'QuadrantChartModule',
         ],
     ],
     ['AllGaugeModule', ['LinearGaugeModule', 'RadialGaugeModule', 'GaugePresetModule', 'StandaloneChartModule']],
@@ -473,6 +476,28 @@ export const bundleContents = new Map([
             'LocaleModule',
             'CartesianChartModule',
             'PriceVolumePresetModule',
+        ],
+    ],
+    [
+        'QuadrantChartModule',
+        [
+            'QuadrantPresetModule',
+            'NumberAxisModule',
+            'BubbleSeriesModule',
+            'ScatterSeriesModule',
+            'AnimationModule',
+            'AnnotationsModule',
+            'BackgroundRegionsModule',
+            'BandHighlightModule',
+            'ContextMenuModule',
+            'CrosshairModule',
+            'DataSourceModule',
+            'GradientLegendModule',
+            'NavigatorModule',
+            'RangesModule',
+            'SelectionModule',
+            'SyncModule',
+            'ZoomModule',
         ],
     ],
 ]);
@@ -583,8 +608,10 @@ export const validModuleIds = new Set([
     // Presets
     'GaugePresetModule',
     'PriceVolumePresetModule',
+    'QuadrantPresetModule',
     'SparklinePresetModule',
     'FinancialChartModule',
+    'QuadrantChartModule',
     // Bundles
     'AllCommunityModule',
     'AllEnterpriseModule',
@@ -607,6 +634,7 @@ const bundleModuleIds = new Set([
     'AllGaugeModule',
     'AllMapSeriesModule',
     'FinancialChartModule',
+    'QuadrantChartModule',
 ]);
 
 // Module ID → Package name (for auto-fix import generation)

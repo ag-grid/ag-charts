@@ -7,6 +7,7 @@ import type { TextWrap } from 'ag-charts-types';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { expectWarningMessages, setupMockConsole } from '../../util/test/mockConsole';
+import { BBox } from '../bbox';
 import type { IScene } from '../node';
 import { RotatableText, Text } from './text';
 
@@ -327,6 +328,60 @@ describe('Text', () => {
         });
     });
 
+    describe('getLineBoxes', () => {
+        const mockScene = setUpMockScene(canvasCtx);
+
+        function textNode(box?: { padding: number }) {
+            const node = Object.assign(new Text(), BASE_OPTIONS, { x: 100, y: 50, text: 'AAAAAA\nBB\nCCCC' });
+            node.setScene(mockScene);
+            if (box != null) node.setBoxing({ fill: 'red', padding: box.padding });
+            return node;
+        }
+
+        function union(boxes: BBox[]) {
+            const x = Math.min(...boxes.map((b) => b.x));
+            const y = Math.min(...boxes.map((b) => b.y));
+            return new BBox(
+                x,
+                y,
+                Math.max(...boxes.map((b) => b.x + b.width)) - x,
+                Math.max(...boxes.map((b) => b.y + b.height)) - y
+            );
+        }
+
+        it('gives one box per line, stacked without gaps or overlap', () => {
+            const boxes = textNode().getLineBoxes();
+            expect(boxes).toHaveLength(3);
+            expect(boxes[1].y).toBeCloseTo(boxes[0].y + boxes[0].height, 5);
+            expect(boxes[2].y).toBeCloseTo(boxes[1].y + boxes[1].height, 5);
+            expect(boxes[0].width).toBeGreaterThan(boxes[1].width);
+        });
+
+        it('covers exactly the block bounds', () => {
+            const node = textNode();
+            expect(union(node.getLineBoxes())).toEqual(node.getBBox());
+        });
+
+        it('covers exactly the block bounds when the label is boxed', () => {
+            const node = textNode({ padding: 4 });
+            expect(union(node.getLineBoxes())).toEqual(node.getBBox());
+        });
+
+        it('charges the box padding to the outer edges only', () => {
+            const plain = textNode().getLineBoxes();
+            const boxed = textNode({ padding: 4 }).getLineBoxes();
+            // Every line widens, but only the first and last take a vertical share of the padding.
+            expect(boxed.map((b) => b.width - 8)).toEqual(plain.map((b) => b.width));
+            expect(boxed.map((b) => b.height)).toEqual([plain[0].height + 4, plain[1].height, plain[2].height + 4]);
+        });
+
+        it('returns the block bounds themselves for a single line', () => {
+            const node = Object.assign(new Text(), BASE_OPTIONS, { x: 100, y: 50, text: 'AAAAAA' });
+            node.setScene(mockScene);
+            expect(node.getLineBoxes()).toEqual([node.getBBox()]);
+        });
+    });
+
     describe('should return an empty string if text overflows when it is not permitted', () => {
         const exampleString = 'Testing wrapping multi-line string \n with two lines';
         const font = BASE_OPTIONS;
@@ -413,9 +468,8 @@ describe('Text', () => {
     });
 
     describe('image segments', () => {
-        // Pre-loaded skia-canvas images for visual snapshot tests. The ImageLoader path used in
-        // production resolves async via HTMLImageElement; in tests we stub it so drawImage gets a
-        // ready-to-render image and the snapshot reflects the actual image content.
+        // ImageLoader resolves async via HTMLImageElement, which jsdom will not decode, so stub it
+        // with pre-loaded skia-canvas images for the snapshots.
         let inlineImage: Image;
         let blockImage: Image;
         let blockImage2: Image;
@@ -598,16 +652,12 @@ describe('Text', () => {
         });
 
         it('warns and still paints the background box when the image url is empty', () => {
-            // The warning is emitted only after the background paint, so asserting it fired confirms
-            // the empty-url path still renders the box (its pixels are covered by the snapshots above).
+            // The warning is emitted only after the background paint, so it firing proves the box rendered.
             renderInlineImageSegmentSnapshot({ url: '', backgroundFill: '#d0e7ff' });
             expectWarningMessages([
                 'AG Charts - Image segment has an empty url; rendering background only (24x24 box).',
             ]);
         });
-
-        // Block-image position, mixing and decoration scenarios are validated by rendering real
-        // (stubbed) images and snapshotting the output, so block positioning can be reviewed by eye.
 
         function renderSegmentsSnapshot(text: unknown[], imagesByUri: Record<string, Image>, x = 200, y = 120) {
             const ctx = canvasCtx.getRenderContext2D();
@@ -970,9 +1020,8 @@ describe('Text', () => {
     describe('getTextMeasureBBox', () => {
         const mockScene = setUpMockScene(canvasCtx);
 
-        // The rotation pivot in updateLabelNode is derived from getTextMeasureBBox each render. If the
-        // measure folds in the node's own rotation, a reused label node drifts frame over frame — the
-        // resize-instability bug. getTextMeasureBBox must report the untransformed glyph box.
+        // updateLabelNode derives its rotation pivot from getTextMeasureBBox each render, so that box
+        // must be untransformed or a reused label node drifts frame over frame.
         it('is unaffected by the node rotation and rotation centre', () => {
             const node = Object.assign(new RotatableText(), {
                 ...BASE_OPTIONS,

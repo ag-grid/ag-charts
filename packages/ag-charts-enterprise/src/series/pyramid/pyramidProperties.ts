@@ -1,5 +1,6 @@
 import type {
     AgColorType,
+    AgFunnelSeriesLabelPlacement,
     AgPyramidSeriesItemStylerParams,
     AgPyramidSeriesLabelFormatterParams,
     AgPyramidSeriesOptions,
@@ -11,8 +12,20 @@ import type {
 import { _ModuleSupport } from 'ag-charts-community';
 import { Property } from 'ag-charts-core';
 
-const { SeriesProperties, makeSeriesTooltip, Label, DropShadow } = _ModuleSupport;
-class PyramidSeriesLabel extends Label<AgPyramidSeriesLabelFormatterParams> {}
+const { SeriesProperties, makeSeriesTooltip, Label, LabelPlacementStyle, DropShadow } = _ModuleSupport;
+class PyramidSeriesLabel extends Label<AgPyramidSeriesLabelFormatterParams> {
+    @Property
+    placement: AgFunnelSeriesLabelPlacement = 'inside-center';
+
+    @Property
+    spacing: number = 0;
+
+    @Property
+    insideStyle = new LabelPlacementStyle();
+
+    @Property
+    outsideStyle = new LabelPlacementStyle();
+}
 
 class PyramidSeriesStageLabel extends Label<AgPyramidSeriesLabelFormatterParams> {
     @Property

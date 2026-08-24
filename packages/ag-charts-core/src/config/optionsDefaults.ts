@@ -61,14 +61,12 @@ import type {
 import { Color } from '../utils/format/color';
 import { isObject } from '../utils/types/typeGuards';
 
-// Validator for internal theme operators.
 export const themeOperator = (value: unknown) => {
     if (!isObject(value)) return false;
     const keys = Object.keys(value);
     return keys.length === 1 && keys[0].startsWith('$');
 };
 
-// Validator for public theme operators.
 const themeParams = [
     'accentColor',
     'axisLineColor',
@@ -442,7 +440,7 @@ export const fontOptionsDef: OptionsDefs<TextOptions> = {
 };
 
 export const textWrap = union('never', 'always', 'hyphenate', 'on-space');
-export const textAlign = union('left', 'center', 'right');
+export const textAlign = union('left', 'center', 'right', 'start', 'end');
 
 export const overflowStrategy = union('ellipsis', 'hide');
 
@@ -452,9 +450,8 @@ export const paddingOptions = optionsDefs<PaddingOptions>(
 );
 export const padding = or(positiveNumber, paddingOptions);
 
-// Cross-line labels consume `padding` as a signed positional value rather than a box inset, so they
-// are deliberately exempt from the non-negative rule (AG-17973). Do not use this anywhere else —
-// new padding options must use `padding` above.
+// Cross-line labels consume `padding` as a signed positional value rather than a box inset, so they are
+// deliberately exempt from the non-negative rule. New padding options must use `padding` above.
 export const signedPaddingOptions = optionsDefs<PaddingOptions>(
     { top: number, right: number, bottom: number, left: number },
     'padding object'

@@ -201,9 +201,8 @@ test.describe('cursor lock during drag', () => {
             expect(box!.height, 'navigator pan slider height').toBeGreaterThan(0);
             const sliderCentre = { x: Math.round(box!.x + box!.width / 2), y: Math.round(box!.y + box!.height / 2) };
 
-            // AC 2's "confirm the proxy element sits under the drag path" as a machine assertion: a
-            // layout change that moves the slider out of the pointer's path fails the test rather
-            // than silently degrading it.
+            // A layout change that moves the slider out of the pointer's path must fail the test
+            // rather than silently degrade it.
             const sliderIsUnderPoint = await panSlider.evaluate(
                 (el, { x, y }) => document.elementFromPoint(x, y)?.closest('.ag-charts-proxy-elem') === el,
                 sliderCentre
@@ -217,9 +216,8 @@ test.describe('cursor lock during drag', () => {
                 async () => {
                     await expect(wrapper).toHaveClass(LOCKED);
 
-                    // Still held: cross over the navigator pan slider. `container.css`'s
-                    // `.ag-charts-wrapper--cursor-locked .ag-charts-proxy-elem { cursor: inherit
-                    // !important }` must beat the slider's own inline `grab`.
+                    // Still held while crossing the pan slider: the cursor-locked `!important` rule in
+                    // `container.css` must beat the slider's own inline `grab`.
                     await page.mouse.move(sliderCentre.x, sliderCentre.y);
                     await expect(panSlider).toHaveCSS('cursor', 'grabbing');
                 }
@@ -278,9 +276,8 @@ test.describe('cursor lock during drag', () => {
 
             await withElementDragHeld(page, slider, { x: 40, y: 0 }, async () => {
                 await expect(wrapper).toHaveClass(LOCKED);
-                // The `default` value is corroborative only: the wrapper's idle cursor is already
-                // `default`, so this assertion passes with the lock removed. The class assertion
-                // above (and the cross-region case on scrollbar-cross-at) are the actual pins.
+                // Corroborative only — the wrapper's idle cursor is already `default`; the class
+                // assertion above is the actual pin.
                 await expect(wrapper).toHaveCSS('cursor', 'default');
             });
 

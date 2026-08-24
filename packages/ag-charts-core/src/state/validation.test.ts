@@ -24,6 +24,7 @@ import {
     constant,
     date,
     deprecated,
+    deprecatedValue,
     enterprise,
     greaterThan,
     instanceOf,
@@ -170,7 +171,6 @@ describe('Validation utils', () => {
             expect(isValid<{ value: string }>({ value: undefined }, { value: required(string) })).toBe(false);
         });
 
-        // should check the description in the logger
         test('attachDescription adds a description to a validator', () => {
             const describedValidator = attachDescription(
                 (value: unknown, context) => string(value, context) && value !== '',
@@ -268,6 +268,100 @@ describe('Validation utils', () => {
             expect(cleared).toEqual({ colorScale: 'red' });
             expect(invalid).toEqual([]);
             expect(console.warn).not.toHaveBeenCalled();
+        });
+
+        test('reports the deprecation to onDeprecation with the notice and path', () => {
+            const onDeprecation = vi.fn();
+            validate<{ colorScale: string }>(
+                { colorScale: 'red' },
+                { colorScale: deprecated(string, 'Use `colorScale.fills` instead.') },
+                '',
+                { onDeprecation }
+            );
+            expect(onDeprecation).toHaveBeenCalledTimes(1);
+            expect(onDeprecation).toHaveBeenCalledWith(
+                'Option `colorScale` is deprecated. Use `colorScale.fills` instead.',
+                'colorScale'
+            );
+        });
+
+        test('stays silent to onDeprecation under silentAdvisories', () => {
+            const onDeprecation = vi.fn();
+            validate<{ colorScale: string }>(
+                { colorScale: 'red' },
+                { colorScale: deprecated(string, 'Use `colorScale.range` instead.') },
+                '',
+                { onDeprecation, silentAdvisories: true }
+            );
+            expect(onDeprecation).not.toHaveBeenCalled();
+            expect(console.warn).not.toHaveBeenCalled();
+        });
+
+        describe('deprecatedValue in a union', () => {
+            const placement = unionOrArray(
+                'before-center',
+                'after-center',
+                deprecatedValue('before', 'Use `before-center` instead.'),
+                deprecatedValue('after', 'Use `after-center` instead.')
+            );
+
+            test('passes the deprecated value through and warns once', () => {
+                const onDeprecation = vi.fn();
+                const { cleared, invalid } = validate<{ placement: string }>(
+                    { placement: 'before' },
+                    { placement },
+                    '',
+                    {
+                        onDeprecation,
+                    }
+                );
+                expect(cleared).toEqual({ placement: 'before' });
+                expect(invalid).toEqual([]);
+                expect(console.warn).toHaveBeenCalledTimes(1);
+                expect((console.warn as Mock).mock.calls[0][0]).toContain(
+                    'Value `"before"` of option `placement` is deprecated. Use `before-center` instead.'
+                );
+                expect(onDeprecation).toHaveBeenCalledWith(
+                    'Value `"before"` of option `placement` is deprecated. Use `before-center` instead.',
+                    'placement'
+                );
+            });
+
+            test('warns for a deprecated value inside a fallback array', () => {
+                const { cleared, invalid } = validate<{ placement: string[] }>(
+                    { placement: ['before-center', 'after'] },
+                    { placement }
+                );
+                expect(cleared).toEqual({ placement: ['before-center', 'after'] });
+                expect(invalid).toEqual([]);
+                expect(console.warn).toHaveBeenCalledTimes(1);
+                expect((console.warn as Mock).mock.calls[0][0]).toContain('Use `after-center` instead.');
+            });
+
+            test('stays silent for a supported value', () => {
+                const onDeprecation = vi.fn();
+                validate<{ placement: string }>({ placement: 'before-center' }, { placement }, '', { onDeprecation });
+                expect(onDeprecation).not.toHaveBeenCalled();
+                expect(console.warn).not.toHaveBeenCalled();
+            });
+
+            test('stays silent for a theme-injected value under silentAdvisories', () => {
+                const onDeprecation = vi.fn();
+                const { cleared } = validate<{ placement: string }>({ placement: 'before' }, { placement }, '', {
+                    onDeprecation,
+                    silentAdvisories: true,
+                });
+                expect(cleared).toEqual({ placement: 'before' });
+                expect(onDeprecation).not.toHaveBeenCalled();
+                expect(console.warn).not.toHaveBeenCalled();
+            });
+
+            test('omits deprecated values from the expected-keyword message', () => {
+                const { invalid } = validate({ placement: 'middle' }, { placement });
+                expect(invalid.map(String)).toEqual([
+                    "Option `placement` cannot be set to `\"middle\"`; expecting a keyword such as 'before-center' or 'after-center' or a non-empty array containing these keywords, ignoring.",
+                ]);
+            });
         });
     });
 
@@ -442,12 +536,10 @@ describe('Validation utils', () => {
                 )
             );
 
-            // Verify defaulting.
             expect(runValidator(isTypeUnionOfFoo, {})).toBe(false);
             expect(runValidator(isTypeUnionOfFoo, { aa: true })).toBe(false);
             expect(runValidator(isTypeUnionOfFoo, { bb: 1 })).toBe(true);
 
-            // Verify non-defaulting cases too.
             expect(runValidator(isTypeUnionOfFoo, { type: 'a' })).toBe(true);
             expect(runValidator(isTypeUnionOfFoo, { type: 'a', aa: true })).toBe(true);
             expect(runValidator(isTypeUnionOfFoo, { type: 'b', bb: 1 })).toBe(true);
@@ -774,10 +866,8 @@ describe('Validation utils', () => {
         });
 
         it('still accepts none, a named color, hex, rgb() and hsl()', () => {
-            // var(--brand) is deliberately not pinned here: jsdom's CSSStyleDeclaration (unlike
-            // a real browser) rejects an unresolved var() reference as a specified color value
-            // outright, so isColor's var()-passthrough can only be observed with the
-            // container-based mockCssVarColorSupport shim, which is enterprise-only.
+            // var(--brand) is deliberately not pinned here: jsdom rejects an unresolved var() reference as a
+            // specified color value, so isColor's var() passthrough is only observable via an enterprise-only shim.
             expect(isValid({ c: 'none' }, { c: color })).toBe(true);
             expect(isValid({ c: 'red' }, { c: color })).toBe(true);
             expect(isValid({ c: '#ff5733' }, { c: color })).toBe(true);
@@ -785,12 +875,8 @@ describe('Validation utils', () => {
             expect(isValid({ c: 'hsl(145, 63%, 42%)' }, { c: color })).toBe(true);
         });
 
-        // D1 guard: this change deliberately rejects only the four named formats via
-        // isUnsupportedColorFormat, ahead of the existing browser parse — it must not narrow
-        // the validator wholesale. currentColor renders today and must keep validating; the
-        // corresponding hwb()/color-mix()/oklch() pins live in color.test.ts against
-        // isUnsupportedColorFormat directly, because jsdom's CSS engine here does not
-        // implement those functions, so parseColor() rejects them regardless of this change.
+        // The hwb()/color-mix()/oklch() pins live in color.test.ts, as jsdom's CSS engine rejects those
+        // regardless; here only `currentColor` distinguishes a targeted rejection from a blanket one.
         it('still accepts currentColor (D1 guard: not narrowed wholesale)', () => {
             expect(isValid({ c: 'currentColor' }, { c: color })).toBe(true);
         });

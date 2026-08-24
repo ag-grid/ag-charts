@@ -92,7 +92,7 @@ export class ColorScale extends AbstractScale<number, string> {
             }
         }
 
-        // For discrete mode, domain may have N+1 boundaries for N colours.
+        // Discrete mode allows N+1 domain boundaries for N colours.
         const expectedLength = this.mode === 'discrete' ? domain.length - 1 : domain.length;
         if (range.length < expectedLength) {
             for (let i = range.length; i < expectedLength; i++) {

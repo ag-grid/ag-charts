@@ -25,9 +25,13 @@ interface Props {
      */
     addExternalExampleStyles?: boolean;
     /**
-     * Whether to not include system js code
+     * Whether to skip the example module loader (import map + entry module)
      */
-    ignoreSystemJs?: boolean;
+    ignoreModuleLoader?: boolean;
+    /**
+     * Whether to transpile the example's sources in the page instead of serving them transpiled
+     */
+    transpileInBrowser?: boolean;
     /**
      * Ignore dark mode (always use light mode)
      */
@@ -42,7 +46,8 @@ const {
     addInitMessageScript,
     addE2ECheckScript,
     addExternalExampleStyles,
-    ignoreSystemJs,
+    ignoreModuleLoader,
+    transpileInBrowser,
     ignoreDarkMode,
 } = Astro.props as Props;
 
@@ -67,8 +72,8 @@ const exampleUrl = getExampleUrl({
     generatedContents={generatedContents!}
     relativePath={relativePath}
     addInitMessageScript={addInitMessageScript}
-    ignoreSystemJs={ignoreSystemJs}
-    addInitMessageScript={addInitMessageScript}
+    ignoreModuleLoader={ignoreModuleLoader}
+    transpileInBrowser={transpileInBrowser}
     addE2ECheckScript={addE2ECheckScript}
     addExternalExampleStyles={addExternalExampleStyles}
     ignoreDarkMode={ignoreDarkMode}

@@ -10,7 +10,7 @@ import {
     SINGLE_SERIES_HIGHLIGHT_STYLE,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
-import type { ExtensibleTheme } from 'ag-charts-types';
+import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 function itemTheme(
     key: 'altUp' | 'altDown' | 'neutral',
@@ -49,7 +49,7 @@ function itemTheme(
                 alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
                 ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }),
             },
-            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
+            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('chartBackgroundColor'),
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
             formatter: undefined,
             placement: 'outside-end' as const,
@@ -57,7 +57,7 @@ function itemTheme(
     };
 }
 
-export const WATERFALL_SERIES_THEME: ExtensibleTheme<'waterfall'> = {
+export const WATERFALL_SERIES_THEME: ExtensibleSeriesTheme<'waterfall'> = {
     series: {
         item: {
             positive: itemTheme('altUp', 0),

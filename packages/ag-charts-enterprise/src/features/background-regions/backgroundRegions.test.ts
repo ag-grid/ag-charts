@@ -5,11 +5,12 @@ import {
     type CartesianTestCase,
     cartesianChartAssertions,
     compareImageSnapshot,
+    expectWarningsCalls,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import type { AgCartesianChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -78,6 +79,7 @@ const NO_RANGES_NUMERIC = {
         backgroundRegions: [
             {
                 fill: 'lightsalmon',
+                fillOpacity: 0.8,
             },
         ],
     },
@@ -89,6 +91,7 @@ const XRANGE_NUMERIC = {
         backgroundRegions: [
             {
                 fill: 'lightsalmon',
+                fillOpacity: 0.8,
                 xRange: { start: 20, end: 80 },
             },
         ],
@@ -101,6 +104,7 @@ const YRANGE_NUMERIC = {
         backgroundRegions: [
             {
                 fill: 'lightsalmon',
+                fillOpacity: 0.8,
                 yRange: { start: 20, end: 80 },
             },
         ],
@@ -113,6 +117,7 @@ const BOTH_RANGES_START_NUMERIC = {
         backgroundRegions: [
             {
                 fill: 'lightsalmon',
+                fillOpacity: 0.8,
                 xRange: { start: 20 },
                 yRange: { start: 20 },
             },
@@ -126,6 +131,7 @@ const BOTH_RANGES_END_NUMERIC = {
         backgroundRegions: [
             {
                 fill: 'lightsalmon',
+                fillOpacity: 0.8,
                 xRange: { end: 80 },
                 yRange: { end: 80 },
             },
@@ -139,6 +145,7 @@ const BOTH_RANGES_NUMERIC = {
         backgroundRegions: [
             {
                 fill: 'lightsalmon',
+                fillOpacity: 0.8,
                 xRange: { start: 20, end: 80 },
                 yRange: { start: 20, end: 80 },
             },
@@ -152,11 +159,13 @@ const OVERLAPPING_RANGES_NUMERIC = {
         backgroundRegions: [
             {
                 fill: 'lightsalmon',
+                fillOpacity: 0.8,
                 xRange: { start: 20, end: 60 },
                 yRange: { start: 20, end: 60 },
             },
             {
                 fill: 'thistle',
+                fillOpacity: 0.8,
                 xRange: { start: 40, end: 80 },
                 yRange: { start: 40, end: 80 },
             },
@@ -197,11 +206,13 @@ const SECONDARY_AXIS_NUMERIC: AgCartesianChartOptions = {
         backgroundRegions: [
             {
                 fill: 'lightsalmon',
+                fillOpacity: 0.8,
                 xRange: { axis: 'xSecondary', start: 20, end: 60 },
                 yRange: { start: 20, end: 60 },
             },
             {
                 fill: 'thistle',
+                fillOpacity: 0.8,
                 xRange: { start: 40, end: 80 },
                 yRange: { start: 40, end: 80 },
             },
@@ -215,6 +226,7 @@ const BOTH_RANGES_TIME = {
         backgroundRegions: [
             {
                 fill: 'lightsalmon',
+                fillOpacity: 0.8,
                 xRange: {
                     start: new Date('2026-01-01 06:00:00'),
                     end: new Date('2026-01-01 18:00:00'),
@@ -231,6 +243,7 @@ const BOTH_RANGES_UNIT_TIME = {
         backgroundRegions: [
             {
                 fill: 'lightsalmon',
+                fillOpacity: 0.8,
                 xRange: {
                     start: new Date('2026-02-01'),
                     end: new Date('2026-04-01'),
@@ -247,6 +260,7 @@ const BOTH_RANGES_ORDINAL_TIME = {
         backgroundRegions: [
             {
                 fill: 'lightsalmon',
+                fillOpacity: 0.8,
                 xRange: {
                     start: new Date('2026-02-01'),
                     end: new Date('2026-04-01'),
@@ -261,7 +275,12 @@ const BOTH_RANGES_CATEGORY = {
     ...CATEGORY,
     seriesArea: {
         backgroundRegions: [
-            { fill: 'lightsalmon', xRange: { start: 'two', end: 'four' }, yRange: { start: 20, end: 80 } },
+            {
+                fill: 'lightsalmon',
+                fillOpacity: 0.8,
+                xRange: { start: 'two', end: 'four' },
+                yRange: { start: 20, end: 80 },
+            },
         ],
     },
 };
@@ -387,6 +406,134 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
     },
     STYLED: { options: STYLED, assertions },
     THEMED: { options: THEMED, assertions },
+
+    SERIES_AREA_PADDING_AND_BORDER: {
+        options: {
+            ...BOTH_RANGES_NUMERIC,
+            seriesArea: {
+                ...BOTH_RANGES_NUMERIC.seriesArea,
+                padding: { top: 20, right: 20, bottom: 20, left: 20 },
+                border: { enabled: true, strokeWidth: 4 },
+            },
+        },
+        assertions,
+    },
+
+    INVALID_TYPE_VALUE: {
+        options: {
+            ...NUMERIC,
+            seriesArea: {
+                backgroundRegions: [
+                    { fill: 'lightsalmon', fillOpacity: 0.8, xRange: { start: 'not-a-number', end: 80 } },
+                ],
+            },
+        },
+        assertions,
+        warnings: [
+            ['AG Charts - `seriesArea.backgroundRegions[].xRange` does not match the axis type or domain, ignoring.'],
+        ],
+    },
+
+    MISSING_CATEGORY_VALUE: {
+        options: {
+            ...CATEGORY,
+            seriesArea: {
+                backgroundRegions: [{ fill: 'lightsalmon', fillOpacity: 0.8, xRange: { start: 'two', end: 'nope' } }],
+            },
+        },
+        assertions: cartesianChartAssertions({ seriesTypes: ['bar'], axisTypes: { x: 'category', y: 'number' } }),
+        warnings: [
+            ['AG Charts - `seriesArea.backgroundRegions[].xRange` does not match the axis type or domain, ignoring.'],
+        ],
+    },
+
+    UNKNOWN_AXIS_KEY: {
+        options: {
+            ...NUMERIC,
+            seriesArea: {
+                backgroundRegions: [
+                    { fill: 'lightsalmon', fillOpacity: 0.8, yRange: { axis: 'nope', start: 20, end: 80 } },
+                ],
+            },
+        },
+        assertions,
+        warnings: [
+            [
+                'AG Charts - No axis found matching `seriesArea.backgroundRegions[].yRange.axis` of `nope`, using the primary axis.',
+            ],
+        ],
+    },
+
+    ZERO_EXTENT: {
+        options: {
+            ...NUMERIC,
+            seriesArea: {
+                backgroundRegions: [{ fill: 'lightsalmon', fillOpacity: 0.8, xRange: { start: 50, end: 50 } }],
+            },
+        },
+        assertions,
+        warnings: [
+            [
+                'AG Charts - `seriesArea.backgroundRegions` region has no width or height, ignoring. Check that `start` and `end` differ.',
+            ],
+        ],
+    },
+
+    LABEL_OUTSIDE_AT_PLOT_EDGE: {
+        options: {
+            ...NUMERIC,
+            seriesArea: {
+                backgroundRegions: [
+                    {
+                        fill: 'lightsalmon',
+                        fillOpacity: 0.8,
+                        label: { position: 'top', text: 'outside', fontSize: 20 },
+                    },
+                ],
+            },
+        },
+        assertions,
+    },
+
+    ZOOMED_LABEL_STICKY: {
+        options: {
+            ...NUMERIC,
+            zoom: { enabled: true, axes: 'xy' },
+            initialState: { zoom: { ratioX: { start: 0.4, end: 0.6 }, ratioY: { start: 0.4, end: 0.6 } } },
+            seriesArea: {
+                backgroundRegions: [
+                    {
+                        fill: 'lightsalmon',
+                        fillOpacity: 0.8,
+                        xRange: { start: 20, end: 80 },
+                        yRange: { start: 20, end: 80 },
+                        label: { position: 'top', text: 'sticky', fontSize: 20 },
+                    },
+                ],
+            },
+        },
+        assertions,
+    },
+
+    ZOOMED_LABEL_OUT_OF_VIEW: {
+        options: {
+            ...NUMERIC,
+            zoom: { enabled: true, axes: 'xy' },
+            initialState: { zoom: { ratioX: { start: 0.4, end: 0.6 }, ratioY: { start: 0.4, end: 0.6 } } },
+            seriesArea: {
+                backgroundRegions: [
+                    {
+                        fill: 'lightsalmon',
+                        fillOpacity: 0.8,
+                        xRange: { start: 0, end: 10 },
+                        yRange: { start: 0, end: 10 },
+                        label: { position: 'top', text: 'hidden', fontSize: 20 },
+                    },
+                ],
+            },
+        },
+        assertions,
+    },
 };
 
 const labelPositions = [
@@ -416,6 +563,7 @@ for (const position of labelPositions) {
                 backgroundRegions: [
                     {
                         fill: 'lightsalmon',
+                        fillOpacity: 0.8,
                         xRange: { start: 20, end: 80 },
                         yRange: { start: 20, end: 80 },
                         label: {
@@ -459,17 +607,7 @@ describe('Background Regions', () => {
             await waitForChartStability(chart);
             await example.assertions(chart);
 
-            if (example.warnings) {
-                for (const [index, message] of example.warnings.entries()) {
-                    expect(console.warn).toHaveBeenNthCalledWith(
-                        index + 1,
-                        ...(Array.isArray(message) ? message : [message])
-                    );
-                }
-            }
-            if (!example.warnings?.length) {
-                expect(console.warn).not.toHaveBeenCalled();
-            }
+            expectWarningsCalls().toEqual(example.warnings ?? []);
         }
     );
 
@@ -486,6 +624,44 @@ describe('Background Regions', () => {
                 await example.extraScreenshotActions(chart);
                 await compare();
             }
+
+            expectWarningsCalls().toEqual(example.warnings ?? []);
         }
     );
+});
+
+describe('Background Regions on unsupported chart types', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: any;
+
+    afterEach(async () => {
+        if (chart) {
+            await waitForChartStability(chart);
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+    });
+
+    it('reports the chart type rather than an unknown option', async () => {
+        const options: AgChartOptions = {
+            data: [
+                { label: 'one', value: 20 },
+                { label: 'two', value: 40 },
+            ],
+            series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'label' }],
+            seriesArea: {
+                backgroundRegions: [{ fill: 'lightsalmon', xRange: { start: 20, end: 80 } }],
+            },
+        } as AgChartOptions;
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        expectWarningsCalls().toEqual([
+            ['AG Charts - Option `seriesArea.backgroundRegions` is not supported by chart type `polar`, ignoring.'],
+        ]);
+    });
 });

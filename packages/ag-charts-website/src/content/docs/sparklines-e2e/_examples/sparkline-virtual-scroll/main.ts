@@ -14,14 +14,7 @@ import { getData } from './data';
 
 ModuleRegistry.registerModules([CategoryAxisModule, LineSeriesModule, NumberAxisModule]);
 
-// ---------------------------------------------------------------------------
-// Virtual-scroll sparkline demo
-//
-// Simulates a grid with 1000 rows, each containing a sparkline. Only the rows
-// visible inside the 400px viewport are materialised. As the user scrolls,
-// sparklines leaving the viewport are destroyed (returned to pool) and new ones
-// entering the viewport are created (reused from pool).
-// ---------------------------------------------------------------------------
+// Virtual-scroll demo: 1000 rows, but only sparklines inside the viewport are materialised and pooled.
 
 const TOTAL_ROWS = 1000;
 const ROW_HEIGHT = 36;
@@ -44,9 +37,7 @@ const rowData: { x: number; y: number }[][] = Array.from({ length: TOTAL_ROWS },
 // Create one initial sparkline so gotoExample detects a canvas on load.
 AgCharts.__createSparkline({ ...baseOptions, container: document.getElementById('myChart')!, data: getData() });
 
-// ---------------------------------------------------------------------------
 // Virtual-scroll state
-// ---------------------------------------------------------------------------
 
 interface RowEntry {
     element: HTMLElement;
@@ -67,9 +58,7 @@ scrollContent.id = 'scroll-content';
 scrollContent.style.height = `${TOTAL_ROWS * ROW_HEIGHT}px`;
 viewport.appendChild(scrollContent);
 
-// ---------------------------------------------------------------------------
 // Render visible rows
-// ---------------------------------------------------------------------------
 
 function renderVisibleRows() {
     const scrollTop = viewport.scrollTop;
@@ -127,9 +116,7 @@ function renderVisibleRows() {
     stats.textContent = `rows ${start}–${end} (${activeRows.size} active, pool recycling via destroy/create)`;
 }
 
-// ---------------------------------------------------------------------------
 // Wire up scroll listener and initial render
-// ---------------------------------------------------------------------------
 
 viewport.addEventListener('scroll', renderVisibleRows, { passive: true });
 renderVisibleRows();

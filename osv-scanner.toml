@@ -77,6 +77,26 @@ name = "node-forge"
 ignore = true
 
 [[IgnoredVulns]]
+id = "GHSA-w8wr-v893-vjvp"
+reason = "tar is only used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-r292-9mhp-454m"
+reason = "tar is only used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-gvwx-54wh-qm9j"
+reason = "tar is only used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-8x88-c5mf-7j5w"
+reason = "tar is only used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-23hp-3jrh-7fpw"
+reason = "tar is only used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
 id = "GHSA-3p6v-hrg8-8qj7"
 reason = "Used for MCP server, not exposed to end users"
 
@@ -98,7 +118,11 @@ reason = "We only use axios for build and testing"
 
 [[IgnoredVulns]]
 id = "GHSA-qwcr-r2fm-qrc7"
-reason = "We only use body-parser for the dev server"
+reason = "body-parser is only used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-v422-hmwv-36x6"
+reason = "body-parser is only used in development/testing - it's not used in the final production build"
 
 [[IgnoredVulns]]
 id = "GHSA-grv7-fg5c-xmjg"
@@ -179,6 +203,10 @@ reason = "@angular/common is only used for dev/testing, or for libraries, it is 
 [[IgnoredVulns]]
 id = "GHSA-v4hv-rgfq-gp49"
 reason = "@angular/common is only used for dev/testing, or for libraries, it is not used for SVG or MathML attributes"
+
+[[IgnoredVulns]]
+id = "GHSA-jhpw-976m-542j"
+reason = "@angular/common is not used for SSR"
 
 [[IgnoredVulns]]
 id = "GHSA-mh29-5h37-fv8m"
@@ -409,6 +437,10 @@ id = "GHSA-92pp-h63x-v22m"
 reason = "@hono/node-server only used in dev - not used in final prod build"
 
 [[IgnoredVulns]]
+id = "GHSA-frvp-7c67-39w9"
+reason = "@hono/node-server only used in dev - not used in final prod build"
+
+[[IgnoredVulns]]
 id = "GHSA-26pp-8wgv-hjvm"
 reason = "hono is only used in dev tools"
 
@@ -437,6 +469,30 @@ id = "GHSA-v8w9-8mx6-g223"
 reason = "hono is only used in dev tools"
 
 [[IgnoredVulns]]
+id = "GHSA-hvrm-45r6-mjfj"
+reason = "hono is only used in dev tools"
+
+[[IgnoredVulns]]
+id = "GHSA-xgm2-5f3f-mvvc"
+reason = "hono is only used in dev tools"
+
+[[IgnoredVulns]]
+id = "GHSA-w62v-xxxg-mg59"
+reason = "hono is only used in dev tools"
+
+[[IgnoredVulns]]
+id = "GHSA-f23p-vx2j-j53r"
+reason = "hono is only used in dev tools"
+
+[[IgnoredVulns]]
+id = "GHSA-8j4g-w8fx-2239"
+reason = "hono is only used in dev tools"
+
+[[IgnoredVulns]]
+id = "GHSA-79qm-7rj5-m7r9"
+reason = "hono is only used in dev tools"
+
+[[IgnoredVulns]]
 id = "GHSA-6v7q-wjvx-w8wg"
 reason = "basic-ftp is only used in dev - not used in final prod build"
 
@@ -446,6 +502,18 @@ reason = "basic-ftp is only used in dev - not used in final prod build"
 
 [[IgnoredVulns]]
 id = "GHSA-f886-m6hf-6m8v"
+reason = "brace-expansion is only used in dev - not used in final prod build"
+
+[[IgnoredVulns]]
+id = "GHSA-rgw5-rvv9-x895"
+reason = "brace-expansion is only used in dev - not used in final prod build"
+
+[[IgnoredVulns]]
+id = "GHSA-mh99-v99m-4gvg"
+reason = "brace-expansion is only used in dev - not used in final prod build"
+
+[[IgnoredVulns]]
+id = "GHSA-3jxr-9vmj-r5cp"
 reason = "brace-expansion is only used in dev - not used in final prod build"
 
 [[IgnoredVulns]]
@@ -474,6 +542,14 @@ reason = "dompurify is only used in dev on the website"
 
 [[IgnoredVulns]]
 id = "GHSA-h8r8-wccr-v5f2"
+reason = "dompurify is only used in dev on the website"
+
+[[IgnoredVulns]]
+id = "GHSA-c2j3-45gr-mqc4"
+reason = "dompurify is only used in dev on the website"
+
+[[IgnoredVulns]]
+id = "GHSA-55q2-fjhq-7xh7"
 reason = "dompurify is only used in dev on the website"
 
 [[IgnoredVulns]]
@@ -514,6 +590,10 @@ reason = "smol-toml is only used in dev tools"
 
 [[IgnoredVulns]]
 id = "GHSA-677m-j7p3-52f9"
+reason = "socket.io-parser is only used in testing tools"
+
+[[IgnoredVulns]]
+id = "GHSA-2m8v-j782-fhvr"
 reason = "socket.io-parser is only used in testing tools"
 
 [[IgnoredVulns]]
@@ -570,6 +650,10 @@ reason = "ws is only used in testing/build, not in the final production build"
 [[IgnoredVulns]]
 id = "GHSA-58w9-8g37-x9v5"
 reason = "@angular/compiler is only used in testing/build, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-jj27-h5hq-8x99"
+reason = "@angular/compiler and @angular/core are only used in testing/build, not in the final production build"
 
 [[IgnoredVulns]]
 id = "GHSA-5c9x-8gcm-mpgx"
@@ -652,6 +736,14 @@ id = "GHSA-h67p-54hq-rp68"
 reason = "js-yaml is only used in testing/build, not in the final production build"
 
 [[IgnoredVulns]]
+id = "GHSA-5p4m-2wfm-xmqj"
+reason = "js-yaml is only used in testing/build, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-52cp-r559-cp3m"
+reason = "js-yaml is only used in testing/build, not in the final production build"
+
+[[IgnoredVulns]]
 id = "GHSA-hfxv-24rg-xrqf"
 reason = "axios is only used in testing/build, not in the final production build"
 
@@ -708,11 +800,47 @@ id = "GHSA-pmwg-cvhr-8vh7"
 reason = "axios is only used in testing/build, not in the final production build"
 
 [[IgnoredVulns]]
+id = "GHSA-pmv8-rq9r-6j72"
+reason = "axios is only used in testing/build, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-mwf2-3pr3-8698"
+reason = "axios is only used in testing/build, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-mmx7-hfxf-jppx"
+reason = "axios is only used in testing/build, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-jqh4-m9w3-8hp9"
+reason = "axios is only used in testing/build, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-7q8q-rj6j-mhjq"
+reason = "axios is only used in testing/build, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-42h9-826w-cgv3"
+reason = "axios is only used in testing/build, not in the final production build"
+
+[[IgnoredVulns]]
 id = "GHSA-pr7r-676h-xcf6"
 reason = "undici is only used in testing/build, not in the final production build"
 
 [[IgnoredVulns]]
 id = "GHSA-q3j6-qgpj-74h6"
+reason = "fast-uri is only used in testing/build, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-v2hh-gcrm-f6hx"
+reason = "fast-uri is only used in testing/build, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-7p8r-x3mc-p8w7"
+reason = "fast-uri is only used in testing/build, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-4c8g-83qw-93j6"
 reason = "fast-uri is only used in testing/build, not in the final production build"
 
 [[IgnoredVulns]]
@@ -760,6 +888,10 @@ id = "GHSA-v2v4-37r5-5v8g"
 reason = "ip-address is only used in testing/build, not in the final production build"
 
 [[IgnoredVulns]]
+id = "GHSA-mwp4-54f8-5fhr"
+reason = "ip-address is only used in testing/build, not in the final production build"
+
+[[IgnoredVulns]]
 id = "GHSA-v39h-62p7-jpjc"
 reason = "fast-uri is only used in testing/build, not in the final production build"
 
@@ -777,6 +909,10 @@ reason = "dompurify is only used in testing/build, not in the final production b
 
 [[IgnoredVulns]]
 id = "GHSA-w7jw-789q-3m8p"
+reason = "shell-quote is only used in testing/build, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-395f-4hp3-45gv"
 reason = "shell-quote is only used in testing/build, not in the final production build"
 
 [[IgnoredVulns]]
@@ -808,6 +944,18 @@ id = "GHSA-xr5h-phrj-8vxv"
 reason = "astro is only used in testing/build, not in the final production build"
 
 [[IgnoredVulns]]
+id = "GHSA-7pw4-f3q4-r2p2"
+reason = "astro use of transition:* properties do not apply client provided values"
+
+[[IgnoredVulns]]
+id = "GHSA-4g3v-8h47-v7g6"
+reason = "astro use of view transition animation properties do not apply client provided values"
+
+[[IgnoredVulns]]
+id = "GHSA-f48w-9m4c-m7f5"
+reason = "astro builds a static website, so this does not affect the final production build"
+
+[[IgnoredVulns]]
 id = "GHSA-xrhx-7g5j-rcj5"
 reason = "hono is only used in testing/build, not in the final production build"
 
@@ -833,3 +981,85 @@ reason = "undici is only used in testing/build, not in the final production buil
 [[IgnoredVulns]]
 id = "GHSA-g8m3-5g58-fq7m"
 reason = "undici is only used in testing/build, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-jr45-8vmc-qm54"
+reason = "undici is only used in testing/build, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-4cwx-7wf7-3272"
+reason = "undici is only used in testing/build, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-v3r7-h72x-cjcm"
+reason = "undici is only used in testing/build, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-m8rv-5g2x-5cg5"
+reason = "undici is only used in testing/build, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-8xcm-r25x-g524"
+reason = "undici is only used in testing/build, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-xv26-6w52-cph6"
+reason = "websocket-driver is only used in testing/build, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-mp7j-qc5w-4988"
+reason = "websocket-driver is only used in testing/build, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-2p49-hgcm-8545"
+reason = "svgo only processes files we control"
+
+[[IgnoredVulns]]
+id = "GHSA-f88m-g3jw-g9cj"
+reason = "sharp is only used in build tooling, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-r28c-9q8g-f849"
+reason = "postcss is only used for internal css"
+
+[[IgnoredVulns]]
+id = "GHSA-fxqj-rqcc-2cmp"
+reason = "postcss is only used for internal css"
+
+[[IgnoredVulns]]
+id = "GHSA-6g55-p6wh-862q"
+reason = "postcss is only used for internal css"
+
+[[IgnoredVulns]]
+id = "GHSA-g2r8-wvmj-jf5w"
+reason = "nx graph is only ever run locally"
+
+[[IgnoredVulns]]
+id = "GHSA-2v37-7h3g-55p8"
+reason = "nanoid is only used in dev/test tooling, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-28wg-ghj8-5hjv"
+reason = "nanoid is only used in dev/test tooling, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-xvcm-6775-5m9r"
+reason = "immutable is only used in dev tooling, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-v56q-mh7h-f735"
+reason = "immutable is only used in dev tooling, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-w3rx-r6r6-pgpr"
+reason = "image-size is only used in dev tooling, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-5p2g-fcmc-qvqq"
+reason = "image-size is only used in dev tooling, not in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-jmr9-qjv8-65gv"
+reason = "extract-zip is only used in testing tooling, not in the final production build"
+
+

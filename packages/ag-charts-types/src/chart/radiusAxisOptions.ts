@@ -71,7 +71,8 @@ export interface AgRadiusCategoryAxisOptions<TContext = ContextDefault> extends 
 
 export type AgRadiusCrossLineOptions<TValue = AxisValue> = AgBaseCrossLineOptions<
     TValue,
-    AgRadiusCrossLineLabelOptions
+    AgRadiusCrossLineLabelOptions,
+    ContextDefault
 >;
 export interface AgRadiusCrossLineThemeOptions extends AgCrossLineThemeOptions<AgRadiusCrossLineLabelOptions> {}
 

@@ -37,6 +37,9 @@
 
 .ag-charts-validation-overlay__panel {
     pointer-events: auto;
+    /* The chart disables text selection globally; the diagnostic text here must stay selectable. */
+    user-select: text;
+    -webkit-user-select: text;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;

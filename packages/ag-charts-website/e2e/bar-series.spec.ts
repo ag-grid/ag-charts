@@ -46,9 +46,7 @@ test.describe('bar-series', () => {
             await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'data-per-series-legend-hover.png');
         });
 
-        // The same highlight is reachable by keyboard: Tab into the chart, Tab to the legend, then two
-        // ArrowRights to "MacBook - Retail" (the third of four legend items). The focus ring is the only
-        // visible difference from the mouse-hover state.
+        // Two ArrowRights lands on "MacBook - Retail", the third of four legend items.
         test('keyboard legend focus highlights the series and dims the others', async ({ page }) => {
             await page.keyboard.press('Tab');
             await page.keyboard.press('Tab');

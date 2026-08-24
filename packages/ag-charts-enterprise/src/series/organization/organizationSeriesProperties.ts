@@ -44,6 +44,9 @@ export class OrganizationSeriesProperties extends NetworkSeriesTreeLayoutPropert
     link = new OrganizationSeriesLinkProperties();
 
     @Property
+    layout = new OrganizationSeriesLayoutProperties();
+
+    @Property
     node = new OrganizationSeriesNodeProperties();
 }
 
@@ -59,6 +62,9 @@ class OrganizationSeriesExpanderProperties extends BaseProperties {
 
     @Property
     fillOpacity: number = 1;
+
+    @Property
+    hoverStyle = new OrganizationSeriesExpanderHoverStyleProperties();
 
     @Property
     itemStyler?: Styler<
@@ -117,6 +123,37 @@ class OrganizationSeriesExpanderTextProperties extends BaseProperties {
     textAlign: TextAlign = 'left';
 }
 
+class OrganizationSeriesExpanderHoverStyleProperties extends BaseProperties {
+    @Property
+    fill?: CssColor;
+
+    @Property
+    fillOpacity?: number;
+
+    @Property
+    stroke?: CssColor;
+
+    @Property
+    strokeOpacity?: number;
+
+    @Property
+    lineDash?: number[];
+
+    @Property
+    lineDashOffset?: number;
+
+    @Property
+    text = new OrganizationSeriesExpanderHoverStyleTextProperties();
+}
+
+class OrganizationSeriesExpanderHoverStyleTextProperties extends BaseProperties {
+    @Property
+    color?: CssColor;
+
+    @Property
+    fontWeight?: FontWeight;
+}
+
 class OrganizationSeriesLinkProperties extends BaseProperties {
     @Property
     itemStyler?: Styler<AgOrganizationSeriesLinkItemStylerParams<unknown, unknown>, AgOrganizationSeriesLinkStyle>;
@@ -138,6 +175,21 @@ class OrganizationSeriesLinkProperties extends BaseProperties {
 
     @Property
     strokeWidth: number = 1;
+}
+
+class OrganizationSeriesLayoutProperties extends BaseProperties {
+    // Left undefined so that a series with no `layout` option keeps the default tree layout.
+    @Property
+    type?: 'stacked';
+
+    @Property
+    linkIndentation: number = 50;
+
+    @Property
+    nodeIndentation: number = 30;
+
+    @Property
+    stackAtDepth: number = 4;
 }
 
 class OrganizationSeriesLinkStepInterpolationProperties extends BaseProperties {

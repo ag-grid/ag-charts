@@ -83,9 +83,8 @@ export function toTextString(value: TextValue | undefined): string {
 
 type CoercedTextValue<R> = string | R | undefined;
 
-// Coerce the TextValue (number/Date) portion of a Renderer<P, R> return to a string,
-// leaving R values, plain strings, and `undefined` unchanged. Centralises the contract
-// shared by overlay/crosshair-style consumers that mix text and DOM/object outputs.
+// Coerce only the TextValue (number/Date) part of a renderer result, so consumers that mix text with
+// DOM/object outputs keep their R values, strings and `undefined` intact.
 export function coerceTextValue<R>(value: TextValue | R): string | R;
 export function coerceTextValue<R>(value: TextValue | R | undefined): CoercedTextValue<R>;
 export function coerceTextValue<R>(value: TextValue | R | undefined): CoercedTextValue<R> {
@@ -97,10 +96,8 @@ export function appendEllipsis(text: string) {
     return preserveArabicJoining(text.replace(TrimCharsRegex, '')) + EllipsisChar;
 }
 
-// Arabic dual-joining letters: these change form based on position.
-// When truncated mid-word, appending ZWJ preserves the medial/initial form.
-// Excludes right-join-only letters (Alef, Teh Marbuta, Dal, Thal, Ra, Zain, Waw)
-// whose final form is visually identical to isolated.
+// Arabic letters that change form by position, so a ZWJ after a mid-word truncation keeps that form.
+// Right-join-only letters are excluded: their final form is visually identical to the isolated one.
 const RIGHT_JOIN_ONLY = new Set([
     0x0627, // Alef ا
     0x0629, // Teh Marbuta ة
@@ -124,9 +121,8 @@ export function preserveArabicJoining(text: string): string {
     return text;
 }
 
-// Approximate the strong bidi classes: R/AL is the RTL scripts and explicit RTL marks, L any other
-// letter. The R/AL ranges skip the Arabic-Indic digits (U+0660-9, U+06F0-9) and the Arabic number
-// formatting characters (U+066A-C) \u2014 those are numeric, not strong.
+// Approximates the strong bidi classes; the R/AL ranges skip Arabic-Indic digits (U+0660-9, U+06F0-9)
+// and Arabic number formatting (U+066A-C), which are numeric rather than strong.
 const StrongRtlRegex = /[\u0590-\u065F\u066D-\u06EF\u06FA-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF\u200F\u202B\u202E\u2067]/u;
 const StrongLtrRegex = /[\p{L}\u200E\u202A\u202D\u2066]/u;
 
@@ -177,6 +173,12 @@ export function forceLtrNumbers(text: string): string {
     );
 }
 
+// A DOM node cannot swap paragraph direction per line, so neutral text needs the marks once the paragraph is RTL.
+// Without RTL on either side there is nothing to reorder, and marking would only pollute the text content.
+export function forceLtrNumbersIn(text: string, paragraphIsRtl: boolean): string {
+    return paragraphIsRtl || StrongRtlRegex.test(text) ? forceLtrNumbers(text) : text;
+}
+
 export function guardTextEdges(str: string) {
     return TrimEdgeGuard + str + TrimEdgeGuard;
 }
@@ -211,6 +213,27 @@ export function graphemeSegments(text: string): string[] {
     }
     // Fallback: codepoint-level iteration (handles surrogate pairs, not combining marks)
     return Array.from(text);
+}
+
+/** A `TextAlign` with the direction-relative values already resolved against the chart direction. */
+export type ResolvedTextAlign = 'left' | 'center' | 'right';
+
+/**
+ * Resolve the direction-relative alignments `'start'`/`'end'` against the chart direction.
+ *
+ * The canvas resolves them against `ctx.direction`, which an individual text run may override, so
+ * pinning them to a side keeps geometry (anchors, bounding boxes) in step with what gets painted.
+ * The mapping is the identity on `'left'`/`'center'`/`'right'`, and therefore idempotent.
+ */
+export function resolveTextAlign(textAlign: CanvasTextAlign, isRtl: boolean | undefined): ResolvedTextAlign {
+    switch (textAlign) {
+        case 'start':
+            return isRtl ? 'right' : 'left';
+        case 'end':
+            return isRtl ? 'left' : 'right';
+        default:
+            return textAlign;
+    }
 }
 
 export { EllipsisChar, LineSplitter, TrimEdgeGuard, TrimCharsRegex } from '../../types/text';

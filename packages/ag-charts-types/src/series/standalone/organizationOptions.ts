@@ -7,7 +7,16 @@ import type {
 } from '../../chart/callbackOptions';
 import type { AgCssColorOrRef } from '../../chart/themeParamsOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { ContextDefault, DatumDefault, OverflowStrategy, PixelSize, TextAlign, TextWrap } from '../../chart/types';
+import type {
+    ContextDefault,
+    DatumDefault,
+    FontWeight,
+    Opacity,
+    OverflowStrategy,
+    PixelSize,
+    TextAlign,
+    TextWrap,
+} from '../../chart/types';
 import type {
     FillCssOptions,
     FillOptions,
@@ -48,6 +57,8 @@ export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TCo
      * Default: false
      */
     reverse?: boolean;
+    /** Configuration for the series layout. */
+    layout?: AgOrganizationSeriesLayout;
 
     expander?: AgOrganizationSeriesOptionsExpander<TDatum, TContext>;
 
@@ -58,10 +69,24 @@ export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TCo
     tooltip?: AgSeriesTooltip<AgOrganizationSeriesTooltipRendererParams<TDatum, TContext>>;
 }
 
+export type AgOrganizationSeriesLayout = AgOrganizationSeriesStackedLayoutOptions;
+
+export interface AgOrganizationSeriesStackedLayoutOptions {
+    type: 'stacked';
+    /** The number of pixels to indent the link from the edge of the parent node. */
+    linkIndentation?: number;
+    /** The number of pixels to indent the child node from the link. */
+    nodeIndentation?: number;
+    /** The depth at which to switch to the stacked layout. */
+    stackAtDepth?: number;
+}
+
 export interface AgOrganizationSeriesOptionsExpander<
     TDatum = DatumDefault,
     TContext = ContextDefault,
 > extends AgOrganizationSeriesExpanderStyle {
+    /** Styling applied to the expander when the pointer hovers over it. */
+    hoverStyle?: AgOrganizationSeriesExpanderHoverStyle;
     itemStyler?: Styler<
         AgOrganizationSeriesExpanderItemStylerParams<TDatum, TContext>,
         AgOrganizationSeriesExpanderStyle
@@ -74,6 +99,34 @@ export interface AgOrganizationSeriesExpanderStyle extends Toggleable, FillOptio
     /** Padding around the expander content. A number applies uniform padding; an object sets each side. */
     padding?: Padding;
     text?: AgOrganizationSeriesExpanderTextStyle;
+}
+
+export interface AgOrganizationSeriesExpanderHoverStyle {
+    /**
+     * The colour for filling the expander shape when hovered. A colour string, or a theme-colour reference object.
+     *
+     * Default: a mix of the theme's accent and background colours, matching the button hover state.
+     */
+    fill?: AgCssColorOrRef;
+    /** The opacity of the fill colour when the expander is hovered. */
+    fillOpacity?: Opacity;
+    /** The colour for the stroke when the expander is hovered. Defaults to the expander stroke, unchanged. */
+    stroke?: AgCssColorOrRef;
+    /** The opacity of the stroke when the expander is hovered. */
+    strokeOpacity?: Opacity;
+    /** An array specifying the length in pixels of alternating dashes and gaps, applied when the expander is hovered. */
+    lineDash?: PixelSize[];
+    /** The initial offset of the dashed line in pixels, applied when the expander is hovered. */
+    lineDashOffset?: PixelSize;
+    /** Styling applied to the expander text when the expander is hovered. */
+    text?: AgOrganizationSeriesExpanderHoverTextStyle;
+}
+
+export interface AgOrganizationSeriesExpanderHoverTextStyle {
+    /** The colour to use for the expander text when hovered. A colour string, or a theme-colour reference object. */
+    color?: AgCssColorOrRef;
+    /** The font weight to use for the expander text when hovered. */
+    fontWeight?: FontWeight;
 }
 
 export interface AgOrganizationSeriesExpanderTextStyle extends FontOptions {

@@ -1,0 +1,30 @@
+---
+/**
+ * IBM Plex Sans leads the default chart theme's font stack. Canvas text never triggers a font
+ * download, so it has to be declared here for the chart's `FontManager` to load it and re-render;
+ * the library itself stays opted out, as `loadGoogleFonts` defaults to `false`.
+ *
+ * Must stay an Astro component: @astrojs/react@5 strips `<link>` tags from React output.
+ */
+interface Props {
+    headFragment?: string;
+}
+
+const { headFragment } = Astro.props as Props;
+
+// Examples that pin their own `style-src` would block this cross-origin stylesheet and log the
+// console error they exist to check for; leave those on the fallback font.
+const declaresOwnCsp = headFragment?.includes('Content-Security-Policy') ?? false;
+
+const FONT_HREF = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap';
+---
+
+{
+    !declaresOwnCsp && (
+        <Fragment>
+            <link rel="preconnect" href="https://fonts.googleapis.com" />
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+            <link href={FONT_HREF} rel="stylesheet" />
+        </Fragment>
+    )
+}

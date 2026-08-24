@@ -1,0 +1,20 @@
+---
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+
+import styles from './DemoFrame.module.scss';
+
+interface Props {
+    /** Demo app id registered in `ag-charts-demos`. */
+    demoAppId: string;
+    /** Demo name, for the frame's accessible label. */
+    title: string;
+}
+
+const { demoAppId, title } = Astro.props;
+---
+
+{
+    /* Framed rather than inline: the demo apps size themselves in `vh` and mount a single `#root`
+    per document. Eager rather than lazy: a deferred frame flashes white against the card. */
+}
+<iframe class={styles.frame} src={urlWithBaseUrl(`/demos/${demoAppId}/`)} title={`${title} demo`}></iframe>

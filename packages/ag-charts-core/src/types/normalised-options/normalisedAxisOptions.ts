@@ -36,6 +36,7 @@ import type {
     AgTimeInterval,
     AgTimeIntervalUnit,
     AgUnitTimeAxisOptions,
+    AxisValue,
     ContextDefault,
     CssColor,
     Opacity,
@@ -45,16 +46,7 @@ import type { Normalised } from './normalise';
 import type { NormalisedBorderOptions, NormalisedColorType } from './normalisedCommonOptions';
 
 // --- Label normalised shapes ---
-//
-// `mirrored`/`parallel` are NOT user-facing options (absent from `ag-charts-types`).
-// They are computed axis-instance state managed by `Axis.updateDirection()` and
-// gradient-legend's `AxisTicks`. They are deliberately excluded from these aliases
-// per invariant I2.
-
-// `fontWeight | color | cornerRadius | padding` are populated by the common axis
-// theme template. Phase 4 dismantled `TimeAxisParentLevel`, so `primaryLabel`
-// now returns the parent-level label options shape and can satisfy the same
-// required-key set as the leaf `axis.options.label`.
+// `mirrored`/`parallel` are axis-instance state managed by `Axis.updateDirection()`, not user-facing options.
 type AxisLabelRequiredKeys =
     | 'enabled'
     | 'avoidCollisions'
@@ -131,13 +123,6 @@ export type NormalisedAngleAxisFormattableLabelOptions<TContext = ContextDefault
 >;
 
 // --- Line / tick / gridLine normalised shapes ---
-//
-// Phase 2 dismantles the `AxisLine`, `AxisGridLine`, `AxisTick` holders. Their
-// `enabled`/`width`/`size`/`stroke`/`style` defaults move to
-// `commonAxisThemeTemplate` (per axis module overrides for type-specific
-// flips like `time` → `gridLine.enabled = false`). The R-lists below match
-// what's now guaranteed populated post-theme-merge across every axis module.
-
 export type NormalisedAxisLineOptions = Normalised<AgAxisLineOptions, 'enabled' | 'width'>;
 
 export type NormalisedAxisGridLineOptions = Normalised<AgAxisGridLineOptions, 'enabled' | 'width' | 'style'>;
@@ -145,14 +130,8 @@ export type NormalisedAxisGridLineOptions = Normalised<AgAxisGridLineOptions, 'e
 export type NormalisedAxisTickOptions = Normalised<AgAxisBaseTickOptions, 'enabled' | 'width' | 'size'>;
 
 // --- Interval normalised shapes ---
-//
-// Phase 3 dismantles the `AxisInterval` and `AngleAxisInterval` holders.
-// `interval` is genuinely optional on the axis options: only category /
-// unit-time / ordinal-time module templates populate `placement: 'between'`,
-// and no module populates the continuous axis interval fields. Reads use
-// `axis.options.interval?.X`; the `interval` key is therefore deliberately
-// excluded from `AxisRequiredKeys`.
-
+// `interval` is optional: no module populates the continuous axis interval fields, so it is excluded
+// from `AxisRequiredKeys`.
 export type NormalisedAxisIntervalOptions = Normalised<AgAxisBaseIntervalOptions>;
 
 export type NormalisedAxisCategoryIntervalOptions = Normalised<AgAxisCategoryIntervalOptions>;
@@ -162,14 +141,6 @@ export type NormalisedAxisContinuousIntervalOptions<
 > = Normalised<AgAxisContinuousIntervalOptions<TInterval>>;
 
 // --- Title / parent-level normalised shapes ---
-//
-// Phase 4 dismantles the `AxisTitle` shell and `TimeAxisParentLevel` holder.
-// Title defaults move to `titleAxisThemeTemplate` (composed into every axis
-// module that renders a title — every cartesian module plus `radius-number`/
-// `radius-category`). Parent-level defaults move to `parentLevelAxisThemeTemplate`
-// (composed into the time-style axis modules: `time`, `unit-time`,
-// `ordinal-time`).
-
 export type NormalisedAxisTitleOptions = Normalised<
     AgCartesianAxisCaptionOptions,
     'enabled' | 'text' | 'spacing' | 'fontSize' | 'fontFamily' | 'fontWeight' | 'color' | 'wrapping' | 'truncate',
@@ -183,12 +154,7 @@ export type NormalisedTimeAxisParentLevelOptions<TContext = ContextDefault> = No
 >;
 
 // --- Axis-level normalised shapes ---
-//
-// Phase 1b morphs `label`; Phase 2 morphs `line`/`tick`/`gridLine`. Phase 4
-// promotes `title` to a required key on cartesian/radius axes via the per-axis
-// aliases below; the base alias keeps `title` optional because angle axes do
-// not render a title.
-
+// The base alias keeps `title` optional because angle axes do not render a title.
 type AxisRequiredKeys = 'label' | 'line' | 'tick' | 'gridLine' | 'reverse';
 type TitledAxisRequiredKeys = AxisRequiredKeys | 'title';
 type CartesianAxisRequiredKeys = TitledAxisRequiredKeys | 'maxThicknessRatio';
@@ -337,18 +303,10 @@ export type NormalisedGroupedCategoryAxisOptions<TContext = ContextDefault> = No
 >;
 
 // --- Concrete polar axes ---
-//
-// `AgRadiusAxisLabelOptions` and `AgRadiusAxisFormattableLabelOptions` are not
-// exported from `ag-charts-types` and are empty structural extensions of
-// `AgBaseAxisLabelOptions` / `AgNumericAxisFormattableLabelOptions`. The
-// internal-only `RadiusAxisLabel.autoRotate`/`autoRotateAngle` fields are
-// migrated to plain `RadiusAxis` instance fields per I2 — they are absent from
-// the public types and therefore never appear in `axis.options.label`.
+// `RadiusAxisLabel.autoRotate`/`autoRotateAngle` are internal instance fields, absent from the public types.
 
-// `shape` is absent from the public schemas of `angle-number` and `radius-category`,
-// but the runtime axis classes hard-code their shape to `'circle'`. The morph injects
-// that fixed value here so the `NormalisedBasePolarAxisOptions.shape: 'polygon' |
-// 'circle'` constraint is satisfied without a public-API change.
+// `shape` is absent from the public schemas of `angle-number` and `radius-category`, but the runtime axis
+// classes hard-code `'circle'`; the morph injects it to satisfy the normalised constraint.
 type AngleNumberShapeMorph = { shape: 'circle' };
 type RadiusCategoryShapeMorph = { shape: 'circle' };
 
@@ -379,13 +337,6 @@ export type NormalisedRadiusCategoryAxisOptions<TContext = ContextDefault> = Nor
 >;
 
 // --- Axis-attached plugins ---
-//
-// Phase 5 dismantles the `@Property`-decorated holders on `Crosshair`,
-// `BandHighlight`, and `CrosshairLabelProperties`. Each plugin holds a
-// `Normalised<...>` reference to its slice of `axis.options[plugin.name]`
-// and mutates nothing (per invariant I1). R-lists below match what the
-// crosshair / bandHighlight `themeTemplate`s populate post-merge.
-
 export type NormalisedCrosshairLabelOptions<TFormat = string, TContext = ContextDefault> = Normalised<
     AgCrosshairLabel<TFormat, TContext>,
     'enabled' | 'xOffset' | 'yOffset'
@@ -414,15 +365,6 @@ export type NormalisedBandHighlightOptions = Normalised<
 >;
 
 // --- Cross-lines normalised shapes ---
-//
-// Phase 6 converts cross-lines into an axis plugin (`type: 'axis:plugin'`,
-// `name: 'crossLines'`) so they go through the same `applyAxisModules` path
-// as `crosshair` / `bandHighlight`. The cross-lines `themeTemplate` (relocated
-// here from `chartTheme.getAxisDefaults`) populates `enabled`, `fill`,
-// `stroke`, `strokeWidth`, `fillOpacity`, and the entire `label` block.
-// `type`, `value`, `range` stay user-facing without theme defaults — they
-// describe an individual cross-line, not its styling.
-
 export type NormalisedAxisCrossLineLabelOptions = Normalised<
     AgBaseCrossLineLabelOptions,
     'fontSize' | 'fontFamily' | 'fontWeight' | 'padding' | 'color' | 'cornerRadius',
@@ -438,7 +380,7 @@ interface CrossLineLabelMorph {
 }
 
 export type NormalisedAxisCrossLineOptions = Normalised<
-    AgBaseCrossLineOptions,
+    AgBaseCrossLineOptions<AxisValue, AgBaseCrossLineLabelOptions, ContextDefault>,
     'enabled' | 'stroke' | 'strokeWidth',
     CrossLineLabelMorph
 >;

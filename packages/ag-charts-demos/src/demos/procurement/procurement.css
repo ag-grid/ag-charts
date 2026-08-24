@@ -1,0 +1,1151 @@
+/* Canvas text never triggers a font download, so the charts rely on the document
+   FontFaceSet to load these and re-measure. */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&family=Inter:wght@400;500;600&family=Red+Hat+Text:ital,wght@0,300..700;1,300..700&display=swap');
+/* Dashboard chrome, scoped under .pc-app so it never leaks into other demos. Chart
+   visuals come from the AG Charts theme, not from here. */
+
+/* Tokens live on the app root and on portalled content (Radix menus mount at
+   document.body, outside .pc-app). */
+.pc-app,
+.pc-portal {
+    /* --- Signal theme tokens -------------------------------------------------------
+       On the app root, not `:root`: the harness loads every demo's stylesheet into one
+       document. Mirrored as literals in chartTheme.ts for canvas — change both. */
+    --font-heading: 'Manrope', sans-serif;
+    --font-body: 'Red Hat Text', 'Inter', sans-serif;
+
+    /* Surface */
+    --color-bg: #f6f6f4;
+    --color-panel: #ffffff;
+    --color-panel-alt: #f0f0ee;
+    --color-border: #e6e6e3;
+
+    /* Text */
+    --color-text-primary: #17181a;
+    --color-text-secondary: #6b6e72;
+
+    /* Accent / CTA */
+    --color-accent: #b23a2e;
+    --color-accent-hover: #9a2f25;
+    --color-on-accent: #ffffff;
+
+    /* RAG / status — semantic meaning only, never decorative */
+    --color-success: #4ca96c;
+    --color-success-bg: #e7f4ea;
+    --color-success-text: #2e7a48;
+    --color-warning: #dfb240;
+    --color-warning-bg: #fbf1d9;
+    --color-warning-text: #8a6a0a;
+    --color-danger: #e23d3d;
+    --color-danger-bg: #fce3e1;
+    --color-danger-text: #a11f1f;
+
+    /* Dataviz — categorical series only. The order is the colour-vision-deficiency mechanism
+       and is validated as a sequence, so slots must not be reordered or cycled. */
+    --chart-1: #b96b30; /* clay */
+    --chart-2: #0e8fa6; /* lagoon */
+    --chart-3: #8a4a9e; /* plum */
+    --chart-4: #d1798c; /* rose */
+    --chart-5: #3c63a6; /* indigo */
+    --chart-6: #8a7a15; /* bronze */
+    --chart-7: #8c8680; /* warm neutral — baseline series only */
+
+    /* Mixed rather than picked: the theme defines no accent tint, and a selection must read
+       as the accent rather than as another surface. */
+    --color-accent-soft: color-mix(in srgb, var(--color-accent) 8%, var(--color-panel));
+
+    /* --- app-semantic aliases onto the theme tokens ---------------------------------
+       Every rule below addresses these, so component intent meets the palette in one place. */
+    --pc-bg: var(--color-bg);
+    --pc-panel: var(--color-panel);
+    --pc-panel-2: var(--color-panel-alt);
+    --pc-border: var(--color-border);
+    /* The theme carries one border weight, so structure that needs more contrast borrows the
+       secondary text ink at low mix rather than inventing a second border colour. */
+    --pc-border-strong: color-mix(in srgb, var(--color-text-secondary) 25%, var(--color-border));
+    --pc-grid: var(--color-border);
+    --pc-text: var(--color-text-primary);
+    --pc-muted: var(--color-text-secondary);
+    --pc-accent: var(--color-accent);
+    --pc-accent-strong: var(--color-accent-hover);
+    --pc-accent-soft: var(--color-accent-soft);
+    /* Status in three parts: `-text` is the only one legible as type, the saturated fill is for
+       glyphs, rules and chart marks, and `-soft` is the badge tint `-text` sits on. */
+    --pc-ok: var(--color-success-text);
+    --pc-ok-fill: var(--color-success);
+    --pc-ok-soft: var(--color-success-bg);
+    --pc-warn: var(--color-warning-text);
+    --pc-warn-fill: var(--color-warning);
+    --pc-warn-soft: var(--color-warning-bg);
+    --pc-bad: var(--color-danger-text);
+    --pc-bad-fill: var(--color-danger);
+    --pc-bad-soft: var(--color-danger-bg);
+    --pc-radius: 8px;
+    --pc-radius-sm: 6px;
+    /* The single elevation in the app: a popover genuinely floats above content. */
+    --pc-shadow-popover: 0 4px 16px rgba(23, 24, 26, 0.12);
+    color: var(--pc-text);
+    font-family:
+        var(--font-body),
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+    font-size: 14px;
+}
+
+/* Page and card titles are named as well as tagged, so the display face survives a re-tag. */
+.pc-app :is(h1, h2, h3, h4, h5, h6),
+.pc-page-title,
+.pc-card-title,
+.pc-brand {
+    font-family: var(--font-heading), system-ui, sans-serif;
+}
+
+.pc-app {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    background: var(--pc-bg);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ---- side bar ---- */
+.pc-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 232px;
+    flex: 0 0 auto;
+    padding: 18px 16px;
+    background: var(--pc-panel);
+    border-right: 1px solid var(--pc-border-strong);
+    overflow-y: auto;
+}
+.pc-sidebar-spacer {
+    flex: 1 1 auto;
+}
+/* The dataset's as-of stamp, per the data-freshness requirement. */
+.pc-stamp {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--pc-muted);
+    font-variant-numeric: tabular-nums;
+}
+/* The application name — whose workspace this is belongs in the body. */
+.pc-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+}
+.pc-brand-mark {
+    width: 26px;
+    height: 26px;
+    flex: 0 0 auto;
+}
+.pc-brand-mark-box {
+    fill: var(--pc-accent-soft);
+    stroke: var(--pc-accent);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+}
+.pc-brand-mark-edge {
+    fill: none;
+    stroke: var(--pc-accent);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+.pc-account {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding-top: 14px;
+    border-top: 1px solid var(--pc-border);
+}
+.pc-account-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.pc-account-name {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.pc-account-title {
+    font-size: 12px;
+    color: var(--pc-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.pc-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: var(--pc-accent);
+    color: var(--color-on-accent);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+/* ---- body / scroll region ---- */
+.pc-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 20px 24px 40px;
+}
+.pc-view {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 1660px;
+    margin: 0 auto;
+    /* Fills the scroll region, so a view that asks to fill the page has a height to fill.
+       A minimum rather than a height: a taller view still scrolls. */
+    min-height: 100%;
+}
+.pc-view-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+/* A view whose last row takes whatever height is left, rather than the page ending under it. */
+.pc-view-content--fill {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+/* ---- view tabs ---- */
+/* Navigation down the sidebar, so the views read as places rather than as a control. */
+.pc-tabs-list {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+}
+.pc-tab-trigger {
+    all: unset;
+    padding: 8px 12px;
+    text-align: left;
+    border-radius: var(--pc-radius-sm);
+    cursor: pointer;
+    color: var(--pc-muted);
+    font: inherit;
+    font-weight: 600;
+    font-size: 13px;
+    transition:
+        background 0.12s ease,
+        color 0.12s ease;
+}
+.pc-tab-trigger:hover {
+    color: var(--pc-text);
+    background: var(--pc-panel-2);
+}
+.pc-tab-trigger[data-state='active'] {
+    background: var(--pc-accent);
+    color: var(--color-on-accent);
+}
+/* `all: unset` drops the UA focus ring, and Radix moves focus between triggers with the arrow
+   keys, so the ring has to be restored explicitly. */
+.pc-tab-trigger:focus-visible {
+    outline: 2px solid var(--pc-accent);
+    outline-offset: 1px;
+}
+.pc-tab-trigger[data-state='active']:focus-visible {
+    outline-color: var(--pc-accent-strong);
+    outline-offset: 2px;
+}
+/* Only the active tab is mounted, so this shapes one view at a time: a column the view can
+   grow inside. */
+.pc-tab-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+.pc-tab-content[hidden] {
+    display: none;
+}
+.pc-tab-content:focus-visible {
+    outline: 2px solid var(--pc-accent);
+    outline-offset: 2px;
+    border-radius: var(--pc-radius-sm);
+}
+
+/* ---- page head ---- */
+/* Names the view she is on, so the active tab in the sidebar is restated where she is reading,
+   with the period the whole page is read over on the same line. */
+.pc-page-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+/* Everything that shares the head's right-hand end: the tab's own period control, then the
+   alert, which belongs to the workspace rather than to any tab. */
+.pc-page-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-left: auto;
+}
+/* The period control and the dates it resolves to, kept together at the head's trailing edge. */
+.pc-page-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+/* Reads as the select's caption, so it takes the muted label tone rather than the title's. */
+.pc-page-range {
+    font-size: 13px;
+    color: var(--pc-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.pc-page-title {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+/* ---- cards ---- */
+.pc-card {
+    background: var(--pc-panel);
+    border: 1px solid var(--pc-border);
+    border-radius: var(--pc-radius);
+    padding: 18px 20px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+.pc-card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+.pc-card-title {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    margin: 0;
+}
+.pc-card-sub {
+    display: block;
+    font-size: 13px;
+    color: var(--pc-muted);
+    margin-top: 2px;
+}
+.pc-chart-box {
+    height: clamp(280px, 30vh, 380px);
+    min-width: 0;
+}
+/* For a chart sharing a stretched row with a taller neighbour: fills the card instead of
+   leaving dead space beneath itself. */
+.pc-chart-box--grow {
+    flex: 1 1 auto;
+    min-height: clamp(280px, 30vh, 380px);
+    min-width: 0;
+}
+/* For a chart whose row is sized by the card beside it — a grid that hugs its rows, say. The
+   minimum is a legibility floor, low enough that the neighbour is what sets the height. */
+.pc-chart-box--match {
+    flex: 1 1 auto;
+    min-height: 200px;
+    min-width: 0;
+}
+/* The sunburst is radial, so its legible size is bounded by the shorter side of its
+   box — a wide, shallow box wastes most of the width. */
+.pc-chart-box-md {
+    height: clamp(340px, 38vh, 460px);
+    min-width: 0;
+}
+
+/* ---- KPI strip ---- */
+.pc-kpis {
+    display: grid;
+    /* Column count comes from the tile count the view passes — see `KpiStrip`. */
+    grid-template-columns: repeat(var(--pc-kpi-columns, 3), minmax(0, 1fr));
+    gap: 14px;
+}
+.pc-kpi {
+    position: relative;
+    background: var(--pc-panel);
+    border: 1px solid var(--pc-border);
+    border-radius: var(--pc-radius);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow: hidden;
+}
+/* Deliberately not on every tile: the rule marks a metric that wants acting on, and giving a
+   healthy figure one too would reduce the motif to decoration. */
+.pc-kpi.is-warn::before,
+.pc-kpi.is-bad::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+}
+.pc-kpi.is-warn::before {
+    background: var(--pc-warn-fill);
+}
+.pc-kpi.is-bad::before {
+    background: var(--pc-bad-fill);
+}
+/* Threshold state, restated by the tile's glyph so it does not rest on colour. */
+.pc-kpi.is-good {
+    color: var(--pc-ok);
+}
+.pc-kpi.is-warn {
+    color: var(--pc-warn);
+}
+.pc-kpi.is-bad {
+    color: var(--pc-bad);
+}
+.pc-kpi-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--pc-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.pc-kpi-icon {
+    font-size: 11px;
+}
+.pc-kpi.is-good .pc-kpi-icon,
+.pc-kpi.is-warn .pc-kpi-icon,
+.pc-kpi.is-bad .pc-kpi-icon {
+    color: currentcolor;
+}
+.pc-kpi-value {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    /* Text ink, not the threshold colour — the top rule and glyph already carry that. */
+    color: var(--pc-text);
+    font-variant-numeric: tabular-nums;
+}
+/* Progress against target, between the figure and the line that explains it. */
+.pc-kpi-gauge {
+    display: block;
+    height: 18px;
+    margin: 2px 0;
+}
+/* What the figure is drawn from, as one segmented bar plus its bands in text. */
+.pc-kpi-segments {
+    display: block;
+    height: 12px;
+    margin: 4px 0 2px;
+}
+/* The explanatory line and the bands, on one row: the sentence takes the slack and the counts
+   range right against it, wrapping under only when the tile is too narrow to hold both. */
+.pc-kpi-foot {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 2px 12px;
+}
+.pc-kpi-segment-keys {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 2px 10px;
+    font-size: 12px;
+    color: var(--pc-muted);
+    font-variant-numeric: tabular-nums;
+}
+.pc-kpi-segment-key {
+    white-space: nowrap;
+}
+.pc-kpi-detail {
+    font-size: 12px;
+    color: var(--pc-muted);
+    /* Takes the row's slack and wraps within it, rather than pushing the counts off the end. */
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* ---- multi-column layouts ---- */
+.pc-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    align-items: stretch;
+}
+/* Takes the height its view has left over, and passes it to both cards. */
+.pc-grid-2--fill {
+    flex: 1 1 auto;
+    min-height: 0;
+    grid-auto-rows: minmax(0, 1fr);
+}
+
+/* ---- needs my attention ---- */
+/* The alert and its panel, which the panel is positioned against. */
+.pc-alert {
+    position: relative;
+    display: flex;
+}
+.pc-alert-trigger {
+    position: relative;
+}
+/* The count, on the glyph. Sized from the text so a two-digit count keeps its shape, and pinned
+   to the icon's corner rather than laid out beside it. */
+.pc-alert-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    border: 2px solid var(--pc-panel);
+    background: var(--pc-bad-fill);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+/* Catches the click that dismisses the panel. Transparent: the page stays legible behind it, so
+   she can read a figure the worklist sent her to look at without closing the list first. */
+.pc-alert-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+}
+.pc-alert-panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 21;
+    /* Wide enough for an item's title, detail and its actions on one row; capped so it stays a
+       panel over the page rather than a second page. */
+    width: min(680px, calc(100vw - 48px));
+    max-height: min(70vh, 560px);
+    overflow-y: auto;
+    padding: 16px 18px;
+    background: var(--pc-panel);
+    border: 1px solid var(--pc-border-strong);
+    border-radius: var(--pc-radius);
+    box-shadow: 0 18px 40px rgb(15 23 42 / 18%);
+}
+.pc-alert-panel:focus-visible {
+    outline: 2px solid var(--pc-accent);
+    outline-offset: 2px;
+}
+.pc-alert-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.pc-attention {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.pc-attention-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    /* Compact rows: this section leads the page, and a worklist that fills the viewport
+       pushes the views that give its items context below the fold. */
+    padding: 7px 13px;
+    border: 1px solid var(--pc-border);
+    border-left-width: 3px;
+    border-radius: var(--pc-radius-sm);
+}
+.pc-attention-item.is-bad {
+    border-left-color: var(--pc-bad-fill);
+    background: var(--pc-bad-soft);
+}
+.pc-attention-glyph {
+    font-size: 13px;
+}
+.pc-attention-item.is-bad .pc-attention-glyph {
+    color: var(--pc-bad);
+}
+/* The body is the "show me this in context" target; the buttons act without navigating. */
+.pc-attention-body {
+    all: unset;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    cursor: pointer;
+    font: inherit;
+}
+.pc-attention-body:focus-visible {
+    outline: 2px solid var(--pc-accent);
+    outline-offset: 2px;
+    border-radius: 3px;
+}
+.pc-attention-title {
+    font-weight: 600;
+    font-size: 13px;
+}
+.pc-attention-body:hover .pc-attention-title {
+    text-decoration: underline;
+}
+.pc-attention-detail {
+    font-size: 12px;
+    color: var(--pc-muted);
+}
+.pc-attention-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+/* The empty state the spec requires: an explicit all-clear, not a blank panel. */
+.pc-attention-clear {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 1px solid var(--pc-border);
+    border-left: 3px solid var(--pc-ok-fill);
+    border-radius: var(--pc-radius-sm);
+    background: var(--pc-ok-soft);
+    font-size: 13px;
+}
+.pc-attention-clear-glyph {
+    color: var(--pc-ok);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+/* ---- my suppliers roster ---- */
+/* A grid, so the roster is sortable and every figure is a column. */
+.pc-supplier.is-selected {
+    background: var(--pc-accent-soft);
+}
+/* The selector: the supplier's own cell, so the click target is the name she reads. */
+.pc-supplier-main {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    font: inherit;
+}
+.pc-supplier-main:focus-visible {
+    outline: 2px solid var(--pc-accent);
+    outline-offset: -2px;
+}
+/* The supplier's identity colour, shared with its sunburst sector and scatter bubble. */
+.pc-supplier-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex: 0 0 auto;
+}
+.pc-supplier-name {
+    font-weight: 700;
+}
+/* A figure the wrong side of its target, or of contract price. */
+.pc-down {
+    color: var(--pc-bad);
+}
+.pc-up {
+    color: var(--pc-ok);
+}
+.pc-supplier-main abbr,
+.pc-app .pc-down abbr {
+    text-decoration: none;
+    color: var(--pc-muted);
+    cursor: help;
+}
+.pc-contact-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ---- shared status legend (board + map) ---- */
+.pc-legend {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--pc-muted);
+}
+.pc-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.pc-legend-glyph {
+    font-size: 11px;
+}
+.pc-legend-item.is-ok .pc-legend-glyph {
+    color: var(--pc-ok);
+}
+.pc-legend-item.is-warn .pc-legend-glyph {
+    color: var(--pc-warn);
+}
+.pc-legend-item.is-bad .pc-legend-glyph {
+    color: var(--pc-bad);
+}
+
+/* ---- active-filter chips ---- */
+.pc-chips {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.pc-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: var(--pc-accent-soft);
+    color: var(--pc-accent-strong);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* ---- generic controls ---- */
+.pc-btn {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 14px;
+    border-radius: var(--pc-radius-sm);
+    border: 1px solid var(--pc-border);
+    background: var(--pc-panel);
+    color: var(--pc-text);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 500;
+    user-select: none;
+    transition:
+        background 0.12s ease,
+        border-color 0.12s ease;
+}
+.pc-btn:hover {
+    border-color: var(--pc-border-strong);
+    background: var(--pc-panel-2);
+}
+.pc-btn:focus-visible {
+    outline: 2px solid var(--pc-accent);
+    outline-offset: 1px;
+}
+.pc-btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+.pc-btn:disabled:hover {
+    border-color: var(--pc-border);
+    background: var(--pc-panel);
+}
+.pc-btn[data-state='open'] {
+    border-color: var(--pc-accent);
+}
+/* Inline actions sit inside cards and list rows, so they run shorter than a page control. */
+/* Borderless, because outlined buttons would draw a column of boxes down an all-hairline grid.
+   The border stays in the box model as transparent so the icon does not shift on hover or focus. */
+.pc-icon-btn {
+    width: 34px;
+    padding: 0;
+    border-color: transparent;
+    background: none;
+    color: var(--pc-muted);
+}
+/* Hover and focus carry the affordance in the border's place: a tinted square and fuller ink. */
+.pc-icon-btn:hover {
+    border-color: transparent;
+    background: var(--pc-panel-2);
+    color: var(--pc-text);
+}
+.pc-icon-btn svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.pc-btn-sm {
+    height: 27px;
+    padding: 0 10px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Text action inside a grid cell, where three bordered buttons would overwhelm the row. */
+.pc-link-btn {
+    all: unset;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--pc-accent);
+    cursor: pointer;
+}
+.pc-link-btn:hover {
+    text-decoration: underline;
+}
+.pc-link-btn:focus-visible {
+    outline: 2px solid var(--pc-accent);
+    outline-offset: 2px;
+    border-radius: 3px;
+}
+.pc-po-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+}
+.pc-po-action-done {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--pc-ok);
+}
+
+/* ---- Radix Select ---- */
+.pc-labeled-select {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--pc-muted);
+    font-size: 13px;
+}
+.pc-select-trigger {
+    justify-content: space-between;
+    min-width: 150px;
+    font-weight: 500;
+}
+.pc-select-content {
+    z-index: 60;
+    background: var(--pc-panel);
+    border: 1px solid var(--pc-border);
+    border-radius: var(--pc-radius-sm);
+    padding: 5px;
+    box-shadow: var(--pc-shadow-popover);
+}
+.pc-select-item {
+    all: unset;
+    display: flex;
+    align-items: center;
+    height: 30px;
+    padding: 0 26px 0 12px;
+    border-radius: 7px;
+    cursor: pointer;
+    color: var(--pc-text);
+}
+.pc-select-item[data-highlighted] {
+    background: var(--pc-accent-soft);
+    color: var(--pc-accent-strong);
+    font-weight: 500;
+}
+
+/* ---- Radix ToggleGroup ---- */
+.pc-toggle-group {
+    display: inline-flex;
+    border: 1px solid var(--pc-border);
+    border-radius: var(--pc-radius-sm);
+    overflow: hidden;
+}
+.pc-toggle-item {
+    all: unset;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--pc-muted);
+    cursor: pointer;
+    transition:
+        background 0.12s ease,
+        color 0.12s ease;
+}
+.pc-toggle-item:hover {
+    background: var(--pc-panel-2);
+    color: var(--pc-text);
+}
+.pc-toggle-item[data-state='on'] {
+    background: var(--pc-accent);
+    color: var(--color-on-accent);
+}
+.pc-toggle-item:focus-visible {
+    outline: 2px solid var(--pc-accent);
+    outline-offset: -2px;
+}
+
+/* ---- small-multiple facets ---- */
+/* Stacked one per row, sharing a vertical edge: aligned x axes let the eye run straight down the
+   column to compare where each supplier's mass sits. */
+.pc-facets {
+    /* The floor under every facet's plot, then the bands the outer two add to it: the crossline
+       labels across the top of the first, and the one drawn x axis under the last. */
+    --pc-facet-min-plot-height: 56px;
+    --pc-facet-pie-size: 40px;
+    --pc-facet-axis-height: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    /* Takes the card's spare height so the plots grow with the page. */
+    flex: 1 1 auto;
+    min-height: 0;
+}
+/* Every facet grows by the same amount from a basis of the bands it carries, which is what keeps
+   the plot areas identical — the shared y scale is only comparable if they are. */
+.pc-facet {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-width: 0;
+    flex: 1 1 calc(var(--pc-facet-band-top, 0px) + var(--pc-facet-band-bottom, 0px));
+    min-height: calc(
+        var(--pc-facet-min-plot-height) + var(--pc-facet-band-top, 0px) + var(--pc-facet-band-bottom, 0px)
+    );
+}
+/* A fixed-width label column, so every plot starts at the same x and the stack reads as one chart
+   with a row per supplier rather than as five charts that happen to be aligned. */
+.pc-facet-head {
+    display: flex;
+    flex-direction: column;
+    width: 104px;
+    flex: 0 0 auto;
+    /* Discounts whichever bands this facet carries, so its name centres against the plot rather than
+       against the plot plus its labels or axis. */
+    margin-top: var(--pc-facet-band-top, 0);
+    margin-bottom: var(--pc-facet-band-bottom, 0);
+}
+.pc-facet-name {
+    font-size: 13px;
+    font-weight: 600;
+}
+.pc-facet-note {
+    font-size: 12px;
+    color: var(--pc-muted);
+}
+/* Fills its facet, bands included: taking the band out of the plot instead would leave the outer
+   two facets with shorter plots than the rest. */
+/* Spans the plot area rather than the whole row, discounting the band margins as the label column
+   does, so the pie sits level with the bars it summarises. */
+.pc-facet-split {
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--pc-facet-pie-size);
+    flex: 0 0 auto;
+    margin-top: var(--pc-facet-band-top, 0);
+    margin-bottom: var(--pc-facet-band-bottom, 0);
+}
+/* Fixed, so every pie is the same size: the facets grow with the card, and a pie that grew with them
+   would vary in size for a reason that has nothing to do with its data. */
+.pc-facet-pie {
+    width: var(--pc-facet-pie-size);
+    height: var(--pc-facet-pie-size);
+}
+.pc-facet-chart {
+    flex: 1 1 auto;
+    align-self: stretch;
+    min-width: 0;
+    min-height: 0;
+}
+/* The bottom facet is the only one that draws the shared x axis. */
+.pc-facet--axis {
+    --pc-facet-band-bottom: var(--pc-facet-axis-height);
+}
+
+/* ---- empty state ---- */
+.pc-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 100%;
+    min-height: 200px;
+    color: var(--pc-muted);
+    text-align: center;
+}
+.pc-empty-icon {
+    font-size: 30px;
+    opacity: 0.6;
+}
+
+/* ---- AG Grid host ---- */
+/* Right-aligned cells are the seam every grid-rendered number passes through, and equal-width
+   digits are what let a column of them be scanned rather than read. */
+.pc-app .ag-right-aligned-cell {
+    font-variant-numeric: tabular-nums;
+}
+.pc-grid-host {
+    /* Grid uses domLayout="autoHeight" + pagination, so it sizes to the page instead
+       of scrolling. */
+    width: 100%;
+}
+/* The indicator stays a status glyph rather than a plain dot: it is the non-colour channel this
+   grid's accessibility rests on. */
+.pc-status-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--pc-panel-2);
+    color: var(--pc-muted);
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 18px;
+}
+.pc-status-cell > [aria-hidden] {
+    font-size: 10px;
+}
+.pc-status-cell.is-ok {
+    background: var(--pc-ok-soft);
+    color: var(--pc-ok);
+}
+.pc-status-cell.is-ok > [aria-hidden] {
+    color: var(--pc-ok-fill);
+}
+.pc-status-cell.is-warn {
+    background: var(--pc-warn-soft);
+    color: var(--pc-warn);
+}
+.pc-status-cell.is-warn > [aria-hidden] {
+    color: var(--pc-warn-fill);
+}
+.pc-status-cell.is-bad {
+    background: var(--pc-bad-soft);
+    color: var(--pc-bad);
+}
+.pc-status-cell.is-bad > [aria-hidden] {
+    color: var(--pc-bad-fill);
+}
+/* Delivered is terminal rather than good or bad — the grid does not say whether it landed on
+   time — so it stays off the status palette. */
+.pc-status-cell.is-done {
+    color: var(--pc-muted);
+}
+.pc-status-cell-text {
+    color: inherit;
+}
+
+.pc-app .ag-charts-tooltip-value {
+    font-weight: bold;
+}
+
+/* ---- responsive: stack multi-column layouts, keep everything readable ---- */
+@media (max-width: 1240px) {
+    .pc-grid-2 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+/* Too narrow for a column beside the content: the sidebar becomes a bar above it. */
+@media (max-width: 900px) {
+    .pc-app {
+        flex-direction: column;
+    }
+    .pc-sidebar {
+        width: auto;
+        flex-direction: row;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px 16px;
+        overflow: visible;
+        border-right: none;
+        border-bottom: 1px solid var(--pc-border-strong);
+    }
+    /* Laid out as a bar, the navigation runs along it. */
+    .pc-tabs-list {
+        flex-direction: row;
+        gap: 4px;
+    }
+    .pc-account {
+        padding-top: 0;
+        border-top: none;
+    }
+    .pc-account-text {
+        display: none;
+    }
+}
+@media (max-width: 640px) {
+    .pc-kpis {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .pc-body {
+        padding: 16px 14px 32px;
+    }
+    .pc-sidebar {
+        padding: 12px 14px;
+    }
+    .pc-page-title {
+        font-size: 19px;
+    }
+    /* Actions wrap under the item text rather than squeezing it to nothing. */
+    .pc-attention-item {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+    .pc-attention-actions {
+        grid-column: 2;
+        justify-content: flex-start;
+    }
+    .pc-kpi-value {
+        font-size: 23px;
+    }
+    .pc-card {
+        padding: 14px 14px;
+    }
+    .pc-card-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .pc-select-trigger {
+        min-width: 128px;
+    }
+}

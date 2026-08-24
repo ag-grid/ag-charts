@@ -27,9 +27,8 @@ export * from './structures/lruCache';
 export * as Debug from './logging/debugLogger';
 export { Logger, ambientLogger, isLogLevel } from './logging/logger';
 export type { LogLevel } from './logging/logger';
-// The chart-less logging fallback. Restricted to the files listed in the `no-unscoped-logger`
-// lint rule — everything else logs through the chart's `ctx.logger`. Enumerated rather than
-// `export *` so the namespace cannot be used to reach the `Logger` constructor.
+// Chart-less logging fallback, restricted by the `no-unscoped-logger` lint rule. Enumerated rather
+// than `export *` so the namespace cannot reach the `Logger` constructor.
 export * as ambientLog from './logging/ambientLog';
 export * as DebugMetrics from './logging/debugMetrics';
 export * from './modules/enterpriseRegistry';
@@ -130,6 +129,8 @@ export * from './utils/geometry/fill';
 export * from './utils/geometry/bezier';
 export * from './utils/geometry/labelPlacement';
 export * from './utils/geometry/spatialIndex';
+export * from './utils/geometry/fitRegion';
+export * from './utils/geometry/trapezoid';
 export * from './utils/geometry/scaling';
 export * from './utils/geometry/lineInterpolation';
 export * from './utils/zoomUtils';

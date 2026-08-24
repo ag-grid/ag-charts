@@ -1,0 +1,284 @@
+---
+title: 'Quadrant Charts'
+description: 'Divide a $framework Quadrant Chart into four labelled, independently styled regions around a pivot point.'
+enterprise: true
+---
+
+A Quadrant Chart displays scatter or bubble data divided into four regions.
+
+## Simple Quadrant Chart
+
+{% chartExampleRunner title="Simple Quadrant Chart" name="simple-quadrant-chart" type="generated" /%}
+
+The Quadrant Chart is designed to display a single series and is created using the `createQuadrantChart()` factory.
+Options are supplied as a flat object, with no `series` or `axes` keys.
+
+{% if isFramework("javascript") %}
+
+```js
+const options = {
+    data: getData(),
+    xKey: 'revenueGrowth',
+    yKey: 'marginChange',
+};
+
+AgCharts.createQuadrantChart(options);
+```
+
+{% /if %}
+
+{% if isFramework("react") %}
+
+```jsx format="reactHooks"
+const [options, setOptions] = useState({
+    data: getData(),
+    xKey: 'revenueGrowth',
+    yKey: 'marginChange',
+});
+
+return <AgQuadrantChart options={options} />;
+```
+
+{% /if %}
+
+{% if isFramework("angular") %}
+
+```ts
+@Component({
+    selector: 'app-root',
+    standalone: true,
+    imports: [AgQuadrantChart],
+    template: `<ag-quadrant-chart [options]="options"></ag-quadrant-chart>`,
+})
+export class AppComponent {
+    public options: AgQuadrantChartOptions;
+    constructor() {
+        this.options = {
+            data: getData(),
+            xKey: 'revenueGrowth',
+            yKey: 'marginChange',
+        };
+    }
+}
+```
+
+{% /if %}
+
+{% if isFramework("vue") %}
+
+```js format="snippet"
+template: `<ag-quadrant-chart :options="options" />`,
+components: {
+    'ag-quadrant-chart': AgQuadrantChart,
+},
+data() {
+    return {
+        options: {
+            data: getData(),
+            xKey: 'revenueGrowth',
+            yKey: 'marginChange',
+        },
+    };
+}
+```
+
+{% /if %}
+
+In this configuration:
+
+- `xKey` and `yKey` map the two measures being compared.
+
+## Pivot
+
+The `pivot` sets the data values at which the regions are divided.
+
+{% chartExampleRunner title="Pivot" name="quadrant-chart-pivot" type="generated" /%}
+
+```js format="snippet"
+{
+    pivot: { x: 4, y: 6 },
+}
+```
+
+In this configuration:
+
+- `pivot.x` and `pivot.y` divide the chart into regions at an effort of `4` and an impact of `6`.
+- The pivot is a data value rather than a proportion of the chart, so the four regions are not equally sized.
+
+By default the axis lines move to cross at the pivot, while the axis titles stay at the edge of the chart.
+
+## Regions
+
+Each of the four regions is configured under its own key in `regions`.
+
+{% chartExampleRunner title="Regions" name="quadrant-chart-regions" type="generated" /%}
+
+```js format="snippet"
+{
+    regions: {
+        topLeft: { label: { text: 'Shrinking, Wider Margins' } },
+        topRight: { label: { text: 'Growing, Wider Margins' } },
+        bottomLeft: { label: { text: 'Shrinking, Thinner Margins' } },
+        bottomRight: { label: { text: 'Growing, Thinner Margins' } },
+    },
+}
+```
+
+Use `label.position` to move a region label away from its default centred position, to any corner or edge of the
+region.
+
+## Axes
+
+`xAxis` and `yAxis` accept number axis options. Axis labels and ticks are hidden by default.
+
+{% chartExampleRunner title="Axes" name="quadrant-chart-axes" type="generated" /%}
+
+```js format="snippet"
+{
+    alignAxesToPivot: false,
+    xAxis: {
+        title: { text: 'Effort' },
+        label: { enabled: true },
+        tick: { enabled: true },
+    },
+    yAxis: {
+        title: { text: 'Impact' },
+        label: { enabled: true },
+        tick: { enabled: true },
+    },
+}
+```
+
+In this configuration:
+
+- `label.enabled` and `tick.enabled` show the axis labels and ticks, both of which are off by default.
+- `alignAxesToPivot: false` holds the axes at their usual bottom and left positions rather than moving them to cross
+  at the pivot. The regions are still divided at the pivot.
+
+The axis line is drawn more heavily and in a stronger colour than a standard axis, so it reads as a divider between
+regions rather than as a chart edge. Override `xAxis.line` or `yAxis.line` to change its width or `stroke`.
+
+See [Number Axis](./axes-types/#number) for the full range of axis options.
+
+## Markers
+
+Points are drawn as markers sized by `size`. Supplying `sizeKey` instead scales each marker by a third measure,
+between `minSize` and `maxSize`.
+
+{% chartExampleRunner title="Marker Sizes" name="quadrant-chart-size" type="generated" /%}
+
+```js format="snippet"
+{
+    sizeKey: 'revenue',
+    minSize: 8,
+    maxSize: 40,
+}
+```
+
+In this configuration:
+
+- `sizeKey` maps the data field controlling marker size.
+- `minSize` and `maxSize` bound the size scale. `minSize` defaults to `size` when not set.
+
+Marker text comes from `labelKey` and is styled and positioned with `label`. See
+[Series Labels](./series-labels/) for label placement and collision options, and [Series Markers](./markers/) for
+the available marker shapes.
+
+## Tooltips
+
+Hovering a marker shows the `xName`, `yName` and `labelName` values for that point. Use `tooltip.renderer` for full
+control over the content.
+
+See [Tooltips](./tooltips/) for more details.
+
+## Customisation
+
+### Regions
+
+{% chartExampleRunner title="Region Styling" name="quadrant-chart-region-styling" type="generated" /%}
+
+```js format="snippet"
+{
+    regions: {
+        topLeft: {
+            fill: {
+                type: 'gradient',
+                rotation: 315,
+                colorStops: [
+                    { color: '#38bdf8', stop: 0 },
+                    { color: 'rgba(56, 189, 248, 0)', stop: 1 },
+                ],
+            },
+            fillOpacity: 0.45,
+            stroke: '#0284c7',
+            strokeOpacity: 0.4,
+            strokeWidth: 1,
+            marker: { fill: '#38bdf8', strokeWidth: 0 },
+            label: {
+                text: 'Slower Warming, Wetter',
+                position: 'inside-top-left',
+                color: '#0284c7',
+                fontSize: 14,
+                fontWeight: 'bold',
+            },
+        },
+    },
+}
+```
+
+In this configuration:
+
+- `fill` takes a colour string or, as here, a gradient, pattern or image fill. `fillOpacity` fades it so the markers
+  stay legible.
+- `stroke`, `strokeOpacity` and `strokeWidth` outline the region.
+- `marker` styles the points falling inside that region. Without it, points take the region's `fill` at full
+  opacity, which is why an explicit `marker.fill` is needed alongside a gradient.
+- `label` sets the region text and its font styling.
+
+The remaining three regions follow the same shape, each with its own colour and label position.
+
+### Markers
+
+Marker styles set at the top level apply to every point. The `itemStyler` callback overrides them per point, and
+receives the `region` that point falls in.
+
+{% chartExampleRunner title="Marker Styling" name="quadrant-chart-marker-styling" type="generated" /%}
+
+```js format="snippet"
+{
+    shape: 'circle',
+    size: 12,
+    strokeWidth: 2,
+    itemStyler: ({ region }) => {
+        switch (region) {
+            case 'top-right':
+                return { fill: '#16a34a', stroke: '#15803d', size: 18 };
+            case 'top-left':
+                return { fill: '#ca8a04', stroke: '#a16207' };
+            case 'bottom-right':
+                return { fill: '#2563eb', stroke: '#1d4ed8' };
+            case 'bottom-left':
+                return { fill: '#dc2626', stroke: '#b91c1c', shape: 'cross', strokeWidth: 3 };
+        }
+    },
+}
+```
+
+In this configuration:
+
+- `shape`, `size` and `strokeWidth` set the base style for all markers.
+- `region` is `'top-left'`, `'top-right'`, `'bottom-left'` or `'bottom-right'`, letting each region's points be
+  styled without repeating the pivot comparison. The callback also receives the `datum`, so styling can depend on
+  the underlying values as well.
+- Points in the top-right are enlarged and those in the bottom-left switch shape, so both regions stand out from the
+  base style.
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgQuadrantChartOptions" label="Options" %}
+{% apiReference id="AgQuadrantChartOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

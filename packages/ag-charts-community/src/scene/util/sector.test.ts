@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { BoxBounds } from 'ag-charts-core';
 
-import { boxOverlapsSector, clockwiseAngles, isPointInSector } from './sector';
+import { boxOverlapsSector, clockwiseAngles, isBoxInSector, isPointInSector } from './sector';
 
 const TAU = 2 * Math.PI;
 
@@ -56,9 +56,8 @@ function sweepOf(startAngle: number, endAngle: number) {
 
 describe('clockwiseAngles', () => {
     it('treats a 2π − ε sweep as a full circle so the Sunburst centre sector is not collapsed to zero', () => {
-        // A Sunburst root sector spans total * (2π / total); for some totals (e.g. 79.392)
-        // floating-point rounding lands this product one ULP below 2π. Such a sweep must
-        // still be treated as a full circle rather than normalised down to 0.
+        // A Sunburst root sector's sweep can land one ULP below 2π, and must still count as a full
+        // circle rather than normalise down to 0.
         const total = 79.392;
         const sweep = total * (TAU / total);
         expect(sweep).toBeLessThan(TAU);
@@ -128,5 +127,49 @@ describe('boxOverlapsSector', () => {
 
         // Only measure-zero boundary grazes should differ from the area-sampling oracle.
         expect(disagreements / trials).toBeLessThan(0.01);
+    });
+});
+
+describe('isBoxInSector', () => {
+    // A ring wide enough to hold a box on its left-hand side, opening to the left so the box straddles
+    // the centre line: the arrangement a wrapped sector label lands in.
+    const ring: Sector = { startAngle: Math.PI * 0.75, endAngle: Math.PI * 1.25, innerRadius: 40, outerRadius: 120 };
+
+    /** Ground truth: every point of the box has to be in the sector, sampled densely. */
+    function boxInSectorBySampling(box: BoxBounds, sector: Sector, steps = 120): boolean {
+        for (let i = 0; i <= steps; i++) {
+            for (let j = 0; j <= steps; j++) {
+                const x = box.x + (box.width * i) / steps;
+                const y = box.y + (box.height * j) / steps;
+                if (!isPointInSector(x, y, sector)) return false;
+            }
+        }
+        return true;
+    }
+
+    it('accepts a box clear of both radii and both edges', () => {
+        const box: BoxBounds = { x: -100, y: -12, width: 45, height: 24 };
+        expect(isBoxInSector(box, ring)).toBe(true);
+        expect(boxInSectorBySampling(box, ring)).toBe(true);
+    });
+
+    it('rejects a box whose right edge dips into the hole between its corners', () => {
+        // Both right-hand corners clear the 40px hole (their radius is hypot(38, 20) > 40), but the
+        // middle of that edge sits 38px out and is inside it.
+        const box: BoxBounds = { x: -90, y: -20, width: 52, height: 40 };
+        expect(isPointInSector(box.x + box.width, box.y, ring)).toBe(true);
+        expect(isPointInSector(box.x + box.width, box.y + box.height, ring)).toBe(true);
+        expect(boxInSectorBySampling(box, ring)).toBe(false);
+        expect(isBoxInSector(box, ring)).toBe(false);
+    });
+
+    it('rejects a box reaching past the outer radius', () => {
+        const box: BoxBounds = { x: -130, y: -10, width: 40, height: 20 };
+        expect(isBoxInSector(box, ring)).toBe(false);
+    });
+
+    it('rejects a box crossing an angular edge', () => {
+        const box: BoxBounds = { x: -80, y: -60, width: 40, height: 30 };
+        expect(isBoxInSector(box, ring)).toBe(false);
     });
 });

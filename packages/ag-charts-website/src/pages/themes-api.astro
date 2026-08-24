@@ -1,14 +1,15 @@
 ---
+import ApiReferenceFallback from '@components/api-documentation/components/ApiReferenceFallback.astro';
 import { ApiReferencePage } from '@components/api-documentation/components/ApiReferencePage';
 import APIViewLayout from '@layouts/APIViewLayout.astro';
+import { THEMES_API_PAGE_CONTENT } from '@utils/markdown-pages/apiReferencePageContent';
 ---
 
-<APIViewLayout
-    title="Themes API"
-    description="Themes API reference for AG Charts JavaScript Charting Library. Search for properties or browse our tree-data explorer; access types, defaults, and child properties."
->
+<APIViewLayout title={THEMES_API_PAGE_CONTENT.title} description={THEMES_API_PAGE_CONTENT.description}>
     <ApiReferencePage
         client:only="react"
+        transition:persist="themes-api-reference"
+        transition:persist-props
         {...Astro.props}
         rootInterface="AgChartTheme"
         breadcrumbs={['options', 'theme']}
@@ -17,5 +18,7 @@ import APIViewLayout from '@layouts/APIViewLayout.astro';
         specialTypes={{
             AgBaseChartThemeOverrides: 'NestedPage',
         }}
-    />
+    >
+        <ApiReferenceFallback slot="fallback" rootInterface="AgChartTheme" />
+    </ApiReferencePage>
 </APIViewLayout>

@@ -5,11 +5,16 @@ import {
     FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_SINGLE_DEFAULTS,
-    LABEL_BOXING_DEFAULTS,
+    LABEL_BOXING_TOP_LEVEL_DEFAULTS,
+    LABEL_OVERFLOW_ALWAYS_SHOW,
+    LABEL_OVERFLOW_DEFAULTS,
+    LABEL_PLACEMENT_STYLE_DEFAULTS,
 } from 'ag-charts-core';
-import type { ExtensibleTheme } from 'ag-charts-types';
+import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 const isHorizontal = { $eq: [{ $path: ['/series/0/direction', undefined] }, 'horizontal'] };
+const isRtl = { $eq: [{ $path: ['/enableRtl', false] }, true] };
+const isPlacementAfter = { $eq: [{ $path: ['/series/0/stageLabel/placement', undefined] }, 'after'] };
 const labelOptions = { $clone: { $omit: [['placement', 'spacing'], { $path: '/series/0/stageLabel' }] } };
 
 export const FUNNEL_SERIES_AXES: any = {
@@ -21,11 +26,12 @@ export const FUNNEL_SERIES_AXES: any = {
             $if: [
                 isHorizontal,
                 CARTESIAN_POSITION.LEFT,
+                // `before`/`after` are reading-order sides, so RTL mirrors them.
                 {
                     $if: [
-                        { $eq: [{ $path: ['/series/0/stageLabel/placement', undefined] }, 'after'] },
-                        CARTESIAN_POSITION.RIGHT,
-                        CARTESIAN_POSITION.LEFT,
+                        isPlacementAfter,
+                        { $if: [isRtl, CARTESIAN_POSITION.LEFT, CARTESIAN_POSITION.RIGHT] },
+                        { $if: [isRtl, CARTESIAN_POSITION.RIGHT, CARTESIAN_POSITION.LEFT] },
                     ],
                 },
             ],
@@ -57,7 +63,7 @@ export const FUNNEL_SERIES_AXES: any = {
     },
 };
 
-export const FUNNEL_SERIES_THEME: ExtensibleTheme<'funnel'> = {
+export const FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'funnel'> = {
     series: {
         direction: 'vertical',
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
@@ -84,12 +90,21 @@ export const FUNNEL_SERIES_THEME: ExtensibleTheme<'funnel'> = {
             ],
         },
         label: {
-            ...LABEL_BOXING_DEFAULTS,
+            ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
+            ...LABEL_OVERFLOW_DEFAULTS,
             enabled: true,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
-            color: { $ref: 'chartBackgroundColor' },
+            padding: 8,
+            spacing: 8,
+            collision: {
+                threshold: 4,
+                alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
+            },
+            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('chartBackgroundColor'),
+            outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
+            placement: 'inside-center',
         },
         dropOff: {
             enabled: true,

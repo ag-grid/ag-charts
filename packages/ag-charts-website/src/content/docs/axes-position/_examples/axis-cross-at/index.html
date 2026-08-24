@@ -1,1 +1,15 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <label for="title-placement-select">Title Placement:</label>
+        <select class="gap-right" id="title-placement-select" onchange="setTitlePlacement(event.target.value)">
+            <option value="crossing">crossing</option>
+            <option value="edge">edge</option>
+        </select>
+        <label for="label-placement-select">Label Placement:</label>
+        <select id="label-placement-select" onchange="setLabelPlacement(event.target.value)">
+            <option value="crossing">crossing</option>
+            <option value="edge">edge</option>
+        </select>
+    </div>
+</div>
 <div id="myChart"></div>

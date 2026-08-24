@@ -1,25 +1,35 @@
 import {
-    type AgFunnelSeriesLabelFormatterParams,
+    type AgFunnelSeriesLabelPlacement,
     type AgFunnelSeriesOptions,
     type AgFunnelSeriesStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { DynamicContext, RequireOptional } from 'ag-charts-core';
 import { ChartAxisDirection, mergeDefaults } from 'ag-charts-core';
-import type { AgNumericValue } from 'ag-charts-types';
 
 import {
     BaseFunnelSeries,
     type BaseFunnelSeriesTypes,
-    type Bounds,
     type FunnelAnimationData,
     type FunnelNodeDatum,
-    type FunnelNodeLabelDatum,
 } from './baseFunnelSeries';
+import {
+    FUNNEL_TO_BAR_PLACEMENT,
+    funnelPlacementAxes,
+    resolveFunnelPlacements,
+    toResolvedFunnelPlacement,
+} from './funnelLabelPlacement';
 import { FunnelProperties } from './funnelProperties';
 
-const { resetBarSelectionsFn, prepareBarAnimationFunctions, midpointStartingBarPosition, createDatumId, Rect, motion } =
-    _ModuleSupport;
+const {
+    resetBarSelectionsFn,
+    prepareBarAnimationFunctions,
+    midpointStartingBarPosition,
+    createDatumId,
+    pickPlacementStyle,
+    Rect,
+    motion,
+} = _ModuleSupport;
 
 /**
  * Consolidated type interface for FunnelSeries.
@@ -53,6 +63,10 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         return this.properties.dropOff.enabled;
     }
 
+    protected override connectorCornerRadius() {
+        return this.properties.cornerRadius;
+    }
+
     protected override connectorStyle(index: number): RequireOptional<AgFunnelSeriesStyle> & { opacity: number } {
         return mergeDefaults(this.properties.dropOff.getStyle(), this.properties.getStyle(index));
     }
@@ -61,46 +75,29 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         return new Rect<FunnelNodeDatum>();
     }
 
-    protected override createLabelData({
-        datumIndex,
-        rect,
-        yDatum,
-        datum,
-        visible,
-    }: {
-        datumIndex: number;
-        rect: Bounds;
-        barAlongX: boolean;
-        yDatum: AgNumericValue;
-        datum: any;
-        visible: boolean;
-    }): FunnelNodeLabelDatum | undefined {
-        const { valueKey, stageKey, label } = this.properties;
+    protected override defaultLabelPlacement(): AgFunnelSeriesLabelPlacement {
+        return 'inside-center';
+    }
 
-        if (!label.enabled) return;
-
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y).domain;
-        const text = this.getLabelText<AgFunnelSeriesLabelFormatterParams>(
-            yDatum,
-            datum,
-            valueKey,
-            'y',
-            yDomain,
-            label,
-            { itemId: this.resolveItemId(datum, datumIndex), value: yDatum, datum, stageKey, valueKey }
+    protected override resolveLabelPlacements(barAlongX: boolean) {
+        const reportedPlacements = resolveFunnelPlacements(
+            this.properties.label.placement,
+            this.defaultLabelPlacement()
         );
-
         return {
-            x: rect.x + rect.width / 2,
-            y: rect.y + rect.height / 2,
-            textAlign: 'center',
-            textBaseline: 'middle',
-            text,
-            datum,
-            datumIndex,
-            series: this,
-            visible,
+            placements: reportedPlacements.map((placement) => FUNNEL_TO_BAR_PLACEMENT[placement]),
+            reportedPlacements,
+            ...funnelPlacementAxes(barAlongX, this.getCategoryAxis()?.isReversed() === true),
         };
+    }
+
+    protected override toBarPlacement(placement: AgFunnelSeriesLabelPlacement | undefined) {
+        return FUNNEL_TO_BAR_PLACEMENT[placement ?? this.defaultLabelPlacement()];
+    }
+
+    protected override labelPlacementStyle(placement: AgFunnelSeriesLabelPlacement | undefined) {
+        const { label } = this.properties;
+        return placement == null ? undefined : pickPlacementStyle(label, toResolvedFunnelPlacement(placement));
     }
 
     protected getItemStyle({ datum, datumIndex }: Pick<FunnelNodeDatum, 'datum' | 'datumIndex'>, isHighlight: boolean) {
@@ -152,7 +149,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
             return;
         }
 
-        const { shadow } = this.properties;
+        const { shadow, cornerRadius } = this.properties;
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
         const crispCentreDirection = this.getCategoryCrispDirection();
@@ -167,6 +164,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
             rect.crisp = datum.crisp;
             rect.crispCentreDirection = crispCentreDirection;
             rect.fillShadow = shadow;
+            rect.cornerRadius = cornerRadius;
         });
     }
 

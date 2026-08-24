@@ -4,10 +4,8 @@ import type { GalleryExampleNeighbour, GalleryExamplePage } from '@utils/markdow
 import { buildGalleryExampleMarkdown } from '@utils/markdown-pages/buildGalleryExampleMarkdown';
 import { type CollectionEntry, getEntry } from 'astro:content';
 
-// Served at /gallery/<example>.md — the markdown twin of each gallery example page, built from the
-// same gallery entry and generated example the page renders. Mirrors the page's own getStaticPaths
-// so the two URL sets line up 1:1. Content-negotiates from the HTML URL on Accept: text/markdown
-// (see getMarkdownNegotiationRules in htaccessRules.ts).
+// Mirrors the page's own getStaticPaths so the two URL sets line up 1:1.
+// Content-negotiated from the HTML URL on Accept: text/markdown — see getMarkdownNegotiationRules in htaccessRules.ts.
 export async function getStaticPaths() {
     if (DISABLE_MARKDOWN_DOCS) {
         return [];

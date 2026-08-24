@@ -7,7 +7,7 @@ import {
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
-import type { ExtensibleTheme } from 'ag-charts-types';
+import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemOptions> {
     return {
@@ -36,7 +36,7 @@ function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemO
     };
 }
 
-export const CANDLESTICK_SERIES_THEME: ExtensibleTheme<'candlestick'> = {
+export const CANDLESTICK_SERIES_THEME: ExtensibleSeriesTheme<'candlestick'> = {
     series: {
         item: {
             up: itemTheme('up'),

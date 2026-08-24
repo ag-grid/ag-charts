@@ -70,10 +70,7 @@ export function generateOrg(targetCount: number): OrgDatum[] {
         subtitle: 'Chief Executive Officer',
     });
 
-    // BFS with an index pointer (no Array.shift) so generation stays O(n).
-    // `parentIdx` is the current parent in `data`; `slotsUsed` is how many
-    // children it has already been assigned. Once it hits BRANCHING we
-    // advance to the next BFS node by incrementing parentIdx.
+    // BFS with an index pointer instead of Array.shift, so generation stays O(n).
     let parentIdx = 0;
     let slotsUsed = 0;
 

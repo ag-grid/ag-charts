@@ -6,10 +6,7 @@ import { type CollectionEntry, getCollection } from 'astro:content';
 
 import markdocConfig from '../../../markdoc.config';
 
-// Served at /<framework>/<pageName>.md — a clean, framework-resolved markdown version of
-// each docs page for LLMs. Generated at build time from the same `docs` collection and
-// framework fan-out as the HTML pages, so the URLs line up 1:1. Endpoint routes are served
-// live in the dev server too.
+// Endpoint routes mirror the HTML pages' framework fan-out, so the URL sets line up 1:1.
 export async function getStaticPaths() {
     if (DISABLE_MARKDOWN_DOCS) {
         return [];
@@ -29,8 +26,7 @@ export async function GET({
     const framework = params.framework as MarkdownFramework;
     const pageName = params.pageName;
 
-    // Use the current environment's origin (dev/staging/prod) so links resolve to the same
-    // site the .md is served from, not always production.
+    // Use the current environment's origin so links resolve to the site the .md is served from.
     const resolvers = createChartsMarkdownResolvers({ siteRoot: SITE_URL });
 
     const markdown = await renderMarkdocToMarkdown({
@@ -44,8 +40,7 @@ export async function GET({
         },
         // Release version only — drop the beta/build suffix (e.g. 12.0.0-beta.2026… → 12.0.0).
         version: agChartsVersion.split('-')[0],
-        // Per-page Markdoc variables the site injects via <Content> props, so tags like
-        // migrationVersion()/$migrationVersion resolve as they do on the HTML page.
+        // Mirrors what the HTML page injects via <Content> props, so $migrationVersion resolves the same.
         variables: { migrationVersion: page.data.migrationVersion },
         markdocConfig,
         resolvers,
