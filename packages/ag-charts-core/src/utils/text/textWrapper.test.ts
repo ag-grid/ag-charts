@@ -1106,4 +1106,16 @@ describe('fitLabelText bounded by a shape', () => {
         expect(fitted.text).toBe('AAAA BBBB');
         expect(fitted.offsetX).toBe(-50);
     });
+
+    it('fits a lopsided shape at the anchor for a caller that cannot move the label', () => {
+        // The same region, through the API that returns text alone: an offset it cannot report must not be
+        // taken, or the text is fitted to room the label is never drawn in.
+        const region: FitRegion = {
+            spanAt: () => [-110, 10],
+            extentAbove: 20,
+            extentBelow: 20,
+        };
+        const fitted = fitLabelText('AAAA BBBB', { region, wrapping: 'on-space' }, font);
+        expect(fitted).toBe('AAAA\nBBBB');
+    });
 });

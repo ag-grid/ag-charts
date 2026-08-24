@@ -134,9 +134,12 @@ export function fitLabelText(
         textWrap: wrapping,
         overflow,
     };
+    // This caller writes the text where it already is, so the fit has to be the one the anchor can draw:
+    // an offset chosen to exploit an asymmetric shape would be discarded here and the text overflow it.
+    // A caller that can move the label as well calls {@link fitLabelTextToRegion} instead.
     return region == null
         ? wrapTextOrSegments(text, options)
-        : wrapTextToRegion(text, options, region, fit.regionAlign ?? 'center').text;
+        : wrapTextToRegion(text, options, region, fit.regionAlign ?? 'center', true).text;
 }
 
 /**
@@ -224,7 +227,8 @@ function wrapBlockToRegion(
     align: RegionAlign,
     limit: number,
     lineHeight: number,
-    lines: number
+    lines: number,
+    anchored: boolean
 ) {
     const height = Math.min(lines * lineHeight, limit);
     const blockTop = blockTopFor(align, height, region, limit);
@@ -232,7 +236,7 @@ function wrapBlockToRegion(
     for (let i = 0; i < lines; i += 1) {
         bands.push([blockTop + i * lineHeight, blockTop + (i + 1) * lineHeight] as const);
     }
-    const offsetX = blockOffsetX(region, bands);
+    const offsetX = anchored ? 0 : blockOffsetX(region, bands);
     const widthAt = (top: number, bottom: number) => regionWidthAt(region, blockTop + top, blockTop + bottom, offsetX);
     const wrapped = wrapTextOrSegments(text, {
         ...options,
@@ -281,7 +285,8 @@ function wrapTextToRegion(
     text: NormalisedTextOrSegments,
     options: WrapOptions,
     region: FitRegion,
-    align: RegionAlign
+    align: RegionAlign,
+    anchored = false
 ): FittedRegionText {
     const limit = Math.min(options.maxHeight ?? Infinity, region.extentAbove + region.extentBelow);
     if (isArray(text)) {
@@ -300,7 +305,7 @@ function wrapTextToRegion(
     let best: { text: string; offsetX: number; consistent: boolean } | undefined;
     let bestKept = -1;
     for (let lines = 1; lines <= maxLines; lines += 1) {
-        const candidate = wrapBlockToRegion(source, options, region, align, limit, lineHeight, lines);
+        const candidate = wrapBlockToRegion(source, options, region, align, limit, lineHeight, lines, anchored);
         const kept = survivingCharacters(candidate.text);
         if (kept > bestKept || (kept === bestKept && candidate.consistent && best?.consistent === false)) {
             bestKept = kept;
