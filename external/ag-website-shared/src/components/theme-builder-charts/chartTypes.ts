@@ -159,7 +159,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
     },
 ];
 
-export const DEFAULT_CHART_TYPE = PREVIEW_CHART_TYPES[0];
+const DEFAULT_CHART_TYPE = PREVIEW_CHART_TYPES[0];
 
 const chartTypeAtom = atomWithJSONStorage<string>('charts-preview-type', DEFAULT_CHART_TYPE.id);
 
