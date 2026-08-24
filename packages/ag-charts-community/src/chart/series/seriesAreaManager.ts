@@ -18,7 +18,6 @@ import type {
     SeriesAreaClickEvent,
     SeriesAreaContextMenuEvent,
     SeriesAreaHoverEvent,
-    SeriesAreaPointerClickEvent,
     SeriesKeyNavPanXEvent,
     UpdateOpts,
     ZoomChangeCompleteEvent,

@@ -2,7 +2,6 @@ import {
     AbstractModuleInstance,
     type AxisPluginModuleInstance,
     type CallbackParamRules,
-    type CanvasPoint,
     type DynamicContext,
     type NormalisedAxisCrossLineOptions,
     callWithContext,
@@ -10,12 +9,11 @@ import {
 } from 'ag-charts-core';
 import type { AgCrossLineClickEvent, AgCrossLineDoubleClickEvent } from 'ag-charts-types';
 
-import type { SeriesAreaContextMenuEvent, SeriesAreaPointerClickEvent } from '../../core/eventsHub';
-import type { MouseWidgetEvent } from '../../module-support';
+import type { SeriesAreaContextMenuEvent } from '../../core/eventsHub';
 import type { AxisContext } from '../../module/axisContext';
 import type { ChartAxisRegistry } from '../../module/moduleContext';
 import { Group } from '../../scene/group';
-import type { Widget } from '../../widget/widget';
+import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import { getAxisLabelSideFlag } from '../axis/axisLabelUtil';
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
 import type { CrossLine, PolarCrossLine } from './crossLine';
