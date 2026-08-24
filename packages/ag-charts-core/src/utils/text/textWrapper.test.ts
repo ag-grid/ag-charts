@@ -1096,6 +1096,21 @@ describe('fitLabelText bounded by a shape', () => {
         ).toBe('AAAABBBB\nX');
     });
 
+    it('terminates on a region that reports an unbounded extent', () => {
+        // FitRegion is a public contract, so a region may report unbounded room. Text that can never fit
+        // whole never satisfies the early exit, so the search over line counts has to be bounded by the
+        // source rather than by the room.
+        const region: FitRegion = {
+            spanAt: () => [-CHAR_WIDTH / 2, CHAR_WIDTH / 2],
+            extentAbove: Infinity,
+            extentBelow: Infinity,
+        };
+        const result = String(
+            fitLabelText('AAAA BBBB', { region, wrapping: 'on-space', overflowStrategy: 'ellipsis' }, font)
+        );
+        expect(result.length).toBeGreaterThan(0);
+    });
+
     it('centres the block where the room is when the shape is lopsided about the anchor', () => {
         // All the room lies to the left of the anchor: a block centred on the anchor could only use twice
         // the 10px on its right, so the fit moves it into the 100px the shape actually offers.

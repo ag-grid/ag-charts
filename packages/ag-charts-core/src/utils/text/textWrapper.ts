@@ -175,10 +175,8 @@ function measureText(text: NormalisedTextOrSegments, font: FontOptions) {
 }
 
 /** Characters of the source that survived a fit, ignoring the layout and the ellipsis marking the loss. */
-function survivingCharacters(text: NormalisedTextOrSegments) {
-    return toTextString(text as string)
-        .replaceAll(EllipsisChar, '')
-        .replace(/\s/g, '').length;
+function survivingCharacters(text: string) {
+    return text.replaceAll(EllipsisChar, '').replace(/\s/g, '').length;
 }
 
 /** Where the top of a block of `height` sits against the anchor, kept inside the room the shape has. */
@@ -296,7 +294,10 @@ function wrapTextToRegion(
     const lineHeight = cachedTextMeasurer(options.font).lineHeight();
     const source = toTextString(text);
     const wanted = survivingCharacters(source);
-    const maxLines = Math.max(1, Math.floor(limit / Math.max(1, lineHeight)));
+    // A line holds at least one character, so more lines than the source has cannot keep more of it —
+    // and that also bounds the search when a region reports an unbounded extent.
+    const roomForLines = Math.floor(limit / Math.max(1, lineHeight));
+    const maxLines = Math.max(1, Math.min(roomForLines, source.length));
     let best: { text: string; offsetX: number; consistent: boolean } | undefined;
     let bestKept = -1;
     for (let lines = 1; lines <= maxLines; lines += 1) {
