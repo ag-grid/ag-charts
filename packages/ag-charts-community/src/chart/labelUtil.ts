@@ -7,6 +7,7 @@ import type {
     CandidateLabelStyle,
     CandidateStyleResolver,
     DynamicContext,
+    FitRegion,
     FontOptions,
     IsAny,
     LabelFit,
@@ -17,6 +18,7 @@ import type {
     Point,
     PointLabelDatum,
     PositionedLabelCandidate,
+    RegionAlign,
 } from 'ag-charts-core';
 import {
     type NormalisedChartLabelStyleOptions,
@@ -888,6 +890,13 @@ export interface BarPositionedCandidate<
     readonly placement: TPlacement;
 }
 
+/** Where a block of text hangs off its anchor, read from the baseline the anchor draws it on. */
+function regionAlignOf(textBaseline: CanvasTextBaseline): RegionAlign {
+    if (textBaseline === 'top' || textBaseline === 'hanging') return 'start';
+    if (textBaseline === 'bottom' || textBaseline === 'alphabetic') return 'end';
+    return 'center';
+}
+
 /**
  * Builds the ordered candidate list a bar label cascades through, one entry per
  * `placement` (outer) × `orientation` (inner) — the ordering that yields inside-horizontal →
@@ -918,6 +927,7 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
     hideable = false,
     plotRegion,
     fitted = false,
+    shapeAt,
     text,
     styleDatum,
     resolveStyle,
@@ -953,6 +963,11 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
     plotRegion?: Bounds;
     /** Attach the per-candidate fit inputs the engine needs to re-fit the text to each candidate. */
     fitted?: boolean;
+    /**
+     * The shape an inside candidate's text is fitted to, for a series whose rect is only the bounding box
+     * of a non-rectangular mark. Each line is then wrapped to the width the shape offers where it lands.
+     */
+    shapeAt?: (anchor: OrientationAnchor) => FitRegion | undefined;
     /** Source text, re-measured under each candidate's styled font; required alongside `resolveStyle`. */
     text?: NormalisedTextOrSegments;
     /** The label's node datum, passed to `resolveStyle` as the styler's subject. */
@@ -1037,6 +1052,8 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
                 fitTo: fitted
                     ? {
                           container: insideRegion && orientedBarContainer(insideRegion, rotationDeg, boxPadding),
+                          shape: isInside ? shapeAt?.(anchor) : undefined,
+                          shapeAlign: regionAlignOf(anchor.textBaseline),
                           anchor,
                           padding: boxPadding,
                           font: style?.font,
