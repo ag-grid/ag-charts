@@ -10,6 +10,7 @@ import {
     definedZoomState,
     isDate,
     isFiniteNumber,
+    isNumberEqual,
     isNumericValue,
     isObject,
     isString,
@@ -130,7 +131,15 @@ function refreshCoreState(nextAxes: Array<CartesianAxisLike> | Array<SimpleAxis>
     return result;
 }
 
-function areEqualCoreZooms(p: CoreZoomStateSafeRetrieval, q: CoreZoomStateSafeRetrieval) {
+function isExactNumber(a: number, b: number) {
+    return a === b;
+}
+
+function compareCoreZooms(
+    p: CoreZoomStateSafeRetrieval,
+    q: CoreZoomStateSafeRetrieval,
+    equalNumbers: (a: number, b: number) => boolean
+) {
     const pKeys = strictObjectKeys(p);
     const qKeys = strictObjectKeys(q);
 
@@ -146,13 +155,22 @@ function areEqualCoreZooms(p: CoreZoomStateSafeRetrieval, q: CoreZoomStateSafeRe
         } else if (
             pVal == undefined ||
             pVal.direction !== qVal?.direction ||
-            pVal.min !== qVal.min ||
-            pVal.max !== qVal.max
+            !equalNumbers(pVal.min, qVal.min) ||
+            !equalNumbers(pVal.max, qVal.max)
         ) {
             return false;
         }
     }
     return true;
+}
+
+function areEqualCoreZooms(p: CoreZoomStateSafeRetrieval, q: CoreZoomStateSafeRetrieval) {
+    return compareCoreZooms(p, q, isExactNumber);
+}
+
+/** Ratios differing only by float round-trip noise describe the same window, so no zoom has occurred. */
+function areEquivalentCoreZooms(p: CoreZoomStateSafeRetrieval, q: CoreZoomStateSafeRetrieval) {
+    return compareCoreZooms(p, q, isNumberEqual);
 }
 
 export function userInteraction<D extends ZoomEventSourceDetail>(sourceDetail: D) {
@@ -887,7 +905,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             this.ctx.chartState.setValue('zoom', acceptedZoom);
         }
 
-        const changeAccepted: boolean = !areEqualCoreZooms(oldState, this.state);
+        const changeAccepted: boolean = !areEquivalentCoreZooms(oldState, this.state);
         if (changeAccepted) {
             this.ctx.eventsHub.emit('zoom:change-complete', { source, sourceDetail, x: acceptedZoom?.x });
             this.pendingZoomEventSource = source; // emit API AgZoomEvent when the redraw completes
