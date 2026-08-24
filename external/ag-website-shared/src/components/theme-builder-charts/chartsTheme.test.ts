@@ -1,4 +1,4 @@
-import { _Theme } from 'ag-charts-community';
+import { type AgChartThemeName, _Theme } from 'ag-charts-community';
 import { describe, expect, it } from 'vitest';
 
 import { paramValueToCss } from '../../theming/api';
@@ -9,6 +9,10 @@ import {
     getStackParams,
     toStackParamValue,
 } from './chartsTheme';
+
+// The registry's type makes every entry optional and admits sentinel keys
+// ('undefined', 'null') that the literal itself never populates.
+const STOCK_THEMES = Object.entries(_Theme.themes) as [AgChartThemeName, () => _Theme.ChartTheme][];
 
 /**
  * The shadow theme only works while the two representations agree. These tests
@@ -32,8 +36,8 @@ describe('AG Charts param translation', () => {
         // Fails loudly if a new `$operation` appears, rather than translating it
         // to something plausible but wrong.
         const operations = new Set<string>();
-        for (const themeName of Object.keys(_Theme.themes)) {
-            const params = (_Theme.themes as any)[themeName]().params;
+        for (const [, createTheme] of STOCK_THEMES) {
+            const params = createTheme().params as Record<string, unknown>;
             for (const property of PUBLIC_PARAM_NAMES) {
                 collectOperations(params[property], operations);
             }
@@ -81,20 +85,18 @@ describe('AG Charts param translation', () => {
 
     describe('stock themes', () => {
         it('reads params and a palette for every stock theme', () => {
-            for (const themeName of Object.keys(_Theme.themes)) {
-                const params = getStackParams(themeName as any);
+            for (const [themeName, createTheme] of STOCK_THEMES) {
+                const params = getStackParams(themeName);
                 expect(Object.keys(params)).toHaveLength(PUBLIC_PARAM_NAMES.length);
 
-                const palette = getPalette(themeName as any);
+                const palette = getPalette(themeName);
                 expect(palette.fills.length).toBeGreaterThan(0);
                 // Fills and strokes are index-paired, which the palette editor
                 // relies on to keep a series' two colours together.
                 expect(palette.strokes).toHaveLength(palette.fills.length);
                 // No stock theme uses a gradient or pattern fill, so nothing is
                 // dropped by the narrowing in `getPalette`.
-                expect(palette.fills.every((fill) => typeof fill === 'string')).toBe(true);
-                const stockThemes = _Theme.themes as Record<string, () => { palette: { fills: unknown[] } }>;
-                expect(palette.fills).toHaveLength(stockThemes[themeName]().palette.fills.length);
+                expect(palette.fills).toHaveLength(createTheme().palette.fills.length);
             }
         });
     });

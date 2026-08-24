@@ -18,7 +18,7 @@ import { DEFAULT_THEME_NAME, getPalette } from './chartsTheme';
  * same palette spread across numbered theme params and can reuse all three.
  */
 
-export const DEFAULT_PALETTE = getPalette(DEFAULT_THEME_NAME);
+const DEFAULT_PALETTE = getPalette(DEFAULT_THEME_NAME);
 
 /** Unset means "inherit the base theme's palette". */
 const paletteAtom = atomWithJSONStorage<Palette | undefined>('charts-palette', undefined);
@@ -31,5 +31,3 @@ export const usePalette = () => {
 export const useStoredPalette = () => useAtomValue(paletteAtom);
 
 export const setStoredPalette = (store: Store, palette: Palette | undefined) => store.set(paletteAtom, palette);
-
-export const getStoredPalette = (store: Store) => store.get(paletteAtom);

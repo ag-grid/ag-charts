@@ -57,7 +57,7 @@ const toChartParamValue = (property: string, value: unknown): unknown => {
  * Convert the builder's overridden params into `AgChartTheme.params`, dropping
  * any the user has not set so the snippet only carries real customisations.
  */
-export const toChartThemeParams = (overriddenParams: Record<string, unknown>): AgChartThemeParams =>
+const toChartThemeParams = (overriddenParams: Record<string, unknown>): AgChartThemeParams =>
     Object.fromEntries(
         Object.entries(overriddenParams)
             .filter(([, value]) => value != null)

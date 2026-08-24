@@ -18,7 +18,7 @@ const getMessage = (id: 104 | 107 | 259, params?: Record<string, any>): string =
 };
 
 export const themeLogger: ThemeLogger = {
-    warn: (...args) => console.warn(`[charts theme builder] ${getMessage(args[0] as any, args[1] as any)}`),
-    error: (...args) => console.error(`[charts theme builder] ${getMessage(args[0] as any, args[1] as any)}`),
-    preInitErr: (...args) => console.error(`[charts theme builder] ${getMessage(args[0] as any, args[2] as any)}`),
+    warn: (...args) => console.warn(`[charts theme builder] ${getMessage(args[0], args[1])}`),
+    error: (...args) => console.error(`[charts theme builder] ${getMessage(args[0], args[1])}`),
+    preInitErr: (...args) => console.error(`[charts theme builder] ${getMessage(args[0], args[2])}`),
 };
