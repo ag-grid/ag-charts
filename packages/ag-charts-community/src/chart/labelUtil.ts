@@ -25,6 +25,7 @@ import {
     fitLabelTextOrOverflow,
     fitLabelTextOrOverflowAutoSize,
     getMinOuterRectSize,
+    insetFitRegion,
     insideBarContainer,
     insideBarRegion,
     insideBarValueInsets,
@@ -888,6 +889,17 @@ export interface BarPositionedCandidate<
     readonly placement: TPlacement;
 }
 
+/**
+ * The room a shape offers, held clear of its edge by the box drawn around the glyph. A region is anchored
+ * on its own centre line, so each axis pays the larger of its two paddings.
+ */
+function insetShapeRegion(shape: FitRegion | undefined, boxPadding: Required<PaddingOptions>) {
+    if (shape == null) return undefined;
+    const dx = Math.max(boxPadding.left, boxPadding.right);
+    const dy = Math.max(boxPadding.top, boxPadding.bottom);
+    return dx === 0 && dy === 0 ? shape : insetFitRegion(shape, dx, dy);
+}
+
 /** Where a block of text hangs off its anchor, read from the baseline the anchor draws it on. */
 function regionAlignOf(textBaseline: CanvasTextBaseline): RegionAlign {
     if (textBaseline === 'top' || textBaseline === 'hanging') return 'start';
@@ -1049,7 +1061,10 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
                 fitTo: fitted
                     ? {
                           container: insideRegion && orientedBarContainer(insideRegion, rotationDeg, boxPadding),
-                          shape: isInside ? shapeAt?.(anchor) : undefined,
+                          // The container is deflated by the box drawn around the glyph, and the shape has
+                          // to be held clear of its edge by the same amount, or a line wrapped to the full
+                          // width of a taper draws its padding and border outside the mark.
+                          shape: isInside ? insetShapeRegion(shapeAt?.(anchor), boxPadding) : undefined,
                           shapeAlign: regionAlignOf(anchor.textBaseline),
                           anchor,
                           padding: boxPadding,
