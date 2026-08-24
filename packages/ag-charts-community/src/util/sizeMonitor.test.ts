@@ -113,6 +113,58 @@ describe('SizeMonitor', () => {
         });
     });
 
+    describe('AG-18087: a fractional container size does not fire a spurious resize', () => {
+        it('should not fire a second resize when the container width is fractional', () => {
+            const sizeMonitor = new SizeMonitor(createMockAgDocument());
+
+            // A 345.5px container: clientWidth is spec-rounded to 346, contentRect stays 345.5.
+            const element = mockElement({ clientWidth: 346, clientHeight: 400 });
+
+            const sizes: Size[] = [];
+            sizeMonitor.observe(element, (size) => sizes.push({ ...size }));
+
+            expect(sizes).toHaveLength(1);
+            expect(sizes[0]).toMatchObject({ width: 346, height: 400 });
+
+            fireResizeObserver(element, 345.5, 400);
+
+            expect(sizes).toHaveLength(1);
+        });
+
+        it('should fire, with the exact size, when a fractional size crosses a pixel', () => {
+            const sizeMonitor = new SizeMonitor(createMockAgDocument());
+
+            const element = mockElement({ clientWidth: 346, clientHeight: 400 });
+
+            const sizes: Size[] = [];
+            sizeMonitor.observe(element, (size) => sizes.push({ ...size }));
+            expect(sizes).toHaveLength(1);
+
+            fireResizeObserver(element, 344.4, 400);
+
+            expect(sizes).toHaveLength(2);
+            // The change test rounds; the size handed to consumers stays exact.
+            expect(sizes[1]).toMatchObject({ width: 344.4, height: 400 });
+        });
+
+        it('should not fire again when the observer confirms the initial content box', () => {
+            const sizeMonitor = new SizeMonitor(createMockAgDocument());
+
+            const element = mockElement({ clientWidth: 346, clientHeight: 400, paddingLeft: '0.5px' });
+
+            const sizes: Size[] = [];
+            sizeMonitor.observe(element, (size) => sizes.push({ ...size }));
+
+            // clientWidth is spec-rounded to 346; minus the 0.5px padding the content box is 345.5.
+            expect(sizes[0]).toMatchObject({ width: 345.5, height: 400 });
+
+            // The ResizeObserver's view of the same content box.
+            fireResizeObserver(element, 345.5, 400);
+
+            expect(sizes).toHaveLength(1);
+        });
+    });
+
     describe('refresh() re-reads an observed element after it gains a size', () => {
         it('emits the laid-out size when a detached element is later attached', () => {
             const sizeMonitor = new SizeMonitor(createMockAgDocument());
