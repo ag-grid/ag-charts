@@ -5,6 +5,7 @@ import {
     type CandidateStyleResolver,
     ChartAxisDirection,
     type DomainWithMetadata,
+    type FitRegionMask,
     type LabelFit,
     type LabelFitDescriptor,
     type LabelPlacement,
@@ -84,12 +85,7 @@ import {
 } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
-import {
-    type MarkerLabelRect,
-    type MarkerRowSpans,
-    markerLabelRect,
-    markerRowSpans,
-} from '../../marker/markerLabelRect';
+import { type MarkerLabelRect, markerLabelRect, markerRowSpans } from '../../marker/markerLabelRect';
 import { type TooltipContent, type TooltipContentDataRow, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { IndexSetBucketLookupManager } from '../bucketLookupFeature';
 import {
@@ -258,7 +254,7 @@ interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<Bubble
     readonly labelInsideOffset: Point | undefined;
     readonly labelInsideRect: MarkerLabelRect | undefined;
     /** The marker outline the label's text is bounded by, rather than the rect inscribed in it. */
-    readonly labelInsideMask: MarkerRowSpans | undefined;
+    readonly labelInsideMask: FitRegionMask | undefined;
     readonly labelInsideSize: { width: number; height: number } | undefined;
     readonly labelTextDomain: any[];
     readonly labelPadding: { left: number; right: number; top: number; bottom: number };
@@ -987,8 +983,6 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                   height: Math.max(0, markerSize * rect.height - 2 * threshold),
               }
             : undefined;
-        // The marker's own outline bounds the text; the inscribed rect still sizes the container and, via
-        // `labelInsideOffset`, anchors the label at its centre.
         const region =
             ctx.labelInsideMask == null || rect == null
                 ? undefined
@@ -1000,8 +994,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                       threshold,
                       threshold
                   );
-        // With a region the marker's outline bounds the width; the inscribed rect still bounds the height
-        // and carries the collision threshold's inset.
+        // The marker's outline bounds the width; the inscribed rect still bounds the height, anchors the
+        // label at its centre via `labelInsideOffset`, and carries the collision threshold's inset.
         const boundedFit =
             region == null
                 ? boundLabelFit(ctx.labelFit, container)

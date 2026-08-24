@@ -1,11 +1,11 @@
 import { describe, expect, test, vi } from 'vitest';
 
 import {
+    type FitRegion,
     type FitRegionMask,
     insetFitRegion,
     maskFitRegion,
     probedFitRegion,
-    rectFitRegion,
     regionWidthAt,
     trapezoidFitRegion,
 } from './fitRegion';
@@ -25,9 +25,16 @@ const stage = (overrides: Partial<TrapezoidBounds> = {}): TrapezoidBounds => ({
 
 const inCircle = (radius: number) => (x: number, y: number) => x * x + y * y <= radius * radius;
 
-describe('rectFitRegion', () => {
+/** A region of constant width, split evenly about the anchor: the trivial case every other one relaxes. */
+const rect = (width: number, height: number): FitRegion => {
+    const half = height / 2;
+    const span = [-width / 2, width / 2] as const;
+    return { spanAt: () => span, extentAbove: half, extentBelow: half };
+};
+
+describe('a constant-width region', () => {
     test('answers the same width for every band, and splits its height about the anchor', () => {
-        const region = rectFitRegion(120, 40);
+        const region = rect(120, 40);
         expect(regionWidthAt(region, -20, 0)).toBe(120);
         expect(regionWidthAt(region, 0, 20)).toBe(120);
         expect(region.extentAbove).toBe(20);
@@ -87,7 +94,7 @@ describe('probedFitRegion', () => {
 
 describe('insetFitRegion', () => {
     test('holds the text clear of the edge on both axes', () => {
-        const region = insetFitRegion(rectFitRegion(120, 40), 10, 5);
+        const region = insetFitRegion(rect(120, 40), 10, 5);
         expect(regionWidthAt(region, 0, 10)).toBe(100);
         expect(region.extentAbove).toBe(15);
         expect(region.extentBelow).toBe(15);
@@ -100,7 +107,7 @@ describe('insetFitRegion', () => {
     });
 
     test('bottoms out at nothing rather than going negative', () => {
-        const region = insetFitRegion(rectFitRegion(10, 10), 20, 20);
+        const region = insetFitRegion(rect(10, 10), 20, 20);
         expect(regionWidthAt(region, 0, 1)).toBe(0);
         expect(region.extentAbove).toBe(0);
         expect(region.extentBelow).toBe(0);
@@ -162,7 +169,7 @@ describe('an asymmetric region', () => {
     });
 
     test('keeps an inset inside the span rather than crossing it over', () => {
-        const region = insetFitRegion(rectFitRegion(10, 40), 20, 0);
+        const region = insetFitRegion(rect(10, 40), 20, 0);
         const [left, right] = region.spanAt(0, 0);
         expect(left).toBeLessThanOrEqual(right);
         expect(regionWidthAt(region, 0, 0)).toBe(0);

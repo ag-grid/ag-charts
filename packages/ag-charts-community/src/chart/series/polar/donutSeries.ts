@@ -1631,9 +1631,8 @@ export class DonutSeries extends PolarSeries<
                             Math.max(labelPadding.left, labelPadding.right),
                             Math.max(labelPadding.top, labelPadding.bottom)
                         );
-                        // The wedge's own vertical extent bounds the block, so the inscribed rect no longer
-                        // caps the label to the single line it was tall enough for. A wedge holds more room
-                        // to one side of the anchor than the other, so the fit also says where to draw it.
+                        // The wedge's own extent bounds the block, and it holds more room to one side of
+                        // the anchor than the other, so the fit also says where to draw the text.
                         const fitted = fitLabelTextToRegion(
                             datum.sectorLabel.text,
                             withFitRegion(sectorFit, region),

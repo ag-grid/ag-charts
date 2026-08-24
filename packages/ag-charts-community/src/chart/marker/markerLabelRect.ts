@@ -1,3 +1,4 @@
+import type { FitRegionMask } from 'ag-charts-core';
 import type { AgMarkerShape } from 'ag-charts-types';
 
 import { getSharedMarkerPath } from './markerPathCache';
@@ -38,22 +39,14 @@ export function markerLabelRect(shape: AgMarkerShape | undefined): MarkerLabelRe
     return rect;
 }
 
+const rowCache = new Map<AgMarkerShape, FitRegionMask | undefined>();
+
 /**
- * Each sampled row's inside span, as fractions of the marker diameter offset from the marker centre, top
- * row first; `undefined` where a row has no inside run. The same mask {@link markerLabelRect} reduces to
- * one rectangle, kept whole so a label can use the room a row actually offers.
+ * The per-row inside spans of a marker shape, in fractions of the marker diameter, analysed once per shape
+ * and cached. The same mask {@link markerLabelRect} reduces to one rectangle, kept whole so a label can use
+ * the room a row actually offers.
  */
-export interface MarkerRowSpans {
-    readonly rows: readonly (readonly [number, number] | undefined)[];
-    /** Offset of the first row's top edge from the marker centre. */
-    readonly top: number;
-    readonly rowHeight: number;
-}
-
-const rowCache = new Map<AgMarkerShape, MarkerRowSpans | undefined>();
-
-/** The per-row inside spans of a marker shape, analysed once per shape and cached. */
-export function markerRowSpans(shape: AgMarkerShape | undefined): MarkerRowSpans | undefined {
+export function markerRowSpans(shape: AgMarkerShape | undefined): FitRegionMask | undefined {
     if (shape == null) return undefined;
     if (!rowCache.has(shape)) {
         rowCache.set(shape, computeRowSpans(shape));
@@ -61,7 +54,7 @@ export function markerRowSpans(shape: AgMarkerShape | undefined): MarkerRowSpans
     return rowCache.get(shape);
 }
 
-function computeRowSpans(shape: AgMarkerShape): MarkerRowSpans | undefined {
+function computeRowSpans(shape: AgMarkerShape): FitRegionMask | undefined {
     const sampled = sampleShape(shape);
     if (sampled == null) return undefined;
 

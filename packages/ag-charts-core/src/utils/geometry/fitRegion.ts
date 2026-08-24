@@ -6,10 +6,6 @@ import { trapezoidExtentAcross } from './trapezoid';
  * are relative to the label's anchor: `top`/`bottom` are signed offsets from it (negative above), and the
  * span returned is `[left, right]` offsets from it too, which need not be symmetric — a wedge, a taper or
  * a corner all offer more room on one side of an anchor than the other.
- *
- * A rectangle answers the same span for every band; every other shape does not, which is the whole reason
- * this exists. Collapsing a shape to one rectangle costs the text the room its taper, curve or corner
- * gives back on the lines that do not reach into them.
  */
 export interface FitRegion {
     /** Horizontal room across the band `[top, bottom]`, as `[left, right]` offsets from the anchor. */
@@ -27,13 +23,6 @@ export interface FitRegion {
 export function regionWidthAt(region: FitRegion, top: number, bottom: number, offsetX = 0): number {
     const [left, right] = region.spanAt(top, bottom);
     return Math.max(0, 2 * Math.min(offsetX - left, right - offsetX));
-}
-
-/** A region of constant width: the behaviour every existing caller already gets from a container box. */
-export function rectFitRegion(width: number, height: number): FitRegion {
-    const half = height / 2;
-    const span = [-width / 2, width / 2] as const;
-    return { spanAt: () => span, extentAbove: half, extentBelow: half };
 }
 
 /** The room a pyramid stage offers a label anchored at `anchor` along the trapezoid's span axis. */
