@@ -1,7 +1,6 @@
 export type SimpleRedirectRule = { from: string; to: string };
 export type RedirectMatchRule = { fromPattern: string; to: string };
-// A 410 Gone rule: the page is permanently removed with no equivalent. Has no `to`; emitted
-// as `Redirect 410 <from>` or `RedirectMatch 410 "<fromPattern>"`.
+// A 410 Gone rule: permanently removed with no equivalent, so it carries no `to`.
 export type GoneRule = { from: string; gone: true } | { fromPattern: string; gone: true };
 export type Redirect = SimpleRedirectRule | RedirectMatchRule | GoneRule;
 
@@ -28,41 +27,31 @@ export const SITE_301_REDIRECTS: Redirect[] = [
     { fromPattern: '^/vue/?$', to: '/vue/quick-start/' },
     { fromPattern: '^/angular/?$', to: '/angular/quick-start/' },
 
-    // SE-60: legacy slug → renamed docs page.
+    // Legacy slug → renamed docs page.
     { from: '/javascript/toolbar/', to: '/javascript/financial-charts-toolbar/' },
     { from: '/react/toolbar/', to: '/react/financial-charts-toolbar/' },
     { from: '/react/line/', to: '/react/line-series/' },
 
-    // --- SE-61: legacy AG Charts URLs that currently 404 ---
-    // Rules are BASE-RELATIVE; getRedirectRules() splices in the /charts base for both pattern and target.
+    // Rules are base-relative; getRedirectRules() splices in the /charts base.
     // RedirectMatch is first-match-wins, so order is load-bearing: specific before broad.
 
-    // NB: do NOT add a blanket `^/archive(/.*)?$` 410 here. `/archive/<version>/` holds the live,
-    // indexed archived version docs (listed on /documentation-archive and in the sitemap), not QA
-    // artifacts — 410-ing them removes real content. The CSP <If> block also grants these pages
-    // `unsafe-eval` because they run example-runners, i.e. they are expected to be served.
+    // Do NOT broaden this to `^/archive(/.*)?$`: `/archive/<version>/` holds live, indexed
+    // archived docs, not QA artifacts.
 
-    // Bare archive index → the live archived-versions landing (documentation-archive.astro), which
-    // lists every archived version and rebuilds current each deploy — no version hardcoded. `/?$`
-    // matches `/archive` and `/archive/` only, never `/archive/<version>/…`, so every version's docs
-    // still serve. Mirrors the grid site's `^/archive/?$` → `/documentation-archive`.
+    // `/?$` matches the bare index only, never `/archive/<version>/…`, so archived docs still serve.
     { fromPattern: '^/archive/?$', to: '/documentation-archive/' },
 
-    // No charts-scoped privacy page exists and none should be served — it is permanently Gone (410).
-    // Do NOT 301 to the apex /privacy policy: /charts/privacy must return 410 Gone (SE-66). This is
-    // also why /charts/privacy is deliberately NOT mirrored into the grid docroot — the charts subdir
-    // stays its sole authority so the slashed form returns a single 410.
+    // Must stay a 410 rather than a 301 to the apex /privacy; the charts subdir is deliberately
+    // its sole authority so the slashed form returns a single 410.
     { fromPattern: '^/privacy(/.*)?$', gone: true },
 
-    // Legacy "{fw}-charts/{fw}/<page>" docs scheme → current "{fw}/<page>" (all page slugs verified in content/docs).
-    // Require a non-empty page slug ((.+)): an empty slug would target the bare "{fw}/" root, which the
-    // "^/{fw}/?$" rule redirects again — a chain. An empty slug therefore does not match here and is left
-    // to serve/404 (there is no broad "^/{fw}-charts/.+$" fallback for these frameworks).
+    // Legacy "{fw}-charts/{fw}/<page>" docs scheme → current "{fw}/<page>". The slug must be
+    // non-empty, or this would target the bare "{fw}/" root and chain into the "^/{fw}/?$" rule.
     { fromPattern: '^/javascript-charts/javascript/(.+)$', to: '/javascript/$1' },
     { fromPattern: '^/angular-charts/angular/(.+)$', to: '/angular/$1' },
     { fromPattern: '^/react-charts/react/(.+)$', to: '/react/$1' },
     { fromPattern: '^/vue-charts/vue/(.+)$', to: '/vue/$1' },
-    // enterprise-charts/react/<page> was the enterprise framework docs (security, accessibility, …) → react docs.
+    // Legacy enterprise framework docs (security, accessibility, …) → react docs.
     { fromPattern: '^/enterprise-charts/react/(.+)$', to: '/react/$1' },
 
     // Legacy "{fw}-charts/gallery|options/..." → framework-agnostic section landing.
@@ -72,7 +61,6 @@ export const SITE_301_REDIRECTS: Redirect[] = [
     { fromPattern: '^/enterprise-charts/(?!index\\.html$).+$', to: '/enterprise-charts/' },
 
     // Framework-agnostic legacy layouts: core = main docs, side = side-nav docs.
-    // All page slugs verified in content/docs → preserve the page under the javascript (default) framework.
     { fromPattern: '^/core/(.*)', to: '/javascript/$1' },
     { fromPattern: '^/side/(.*)', to: '/javascript/$1' },
 

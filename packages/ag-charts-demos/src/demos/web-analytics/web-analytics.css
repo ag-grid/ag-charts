@@ -1,12 +1,9 @@
-/* Urbanist, only for this demo — this stylesheet ships in the web-analytics chunk,
-   so the other demos never request it. Canvas text never triggers a font download,
-   so the charts rely on the document FontFaceSet to load it and re-measure. */
+/* Canvas text never triggers a font download, so the charts rely on the document
+   FontFaceSet to load Urbanist and re-measure. */
 @import url('https://fonts.googleapis.com/css2?family=Urbanist:wght@400..700&display=swap');
 
-/* Web-analytics dashboard chrome. Scoped under .wa-app so it never leaks into
-   other demos. Chart visuals come from the AG Charts theme; this file styles the
-   surrounding layout, cards, and Radix controls. Structure is carried by hairline
-   borders rather than elevation. */
+/* Dashboard chrome, scoped under .wa-app so it never leaks into other demos. Chart
+   visuals come from the AG Charts theme, not from here. */
 
 /* Tokens live on the app root and on portalled content (Radix menus mount at
    document.body, outside .wa-app). */
@@ -235,9 +232,8 @@
     align-items: start;
 }
 
-/* Opt-in: stretch the last row of a view to fill the remaining viewport height.
-   Requires the view to be `.wa-view--fill`, its fill cards `.wa-card--fill`, and
-   the chart area inside each such card marked `.wa-fill`. */
+/* Opt-in fill of the remaining viewport height: needs `.wa-view--fill` on the view,
+   `.wa-card--fill` on its cards and `.wa-fill` on the chart area inside each. */
 .wa-view--fill {
     min-height: 100%;
 }

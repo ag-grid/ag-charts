@@ -1,19 +1,21 @@
 import parseSitemap from '@ag-website-shared/components/sitemap/utils/sitemaputils';
-import { SITEMAP_CACHE_DIR } from '@ag-website-shared/constants';
+import { SITEMAP_BUILD_DIR, SITEMAP_CACHE_DIR } from '@ag-website-shared/constants';
 import { getSitemapXml } from '@ag-website-shared/utils/getSitemapXml';
 import { DISABLE_MARKDOWN_DOCS, LIVE_SITEMAP_URL, PRODUCTION_CHARTS_SITE_URL } from '@constants';
 import { SITEMAP_PAGE_CONTENT } from '@utils/markdown-pages/sitemapPageContent';
 
-// Served at /sitemap.md — the markdown twin of the HTML sitemap page, built from the same parsed
-// sitemap XML the page renders, so the two list the same pages under the same categories.
-// Content-negotiates from the HTML URL on Accept: text/markdown (see htaccessRules.ts).
+// Content-negotiated from the HTML URL on Accept: text/markdown — see htaccessRules.ts.
 export async function GET() {
     if (DISABLE_MARKDOWN_DOCS) {
         return new Response(null, { status: 404 });
     }
 
     const sitemapUrl = LIVE_SITEMAP_URL ?? `${PRODUCTION_CHARTS_SITE_URL}/sitemap-0.xml`;
-    const xmlSitemap = await getSitemapXml({ cacheDir: SITEMAP_CACHE_DIR, sitemapUrl });
+    const xmlSitemap = await getSitemapXml({
+        cacheDir: SITEMAP_CACHE_DIR,
+        sitemapUrl,
+        recordDir: SITEMAP_BUILD_DIR,
+    });
     const parsedSitemap = parseSitemap(xmlSitemap);
 
     const sections = Object.keys(parsedSitemap).map((category) => {

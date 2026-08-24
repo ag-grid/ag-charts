@@ -1,3 +1,4 @@
+// @ag-fixed-theme
 import {
     AgCartesianChartOptions,
     AgCharts,

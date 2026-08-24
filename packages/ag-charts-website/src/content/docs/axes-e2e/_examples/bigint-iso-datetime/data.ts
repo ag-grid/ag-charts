@@ -2,9 +2,7 @@ export type DataMode = 'bigint-small' | 'bigint-large' | 'iso-datetime';
 
 const POINTS = 8;
 
-// Base offset for the large-magnitude mode, just beyond Number.MAX_SAFE_INTEGER
-// (2^53 - 1 = 9_007_199_254_740_991). Wei-scale deltas push every value well
-// outside the safe-integer range so they must stay as bigint end to end.
+// Beyond Number.MAX_SAFE_INTEGER, so these values must stay bigint end to end.
 const LARGE_BASE = 9_007_199_254_740_993n;
 const LARGE_STEP = 1_250_000_000_000_000_000n;
 

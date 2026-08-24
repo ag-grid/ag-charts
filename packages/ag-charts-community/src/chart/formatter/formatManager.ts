@@ -175,7 +175,12 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
                 if (params.value == null) {
                     return '';
                 } else if (Array.isArray(params.value)) {
-                    return params.value.join(' - ');
+                    const { value, depth } = params;
+                    const depthIndex = depth == null ? -1 : value.length - depth - 1;
+                    if (depthIndex >= 0 && depthIndex < value.length) {
+                        return value[depthIndex] ?? '';
+                    }
+                    return value.join(' - ');
                 } else if (typeof params.value === 'string') {
                     return params.value;
                 } else if (typeof params.value === 'number') {

@@ -1,13 +1,11 @@
 import { type Page, expect } from '@playwright/test';
 
-// Shared depth assertions for the demo apps: every chart mounted, settled, and
-// showing real data, with no console noise. Used by demo-charts.spec.ts (the
-// existing demos) and web-analytics.spec.ts (which adds tab switching on top).
+// Shared depth assertions for the demo apps: every chart mounted, settled, and showing real data,
+// with no console noise.
 
 export const WRAPPER = '.ag-charts-wrapper';
 
-// The library's own "nothing to draw" markers. Any of these means a chart mounted
-// but has no data behind it.
+// The library's own "nothing to draw" markers: a chart mounted with no data behind it.
 const EMPTY_OVERLAYS = [
     '.ag-charts-no-data-overlay',
     '.ag-charts-no-visible-series',
@@ -34,10 +32,7 @@ export function watchConsole(page: Page): () => string[] {
     const issues: string[] = [];
     page.on('console', (msg) => {
         if (msg.type() !== 'error' && msg.type() !== 'warning') return;
-        // Licence banners are padded with '*' on both sides (see AG Grid/AG Charts
-        // LicenseManager). Matches the carve-out in demos.spec.ts. Note this also
-        // hides "License Key Not Found" for any unlicensed enterprise product, so
-        // it is not a guard against shipping a watermarked grid or chart.
+        // Licence banners are padded with '*' on both sides; this also hides "License Key Not Found".
         if (msg.text().startsWith('*')) return;
         issues.push(msg.text());
     });
@@ -103,8 +98,7 @@ async function inspectCharts(page: Page, emptyOverlays: readonly string[]): Prom
                 const ctx = canvas.getContext('2d');
                 if (!ctx) return false;
                 const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                // Bail on the first pixel differing from the top-left one; for a chart
-                // that drew anything this exits almost immediately.
+                // Bail on the first pixel differing from the top-left one.
                 for (let i = 4; i < data.length; i += 4) {
                     if (
                         data[i] !== data[0] ||

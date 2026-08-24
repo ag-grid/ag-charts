@@ -1,14 +1,35 @@
-import { LABEL_BOXING_DEFAULTS, PART_WHOLE_HIGHLIGHT_STYLE, SERIES_SELECTION_THEME } from 'ag-charts-core';
-import type { ExtensibleTheme } from 'ag-charts-types';
+import {
+    FILL_PATTERN_DEFAULTS,
+    LABEL_BOXING_DEFAULTS,
+    PART_WHOLE_HIGHLIGHT_STYLE,
+    SERIES_SELECTION_THEME,
+} from 'ag-charts-core';
+import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import { pieTheme } from './pieTheme';
 
-export const donutTheme: ExtensibleTheme<'donut'> = {
+export const donutTheme: ExtensibleSeriesTheme<'donut'> = {
     ...pieTheme,
     series: {
         ...pieTheme.series,
         innerRadiusRatio: {
             $if: [{ $eq: [{ $path: ['./innerRadiusOffset', undefined] }, undefined] }, 0.7, undefined],
+        },
+        innerCircle: {
+            fill: {
+                $applySwitch: [
+                    { $path: 'type' },
+                    { $value: '$1' },
+                    [
+                        'pattern',
+                        {
+                            ...FILL_PATTERN_DEFAULTS,
+                            fill: { $ref: 'foregroundColor' },
+                            stroke: { $ref: 'foregroundColor' },
+                        },
+                    ],
+                ],
+            },
         },
         innerLabels: {
             $apply: {

@@ -14,8 +14,12 @@ type ThemesMap<TDatum = DatumDefault, TContext = ContextDefault> = AgChartThemeO
     };
 };
 
-export type ExtensibleTheme<
+export type ExtensibleSeriesTheme<
     SType extends SeriesType,
     TDatum = DatumDefault,
     TContext = ContextDefault,
 > = WithThemeParams<NonNullable<ThemesMap<TDatum, TContext>[SType]>>;
+
+export type ExtensibleTheme<TDatum = DatumDefault, TContext = ContextDefault> = WithThemeParams<
+    NonNullable<ThemesMap<TDatum, TContext>>
+>;

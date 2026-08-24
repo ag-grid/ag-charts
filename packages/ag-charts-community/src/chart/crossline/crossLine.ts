@@ -1,16 +1,15 @@
 import type { CanvasPoint, ChartAxisDirection, Scale } from 'ag-charts-core';
-import { checkDatum } from 'ag-charts-core';
 import type {
     AgBaseCrossLineLabelOptions,
     AgCrossLineLabelPosition,
+    AgCrossLineListeners,
     AgTimeInterval,
     AgTimeIntervalUnit,
 } from 'ag-charts-types';
 
 import type { PolarAxisLayout } from '../../module/axisContext';
-import { ContinuousScale } from '../../scale/continuousScale';
-import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { Group } from '../../scene/group';
+import { isValidScaleValue } from '../scaleValue';
 
 export type CrossLineType = 'line' | 'range';
 
@@ -36,15 +35,11 @@ export function validateCrossLineValue(crossLine: ICrossLine, scale: Scale<any, 
         return false;
     }
 
-    const isContinuous = ContinuousScale.is(scale) || DiscreteTimeScale.is(scale);
-    const validValue = (val: unknown) =>
-        checkDatum(val, isContinuous) && !Number.isNaN(scale.convert(val, { clamp: true }));
-
     if (crossLine.type === 'range') {
         const [start, end] = value as [unknown, unknown];
-        return validValue(start) && validValue(end);
+        return isValidScaleValue(start, scale) && isValidScaleValue(end, scale);
     } else {
-        return validValue(value);
+        return isValidScaleValue(value, scale);
     }
 }
 
@@ -66,8 +61,8 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     calculateLayout?(visible: boolean, reversedAxis?: boolean): void;
     calculatePadding?(padding: Partial<Record<AgCrossLineLabelPosition, number>>): void;
     /**
-     * Hit-tests a canvas-space point against the cross line's rendered line or fill, widened by a
-     * small fixed pixel tolerance. Returns `false` when the cross line is not currently visible.
+     * Hit-tests a canvas-space point against the cross line's rendered line, fill or label, widened
+     * by a small fixed pixel tolerance. Returns `false` when the cross line is not currently visible.
      */
     containsPoint?(point: CanvasPoint): boolean;
     clippedRange: [number, number];
@@ -85,6 +80,8 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     id?: string;
     label: LabelType;
     labelGroup: Group;
+    /** User-supplied pointer listeners, when the cross line's options set any. */
+    listeners?: AgCrossLineListeners<unknown>;
     lineDash?: number[];
     range?: [any, any];
     scale?: Scale<any, number, number | AgTimeInterval | AgTimeIntervalUnit>;

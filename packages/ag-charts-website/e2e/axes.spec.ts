@@ -5,8 +5,7 @@ import { expectChartScreenshot } from './scene-capture';
 import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl, waitForAllChartUpdates } from './util';
 
 // Each consolidated axes example renders a deterministic layout (grouped-category axes, bigint / ISO
-// datetime domains, label rotation); the screenshot is the visual-regression baseline for a render path
-// that previously had no handwritten coverage.
+// datetime domains, label rotation); the screenshot is the visual-regression baseline for that render path.
 const AXES_EXAMPLES = [
     'bigint-iso-datetime',
     'grouped-category',
@@ -69,10 +68,8 @@ test.describe('axes', () => {
         });
     }
 
-    // axis-label-rotation demonstrates the label-rotation and collision-avoidance strategies via buttons.
-    // The default (auto rotation, uniform labels, collision detection on) is the render baseline above; for
-    // those uniform labels that already fit, "No rotation" is byte-identical to the default, so it is not a
-    // distinct state worth its own baseline.
+    // The default (auto rotation, uniform labels, collision detection on) is the render baseline above;
+    // "No rotation" is byte-identical to it here since these uniform labels already fit.
     test.describe('axis-label-rotation controls', () => {
         test('fixed rotation applies a constant angle', async ({ page }) => {
             const canvas = await gotoAxesExample(page, 'axis-label-rotation');

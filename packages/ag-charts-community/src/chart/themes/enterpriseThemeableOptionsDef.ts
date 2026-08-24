@@ -15,9 +15,11 @@ import {
     deprecated,
     deprecatedValue,
     fillOptionsDef,
+    fontOptionsDef,
     highlightOptionsDef,
     interpolationOptionsDefs,
     labelAutoFontSizeOptionsDefs,
+    labelBoxOptionsDef,
     labelCollisionFitOptionsDefs,
     labelCollisionPlacementDef,
     labelOrientationDef,
@@ -61,6 +63,7 @@ import {
     type AgConeFunnelSeriesThemeableOptions,
     type AgFunnelSeriesStyle,
     type AgFunnelSeriesThemeableOptions,
+    type AgHeatmapSeriesLabelStyle,
     type AgHeatmapSeriesStyle,
     type AgHeatmapSeriesThemeableOptions,
     type AgMapLineBackgroundThemeableOptions,
@@ -328,8 +331,8 @@ export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeabl
 
 export const heatmapSeriesThemeableOptionsDef: OptionsDefs<AgHeatmapSeriesThemeableOptions> = {
     title: string,
-    textAlign,
-    verticalAlign: union('top', 'middle', 'bottom'),
+    textAlign: deprecated(textAlign, 'Use `label.textAlign` instead.'),
+    verticalAlign: deprecated(union('top', 'middle', 'bottom'), 'Use `label.verticalAlign` instead.'),
     itemPadding: positiveNumber,
     cornerRadius: positiveNumber,
     itemStyler: callbackDefs<AgHeatmapSeriesStyle>({
@@ -337,7 +340,20 @@ export const heatmapSeriesThemeableOptionsDef: OptionsDefs<AgHeatmapSeriesThemea
         ...strokeOptionsDef,
     }),
     showInMiniChart: boolean,
-    label: autoSizedLabelOptionsDefs,
+    label: {
+        ...autoSizedLabelOptionsDefs,
+        // The full `textAlign` union: the deprecated top-level option forwards into here, so it must
+        // still accept the `start`/`end` values that option supports.
+        textAlign,
+        verticalAlign: union('top', 'middle', 'bottom'),
+        itemStyler: callbackDefs<AgHeatmapSeriesLabelStyle>({
+            enabled: boolean,
+            ...labelBoxOptionsDef,
+            ...fontOptionsDef,
+            textAlign,
+            verticalAlign: union('top', 'middle', 'bottom'),
+        }),
+    },
     tooltip: tooltipOptionsDefs,
     colorScale: colorScaleOptionsDef,
     ...commonSeriesThemeableOptionsDefs,
@@ -466,6 +482,7 @@ export const organizationSeriesThemeableOptionsDef: OptionsDefs<AgOrganizationSe
     direction: union('horizontal', 'vertical'),
     reverse: boolean,
     expander: defined,
+    layout: defined,
     link: defined,
     node: defined,
     tooltip: tooltipOptionsDefs,
@@ -758,6 +775,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         gap: positiveNumber,
         padding: positiveNumber,
         cornerRadius: positiveNumber,
+        fills: arrayOf(colorUnion),
         textAlign,
         interactive: boolean,
         highlight: {

@@ -35,37 +35,27 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function lineStyleLinear() {
+let interpolationType: 'linear' | 'smooth' | 'step' = 'smooth';
+let stepPosition: 'start' | 'middle' | 'end' = 'end';
+
+function typeChange(event: Event) {
+    interpolationType = (event.target as HTMLInputElement).value as 'linear' | 'smooth' | 'step';
+
+    const stepPositionGroup = document.getElementById('stepPositionGroup') as HTMLFieldSetElement;
+    stepPositionGroup.disabled = interpolationType !== 'step';
+
     options.series?.forEach((series) => {
-        (series as AgLineSeriesOptions).interpolation = { type: 'linear' };
+        (series as AgLineSeriesOptions).interpolation =
+            interpolationType === 'step' ? { type: 'step', position: stepPosition } : { type: interpolationType };
     });
     chart.update(options);
 }
 
-function lineStyleSmooth() {
-    options.series?.forEach((series) => {
-        (series as AgLineSeriesOptions).interpolation = { type: 'smooth' };
-    });
-    chart.update(options);
-}
+function positionChange(event: Event) {
+    stepPosition = (event.target as HTMLInputElement).value as 'start' | 'middle' | 'end';
 
-function lineStyleStepStart() {
     options.series?.forEach((series) => {
-        (series as AgLineSeriesOptions).interpolation = { type: 'step', position: 'start' };
-    });
-    chart.update(options);
-}
-
-function lineStyleStepMiddle() {
-    options.series?.forEach((series) => {
-        (series as AgLineSeriesOptions).interpolation = { type: 'step', position: 'middle' };
-    });
-    chart.update(options);
-}
-
-function lineStyleStepEnd() {
-    options.series?.forEach((series) => {
-        (series as AgLineSeriesOptions).interpolation = { type: 'step', position: 'end' };
+        (series as AgLineSeriesOptions).interpolation = { type: 'step', position: stepPosition };
     });
     chart.update(options);
 }

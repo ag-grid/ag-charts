@@ -1,9 +1,8 @@
 import { SITE_BASE_URL } from '../../constants';
 import { PRODUCTION_CSP_PHASE, getAstroRedirectRules, getHtaccessContent, getRedirectRules } from './htaccessRules';
 
-// Pin the base URL to the production `/charts` value so the rendered output (and the snapshots
-// below) are deterministic regardless of the ambient test env, which otherwise resolves the base
-// to `/`. Scoped to this file; other suites keep the ambient base.
+// Pin the base to the production `/charts` value; the ambient test env resolves it to `/`,
+// which would make the snapshots below env-dependent.
 vi.mock('../../constants', async (importActual) => {
     const actual = await importActual<typeof import('../../constants')>();
     return { ...actual, SITE_BASE_URL: '/charts/' };
@@ -82,16 +81,13 @@ describe('htaccessRules CSP (AG-17134)', () => {
 
 describe('htaccessRules redirects (SE-60/SE-61)', () => {
     const rules = getRedirectRules();
-    // The base ('' once trailing slash is stripped, or '/charts' in build envs) is spliced into
-    // every pattern and target. Assertions are written against the base-relative remainder so they
-    // hold regardless of the resolved base.
+    // Assertions target the base-relative remainder so they hold whatever base is resolved.
     const base = (SITE_BASE_URL ?? '').replace(/\/$/, '');
 
     it('does not 410 the archive — archived version docs are live, indexed content', () => {
-        // Regression guard: a blanket `^/archive(/.*)?$` 410 removed every /archive/<version>/ page
-        // (real archived docs listed on /documentation-archive and in the sitemap). Must not return.
+        // A blanket `^/archive(/.*)?$` 410 would remove every real /archive/<version>/ page.
         expect(rules).not.toContain(`RedirectMatch 410 "^${base}/archive(/.*)?$"`);
-        // Scoped to archive: no 410 rule may target an /archive path. Unrelated 410s are allowed.
+        // Scoped to archive: unrelated 410s are allowed.
         const gone410 = rules.split('\n').filter((l) => l.startsWith('RedirectMatch 410'));
         expect(gone410.some((l) => l.includes(`${base}/archive`))).toBe(false);
     });
@@ -119,10 +115,9 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
     it('does not redirect an empty {fw}-charts/{fw}/ docs root (no broad fallback for these frameworks)', () => {
         const emptyDocsRoot = `${base}/react-charts/react/`;
         const docsRule = new RegExp(`^${base}/react-charts/react/(.+)$`);
-        // The page-preserving rule requires a non-empty slug, so an empty docs root does not match it.
+        // The page-preserving rule requires a non-empty slug.
         expect(docsRule.test(emptyDocsRoot)).toBe(false);
-        // The broad "^/{fw}-charts/.+$ → quick-start" fallbacks were removed for javascript/angular/
-        // react/vue, so nothing redirects the empty root — it is left to serve/404.
+        // No broad fallback either, so the empty root is left to serve/404.
         for (const fw of ['javascript', 'angular', 'react', 'vue']) {
             expect(rules).not.toContain(`"^${base}/${fw}-charts/(?!index\\.html$).+$"`);
         }
@@ -161,11 +156,8 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
             const landing = sub.replace(/\/[^/]+$/, '/'); // e.g. /charts/react-charts/
             expect(re.test(landing)).toBe(false); // live marketing landing page must not be redirected
             expect(re.test(landing.replace(/\/$/, ''))).toBe(false); // nor its bare (no trailing slash) form
-            // The DirectoryIndex resource must not match: Apache's mod_dir resolves a bare
-            // "/{fw}-charts/" request via an internal sub-request for ".../index.html" that mod_alias
-            // re-evaluates, so a rule matching "index.html" fires on the landing page — an infinite
-            // loop for enterprise-charts (whose target is its own directory). This is the assertion
-            // the original `.+$` guard was missing.
+            // mod_dir resolves a bare directory request through an internal sub-request for
+            // index.html that mod_alias re-evaluates, so matching it loops on the landing page.
             expect(re.test(`${landing}index.html`)).toBe(false);
             expect(re.test(sub)).toBe(true); // legacy sub-paths still redirect
         }
@@ -180,7 +172,7 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
 
     it('astro redirect map excludes pattern-match and gone rules', () => {
         const astro = getAstroRedirectRules() ?? {};
-        // gone rules have no `from`; pattern rules have no `from` either — only simple `from` redirects appear.
+        // Only simple `from` redirects appear; gone and pattern rules have no `from`.
         expect(Object.keys(astro)).toContain('/react/line/');
         expect(Object.keys(astro).some((k) => k.includes('archive') || k.includes('privacy'))).toBe(false);
         expect(Object.keys(astro).some((k) => k.includes('(.*)'))).toBe(false);
@@ -190,11 +182,8 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
 describe('htaccessRules markdown content negotiation', () => {
     const production = getHtaccessContent({ env: 'production' });
     const staging = getHtaccessContent({ env: 'staging' });
-    // The negotiated path list is derived from CHARTS_MARKDOWN_PAGE_GROUPS, so asserting the
-    // literal regex here would just restate the registry. Instead, pull the generated pattern
-    // back out and check which URLs it actually matches — that catches a broken pattern, which a
-    // string comparison against a hand-copied regex never would. Rendered under the pinned
-    // `/charts` base (see vi.mock above), so the negotiated paths carry the deployed prefix.
+    // Assert on which URLs the generated pattern matches rather than on its literal text, which
+    // would only restate CHARTS_MARKDOWN_PAGE_GROUPS.
     const extractNegotiationPattern = (content: string) => {
         const match = content.match(/RewriteCond %\{REQUEST_URI\} \^\/\((.+)\)\/\?\$/);
         expect(match).not.toBeNull();
@@ -207,8 +196,7 @@ describe('htaccessRules markdown content negotiation', () => {
         return new RegExp(`^/charts/(?:${match![1]})/?$`);
     };
 
-    // One representative URL per group in the registry. Nearly every URL in the sitemap must
-    // negotiate, so a group added without a matching pattern shows up here.
+    // One representative URL per registry group, so a group with no matching pattern shows up.
     const negotiablePaths = [
         '/charts/react/axes-types/',
         '/charts/javascript/quick-start/',
@@ -240,8 +228,7 @@ describe('htaccessRules markdown content negotiation', () => {
         '/charts/themes-api/overrides/bar/',
     ];
 
-    // Paths that must NOT negotiate: they have no `.md` twin, and rewriting them would either
-    // 404 or (for the `.md` itself) loop into `.md.md`.
+    // No `.md` twin: rewriting these would 404, or loop into `.md.md` for a twin itself.
     const nonNegotiablePaths = [
         '/charts/react/axes-types.md', // the twin itself — final segments exclude dots
         '/charts/react/', // framework landing page, a redirect stub
@@ -291,8 +278,8 @@ describe('htaccessRules markdown content negotiation', () => {
 
     it('captures the base-relative page path in %1 so the -f guard and rewrite target resolve under /charts', () => {
         const pattern = extractNegotiationPattern(production);
-        // %1 is the first capture group, reused as `%1.md` in both the guard and the target, so it
-        // must carry the base with the leading slash excluded.
+        // %1 is reused as `%1.md` in both guard and target, so it must carry the base without
+        // the leading slash.
         expect('/charts/community/events/'.match(pattern)?.[1]).toBe('charts/community/events');
         expect('/charts/react/axes-types/'.match(pattern)?.[1]).toBe('charts/react/axes-types');
         expect('/charts/gallery/simple-bar'.match(pattern)?.[1]).toBe('charts/gallery/simple-bar');
@@ -301,8 +288,8 @@ describe('htaccessRules markdown content negotiation', () => {
     it('adds Vary: Accept for exactly the negotiated paths (both envs) so shared caches key on the negotiated representation', () => {
         for (const content of [production, staging]) {
             expect(content).toContain('Header append Vary Accept');
-            // The Vary scope must cover the negotiated set exactly — narrower and a cache could
-            // serve markdown to a browser; wider and unrelated pages lose cache keying.
+            // Narrower and a cache could serve markdown to a browser; wider and unrelated pages
+            // lose cache keying.
             const varyPattern = extractVaryPattern(content);
             for (const path of negotiablePaths) {
                 expect(varyPattern.test(path), `${path} should carry Vary: Accept`).toBe(true);
@@ -335,8 +322,7 @@ describe('htaccessRules markdown content negotiation', () => {
 });
 
 describe('generated redirect rules snapshot', () => {
-    // Full-output regression guard. Renders under the pinned `/charts` base (see vi.mock above), so
-    // the snapshots show the production-prefixed rules, e.g. `RedirectMatch 410 "^/charts/archive(/.*)?$"`.
+    // Snapshots render under the pinned `/charts` base, so they carry the production prefix.
     it('redirect rules output is unchanged', () => {
         expect(getRedirectRules()).toMatchSnapshot();
     });

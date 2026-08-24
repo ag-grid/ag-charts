@@ -467,9 +467,7 @@ describe('DataModel', () => {
                 expect(invalidDataArray![2]).toBe(true); // Third item (appended)
                 expect(reprocessed.partialValidDataCount).toBeGreaterThan(0);
 
-                // Verify domains
-                // Key domain includes all valid keys (1, 2, 3), even though items with keys 2 and 3 have invalid y values
-                // This matches processData() behaviour where each property domain is independent
+                // Each property domain is independent, so keys 2 and 3 count despite invalid y values.
                 expect(reprocessed.domain.keys).toEqual([[1, 3]]);
                 // Value domain only includes valid values (only item 0 with y=10 is fully valid)
                 expect(reprocessed.domain.values).toEqual([[10, 10]]);
@@ -510,9 +508,7 @@ describe('DataModel', () => {
                 expect(missingDataArray![1]).toBe(true); // Second item (from initial)
                 expect(missingDataArray![2]).toBe(true); // Third item (appended)
 
-                // Verify domains
-                // Key domain includes all valid keys (1, 2, 3), even though items with keys 2 and 3 have missing y values
-                // This matches processData() behaviour where each property domain is independent
+                // Each property domain is independent, so keys 2 and 3 count despite missing y values.
                 expect(reprocessed.domain.keys).toEqual([[1, 3]]);
                 // Value domain includes missing value (0)
                 expect(reprocessed.domain.values).toEqual([[0, 10]]);
@@ -1099,9 +1095,7 @@ describe('DataModel', () => {
             expect(columns[0][99]).toBe(1000); // seriesA
             expect(columns[1][99]).toBe(1500); // seriesB stacked: 1000 + 500 = 1500
 
-            // Verify domain reflects correct range
-            // domain.values[0] is seriesA range (not stacked)
-            // domain.values[1] is seriesB range (after stacking)
+            // values[0] is seriesA unstacked; values[1] is seriesB after stacking.
             expect(reprocessed.domain.values[0]).toEqual([10, 1000]); // seriesA range
             expect(reprocessed.domain.values[1]).toEqual([15, 1500]); // seriesB stacked range (10+5 to 1000+500)
         });
@@ -1150,10 +1144,7 @@ describe('DataModel', () => {
 
             expect(groups.length).toBe(3);
 
-            // With normal accumulation, values stack within groups (no accumulation across groups)
-            // A: seriesA=100, seriesB=150 (100+50 stacked)
-            // B: seriesA=150, seriesB=225 (150+75 stacked)
-            // C: seriesA=200, seriesB=300 (200+100 stacked)
+            // Normal accumulation stacks within a group, never across groups.
             expect(columns[0][0]).toBe(100); // A seriesA
             expect(columns[1][0]).toBe(150); // A seriesB (100+50 stacked)
             expect(columns[0][1]).toBe(150); // B seriesA
@@ -1538,10 +1529,8 @@ describe('DataModel', () => {
                 expect(reprocessed.columns[1][1]).toBeUndefined(); // y2 second (null -> invalidValue)
                 // y2 domain should NOT include null
                 expect(reprocessed.domain.values[1]).toEqual([100, 100]);
-                // Note: y1's domain SHOULD include 20 because y1 is valid, even though y2 is null.
-                // Invalid values in one column should not affect domain calculation for other columns.
-                // This enables correct axis behaviour: x-axis shows all valid x-values even when
-                // corresponding y-values are null (creating gaps in the line).
+                // An invalid value in one column must not shrink another column's domain, so a line
+                // with gaps still shows every valid x-value.
                 expect(reprocessed.domain.values[0]).toEqual([10, 20]);
             });
 
@@ -1673,9 +1662,8 @@ describe('DataModel', () => {
                 expect(reprocessed.invalidKeys?.get('test')?.[0]).toBe(true);
                 // Column value should be invalidValue for null datum
                 expect(reprocessed.columns[0][0]).toBeUndefined();
-                // Note: Domain calculation differs - incremental extends from columns which
-                // contain invalidValue (undefined), so domain shows [undefined, undefined] vs []
-                // This is a known limitation when all datums are invalid
+                // Known limitation: with every datum invalid the incremental domain extends from
+                // undefined columns, giving [undefined, undefined] rather than [].
             });
         });
 

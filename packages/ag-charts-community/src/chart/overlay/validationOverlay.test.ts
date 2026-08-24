@@ -17,10 +17,8 @@ import {
 import type { GroupedValidationIssues } from '../validation/validationIssueCollector';
 import { getValidationOverlay } from './validationOverlay';
 
-// A single-issue misconfiguration: an invalid `strokeWidth` value on a line series. Validated
-// against `lineSeriesOptionsDef` before the series is constructed, so it is captured as a
-// `warning` severity issue by the shared `validations` collector (additive to the existing
-// `Logger.warn` console output).
+// A single-issue misconfiguration: an invalid `strokeWidth` validated against `lineSeriesOptionsDef`
+// before construction, so the shared `validations` collector captures it at `warning` severity.
 const invalidStrokeWidthOptions: AgChartOptions = {
     data: [{ x: 'a', y: 1 }],
     series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 'notanumber' as any }],
@@ -166,9 +164,8 @@ describe('ValidationOverlay', () => {
     });
 
     describe('#tooltip suppression', () => {
-        // The tooltip is a browser top-layer popover, so it would paint over the validation overlay
-        // regardless of z-index; a visible overlay must therefore hold the tooltip back, and clearing
-        // it (dismiss or a fixed config) must release it again.
+        // The tooltip is a browser top-layer popover, so it paints over the overlay regardless of z-index; a
+        // visible overlay must hold it back and clearing the overlay must release it.
         test('a visible overlay suppresses the tooltip; dismissing it releases the tooltip', async () => {
             chart = await createChart(invalidStrokeWidthOptions);
             expect(chart.validationCollector.hasVisibleIssues()).toBe(false);
@@ -221,10 +218,8 @@ describe('ValidationOverlay', () => {
     });
 
     describe('#callback errors', () => {
-        // A throwing user callback (here a bar `itemStyler`) is caught by the shared `safeCall` guard,
-        // which swallows it with a console `warnOnce` so it never reaches `tryPerformUpdate`'s catch.
-        // With an error-level overlay the caught error must still surface as an error entry, while the
-        // chart degrades gracefully (the callback returns undefined instead of crashing the render).
+        // A throwing user callback is swallowed by the shared `safeCall` guard, so it never reaches
+        // `tryPerformUpdate`'s catch, yet must still surface as an error-severity overlay entry.
         const throwingItemStylerOptions: AgChartOptions = {
             data: [
                 { x: 'Jan', y: 10 },
@@ -259,9 +254,8 @@ describe('ValidationOverlay', () => {
                 (el) => el.textContent ?? ''
             );
             expect(messages).toHaveLength(1);
-            // The "Uncaught exception in user callback" wording only comes from the safeCall guard,
-            // proving the error surfaced via the swallowed-callback path (graceful degrade), not a
-            // propagated render crash caught by tryPerformUpdate.
+            // The "Uncaught exception in user callback" wording only comes from the safeCall guard, proving the
+            // error surfaced via the swallowed-callback path rather than a propagated render crash.
             expect(messages[0]).toContain('Uncaught exception in user callback');
             expect(messages[0]).toContain('itemStyler');
 
@@ -299,9 +293,8 @@ describe('ValidationOverlay', () => {
     });
 
     describe('#dismiss', () => {
-        // Assert on `aria-hidden` rather than DOM presence: hideOverlay clears content via
-        // `innerText = '\xA0'`, which jsdom does not apply to descendant nodes (real browsers do),
-        // so the child element can linger in jsdom while `aria-hidden` stays correct.
+        // Assert on `aria-hidden`: hideOverlay clears content via `innerText`, which jsdom does not apply to
+        // descendant nodes, so a child element can linger in jsdom while `aria-hidden` stays correct.
         test('dismiss hides the overlay; a subsequent different issue re-shows it', async () => {
             const options = prepareTestOptions({
                 ...invalidStrokeWidthOptions,
@@ -315,9 +308,8 @@ describe('ValidationOverlay', () => {
                 'false'
             );
 
-            // Animations default to a real (non-instant) duration once a batch has run; skip the
-            // current batch so the removal animation's cleanup runs synchronously.
-            chart.skipAnimations();
+            // A dismiss happens outside any update cycle, so nothing drives a removal animation to completion; the
+            // overlay must detach synchronously rather than linger until the next resize.
             chart.validationCollector.dismiss();
             expect(chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.getAttribute('aria-hidden')).toEqual(
                 'true'
@@ -350,11 +342,8 @@ describe('ValidationOverlay', () => {
         });
     });
 
-    // The "Deprecation Only" QA case (jira-comments 2026-08-13): a deprecation-severity issue at
-    // overlayLevel 'deprecation' must render its own section. No community-level deprecated option
-    // exists to drive this through a real chart — the option -> collector -> overlay wiring is
-    // covered by the warning tests above — so the renderer is exercised directly here against a
-    // grouped deprecation issue, the one severity no other DOM test renders.
+    // No community-level deprecated option can drive a deprecation-severity issue through a real chart, so
+    // the renderer is exercised directly.
     describe('#deprecation section', () => {
         test('renders a Deprecations section, count heading and summary for a deprecation-severity issue', async () => {
             chart = await createChart({

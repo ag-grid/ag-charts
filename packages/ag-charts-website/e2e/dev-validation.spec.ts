@@ -6,15 +6,11 @@ import { gotoExample, setupIntrinsicAssertions, toExamplePageUrl, waitForAllChar
 const PANEL = '.ag-charts-validation-overlay__panel';
 
 test.describe('validation overlay', () => {
-    // The examples deliberately misconfigure options to trigger the overlay; ignore the resulting
-    // validation console warnings so they do not fail the console-clean assertion.
+    // The examples deliberately misconfigure options to trigger the overlay.
     setupIntrinsicAssertions(test, { ignoreConsolePatterns: ['fillOpacity', 'strokeWidth'] });
 
-    // The dev server serves examples over an insecure origin, where the browser withholds
-    // navigator.clipboard — so the overlay's Copy button (rendered only when the clipboard is
-    // writable) would be absent, unlike the secure-context production site where users see it.
-    // Shim a writable clipboard so the overlay matches production; the render-vs-omit branch itself
-    // is covered both ways in ag-charts-community's validationOverlay.test.ts.
+    // The dev server's insecure origin withholds navigator.clipboard, so the overlay would omit its
+    // Copy button; shim a writable clipboard so the baseline matches the production site.
     test.beforeEach(async ({ page }) => {
         await page.addInitScript(() => {
             if (typeof navigator.clipboard === 'undefined') {

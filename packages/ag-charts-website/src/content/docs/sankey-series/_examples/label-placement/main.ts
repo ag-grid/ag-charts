@@ -48,32 +48,15 @@ const options: AgFlowProportionChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function placeLeft() {
-    (options.series![0] as AgSankeySeriesOptions).label!.placement = 'left';
+function placementChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value as 'left' | 'right' | 'center';
+    (options.series![0] as AgSankeySeriesOptions).label!.placement = value;
     chart.update(options);
 }
 
-function placeRight() {
-    (options.series![0] as AgSankeySeriesOptions).label!.placement = 'right';
-    chart.update(options);
-}
-
-function placeCenter() {
-    (options.series![0] as AgSankeySeriesOptions).label!.placement = 'center';
-    chart.update(options);
-}
-
-function placeEdgeInside() {
-    (options.series![0] as AgSankeySeriesOptions).label!.edgePlacement = 'inside';
-    chart.update(options);
-}
-
-function placeEdgeOutside() {
-    (options.series![0] as AgSankeySeriesOptions).label!.edgePlacement = 'outside';
-    chart.update(options);
-}
-
-function placeEdgeDefault() {
-    (options.series![0] as AgSankeySeriesOptions).label!.edgePlacement = undefined;
+function edgePlacementChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    (options.series![0] as AgSankeySeriesOptions).label!.edgePlacement =
+        value === 'default' ? undefined : (value as 'inside' | 'outside');
     chart.update(options);
 }

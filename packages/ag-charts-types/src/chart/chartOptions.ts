@@ -152,6 +152,8 @@ export interface AgChartBackground {
 
 export type AgChartHighlightRange = 'tooltip' | 'node';
 
+export type AgChartHighlightMode = 'single' | 'shared';
+
 export interface AgChartHighlightOptions {
     /**
      * Set to `false` to disable highlighting for all series in the chart.
@@ -161,6 +163,14 @@ export interface AgChartHighlightOptions {
     enabled?: boolean;
     /** By default, nodes will be highlighted when the cursor is within the `tooltip.range`. Set this to `'node'` to highlight nodes when within the `series[].nodeClickRange`. */
     range?: AgChartHighlightRange;
+    /**
+     * Determines which items are highlighted when hovering an item.
+     * - `'single'` highlights the hovered item only.
+     * - `'shared'` also highlights the item of every other series that shares the hovered item's category, using the same grouping as `tooltip.mode: 'shared'`. Series with no item at that category - including series with no category concept, such as scatter and bubble - are unhighlighted as a whole series.
+     *
+     * Default: `'single'`
+     */
+    mode?: AgChartHighlightMode;
     /**
      * Determines the rendering behaviour of the highlight relative to existing chart content.
      * - `'overlay'` renders the highlight above existing content, both layers remain visible where they overlap.
@@ -359,6 +369,14 @@ export interface AgBaseChartOptions<
  */
 export type AgChartValidationLevel = 'error' | 'warning' | 'deprecation' | 'none';
 
+/** A single validation problem reported by the chart. */
+export interface AgChartValidationIssueEvent {
+    /** The severity of the problem. */
+    level: 'error' | 'warning' | 'deprecation';
+    /** A description of the problem, the same text reported to the console and the validation overlay. */
+    message: string;
+}
+
 /** Configuration for how the chart reports invalid configuration and runtime problems. */
 export interface AgChartValidationsOptions {
     /**
@@ -375,4 +393,24 @@ export interface AgChartValidationsOptions {
      * Default: `'none'`
      */
     overlayLevel?: AgChartValidationLevel;
+    /**
+     * The minimum severity of validation problem that causes the chart to throw instead of warning
+     * and falling back to a default. `'none'` never throws, matching the behaviour of charts that do
+     * not set this option.
+     *
+     * Console output is never suppressed by this option — the console record of a problem is written
+     * before the throw.
+     *
+     * Default: `'none'`
+     */
+    throwOn?: AgChartValidationLevel;
+    /**
+     * Called for each validation problem the chart raises — an invalid option value or a runtime error
+     * caught during a chart update. The reported problems are the same set the validation overlay
+     * shows, not every diagnostic the chart can write to the console. Never gated by
+     * `consoleLogLevel` or `overlayLevel`.
+     *
+     * Default: `undefined`
+     */
+    onErrorRaised?: (event: AgChartValidationIssueEvent) => void;
 }

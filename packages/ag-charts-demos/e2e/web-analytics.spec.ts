@@ -7,11 +7,8 @@ import {
     watchConsole,
 } from './chart-assertions';
 
-// Depth coverage for the web-analytics demo. The shared per-chart assertions live in
-// chart-assertions.ts alongside demo-charts.spec.ts; what this spec adds is the tab
-// dimension. Radix unmounts inactive `Tabs.Content`, so the generic smoke test in
-// demos.spec.ts only ever sees the Overview tab — 11 of the 13 charts, including
-// every enterprise series, are never mounted by it.
+// Radix unmounts inactive `Tabs.Content`, so the generic smoke test only ever mounts the Overview
+// tab; this spec adds the tab dimension to reach the other 11 charts.
 
 const DEMO_ID = 'web-analytics';
 
@@ -60,8 +57,7 @@ test.describe(DEMO_ID, () => {
         await waitForAllChartUpdates(page);
         popConsoleIssues();
 
-        // Radix unmounts inactive tab content, so coming back is a full remount —
-        // the path where a destroyed chart instance or a stale ref would surface.
+        // Radix unmounts inactive tab content, so coming back is a full remount.
         for (const tab of [...TABS.slice(1), TABS[0]]) {
             await openTab(page, tab);
         }

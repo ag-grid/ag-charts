@@ -111,9 +111,8 @@ export function aggregateCspViolations(
     const groups = new Map<string, { violation: AggregatedCspViolation; pagePaths: Set<string> }>();
 
     for (const { record, testTitle } of records) {
-        // Grouping on the suggested hash keeps two different blocked inline scripts apart: they
-        // share a directive and report the same `inline` blocked URI, so grouping without it
-        // would merge them and make fixing one look like the pair being replaced by a new one.
+        // The hash is the only thing separating two blocked inline scripts: they share a
+        // directive and both report `inline` as the blocked URI.
         const suggestedHashes = hashesFor(record, hints);
         const groupKey = [record.disposition, record.directive, record.blockedUri, ...suggestedHashes].join('|');
         let group = groups.get(groupKey);

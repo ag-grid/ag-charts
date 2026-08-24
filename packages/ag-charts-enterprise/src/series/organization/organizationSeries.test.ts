@@ -1,3 +1,4 @@
+import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type {
@@ -18,6 +19,7 @@ import {
     dragAction,
     expectSceneSamplesMatch,
     hoverAction,
+    looserSnapshotDefaults,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
@@ -128,9 +130,8 @@ const SIMPLE_ORG_CHART_THEMED: AgChartOptions = {
     },
 };
 
-// Wide + tall layout that overflows the 800x600 mock canvas on both axes. Required for tests
-// that exercise non-fit zoom behaviour — content that already fits is held at the native-pixel cap,
-// so SIMPLE_ORG_CHART can't drive centre-on-active or off-isotropic input.
+// Overflows the mock canvas on both axes: content that already fits is held at the native-pixel
+// cap, so SIMPLE_ORG_CHART cannot drive non-fit zoom behaviour.
 const OVERFLOWING_ORG_CHART: AgChartOptions = {
     data: (() => {
         const data: { id: string; name: string; job: string; location: string; parentId: string | null }[] = [
@@ -166,9 +167,8 @@ const OVERFLOWING_ORG_CHART: AgChartOptions = {
     ],
 };
 
-// Tall + narrow layout: contentBBox fits the canvas horizontally but overflows vertically.
-// Used by the series-area clipping test so y-only zoom + vertical pan produces an unmistakable
-// "card cut off at the title boundary" demonstration with readable cards.
+// Fits the canvas horizontally but overflows vertically, so y-only zoom and vertical pan visibly
+// clip a card at the series-area boundary.
 const TALL_ORG_CHART: AgChartOptions = {
     data: (() => {
         const data: { id: string; name: string; job: string; location: string; parentId: string | null }[] = [
@@ -208,15 +208,8 @@ const TALL_ORG_CHART: AgChartOptions = {
     ],
 };
 
-// Square-aspect overflow: contentBBox aspect ratio matches the 800×600 canvas so fitX ≈ fitY,
-// AND content is densely distributed across both axes (not just one corner). Each leaf has its
-// own chain hanging below, so the middle-x/middle-y region of contentBBox actually contains
-// nodes — without that, zoom-centred snapshots land in blank whitespace.
-//
-// Both axes derive their window size from one shared scale, taken from the least-zoomed axis. If one
-// axis overflows much more than the other (as in OVERFLOWING_ORG_CHART, which is very wide but only
-// modestly tall), that axis dominates and the requested zoom on the other is widened to match. Tests
-// asserting symmetric x/y zoom behaviour need fits that are comparable on both axes.
+// Square-aspect overflow: both axes share one scale from the least-zoomed axis, so tests asserting
+// symmetric x/y zoom need comparable fits on both axes.
 const SQUARE_OVERFLOW_ORG_CHART: AgChartOptions = {
     data: (() => {
         const data: { id: string; name: string; job: string; location: string; parentId: string | null }[] = [
@@ -464,6 +457,38 @@ function createSegmentAlignmentExample(textAlign: TextAlign, mode: 'property' | 
     };
 }
 
+function createAsymmetricTextPaddingExample(textAlign: TextAlign): any {
+    return {
+        ...SIMPLE_ORG_CHART,
+        series: [
+            {
+                type: 'organization',
+                idKey: 'id',
+                parentIdKey: 'parentId',
+                expander: { padding: { top: 2, right: 22, bottom: 2, left: 4 } },
+                node: {
+                    fill: 'aliceblue',
+                    stroke: 'dodgerblue',
+                    strokeWidth: 2,
+                    title: {
+                        key: 'name',
+                        fill: 'pink',
+                        padding: { top: 4, right: 40, bottom: 4, left: 10 },
+                        textAlign,
+                    },
+                    subtitle: {
+                        key: 'job',
+                        fill: 'lavender',
+                        padding: { top: 2, right: 16, bottom: 2, left: 4 },
+                        textAlign,
+                    },
+                    labels: [{ key: 'location', textAlign }],
+                },
+            },
+        ],
+    };
+}
+
 interface StandaloneTestCase extends ChartTestCase {
     options: AgStandaloneChartOptions;
 }
@@ -495,82 +520,83 @@ function createTextImageExample(
     };
 }
 
+const assertions = standaloneChartAssertions({ seriesTypes: ['organization'] });
+
 const EXAMPLES: Record<string, StandaloneTestCase> = {
     SIMPLE_ORG_CHART: {
         options: SIMPLE_ORG_CHART,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     SIMPLE_ORG_CHART_THEMED: {
         options: SIMPLE_ORG_CHART_THEMED,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     SIMPLE_ORG_CHART_RTL: {
         options: { ...SIMPLE_ORG_CHART, enableRtl: true },
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     LINKS_ROUNDED_INTERPOLATION: {
         options: LINKS_ROUNDED_INTERPOLATION,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     ITEM_STYLERS: {
         options: ITEM_STYLERS,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     FORMATTERS: {
         options: FORMATTERS,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     TEXT_CENTER_IMAGE_TOP: {
         options: createTextImageExample('center', 'top'),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     TEXT_RIGHT_IMAGE_RIGHT: {
         options: createTextImageExample('right', 'right'),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     TEXT_CENTER_IMAGE_RIGHT: {
         options: createTextImageExample('center', 'right'),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     IMAGE_CIRCLE_TOP: {
         options: createTextImageExample('center', 'top', 20),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     IMAGE_CIRCLE_BOTTOM: {
         options: createTextImageExample('left', 'bottom', 20),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     IMAGE_CIRCLE_LEFT: {
         options: createTextImageExample('left', 'left', 20),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     IMAGE_CIRCLE_RIGHT: {
         options: createTextImageExample('right', 'right', 20),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     SEGMENT_TITLE_LEFT_ALIGNED: {
         options: createSegmentAlignmentExample('left', 'property'),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     SEGMENT_TITLE_RIGHT_ALIGNED: {
         options: createSegmentAlignmentExample('right', 'property'),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     SEGMENT_TITLE_CENTER_ALIGNED: {
         options: createSegmentAlignmentExample('center', 'property'),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     SEGMENT_TITLE_LEFT_ALIGNED_VIA_ITEM_STYLER: {
         options: createSegmentAlignmentExample('left', 'itemStyler'),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     SEGMENT_TITLE_CENTER_ALIGNED_VIA_ITEM_STYLER: {
         options: createSegmentAlignmentExample('center', 'itemStyler'),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     SEGMENT_TITLE_PER_DATUM_ALIGNMENT_VIA_ITEM_STYLER: {
-        // Confirms cached per-datum styles aren't shared between OrganizationNodes:
-        // each row gets a different alignment based on its job.
+        // Cached per-datum styles must not be shared between OrganizationNodes.
         options: {
             ...SIMPLE_ORG_CHART,
             series: [
@@ -593,11 +619,11 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     SEGMENT_TITLE_RIGHT_ALIGNED_VIA_ITEM_STYLER: {
         options: createSegmentAlignmentExample('right', 'itemStyler'),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     TEXT_TIER_BACKING_BOX: {
         options: {
@@ -635,12 +661,11 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     TEXT_TIER_BACKING_BOX_LARGE_PADDING: {
-        // Regression for AG-17193 pt2: with sizable padding (>>0) the text-box layout
-        // must reserve the full padded bounds so siblings don't overlap each other or
-        // the card edges. Mirrors the QA repro at plnkr.co/edit/64pDpFemUqydBOhJ.
+        // With sizable padding the text-box layout must reserve the full padded bounds so siblings
+        // do not overlap each other or the card edges.
         options: {
             ...SIMPLE_ORG_CHART,
             series: [
@@ -687,6 +712,18 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
+        assertions,
+    },
+    TEXT_TIER_BACKING_BOX_ASYMMETRIC_PADDING: {
+        options: createAsymmetricTextPaddingExample('center'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    TEXT_TIER_BACKING_BOX_ASYMMETRIC_PADDING_LEFT_ALIGNED: {
+        options: createAsymmetricTextPaddingExample('left'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    TEXT_TIER_BACKING_BOX_ASYMMETRIC_PADDING_RIGHT_ALIGNED: {
+        options: createAsymmetricTextPaddingExample('right'),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
     TEXT_TIER_BACKING_BOX_VIA_ITEM_STYLER: {
@@ -711,12 +748,10 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     NODE_ITEM_STYLER_USES_IS_COLLAPSED: {
-        // 'cto' is collapsed via initialState; node.itemStyler returns a distinct fill/stroke
-        // when isCollapsed is true. Verifies the param is plumbed through and reflects the
-        // current collapsed state per node.
+        // 'cto' is collapsed via initialState, so its itemStyler must see isCollapsed true.
         options: {
             ...SIMPLE_ORG_CHART,
             initialState: { collapsed: ['cto'] },
@@ -737,11 +772,10 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     TEXT_TIER_ITEM_STYLER_USES_IS_COLLAPSED: {
-        // Same setup but the styler lives on the title tier — confirms isCollapsed reaches
-        // text-tier itemStyler params, not just node-level.
+        // The styler lives on the title tier, so isCollapsed must reach text-tier styler params.
         options: {
             ...SIMPLE_ORG_CHART,
             initialState: { collapsed: ['cto'] },
@@ -762,11 +796,9 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     NODE_TEXT_FORMATTER_USES_IS_COLLAPSED: {
-        // Title/subtitle/label formatters receive `isCollapsed` and can append a marker —
-        // verifies the param reaches the formatter callback for all three text tiers.
         options: {
             ...SIMPLE_ORG_CHART,
             initialState: { collapsed: ['cto'] },
@@ -797,11 +829,10 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     TEXT_TIER_BACKING_BOX_PARTIAL_OVERRIDE: {
-        // property-level supplies stroke + cornerRadius + padding; itemStyler adds fill conditionally.
-        // Verifies merge: defaults + property + itemStyler accumulate correctly per datum.
+        // Defaults, property-level values and itemStyler results must accumulate per datum.
         options: {
             ...SIMPLE_ORG_CHART,
             series: [
@@ -825,14 +856,14 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     DIRECTION_HORIZONTAL: {
         options: {
             ...SIMPLE_ORG_CHART,
             theme: { overrides: { organization: { series: { direction: 'horizontal' } } } },
         },
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     EXPANDER_ALL_AND_DIRECT_CHILDREN: {
         options: {
@@ -849,7 +880,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     EXPANDER_NO_CHILDREN: {
         options: {
@@ -866,35 +897,87 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     DIRECTION_HORIZONTAL_IMAGE_TOP: {
         options: {
             ...createTextImageExample('center', 'top'),
             theme: { overrides: { organization: { series: { direction: 'horizontal' } } } },
         },
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     DIRECTION_HORIZONTAL_IMAGE_RIGHT: {
         options: {
             ...createTextImageExample('left', 'right'),
             theme: { overrides: { organization: { series: { direction: 'horizontal' } } } },
         },
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     DIRECTION_HORIZONTAL_REVERSE: {
         options: {
             ...SIMPLE_ORG_CHART,
             theme: { overrides: { organization: { series: { direction: 'horizontal', reverse: true } } } },
         },
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     DIRECTION_VERTICAL_REVERSE: {
         options: {
             ...SIMPLE_ORG_CHART,
             theme: { overrides: { organization: { series: { direction: 'vertical', reverse: true } } } },
         },
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
+    },
+    STACKED: {
+        options: {
+            ...TEAM_DIRECTORY_ORG_CHART,
+            initialState: { collapsed: [] },
+            theme: { overrides: { organization: { series: { layout: { type: 'stacked', stackAtDepth: 3 } } } } },
+        },
+        assertions,
+    },
+    STACKED_VERTICAL_REVERSE: {
+        options: {
+            ...TEAM_DIRECTORY_ORG_CHART,
+            initialState: { collapsed: [] },
+            theme: {
+                overrides: {
+                    organization: {
+                        series: { layout: { type: 'stacked', stackAtDepth: 3 }, direction: 'vertical', reverse: true },
+                    },
+                },
+            },
+        },
+        assertions,
+    },
+    STACKED_HORIZONTAL: {
+        options: {
+            ...TEAM_DIRECTORY_ORG_CHART,
+            initialState: { collapsed: [] },
+            theme: {
+                overrides: {
+                    organization: { series: { layout: { type: 'stacked', stackAtDepth: 3 }, direction: 'horizontal' } },
+                },
+            },
+        },
+        assertions,
+    },
+    STACKED_HORIZONTAL_REVERSE: {
+        options: {
+            ...TEAM_DIRECTORY_ORG_CHART,
+            initialState: { collapsed: [] },
+            theme: {
+                overrides: {
+                    organization: {
+                        series: {
+                            layout: { type: 'stacked', stackAtDepth: 3 },
+                            direction: 'horizontal',
+                            reverse: true,
+                        },
+                    },
+                },
+            },
+        },
+        assertions,
     },
 };
 
@@ -912,8 +995,8 @@ describe('OrganizationSeries', () => {
 
     const ctx = setupMockCanvas();
 
-    const compare = async () => {
-        await compareImageSnapshot(chart, ctx);
+    const compare = async (options?: MatchImageSnapshotOptions) => {
+        await compareImageSnapshot(chart, ctx, options);
     };
 
     function getZoomRatios(c: any) {
@@ -922,9 +1005,8 @@ describe('OrganizationSeries', () => {
             | undefined;
     }
 
-    // Drives ZoomManager directly to bypass the memento path's theme-template projection
-    // (`keepAspectRatio`, `autoScaling`) — tests below assert exact zoom states. Use
-    // `chart.setState({zoom: ...})` to exercise the full state-restore pipeline.
+    // Bypasses the memento path's theme-template projection so the tests can assert exact zoom
+    // states; `chart.setState({zoom: ...})` exercises the full state-restore pipeline instead.
     function setZoom(c: any, xMin: number, xMax: number, yMin: number, yMax: number) {
         deproxy(c).ctx.zoomManager?.updateZoom(
             { source: 'state-change', sourceDetail: 'unspecified' },
@@ -934,35 +1016,38 @@ describe('OrganizationSeries', () => {
 
     type Node<T = unknown> = _ModuleSupport.Node<T>;
 
-    /** Canvas-space centre of the scene node tagged `tag` within the card for `itemId`. */
-    function centreOf(itemId: string, tag: OrganizationNodeTag): { x: number; y: number } {
-        function findDescendantByTag(node: Node, searchTag: number): Node | undefined {
-            if (node.tag === searchTag) return node;
-            if (!(node instanceof _ModuleSupport.Group)) return undefined;
+    /** Every descendant of `node` (including itself) tagged `searchTag`, in DFS/paint order. */
+    function findAllDescendantsByTag(node: Node, searchTag: number): Node[] {
+        const found: Node[] = node.tag === searchTag ? [node] : [];
+        if (node instanceof _ModuleSupport.Group) {
             for (const child of node.children()) {
-                const found = findDescendantByTag(child, searchTag);
-                if (found) return found;
+                found.push(...findAllDescendantsByTag(child, searchTag));
             }
         }
+        return found;
+    }
 
-        function findByItemId(searchItemId: string): Node | undefined {
-            const nodes = new Caster(deproxy(chart).series[0])
-                .cast(OrganizationSeries)
-                .accessProperty('datumSelection')
-                .cast(_ModuleSupport.Selection)
-                .value.nodes();
-            return nodes.find((node: Node<any>) => node.datum?.itemId === searchItemId);
-        }
-
-        let card: Node | undefined = findByItemId(itemId);
+    function findCardNode(itemId: string): Node {
+        const nodes = new Caster(deproxy(chart).series[0])
+            .cast(OrganizationSeries)
+            .accessProperty('datumSelection')
+            .cast(_ModuleSupport.Selection)
+            .value.nodes();
+        const card = nodes.find((node: Node<any>) => node.datum?.itemId === itemId);
         expect(card).toBeDefined();
-        card = card!;
+        return card!;
+    }
 
-        let target: Node | undefined = findDescendantByTag(card, tag);
+    /** The first scene node tagged `tag` within the card for `itemId` (the expander's own pill `Rect`). */
+    function findTaggedNode(itemId: string, tag: OrganizationNodeTag): Node {
+        const target = findAllDescendantsByTag(findCardNode(itemId), tag)[0];
         expect(target).toBeDefined();
-        target = target!;
+        return target;
+    }
 
-        return _ModuleSupport.Transformable.toCanvas(target).computeCenter();
+    /** Canvas-space centre of the scene node tagged `tag` within the card for `itemId`. */
+    function centreOf(itemId: string, tag: OrganizationNodeTag): { x: number; y: number } {
+        return _ModuleSupport.Transformable.toCanvas(findTaggedNode(itemId, tag)).computeCenter();
     }
 
     async function clickItem(itemId: string, tag: OrganizationNodeTag, opts?: { ctrlKey: boolean }): Promise<void> {
@@ -1111,8 +1196,7 @@ describe('OrganizationSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            // Node 2 (Bob) is collapsed, so its children (4, 5) are not rendered. setupMockConsole's
-            // afterEach fails the test on any console warning, covering the string-array validator warning.
+            // setupMockConsole's afterEach fails the test on any console warning.
             expect(renderedItemIds(chart)).toEqual([1, 2, 3, 6]);
         });
 
@@ -1221,8 +1305,8 @@ describe('OrganizationSeries', () => {
             });
 
             it('should not leak labels onto sparse-tier nodes after collapse reuses scene nodes', async () => {
-                // AG-17246 regression: collapsing nodes forces Selection reuse; a scene node
-                // whose previous datum had labels retains that text unless trailing nodes are trimmed.
+                // Collapsing forces Selection reuse: a scene node whose previous datum had labels
+                // retains that text unless trailing nodes are trimmed.
                 const options: AgChartOptions = {
                     data: [
                         { id: 'henry7', name: 'Henry VII', reign: 'King 1485 - 1509', parentId: null },
@@ -1252,8 +1336,6 @@ describe('OrganizationSeries', () => {
                 await chart.setState({ version: '13.3.0', collapsed: ['henry8'] });
                 await waitForChartStability(chart);
 
-                // Assert rendered labels match each node's source datum (pinpoints the mismatch
-                // more precisely than a snapshot).
                 const series = deproxy(chart).series[0] as any;
                 const expectedReign: Record<string, string | undefined> = {
                     henry7: 'King 1485 - 1509',
@@ -1348,8 +1430,7 @@ describe('OrganizationSeries', () => {
             });
 
             it('should re-evaluate isCollapsed-aware itemStylers across collapse/expand toggles', async () => {
-                // The styler flips fill on `isCollapsed`; snapshotting after each toggle
-                // catches a stale-cache regression where `isCollapsed` is omitted from the key.
+                // Catches a stale-cache defect where `isCollapsed` is omitted from the style key.
                 const options: AgChartOptions = {
                     ...SIMPLE_ORG_CHART,
                     series: [
@@ -1396,8 +1477,8 @@ describe('OrganizationSeries', () => {
             const nodeData = series.contextNodeData.nodeData;
             const cfoVertex = series.graph.findVertexById('cfo');
 
-            // Node-selection order and graph datumIndex only diverge when render order differs from data
-            // order; pin the divergence so a reordered fixture fails loudly instead of silently passing.
+            // Selection order and graph datumIndex only diverge when render order differs from data
+            // order, so a reordered fixture must fail loudly rather than pass silently.
             expect(nodeData.map((d: any) => d.itemId)).toEqual(['ceo', 'cto', 'dev', 'qa', 'cfo', 'acc']);
             expect(series.getNodeDatumIndex(cfoVertex)).toBe(4);
             expect(series.graph.findNeighbourValue(cfoVertex, 'datumIndex')).toBe(2);
@@ -1464,9 +1545,8 @@ describe('OrganizationSeries', () => {
 
     describe('theme defaults', () => {
         it('should apply default highlight stroke when a node is hovered', async () => {
-            // AG-17192 regression. cornerRadius=0 lets JSDOM bbox-hit-test the rect (see
-            // .claude/rules/testing.md); without the theme stroke default the hovered node
-            // would render identical to its neighbours.
+            // cornerRadius=0 lets JSDOM bbox-hit-test the rect; without the theme stroke default the
+            // hovered node would render identically to its neighbours.
             const options: AgChartOptions = {
                 ...SIMPLE_ORG_CHART,
                 theme: {
@@ -1483,6 +1563,544 @@ describe('OrganizationSeries', () => {
             // Root card centre on the 800x600 mock canvas (card spans ~x=357-523, ~y=112-202).
             await hoverAction(440, 155)(chart);
             await compare();
+        });
+
+        it('should apply default highlight stroke when a node is set active', async () => {
+            const options: AgChartOptions = {
+                ...SIMPLE_ORG_CHART,
+                series: SIMPLE_ORG_CHART.series.map((series) => ({ ...series, id: 'org' })),
+                theme: {
+                    overrides: {
+                        organization: { series: { node: { cornerRadius: 0 } } },
+                    },
+                },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            await chart.setState({
+                version: chart.getState().version,
+                active: { activeItem: { type: 'series-node', seriesId: 'org', itemId: 'cto' } },
+            });
+            // The state-driven highlight lands on a debounced animation frame, after the update
+            // `setState` itself triggers has settled.
+            await waitForChartStability(chart);
+            await waitForChartStability(chart, 50);
+            // Centring on the active item puts its card at a fractional x, where the accent
+            // stroke's vertical edges antialias differently between skia builds — 12 pixels
+            // between macOS and Linux, none of them structural.
+            await compare(looserSnapshotDefaults());
+        });
+    });
+
+    describe('active item highlight', () => {
+        const buildOptions = (seriesOverrides: Record<string, unknown> = {}): AgChartOptions => ({
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    id: 'org',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: { title: { key: 'name' }, subtitle: { key: 'job' }, cornerRadius: 0 },
+                    ...seriesOverrides,
+                },
+            ],
+        });
+
+        async function createChart(options: AgChartOptions): Promise<void> {
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+        }
+
+        async function setActive(itemId: string | number | undefined): Promise<void> {
+            await chart.setState({
+                version: chart.getState().version,
+                active: {
+                    activeItem: itemId == null ? undefined : { type: 'series-node', seriesId: 'org', itemId },
+                },
+            });
+            // The state-driven highlight is applied on a debounced animation frame, which lands
+            // after the update that `setState` itself triggers has settled.
+            await waitForChartStability(chart);
+            await waitForChartStability(chart, 50);
+        }
+
+        async function hoverItem(itemId: string): Promise<void> {
+            const { x, y } = centreOf(itemId, OrganizationNodeTag.Card);
+            await hoverAction(x, y)(chart);
+            await waitForChartStability(chart);
+        }
+
+        /** The card `Rect`'s paint style, which is what the highlight alters. */
+        function cardStyle(itemId: string) {
+            const card = new Caster(findTaggedNode(itemId, OrganizationNodeTag.Card)).cast(_ModuleSupport.Rect).value;
+            const { fill, stroke, strokeWidth, strokeOpacity } = card;
+            return { fill, stroke, strokeWidth, strokeOpacity };
+        }
+
+        it('should style the active node exactly as hovering styles it', async () => {
+            await createChart(buildOptions());
+
+            // Every card shares the default node style, so an untouched sibling is the reference.
+            const defaultStyle = cardStyle('cfo');
+
+            await setActive('cto');
+            const activeStyle = cardStyle('cto');
+            expect(activeStyle).not.toEqual(defaultStyle);
+            expect(cardStyle('cfo')).toEqual(defaultStyle);
+
+            await hoverItem('cto');
+            expect(cardStyle('cto')).toEqual(activeStyle);
+        });
+
+        it('should resolve a numeric item id to its node', async () => {
+            await createChart(buildOptions());
+            const defaultStyle = cardStyle('cfo');
+
+            await setActive(1);
+
+            expect(cardStyle('cto')).not.toEqual(defaultStyle);
+        });
+
+        it('should drop the highlight when the active item is cleared', async () => {
+            await createChart(buildOptions());
+            const defaultStyle = cardStyle('cto');
+
+            await setActive('cto');
+            expect(cardStyle('cto')).not.toEqual(defaultStyle);
+
+            await setActive(undefined);
+            expect(cardStyle('cto')).toEqual(defaultStyle);
+        });
+
+        it('should drop the highlight when the pointer moves over empty space', async () => {
+            await createChart(buildOptions());
+            const defaultStyle = cardStyle('cto');
+
+            await setActive('cto');
+            expect(cardStyle('cto')).not.toEqual(defaultStyle);
+
+            // Chart background, clear of every card on the 800x600 mock canvas.
+            await hoverAction(20, 580)(chart);
+            // The unhighlight is delayed by `highlightManager.unhighlightDelay`.
+            await waitForChartStability(chart, 150);
+
+            expect(cardStyle('cto')).toEqual(defaultStyle);
+        });
+
+        // Organization tooltips are off by default, so a tooltip case has to opt in.
+        it('should show the tooltip for the active node', async () => {
+            await createChart(buildOptions({ tooltip: { enabled: true } }));
+
+            await setActive('cto');
+
+            const tooltip = document.querySelector('.ag-charts-tooltip');
+            expect(tooltip).toBeInstanceOf(HTMLElement);
+            expect(tooltip?.hasAttribute('data-presented-as-popover')).toBe(true);
+            expect(tooltip?.textContent).toContain('Bob Smith');
+        });
+
+        it('should hide the tooltip when the active item is cleared', async () => {
+            await createChart(buildOptions({ tooltip: { enabled: true } }));
+
+            await setActive('cto');
+            await setActive(undefined);
+            // Removal is delayed, as it is for a hover leaving a node.
+            await waitForChartStability(chart, 150);
+
+            expect(document.querySelector('.ag-charts-tooltip')?.hasAttribute('data-presented-as-popover')).toBe(false);
+        });
+
+        it('should move the highlight to a hovered node, leaving the previously active one unstyled', async () => {
+            await createChart(buildOptions());
+            const defaultStyle = cardStyle('cto');
+
+            await setActive('cto');
+            await hoverItem('cfo');
+
+            expect(cardStyle('cto')).toEqual(defaultStyle);
+            expect(cardStyle('cfo')).not.toEqual(defaultStyle);
+        });
+
+        it('should not style the active node when highlighting is disabled', async () => {
+            await createChart(buildOptions({ highlight: { enabled: false } }));
+            const defaultStyle = cardStyle('cto');
+
+            await setActive('cto');
+
+            expect(cardStyle('cto')).toEqual(defaultStyle);
+        });
+
+        it('should style an active node whose ancestry was collapsed', async () => {
+            await createChart(buildOptions());
+            const defaultStyle = cardStyle('cfo');
+
+            await chart.setState({ version: chart.getState().version, collapsed: ['cto'] });
+            await waitForChartStability(chart);
+            await setActive('dev');
+
+            expect(findCardNode('dev').visible).toBe(true);
+            expect(cardStyle('dev')).not.toEqual(defaultStyle);
+        });
+    });
+
+    describe('expander hoverStyle', () => {
+        // node.cornerRadius=0 makes both the card and pill Rects bbox-hittable in JSDOM (see
+        // .claude/rules/testing.md); expander.cornerRadius defaults to `../node/cornerRadius`.
+        const buildOptions = (
+            expanderOverrides?: Record<string, unknown>,
+            nodeOverrides: Record<string, unknown> = {}
+        ): AgChartOptions => ({
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: { title: { key: 'name' }, subtitle: { key: 'job' }, cornerRadius: 0, ...nodeOverrides },
+                    ...(expanderOverrides ? { expander: expanderOverrides } : {}),
+                },
+            ],
+        });
+
+        /** The expander pill's own `Rect` scene node for the card belonging to `itemId`. */
+        function expanderShapeNode(itemId: string): _ModuleSupport.Rect {
+            return new Caster(findTaggedNode(itemId, OrganizationNodeTag.Expander)).cast(_ModuleSupport.Rect).value;
+        }
+
+        /** The expander's child-count `Text` node — also tagged Expander, alongside the pill `Rect`. */
+        function expanderCountTextNode(itemId: string): _ModuleSupport.Text {
+            const candidates = findAllDescendantsByTag(findCardNode(itemId), OrganizationNodeTag.Expander);
+            const textNode = candidates.find((node) => node instanceof _ModuleSupport.Text);
+            expect(textNode).toBeDefined();
+            return new Caster(textNode).cast(_ModuleSupport.Text).value;
+        }
+
+        async function hoverItem(itemId: string, tag: OrganizationNodeTag): Promise<void> {
+            const { x, y } = centreOf(itemId, tag);
+            await hoverAction(x, y)(chart);
+            await waitForChartStability(chart);
+        }
+
+        it('applies the configured hoverStyle fill/stroke to the expander pill while hovered', async () => {
+            const options = buildOptions({ hoverStyle: { fill: '#ff00ff', stroke: '#00ffff' } });
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const unhovered = expanderShapeNode('cfo');
+            const unhoveredFill = unhovered.fill;
+            const unhoveredStroke = unhovered.stroke;
+            const unhoveredStrokeWidth = unhovered.strokeWidth;
+
+            await hoverItem('cfo', OrganizationNodeTag.Expander);
+
+            const hovered = expanderShapeNode('cfo');
+            expect(hovered.fill).toBe('#ff00ff');
+            expect(hovered.stroke).toBe('#00ffff');
+            expect(hovered.fill).not.toBe(unhoveredFill);
+            expect(hovered.stroke).not.toBe(unhoveredStroke);
+            // Properties hoverStyle doesn't override must survive unchanged, not fall through to a
+            // scene-node default (e.g. `strokeWidth ?? 0`).
+            expect(hovered.strokeWidth).toBe(unhoveredStrokeWidth);
+        });
+
+        it('leaves the expander pill at its un-hovered style when the card, not the pill, is hovered', async () => {
+            const options = buildOptions({ hoverStyle: { fill: '#ff00ff', stroke: '#00ffff' } });
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const unhovered = expanderShapeNode('cfo');
+            const unhoveredFill = unhovered.fill;
+            const unhoveredStroke = unhovered.stroke;
+
+            await hoverItem('cfo', OrganizationNodeTag.Card);
+
+            const afterCardHover = expanderShapeNode('cfo');
+            expect(afterCardHover.fill).toBe(unhoveredFill);
+            expect(afterCardHover.stroke).toBe(unhoveredStroke);
+            expect(afterCardHover.fill).not.toBe('#ff00ff');
+        });
+
+        it('applies hoverStyle to the expander pill independently of node.clickToExpand', async () => {
+            const options = buildOptions(
+                { hoverStyle: { fill: '#ff00ff', stroke: '#00ffff' } },
+                { clickToExpand: true }
+            );
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const unhovered = expanderShapeNode('cfo');
+            const unhoveredFill = unhovered.fill;
+            const unhoveredStroke = unhovered.stroke;
+
+            await hoverItem('cfo', OrganizationNodeTag.Expander);
+
+            const hovered = expanderShapeNode('cfo');
+            expect(hovered.fill).toBe('#ff00ff');
+            expect(hovered.stroke).toBe('#00ffff');
+            expect(hovered.fill).not.toBe(unhoveredFill);
+            expect(hovered.stroke).not.toBe(unhoveredStroke);
+        });
+
+        it('applies hoverStyle over itemStyler output while hovered, reverting once the pointer moves off the pill', async () => {
+            const options = buildOptions({
+                itemStyler: ({ datum }: { datum: any }) =>
+                    datum.job === 'Chief Financial Officer' ? { fill: '#123456' } : undefined,
+                hoverStyle: { fill: '#ff00ff' },
+            });
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expect(expanderShapeNode('cfo').fill).toBe('#123456');
+
+            await hoverItem('cfo', OrganizationNodeTag.Expander);
+            expect(expanderShapeNode('cfo').fill).toBe('#ff00ff');
+
+            await hoverItem('cfo', OrganizationNodeTag.Card);
+            expect(expanderShapeNode('cfo').fill).toBe('#123456');
+        });
+
+        it('resolves a real, distinct default hover fill for the expander pill when no hoverStyle is configured', async () => {
+            const options = buildOptions();
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const unhoveredFill = expanderShapeNode('cfo').fill;
+            expect(typeof unhoveredFill).toBe('string');
+
+            await hoverItem('cfo', OrganizationNodeTag.Expander);
+
+            const hoveredFill = expanderShapeNode('cfo').fill;
+            expect(typeof hoveredFill).toBe('string');
+            expect(hoveredFill).not.toBe(unhoveredFill);
+        });
+
+        it('uses the theme button-hover colour as the default hover fill, independently of the expander fill', async () => {
+            const themed = buildOptions();
+            prepareEnterpriseTestOptions(themed);
+            chart = AgCharts.create(themed);
+            await waitForChartStability(chart);
+            await hoverItem('cfo', OrganizationNodeTag.Expander);
+            const themedHoverFill = expanderShapeNode('cfo').fill;
+            chart.destroy();
+
+            // The default is a fixed accentColor/backgroundColor mix (the button hover state), so a
+            // user-set expander fill must not move it — the r1 behaviour this replaces did move with it.
+            const custom = buildOptions({ fill: '#804000' });
+            prepareEnterpriseTestOptions(custom);
+            chart = AgCharts.create(custom);
+            await waitForChartStability(chart);
+
+            expect(expanderShapeNode('cfo').fill).toBe('#804000');
+
+            await hoverItem('cfo', OrganizationNodeTag.Expander);
+
+            expect(expanderShapeNode('cfo').fill).toBe(themedHoverFill);
+        });
+
+        it('leaves the expander stroke unchanged on hover by default — the default treatment is fill-only', async () => {
+            const options = buildOptions();
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const unhoveredStroke = expanderShapeNode('cfo').stroke;
+
+            await hoverItem('cfo', OrganizationNodeTag.Expander);
+
+            expect(expanderShapeNode('cfo').stroke).toBe(unhoveredStroke);
+        });
+
+        it('requests exactly one series update for a card-to-pill move, and none for a repeat hover at the same point', async () => {
+            const options = buildOptions({ hoverStyle: { fill: '#ff00ff' } });
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const cardCentre = centreOf('cfo', OrganizationNodeTag.Card);
+            const pillCentre = centreOf('cfo', OrganizationNodeTag.Expander);
+
+            await hoverAction(cardCentre.x, cardCentre.y)(chart);
+            await waitForChartStability(chart);
+
+            const emitSpy = vi.spyOn(deproxy(chart).ctx.eventsHub, 'emit');
+            const requestUpdateCount = () =>
+                emitSpy.mock.calls.filter(([event]) => event === 'chart:request-update').length;
+
+            // Two requests: one repaint for the highlight change and one SERIES_UPDATE to re-resolve
+            // expander paint. They coalesce into a single frame, so only the bound matters.
+            await hoverAction(pillCentre.x, pillCentre.y)(chart);
+            await waitForChartStability(chart);
+            expect(requestUpdateCount()).toBe(2);
+
+            emitSpy.mockClear();
+            await hoverAction(pillCentre.x, pillCentre.y)(chart);
+            await waitForChartStability(chart);
+            expect(requestUpdateCount()).toBe(0);
+
+            emitSpy.mockRestore();
+        });
+
+        it('applies hoverStyle text.color/fontWeight to the expander count text while hovered, reverting once unhovered', async () => {
+            const options = buildOptions({ hoverStyle: { text: { color: '#334455', fontWeight: 'bold' } } });
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const unhovered = expanderCountTextNode('cfo');
+            const unhoveredColor = unhovered.fill;
+            const unhoveredFontWeight = unhovered.fontWeight;
+            const unhoveredFontSize = unhovered.fontSize;
+
+            await hoverItem('cfo', OrganizationNodeTag.Expander);
+
+            const hovered = expanderCountTextNode('cfo');
+            expect(hovered.fill).toBe('#334455');
+            expect(hovered.fontWeight).toBe('bold');
+            expect(hovered.fill).not.toBe(unhoveredColor);
+            expect(hovered.fontWeight).not.toBe(unhoveredFontWeight);
+            // hoverStyle.text has no fontSize, so it must fall through untouched.
+            expect(hovered.fontSize).toBe(unhoveredFontSize);
+
+            await hoverItem('cfo', OrganizationNodeTag.Card);
+
+            const afterUnhover = expanderCountTextNode('cfo');
+            expect(afterUnhover.fill).toBe(unhoveredColor);
+            expect(afterUnhover.fontWeight).toBe(unhoveredFontWeight);
+        });
+
+        it('reverts the expander pill hover style once the pointer leaves the series area entirely', async () => {
+            const options = buildOptions({ hoverStyle: { fill: '#ff00ff', stroke: '#00ffff' } });
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const unhoveredFill = expanderShapeNode('cfo').fill;
+            const unhoveredStroke = expanderShapeNode('cfo').stroke;
+
+            await hoverItem('cfo', OrganizationNodeTag.Expander);
+            expect(expanderShapeNode('cfo').fill).toBe('#ff00ff');
+            expect(expanderShapeNode('cfo').stroke).toBe('#00ffff');
+
+            // (2, 2) must stay outside the series rect (default chart padding is 20px) for the
+            // leave below to be a real mouseleave rather than another move-off-pill.
+            const seriesRect = new Caster(deproxy(chart))
+                .accessProperty('seriesAreaManager')
+                .accessProperty('seriesRect')
+                .cast(_ModuleSupport.BBox).value;
+            expect(seriesRect.containsPoint(2, 2)).toBe(false);
+
+            // Outside the series rect a real 'mouseleave' fires, but the clear is debounced by
+            // `highlightManager.unhighlightDelay`, so advance past it.
+            await hoverAction(2, 2)(chart);
+            await waitForChartStability(chart, deproxy(chart).ctx.highlightManager.unhighlightDelay + 50);
+
+            expect(expanderShapeNode('cfo').fill).toBe(unhoveredFill);
+            expect(expanderShapeNode('cfo').stroke).toBe(unhoveredStroke);
+        });
+    });
+
+    describe('expander border cut-out', () => {
+        // A red card border makes the pixels attributable: any red inside the pill can only have
+        // come from the card's stroke running behind it.
+        const buildOptions = (
+            expander: Record<string, unknown>,
+            node: Record<string, unknown> = {}
+        ): AgChartOptions => ({
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        title: { key: 'name' },
+                        subtitle: { key: 'job' },
+                        cornerRadius: 0,
+                        stroke: '#ff0000',
+                        strokeWidth: 4,
+                        ...node,
+                    },
+                    // The pill's stroke defaults to the node's, so give it one of its own — otherwise
+                    // the probe counts the pill's own outline as border bleed-through.
+                    expander: { cornerRadius: 0, stroke: '#0000ff', ...expander },
+                },
+            ],
+        });
+
+        function countCardStrokePixels(region: _ModuleSupport.BBox): number {
+            const image = ctx.snapshot();
+            let count = 0;
+            for (let y = Math.ceil(region.y); y < Math.floor(region.y + region.height); y++) {
+                for (let x = Math.ceil(region.x); x < Math.floor(region.x + region.width); x++) {
+                    const offset = (y * image.width + x) * 4;
+                    const [r, g, b] = image.data.slice(offset, offset + 3);
+                    if (r > 200 && g < 120 && b < 120) count++;
+                }
+            }
+            return count;
+        }
+
+        it.each([0, 0.1, 0.5, 1])(
+            'keeps the card border out of the expander pill at expander.fillOpacity %s',
+            async (fillOpacity) => {
+                const options = buildOptions({ fillOpacity });
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                const pill = _ModuleSupport.Transformable.toCanvas(findTaggedNode('ceo', OrganizationNodeTag.Expander));
+
+                expect(countCardStrokePixels(pill.clone().shrink(1))).toBe(0);
+                // Control: the same border line is still drawn either side of the pill, so a zero
+                // count above means the cut-out worked rather than that the border never rendered.
+                expect(
+                    countCardStrokePixels(new _ModuleSupport.BBox(pill.x - 21, pill.y, 20, pill.height))
+                ).toBeGreaterThan(0);
+            }
+        );
+
+        it('cuts out the pill outline rather than its bounding box when the expander is rounded', async () => {
+            // The card border must still run through the wedges between the corner arcs and the pill's
+            // box, which a rectangular cut-out would erase.
+            const options = buildOptions({ cornerRadius: 40, strokeWidth: 1, fillOpacity: 0 }, { strokeWidth: 20 });
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const pill = _ModuleSupport.Transformable.toCanvas(findTaggedNode('ceo', OrganizationNodeTag.Expander));
+            const radius = pill.height / 2;
+
+            // Inside the arc, where the pill genuinely covers the border.
+            expect(
+                countCardStrokePixels(
+                    new _ModuleSupport.BBox(pill.x + radius, pill.y + 1, pill.width - 2 * radius, pill.height - 2)
+                )
+            ).toBe(0);
+            // Outside it, in the pill's own bounding box — the border must survive here.
+            expect(countCardStrokePixels(new _ModuleSupport.BBox(pill.x, pill.y, radius, pill.height))).toBeGreaterThan(
+                0
+            );
         });
     });
 
@@ -1513,11 +2131,8 @@ describe('OrganizationSeries', () => {
 
     describe('series-area clipping', () => {
         it('should clip dragged content to the series area so nodes do not bleed into the title', async () => {
-            // AG-17233 regression. TALL_ORG_CHART fits the canvas horizontally but overflows
-            // vertically, so zooming in and dragging upward lands an upper card directly on the
-            // series-area top boundary. The clip-rect must cut the card off at that boundary instead
-            // of letting it bleed into the title above. Both axes share one scale, so the window is
-            // narrowed on x as well as y.
+            // TALL_ORG_CHART overflows vertically, so dragging upward lands a card on the
+            // series-area top boundary, where the clip-rect must cut it off.
             const options: AgChartOptions = {
                 ...TALL_ORG_CHART,
                 title: { text: 'Organisation Chart', fontSize: 18 },
@@ -1531,9 +2146,7 @@ describe('OrganizationSeries', () => {
             setZoom(chart, 0.4, 0.6, 0.41, 0.61);
             await waitForChartStability(chart);
 
-            // Drag content up far enough that an upper card straddles the title boundary —
-            // the clip-rect must cut it at the series-area top instead of letting it bleed
-            // into the title. AG-17233's bug was a missing clip-rect during pan.
+            // Drag far enough that an upper card straddles the title boundary.
             await dragAction({ x: 400, y: 580 }, { x: 400, y: 50 })(chart);
 
             await compare();
@@ -1542,9 +2155,8 @@ describe('OrganizationSeries', () => {
 
     describe('drag-to-select hit-testing', () => {
         it('should hit-test against the card only, excluding the expander pill overhang', async () => {
-            // Default direction ('vertical' → 'down') puts the expander pill at the bottom of each
-            // parent card, overhanging below it. A drag-rect touching only that overhang must not
-            // pick the node; only overlap with the card itself counts.
+            // The expander pill overhangs below each parent card; a drag-rect touching only that
+            // overhang must not pick the node.
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
@@ -1748,11 +2360,7 @@ describe('OrganizationSeries', () => {
             await compare();
         });
 
-        // AG-17253 pt2 follow-up (David Glickman QA) — clamping the card via `maxWidth`/
-        // `maxHeight` left children drawing outside the card. Mirrors three plunker repros:
-        //   plnkr.co/edit/0maSWVkHxeSLQ5Fb  (narrow width + theme-default top image)
-        //   plnkr.co/edit/jxPaPCmKEyWoTi3b  (narrow height, text-only)
-        //   plnkr.co/edit/oq0FP2LDZkapxUO4  (narrow height + image left)
+        // Clamping the card via `maxWidth`/`maxHeight` must not leave children drawing outside it.
         //   plnkr.co/edit/qA05jRd478qdnhDe  (narrow width + height)
         const OVERFLOW_DATA = [
             {
@@ -1858,9 +2466,8 @@ describe('OrganizationSeries', () => {
         });
 
         it('AG-17253 pt2 should clip overflow when both maxWidth and maxHeight are narrow', async () => {
-            // 50x50 card with theme-default top image (50x50): image fills the card and text has
-            // no space; both image bleed (rounded corners clipping) and text overflow must be
-            // contained.
+            // The theme-default 50x50 top image fills the card entirely, so both image bleed and text
+            // overflow must be contained.
             const options: AgChartOptions = {
                 data: OVERFLOW_DATA,
                 series: [
@@ -1890,9 +2497,8 @@ describe('OrganizationSeries', () => {
         // The windows below must be narrower than the content-fits floor, otherwise they request a
         // zoom further out than allowed and are refused outright, leaving the initial view.
         it('should render zoomed-in centred (x/y: 0.4–0.6)', async () => {
-            // SQUARE_OVERFLOW_ORG_CHART is required: with comparable fitX and fitY the requested
-            // xRange and yRange survive being reduced to one shared scale. SIMPLE_ORG_CHART would snap
-            // zoom back to fit, and the wide-only OVERFLOWING_ORG_CHART would widen yRange.
+            // Only SQUARE_OVERFLOW_ORG_CHART has comparable fitX and fitY, so the requested ranges
+            // survive being reduced to one shared scale.
             const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
@@ -1904,9 +2510,8 @@ describe('OrganizationSeries', () => {
         });
 
         it('should render zoomed-in off-centre (x/y: 0.51–0.59)', async () => {
-            // A viewport's worth of padding sits on each side, so this fixture's content only spans
-            // ratios ~0.375–0.625. Framing off-centre while still filling the viewport with content
-            // therefore needs a deeper zoom than the centred case, and a window kept inside that span.
+            // Padding on each side leaves content spanning only ratios ~0.375–0.625, so framing
+            // off-centre needs a deeper zoom and a window kept inside that span.
             const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
@@ -2160,7 +2765,6 @@ describe('OrganizationSeries', () => {
             );
         });
 
-        // AG-17263 regression: Alt+Up/Down keybindings were added but Enter/Space toggling was lost.
         // With clickToExpand enabled (the default) Enter/Space must still expand/collapse the node.
         it('Enter toggles the focused parent node when clickToExpand is enabled', async () => {
             const collapsedManager = await setupChartWithClickToExpand(true);
@@ -2211,9 +2815,8 @@ describe('OrganizationSeries', () => {
         });
     });
 
-    // AG-17947: expanding/collapsing is a distinct interaction from activating a node, so a pointer
-    // event on the expander pill must neither reach the user's node click/double-click listeners nor
-    // change the data selection.
+    // Expanding is a distinct interaction from activating a node, so a pointer event on the expander
+    // pill must not reach the user's node listeners or change the data selection.
     describe('AG-17947 expander clicks do not activate the node', () => {
         type Fn = ReturnType<(typeof vi)['fn']>;
         type CollapsedManager = ReturnType<typeof deproxy>['ctx']['collapsedManager'];
@@ -2307,9 +2910,8 @@ describe('OrganizationSeries', () => {
             });
         });
 
-        // Collapsing to declutter a large chart is the most natural way to combine the two features,
-        // so an expander click must leave the selection alone in both directions — including the
-        // selection of nodes the collapse hides.
+        // An expander click must leave the selection alone in both directions, including the selection
+        // of nodes the collapse hides.
         describe('data selection', () => {
             const nodeIds = new Caster(SIMPLE_ORG_CHART.data).assertNonNullish().value.map((datum) => datum.id);
 
@@ -2464,10 +3066,8 @@ describe('OrganizationSeries', () => {
         });
 
         it('should not move an interacted node that is already fully visible', async () => {
-            // The reflow moves the node in content space whether or not it was at risk of clipping, so
-            // holding its place on screen is a stronger requirement than simply not panning. Gary Garcia
-            // stays where he was; the tree rearranges around him. Note his card is redrawn larger,
-            // because shrinking the content raises the content-fits floor and so zooms in about him.
+            // The reflow moves the node in content space regardless, so holding its screen position is a
+            // stronger requirement than not panning; the card is redrawn larger as the fits-floor rises.
             await createChart();
 
             await clickItem('Gary Garcia', OrganizationNodeTag.Expander);
@@ -2528,9 +3128,8 @@ describe('OrganizationSeries', () => {
             ['content that fits the viewport', SIMPLE_ORG_CHART],
         ];
 
-        // Holds the window size and moves only its midpoint, as a drag does. A request that also
-        // resizes the window is refused outright once the chart sits at a zoom limit — which is
-        // always the case for content that fits, since it never scales up past native size.
+        // Moves only the window's midpoint, as a drag does: a request that also resizes it is refused
+        // outright at a zoom limit, which content that fits is always at.
         async function createPanned(fixture: AgChartOptions, toFarEnd: boolean) {
             const options: AgChartOptions = { ...fixture };
             prepareEnterpriseTestOptions(options);
@@ -2600,9 +3199,7 @@ describe('OrganizationSeries', () => {
         });
     });
 
-    // Organization extends the network series base and never drives the animation manager, so node
-    // cards and links never tween. Pinned by a minimal guard rather than a trajectory suite, since
-    // there is no motion to describe.
+    // Organization never drives the animation manager, so a minimal guard replaces a trajectory suite.
     describe('does not animate', () => {
         const frames = spyOnAnimationFrames();
 
@@ -2647,11 +3244,8 @@ describe('OrganizationSeries', () => {
             expect(afterCount).toBeGreaterThan(beforeCount);
             // The full new layout is present on the first captured frame (nothing grows/fades in).
             expect(cardKeys(trajectory[0]).length).toBe(afterCount);
-            // Whole-scene constancy from the first frame proves the snap. expectNoAnimation is unusable
-            // here: the vertical step-connector links have a degenerate x-extent, so their sampled
-            // top-station values are non-finite, which its finiteness check rejects. expectSceneSamplesMatch
-            // compares those NaN stations by identity (NaN matches NaN), so it still fails on any tween
-            // while tolerating the intrinsic degenerate geometry.
+            // expectNoAnimation rejects the step connectors' non-finite sampled stations; expectSceneSamplesMatch
+            // compares NaN by identity, so it still catches a tween while tolerating that geometry.
             for (const frame of trajectory) {
                 expectSceneSamplesMatch(frame, trajectory[0]);
             }

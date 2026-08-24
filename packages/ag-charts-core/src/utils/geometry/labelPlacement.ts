@@ -599,9 +599,8 @@ export function sectorLabelContainer(
         cos: Math.abs(Math.cos(angle)),
     }));
 
-    // Half-width the wedge allows for a box of half-height `b`: bounded by the outer arc (worst outward corner),
-    // each straight edge (box extent along the edge normal ≤ its perpendicular distance) and, for a donut, the
-    // inner arc (radial-inward extent ≤ the ring depth).
+    // Half-width the wedge allows for a box of half-height `b`: bounded by the outer arc, each straight edge
+    // (box extent along the edge normal <= its perpendicular distance) and, for a donut, the inner arc.
     const halfWidthGiven = (b: number) => {
         const outer = Math.sqrt(Math.max(0, outerRadius ** 2 - (py + b) ** 2)) - px;
         const edgeLimits = edges.map((e) => (e.sin > 1e-6 ? (edgeDistance - b * e.cos) / e.sin : Infinity));
@@ -697,9 +696,8 @@ export interface BarLabelTarget {
     fittedText?: NormalisedTextOrSegments;
     /** Reduced font size that text was fitted at; `undefined` when it renders at the configured size. */
     fittedFontSize?: number;
-    // Positioned-candidate writeback (placement-cascade path only): the chosen candidate's anchor and
-    // granular placement, copied here so the label renders at the winning candidate rather than the
-    // baked first one. Left untouched on the orientation-only path.
+    // Positioned-candidate writeback (placement-cascade path only): the chosen anchor and granular placement,
+    // so the label renders at the winning candidate rather than the baked first one.
     x?: number;
     y?: number;
     textAlign?: CanvasTextAlign;
@@ -891,9 +889,8 @@ export function applyBarLabelOrientation(placed: readonly PlacedLabel<unknown>[]
         // the unfitted source the datum was built from.
         target.fittedText = fit == null ? undefined : text;
         target.fittedFontSize = fit == null ? undefined : fontSize;
-        // Placement-cascade path: the engine chose a whole candidate (region + rotation may differ per
-        // candidate), so also retarget the label to that candidate's anchor and granular placement. The
-        // orientation-only path leaves `candidate` unset and keeps the baked anchor/placement.
+        // Placement-cascade path: the engine chose a whole candidate, so also retarget the label to that
+        // candidate's anchor and granular placement.
         if (candidate != null) {
             const { anchor, placement } = candidate as BarPositionedCandidate;
             target.x = anchor.x;
@@ -1137,23 +1134,19 @@ let candidateCollideWith: CollideWith | undefined;
 let candidateThreshold = 0;
 // The placement of the candidate being tested.
 let candidatePlacement: LabelPlacement | undefined;
-// Centre and radius of the candidate datum's own anchor marker, which an `inside` label is centred on
-// and so never avoids. The radius disambiguates it from a coincident marker of a different size (e.g.
-// stacked bubbles). Set per datum before its obstacle queries; centre is NaN and radius -1 (never
-// matches) for candidates with no own marker.
+// Centre and radius of the candidate datum's own anchor marker, which an `inside` label is centred on and
+// so never avoids. Radius disambiguates a coincident marker of a different size; -1 never matches.
 let candidateOwnMarkerCx = 0;
 let candidateOwnMarkerCy = 0;
 let candidateOwnMarkerR = -1;
-// The candidate datum's own shape rect (bar labels only): any obstacle intersecting it is excluded so
-// an inside label never collides with the shape it sits on. `undefined` disables the gate (marker
-// series, whose own marker is handled by the own-marker circle gate instead).
+// The candidate datum's own shape rect (bar labels only): any obstacle intersecting it is excluded so an
+// inside label never collides with the shape it sits on. `undefined` disables the gate.
 let candidateOwnBox: BoxBounds | undefined;
 // When true, `category: 'label'` obstacles overlapping `candidateOwnBox` are not excluded by the
 // own-box gate (range-bar's two labels share one bar rect and must still avoid each other).
 let candidateOwnBoxLabelsCollide = false;
 // The label's text/box after the fit step, reused per candidate to keep the hot path allocation-free.
-// `dropped` is how many characters truncation removed, ranking candidates when none holds the full text.
-// `fontSize` is the reduced size the text was auto-sized to, or `undefined` at the configured size.
+// `dropped` ranks candidates when none holds the full text; `fontSize` is the auto-sized reduction.
 const fittedLabel: {
     text: NormalisedTextOrSegments;
     width: number;
@@ -1218,9 +1211,8 @@ let cascadeFlushToRegion = false;
 let cascadeKeepBest = false;
 // Glyph budget of the candidate being fitted, refilled per candidate on the compass path.
 const candidateContainer = { width: 0, height: 0 };
-// The datum's source text measured under one candidate font, keyed by that font. A styler returning the
-// same font for every candidate (the common case) therefore measures once per datum; the key is cleared
-// at the start of each datum's cascade, so it never carries across datums.
+// The datum's source text measured under one candidate font, keyed by that font, so the common case of one
+// font per datum measures once. The key is cleared at the start of each datum's cascade.
 const styledSource = { width: 0, height: 0 };
 let styledSourceFont = '';
 // Drawn-box centre of a positioned candidate whose box a re-fit resized.
@@ -1228,9 +1220,8 @@ const boxCentre: Point = { x: 0, y: 0 };
 // Rotated axis-aligned footprint, written per candidate to keep the rotation loop allocation-free.
 const rotatedSize = { width: 0, height: 0 };
 
-// Writes the axis-aligned footprint of a `w`×`h` label rotated `rotationDeg` into the shared
-// `rotatedSize` scratch (allocation-free variant of getMinOuterRectSize for the candidate hot loop).
-// Short-circuits the unrotated case so the common path pays no trig.
+// OPTIMIZATION: allocation-free variant of getMinOuterRectSize for the candidate hot loop, writing
+// into the shared `rotatedSize` scratch and short-circuiting the unrotated case.
 function rotatedSizeInto(rotationDeg: number, w: number, h: number) {
     if (rotationDeg === 0) {
         rotatedSize.width = w;
@@ -1262,9 +1253,8 @@ function containmentThreshold(threshold: number): number {
     return Math.min(threshold, 0);
 }
 
-// The collision threshold applied to a containment region: testing a box inflated by the threshold is
-// the same predicate as testing the raw box against the region inset by it, and the region form is what
-// the least-overflow ranking can share.
+// Insetting the region by the threshold is the same predicate as inflating the box by it, and the
+// region form is what the least-overflow ranking can share.
 function deflateRegion(dest: BoxBounds, src: BoxBounds, threshold: number): BoxBounds {
     if (threshold === 0) return src;
     dest.x = src.x + threshold;
@@ -1274,9 +1264,8 @@ function deflateRegion(dest: BoxBounds, src: BoxBounds, threshold: number): BoxB
     return dest;
 }
 
-// The glyph budget an own region leaves once the collision threshold is taken off it. This is the only
-// way a positive threshold reaches an own shape: the text wraps or truncates to the clearance it has to
-// keep, rather than the box being moved to make room for it.
+// The only way a positive threshold reaches an own shape: text wraps or truncates to the clearance it
+// must keep, rather than the box moving to make room.
 function deflateContainer(container: { width: number; height: number } | undefined, threshold: number) {
     if (container == null || threshold === 0) return container;
     candidateContainer.width = Math.max(0, container.width - 2 * threshold);
@@ -1300,11 +1289,8 @@ function worstObstacleOverlap(o: LabelObstacle): void {
 
 function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
     const category = o.category ?? 'seriesItem';
-    // An `inside` label is centred on its own anchor marker, so it can never be said to avoid it.
-    // A directional label sits `gap + spacing` off the same marker and falls through to the ordinary
-    // circle test below, which measures the clearance it actually has: `spacing` for the axis-aligned
-    // placements, but the longer corner distance for the diagonals, which must not be treated as
-    // colliding until the threshold really reaches the marker.
+    // An `inside` label is centred on its own anchor marker, so it can never be said to avoid it;
+    // directional labels fall through to the circle test, which measures their real clearance.
     if (
         candidatePlacement === 'inside' &&
         category === 'marker' &&
@@ -1316,11 +1302,8 @@ function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
         return false;
     }
 
-    // An on-shape (inside) label never collides with the shape it sits on: any obstacle overlapping the
-    // label's own box — its own bar and anything coincident with it (stacked siblings sharing the
-    // full-column box, grouped:false bars overlapping in the band, a marker or label sitting on the bar)
-    // — is excluded, regardless of category. Only obstacles clear of the own shape are avoided.
-    // `ownBoxLabelsCollide` opts sibling labels back in (range-bar's two labels share one bar rect).
+    // An inside label never collides with the shape it sits on, so anything overlapping its own box is
+    // excluded; `ownBoxLabelsCollide` opts sibling labels back in (range-bar shares one bar rect).
     if (
         candidateOwnBox != null &&
         !(candidateOwnBoxLabelsCollide && category === 'label') &&
@@ -1944,9 +1927,8 @@ function cascadeCandidates(): PlacedLabel | undefined {
         for (let oi = 0; oi < orientationCount; oi++) {
             const orientation = candidateAt(cascadeOrientations, cascadeSingleOrientation, oi);
             const rotation = orientation == null ? 0 : orientationAngles[orientation];
-            // A candidate the styler disabled is skipped, so a label disabled at every candidate is
-            // dropped: it reserves no space and, unplaced, never enters the obstacle index, leaving the
-            // room to its neighbours.
+            // A label disabled at every candidate is dropped entirely: unplaced, it never enters the
+            // obstacle index, so it reserves no space from its neighbours.
             const style = cascadeStyle?.(d, placement, orientation);
             if (style?.hidden === true) continue;
             if (!sizeCandidateLabel(d, style, rotation, cascadeFitRegion, cascadeFitSource)) continue;
@@ -2103,9 +2085,8 @@ function placeAvoidingLabel(
     cascadeContainThreshold = containmentThreshold(threshold);
     cascadeRegion = deflateRegion(deflatedRegionBox, cascadeRawRegion, cascadeContainThreshold);
     cascadeFitRegion = d.region == null ? undefined : deflateRegion(fitRegionBox, d.region, threshold);
-    // Edge-anchored bar labels are centred on their glyph centre, which for inside-start/inside-end
-    // sits at the bar's end; a candidate rotated to run along the bar would straddle that end. Slide
-    // it flush inside its own bar rect instead (a no-op for inside-center, already centred).
+    // inside-start/inside-end centre on the bar's end, so a candidate rotated along the bar would
+    // straddle it; slide it flush inside its own bar rect instead.
     cascadeFlushToRegion = d.region != null && d.neverDrop === true;
     cascadeKeepBest = d.neverDrop === true || alwaysShow;
 
@@ -2186,9 +2167,8 @@ function placeFromPositionedCandidates(
         const { width: cw, height: ch } = candidateBox;
         let offsetX = 0;
         let offsetY = 0;
-        // Slide a region-bound candidate flush inside its own region (matches the orientation path's
-        // clampAxis flush); a region-less (outside) candidate floats. A collision-only region
-        // (flushToRegion === false) is not flushed — an overflowing box is left to fail containment below.
+        // Region-bound candidates are slid flush inside their region; a collision-only region is not
+        // flushed, so an overflowing box is left to fail containment below.
         if (c.region != null && c.flushToRegion !== false) {
             const nx = clampAxis(x, cw, rawRegion.x, rawRegion.width);
             const ny = clampAxis(y, ch, rawRegion.y, rawRegion.height);

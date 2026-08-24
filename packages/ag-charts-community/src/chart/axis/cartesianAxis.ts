@@ -279,6 +279,10 @@ export abstract class CartesianAxis<
         return this.position === 'top' || this.position === 'bottom' ? ChartAxisDirection.X : ChartAxisDirection.Y;
     }
 
+    protected override get userListeners() {
+        return this.options.listeners;
+    }
+
     override createAxisContext(): AxisContext {
         // Mutate rather than spread so the live getters defined on the base context
         // (`range`, `gridLength`, `mirrored`, etc.) are preserved.
@@ -346,7 +350,8 @@ export abstract class CartesianAxis<
             !(this.primaryLabel?.enabled ?? false) &&
             this.options.tick.enabled === false &&
             !(this.primaryTick?.enabled ?? false) &&
-            this.options.gridLine.enabled === false
+            this.options.gridLine.enabled === false &&
+            !this.isPickComputationEnabled()
         ) {
             const { bbox, spacing } = this.measureAxisLayout(domain, [], [], scrollbar, scrollbarThickness);
             // Performance optimization: if ticks have no effect, don't generate them
@@ -643,7 +648,7 @@ export abstract class CartesianAxis<
 
     override getLayoutState() {
         const layout = super.getLayoutState();
-        return { ...layout, position: this.position };
+        return { ...layout, position: this.position, crossAxisTranslation: { ...this.crossAxisTranslation } };
     }
 
     protected override updatePosition(): void {
@@ -885,7 +890,7 @@ export abstract class CartesianAxis<
     }
 
     private isLabelsAtEdge() {
-        return this.options.crossAt?.labelsPlacement === 'edge';
+        return this.options.crossAt?.labelPlacement === 'edge';
     }
 
     /** The title and labels render in the same place unless exactly one of them is at the edge. */
@@ -1014,10 +1019,8 @@ export abstract class CartesianAxis<
         }
         const visible = text !== '';
 
-        // Along a horizontal axis a band scale places its ticks in the middle of each band, which is
-        // not what a configured alignment aligns against: `'right'` means the right edge of the band
-        // the tick belongs to. A vertical axis bands the other way, so its own alignment is
-        // unaffected and `alignLabelColumns` handles the label column instead.
+        // A band scale ticks the middle of each band, but a configured alignment aligns against the
+        // band edge; only the horizontal axis needs the correction (`alignLabelColumns` covers vertical).
         const bandEdgeOffset = horizontal ? getBandEdgeOffset(scale.bandwidth ?? 0, labelTextAlign) : 0;
 
         const x = horizontal ? translation + bandEdgeOffset : labelOffset;

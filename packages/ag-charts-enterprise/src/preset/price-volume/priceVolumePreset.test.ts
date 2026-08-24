@@ -14,6 +14,7 @@ import { testLogger } from 'ag-charts-test';
 import type {
     AgAnnotationsToolbarButton,
     AgChartInstance,
+    AgChartTheme,
     AgFinancialChartOptions,
     AgThemeOverrides,
 } from 'ag-charts-types';
@@ -90,6 +91,24 @@ describe('priceVolumePreset', () => {
         const statusBar = deproxy(instance).modulesManager.getModule<StatusBarLabels>('statusBar');
         return statusBar?.labels.find((label) => label.title?.text === title)?.value.text;
     };
+
+    it('keeps the preset base theme under a user theme naming no base of its own', async () => {
+        const options = prepareFinancialTestOptions({
+            chartType: 'candlestick',
+            data: getStockData().slice(0, 40),
+        } as AgFinancialChartOptions);
+        const theme = options.theme as AgChartTheme;
+        expect(theme.baseTheme).toBeUndefined();
+
+        chart = AgCharts.createFinancialChart(options);
+        await waitForChartStability(chart);
+
+        // `ag-financial`'s positive colour; the default theme would resolve a green of its own.
+        const { statusBar } = deproxy(chart).chartOptions.processedOptions as {
+            statusBar?: { positive?: { color?: string } };
+        };
+        expect(statusBar?.positive?.color).toBe('#089981');
+    });
 
     it('renders a bigint volume in the status bar with full precision (AG-16608)', async () => {
         // A bigint volume must produce a Vol readout formatted identically to its number equivalent;

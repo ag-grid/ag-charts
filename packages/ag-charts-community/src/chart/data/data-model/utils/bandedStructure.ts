@@ -342,14 +342,11 @@ export abstract class BandedStructure<TBand extends BandLike> {
                 break;
             }
 
-            // Use shared utility for standard insertion handling
             const wasDirty = adjustBandForInsertion(band, insertIndex, insertCount, isLastBand);
             if (wasDirty) {
                 band.isDirty = true;
 
-                // Check if band needs splitting after mid-band insertion
-                // Guard: Only split when actually inserting data (insertCount > 0)
-                // Zero-length updates are used to mark bands dirty without changing structure
+                // Zero-length updates only mark bands dirty, so they must not trigger a split.
                 if (insertCount > 0 && insertIndex < band.endIndex) {
                     const bandSize = band.endIndex - band.startIndex;
                     if (bandSize > maxBandSize) {

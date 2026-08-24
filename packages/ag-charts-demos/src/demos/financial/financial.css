@@ -1,36 +1,25 @@
-/* Trading-terminal chrome. Scoped under .fin-container so it never leaks into
-   other demos. Chart visuals are handled by the AG Charts theme, not here.
+/* Trading-terminal chrome, scoped under .fin-container; chart visuals come from the AG Charts
+   theme. Separation is carried by the lightness ramp (bg → panel → panel-2 → elevated), not by
+   borders. */
 
-   Structure is carried entirely by surface tone, not by lines: no element draws a
-   border. Anything that needs to read as separate from its host gets the next step
-   up the lightness ramp (bg → panel → panel-2 → elevated) instead. */
-
-/* Tokens + base typography live on the container and on any portalled content
-   (Radix menus/selects/dialogs mount at document.body, outside .fin-container). */
+/* Also applied to portalled content: Radix menus mount at document.body, outside .fin-container. */
 .fin-container,
 .fin-portal {
-    /* Dark surfaces, neutral rather than blue-black. The page is near-black and every
-       element sits on it as a lifted panel: --fin-panel is the recessed working area,
-       --fin-panel-2 the raised card. Same roles as a light scheme with the lightness
-       order flipped, so cards read as above the surface rather than below it. */
+    /* Lightness order is inverted against a light scheme: --fin-panel is the recessed working
+       area, --fin-panel-2 the raised card. */
     --fin-bg: #0e0f11;
     --fin-panel: #17181a;
-    /* Above the card: controls, and things that genuinely float (the chart's own type
-       menu). Same neutral family as the panels, so a menu never reads as a
-       differently-themed slab dropped on top of the app. */
+    /* Above the card: controls and floating menus. */
     --fin-elevated: #212327;
     --fin-elevated-hover: #2b2e34;
     /* Not used for any border here — this is what the grid's internal row rules resolve to. */
     --fin-border: #2a2c30;
     --fin-text: #e8e9ea;
     --fin-muted: #8b9098;
-    /* Kept in step with the chart theme's up/down palette overrides, so grid cells
-       and candles read as the same green and red. */
+    /* Keep in step with the chart theme's up/down palette overrides. */
     --fin-up: #10b981;
     --fin-down: #f43f5e;
-    /* Two blues: the bright one for accent text, markers and active icons, where it
-       has to carry against near-black; the deeper one for solid fills, where it has
-       to carry white text instead. */
+    /* Bright blue carries against near-black; the deeper one carries white text on solid fills. */
     --fin-accent: #4493f8;
     --fin-accent-strong: #1f6feb;
     --fin-on-accent: #ffffff;
@@ -65,27 +54,16 @@
     -webkit-font-smoothing: antialiased;
 }
 
-/* Highlighted states in the chart's own chrome — the active/hovered toolbar button and
-   the active/focused row of the chart-type menu — both resolve from
-   `--ag-charts-focus-color`, which the theme derives as a mix of accentColor into the
-   background and so lands on a blue slab. A neutral lift off the menu's own surface
-   reads better; the accent-coloured label is what carries the state.
-
-   This has to be declared here rather than through the theme: `params.focusColor` is
-   rejected at runtime as an unknown option, and the chart writes the resolved value as
-   an *inline* custom property on its wrapper, which no rule on an ancestor can beat.
-   Declaring it on the toolbar and popover instead works because they are descendants
-   of that wrapper, so this shadows the inline value for their subtrees. */
+/* Cannot be set through the theme: the chart writes the resolved focus colour as an inline custom
+   property on its wrapper, so only a rule on a descendant can shadow it. */
 .fin-container .ag-charts-toolbar,
 .fin-container .ag-charts-popover {
     --ag-charts-focus-color: var(--fin-elevated-hover);
 }
 
 /* ---- scrollbars ---- */
-/* `color-scheme: dark` alone leaves Chromium's default grey bars, which sit far too
-   light against a near-black panel. Firefox takes the standard properties; WebKit and
-   Chromium take the pseudo-elements. Applied to descendants too, so AG Grid's own
-   viewports are covered. */
+/* Chromium's `color-scheme: dark` bars are far too light on a near-black panel. Firefox takes the
+   standard properties, WebKit and Chromium the pseudo-elements. */
 .fin-container,
 .fin-container *,
 .fin-portal * {
@@ -242,17 +220,11 @@
     background: var(--fin-bg);
 }
 
-/* The main financial chart fills the remaining viewport height; the sections below it
-   (gauges, peer charts) scroll into view. The floor covers the card's own header row as
-   well as the plot. Zero basis so the card is sized from free space rather than from a
-   content height the canvas cannot report until after layout — with `auto` it claimed
-   the column and left the saved-markets board pinned to its own floor. */
+/* Zero basis: the card must be sized from free space, since the canvas cannot report a content
+   height until after layout. */
 .fin-main > .fin-detail-card {
     flex: 1 1 0;
-    /* With the saved board closed the chart gets more than this from free space, so the
-       floor only binds with the board open — where it is what decides how much room the
-       board can take. Low enough to let the board dominate, high enough that the plot
-       plus the card's own header row stay usable. */
+    /* Only binds with the saved board open, where it caps how much room the board can take. */
     min-height: 330px;
 }
 
@@ -442,9 +414,8 @@
     font-size: 16px;
     font-weight: 650;
 }
-/* The quote header's badge is scaled up for the heading, and centres on the line: the
-   row is baseline-aligned so the price and change sit on one baseline, but a circle
-   dropped onto that baseline rides visibly high. */
+/* Centred rather than baseline-aligned like the rest of the row: a circle on a baseline rides
+   visibly high. */
 .fin-quote .fin-ticker-badge {
     align-self: center;
     width: 21px;
@@ -468,8 +439,7 @@
     min-width: 0;
 }
 
-/* Sentence case, matching .fin-section-title. Uppercasing here also shouted the value
-   on the right ("BUY", "65% POSITIVE"), which is data rather than a label. */
+/* Sentence case, matching .fin-section-title; the value on the right is data, not a label. */
 .fin-detail-card-title {
     display: flex;
     align-items: center;
@@ -523,9 +493,7 @@
 }
 
 /* ---- market identity badge ---- */
-/* A small coloured initial before a market's name, so a long board can be scanned by
-   shape and colour rather than by reading every row. Colour slot is assigned by
-   hashing the ticker (see TickerCell.tsx) — keep the slot count in step with it. */
+/* Colour slot is assigned by hashing the ticker in TickerCell.tsx — keep the slot count in step. */
 .fin-ticker {
     display: inline-flex;
     align-items: center;
@@ -557,9 +525,7 @@
 .fin-grid-active .fin-ticker-badge {
     box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.9);
 }
-/* Vibrant mid-tones rather than the darker inks a text colour would need: the initial
-   is decorative (aria-hidden, and the ticker it abbreviates is right beside it), so
-   these are tuned for identity at a glance rather than for text contrast. */
+/* Tuned for identity at a glance, not text contrast: the initial is decorative and aria-hidden. */
 .fin-ticker-badge[data-avatar='0'] {
     background: #2b80de;
 }
@@ -589,8 +555,8 @@
 /* Sparkline trend cell: let the chart fill the full cell box. */
 .fin-sparkline-col {
     padding: 0;
-    /* Isolates the per-tick canvas repaint from the rest of the grid. Safe because AG Grid sizes the
-       cell externally, so no `size` containment is implied. */
+    /* Isolates the per-tick canvas repaint; AG Grid sizes the cell externally, so no `size`
+       containment is implied. */
     contain: layout paint;
 }
 .fin-sparkline-cell {
@@ -609,16 +575,13 @@
         inset 0 0 0 1px var(--fin-accent);
     background: rgba(68, 147, 248, 0.12);
 }
-/* Keyboard focus only (:focus-visible): ring the whole row rather than the cell.
-   A mouse click focuses a cell too, but :focus-visible won't match, so pointer
-   users see no ring — selection stays pointer-driven and chrome-free. */
+/* :focus-visible so a mouse click, which also focuses a cell, leaves the row unringed. */
 .fin-watchlist-grid .ag-row:has(.ag-cell:focus-visible),
 .fin-trending-grid .ag-row:has(.ag-cell:focus-visible) {
     outline: 1px solid var(--fin-accent);
     outline-offset: -1px;
 }
-/* First column carries the row's identity: indent it from the card edge, which the
-   4px global cell padding doesn't provide. Header included so the label lines up. */
+/* Indents the identity column from the card edge; the 4px global cell padding is not enough. */
 .fin-watchlist-grid .ag-header-cell:first-child,
 .fin-watchlist-grid .ag-cell:first-child,
 .fin-trending-grid .ag-header-cell:first-child,

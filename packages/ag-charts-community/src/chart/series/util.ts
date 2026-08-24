@@ -2,6 +2,7 @@ import type { BoxBounds, CanvasPoint } from 'ag-charts-core';
 import { Color, findMaxIndex, findMinIndex, isString } from 'ag-charts-core';
 import type { AgActiveItemState, AgDrawingMode } from 'ag-charts-types';
 
+import type { HighlightNodeDatum } from '../../core/eventsHub';
 import { Transformable } from '../../scene/transformable';
 import { highlightStates } from './seriesProperties';
 import type {
@@ -11,6 +12,15 @@ import type {
     SelectionState,
     SeriesNodeDatum,
 } from './seriesTypes';
+
+/**
+ * Whether a highlight targets one specific datum, as opposed to a whole series. Datum-level highlights
+ * carry a concrete `datumIndex`; series-level ones (e.g. a focused legend item) use NaN.
+ */
+export function isDatumHighlight(highlightedDatum: HighlightNodeDatum | undefined): boolean {
+    const datumIndex = highlightedDatum?.datumIndex;
+    return typeof datumIndex === 'number' && !Number.isNaN(datumIndex);
+}
 
 function datumBoundaryPoints(datum: any, domain: any[]): [boolean, boolean] {
     if (domain.length === 0) {

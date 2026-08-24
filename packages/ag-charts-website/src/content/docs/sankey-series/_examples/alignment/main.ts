@@ -47,22 +47,8 @@ const options: AgFlowProportionChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function alignLeft() {
-    (options.series![0] as AgSankeySeriesOptions).node!.alignment = 'left';
-    chart.update(options);
-}
-
-function alignRight() {
-    (options.series![0] as AgSankeySeriesOptions).node!.alignment = 'right';
-    chart.update(options);
-}
-
-function alignCenter() {
-    (options.series![0] as AgSankeySeriesOptions).node!.alignment = 'center';
-    chart.update(options);
-}
-
-function alignJustify() {
-    (options.series![0] as AgSankeySeriesOptions).node!.alignment = 'justify';
+function alignmentChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value as 'left' | 'right' | 'center' | 'justify';
+    (options.series![0] as AgSankeySeriesOptions).node!.alignment = value;
     chart.update(options);
 }

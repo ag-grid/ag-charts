@@ -12,6 +12,7 @@ import {
     ModuleRegistry,
     ModuleType,
     type PlainObject,
+    type PresetModuleDefinition,
     type ValidateParams,
     type ValidationError,
     deepClone,
@@ -68,7 +69,7 @@ import {
 import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
 import { ChartTheme } from '../chart/themes/chartTheme';
-import type { ValidationIssue } from '../chart/validation/validationIssueCollector';
+import { type ValidationIssue, severityAtOrAbove } from '../chart/validation/validationIssueCollector';
 import {
     type OptionsGraphAccessor,
     SHALLOW_OPTION_KEYS,
@@ -86,6 +87,9 @@ import type { SeriesGrouping } from './seriesGrouping';
 
 /** The default `validations.consoleLogLevel` — everything, including deprecation notices. */
 const DEFAULT_CONSOLE_LOG_LEVEL: AgChartValidationLevel = 'deprecation';
+
+/** The default `validations.throwOn` — fail-fast is opt-in, so nothing throws unless a consumer asks for it. */
+const DEFAULT_THROW_ON: AgChartValidationLevel = 'none';
 
 /** The `validations` subtree of options that are not yet known to be valid: public keys, unknown values. */
 type UnvalidatedValidations = { [K in keyof AgChartValidationsOptions]?: unknown };
@@ -145,7 +149,7 @@ export interface ChartSpecialOverrides {
 }
 
 export interface ChartInternalOptionMetadata {
-    presetType?: 'price-volume' | 'gauge-preset' | 'sparkline' | 'scatter-quadrant';
+    presetType?: 'price-volume' | 'gauge-preset' | 'sparkline' | 'quadrant';
     pool?: boolean;
     domMode?: 'normal' | 'minimal';
     withDragInterpretation?: boolean;
@@ -222,10 +226,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private static containsRemovalSentinel(node: unknown): boolean {
-        // The removal sentinel is only ever written as a direct value on a plain-object node. Skip the
-        // opaque pass-through payloads by name (`SHALLOW_OPTION_KEYS`) and never descend into non-plain
-        // objects (e.g. a DOM `container`): both can hold user-supplied cycles, and neither can contain
-        // a sentinel - so declining to recurse cannot miss one, it only avoids the stack overflow.
+        // Pass-throughs and non-plain objects can hold user-supplied cycles but never a removal
+        // sentinel, so declining to recurse into them cannot miss one.
         if (!isPlainObject(node)) return false;
         for (const key of Object.keys(node)) {
             const value = (node as Record<string, unknown>)[key];
@@ -253,21 +255,25 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     seriesWithUserVisibility?: {
         identifiers: Set<string>;
         indices: Set<number>;
-    }; // AG-16360
-    userDeltaKeys?: Set<string>; // AG-16389: Track keys the user passed in deltaOptions
+    };
+    userDeltaKeys?: Set<string>;
     processedCSSVariables?: Record<string, string>;
     validationIssues: ValidationIssue[] = [];
     // Provide the unmapped axis keys for error logging & callbacks.
     unmappedAxisKeys: Map<string, string> = new Map();
 
-    // Validation runs synchronously in this constructor, before a chart exists on initial create.
-    // The chart then adopts this instance as `ctx.logger`, so a chart has exactly one Logger.
+    // Validation runs in this constructor, before a chart exists; the chart then adopts this
+    // instance as `ctx.logger`.
     logger: Logger;
 
-    // Callbacks are validated (and wrapped) before the chart exists, so the sink they report caught
-    // errors to is adopted from the owning chart afterwards, like the Logger above. Read at
-    // callback-invocation time so the adopt order does not matter.
+    // Callbacks are wrapped before the chart exists, so their error sink is read at invocation time
+    // rather than captured, making the adopt order irrelevant.
     private validationSink?: (issue: ValidationIssue) => void;
+
+    private throwOn: AgChartValidationLevel = 'none';
+
+    // CSS-refresh re-construction runs from a DOM `transitionend` handler with no caller to throw to.
+    private readonly suppressFailFast: boolean;
 
     private static readonly debug = Debug.create(true, 'opts');
 
@@ -286,6 +292,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.logger = logger ?? new Logger();
         this.optionMetadata = metadata ?? {};
         this.processedOverrides = processedOverrides ?? {};
+        this.suppressFailFast = refreshCSSVariables;
 
         let baseChartOptions: ChartOptions<T> | null = null;
         if (currentUserOptions instanceof ChartOptions) {
@@ -293,15 +300,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             baseChartOptions = currentUserOptions;
             this.specialOverrides = baseChartOptions.specialOverrides;
 
-            // AG-16389: Track the keys the user explicitly passed in their delta.
-            // This must be done before the fallback jsonDiff below, so we capture user intent.
+            // Must precede the fallback jsonDiff below to capture user intent rather than the diff's.
             if (deltaOptions) {
                 this.userDeltaKeys = new Set(Object.keys(deltaOptions));
             }
 
-            // A null `deltaOptions` means this is a full `update()` rather than `updateDelta()`. Per
-            // its contract, `update()` replaces the options, so diff against the previous options
-            // marking omitted subtrees for removal; `updateDelta()` keeps its merge semantics.
+            // A null `deltaOptions` means a full `update()`, whose contract is replace: diff against
+            // the previous options and mark omitted subtrees for removal.
             if (deltaOptions == null) {
                 deltaOptions = jsonDiff(
                     baseChartOptions.userOptions as T,
@@ -326,16 +331,18 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             });
             this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
         }
-        // Apply the console log level before anything can be validated: first-pass validation runs
-        // inside `slowSetup()` below, so a `'none'` supplied by the user (or, in AG Grid integrated
-        // mode, via the processed overrides) has to bite ahead of the first warning being printed.
-        // Presence, not nullishness: an explicit `null` must reach the invalid-value fallback below
-        // rather than deferring to an override that could silence the warning reporting it.
+        // Must precede `slowSetup()`'s first validation pass so a user-supplied `'none'` suppresses the
+        // first warning. Keyed on presence, not nullishness, so an explicit `null` still warns.
         const userValidations = getValidations(this.userOptions);
         this.applyConsoleLogLevel(
             isObjectWithProperty(userValidations, 'consoleLogLevel')
                 ? userValidations.consoleLogLevel
                 : getValidations(this.processedOverrides)?.consoleLogLevel
+        );
+        this.applyThrowOn(
+            isObjectWithProperty(userValidations, 'throwOn')
+                ? userValidations.throwOn
+                : getValidations(this.processedOverrides)?.throwOn
         );
 
         this.findSeriesWithUserVisiblity(newUserOptions, deltaOptions);
@@ -369,7 +376,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             deltaOptions !== undefined &&
             ChartOptions.isFastPathDelta(deltaOptions, presetDef?.fastUpdateKeys) &&
             baseChartOptions != null &&
-            !dataChangedLength
+            !dataChangedLength &&
+            // An armed `throwOn` must re-validate on every pass — the fast path carries `validationIssues`
+            // forward without calling the `record*` methods that throw.
+            this.throwOn === 'none'
         ) {
             ({ activeTheme, processedOptions, fastDelta } = this.fastSetup(deltaOptions, baseChartOptions));
             themeParameters = baseChartOptions.themeParameters;
@@ -396,6 +406,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.processedOptions = processedOptions;
         // Re-apply from the merged result so a value arriving via a theme or preset also takes effect.
         this.applyConsoleLogLevel(getValidations(this.processedOptions)?.consoleLogLevel);
+        // State consistency only: this runs after every `record*` call, so it arms nothing this pass.
+        this.applyThrowOn(getValidations(this.processedOptions)?.throwOn);
         this.fastDelta = fastDelta ?? undefined;
         this.themeParameters = themeParameters;
         this.annotationThemes = annotationThemes;
@@ -410,8 +422,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.optionsProcessingTime = endTime - apiStartTime;
         }
 
-        // This ChartOptions should be treated as immutable from here-on, force immutability to
-        // flush out runtime issues.
+        // Immutable from here on; freeze in dev to flush out runtime mutations.
         Debug.inDevelopmentMode(() => deepFreeze(this));
     }
 
@@ -479,7 +490,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         // Minimal-mode structural-output cache fast path.
         const cacheKey = this.computeStructuralCacheKeyForSlowSetup(deltaOptions, stripSymbols);
-        if (cacheKey !== undefined) {
+        // As above: an armed `throwOn` must re-validate, and a cache hit skips every `record*` call.
+        if (cacheKey !== undefined && this.throwOn === 'none') {
             const cached = getStructuralCacheEntry(cacheKey);
             if (cached) {
                 return this.slowSetupCached(cached);
@@ -495,37 +507,43 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
         }
 
-        let activeTheme = sanitizeThemeModules(getChartTheme(options.theme, this.logger));
-
         const { presetType } = this.optionMetadata;
+        let presetDef: PresetModuleDefinition<any> | undefined;
+        let presetDefName: string | undefined;
+        let presetOptions: Partial<any> | undefined;
+        let optionsTheme = options.theme;
         if (presetType != null) {
-            const presetDef = ModuleRegistry.getPresetModule(presetType);
+            presetDef = ModuleRegistry.getPresetModule(presetType);
+            presetDefName = presetDef?.name;
+            optionsTheme ??= presetDef?.baseTheme;
+        }
 
-            if (presetDef) {
-                const { validate: validatePreset = validate } = presetDef;
-                const presetParams = options as any as AgPresetOptions;
+        const activeTheme = sanitizeThemeModules(getChartTheme(optionsTheme, this.logger, presetDefName));
 
-                // Note financial charts defines the theme in its returned options,
-                // so we need to get the theme before and after applying the preset
-                const presetSubType = (options as any).type as keyof AgPresetOverrides | undefined;
-                const presetTheme = presetSubType == null ? undefined : activeTheme.presets[presetSubType];
+        if (presetDef) {
+            const { validate: validatePreset = validate } = presetDef;
+            const presetParams = options as any as AgPresetOptions;
 
-                const { cleared, invalid } = validatePreset(presetParams, presetDef.options, '', this.validateParams);
-                this.recordValidationErrors(invalid);
+            const presetSubType = (options as any).type as keyof AgPresetOverrides | undefined;
+            const presetTheme = presetSubType == null ? undefined : activeTheme.presets[presetSubType];
 
-                if (hasRequiredInPath(invalid, '')) {
-                    options = {} as any;
-                } else {
-                    ChartOptions.debug('>>> AgCharts.createOrUpdate() - applying preset', cleared);
-                    options = presetDef.create(
-                        cleared,
-                        presetTheme,
-                        () => this.activeTheme,
-                        activeTheme.overrides,
-                        this.logger
-                    );
-                    activeTheme = sanitizeThemeModules(getChartTheme(options.theme, this.logger, presetDef.name));
-                }
+            const { cleared, invalid } = validatePreset(presetParams, presetDef.options, '', this.validateParams);
+            this.recordValidationErrors(invalid);
+
+            presetOptions = cleared ?? undefined;
+
+            if (hasRequiredInPath(invalid, '')) {
+                options = {} as any;
+            } else {
+                ChartOptions.debug('>>> AgCharts.createOrUpdate() - applying preset', presetOptions);
+                options = presetDef.create(
+                    presetOptions,
+                    presetTheme,
+                    () => this.activeTheme,
+                    activeTheme.overrides,
+                    this.logger,
+                    () => this.optionsGraph
+                );
             }
         }
 
@@ -544,6 +562,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const chartType = detectChartType(options);
 
         this.chartDef = ModuleRegistry.getChartModule(chartType);
+
+        // Must run before chart validation, which would otherwise report these as unknown options.
+        this.removeIncompatibleSeriesAreaOptions(options);
 
         if (!this.chartDef.placeholder) {
             const { validate: validateChart = validate } = this.chartDef;
@@ -574,7 +595,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.processedCSSVariables = this.processCSSVariables(options, activeTheme.params);
         }
 
-        const optionsGraph = createOptionsGraphMemoised(activeTheme, options, this.processedCSSVariables);
+        const optionsGraph = createOptionsGraphMemoised(
+            activeTheme,
+            options,
+            this.processedCSSVariables,
+            presetOptions
+        );
         const resolvedOptions = optionsGraph.resolve(this.logger) as any;
         const themeParameters = optionsGraph.resolveParams();
         const annotationThemes = optionsGraph.resolveAnnotationThemes();
@@ -584,12 +610,17 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const processedOptions = mergeDefaults(processedOverrides, resolvedOptions);
 
         removeIncompatibleModuleOptions(this.chartDef.name, processedOptions);
-        processModuleOptions(
+        const reportedMissingModules = processModuleOptions(
             this.chartDef.name,
             processedOptions,
             missingSeriesModules.concat(missingAxesModules),
             this.logger
         );
+        // A dropped series/axis/plugin option is error-severity under fail-fast, thrown only after
+        // `processModuleOptions` has already written its console record above.
+        if (reportedMissingModules != null) {
+            this.throwIfFailFast({ severity: 'error', message: reportedMissingModules.message });
+        }
 
         // Second-pass validation runs after `removeDisabledOptions`, so disabled nodes have been
         // stripped to `{ enabled: false }`; skip their required-field/discriminant warnings.
@@ -602,8 +633,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.validateSeriesOptions(processedOptions, secondPassParams);
 
-        // The second pass validation of the axes, after they have been processed and the keys remapped. Any missing
-        // `type` properties are now inferred and those axes can be validated.
+        // Second pass: axis keys are remapped and missing `type` properties inferred, so axes validate.
         this.validateAxesOptions(processedOptions, secondPassParams);
 
         this.validatePluginOptions(processedOptions, secondPassParams);
@@ -659,26 +689,26 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private slowSetupCached(cached: StructuralCacheEntry) {
-        const activeTheme = sanitizeThemeModules(getChartTheme((this.userOptions as any).theme, this.logger));
-        this.chartDef = cached.chartDef;
-
-        // A cache hit skips the validate loops that populate `validationIssues`, so replay the
-        // captured issues — otherwise cached invalid options warn on the console but not the overlay.
-        this.validationIssues = [...cached.validationIssues];
-
-        // Re-run the preset's data transform on this chart's data — the cached
-        // processedOptions has `data` stripped to prevent aliasing.
         const presetDef =
             this.optionMetadata.presetType == null
                 ? undefined
                 : ModuleRegistry.getPresetModule(this.optionMetadata.presetType);
+
+        // Must resolve the theme exactly as `slowSetup` does, or a cached chart is styled differently
+        // from the one that populated the cache.
+        const optionsTheme = (this.userOptions as any).theme ?? presetDef?.baseTheme;
+        const activeTheme = sanitizeThemeModules(getChartTheme(optionsTheme, this.logger, presetDef?.name));
+        this.chartDef = cached.chartDef;
+
+        // A cache hit skips the loops that populate `validationIssues`, so replay the captured issues.
+        this.validationIssues = [...cached.validationIssues];
+
+        // Re-run the preset's data transform on this chart's data — the cached
+        // processedOptions has `data` stripped to prevent aliasing.
         const userData = (this.userOptions as any).data;
         const resolvedData = presetDef?.processData ? presetDef.processData(userData).data : userData;
 
-        // Shallow-clone the top level only — the existing dev-mode deepFreeze on
-        // ChartOptions has confirmed no path mutates nested processedOptions, and
-        // sharing frozen nested refs across charts is the whole point of the cache.
-        // Re-attach VOLATILE_KEYS from this chart's `userOptions` (see their definition).
+        // Shallow-clone only: sharing frozen nested refs across charts is the point of the cache.
         const userOpts = this.userOptions as Record<string, unknown>;
         const processedOptions = { ...(cached.processedOptions as object), data: resolvedData } as T;
         for (const key of VOLATILE_KEYS) {
@@ -712,9 +742,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      */
     adoptLogger(logger: Logger) {
         this.logger = logger;
-        // A pooled chart adopts a different Logger after validation has run, so the level has to be
-        // re-applied or the new chart inherits the previous one's threshold.
+        // A pooled chart adopts a different Logger after validation, so the level must be re-applied.
         this.applyConsoleLogLevel(getValidations(this.processedOptions)?.consoleLogLevel);
+        // Likewise for the throw threshold.
+        this.applyThrowOn(getValidations(this.processedOptions)?.throwOn);
     }
 
     /** Point wrapped user callbacks at the owning chart's validation sink, so a swallowed throw surfaces. */
@@ -737,10 +768,20 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      * not silence the very warning that reports it.
      */
     private applyConsoleLogLevel(level: unknown) {
-        // Typed as the public option on the way to the Logger's own scale, which pins the two
-        // unions to each other: either one gaining a level the other lacks is a compile error.
+        // Typed as the public option so the two level unions stay pinned to each other at compile time.
         const consoleLogLevel: AgChartValidationLevel = isLogLevel(level) ? level : DEFAULT_CONSOLE_LOG_LEVEL;
         this.logger.setLevel(consoleLogLevel);
+    }
+
+    /**
+     * Resolves `validations.throwOn`, falling back to `'none'` for anything unrecognised. The fallback
+     * direction is the opposite of `applyConsoleLogLevel`'s deliberately: this runs before the union
+     * validator has, and an invalid value must not make the chart throw about itself — nor turn
+     * fail-fast on for a consumer who never asked for it.
+     */
+    private applyThrowOn(level: unknown) {
+        // Reuses `isLogLevel` so a new level cannot be missed by either union.
+        this.throwOn = isLogLevel(level) ? level : DEFAULT_THROW_ON;
     }
 
     private get validateParams(): ValidateParams {
@@ -752,7 +793,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private recordDeprecation(message: string, path: string) {
-        this.validationIssues.push({ severity: 'deprecation', message, code: path || undefined });
+        const issue: ValidationIssue = { severity: 'deprecation', message, code: path || undefined };
+        this.validationIssues.push(issue);
+        this.throwIfFailFast(issue);
     }
 
     // Every option-validation error goes to both the console log and the per-chart overlay collector.
@@ -764,13 +807,60 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (error.key) {
                 path = path ? `${path}.${error.key}` : error.key;
             }
-            this.validationIssues.push({ severity: 'warning', message: error.toString(), code: path || undefined });
+            const issue: ValidationIssue = { severity: 'warning', message: error.toString(), code: path || undefined };
+            this.validationIssues.push(issue);
+            this.throwIfFailFast(issue);
         }
+    }
+
+    /**
+     * Report an argument that could not be options at all (`create(undefined)`, `create(3)`, an empty
+     * object) through the same feed as any option-validation error, so it reaches the console log, the
+     * `validations.overlayLevel` overlay, `validations.onErrorRaised` and `validations.throwOn`. Raised
+     * at `error` severity - unlike a per-option problem, nothing of the caller's intent survives it.
+     *
+     * Pushed as a new array: the unchanged-options fast path aliases `validationIssues` to the base
+     * options' array, which must not gain this chart's issue.
+     */
+    recordOptionsArgumentError(message: string) {
+        this.logger.error(message);
+        const issue: ValidationIssue = { severity: 'error', message };
+        this.validationIssues = [...this.validationIssues, issue];
+        this.throwIfFailFast(issue);
     }
 
     private recordValidationMessage(message: string) {
         this.logger.warn(message);
-        this.validationIssues.push({ severity: 'warning', message });
+        const issue: ValidationIssue = { severity: 'warning', message };
+        this.validationIssues.push(issue);
+        this.throwIfFailFast(issue);
+    }
+
+    /**
+     * Throws for the first issue whose severity meets the armed `validations.throwOn` threshold — never
+     * called before the console record and the overlay push above have already happened.
+     */
+    private throwIfFailFast(issue: ValidationIssue): void {
+        if (this.suppressFailFast || this.throwOn === 'none' || !severityAtOrAbove(this.throwOn, issue.severity)) {
+            return;
+        }
+        const location = issue.code ? `\`${issue.code}\`: ` : '';
+        throw new Error(`AG Charts - validations.throwOn: ${issue.severity} - ${location}${issue.message}`);
+    }
+
+    private removeIncompatibleSeriesAreaOptions(options: T) {
+        const chartType = this.chartDef?.name;
+        const seriesArea = options.seriesArea as Record<string, unknown> | undefined;
+        if (chartType == null || seriesArea == null) return;
+
+        for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
+            if (!module.chartType || module.chartType === chartType || seriesArea[module.name] == null) continue;
+
+            delete seriesArea[module.name];
+            this.recordValidationMessage(
+                `Option \`seriesArea.${module.name}\` is not supported by chart type \`${chartType}\`, ignoring.`
+            );
+        }
     }
 
     private validatePluginOptions(options: T, params: ValidateParams) {
@@ -789,10 +879,28 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private validateSeriesOptions(options: T, params: ValidateParams): ModulePlaceholder[] {
+        // Leave a non-array `series` in place so the chart-def validation pass reports it, rather
+        // than silently replacing it with an empty array here.
+        if (options.series != null && !isArray(options.series)) return [];
+
         const chartType = this.chartDef?.name;
         const validatedSeriesOptions: any[] = [];
         const seriesCount = options.series?.length ?? 0;
         const missingModules: ModulePlaceholder[] = [];
+
+        if (seriesCount === 0) {
+            // With no `series` the chart still resolves against the default series type, so a missing
+            // module for it is the same defect as the explicit mismatch below. Presets supply their own.
+            const defaultType = this.optionsType(options);
+            const defaultPlaceholder = ExpectedModules.get(defaultType);
+            if (
+                this.optionMetadata.presetType == null &&
+                ModuleRegistry.getSeriesModule(defaultType) == null &&
+                defaultPlaceholder?.type === ModuleType.Series
+            ) {
+                missingModules.push(defaultPlaceholder);
+            }
+        }
 
         let validSeriesTypes: string | undefined;
         for (let index = 0; index < seriesCount; index++) {
@@ -864,8 +972,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         for (const [key, axisOptions] of entries(options.axes)) {
             if (!axisOptions) continue;
 
-            // When the `type` property is omitted, the axis can not be validated. It will be validated only on the
-            // second pass once the `type` property has been inferred by `processAxesOptions()`.
+            // Without `type` the axis cannot be validated until the second pass infers it.
             if (axisOptions.type == null) {
                 validatedAxesOptions[key] = axisOptions;
                 continue;
@@ -959,8 +1066,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         options.series = this.setSeriesGroupingOptions(processedSeries ?? []);
     }
 
-    // When the user explicitly sets both size bounds inverted (min > max), warn and drop both so theme
-    // defaults re-apply. A single bound is resolved at render time (min is authoritative) and is not checked here.
+    // Inverted explicit bounds (min > max) are dropped so theme defaults re-apply; a single bound is
+    // resolved at render time and is not checked here.
     private validateSizeBounds(series: SeriesOptionsTypes, index: number) {
         const keys = SIZE_BOUND_KEYS[series.type];
         if (keys == null) return;
@@ -1011,9 +1118,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return;
         }
 
-        // Axes that are considered the primary axis for their given direction are internally remapped to the standard
-        // naming, e.g. the user's primary axis for the 'x' direction is named `myXAxis`, then internally it will be
-        // remapped to and accessed as `x`.
+        // The primary axis for each direction is remapped to the standard naming, e.g. a user's `myXAxis`
+        // becomes `x`.
         const axisKeys = 'axes' in options ? new Set(Object.keys(options.axes ?? {})) : new Set<string>();
         const primaryAxisKeys = this.getPrimaryAxisKeys(options, directions, axisKeys, hasNonDefaultSeriesAxisKeys);
 
@@ -1125,8 +1231,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
             if (foundPrimaryAxisKey) continue;
 
-            // If there are no series references to any axis, then skip ahead and attempt to find the primary axes by
-            // one of the fallback methods.
+            // With no series references to any axis, fall through to the fallback methods below.
             if (!hasNonDefaultSeriesAxisKeys) continue;
 
             for (const seriesOptions of options.series ?? []) {
@@ -1135,21 +1240,17 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
                 const seriesAxisKey = (seriesOptions as any)[directionAxisKey];
 
-                // If this series references an axis that has been defined by the user, and it wasn't considered the
-                // primary axis by its position, then it must be a secondary axis (if both primary axes are found
-                // in other series).
+                // A user-defined axis not chosen as primary by position must be a secondary axis.
                 if (axisKeys.has(seriesAxisKey)) continue;
 
-                // If this series does not reference an axis in this direction, but at least one series references an
-                // axis in any direction, then this series is defaulting to the primary axis id that matches the
-                // direction.
+                // No reference in this direction while other series reference axes: default to the
+                // primary axis id matching the direction.
                 if (!seriesAxisKey) {
                     primaryAxisKeys.set(direction, direction);
                     break;
                 }
 
-                // Otherwise, if this series does reference an axis in this direction, that has not been defined by the
-                // user, then it must be defining the primary axis in this direction.
+                // A referenced but undefined axis in this direction defines the primary axis for it.
                 primaryAxisKeys.set(direction, seriesAxisKey);
                 break;
             }

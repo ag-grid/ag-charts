@@ -32,17 +32,12 @@ export const THEME = {
         buttonBackgroundColor: 'var(--fin-elevated)',
         buttonBorder: false,
         buttonTextColor: 'var(--fin-text)',
-        // The chart's own chart-type menu. It is a `.ag-charts-popover` wrapping a
-        // `.ag-charts-menu`, and the popover takes its surface from
-        // `panelBackgroundColor` — NOT from `menuBackgroundColor`, which drives a
-        // different menu. Left to the base theme it renders as a blue-black slab that
-        // belongs to a different app; these pin it to the demo's neutral family, one
-        // step above the card so it still reads as floating.
+        // The chart-type menu is a popover, so its surface comes from `panelBackgroundColor`, not
+        // `menuBackgroundColor`.
         panelBackgroundColor: 'var(--fin-elevated)',
         panelSubtleTextColor: 'var(--fin-muted)',
         chromeTextColor: 'var(--fin-text)',
-        // Drops the outline on the popover and the chart toolbars outright, rather than
-        // colouring a border to hide it.
+        // Drops the popover and toolbar outlines outright, rather than colouring a border to hide them.
         borderWidth: 0,
         // A menu genuinely floats, so it keeps the one elevation — matched to the
         // Radix menus in financial.css.

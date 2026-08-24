@@ -8,9 +8,9 @@ import {
     LABEL_OVERFLOW_DEFAULTS,
     SAFE_FILLS_OPERATION,
 } from 'ag-charts-core';
-import type { ExtensibleTheme } from 'ag-charts-types';
+import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
-export const CONE_FUNNEL_SERIES_THEME: ExtensibleTheme<'cone-funnel'> = {
+export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
     series: {
         direction: 'vertical',
         fills: {

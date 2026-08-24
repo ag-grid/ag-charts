@@ -32,13 +32,9 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
 
     public totalSelectedCount = 0;
     public totalCandidacyCount = 0;
-    // The API states that the candidateState property must be undefined when no drag motion is in progress. This is
-    // required to distinguish between these cases:
-    // 1.  No drag motion is in progress.
-    // 2.  A drag motion is in progress, but the candidacy list is empty.
+    // Distinguishes "no drag in progress" from "drag in progress with an empty candidacy list".
     public candidacyInProgress = false;
-    // The Control/Cmd keys can be used to add everything in candidacy to the existing selections rather than setting
-    // the selection (i.e. the union of candidate + selection).
+    // Control/Cmd unions candidacy with the existing selection instead of replacing it.
     public candidacyUnion = false;
 
     /** Per-series selection state. Keyed by `seriesId`. */
@@ -134,9 +130,7 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
         }
     }
 
-    //------------------------------------------------------------------------------
-    // IDataSelectionService implementation
-    //------------------------------------------------------------------------------
+    // IDataSelectionService implementation.
 
     /**
      * Transfer persistent state (selections) from a predecessor DataSet.
@@ -150,11 +144,7 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
         const oldIds = oldDataSet.getIdArray();
         if (!oldIds) {
             if (oldDataSet.data.length === newDataSet.data.length) {
-                // There's no dataId, but lengths are the same so assume the indices match to the same datums. This
-                // assumption is not guaranteed, but is likely in most use cases. In the use cases where it isn't, it's
-                // up the user to decide whether to call `chart.clearSelection()` or to integrate `dataIdKey`.
-                //
-                // Just copy the previous selection state:
+                // Without a dataId, equal lengths are assumed to mean matching indices; `dataIdKey` opts out.
                 for (const [seriesId, oldSelObj] of this.selections) {
                     this.selections.set(seriesId, oldSelObj);
                 }
@@ -188,7 +178,6 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
                 const idx = newIdMap.get(key);
                 if (idx != null) newSelObj.select(idx);
             }
-            // selectedKeys GC'd after this scope
         }
     }
 
@@ -215,11 +204,7 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
             return SelectionState.None;
         }
 
-        // When aggregation is active, a rendered marker stands in for an
-        // entire bucket. The bucket is considered selected if any of its
-        // underlying datums is selected, regardless of which one happens to
-        // be the bucket's representative index. Fall back to the per-datum
-        // bitset when no aggregation level applies.
+        // An aggregated marker stands in for a bucket, which counts as selected if any of its datums is.
         const selectionBuffer = this.getDataSetSelection(series);
         if (typeof datumIndex === 'number') {
             const aggregated = series.ensureBucketLookupFeature()?.isBucketSelected(datumIndex);

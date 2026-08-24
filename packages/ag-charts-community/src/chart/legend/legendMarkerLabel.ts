@@ -22,8 +22,6 @@ export class LegendMarkerLabel<D = CategoryLegendDatum> extends TranslatableGrou
     );
     private readonly label = this.appendChild(new Text());
 
-    private enabled: boolean = true;
-
     constructor() {
         super({ name: 'markerLabelGroup' });
 
@@ -59,6 +57,9 @@ export class LegendMarkerLabel<D = CategoryLegendDatum> extends TranslatableGrou
     @ProxyPropertyOnWrite('label', 'fill')
     color?: string;
 
+    @ProxyPropertyOnWrite('label', 'opacity')
+    labelOpacity: number = 1;
+
     @ObserveChanges<LegendMarkerLabel>((target) => target.layoutLabel())
     spacing: number = 0;
 
@@ -74,20 +75,9 @@ export class LegendMarkerLabel<D = CategoryLegendDatum> extends TranslatableGrou
     public readonly marker = this.symbolsGroup.appendChild(new Marker({ zIndex: 1 }));
     public readonly line = this.symbolsGroup.appendChild(new Line({ zIndex: 0 }));
 
-    setEnabled(enabled: boolean) {
-        this.enabled = enabled;
-        this.refreshVisibilities();
-    }
-
     getTextMeasureBBox() {
         this.layout();
         return BBox.merge([this.symbolsGroup.getBBox(), this.label.getTextMeasureBBox()]);
-    }
-
-    private refreshVisibilities() {
-        const opacity = this.enabled ? 1 : 0.5;
-        this.label.opacity = opacity;
-        this.opacity = opacity;
     }
 
     private layout() {

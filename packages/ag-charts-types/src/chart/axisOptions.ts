@@ -16,9 +16,11 @@ import type {
     TextWrap,
 } from './types';
 
-export type AgAxisValue = number | bigint | string | Date;
+export type AgGroupedCategoryValue = (string | null)[];
 
-export type AgAxisDomain = number[] | bigint[] | string[] | Date[];
+export type AgAxisValue = number | bigint | string | Date | AgGroupedCategoryValue;
+
+export type AgAxisDomain = number[] | bigint[] | string[] | Date[] | AgGroupedCategoryValue[];
 
 export type AgAxisDirection = 'x' | 'y' | 'angle' | 'radius';
 
@@ -38,6 +40,8 @@ export interface AgAxisCoordinate {
     direction: AgAxisDirection;
     /** The index of the resolved value */
     index: number;
+    /** The depth of the resolved label on a `grouped-category` axis, counted outwards from the leaf labels, which are depth `0`. Undefined on every other axis type. */
+    depth?: number;
     /** Metadata about series bound to the axis the title belongs to. */
     boundSeries: AgAxisBoundSeries[];
     /** Computed domain of the axis */
@@ -218,6 +222,8 @@ export interface AgAxisLabelFormatterParams<TContext = ContextDefault> {
     readonly type: 'number' | 'date' | 'category';
     readonly value: any;
     readonly index: number;
+    /** The depth of the label on a `grouped-category` axis, counted outwards from the leaf labels, which are depth `0`. Undefined on every other axis type. */
+    readonly depth?: number;
     readonly fractionDigits?: number;
     readonly unit?: AgTimeIntervalUnit;
     readonly step?: number;

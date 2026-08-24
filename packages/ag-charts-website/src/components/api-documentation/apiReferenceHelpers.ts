@@ -407,9 +407,8 @@ function applyGenericsToMember(member: MemberNode, genericsMap: Map<string, unkn
     return substituted === baseType ? member : { ...member, type: substituted, omit };
 }
 
-// Substitutes generic parameter names with their bound types, keeping node structure intact so
-// wrapped generics (`SegmentOptions[]`) resolve. Normalising first would flatten the array to a
-// string the parameter-keyed map cannot match. Returns the original node when nothing binds.
+// Keeps node structure intact so wrapped generics (`SegmentOptions[]`) resolve — normalising first would
+// flatten the array to a string the parameter-keyed map cannot match.
 function substituteGenerics(type: TypeNode, genericsMap: Map<unknown, unknown>): TypeNode {
     if (typeof type === 'string') {
         return resolveGenericType(type, genericsMap) ?? type;

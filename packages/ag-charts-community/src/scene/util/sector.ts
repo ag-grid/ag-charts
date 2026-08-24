@@ -245,10 +245,8 @@ export function boxOverlapsSector(box: BoxBounds, sector: SectorBoundaries): boo
 }
 
 // https://ag-grid.atlassian.net/wiki/spaces/AG/pages/3090087939/Sector+Corner+Radii
-// We only care about values between 0 and 1
-// An analytic solution may exist, but I can't find it
-// Instead, use interval bisection between these two values
-// Pass in negative values for outer radius, positive for inner
+// Interval bisection over [0, 1]; no analytic solution is known.
+// Pass in negative values for outer radius, positive for inner.
 export function radiiScalingFactor(r: number, sweep: number, a: number, b: number) {
     if (a === 0 && b === 0) return 0;
 

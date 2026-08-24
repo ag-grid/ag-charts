@@ -39,6 +39,12 @@ export const CHARTS_MARKDOWN_PAGE_GROUPS: MarkdownPageGroup[] = [
         pattern: 'session/[^/.]+',
     },
     {
+        // Flat sibling URLs (`examples`, `examples-web-analytics`), one per entry in the showcase
+        // registry, so a demo added there without a twin fails the coverage check.
+        describes: 'The showcase demo pages.',
+        pattern: 'examples(?:-[^/.]+)?',
+    },
+    {
         describes: 'The gallery landing page and every gallery example.',
         pattern: 'gallery(?:/[^/.]+)?',
     },

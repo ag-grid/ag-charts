@@ -156,12 +156,8 @@ function createLineAccountingOptions(): AgCartesianChartOptions<AccountingDatum,
     };
 }
 
-// A copy of createLineAccountingOptions adapted for data-transaction tests: a
-// chart-level `dataIdKey` with stable string ids on each datum, shared data only
-// (per-series `data` is incompatible with transactions), and one non-selectable
-// series (s3id) alongside two selectable ones. String ids are deliberate — a
-// numeric `itemId` is interpreted as an array index by DataSet.getIndexFromItemId,
-// bypassing the dataIdKey lookup this fixture exists to exercise.
+// Transaction variant of createLineAccountingOptions: chart-level `dataIdKey`, shared data only (per-series
+// `data` is incompatible with transactions). String ids are deliberate — a numeric `itemId` is read as an index.
 type AccountingDatumWithId = {
     id: string;
     year: string;
@@ -236,14 +232,11 @@ function createLineAccountingOptionsWithIds(): AgCartesianChartOptions<Accountin
     };
 }
 
-// A dense dataset (>1000 points) where the marker spacing falls below 1px, so
-// `markerEnabled()` is false and — with `selection.enabled` — `hideWithSize0`
-// becomes true: the line/area path is drawn but every unselected marker is sized 0.
+// Dense enough (>1000 points) that marker spacing falls below 1px, so `markerEnabled()` is false and
+// `hideWithSize0` applies: the path is drawn but every unselected marker is sized 0.
 const SINE_WAVE_POINT_COUNT = 1200;
 
-// Integer y-values (sine scaled by 1000 and rounded) avoid floating-point
-// rounding drift between platforms, which otherwise breaks the exact-match
-// SELECTION assertions on CI.
+// Integer y-values avoid cross-platform float drift, which breaks the exact-match SELECTION assertions.
 const sineWaveY = (x: number) => {
     const y = Math.round(Math.sin((x / SINE_WAVE_POINT_COUNT) * Math.PI * 8) * 1000);
     // add 0 to normalise `-0` to `0`:
@@ -300,9 +293,8 @@ function createRangeAreaSineWaveOptions(): AgCartesianChartOptions<SineWaveRange
     };
 }
 
-// Radar-line and radar-area share a base class and the same hideWithSize0
-// mechanism. Unlike the cartesian cases, radar markers are hidden by
-// `marker.enabled` rather than point density, so a handful of points suffices.
+// Radar markers are hidden by `marker.enabled` rather than point density, unlike the cartesian cases, so a
+// handful of points suffices to exercise the shared hideWithSize0 mechanism.
 type RadarDatum = { axis: string; lineValue: number; areaValue: number };
 function createRadarOptions(): AgPolarChartOptions<RadarDatum, unknown> {
     return {
@@ -458,10 +450,8 @@ function createBarStackMixOptions(): AgCartesianChartOptions<StackMixDatum, unkn
 
 type RingDatum = { sector: string; value: number };
 function createPieDonutOptions(): AgPolarChartOptions<RingDatum, unknown> {
-    // Three concentric rings — a pie in the centre encircled by two donuts. Every
-    // ring is split into the same four equal-angle quadrants (each value: 1 → 90°),
-    // so a drag-box over a compass quadrant maps to obvious sectors when debugging.
-    // With the default rotation, sectors run clockwise from 12 o'clock: NE, SE, SW, NW.
+    // Three concentric rings split into the same four equal-angle quadrants, so a drag-box over a compass
+    // quadrant maps to obvious sectors: clockwise from 12 o'clock, NE, SE, SW, NW.
     const center: RingDatum[] = [
         { sector: 'C-NE', value: 1 },
         { sector: 'C-SE', value: 1 },
@@ -744,7 +734,7 @@ function createDiskUsageOptions(
                     series: {
                         group: {
                             label: { formatter },
-                            // FIXME: AG-17328 group selection is descoped & unsupported
+                            // FIXME: group selection is descoped and unsupported
                             // selection: { selectedItem: { strokeWidth } },
                         },
                         tile: {
@@ -1379,10 +1369,8 @@ describe('DataSelection', () => {
             await compare();
         });
 
-        // CRT-1186: error bars express series-level dimming as group opacity. That opacity used to be
-        // maintained only by the highlight-change handler, so a selection change left the group at
-        // whatever opacity a previous highlight happened to set — error bars stayed dimmed after
-        // deselection until the next hover repaired them.
+        // Error bars express series-level dimming as group opacity, which a selection change must
+        // maintain on its own rather than relying on the highlight-change handler.
         describe('CRT-1186 group opacity follows selection state', () => {
             // The default theme sets selection.unselectedSeries.opacity = 0.2.
             const DIMMED_OPACITY = 0.2;
@@ -1446,9 +1434,8 @@ describe('DataSelection', () => {
                     chart.setSelection([{ seriesId: series.id, itemId: series.data!.getItemIdFromIndex(2) }]);
                     await waitForChartStability(chart);
 
-                    // Mirrors the reported interaction: the pointer moves onto a datum and then off it
-                    // again while the selection is still active, so the last highlight change wrote the
-                    // dimmed opacity. Deselecting must then restore it with no further pointer input.
+                    // The pointer moves onto a datum and off again while the selection is active, so the last
+                    // highlight change wrote the dimmed opacity; deselecting must restore it unprompted.
                     await setHighlight(2);
                     await setHighlight(undefined);
                     expect(getErrorBarGroupOpacity()).toBe(DIMMED_OPACITY);
@@ -1937,7 +1924,7 @@ describe('DataSelection', () => {
             });
         });
 
-        // AG-17328 Group selection is currently unsupported, revisit this test once we start implementing it.
+        // Group selection is currently unsupported; revisit this test once we start implementing it.
         describe.skip('treemap - group selection enabled', () => {
             type D = DiskDatum;
             type C = unknown;
@@ -3160,14 +3147,8 @@ describe('DataSelection', () => {
             });
 
             describe('with label.itemStyler (highlight disabled)', () => {
-                // Reuses the 'without module clash' multi-series line setup (data + series),
-                // but every line series carries a label.itemStyler and highlight is disabled
-                // (highlight is flaky in tests and not what we're exercising). The styler maps
-                // the two states to independent, simultaneously-visible label properties so a
-                // single snapshot encodes both: candidateState -> box background fill,
-                // selectionState -> text colour/weight. Reddish hues are avoided because red
-                // marks pixel diffs on snapshot failure. s3id (selection disabled) gets both
-                // states undefined and so renders with default label styling.
+                // The label.itemStyler maps candidateState to box background fill and selectionState to text
+                // colour/weight, so a single snapshot encodes both states. Reddish hues read as pixel diffs.
                 const POINT_A = { canvasX: 262.5, canvasY: 440 };
                 const POINT_B = { canvasX: 582.5, canvasY: 21 };
                 const POINT_C = { canvasX: 41.5, canvasY: 142 };
@@ -3229,10 +3210,8 @@ describe('DataSelection', () => {
                     });
                 });
 
-                // Drag candidacy is computed identically regardless of modifier (the modifier
-                // only changes what is committed on mouse-up), so the in-progress and first-
-                // commit snapshots are shared across no-/ctrl-/meta-modifier; only the second
-                // commit differs (replace vs add). ctrl and meta are fully identical.
+                // Drag candidacy is modifier-independent — the modifier only changes what mouse-up commits —
+                // so the in-progress and first-commit snapshots are shared; only the second commit differs.
                 describe('no-modifier two drags', () => {
                     test('screenshot', async () => {
                         await mouseDown(POINT_A);
@@ -3250,9 +3229,8 @@ describe('DataSelection', () => {
                 });
                 describe('alt-modifier two drags', () => {
                     test('screenshot', async () => {
-                        // alt is an "unknown" modifier: the selection drag is skipped entirely
-                        // (no candidacy, no rect, no commit), so every phase renders the base
-                        // chart with default labels.
+                        // alt is an unknown modifier: the drag is skipped entirely, so every phase renders
+                        // the base chart.
                         await mouseDown(POINT_A, { altKey });
                         await mouseMove(POINT_B, { altKey });
                         await compareExact('drag-modifiers-line-labelstyler-none');
@@ -4662,7 +4640,7 @@ describe('DataSelection', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
                 });
-                // AG-17528 Selection dragging on radars is disabled for this release:
+                // Selection dragging on radars is disabled for this release:
                 describe.skip('mousedown and mousemove', () => {
                     beforeEach(async () => {
                         await mouseDown(DRAG_FROM);
@@ -5166,7 +5144,7 @@ describe('DataSelection', () => {
     });
 
     describe('setState', () => {
-        // AG-17328 Group selection is currently unsupported, revisit this test once we start implementing it.
+        // Group selection is currently unsupported; revisit this test once we start implementing it.
         describe.skip('treemap - group selection enabled', () => {
             type D = DiskDatum;
             type C = unknown;
@@ -5227,7 +5205,7 @@ describe('DataSelection', () => {
                     afterEach(() => {
                         state = undefined;
                     });
-                    // FIXME(AG-17567): mouseMove(20,20) ("miss") does not correctly unhighlight the chart. This only
+                    // FIXME: mouseMove(20,20) ("miss") does not correctly unhighlight the chart. This only
                     // happens in node.js, browser-base implementation render the unhighlighted chart correctly.
                     test.skip('screenshot', async () => {
                         await compareExact('diskusage-treemap-highlighted-none-selected-none');
@@ -5349,10 +5327,8 @@ describe('DataSelection', () => {
     });
 
     describe('datum removal', () => {
-        // Removing every selected datum must reset the selection count to 0. If it
-        // stays stale (the bug), unselected datums keep rendering with the dimmed
-        // "other item" styling instead of returning to normal — caught by the
-        // "removal all" screenshots below, which would otherwise be identical.
+        // Removing every selected datum must reset the selection count to 0; a stale count leaves unselected
+        // datums dimmed, which the "removal all" screenshots below catch.
         describe('line', () => {
             type D = AccountingDatumWithId;
             type C = unknown;
@@ -5361,9 +5337,8 @@ describe('DataSelection', () => {
             const baseOptions = createLineAccountingOptionsWithIds();
             const allData = baseOptions.data!;
 
-            // dataIdKey is 'id', so each `itemId` is the datum's string id.
-            // s1id (assets) selects r2022 & r2023; s2id (liabilities) selects r2021 & r2023.
-            // r2023 is selected by both series, r2022 by s1id only, r2021 by s2id only.
+            // dataIdKey is 'id', so each `itemId` is the datum's string id: r2023 is selected by both series,
+            // r2022 by s1id only, r2021 by s2id only.
             const SELECTION: AgSelectionItem<D>[] = [
                 { seriesId: 's1id', itemId: 'r2022', datum: allData[4] },
                 { seriesId: 's1id', itemId: 'r2023', datum: allData[5] },

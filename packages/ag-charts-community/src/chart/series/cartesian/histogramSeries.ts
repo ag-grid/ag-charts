@@ -242,8 +242,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         );
     }
 
-    // During processData phase, used to unify different ways of the user specifying
-    // the bins. Returns bins in format[[min1, max1], [min2, max2], ... ].
+    // Unifies the ways the user can specify bins, as [[min1, max1], [min2, max2], ...].
     private deriveBins(xDomain: [number, number]): [number, number][] {
         const binStarts = createTicks(xDomain[0], xDomain[1], defaultBinCount).ticks;
         const binSize = tickStep(xDomain[0], xDomain[1], defaultBinCount);
@@ -541,9 +540,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const rotation = barLabelRotation(toArray(label.orientation)[0]);
         const resolvesOrientation = barLabelResolvesOrientation(label.orientation);
         const rect = { x, y, width: w, height: h };
-        // Only bind the text to the bar (fitting/hiding it inside) when `inside` is the sole placement. A
-        // cascade with a non-inside fallback must keep full text so a label that cannot fit inside can
-        // escape to that fallback rather than being truncated or dropped for failing the inside fit.
+        // Only bind the text to the bar when `inside` is the sole placement: a cascade needs full
+        // text so a label that cannot fit inside can escape to its fallback intact.
         const insideOnly = toArray(label.placement).every((p) => p.startsWith('inside'));
         // Region reserves the anchored-side spacing gap (nothing when centred); container is region minus
         // the drawn box. Outside labels float free of the bar (no container/region).
@@ -560,9 +558,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             label,
             labelParams
         );
-        // A placement/orientation array (or a hideable label) pre-positions a candidate per
-        // placement × orientation the engine cascades through until one fits; a hideable no-fit label is
-        // dropped so it can be hidden. A single fixed, non-hideable placement bakes directly.
+        // A placement/orientation array (or a hideable label) needs a candidate per placement ×
+        // orientation for the engine to cascade through; a single fixed placement bakes directly.
         if (!label.collision.alwaysShow || barLabelResolvesPlacement(label.placement)) {
             const measured = measureLabelText(sourceText, label);
             const placements = toArray(label.placement);
@@ -607,9 +604,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             };
         }
 
-        // An orientation array is refitted per orientation by the engine, which knows a rotated label
-        // measures against the bin's other axis; fitting here would bind every orientation to the
-        // upright budget (see barSeries).
+        // The engine refits per orientation against the correct axis; fitting here would bind every
+        // orientation to the upright budget (see barSeries).
         const { text, fontSize: fittedFontSize } = resolvesOrientation
             ? { text: sourceText, fontSize: undefined }
             : fitLabelToContainerAutoSize(sourceText, labelFit, label, bounds?.container);
@@ -807,7 +803,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     protected override finalizeNodeData(ctx: HistogramSeriesNodeDatumContext): void {
         super.finalizeNodeData(ctx);
 
-        // AG-11323 Sort bins from left-to-right for intuitive keyboard navigation.
+        // Sort bins left-to-right for intuitive keyboard navigation.
         ctx.nodes.sort((a, b) => a.x - b.x);
     }
 
@@ -1077,9 +1073,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const collideWith = label.collision.resolveCollideWith();
         const threshold = label.collision.threshold ?? 0;
         const fitFor = resolveLabelFitDescriptors(label, box, !alwaysShow);
-        // The positioned path drives both a hideable label (dropped on no fit) and a placement cascade
-        // (kept at the best candidate when `alwaysShow`); an orientation-only array stays on the baked
-        // path below, which resolves orientation against the bar region.
+        // The positioned path serves hideable labels and placement cascades; an orientation-only
+        // array stays on the baked path below, which resolves orientation against the bar region.
         if (!alwaysShow || barLabelResolvesPlacement(label.placement)) {
             const data: PointLabelDatum[] = [];
             for (const node of this.contextNodeData?.labelData ?? []) {

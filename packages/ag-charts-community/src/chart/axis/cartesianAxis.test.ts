@@ -11,9 +11,11 @@ import type {
 
 import { AgCharts } from '../../api/agCharts';
 import { Transformable } from '../../scene/transformable';
+import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
+    createChart,
     deproxy,
     expectWarningsCalls,
     prepareTestOptions,
@@ -693,6 +695,35 @@ describe('CartesianAxis', () => {
             });
         });
 
+        describe('removal', () => {
+            const optionsWithCrossAt = (crossAt?: AgCartesianAxisCrossAt): AgCartesianChartOptions => ({
+                data: NUMERIC_DATA,
+                theme: THEME,
+                axes: {
+                    x: { type: 'number', position: 'bottom', crossAt },
+                    y: { type: 'number', position: 'left', crossAt },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            it.each([
+                ['in-domain', { value: 0 }],
+                // Out of domain with `sticky: false` hides the axis, so this also covers visibility.
+                ['out-of-domain and not sticky', { value: 15, sticky: false }],
+            ] as const)(
+                'should restore the uncrossed render after adding then removing %s crossAt',
+                async (_name, crossAt) => {
+                    await expectPixelIdenticalAcrossUpdate(
+                        ctx,
+                        createChart,
+                        optionsWithCrossAt(),
+                        optionsWithCrossAt(crossAt),
+                        optionsWithCrossAt()
+                    );
+                }
+            );
+        });
+
         describe('jira examples', () => {
             const dataNeg = [];
             for (let x = -6; x <= -0.1; x += 0.05) dataNeg.push({ x, y: 1 / x });
@@ -887,14 +918,14 @@ describe('CartesianAxis', () => {
 
             it('should render the labels at the edge', async () => {
                 await renderAndSnapshot(
-                    optionsFactory({ value: 0, labelsPlacement: 'edge' }),
+                    optionsFactory({ value: 0, labelPlacement: 'edge' }),
                     'cartesian-axes-cross-at-0-labels-at-edge'
                 );
             });
 
             it('should render the title and labels at the edge', async () => {
                 await renderAndSnapshot(
-                    optionsFactory({ value: 0, titlePlacement: 'edge', labelsPlacement: 'edge' }),
+                    optionsFactory({ value: 0, titlePlacement: 'edge', labelPlacement: 'edge' }),
                     'cartesian-axes-cross-at-0-title-and-labels-at-edge'
                 );
             });
@@ -929,8 +960,7 @@ describe('CartesianAxis', () => {
         });
     });
 
-    // CRT-1048: Category axis labels like "Corp Tax" and "Council Tax" should not overlap on
-    // narrow charts. Auto-rotation must be triggered when labels would collide.
+    // Auto-rotation must trigger when category labels would collide on a narrow chart.
     describe('CRT-1048 axis label collision', () => {
         it('should detect overlap when three labels collide with padding', () => {
             const labels = [
@@ -976,7 +1006,6 @@ describe('CartesianAxis', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            // Verify auto-rotation was applied: label datums should have non-zero rotation.
             const chartInstance = deproxy(chart as any) as any;
             const categoryAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
             expect(categoryAxis).toBeDefined();
@@ -1263,8 +1292,7 @@ describe('CartesianAxis', () => {
         });
     });
 
-    // CRT-1055: Wrapped (multi-line) labels should NOT trigger tooltips. Only truncated labels
-    // (with ellipsis) should show tooltips.
+    // Only truncated (ellipsised) labels get a tooltip; wrapped multi-line labels must not.
     describe('CRT-1055 wrapped label tooltip', () => {
         it('should not mark wrapped labels as truncated', async () => {
             const options: AgCartesianChartOptions = {
@@ -1292,7 +1320,6 @@ describe('CartesianAxis', () => {
             chart = AgCharts.create(options);
             await compare('cartesian-axis-wrapped-label-not-truncated');
 
-            // Verify wrapped labels are NOT marked as truncated (textUntruncated should be undefined).
             const chartInstance = deproxy(chart as any) as any;
             const categoryAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
             expect(categoryAxis).toBeDefined();
@@ -1526,8 +1553,9 @@ describe('CartesianAxis', () => {
             expect(yAxis).toBeDefined();
             expect(formatterIndexByValue.size).toBeGreaterThan(0);
 
+            const { x, y } = yAxis.getLayoutTranslation();
             for (const [value, formatterIndex] of formatterIndexByValue) {
-                const pick = yAxis.pickValue({ currentX: 0, currentY: yAxis.scale.convert(value) });
+                const pick = yAxis.pickValue({ canvasX: x, canvasY: y + yAxis.scale.convert(value) });
                 expect(pick).toBeDefined();
                 expect(pick.index).toBe(formatterIndex);
             }
@@ -1540,16 +1568,14 @@ describe('CartesianAxis', () => {
         it('matches for a reversed axis', async () => {
             await expectPickIndexMatchesFormatter(true);
 
-            // Guard the concrete regression: on the reversed axis the lowest-value tick must still be index 0,
-            // not the negative offset (i + rawFirstTickIndex) the pick previously returned.
+            // On a reversed axis the lowest-value tick must still be index 0, not a negative offset.
             const [minValue] = [...formatterIndexByValue.keys()].sort((a, b) => a - b);
             expect(formatterIndexByValue.get(minValue)).toBe(0);
         });
     });
 
-    // `axis.label.textAlign` re-anchors unrotated vertical-axis labels within their column instead
-    // of around their own point, so a configured alignment doesn't grow long labels back over the
-    // axis line and into the plot area.
+    // `axis.label.textAlign` re-anchors unrotated vertical-axis labels within their column, so long
+    // labels cannot grow back over the axis line into the plot area.
     describe('axis label textAlign', () => {
         // Deliberately unequal label widths: a right-positioned category axis is the only vertical
         // axis whose ticks routinely differ in text length.

@@ -468,9 +468,8 @@ describe('Text', () => {
     });
 
     describe('image segments', () => {
-        // Pre-loaded skia-canvas images for visual snapshot tests. The ImageLoader path used in
-        // production resolves async via HTMLImageElement; in tests we stub it so drawImage gets a
-        // ready-to-render image and the snapshot reflects the actual image content.
+        // ImageLoader resolves async via HTMLImageElement, which jsdom will not decode, so stub it
+        // with pre-loaded skia-canvas images for the snapshots.
         let inlineImage: Image;
         let blockImage: Image;
         let blockImage2: Image;
@@ -653,16 +652,12 @@ describe('Text', () => {
         });
 
         it('warns and still paints the background box when the image url is empty', () => {
-            // The warning is emitted only after the background paint, so asserting it fired confirms
-            // the empty-url path still renders the box (its pixels are covered by the snapshots above).
+            // The warning is emitted only after the background paint, so it firing proves the box rendered.
             renderInlineImageSegmentSnapshot({ url: '', backgroundFill: '#d0e7ff' });
             expectWarningMessages([
                 'AG Charts - Image segment has an empty url; rendering background only (24x24 box).',
             ]);
         });
-
-        // Block-image position, mixing and decoration scenarios are validated by rendering real
-        // (stubbed) images and snapshotting the output, so block positioning can be reviewed by eye.
 
         function renderSegmentsSnapshot(text: unknown[], imagesByUri: Record<string, Image>, x = 200, y = 120) {
             const ctx = canvasCtx.getRenderContext2D();
@@ -1025,9 +1020,8 @@ describe('Text', () => {
     describe('getTextMeasureBBox', () => {
         const mockScene = setUpMockScene(canvasCtx);
 
-        // The rotation pivot in updateLabelNode is derived from getTextMeasureBBox each render. If the
-        // measure folds in the node's own rotation, a reused label node drifts frame over frame — the
-        // resize-instability bug. getTextMeasureBBox must report the untransformed glyph box.
+        // updateLabelNode derives its rotation pivot from getTextMeasureBBox each render, so that box
+        // must be untransformed or a reused label node drifts frame over frame.
         it('is unaffected by the node rotation and rotation centre', () => {
             const node = Object.assign(new RotatableText(), {
                 ...BASE_OPTIONS,

@@ -28,9 +28,8 @@ const SPREAD_COLOR_SCALE: AgColorScale = {
 
 const fmtSpread = (value: number) => `${value.toFixed(2)}%`;
 
-// Module-scope so the series (and its tooltip renderer) keep a stable identity across
-// renders; a fresh function identity per tick would force the chart's full slow-path
-// options processing instead of the data-only fast path.
+// Module-scope so the series identity is stable across renders — a fresh identity per tick
+// would force the chart's slow-path options processing instead of the data-only fast path.
 const HEATMAP_SERIES: AgHeatmapSeriesOptions = {
     type: 'heatmap',
     xKey: 'time',

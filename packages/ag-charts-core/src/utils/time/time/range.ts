@@ -370,9 +370,7 @@ const unitRanger: Record<AgTimeIntervalUnit, IntervalRanger> = {
             if (utc) {
                 adjusted.setUTCMonth(date.getUTCMonth() + step);
 
-                // Ensure the date is correctly adjusted when the number of days in each month differs. For example, 31st
-                // March minus 1 month would be 31st February, which resolves to 3rd March. We then adjust by days until
-                // we reach Feburary.
+                // 31st March minus 1 month overflows back into March, so step by days until it changes.
                 if (step !== 0) {
                     while (adjusted.getUTCMonth() === date.getUTCMonth()) {
                         adjusted.setUTCDate(adjusted.getUTCDate() + (step > 0 ? 1 : -1));

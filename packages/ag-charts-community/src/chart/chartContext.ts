@@ -66,11 +66,8 @@ type ChartHost = ChartService & { annotationRoot: Group; tooltip: Tooltip };
 export function createChartContext(chart: ChartHost, vars: ChartContextVars): DynamicContext<ChartRegistry> {
     const ctx = createDynamicContext<ChartRegistry>();
 
-    // Eager construction for services that must be alive from t=0 (DOM/canvas setup,
-    // seeded state, chart inputs). Every other service is lazy — see the `.service(...)`
-    // block below. Order matters for destroy-cascade: entries registered later are
-    // destroyed earlier (DynamicContext.destroy iterates in reverse-insertion order),
-    // so dependents tear down before their dependencies.
+    // Eager construction for services that must be alive from t=0; registration order matters, as
+    // destroy runs in reverse-insertion order so dependents tear down before their dependencies.
     const eventsHub = new EventEmitter<EventsHubMap>();
 
     const chartState = new ReactiveState<ChartState>();
@@ -104,9 +101,8 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
     ctx.ref('logger', vars.logger)
         .constant('eventsHub', eventsHub)
         .constant('agDocument', vars.agDocument)
-        // The chart is the host — it manages its own lifecycle and the context's.
-        // Registering as `ref` keeps it readable via `ctx.chartService` without the
-        // destroy cascade looping back into `chart.destroy()`.
+        // `ref` keeps the host chart readable via `ctx.chartService` without the destroy cascade
+        // looping back into `chart.destroy()`.
         .ref('chartService', chart)
         .ref('annotationRoot', chart.annotationRoot)
         .constant('syncManager', vars.syncManager)

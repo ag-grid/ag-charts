@@ -42,9 +42,8 @@ export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
     readonly stroke?: string;
     readonly strokeWidth: number;
     readonly cumulativeValue: number;
-    // WARNING! This selected-state is related to cross-filtering which is not an officially documented or supported
-    // feature. It has nothing to do with the official data selection API in the options contract. Do not use, or use
-    // with extreme caution.
+    // WARNING! Cross-filtering state, unrelated to the official data selection API and neither documented
+    // nor supported. Do not use, or use with extreme caution.
     readonly crossFilterSelected: boolean | undefined;
     style?: NormalisedSeriesMarkerStyle;
 }

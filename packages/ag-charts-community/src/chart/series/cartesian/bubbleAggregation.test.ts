@@ -608,9 +608,8 @@ describe('aggregateBubbleDataFromDataModel - bigint and ISO 8601 time values (re
         expect(result!.filters.length).toBeGreaterThan(0);
     });
 
-    // The quadtree partitions by xRatio = (x - xd0) / (xd1 - xd0). The domain min must be subtracted in bigint
-    // before narrowing or a high-magnitude narrow-range X column collapses onto one double, leaving xd0 === xd1
-    // (zero-width domain) so every xRatio degenerates and no point can be spatially separated.
+    // The quadtree partitions by xRatio, so the domain min must be subtracted in bigint before
+    // narrowing or a high-magnitude narrow-range X column collapses to a zero-width domain.
     it('downsampling keeps a non-degenerate X domain when the X span is below the double ULP at that magnitude', () => {
         const N = 2000;
         const BASE = 2n ** 60n + 123_456_789n;

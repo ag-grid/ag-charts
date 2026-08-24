@@ -13,7 +13,7 @@ import {
     SERIES_SELECTION_THEME,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
-import type { AgScatterSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
+import type { AgScatterSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
@@ -23,7 +23,7 @@ import { ScatterSeries } from './scatterSeries';
 import { scatterSeriesOptionsDef } from './scatterSeriesOptionsDef';
 import { predictCartesianAxis } from './util';
 
-const themeTemplate: ExtensibleTheme<'scatter'> = {
+const themeTemplate: ExtensibleSeriesTheme<'scatter'> = {
     series: {
         shape: 'circle',
         size: 7,

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { type Mock, afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { getDocument } from 'ag-charts-core';
 import type { AgChartInstance, AgChartOptions, AgLineSeriesOptions, AgSparklineOptions } from 'ag-charts-types';
@@ -94,8 +94,7 @@ describe('AgCharts', () => {
             height: sparklineOptions.height! + 50,
             data: sparklineOptions.data!.toReversed(),
             container: () => getDocument().createElement('div'),
-            // A `context` change must stay on the fast path: the Grid cell renderer passes
-            // a fresh per-row `context` on every `update()`, and slow setup would negate it.
+            // The Grid cell renderer passes a fresh per-row `context` on every `update()`, so it must stay on the fast path.
             context: { row: 1, cellData: 0.42 },
         };
 
@@ -332,7 +331,7 @@ describe('AgCharts', () => {
                 width: 200,
                 height: 50,
                 data: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
-                marker: { enabled: false, fill: { type: 'gradient' } }, // Previously failed due to dev mode + user option mutation bug.
+                marker: { enabled: false, fill: { type: 'gradient' } },
             };
             prepareTestOptions(options, container);
 
@@ -350,8 +349,6 @@ describe('AgCharts', () => {
             return false;
         }
 
-        // Styler results are validated at the `callbackDefs` layer, which runs the generic `color`
-        // validator over each returned property, so the container is irrelevant to the outcome.
         it('warns once and drops an itemStyler fill in an unsupported color format', async () => {
             const options: AgChartOptions = {
                 data: [
@@ -411,6 +408,152 @@ describe('AgCharts', () => {
                     ),
                 ],
             ]);
+        });
+    });
+    describe('invalid options', () => {
+        // `setupMockConsole` asserts `console.error` is clean at teardown, so reading through here consumes the reports.
+        function expectErrorCalls() {
+            const errorMock = console.error as Mock;
+            const { calls } = errorMock.mock;
+            errorMock.mockClear();
+            return expect(calls);
+        }
+
+        const expectedError =
+            /^AG Charts - AgCharts\.create\(\) requires a non-empty options object; a minimal chart specifies a `container` and `series` \(or `data`\)\./;
+
+        // Reported, not thrown: `create()` must still hand back an instance the caller can destroy.
+        it.each([
+            ['no argument', undefined],
+            ['undefined', undefined],
+            ['null', null],
+            ['a number', 3],
+            ['a string', 'abc'],
+            ['an empty string', ''],
+            ['an empty array', []],
+            ['an empty object', {}],
+        ])('logs a descriptive error for %s and still returns an instance', (_name, options) => {
+            expect(() => (chart = AgCharts.create(options as any))).not.toThrow();
+            expect(chart).toBeDefined();
+            expectErrorCalls().toEqual([[expect.stringMatching(expectedError)]]);
+            expect(console.warn).not.toHaveBeenCalled();
+        });
+
+        it('names the value it received', () => {
+            const received = (options: unknown) => {
+                chart = AgCharts.create(options as any);
+                chart.destroy();
+                const [[message]] = (console.error as Mock).mock.calls;
+                (console.error as Mock).mockClear();
+                return message;
+            };
+            expect(received(3)).toMatch(/Received a number \(3\)\.$/);
+            expect(received('abc')).toMatch(/Received a string \('abc'\)\.$/);
+            expect(received([])).toMatch(/Received an array\.$/);
+            expect(received({})).toMatch(/Received an empty object\.$/);
+            expect(received(null)).toMatch(/Received null\.$/);
+            expect(received(undefined)).toMatch(/Received undefined\.$/);
+            (chart as unknown) = undefined;
+        });
+
+        it('records the error as a validation issue the overlay can show', () => {
+            chart = AgCharts.create(undefined as any);
+            expectErrorCalls().toHaveLength(1);
+            const { validationCollector } = deproxy(chart);
+            validationCollector.setOverlayLevel('error');
+            expect(validationCollector.hasVisibleIssues()).toBe(true);
+            expect(validationCollector.getVisibleIssues().error).toEqual([
+                { severity: 'error', message: expect.stringMatching(/^AgCharts\.create\(\) requires a non-empty/) },
+            ]);
+        });
+
+        // Framework wrappers merge their own `container` in before delegating, so both `undefined` and `3` arrive as a valid `{ container }` object.
+        it('reports the caller the wrapper names, via __validateOptionsArgument', () => {
+            const wrapperOptions = AgCharts.__validateOptionsArgument<object | undefined>(
+                undefined,
+                'AgCharts `options` prop'
+            );
+            chart = AgCharts.create({ ...wrapperOptions, container } as any);
+            expectErrorCalls().toEqual([
+                [
+                    expect.stringMatching(
+                        /^AG Charts - AgCharts `options` prop requires a non-empty options object.*Received undefined\.$/
+                    ),
+                ],
+            ]);
+        });
+
+        it('reports a wrapper prop that turns invalid on update', async () => {
+            chart = AgCharts.create({ container, data: [{ x: 'a', y: 1 }] } as AgChartOptions);
+            await chart.waitForUpdate();
+            expectWarningsCalls();
+
+            const wrapperOptions = AgCharts.__validateOptionsArgument<object | undefined>(
+                3 as any,
+                'AgCharts `options` prop'
+            );
+            await chart.update({ ...wrapperOptions, container } as AgChartOptions);
+
+            expectErrorCalls().toEqual([
+                [expect.stringMatching(/^AG Charts - AgCharts `options` prop requires a non-empty options object/)],
+            ]);
+        });
+
+        it('leaves a usable options object untouched', () => {
+            const options = { container: null };
+            expect(AgCharts.__validateOptionsArgument(options, 'AgCharts `options` prop')).toBe(options);
+        });
+
+        it.each([
+            ['createFinancialChart', () => AgCharts.createFinancialChart(undefined as any)],
+            ['createGauge', () => AgCharts.createGauge(undefined as any)],
+            ['createQuadrantChart', () => AgCharts.createQuadrantChart(undefined as any)],
+            ['__createSparkline', () => AgCharts.__createSparkline(undefined as any)],
+        ])('names %s in the error it reports', (methodName, call) => {
+            expect(() => (chart = call() as AgChartInstance)).not.toThrow();
+            expectErrorCalls().toEqual([
+                [
+                    expect.stringMatching(
+                        new RegExp(`^AG Charts - AgCharts\\.${methodName}\\(\\) requires a non-empty options object`)
+                    ),
+                ],
+            ]);
+            // Consume the unapplied-preset warning so teardown's clean-console check holds.
+            expectWarningsCalls();
+        });
+
+        it('rejects a sparkline whose only option is `pool`', () => {
+            chart = AgCharts.__createSparkline({ pool: true } as any) as AgChartInstance;
+            expectErrorCalls().toEqual([
+                [
+                    expect.stringMatching(
+                        /^AG Charts - AgCharts\.__createSparkline\(\) requires a non-empty options object/
+                    ),
+                ],
+            ]);
+            expectWarningsCalls();
+        });
+
+        it('does not throw for a non-empty object that is missing `container` or `series`', async () => {
+            // `container` is optional by design; per-option problems stay on the warn-and-continue path.
+            expect(() => (chart = AgCharts.create({ foo: true } as any))).not.toThrow();
+            await chart.waitForUpdate();
+
+            expectWarningsCalls().toEqual([[expect.stringMatching(/Unknown option `foo`/)]]);
+        });
+
+        it('still creates a chart from valid options', async () => {
+            const options: AgChartOptions = {
+                container,
+                data: [{ x: 'a', y: 1 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await chart.waitForUpdate();
+
+            expect(deproxy(chart).series).toHaveLength(1);
         });
     });
 });

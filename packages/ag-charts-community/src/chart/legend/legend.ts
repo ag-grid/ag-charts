@@ -57,6 +57,13 @@ import type { LegendSymbolOptions } from './legendSymbol';
 
 type SeriesType = ChartService['series'][number];
 
+/** Opacity applied to a legend item that has been toggled off, absent an explicit `disabledStyle.opacity`. */
+const DISABLED_ITEM_OPACITY = 0.5;
+
+function hasAnyStyle(style?: object) {
+    return style != null && Object.values(style).some((value) => value !== undefined);
+}
+
 function toHighlightNodeDatum(series: SeriesType, legendDatum: CategoryLegendDatum): HighlightNodeDatum {
     switch (typeof legendDatum.itemId) {
         case 'number':
@@ -152,9 +159,8 @@ export class Legend {
     }
 
     constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
-        // Start invisible — updateGroupVisibility() will enable when legend has data and options.
-        // This prevents a spurious true→false dirty mark during the first flushChanges() for chart
-        // types where the legend is disabled (sparklines, gauges).
+        // Enabled later by updateGroupVisibility(); starting visible would spuriously dirty the first
+        // flushChanges() for chart types with no legend (sparklines, gauges).
         this.group.visible = false;
 
         this.pagination = new Pagination(
@@ -455,12 +461,12 @@ export class Legend {
             marker.shape = itemMarker.shape ?? symbol.marker.shape ?? 'square';
             marker.size = itemMarker.size;
             // Clone the marker symbol styles to prevent mutations affecting the series.
-            marker.setStyleProperties(this.getMarkerStyles(deepClone(symbol)));
+            marker.setStyleProperties(this.getMarkerStyles(deepClone(symbol), datum.enabled));
         }
 
         line.visible = anyLineEnabled;
         if (line.visible) {
-            line.setStyleProperties(this.getLineStyles(symbol));
+            line.setStyleProperties(this.getLineStyles(symbol, datum.enabled));
         }
 
         markerLabel.length = markerWidth;
@@ -768,10 +774,20 @@ export class Legend {
     }
 
     update() {
-        const { color } = this.opts.item.label;
+        const { color, disabledStyle } = this.opts.item.label;
+        // Group dimming leaves each sub-element undimmed and vice versa - see
+        // `hasDisabledStyleOverrides()` for which of the two applies.
+        const perElementDimming = this.hasDisabledStyleOverrides();
+        const disabledColor = perElementDimming ? (disabledStyle?.color ?? color) : color;
+        const disabledGroupOpacity = perElementDimming ? 1 : DISABLED_ITEM_OPACITY;
+        const disabledLabelOpacity = perElementDimming
+            ? (disabledStyle?.opacity ?? DISABLED_ITEM_OPACITY)
+            : DISABLED_ITEM_OPACITY;
+
         this.itemSelection.each((markerLabel, datum) => {
-            markerLabel.setEnabled(datum.enabled);
-            markerLabel.color = color;
+            markerLabel.color = datum.enabled ? color : disabledColor;
+            markerLabel.opacity = datum.enabled ? 1 : disabledGroupOpacity;
+            markerLabel.labelOpacity = datum.enabled ? 1 : disabledLabelOpacity;
         });
 
         this.updateContextMenu();
@@ -783,21 +799,47 @@ export class Legend {
         this.ctx.contextMenuRegistry?.toggle('toggle-other-series', action);
     }
 
-    private getLineStyles(datum: LegendSymbolOptions) {
+    /**
+     * Whether any `disabledStyle` property is set on any sub-element.
+     *
+     * With none set, a toggled-off item is dimmed as a whole (`DISABLED_ITEM_OPACITY` on the item
+     * group), which is the long-standing appearance. As soon as one is set, the dimming moves onto
+     * each sub-element so that per-sub-element opacities and colours are absolute — under a group
+     * dim, `opacity: 1` on a sub-element could never reach full contrast.
+     */
+    private hasDisabledStyleOverrides() {
+        const { marker, line, label } = this.opts.item;
+        return hasAnyStyle(marker.disabledStyle) || hasAnyStyle(line.disabledStyle) || hasAnyStyle(label.disabledStyle);
+    }
+
+    private disabledElementOpacity(styleOpacity: number | undefined) {
+        return this.hasDisabledStyleOverrides() ? (styleOpacity ?? DISABLED_ITEM_OPACITY) : 1;
+    }
+
+    private getLineStyles(datum: LegendSymbolOptions, enabled: boolean) {
         const { stroke, strokeOpacity = 1, strokeWidth, lineDash } = datum.line ?? {};
 
         const defaultLineStrokeWidth = Math.min(2, strokeWidth ?? 1);
+        const { disabledStyle } = this.opts.item.line;
+        const overrides = enabled ? undefined : disabledStyle;
 
         return {
-            stroke,
-            strokeOpacity,
+            stroke: overrides?.stroke ?? stroke,
+            strokeOpacity: overrides?.strokeOpacity ?? strokeOpacity,
             strokeWidth: this.opts.item.line.strokeWidth ?? defaultLineStrokeWidth,
-            lineDash,
+            lineDash: overrides?.lineDash ?? lineDash,
+            lineDashOffset: overrides?.lineDashOffset,
+            opacity: enabled ? 1 : this.disabledElementOpacity(disabledStyle?.opacity),
         };
     }
-    private getMarkerStyles({ marker }: LegendSymbolOptions) {
-        const { fill, stroke, strokeOpacity = 1, fillOpacity = 1, strokeWidth, lineDash, lineDashOffset } = marker;
+    private getMarkerStyles({ marker }: LegendSymbolOptions, enabled: boolean) {
+        const { stroke, strokeOpacity = 1, fillOpacity = 1, strokeWidth, lineDash, lineDashOffset } = marker;
         const defaultLineStrokeWidth = Math.min(2, strokeWidth ?? 1);
+        const { disabledStyle } = this.opts.item.marker;
+        const overrides = enabled ? undefined : disabledStyle;
+        // The symbol is pre-cloned by the caller, but the disabled fill comes straight from the
+        // options and is mutated below when it is a pattern or image fill.
+        const fill = overrides?.fill == null ? marker.fill : deepClone(overrides.fill);
 
         if (isPatternFill(fill)) {
             fill.width = 8;
@@ -813,20 +855,23 @@ export class Legend {
             fill.repeat = 'no-repeat';
         }
 
-        return getShapeStyle(
-            {
-                fill,
-                stroke,
-                strokeOpacity,
-                fillOpacity,
-                strokeWidth: this.opts.item.marker.strokeWidth ?? defaultLineStrokeWidth,
-                lineDash,
-                lineDashOffset,
-            },
-            FILL_GRADIENT_BLANK_DEFAULTS,
-            FILL_PATTERN_BLANK_DEFAULTS,
-            FILL_IMAGE_BLANK_DEFAULTS
-        );
+        return {
+            ...getShapeStyle(
+                {
+                    fill,
+                    stroke: overrides?.stroke ?? stroke,
+                    strokeOpacity: overrides?.strokeOpacity ?? strokeOpacity,
+                    fillOpacity: overrides?.fillOpacity ?? fillOpacity,
+                    strokeWidth: overrides?.strokeWidth ?? this.opts.item.marker.strokeWidth ?? defaultLineStrokeWidth,
+                    lineDash,
+                    lineDashOffset,
+                },
+                FILL_GRADIENT_BLANK_DEFAULTS,
+                FILL_PATTERN_BLANK_DEFAULTS,
+                FILL_IMAGE_BLANK_DEFAULTS
+            ),
+            opacity: enabled ? 1 : this.disabledElementOpacity(disabledStyle?.opacity),
+        };
     }
 
     private getContainerStyles() {
@@ -1175,10 +1220,8 @@ export class Legend {
             if (this.ctx.interactionManager.isState(InteractionState.Default) || event?.initialState) {
                 updateManagers(opts);
             } else if (this.ctx.interactionManager.isState(InteractionState.Animation)) {
-                // A keyboard focus change is a deliberate navigation that must take effect immediately,
-                // interrupting any in-progress animation. Pointer hover, by contrast, defers both setting
-                // and clearing highlights until the current animation batch completes so that a passing
-                // hover does not interrupt a show/hide animation.
+                // Keyboard navigation must interrupt an in-progress animation; a passing pointer hover
+                // must not, so it defers to the end of the animation batch.
                 if (fromKeyboardFocus) {
                     updateManagers(opts);
                 } else {
@@ -1201,10 +1244,7 @@ export class Legend {
             const nodeDatum = toHighlightNodeDatum(series, legendDatum);
             highlightNodeDatum({ itemId, nodeDatum });
         } else {
-            // Either no highlightable target, or the current legend item opts out
-            // (e.g. a discrete colour-scale bin whose itemId is a bin index, not a
-            // datum index). Push an undefined highlight so any prior highlight under
-            // this caller id is cleared on hover transition.
+            // No highlightable target, or the item opts out — clear any prior highlight for this caller.
             highlightNodeDatum(undefined);
         }
     }

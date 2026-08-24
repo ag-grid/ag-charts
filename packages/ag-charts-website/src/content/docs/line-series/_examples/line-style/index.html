@@ -1,10 +1,57 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="lineStyleLinear()">Linear</button>
-        <button class="gap-right" onclick="lineStyleSmooth()">Smooth</button>
-        <button onclick="lineStyleStepStart()">Step (Start)</button>
-        <button onclick="lineStyleStepMiddle()">Step (Middle)</button>
-        <button onclick="lineStyleStepEnd()">Step (End)</button>
+        <span>Interpolation:</span>
+        <div class="button-group gap-right" role="group" aria-label="Interpolation">
+            <input
+                type="radio"
+                id="type-linear"
+                name="interpolation-type"
+                value="linear"
+                onchange="typeChange(event)"
+            />
+            <label for="type-linear">Linear</label>
+            <input
+                type="radio"
+                id="type-smooth"
+                name="interpolation-type"
+                value="smooth"
+                checked
+                onchange="typeChange(event)"
+            />
+            <label for="type-smooth">Smooth</label>
+            <input type="radio" id="type-step" name="interpolation-type" value="step" onchange="typeChange(event)" />
+            <label for="type-step">Step</label>
+        </div>
+        <fieldset id="stepPositionGroup" class="control-group" disabled>
+            <span>Step Position:</span>
+            <div class="button-group" role="group" aria-label="Step Position">
+                <input
+                    type="radio"
+                    id="position-start"
+                    name="step-position"
+                    value="start"
+                    onchange="positionChange(event)"
+                />
+                <label for="position-start">Start</label>
+                <input
+                    type="radio"
+                    id="position-middle"
+                    name="step-position"
+                    value="middle"
+                    onchange="positionChange(event)"
+                />
+                <label for="position-middle">Middle</label>
+                <input
+                    type="radio"
+                    id="position-end"
+                    name="step-position"
+                    value="end"
+                    checked
+                    onchange="positionChange(event)"
+                />
+                <label for="position-end">End</label>
+            </div>
+        </fieldset>
     </div>
 </div>
 <div id="myChart"></div>

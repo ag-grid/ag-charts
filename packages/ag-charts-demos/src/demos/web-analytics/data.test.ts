@@ -72,9 +72,7 @@ describe('rates', () => {
 });
 
 describe('visitors', () => {
-    // Returning sessions draw from a recent pool so a visitor's sessions can co-occur in
-    // the range on screen. Sampling all history made this collapse to ~1.0 and left the
-    // Visitors tile restating Sessions.
+    // Returning sessions draw from a recent pool so a visitor's sessions can co-occur in the range on screen.
     it('records more sessions than unique visitors on the default range', () => {
         const range = rangeOf(30);
         const sessions = sessionsInRange(range);

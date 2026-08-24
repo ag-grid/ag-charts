@@ -547,9 +547,7 @@ describe('BarSeries', () => {
         });
     });
 
-    // Initial-load reveals and data add/remove animations are pinned per-frame by the trajectory
-    // CASEs ('standalone: initial load', the integrated initial-load variants, spike CASE 2, and
-    // 'remove data') in the suites below.
+    // Initial-load reveals and data add/remove animations are pinned per-frame by the trajectory CASEs below.
 
     describe('update animation', () => {
         const animate = spyOnAnimationManager();
@@ -557,9 +555,8 @@ describe('BarSeries', () => {
         // Update-animation trajectories are pinned by spike CASE 1 and the 'sanity: randomise'
         // endpoint guard; no per-ratio snapshots remain for the plain update.
 
-        // Re-add paint fidelity only (palette and label pixels are invisible to the geometry
-        // sampler): CASE 10 pins the full toggle trajectory, so just a mid-flight and settled
-        // frame of the re-add leg are snapshotted.
+        // Re-add paint fidelity only — palette and label pixels are invisible to the geometry sampler, and
+        // CASE 10 already pins the full toggle trajectory.
         for (const ratio of [1.5, 2]) {
             it(`for BAR_STACKED_AND_GROUPED_NUMBER_CRT_950 should animate at ${ratio * 100}%`, async () => {
                 animate(1200, 1);
@@ -593,9 +590,8 @@ describe('BarSeries', () => {
         }
     });
 
-    // SPIKE: frame-trajectory invariant tests. Instead of pixel-comparing frozen ratios, step the
-    // animation frame-by-frame and assert structural invariants over the whole trajectory (monotonicity,
-    // dimension isolation, bounds, progression, endpoints). See spyOnAnimationFrames in chart/test/utils.ts.
+    // Frame-trajectory invariants: step the animation frame-by-frame and assert structural invariants over the
+    // whole trajectory rather than pixel-comparing frozen ratios. See spyOnAnimationFrames in chart/test/utils.ts.
     describe('animation frame-trajectory (spike)', () => {
         const frames = spyOnAnimationFrames();
 
@@ -652,9 +648,8 @@ describe('BarSeries', () => {
             });
         });
 
-        // CASE 2 — add + remove. The entering bar grows in from height 0; the leaving bar collapses to 0.
-        // Adding/removing a category rebalances the sibling bands and the category axis, so sibling/axis
-        // horizontal movement is expected — but sibling HEIGHTS and the whole value axis must not move.
+        // CASE 2 — add + remove. Rebalancing the bands moves siblings and the category axis horizontally, but
+        // sibling HEIGHTS and the whole value axis must not move.
         it('CASE 2: added bar grows in and removed bar collapses, monotonically', async () => {
             // ADD: A,B,C -> A,B,C,D.
             chart = AgCharts.create(
@@ -680,11 +675,8 @@ describe('BarSeries', () => {
             const added = sampleScene();
             expect([...added.keys()].filter((k) => k.startsWith('series[0]/rect'))).toHaveLength(4);
 
-            // Adding D narrows every band, so existing bars shift LEFT (x decreases) and narrow (width
-            // decreases) during the update phase; D's own band position never moves — it only grows in
-            // vertically during the add phase. The axis rebalances with the bands: labels/ticks may only
-            // shift left, and D's entering label/tick may only fade in during the add/remove windows.
-            // 'progresses' on the band rebalance guards against the update snapping in a single frame.
+            // Adding D narrows every band, so existing bars shift left and narrow during update while D only
+            // grows in vertically; axis labels/ticks may shift left, and D's may only fade in.
             const shiftLeftAndNarrow = {
                 x: { during: 'update', expect: ['decreases', 'progresses'] },
                 width: { during: 'update', expect: ['decreases', 'progresses'] },
@@ -713,9 +705,8 @@ describe('BarSeries', () => {
             await frames.runToEnd(chart);
             expect([...sampleScene().keys()].filter((k) => k.startsWith('series[0]/rect'))).toHaveLength(3);
 
-            // Removing D widens every band: the mirror image of the add — bars shift RIGHT and widen
-            // during the update phase while D collapses during the remove phase, and the axis
-            // labels/ticks shift right with the bands (D's label/tick fade out and leave).
+            // Mirror image of the add: bars shift right and widen during update while D collapses during
+            // remove, and the axis labels/ticks shift right with the bands.
             const shiftRightAndWiden = {
                 x: { during: 'update', expect: ['increases', 'progresses'] },
                 width: { during: 'update', expect: ['increases', 'progresses'] },
@@ -734,11 +725,8 @@ describe('BarSeries', () => {
             expect(removeTrajectory.at(-1)!.get('series[0]/rect[D]')?.height ?? 0).toBeLessThanOrEqual(0.001);
         });
 
-        // CASE 5 — scale-affecting update (the LIMIT case). Growing one datum beyond the domain rescales
-        // every bar via the shared y-scale AND reflows the layout: as the tick labels grow (70 -> 200) the
-        // y-axis gutter widens, shifting and narrowing every bar horizontally. So geometric dimension
-        // ISOLATION does not hold here (not even x/width) — but every movement is still directionally
-        // constrained: monotonic heights/positions, one-way reflow shifts, and fade-in/out tick swaps.
+        // CASE 5 — scale-affecting update (the LIMIT case). Growing one datum rescales every bar and widens the
+        // y-axis gutter, so dimension ISOLATION does not hold; only directional constraints do.
         it('CASE 5: scale-affecting update rescales all bars monotonically (isolation does not hold)', async () => {
             const options: AgChartOptions = {
                 data: [
@@ -769,19 +757,15 @@ describe('BarSeries', () => {
             await frames.runToEnd(chart);
             const after = sampleScene();
 
-            // Endpoint equality holds for the bars only: the domain change churns axis tick-label nodes
-            // (new ticks fade in mid-animation, stale ones are garbage-collected after it), so whole-scene
-            // equality is not a valid invariant for a scale-affecting update.
+            // Endpoint equality holds for the bars only: the domain change churns axis tick-label nodes, so
+            // whole-scene equality is not a valid invariant for a scale-affecting update.
             const rectsOf = (sample: SceneGeometrySample) =>
                 new Map([...sample].filter(([key]) => key.startsWith('series[0]/rect')));
             expectSceneSamplesMatch(rectsOf(trajectory[0]), rectsOf(before));
             expectSceneSamplesMatch(rectsOf(trajectory.at(-1)!), rectsOf(after));
 
-            // The grown bar B rises; the fixed-value bars A and C shrink as the domain expands beneath
-            // them. The wider tick labels (70 -> 200) widen the y-axis gutter, which shifts both axes'
-            // sub-groups right and narrows the plot, compressing bars/ticks/labels leftwards. The domain
-            // growth also swaps the y tick set: old ticks/labels/gridlines fade out and leave the scene
-            // while the new set fades in.
+            // B rises while fixed-value A and C shrink as the domain expands beneath them; the wider tick labels
+            // widen the y-axis gutter, compressing the plot leftwards, and the old y tick set is swapped out.
             const rescales = (heightDirection: 'increases' | 'decreases') =>
                 ({
                     height: { during: 'update', expect: [heightDirection, 'progresses'] },
@@ -1257,10 +1241,8 @@ describe('BarSeries', () => {
             }
         });
 
-        // A series toggle snaps structurally at frame 0 (the labels group flips visible, re-entering
-        // rects arrive from a null-x placeholder), which trips captureUpdate's whole-scene start
-        // anchor — so the toggle CASEs hand-roll the capture, keeping only the end anchor (as the
-        // line suite's captureFrom does).
+        // A series toggle snaps structurally at frame 0, which trips captureUpdate's whole-scene start anchor,
+        // so the toggle CASEs hand-roll the capture and keep only the end anchor.
         const captureToggle = (create: AgCartesianChartOptions, action: () => Promise<void> | void) => {
             chart = AgCharts.create(create);
             return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);
@@ -1276,9 +1258,7 @@ describe('BarSeries', () => {
                 y: 'bounded',
             }) as const;
 
-        // "Toggle series off" — a two-beat exit: the toggled-off bars first collapse to the baseline
-        // (remove phase, their band frozen), THEN the survivors widen into the vacated band (update
-        // phase). Contrast with the stacked CRT-1040 toggle below, which coordinates in one beat.
+        // Two-beat exit: toggled-off bars collapse to the baseline, then survivors widen into the vacated band.
         it('legend hide: toggled-off bars collapse to the baseline before survivors widen', async () => {
             const options = groupedOptions();
             const { trajectory, after } = await captureToggle(options, () =>
@@ -1321,11 +1301,8 @@ describe('BarSeries', () => {
             expect(after.get('series[1]/rect[Q1]')!.height).toBeGreaterThan(40);
         });
 
-        // CRT-1040: a stacked legend toggle must animate as ONE coordinated update — the toggled-off
-        // layer collapses at the baseline while the survivors slide down into its place, tiling
-        // contiguously on every frame. The historic bug left the invisible series without nodeData, so
-        // it ran the desynchronised remove/add phases instead; the `during: 'update'` windows are the
-        // regression detector.
+        // A stacked legend toggle animates as one coordinated update: the toggled-off layer collapses at the
+        // baseline while survivors slide into its place, tiling contiguously on every frame.
         it('CRT-1040 stacked toggle: survivors slide in the coordinated update phase, tiling contiguously', async () => {
             const options: AgCartesianChartOptions = {
                 data: [
@@ -1450,8 +1427,8 @@ describe('BarSeries', () => {
     // Legend toggle animations are pinned per-frame by the 'legend hide'/'legend show' trajectory
     // CASEs in 'animation -test page actions'.
 
-    // CRT-1040: Invisible stacked series must still populate nodeData so animation uses the
-    // coordinated 'update' phase rather than the out-of-sync 'remove'/'add' phases.
+    // Invisible stacked series must still populate nodeData so animation uses the coordinated 'update'
+    // phase rather than the out-of-sync 'remove'/'add' phases.
     describe('stacked bar legend toggle nodeData (CRT-1040)', () => {
         const animate = spyOnAnimationManager();
 
@@ -1488,9 +1465,6 @@ describe('BarSeries', () => {
                 expect(datum.yValue).toBe(0);
             }
         });
-
-        // The coordinated-toggle animation itself is pinned per-frame by the 'CRT-1040 stacked
-        // toggle' trajectory CASE in 'animation -test page actions'.
     });
 
     describe('invalid data domain', () => {
@@ -1579,9 +1553,8 @@ describe('BarSeries', () => {
             { x: 'd', y: -200 },
         ];
 
-        // A beside label with a drawn box (fill + border + padding) must reserve the whole box beyond
-        // `spacing`, so the box's outer edge — not the text — sits `spacing` clear of the bar. Covered for
-        // both the baked single placement and the resolved cascade (array), which take different paths.
+        // A beside label with a drawn box must reserve the whole box beyond `spacing`, so the box's outer edge —
+        // not the text — sits `spacing` clear of the bar. The single placement and the array cascade differ.
         const SPACING = 20;
         it.each(['single', 'array'] as const)('reserves the full box beside the bar (%s placement)', async (mode) => {
             const placement: AgBarSeriesLabelPlacement | AgBarSeriesLabelPlacement[] =
@@ -1623,10 +1596,8 @@ describe('BarSeries', () => {
             expect(labelX - barRight).toBeGreaterThan(SPACING);
         });
 
-        // A beside label's COLLISION footprint (what decides whether it hides beside a neighbour) must
-        // match its drawn box: the box's bar-facing edge sits exactly `spacing` from the bar, with the
-        // padding/border reserved outward — otherwise a hideable label collides with the next bar a whole
-        // box-extent before its drawn box reaches it.
+        // A beside label's collision footprint must match its drawn box, or a hideable label collides with the
+        // next bar a whole box-extent before its drawn box reaches it.
         it('aligns a beside label collision box with its drawn box (zero threshold)', async () => {
             const options: AgChartOptions = {
                 data: [{ x: 'a', y: 100 }],
@@ -1661,8 +1632,8 @@ describe('BarSeries', () => {
             };
             const barRight = series.contextNodeData!.nodeData![0].x + series.contextNodeData!.nodeData![0].width;
             const box = series.contextNodeData!.labelData![0].label!.candidates![0].box;
-            // beside-after sits the label to the right of the bar, so the box's left edge faces it: that
-            // edge is `spacing` clear of the bar, not `spacing + boxExtent` (which the bug produced).
+            // beside-after sits the label to the right of the bar, so the box's left edge faces it and must be
+            // `spacing` clear of the bar, not `spacing + boxExtent`.
             expect(box.x - barRight).toBeCloseTo(SPACING);
         });
 
@@ -1770,9 +1741,8 @@ describe('BarSeries', () => {
             formatter: () => text,
         });
         const stackedCascadeOptions = (direction: 'horizontal' | 'vertical', hideTop = false): AgChartOptions => {
-            // Headroom above the stacks (value max well beyond the tallest total) so an outermost
-            // `outside-end` label has room to sit outside the bar without overflowing the plot — that
-            // plot-overflow rejection is a separate concern covered by its own test.
+            // Headroom above the stacks so an outermost `outside-end` label sits outside the bar without
+            // overflowing the plot, which is a separate concern with its own test.
             const valueAxis = { type: 'number', max: 200 };
             const categoryAxis = { type: 'category' };
             return {
@@ -1811,9 +1781,8 @@ describe('BarSeries', () => {
             };
         };
 
-        // Three-segment stack, fallback `[inside, outside, beside]`: base stays inside; the sandwiched tiny
-        // middle has `outside-end` rejected (a stacked neighbour on that side would be mislabelled) so falls
-        // back to beside; the outermost tiny top keeps `outside-end` (nothing stacked beyond it).
+        // Three-segment stack, fallback `[inside, outside, beside]`: the sandwiched middle has `outside-end`
+        // rejected because a stacked neighbour would be mislabelled, while the outermost top keeps it.
         it.each(['horizontal', 'vertical'] as const)(
             'rejects outside labels that would point into a stacked neighbour (%s bars)',
             async (direction) => {
@@ -1838,9 +1807,8 @@ describe('BarSeries', () => {
         });
     });
 
-    // Hideable labels (`collision.alwaysShow: false`) route even a single placement through the
-    // placement engine so a label that cannot fit is dropped and rendered invisible, rather than baked
-    // unconditionally by the fast path. The default (`alwaysShow: true`) keeps the byte-identical bake.
+    // Hideable labels (`collision.alwaysShow: false`) route even a single placement through the placement engine
+    // so an unfittable label is dropped; the default (`alwaysShow: true`) keeps the fast-path bake.
     describe('alwaysShow single-placement hiding', () => {
         const visibleLabelCounts = async (options: AgChartOptions) => {
             prepareTestOptions(options);
@@ -1951,9 +1919,8 @@ describe('BarSeries', () => {
             expect(count).toBe(3);
         });
 
-        // A middle stacked segment offered only `outside-end` has that placement rejected — it points into
-        // the segment stacked above. A hideable label is dropped rather than rendered over that neighbour,
-        // while the base segment, whose placement is unaffected, keeps its label.
+        // A middle stacked segment offered only `outside-end` has it rejected — it points into the segment
+        // above — so the hideable label is dropped, while the unaffected base segment keeps its label.
         const stackedData = [
             { x: 'a', bottom: 100, middle: 3, top: 3 },
             { x: 'b', bottom: 120, middle: 3, top: 3 },
@@ -2028,9 +1995,8 @@ describe('BarSeries', () => {
     });
 
     describe('label placement cascade', () => {
-        // A placement array cascades per datum (inside-center-h → inside-center-v → outside-end-h →
-        // outside-end-v). Small bars can't fit the label inside and fall through to outside; large
-        // bars keep it inside — so a single render exercises both the fit and the fallback paths.
+        // A placement array cascades per datum: small bars fall through to outside while large bars keep the
+        // label inside, so a single render exercises both the fit and the fallback paths.
         const cascadeOptions = (direction: 'horizontal' | 'vertical'): AgChartOptions => ({
             data: [
                 { x: 'a', y: 100 },
@@ -2064,9 +2030,8 @@ describe('BarSeries', () => {
             }
         );
 
-        // A value-axis min that opens a band beyond the bars' origin lets an `outside-start` label point
-        // off the plot into the axis-label zone. With a fallback available the cascade must reject it and
-        // drop the base label inside, the same way an over-tall `outside-end` falls back at the far edge.
+        // A value-axis min that opens a band beyond the bars' origin lets an `outside-start` label point off the
+        // plot, so the cascade must reject it and drop the base label inside.
         it('rejects an outside label that would overflow the plot into the axis-label area', async () => {
             const data = [
                 { x: 'Q1', base: 90, mid: 30, top: 20 },
@@ -2108,9 +2073,8 @@ describe('BarSeries', () => {
             await compare();
         });
 
-        // seriesArea padding is legitimate label space, so the collision boundary grows with it: given
-        // enough bottom padding the same `outside-start` label now fits below the bars (in the padding,
-        // clear of the axis labels) and is kept outside rather than falling back to inside-center.
+        // seriesArea padding is legitimate label space, so the collision boundary grows with it: enough bottom
+        // padding lets the same `outside-start` label fit below the bars instead of falling back to inside.
         it('keeps an outside label that fits within the seriesArea padding', async () => {
             const data = [
                 { x: 'Q1', base: 90, mid: 30, top: 20 },
@@ -4342,8 +4306,8 @@ describe('BarSeries', () => {
         });
     });
 
-    // AG-16608: the crosshair label reads `cumulativeValueExact` to keep full bigint precision; the
-    // narrowed `cumulativeValue` is float64-rounded and used only for geometry/error-bar maths.
+    // The crosshair label reads `cumulativeValueExact` to keep full bigint precision; the narrowed
+    // `cumulativeValue` is float64-rounded and used only for geometry/error-bar maths.
     describe('bigint cumulativeValueExact', () => {
         it('should retain the exact bigint plotted value alongside the narrowed cumulativeValue', async () => {
             const options: AgChartOptions = {
@@ -4402,10 +4366,8 @@ describe('BarSeries', () => {
         });
     });
 
-    // A per-side `label.padding` object must offset a bar label away from the bar by the facing-side
-    // padding, exactly as an equivalent scalar padding does — otherwise the label box overlaps the bar
-    // instead of floating clear of it. The mixed positive/negative data exercises the facing-side flip
-    // between upward and downward bars.
+    // A per-side `label.padding` object must offset a bar label by the facing-side padding exactly as an
+    // equivalent scalar does. Mixed positive/negative data exercises the facing-side flip.
     describe('per-side padding offset', () => {
         const paddingData = [
             { cat: 'A', value: 60 },
@@ -4471,10 +4433,8 @@ describe('BarSeries', () => {
             await expectPerSideMatchesScalar('outside-end', 'horizontal', { top: 0, bottom: 0, left: 10, right: 10 });
         });
 
-        // A rotated label's box turns a quarter-turn about its own centre, so per-side padding must not
-        // move the rendered text: the box-facing edge stays a constant gap from the bar (along-axis) and
-        // the glyph stays centred on the bar (cross-axis), whatever the per-side padding distribution.
-        // A naive "read the rotated facing side" fix gets both wrong for asymmetric padding.
+        // A rotated label's box turns a quarter-turn about its own centre, so per-side padding must not move the
+        // rendered text: constant along-axis gap from the bar, glyph still centred cross-axis.
         const rotatedLabelGeometry = async (padding: Padding) => {
             const p =
                 typeof padding === 'number'

@@ -1,7 +1,5 @@
-/* CRT-1065: padding on the chart container triggers a border-box / content-box
-   mismatch between getBoundingClientRect() and ResizeObserver's contentRect,
-   which previously caused a spurious second resize that skipped the initial
-   animation. */
+/* Container padding exercises the border-box / content-box mismatch between
+   getBoundingClientRect() and ResizeObserver's contentRect. */
 #myChart {
     padding: 17px;
     height: 100%;

@@ -54,11 +54,8 @@ const examplesUrl = getIsDev() ? urlWithBaseUrl('/homepage/examples.js') : urlWi
 </div>
 
 {
-    /* Externalised (was an inline define:vars block) so the site CSP can drop
-    script-src 'unsafe-inline'. The script embeds build-hashed CSS-module class
-    names, so a static SHA-256 hash would be unstable — hence externalising rather
-    than hashing. Config passes via data- attributes; classic non-deferred script
-    so it runs after the AgCharts UMD above and document.currentScript resolves. */
+    /* External rather than inline: the build-hashed class names it needs would make a CSP
+    hash unstable. Must stay non-deferred so it runs after the AgCharts UMD above. */
 }
 <script
     is:inline

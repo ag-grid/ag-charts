@@ -547,16 +547,13 @@ describe('ScatterSeries', () => {
         await compare(PATTERN_SNAPSHOT_DEFAULTS);
     });
 
-    // Initial-load reveal is covered structurally by the 'animation -test page actions' CASEs below.
-    // One CASE per control on the scatter-series-test page (Randomise / Add / Remove), plus the
-    // initial-load reveal. Scatter is marker-only — there is no path/stroke node — so every CASE
-    // asserts over `series[0]/marker[*]` and its labels alone.
+    // One CASE per control on the scatter-series-test page (Randomise / Add / Remove), plus the initial
+    // load. Scatter is marker-only, so every CASE asserts over `series[0]/marker[*]` and its labels.
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
 
-        // Pinned x/y domains make every data mutation below provably non-scale-affecting: within
-        // [0,6] x [0,200] the markers reposition or enter/leave without moving the axes, so a data
-        // update's only scene change is the markers themselves.
+        // Pinned x/y domains make every data mutation below provably non-scale-affecting, so the markers
+        // are the only scene change.
         const scatterOptions = (
             data: Array<{ x: number; y: number }>,
             seriesOverrides: object = {}
@@ -596,18 +593,14 @@ describe('ScatterSeries', () => {
             return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);
         };
 
-        // Initial load: markers scale in from zero size during the `initial` phase — their bbox
-        // left/top edges slide out from the fixed scaling centre as the shape grows, so x/y ride down
-        // within their endpoints — while the labels fade in during the `trailing` phase. The markers'
-        // own opacity holds at 1: the reveal is a scale-in, not a fade.
+        // Markers scale in from zero size during the `initial` phase — their bbox edges slide out from the
+        // fixed scaling centre — while the labels fade in during `trailing`; marker opacity holds at 1.
         it('initial load: markers scale in and labels fade in', async () => {
             chart = AgCharts.create(scatterOptions(DATA, { labelKey: 'x', label: { enabled: true } }));
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
-            // Anti-vacuity: every marker starts collapsed (width ~0) yet already fully opaque on frame 0
-            // — the reveal is a scale-in, not a fade — so the width `increases` grows from nothing while
-            // `opacity: constant` is anchored to 1 (not vacuously stuck at 0). Every label starts hidden,
-            // so the label `increases` cannot pass without a real fade-in.
+            // Anti-vacuity: every marker starts collapsed but fully opaque (a scale-in, not a fade) and
+            // every label starts hidden, so neither `increases` can pass vacuously.
             for (const key of markerKeys(trajectory[0])) {
                 expect(trajectory[0].get(key)!.width, `${key} width @ frame 0`).toBeLessThanOrEqual(0.001);
                 expect(trajectory[0].get(key)!.opacity, `${key} opacity @ frame 0`).toBeGreaterThanOrEqual(0.99);
@@ -670,9 +663,8 @@ describe('ScatterSeries', () => {
             expectNoAnimation(trajectory);
         });
 
-        // Endpoint sanity guards: the animated route must settle at exactly the pixels a snapped render
-        // of the same options produces (see expectAnimatedEndpointsMatchStatic). One chart per test —
-        // the mock canvas only snapshots the first chart created.
+        // The animated route must settle at exactly the pixels a snapped render produces. One chart per
+        // test — the mock canvas only snapshots the first chart created.
         it('sanity: update data endpoints match static renders', async () => {
             const options = scatterOptions(DATA);
             chart = AgCharts.create(options);

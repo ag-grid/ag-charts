@@ -1,13 +1,55 @@
 <div class="example-controls">
     <div class="controls-row">
         <span> Placement: </span>
-        <button onclick="placeLeft()"><code>'left'</code></button>
-        <button onclick="placeRight()"><code>'right'</code></button>
-        <button onclick="placeCenter()" class="gap-right"><code>'center'</code></button>
+        <div class="button-group gap-right" role="group" aria-label="Placement">
+            <input type="radio" id="placement-left" name="placement" value="left" onchange="placementChange(event)" />
+            <label for="placement-left"><code>'left'</code></label>
+            <input
+                type="radio"
+                id="placement-right"
+                name="placement"
+                value="right"
+                checked
+                onchange="placementChange(event)"
+            />
+            <label for="placement-right"><code>'right'</code></label>
+            <input
+                type="radio"
+                id="placement-center"
+                name="placement"
+                value="center"
+                onchange="placementChange(event)"
+            />
+            <label for="placement-center"><code>'center'</code></label>
+        </div>
         <span> Edge Placement: </span>
-        <button onclick="placeEdgeOutside()"><code>'outside'</code></button>
-        <button onclick="placeEdgeInside()"><code>'inside'</code></button>
-        <button onclick="placeEdgeDefault()"><code>undefined</code></button>
+        <div class="button-group" role="group" aria-label="Edge Placement">
+            <input
+                type="radio"
+                id="edge-placement-outside"
+                name="edge-placement"
+                value="outside"
+                checked
+                onchange="edgePlacementChange(event)"
+            />
+            <label for="edge-placement-outside"><code>'outside'</code></label>
+            <input
+                type="radio"
+                id="edge-placement-inside"
+                name="edge-placement"
+                value="inside"
+                onchange="edgePlacementChange(event)"
+            />
+            <label for="edge-placement-inside"><code>'inside'</code></label>
+            <input
+                type="radio"
+                id="edge-placement-default"
+                name="edge-placement"
+                value="default"
+                onchange="edgePlacementChange(event)"
+            />
+            <label for="edge-placement-default"><code>undefined</code></label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

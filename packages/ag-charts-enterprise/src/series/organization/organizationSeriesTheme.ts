@@ -1,7 +1,7 @@
-import type { ExtensibleTheme } from 'ag-charts-community';
+import type { ExtensibleSeriesTheme } from 'ag-charts-community';
 import { BASE_FONT_SIZE, FONT_SIZE_RATIO, SERIES_SELECTION_THEME } from 'ag-charts-core';
 
-export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
+export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
     zoom: {
         enabled: true,
         enableAxisDragging: false,
@@ -33,6 +33,11 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
             lineDash: { $path: '../node/lineDash' },
             lineDashOffset: { $path: '../node/lineDashOffset' },
             padding: { $applyPadding: { top: 5, right: 7.5, bottom: 5, left: 7.5 } },
+            hoverStyle: {
+                // Background-only, matching the button hover state used by the toolbar and Financial
+                // Charts range buttons — both paint `focusColor`, an accentColor/backgroundColor mix.
+                fill: { $ref: 'focusColor' },
+            },
             text: {
                 color: { $ref: 'subtleTextColor' },
                 fontFamily: { $ref: 'fontFamily' },
@@ -51,6 +56,11 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
             },
         },
         selection: SERIES_SELECTION_THEME,
+        layout: {
+            linkIndentation: { $if: [{ $eq: [{ $path: '../direction' }, 'horizontal'] }, 18, 50] },
+            nodeIndentation: 30,
+            stackAtDepth: 4,
+        } as any,
         link: {
             interpolation: {
                 type: 'step',

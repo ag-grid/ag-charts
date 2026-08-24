@@ -756,9 +756,8 @@ describe('Ordinal Time Axis Examples', () => {
         await compareImageSnapshot(chart, ctx);
     });
 
-    // AG-17065: deeply zoomed large ordinal-time dataset must not hang in tick generation.
-    // Jest's default timeout catches a regression — the fix ensures the overlap loop exits
-    // in O(log n) iterations instead of ~1000 linear iterations.
+    // Tick generation must exit its overlap loop in O(log n) iterations, so a deeply zoomed large
+    // dataset cannot hang.
     it('should not hang when deeply zoomed with a large dataset', async () => {
         const largeData = Array.from({ length: 5000 }, (_, i) => ({
             date: new Date(2023, 0, 1, 0, i),

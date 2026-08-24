@@ -10,9 +10,8 @@ export function lineMarker({ path, x, y, size }: AgMarkerShapeFnParams) {
 }
 
 export class LineMarker<D = unknown> extends Marker<D> {
-    // The line target renders as a thin segment of length `size`, but the generic Marker hit-test
-    // models every marker as a circle of radius size/2 — half the line's length — so it highlights
-    // a large empty area around the line. Hit-test against the segment itself instead.
+    // The generic Marker hit-test models every marker as a circle of radius size/2, highlighting a
+    // large empty area around a thin line; hit-test against the segment itself instead.
     protected override distanceSquaredLocal(x: number, y: number): number {
         if (this.shape !== lineMarker) {
             return super.distanceSquaredLocal(x, y);

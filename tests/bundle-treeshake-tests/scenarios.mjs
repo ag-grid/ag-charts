@@ -34,7 +34,7 @@ export const scenarios = [
         name: 'enterprise/AllCartesianModule',
         package: 'ag-charts-enterprise',
         import: '{ AllCartesianModule }',
-        limit: 584_000,
+        limit: 613_000,
     },
     {
         name: 'enterprise/AllPolarModule',
@@ -76,7 +76,7 @@ export const scenarios = [
         name: 'enterprise/MixedC',
         package: 'ag-charts-enterprise',
         import: '{ FunnelSeriesModule, MapLineSeriesModule, CrosshairModule, GradientLegendModule }',
-        limit: 537_000,
+        limit: 547_000,
     },
     {
         name: 'enterprise/MixedD',

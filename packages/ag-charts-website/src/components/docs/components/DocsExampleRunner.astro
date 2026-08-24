@@ -29,13 +29,10 @@ const generatedExampleParams = {
     pageName,
     exampleName: name,
 };
-// NOTE: Even though we have the contents at build time, we are not passing
-// it into the component, so that we can load the contents at runtime.
-// This avoids the page being bigger than it needs to be, if the user does
-// not scroll to the example.
+// Deliberately not passed to the component: loading the contents at runtime keeps the page small
+// for users who never scroll to the example.
 const contents = await getGeneratedContents(generatedExampleParams);
-// Get whether example has console log component at build time, so that we
-// can show it on page load.
+// Resolved at build time so the console log can be shown on page load.
 const hasExampleConsoleLog = contents?.hasExampleConsoleLog;
 ---
 

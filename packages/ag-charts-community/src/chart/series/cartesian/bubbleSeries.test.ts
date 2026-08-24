@@ -537,10 +537,8 @@ describe('BubbleSeries', () => {
         });
     });
 
-    // Initial-load reveal is covered structurally by the 'animation -test page actions' CASEs below.
-    // One CASE per control on the scatter-series-test page's bubble example (Randomise / Add / Remove),
-    // plus the initial-load reveal. Bubble is marker-only — no path/stroke node — and additionally maps
-    // each datum's sizeKey to a marker radius, so the initial reveal scales every marker to its OWN size.
+    // One CASE per control on the bubble example (Randomise / Add / Remove), plus the initial-load reveal.
+    // Bubble is marker-only and maps each sizeKey to a radius, so the reveal scales markers to their own size.
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
 
@@ -580,19 +578,15 @@ describe('BubbleSeries', () => {
                 .map((k) => Math.round(sample.get(k)!.width))
                 .sort((a, b) => a - b);
 
-        // Bubble skips the animation batch on every data update (only the initial load animates), so
-        // updates SNAP. A data update also re-creates the marker nodes, re-keying them (marker[1#2]),
-        // so the constancy assertion runs over the trajectory (stable keys) not before->after.
+        // Only the initial load animates, so updates SNAP; a data update also re-keys the marker nodes,
+        // so constancy is asserted over the trajectory rather than before->after.
         const captureSnap = (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
             chart = AgCharts.create(options);
             return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);
         };
 
-        // Negative-spanning domain: the retired snapshot suite revealed bubbles on a domain straddling
-        // the origin (BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE). The scale-in interpolation is
-        // sign-agnostic, but the settled positions must still map negative data below/left of the
-        // origin — a clamp-to-zero or NaN in the negative-domain mapping would survive the positive-only
-        // reveal CASE above. Data straddles both axes; markers are x-value keyed (marker[-4] … marker[5]).
+        // Domain straddling the origin: the scale-in is sign-agnostic, so a clamp-to-zero or NaN in the
+        // negative-domain mapping would survive the positive-only reveal CASE above.
         it('initial load: markers reveal correctly across a negative-spanning domain', async () => {
             const NEG = [
                 { x: -4, y: -80, s: 10 },
@@ -626,9 +620,8 @@ describe('BubbleSeries', () => {
                     opacity: 'constant',
                 },
             });
-            // Settled positions honour the signed domain: a higher y-value sits higher on screen (smaller
-            // pixel centre-y) and a higher x-value sits further right, with every marker at a finite
-            // coordinate. Compared by bbox centre so differing radii cannot confound the ordering.
+            // Settled positions must honour the signed domain; compared by bbox centre so differing radii
+            // cannot confound the ordering.
             const end = sampleScene();
             const centreY = (x: number) =>
                 end.get(`series[0]/marker[${x}]`)!.y + end.get(`series[0]/marker[${x}]`)!.height / 2;
@@ -645,16 +638,14 @@ describe('BubbleSeries', () => {
             }
         });
 
-        // Initial load: every marker scales in from zero size during the `initial` phase to its OWN
-        // sizeKey-mapped radius (a bbox scale-in, so x/y ride down within their endpoints). The markers'
-        // opacity holds at 1 — the reveal is a scale-in, not a fade.
+        // Initial load scales every marker in from zero to its own sizeKey radius at opacity 1 — a
+        // scale-in, not a fade.
         it('initial load: markers scale in to their sizeKey-mapped radii', async () => {
             chart = AgCharts.create(bubbleOptions(DATA));
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
-            // Anti-vacuity: every marker starts collapsed (width ~0) yet already fully opaque on frame 0
-            // — the reveal is a scale-in, not a fade — so the width `increases` grew from nothing while
-            // `opacity: constant` is anchored to 1 (not vacuously stuck at 0).
+            // Anti-vacuity: markers start collapsed yet fully opaque on frame 0, so `opacity: constant` is
+            // anchored to 1 rather than vacuously stuck at 0.
             for (const key of markerKeys(trajectory[0])) {
                 expect(trajectory[0].get(key)!.width, `${key} width @ frame 0`).toBeLessThanOrEqual(0.001);
                 expect(trajectory[0].get(key)!.opacity, `${key} opacity @ frame 0`).toBeGreaterThanOrEqual(0.99);

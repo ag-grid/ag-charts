@@ -408,15 +408,30 @@ export const legendOptionsDefs: OptionsDefs<AgChartLegendOptions> = {
             shape: shapeValidator,
             padding: padding,
             strokeWidth: positiveNumber,
+            disabledStyle: {
+                opacity: ratio,
+                ...fillOptionsDef,
+                ...strokeOptionsDef,
+            },
         },
         line: {
             length: positiveNumber,
             strokeWidth: positiveNumber,
+            disabledStyle: {
+                opacity: ratio,
+                stroke: colorOrRef,
+                strokeOpacity: ratio,
+                ...lineDashOptionsDef,
+            },
         },
         label: {
             maxLength: positiveNumber,
             formatter: callback,
             ...fontOptionsDef,
+            disabledStyle: {
+                opacity: ratio,
+                color: colorOrRef,
+            },
         },
         tooltip: {
             visible: union('auto', 'always', 'never'),
@@ -516,6 +531,8 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         collapsedChange: callback,
         click: callback,
         doubleClick: callback,
+        crossLineClick: callback,
+        crossLineDoubleClick: callback,
         annotations: callback,
         zoom: callback,
     },
@@ -524,6 +541,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         enabled: boolean,
         drawingMode: union('overlay', 'cutout'),
         range: union('tooltip', 'node'),
+        mode: union('single', 'shared'),
     },
     overlays: {
         loading: chartOverlayOptionsDefs,
@@ -547,9 +565,9 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
             offset: positiveNumber,
         },
     },
-    animation: defined,
-    flashOnUpdate: defined,
-    contextMenu: defined,
+    animation: object,
+    flashOnUpdate: object,
+    contextMenu: object,
     context: () => true,
     dataSource: {
         getData: callback,
@@ -562,7 +580,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     touch: {
         dragAction: union('none', 'drag', 'hover'),
     },
-    selection: defined,
+    selection: object,
     ranges: {
         enabled: boolean,
         enableOutOfRange: boolean,
@@ -673,9 +691,9 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         },
     },
     styleNonce: string,
-    sync: defined,
-    zoom: defined,
-    scrollbar: defined,
+    sync: object,
+    zoom: object,
+    scrollbar: object,
     formatter: or(callbackOf(textOrSegments), formatObjectValidator),
     enableRtl: boolean,
 };
@@ -712,8 +730,6 @@ commonChartOptionsDefs.foreground = undocumented({
 
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.overrideDevicePixelRatio = undocumented(number);
-// @ts-expect-error undocumented option
-commonChartOptionsDefs.sync.domainMode = undocumented(union('direction', 'position', 'key'));
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.displayNullData = undocumented(boolean);
 

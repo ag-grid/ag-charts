@@ -46,23 +46,61 @@ export function mergeDefaults<TSource extends PlainObject, TArgs extends (TSourc
 ): Intersection<Exclude<TArgs[number], FalsyType>>;
 export function mergeDefaults<TSameSource extends PlainObject>(...sources: (TSameSource | undefined)[]): TSameSource;
 export function mergeDefaults<TSource extends PlainObject, TArgs extends (TSource | FalsyType)[]>(...sources: TArgs) {
+    return mergeSources(sources) as Intersection<Exclude<TArgs[number], FalsyType>>;
+}
+
+/**
+ * As {@link mergeDefaults}, but an object holding an options-graph operation — any `$`-prefixed key,
+ * a prefix reserved for them — is indivisible: the higher-precedence side replaces it rather than
+ * merging into its arguments. Merging two operations at one path would otherwise produce an object
+ * carrying both, which resolves to neither.
+ */
+export function mergeDefaultsShallowOperations<TSource extends PlainObject, TArgs extends (TSource | FalsyType)[]>(
+    ...sources: TArgs
+): Intersection<Exclude<TArgs[number], FalsyType>>;
+export function mergeDefaultsShallowOperations<TSameSource extends PlainObject>(
+    ...sources: (TSameSource | undefined)[]
+): TSameSource;
+export function mergeDefaultsShallowOperations<TSource extends PlainObject, TArgs extends (TSource | FalsyType)[]>(
+    ...sources: TArgs
+) {
+    return mergeSources(sources, '$') as Intersection<Exclude<TArgs[number], FalsyType>>;
+}
+
+// OPTIMIZATION: a well-formed operation holds exactly one key, so only the first key can carry the
+// prefix — an object with siblings alongside it is not an operation.
+function hasKeyWithPrefix(value: PlainObject, prefix: string) {
+    return Object.keys(value)[0]?.startsWith(prefix) === true;
+}
+
+/** An object holding a key prefixed with `opaquePrefix` is indivisible: it is replaced, not merged into. */
+function mergeSources(sources: ArrayLike<unknown>, opaquePrefix?: string): PlainObject {
     const target: PlainObject = {};
 
-    for (const source of sources) {
+    for (let i = 0; i < sources.length; i++) {
+        const source = sources[i];
         if (!isObject(source)) continue;
 
         const keys = isDecoratedObject(source) ? listDecoratedProperties(source) : Object.keys(source);
 
         for (const key of keys) {
-            if (isPlainObject(target[key]) && isPlainObject(source[key])) {
-                target[key] = mergeDefaults(target[key], source[key]);
+            const targetValue = target[key];
+            const sourceValue = source[key];
+
+            if (
+                isPlainObject(targetValue) &&
+                isPlainObject(sourceValue) &&
+                (opaquePrefix == null ||
+                    (!hasKeyWithPrefix(targetValue, opaquePrefix) && !hasKeyWithPrefix(sourceValue, opaquePrefix)))
+            ) {
+                target[key] = mergeSources([targetValue, sourceValue], opaquePrefix);
             } else {
-                target[key] ??= source[key];
+                target[key] ??= sourceValue;
             }
         }
     }
 
-    return target as Intersection<Exclude<TArgs[number], FalsyType>>;
+    return target;
 }
 
 /**

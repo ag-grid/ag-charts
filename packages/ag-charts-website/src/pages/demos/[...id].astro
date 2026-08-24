@@ -2,11 +2,9 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-// Astro hoists getStaticPaths and runs it in isolation, so it cannot reference
-// component-scope consts — resolve paths from import.meta.url inline instead.
+// getStaticPaths runs in isolation and cannot reference component-scope consts.
 export function getStaticPaths() {
-    // Archive builds are fully noindex and omit the sitemap; there is nothing to
-    // gain from carrying the demos into them.
+    // Archive builds are noindex and omit the sitemap, so demos have nothing to gain there.
     if (import.meta.env.BASE_URL?.includes('archive')) {
         return [];
     }
@@ -20,9 +18,7 @@ export function getStaticPaths() {
     return [{ params: { id: undefined } }, ...ids.map((id) => ({ params: { id } }))];
 }
 
-// Emit the built demos SPA shell verbatim. Served as a `partial` (like the
-// example-runner docs) so Astro injects no page scaffolding. The demo is selected
-// by the data-demo-id on the root element.
+// A `partial` so Astro injects no page scaffolding around the demos SPA shell.
 export const partial = true;
 
 const { id } = Astro.params;
@@ -41,11 +37,8 @@ if (!id) {
 
 const distIndex = fileURLToPath(new URL('../../../../ag-charts-demos/dist/index.html', import.meta.url));
 
-// The demos are built base-relative (DEMOS_BASE_PATH=./), so their entry bundle
-// is served under this site's base at /internal-demos/assets. Read the hashed
-// entry filename from the built index.html and point at it under the base; the
-// entry's chunks and assets then resolve relative to that URL. Missing until the
-// first build completes.
+// The demos build is base-relative, so its chunks resolve against the entry URL; the hashed
+// entry filename is only recoverable from the built index.html.
 let entrySrc: string | undefined;
 if (id) {
     try {
@@ -66,9 +59,8 @@ if (id) {
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <meta name="robots" content="noindex" />
                 <title>Demos</title>
-                {/* Partial routes get no auto-injected client, so pull in the Vite HMR
-                    client by hand — without it this page never receives the watch loop's
-                    full-reload signal (touch of ag-build-queue.empty → agHotModuleReload). */}
+                {/* Partial routes get no auto-injected client, so the Vite HMR client that
+                    carries the watch loop's reload signal has to be pulled in by hand. */}
                 {import.meta.env.DEV && <script type="module" src="/@vite/client" />}
             </head>
             <body style="margin: 0; padding: 24px; font-family: system-ui, sans-serif;">
@@ -93,8 +85,8 @@ if (id) {
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <meta name="robots" content="noindex" />
                 <title>{`Demo: ${id}`}</title>
-                {/* See the listing branch: the Vite HMR client must be pulled in by hand on
-                    partial routes so the watch loop's full-reload signal reaches this page. */}
+                {/* Partial routes get no auto-injected client, so the Vite HMR client that
+                    carries the watch loop's reload signal has to be pulled in by hand. */}
                 {import.meta.env.DEV && <script type="module" src="/@vite/client" />}
             </head>
             <body style="margin: 0; height: 100%;">

@@ -1,14 +1,19 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     type Bounds4,
+    type Logger,
     type NormalisedSeriesAreaBackgroundRegion,
+    type NormalisedSeriesAreaBackgroundRegionRange,
     type Scale,
     ScaleAlignment,
     Vec4,
+    clampArray,
     createId,
     toRadians,
 } from 'ag-charts-core';
 import type { AgSeriesAreaBackgroundRegionLabelPosition, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
+
+const { bandRangeExpansion, isValidScaleValue } = _ModuleSupport;
 
 type AnchorDirection = 1 | 0 | -1;
 
@@ -63,8 +68,8 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
     static readonly className = 'BackgroundRegion';
     readonly internalId = createId(this);
 
-    xScale?: Scale<any, number, number | AgTimeInterval | AgTimeIntervalUnit>;
-    yScale?: Scale<any, number, number | AgTimeInterval | AgTimeIntervalUnit>;
+    xAxis?: _ModuleSupport.AxisContext;
+    yAxis?: _ModuleSupport.AxisContext;
 
     readonly regionGroup = new _ModuleSupport.Group({ name: this.internalId });
     readonly labelGroup = new _ModuleSupport.Group({ name: this.internalId });
@@ -74,29 +79,32 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
 
     private opts!: NormalisedSeriesAreaBackgroundRegion;
 
+    constructor(private readonly logger: Logger) {}
+
     setOptions(opts: NormalisedSeriesAreaBackgroundRegion) {
         this.opts = opts;
     }
 
     update() {
-        const { xScale, yScale } = this;
-        if (!xScale || !yScale) {
-            this.regionGroup.visible = false;
+        const bounds = this.getBounds();
+
+        this.regionGroup.visible = bounds != null;
+
+        if (bounds == null) {
             this.labelGroup.visible = false;
             return;
         }
 
-        this.regionGroup.visible = true;
-        this.labelGroup.visible = true;
-
-        this.updateNodes();
-    }
-
-    private updateNodes() {
-        const bounds = this.getBounds();
-
         this.updateRegionNode(bounds);
-        this.updateLabelNode(bounds);
+
+        // The label anchors to the visible part of the region rather than the region itself, so it
+        // stays at the series area edge while the region extends past it, matching cross line labels.
+        const labelBounds = this.getSeriesAreaBounds(bounds);
+        this.labelGroup.visible = labelBounds != null;
+
+        if (labelBounds == null) return;
+
+        this.updateLabelNode(labelBounds);
     }
 
     private updateRegionNode(bounds: Bounds4) {
@@ -169,21 +177,79 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         labelNode.rotationCenterY = y;
     }
 
-    private getBounds() {
-        const { opts, xScale, yScale } = this;
-        if (!xScale || !yScale) return Vec4.origin();
+    private getBounds(): Bounds4 | undefined {
+        const { opts, xAxis, yAxis } = this;
+        if (!xAxis || !yAxis) return;
 
-        let x1 = xScale.convert(opts.xRange?.start, { alignment: ScaleAlignment.Leading });
-        let y1 = yScale.convert(opts.yRange?.start, { alignment: ScaleAlignment.Leading });
-        let x2 = xScale.convert(opts.xRange?.end, { alignment: ScaleAlignment.Trailing });
-        let y2 = yScale.convert(opts.yRange?.end, { alignment: ScaleAlignment.Trailing });
+        const x = this.getAxisExtent(xAxis.scale, opts.xRange, 'xRange');
+        const y = this.getAxisExtent(yAxis.scale, opts.yRange, 'yRange');
+        if (!x || !y) return;
 
-        if (Number.isNaN(x1)) x1 = xScale.range[0];
-        if (Number.isNaN(y1)) y1 = yScale.range[0];
-        if (Number.isNaN(x2)) x2 = xScale.range[1];
-        if (Number.isNaN(y2)) y2 = yScale.range[1];
+        const bounds = Vec4.from(x[0], y[0], x[1], y[1]);
 
-        return Vec4.normalise(Vec4.from(x1, y1, x2, y2));
+        if (Vec4.width(bounds) === 0 || Vec4.height(bounds) === 0) {
+            this.logger.warnOnce(
+                `\`seriesArea.backgroundRegions\` region has no width or height, ignoring. Check that \`start\` and \`end\` differ.`
+            );
+            return;
+        }
+
+        return bounds;
+    }
+
+    /** Clamps bounds to the series area, returning `undefined` when nothing of the region is in view. */
+    private getSeriesAreaBounds(bounds: Bounds4): Bounds4 | undefined {
+        const { xAxis, yAxis } = this;
+        if (!xAxis || !yAxis) return;
+
+        const clamped = Vec4.from(
+            clampArray(bounds.x1, xAxis.range),
+            clampArray(bounds.y1, yAxis.range),
+            clampArray(bounds.x2, xAxis.range),
+            clampArray(bounds.y2, yAxis.range)
+        );
+
+        if (Vec4.width(clamped) === 0 || Vec4.height(clamped) === 0) return;
+
+        return clamped;
+    }
+
+    /**
+     * Resolves one axis' range to an ascending pixel pair. An omitted bound extends to that end of
+     * the series area; a bound the axis cannot resolve drops the whole region.
+     */
+    private getAxisExtent(
+        scale: Scale<any, number, number | AgTimeInterval | AgTimeIntervalUnit>,
+        range: NormalisedSeriesAreaBackgroundRegionRange | undefined,
+        optionsKey: string
+    ): [number, number] | undefined {
+        const { start, end } = range ?? {};
+
+        if ((start != null && !isValidScaleValue(start, scale)) || (end != null && !isValidScaleValue(end, scale))) {
+            this.logger.warnOnce(
+                `\`seriesArea.backgroundRegions[].${optionsKey}\` does not match the axis type or domain, ignoring.`
+            );
+            return;
+        }
+
+        let p0 = start == null ? scale.range[0] : scale.convert(start, { alignment: ScaleAlignment.Leading });
+        let p1 = end == null ? scale.range[1] : scale.convert(end, { alignment: ScaleAlignment.Trailing });
+
+        // Only a bound resolved from a value needs band expansion — an omitted one already sits on
+        // the series area edge.
+        let expandStart = start != null;
+        let expandEnd = end != null;
+
+        if (p0 > p1) {
+            [p0, p1] = [p1, p0];
+            [expandStart, expandEnd] = [expandEnd, expandStart];
+        }
+
+        const { bandwidth, rangePadding } = bandRangeExpansion(scale);
+        if (expandStart) p0 -= rangePadding;
+        if (expandEnd) p1 += bandwidth + rangePadding;
+
+        return [p0, p1];
     }
 
     private getAnchor(): Anchor {

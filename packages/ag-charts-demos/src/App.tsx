@@ -1,5 +1,6 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 
+import { LoadingDemo } from './LoadingDemo';
 import { DEMO_APPS } from './registry';
 
 const readHashId = () => window.location.hash.replace(/^#/, '');
@@ -31,7 +32,7 @@ export const App = () => {
 
     return (
         <main data-demo-id={entry.id}>
-            <Suspense fallback={<p>Loading demo…</p>}>
+            <Suspense fallback={<LoadingDemo />}>
                 <LazyApp />
             </Suspense>
         </main>

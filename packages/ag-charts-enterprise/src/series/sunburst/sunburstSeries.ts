@@ -218,7 +218,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     private makeItemStylerParams(nodeDatum: SunburstNode, style: ItemStyle, highlightState: AgSunburstHighlightState) {
         const { id: seriesId } = this;
         const { colorKey, childrenKey, sizeKey, labelKey, secondaryLabelKey } = this.properties;
-        // `style` is the resolved item style; its `fill` no longer carries unresolved colour refs.
+        // `style` is the resolved item style, so its `fill` never carries unresolved colour refs.
         const fill = this.filterItemStylerFillParams(style.fill as InternalAgColorType) ?? style.fill;
 
         return {
@@ -399,9 +399,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             };
 
             const formatting = formatLabels<LabelPlacement>(
-                // Preserve `ContentSegment[]` (including image segments) instead of flattening to
-                // plain text, so image-bearing labels render like treemap rather than dropping the
-                // image.
+                // Preserve `ContentSegment[]` (including image segments) instead of flattening to plain
+                // text, so image-bearing labels render like treemap rather than dropping the image.
                 labelValue,
                 this.properties.label,
                 secondaryLabelValue,

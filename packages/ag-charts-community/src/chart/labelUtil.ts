@@ -795,9 +795,8 @@ export function adjustLabelPlacement({
     // anchor. Pre-subtracting the drift keeps the glyph centred on the bar's cross-axis. Zero unrotated.
     const drift = boxPadding == null ? { x: 0, y: 0 } : rotatedGlyphDrift(rotation, boxPadding);
 
-    // Distance from the anchor to the (rotated) box edge facing the bar; equals boxPadding[facing] for an
-    // unrotated label, but grows with the box's cross-axis when the label is rotated. Added beyond
-    // `spacing` so the box edge — not the text — sits `spacing` from the bar, on whichever axis faces it.
+    // Distance from the anchor to the (rotated) box edge facing the bar; added beyond `spacing` so the box
+    // edge — not the text — sits `spacing` from the bar.
     const insetFor = (facing: keyof Required<PaddingOptions>) =>
         boxPadding == null ? 0 : rotatedLabelInset(facing, rotation, labelWidth, labelHeight, boxPadding);
 
@@ -847,8 +846,7 @@ export function adjustLabelPlacement({
 
     if (beside) {
         // Flip the side with a reversed category axis so `before`/`after` keep their physical meaning
-        // (column: before → left, after → right; horizontal bar: before → above, after → below). The
-        // facing box inset keeps the box edge — not the text — `spacing` from the bar.
+        // (column: before → left; horizontal bar: before → above).
         const after = beside.after !== crossReversed;
         if (isVertical) {
             const facing = after ? 'left' : 'right';
@@ -992,9 +990,8 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
         }
     }
 
-    // `plotRegion` is a collision-only boundary for outside/beside candidates (flushToRegion: false): a
-    // label overflowing it (e.g. into the axis-label zone) fails containment so the cascade falls through
-    // to the next placement, rather than being clamped into it or floating into the engine's wider bounds.
+    // `plotRegion` is a collision-only boundary for outside/beside candidates: a label overflowing it fails
+    // containment so the cascade falls through, rather than being clamped into it.
     const candidates: BarPositionedCandidate<TPlacement>[] = [];
     for (const placementIndex of effectiveIndices) {
         const placement = placementList[placementIndex];

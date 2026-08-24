@@ -69,8 +69,7 @@ export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
-// WARNING! This selectedKey is related to cross-filtering which is not an officially documented or supported
-// feature. It has nothing to do with the official data selection API in the options contract. Do not use, or use with
-// extreme caution.
+// WARNING! `selectedKey` backs cross-filtering, an undocumented and unsupported feature — it is unrelated
+// to the public data selection API.
 // @ts-expect-error undocumented option
 bubbleSeriesOptionsDef.selectedKey = undocumented(string);

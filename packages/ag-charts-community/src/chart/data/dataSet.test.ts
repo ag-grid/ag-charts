@@ -266,9 +266,6 @@ describe('DataSet', () => {
             const desc = dataSet.getChangeDescription()!;
             expect(desc).toBeDefined();
 
-            // After prepend: [X, 0, 1]
-            // After append:  [X, 0, 1, 2, 3]
-            // After remove:  [X, 1, 2, 3]
             expect(desc.indexMap.originalLength).toBe(2);
             expect(desc.indexMap.finalLength).toBe(4);
 
@@ -921,9 +918,7 @@ describe('DataSet', () => {
                 const changeDesc = dataSet.getChangeDescription();
                 expect(changeDesc).toBeDefined();
 
-                // After insertion at index 1:
-                // [item0, newItem, item1, item2]
-                // item2 was at original index 2, now at final index 3
+                // item2 moves from original index 2 to final index 3.
                 const updatedIndices = changeDesc!.getUpdatedIndices();
                 expect(updatedIndices).toEqual([3]);
 
@@ -1577,9 +1572,7 @@ describe('DataSet', () => {
                         { add: items1, addIndex: 1 },
                         { add: [item2], addIndex: 5, remove: ['X', 'Y'] },
                     ],
-                    // After tx1: ['1', 'X', 'Y', 'Z', '2', '3', '4']
-                    // After remove X,Y: ['1', 'Z', '2', '3', '4']
-                    // Add A at adjusted index 3: ['1', 'Z', '2', 'A', '3', '4']
+                    // X and Y are removed first, so addIndex 5 lands at adjusted index 3.
                     expected: ['1', 'Z', '2', item2, '3', '4'],
                 });
             });
@@ -1609,8 +1602,6 @@ describe('DataSet', () => {
                         { add: [z], addIndex: 5 },
                         { remove: [y] },
                     ],
-                    // After insertions: ['A', 'X', 'B', 'Y', 'C', 'Z', 'D', 'E']
-                    // After removing Y: ['A', 'X', 'B', 'C', 'Z', 'D', 'E']
                     expected: ['A', x, 'B', 'C', z, 'D', 'E'],
                 });
             });
@@ -1626,10 +1617,7 @@ describe('DataSet', () => {
                         { add: [y], addIndex: 3 },
                         { add: [z], addIndex: 5, remove: [x, y] },
                     ],
-                    // After tx1: ['A', 'X', 'B', 'C']
-                    // After tx2: ['A', 'X', 'B', 'Y', 'C']
-                    // After remove X,Y: ['A', 'B', 'C']
-                    // Add Z at adjusted index 3: ['A', 'B', 'C', 'Z']
+                    // X and Y are removed first, so addIndex 5 lands at adjusted index 3.
                     expected: ['A', 'B', 'C', z],
                 });
             });
@@ -1644,9 +1632,7 @@ describe('DataSet', () => {
                         { add: [x], addIndex: 1 },
                         { add: [y], addIndex: 4, remove: [x, initial[2]] }, // Remove 'C' and 'X'
                     ],
-                    // After tx1: ['A', 'X', 'B', 'C', 'D', 'E']
-                    // After remove X and 'C': ['A', 'B', 'D', 'E']
-                    // Add Y at adjusted index 2: ['A', 'B', 'Y', 'D', 'E']
+                    // X and 'C' are removed first, so addIndex 4 lands at adjusted index 2.
                     expected: ['A', 'B', y, 'D', 'E'],
                 });
             });
@@ -1662,15 +1648,11 @@ describe('DataSet', () => {
                         { add: [x], addIndex: 2 },
                         { add: [y], addIndex: 4, remove: [x] },
                     ],
-                    // After prepend: ['A', 'B', 'C', 'D']
-                    // After add X: ['A', 'B', 'X', 'C', 'D']
-                    // After remove X: ['A', 'B', 'C', 'D']
-                    // Add Y at adjusted index 3: ['A', 'B', 'C', 'Y', 'D']
+                    // X is removed first, so addIndex 4 lands at adjusted index 3.
                     expected: ['A', 'B', 'C', y, 'D'],
                 });
             });
 
-            // Bug fix: Only adjust insertions positioned after the removed span
             test('removing later insertion should not affect earlier insertion', () => {
                 const x1 = { id: 'x1' };
                 const x2 = { id: 'x2' };
@@ -1681,10 +1663,7 @@ describe('DataSet', () => {
                         { add: [x2], addIndex: 1 }, // inserts to the left
                         { remove: [x1] },
                     ],
-                    // After tx1: ['A', 'B', 'C', x1, 'D']
-                    // After tx2: ['A', x2, 'B', 'C', x1, 'D']
-                    // After remove x1: ['A', x2, 'B', 'C', 'D']
-                    // x2's virtualIndex (1) < x1's end position (4), so NOT adjusted
+                    // x2's virtualIndex (1) < x1's end position (4), so it is not adjusted.
                     expected: ['A', x2, 'B', 'C', 'D'],
                 });
             });
@@ -1699,10 +1678,7 @@ describe('DataSet', () => {
                         { add: [x2], addIndex: 3 }, // inserts to the right
                         { remove: [x1] },
                     ],
-                    // After tx1: ['A', x1, 'B', 'C', 'D']
-                    // After tx2: ['A', x1, 'B', x2, 'C', 'D']
-                    // After remove x1: ['A', 'B', x2, 'C', 'D']
-                    // x2 should shift from position 3 to position 2
+                    // x2 shifts from position 3 to position 2.
                     expected: ['A', 'B', x2, 'C', 'D'],
                 });
             });
@@ -1717,10 +1693,7 @@ describe('DataSet', () => {
                         { add: [x2], addIndex: 2 }, // exactly at the end of x1's span
                         { remove: [x1] },
                     ],
-                    // After tx1: ['A', x1, 'B', 'C', 'D']
-                    // After tx2: ['A', x1, x2, 'B', 'C', 'D']
-                    // After remove x1: ['A', x2, 'B', 'C', 'D']
-                    // x2 at position 2 (end of x1's span [1,2)) should shift to 1
+                    // x2 sits at position 2, the end of x1's span [1,2), so it shifts to 1.
                     expected: ['A', x2, 'B', 'C', 'D'],
                 });
             });
@@ -1735,10 +1708,7 @@ describe('DataSet', () => {
                         { add: [x2], addIndex: 5 }, // after the 3-item insertion
                         { remove: ['Y', 'Z'] }, // remove 2 items from first insertion
                     ],
-                    // After tx1: ['A', 'X', 'Y', 'Z', 'B', 'C', 'D', 'E']
-                    // After tx2: ['A', 'X', 'Y', 'Z', 'B', x2, 'C', 'D', 'E']
-                    // After remove Y,Z: ['A', 'X', 'B', x2, 'C', 'D', 'E']
-                    // x2 should shift from position 5 to position 3 (adjust by 2)
+                    // Two items are removed ahead of x2, so it shifts from position 5 to 3.
                     expected: ['A', 'X', 'B', x2, 'C', 'D', 'E'],
                 });
             });
@@ -1755,9 +1725,7 @@ describe('DataSet', () => {
                         { add: [z], addIndex: 5 },
                         { remove: [y] },
                     ],
-                    // After insertions: ['A', 'X', 'B', 'Y', 'C', 'Z']
-                    // After removing Y: ['A', 'X', 'B', 'C', 'Z']
-                    // X should remain at position 1, Z should shift from 5 to 4
+                    // X stays at position 1; only Z, which follows Y, shifts from 5 to 4.
                     expected: ['A', x, 'B', 'C', z],
                 });
             });

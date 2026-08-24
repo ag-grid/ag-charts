@@ -64,12 +64,8 @@ describe('alignCentre', () => {
     });
 
     it('snaps the centre to the nearest crisp device position, unbiased', () => {
-        // The centre snaps to the nearest position that keeps the edges crisp for the band's parity:
-        // a pixel centre (x.5) for odd device widths, a boundary (integer) for even. "Nearest" is the
-        // load-bearing word — the snap must be symmetric about the true centre (drift <= 0.5 device px),
-        // not biased to one side. A round-to-boundary-then-offset snap (`round(c) + odd/2`) drifts an
-        // already-centred coordinate a whole device pixel, pulling a bar off a datum-aligned marker or
-        // matching-parity gridline (AG-17856); that lands here as a drift > 0.5.
+        // The snap must be symmetric about the true centre (drift <= 0.5 device px), not biased to one
+        // side, which a round-to-boundary-then-offset snap would fail by a whole device pixel.
         for (const pixelRatio of [1, 1.75, 2, 2.5]) {
             for (const centre of [45.5625, 51.5625, 88.5, 100.3, 233.98726, 640.5, 799.1]) {
                 for (const length of [8, 9, 9.4, 12, 15]) {
@@ -118,8 +114,8 @@ describe('alignCentre', () => {
     });
 
     it('defers a bar at most one device pixel wide to the edge snap', () => {
-        // A single-pixel centre snap offsets the origin by half a device pixel, which is jitter-sensitive
-        // (AG-16608). Such bars must match the plain edge snap instead.
+        // A single-pixel centre snap offsets the origin by half a device pixel, which is jitter-sensitive;
+        // such bars must match the plain edge snap instead.
         for (const pixelRatio of [1, 1.75, 2]) {
             const start = 44.60625;
             for (const length of [0.1, 0.4 / pixelRatio, 1 / pixelRatio]) {

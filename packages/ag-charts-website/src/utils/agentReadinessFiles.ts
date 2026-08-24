@@ -64,9 +64,7 @@ function buildLinks({ siteRoot, chartsDocsPrefix }: AgentReadinessInput): AgentR
  */
 export function buildLlmsTxt(input: AgentReadinessInput): string {
     const l = buildLinks(input);
-    // Only advertise the `.md` convention when those routes are actually built. Nearly every page
-    // in the sitemap has a twin (enforced by the post-build check in markdownPages.test.ts), so
-    // this states the rule rather than enumerating pages that would drift out of date.
+    // State the `.md` rule rather than enumerate pages, which would drift out of date.
     const markdownLine =
         input.includeMarkdownDocs === false
             ? ''
@@ -95,8 +93,7 @@ export function buildLlmsTxt(input: AgentReadinessInput): string {
  */
 export function buildAgentsMd(input: AgentReadinessInput): string {
     const l = buildLinks(input);
-    // Advertise the markdown twins only when they are built (see includeMarkdownDocs). Nearly
-    // every page in the sitemap has one, so state the rule rather than listing pages.
+    // State the `.md` rule rather than enumerate pages, which would drift out of date.
     const markdownBullet =
         input.includeMarkdownDocs === false
             ? ''

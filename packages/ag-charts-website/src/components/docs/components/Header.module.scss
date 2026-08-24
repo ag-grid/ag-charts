@@ -10,10 +10,8 @@
     }
 }
 
-// `display: contents` drops the h1's box so its children are laid out in
-// .pageTitleContainer's grid directly, which is what lets the version share the eyebrow
-// line from outside the heading. Inherited properties still reach the children, so the
-// line height below applies to the title.
+// `display: contents` drops the h1's box so its children participate in
+// .pageTitleContainer's grid directly.
 .docsPageTitle {
     display: contents;
     color: var(--color-fg-primary);
@@ -23,17 +21,16 @@
     }
 }
 
-// Carries the grid placement and trailing space the h1's dropped box would have applied.
-// Tracking belongs here, not on the h1, so the body-sized eyebrow cannot inherit it.
+// Carries the grid placement the h1's dropped box would have applied; tracking lives here so the
+// body-sized eyebrow cannot inherit it.
 .titleText {
     grid-area: title;
     margin-bottom: $spacing-size-4;
     letter-spacing: -1.2px;
 }
 
-// Narrow screens stack the eyebrow, then the controls, then the title. From the
-// docs-search breakpoint up, the controls move to the top right: they span both
-// rows so they sit level with the eyebrow without pushing the title down.
+// Above the docs-search breakpoint the controls span both rows, so they sit level with the eyebrow
+// instead of pushing the title down.
 .pageTitleContainer {
     display: grid;
     width: 100%;
@@ -89,9 +86,8 @@
     }
 }
 
-// Narrow screens lead with the framework selector, so it also takes the first row
-// if the two controls are too wide to share one. Wider screens put the markdown
-// actions first, nearest the page content.
+// Narrow screens lead with the framework selector so it takes the first row when the two controls
+// cannot share one.
 .frameworkSelectorSlot {
     order: -1;
 

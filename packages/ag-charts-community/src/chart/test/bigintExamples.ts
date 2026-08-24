@@ -114,26 +114,32 @@ export function isoEpochPair(
 }
 
 /**
- * Render `before`, update the SAME chart to `after`, and assert pixel-for-pixel identity.
+ * Render `before`, update the SAME chart through each of `updates` in turn, and assert the final
+ * render is pixel-for-pixel identical to `before`.
  * The mock canvas only tracks the first chart created per test, so the comparison must reuse
  * one chart via `update()` — cross-create snapshots would compare a stale canvas against itself.
  * `create` is `createChart` (community) or `createEnterpriseChart` (enterprise); `ctx` is the
  * `setupMockCanvas()` handle from the calling suite.
+ *
+ * Pass more than one entry to assert a round trip, e.g. `(ctx, create, off, on, off)` — an
+ * intermediate state that leaves stale instance state behind fails here but not on a single update.
  */
 export async function expectPixelIdenticalAcrossUpdate(
     ctx: Snapshotter,
     create: ChartFactory,
     before: AgChartOptions,
-    after: AgChartOptions
+    ...updates: AgChartOptions[]
 ): Promise<void> {
     const chart = await create(before);
     try {
         const beforeImage = ctx.snapshot();
         expectNonBlank(beforeImage);
-        // `update()` bypasses the create-time preparation in `create`, so re-apply the test
-        // sizing/theme (and the animation-off default) before updating.
-        await chart.publicApi!.update(prepareTestOptions({ animation: { enabled: false }, ...after }));
-        await waitForChartStability(chart);
+        for (const options of updates) {
+            // `update()` bypasses the create-time preparation in `create`, so re-apply the test
+            // sizing/theme (and the animation-off default) before updating.
+            await chart.publicApi!.update(prepareTestOptions({ animation: { enabled: false }, ...options }));
+            await waitForChartStability(chart);
+        }
         const afterImage = ctx.snapshot();
         expect(afterImage).toMatchImage(beforeImage);
     } finally {

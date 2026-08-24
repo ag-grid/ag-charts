@@ -22,11 +22,8 @@ import { isDate } from 'ag-charts-core';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
-// Note: We set crosshair: { enabled: false } and tooltip: { range: 'exact'} to avoid the highlight
-// styling from being rendered styling because there is a race condition with the clickAction and
-// data-update handling, which sometimes triggers the highlight rendering, and sometimes doesn't. We're
-// not explicitly testing highlight rendering, so this allows us to treat highlighted & unhighlighted
-// charts as equal.
+// Crosshair and exact-range tooltip are disabled so highlight styling — which races with the
+// clickAction and data-update handling — cannot vary between runs.
 const BASE_OPTIONS: AgCartesianChartOptions = {
     tooltip: { range: 'exact' },
     dataSource: {
@@ -155,10 +152,8 @@ describe('DataSource', () => {
         await compareImageSnapshot(chart, ctx, {});
     };
 
-    // `scrollAction` dispatches a wheel event and then waits only a fixed delay. The zoom it
-    // triggers commits on a later frame and re-requests data asynchronously, so under CPU load the
-    // effect can land after that fixed wait — asserting straight away then reads stale state. Re-poll
-    // chart stability until the observable effect is seen, bounded so a genuine failure still surfaces.
+    // `scrollAction` waits only a fixed delay, but the zoom it triggers re-requests data on a later
+    // frame, so poll for the observable effect instead of asserting straight away.
     const settleUntil = async (predicate: () => boolean, description: string) => {
         for (let attempt = 0; attempt < 200; attempt++) {
             await waitForChartStability(chart);
@@ -283,9 +278,8 @@ describe('DataSource', () => {
             await response;
             await compare();
 
-            // The wheel zoom commits a frame before the windowed data is re-requested and re-rendered;
-            // wait for that fetch and let it settle, otherwise the snapshot can capture the pre-refetch
-            // frame.
+            // The windowed data is re-requested a frame after the wheel zoom commits, so wait for that
+            // fetch before snapshotting.
             const callsBeforeZoom = callCount;
             await scrollAction(cx, cy, -1)(chart);
             await settleUntil(() => callCount > callsBeforeZoom, 'the zoom-triggered data request');
@@ -552,19 +546,15 @@ describe('DataSource', () => {
     });
 
     describe('invalid response recovery', () => {
-        // A response that renders no data must be retained-not-rendered just like a non-array
-        // response — otherwise it would blank the chart to the no-data overlay. Only a non-array is a
-        // developer error that warrants a warning; every array (empty, primitives, all-null rows, or
-        // rows whose keys do not match the series) is structurally valid and is retained silently when
-        // it renders nothing.
+        // Every array (empty, primitives, all-null rows, or rows whose keys do not match the series) is
+        // structurally valid and retained silently; only a non-array is a developer error worth warning about.
         it.each([
             ['a non-array response', undefined as any, true],
             ['an empty array', [], false],
             ['an array of primitives (wrong shape)', [1, 2, 3], false],
             ['an array of all-null-value objects (null fields)', [{ time: null, price: null }], false],
-            // Renderable-shaped objects whose keys do not match the series (`time`/`price`) are
-            // dispatched but render nothing post-process; the chart must retain the previous data and
-            // stay re-requestable.
+            // Renderable-shaped objects with non-matching keys render nothing post-process, so the chart
+            // must retain the previous data and stay re-requestable.
             [
                 'an array of renderable objects with wrong keys',
                 [
@@ -594,9 +584,8 @@ describe('DataSource', () => {
                 await prepareChart({
                     getData: () => {
                         callCount++;
-                        // First (initial) request: deferred valid data (so we can capture the blank
-                        // loading state first). Next request (the first zoom): invalid. Any later
-                        // request (the recovery zoom): valid again.
+                        // Initial request: deferred valid data, so the blank loading state is observable.
+                        // Second: invalid. Later (the recovery zoom): valid again.
                         if (callCount === 1) return initialResponse;
                         const data = callCount === 2 ? invalidResponse : validData;
                         return delay(1).then(() => data);
@@ -621,10 +610,8 @@ describe('DataSource', () => {
                 await delay(1);
                 await waitForChartStability(chart);
 
-                // The chart keeps its retained data rather than blanking out on the invalid response.
-                // The blank/loading comparison only proves the axes/navigator still draw; the series
-                // retaining renderable data is the load-bearing check (wrong-keyed rows are a valid
-                // array but render nothing, so only this catches their post-process blanking).
+                // Wrong-keyed rows are a valid array that renders nothing, so the series retaining
+                // renderable data — not the blank comparison — is the load-bearing check.
                 const postError = extractImageData(ctx);
                 expect(postError.equals(blank)).toBe(false);
                 expect(chart.chart.series.every((series: { hasData: boolean }) => series.hasData)).toBe(true);

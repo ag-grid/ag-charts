@@ -50,18 +50,21 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setMode(mode: 'continuous' | 'discrete') {
+function modeChange(event: Event) {
+    const mode = (event.target as HTMLInputElement).value as 'continuous' | 'discrete';
     const series = options.series![0] as AgHeatmapSeriesOptions;
     series.colorScale = { ...series.colorScale, mode };
     chart.update(options);
 }
 
-function setGradientLegend(enabled: boolean) {
+function gradientLegendChange(event: Event) {
+    const enabled = (event.target as HTMLInputElement).value === 'on';
     options.gradientLegend = { ...options.gradientLegend, enabled };
     chart.update(options);
 }
 
-function setCategoryLegend(enabled: boolean) {
+function categoryLegendChange(event: Event) {
+    const enabled = (event.target as HTMLInputElement).value === 'on';
     options.legend = { ...options.legend, enabled };
     chart.update(options);
 }

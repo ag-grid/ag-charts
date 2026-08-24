@@ -1,0 +1,27 @@
+@use 'design-system' as *;
+
+// The shared demo page hides its hero and demo card below this breakpoint and leaves this
+// notice the whole page, so it must hide itself above it or both would show.
+.mobileNotice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+
+    @media screen and (min-width: $breakpoint-docs-search-medium) {
+        display: none;
+    }
+}
+
+.heading {
+    margin-bottom: $spacing-size-2;
+    color: var(--color-fg-secondary);
+    text-align: center;
+}
+
+.paragraph {
+    margin-bottom: 0;
+    color: var(--color-fg-tertiary);
+    text-align: center;
+}

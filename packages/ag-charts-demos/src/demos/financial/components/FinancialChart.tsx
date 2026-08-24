@@ -28,9 +28,8 @@ function createFinancialOptions(
     data: ChartDatum[],
     chartType: AgFinancialChartOptions['chartType']
 ): AgFinancialChartOptions {
-    // The visible range is controlled by windowing the data (see below) rather than by
-    // zoom state, so the view streams with the trailing window and no initialState is
-    // re-applied on each update (which would otherwise reset zoom/chart type).
+    // The visible range comes from windowing the data, not zoom state — re-applying initialState on
+    // each update would reset the zoom and chart type.
     return {
         theme: FINANCIAL_THEME,
         data,
@@ -96,10 +95,8 @@ export function FinancialChart({ bars, windowMinutes, ticker }: FinancialChartPr
         if (!chart) return;
         const baseline = windowRef.current;
         windowRef.current = windowedData;
-        // A resize or an instrument change replaces the data outright: transactions would leave the
-        // time axis domain stale, and an instrument change cannot be diffed at all — every feed
-        // shares one time grid, so the new bars carry the same `time` values (the dataIdKey) as the
-        // old. Replacing rather than remounting keeps the zoom and the toolbar's chart type.
+        // Resize or instrument change replaces the data outright: transactions leave the time axis
+        // domain stale, and one shared time grid means `time` (the dataIdKey) cannot diff feeds.
         if (ticker !== tickerRef.current || windowMinutes !== windowMinutesRef.current) {
             tickerRef.current = ticker;
             windowMinutesRef.current = windowMinutes;

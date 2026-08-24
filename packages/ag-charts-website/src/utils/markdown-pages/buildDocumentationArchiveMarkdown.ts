@@ -14,9 +14,7 @@ interface VersionEntry {
     noDocs?: boolean;
 }
 
-// The archive page (documentation-archive.astro + MajorTable.astro) lists one section per
-// major, and within it every non-`noDocs` release, linking each to its archived docs and
-// changelog. Both link helpers already return absolute www.ag-grid.com URLs.
+// Mirrors documentation-archive.astro: one section per major, every non-`noDocs` release.
 function majorTable(versions: VersionEntry[], siteRoot?: string): string {
     const rows = versions.map((entry) => {
         const docsUrl = toAbsoluteUrl(getDocumentationArchiveUrl({ site: 'charts', version: entry.version }), siteRoot);
@@ -40,8 +38,7 @@ function majorTable(versions: VersionEntry[], siteRoot?: string): string {
 export function buildDocumentationArchiveMarkdown({ siteRoot }: { siteRoot?: string } = {}): string {
     const versions = versionsData as VersionEntry[];
 
-    // Majors newest-first, mirroring documentation-archive.astro (the JSON is already sorted
-    // newest-first and majors appear as `x.0.0` entries).
+    // Majors newest-first, mirroring documentation-archive.astro.
     const majors = versions
         .filter((entry) => parseVersion(entry.version).isMajor)
         .map((entry) => parseVersion(entry.version).major);

@@ -64,6 +64,8 @@ export interface AgTreemapSeriesGroupOptions<TDatum, TContext = ContextDefault>
     extends AgTreemapSeriesGroupStyle, AgTreemapSeriesGroupLayout<TDatum, TContext> {
     /** Apply rounded corners to each group. */
     cornerRadius?: PixelSize;
+    /** The colours to cycle through for the fills of the groups, by their depth in the hierarchy. An array of colour strings, or fill objects for gradients, patterns, or images. */
+    fills?: AgColorType[];
     /** Highlight overrides for groups. */
     highlight?: AgTreemapSeriesGroupHighlightOptions;
 }

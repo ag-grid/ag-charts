@@ -1,9 +1,19 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { Padding, PaddingOptions } from 'ag-charts-types';
 
 import type { AxisLabelProperties } from '../annotationProperties';
 import type { AnnotationAxisContext } from '../annotationTypes';
 
 const { calculateLabelTranslation } = _ModuleSupport;
+
+// Defaults preserve the spacing the container had before `padding` was configurable.
+function normaliseAxisLabelPadding(padding: Padding | undefined): Required<PaddingOptions> {
+    if (typeof padding === 'number') {
+        return { top: padding, right: padding, bottom: padding, left: padding };
+    }
+    const { top = 4, right = 8, bottom = 4, left = 8 } = padding ?? {};
+    return { top, right, bottom, left };
+}
 
 type UpdateOpts = {
     x: number;
@@ -70,9 +80,7 @@ export class AxisLabelScene extends _ModuleSupport.Group {
         const { label, rect } = this;
 
         const labelBBox = label.getBBox()?.clone();
-
-        const horizontalPadding = padding ?? 8;
-        const verticalPadding = padding ?? 4;
+        const { top, right, bottom, left } = normaliseAxisLabelPadding(padding);
 
         const { xTranslation, yTranslation } = calculateLabelTranslation({
             yDirection: true,
@@ -81,18 +89,16 @@ export class AxisLabelScene extends _ModuleSupport.Group {
             bbox: labelBBox,
         });
 
-        labelBBox.grow(horizontalPadding, 'horizontal');
-        labelBBox.grow(verticalPadding, 'vertical');
-
         const translationX = x + xTranslation;
         const translationY = y + yTranslation;
 
         label.x = translationX;
         label.y = translationY;
 
-        rect.y = translationY - Math.round(labelBBox.height / 2);
-        rect.x = translationX - Math.round(labelBBox.width / 2);
-        rect.height = labelBBox.height;
-        rect.width = labelBBox.width;
+        // The rect is placed from the text anchor, so asymmetric padding is not averaged away.
+        rect.x = translationX - Math.round(labelBBox.width / 2) - left;
+        rect.y = translationY - Math.round(labelBBox.height / 2) - top;
+        rect.width = labelBBox.width + left + right;
+        rect.height = labelBBox.height + top + bottom;
     }
 }

@@ -131,9 +131,8 @@ describe('buildApiReferenceTable', () => {
         });
     });
 
-    // Mirrors `AgBarSeriesOptions.selection`, which is
-    // `AgSelectionOptions<AgSelectionStyleOptions, AgSelectionStyleOptions>` — without the member's
-    // own type arguments the children render the type-param names and dead-end there.
+    // Without the member's own type arguments the children render the type-param names and
+    // dead-end there.
     it('substitutes generics so nested members resolve and keep expanding', () => {
         const reference = makeReference({
             Root: iface('Root', [member('selection', typeRef('Selection', ['StyleOptions', 'StyleOptions']))]),
@@ -162,9 +161,8 @@ describe('buildApiReferenceTable', () => {
         expect(row(table, 'selection.selectedItem')?.[1]).toBe('StyleOptions');
     });
 
-    // Shaped like `crossLines?: AgAngleCrossLineOptions<AgNumericValue>[]`, where the supplied
-    // argument differs from the type-param default. The member resolves through the array, so the
-    // type arguments have to as well or the children fall back to the default.
+    // The member resolves through the array, so the type arguments have to as well or the
+    // children fall back to the type-param default.
     it('substitutes generics through an array member', () => {
         const reference = makeReference({
             Root: iface('Root', [

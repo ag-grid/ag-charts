@@ -37,7 +37,6 @@ import {
 import { OhlcBaseNode } from './ohlcNode';
 import type { OhlcSeriesBaseProperties } from './ohlcSeriesProperties';
 
-// Semantic constants for OHLC data access
 const OPEN = AGGREGATION_INDEX_X_MIN;
 const HIGH = AGGREGATION_INDEX_Y_MAX;
 const LOW = AGGREGATION_INDEX_Y_MIN;
@@ -113,7 +112,6 @@ interface PreparedOhlcNodeDatumState {
  * or resolve - cheap property lookups use `this` directly in methods.
  */
 interface OhlcSeriesNodeDatumContext {
-    // Data arrays (resolved from dataModel - worth caching)
     readonly rawData: any[];
     readonly xValues: any[];
     readonly openValues: AgNumericValue[];
@@ -121,40 +119,33 @@ interface OhlcSeriesNodeDatumContext {
     readonly highValues: AgNumericValue[];
     readonly lowValues: AgNumericValue[];
 
-    // Scales (axis lookups - worth caching)
     readonly xScale: Scale<any, any>;
     readonly yScale: Scale<any, any>;
 
-    // Axes (for range calculations and other operations)
     readonly xAxis: _ModuleSupport.ChartAxis;
     readonly yAxis: _ModuleSupport.ChartAxis;
 
-    // Pre-computed positioning values
     readonly barWidth: number;
     readonly groupOffset: number;
     readonly barOffset: number;
     readonly applyWidthOffset: boolean;
     readonly crisp: boolean;
 
-    // Property lookups (constant across all datums - worth caching)
     readonly xKey: string;
     readonly openKey: string;
     readonly closeKey: string;
     readonly highKey: string;
     readonly lowKey: string;
 
-    // Aggregation state
     readonly dataAggregationFilter: OhlcSeriesDataAggregationFilter | undefined;
     readonly range: number;
 
     // Scratch object for reuse (mutated in loops)
     readonly nodeDatumStateScratch: PreparedOhlcNodeDatumState;
 
-    // Incremental update tracking
     readonly canIncrementallyUpdate: boolean;
-    nodeIndex: number; // mutable - tracks current position
+    nodeIndex: number;
 
-    // Working state (mutable)
     nodeData: OhlcNodeDatum[];
 }
 
@@ -190,7 +181,7 @@ function resetOhlcSelectionsDirect<D extends OhlcNodeDatum>(
                 const datum = node.datum;
                 if (datum == null) continue;
 
-                // Direct method bypasses decorators - writes to __centerX, __y, etc.
+                // Bypasses the decorators, writing to __centerX, __y, etc. directly.
                 node.setStaticProperties(
                     datum.centerX,
                     datum.width,
@@ -201,7 +192,6 @@ function resetOhlcSelectionsDirect<D extends OhlcNodeDatum>(
                     datum.crisp
                 );
             }
-            // Important: cleanup garbage-collected nodes (same as resetMotion does)
             selection.cleanup();
         });
     }
@@ -331,10 +321,8 @@ export abstract class OhlcSeriesBase<
         return Math.abs(r1 - r0);
     }
 
-    // Picked OHLC datums use `midpointIndices[i]`, which is rarely one of the four
-    // extrema stored at OPEN/HIGH/LOW/CLOSE. The helper re-derives the bucket from
-    // the midpoint's xValue (guaranteed to lie within the bucket's x-range) rather
-    // than trusting the index itself.
+    // Picked datums use `midpointIndices[i]`, rarely one of the four extrema, so the bucket is
+    // re-derived from the midpoint's xValue rather than trusting the index.
     protected override createBucketLookupFeature(): _ModuleSupport.BucketLookupFeature {
         return new _ModuleSupport.BucketLookupManager({
             series: this,
@@ -426,8 +414,7 @@ export abstract class OhlcSeriesBase<
         const [r0, r1] = xScale.range;
         const range = Math.abs(r1 - r0);
 
-        // Ensure we have the aggregation level needed for the current range
-        // This will force-compute deferred levels if necessary
+        // Force-computes deferred levels if necessary.
         this.aggregationManager.ensureLevelForRange(range);
 
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
@@ -499,9 +486,7 @@ export abstract class OhlcSeriesBase<
         const highValue = ctx.highValues[datumIndex];
         const lowValue = ctx.lowValues[datumIndex];
 
-        // Validate that low value is less than or equal to open and close
         const validLowValue = lowValue != null && lowValue <= openValue && lowValue <= closeValue;
-        // Validate that high value is greater than or equal to open and close
         const validHighValue = highValue != null && highValue >= openValue && highValue >= closeValue;
 
         if (!validLowValue) {
@@ -522,7 +507,6 @@ export abstract class OhlcSeriesBase<
         const isRising = closeValue > openValue;
         const itemType = isRising ? 'up' : 'down';
 
-        // Mutate scratch object
         const scratch = ctx.nodeDatumStateScratch;
         scratch.datum = datum;
         scratch.xValue = xValue;
@@ -602,7 +586,6 @@ export abstract class OhlcSeriesBase<
     ): void {
         const mutableNode = node as Mutable<OhlcNodeDatum>;
 
-        // Compute positioning
         const xOffset = ctx.applyWidthOffset ? width / 2 : 0;
         const adjustedCenterX = centerX + xOffset;
 
@@ -614,7 +597,6 @@ export abstract class OhlcSeriesBase<
         const y = Math.min(yHigh, yLow);
         const height = Math.max(yHigh, yLow) - y;
 
-        // Update all properties in-place
         mutableNode.datum = prepared.datum;
         mutableNode.datumIndex = datumIndex;
         mutableNode.itemType = prepared.itemType;
@@ -633,7 +615,7 @@ export abstract class OhlcSeriesBase<
         mutableNode.yClose = yClose;
         mutableNode.crisp = crisp;
 
-        // Update midPoint in place to avoid allocation
+        // Updated in place to avoid an allocation.
         const mutableMidPoint = mutableNode.midPoint as Mutable<Point>;
         mutableMidPoint.x = adjustedCenterX;
         mutableMidPoint.y = y + height / 2;
@@ -656,10 +638,8 @@ export abstract class OhlcSeriesBase<
         const canReuse = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodeData.length;
 
         if (canReuse) {
-            // Update existing node in-place
             this.updateNodeDatum(ctx, ctx.nodeData[ctx.nodeIndex], prepared, datumIndex, centerX, width, crisp);
         } else {
-            // Create new node
             const newNode = this.createSkeletonNodeDatum(ctx, prepared, datumIndex, centerX, width, crisp);
             ctx.nodeData.push(newNode);
         }
@@ -674,7 +654,6 @@ export abstract class OhlcSeriesBase<
 
         if (!xAxis || !yAxis) return;
 
-        // Create shared context for datum creation (instantiated once, reused for all datums)
         const ctx = this.buildDatumContext(xAxis, yAxis);
 
         const resultContext = {
@@ -715,7 +694,6 @@ export abstract class OhlcSeriesBase<
                 this.upsertNodeDatum(ctx, datumIndex, centerX, ctx.barWidth, ctx.crisp);
             }
 
-            // Trim excess nodes if data shrunk
             if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodeData.length) {
                 ctx.nodeData.length = ctx.nodeIndex;
             }
@@ -740,11 +718,9 @@ export abstract class OhlcSeriesBase<
                 const midDatumIndex = midpointIndices[i];
                 if (midDatumIndex === -1) continue;
 
-                // Use prepareOhlcNodeDatumState to validate and prepare scratch state
                 const prepared = this.prepareOhlcNodeDatumState(ctx, midDatumIndex);
                 if (!prepared) continue;
 
-                // Override values from aggregated indices
                 prepared.openValue = ctx.openValues[openIndex];
                 prepared.closeValue = ctx.closeValues[closeIndex];
                 prepared.highValue = ctx.highValues[highIndex];
@@ -758,7 +734,6 @@ export abstract class OhlcSeriesBase<
                 const canReuse = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodeData.length;
 
                 if (canReuse) {
-                    // Update existing node in-place
                     this.updateNodeDatum(
                         ctx,
                         ctx.nodeData[ctx.nodeIndex],
@@ -769,14 +744,12 @@ export abstract class OhlcSeriesBase<
                         false
                     );
                 } else {
-                    // Create new node
                     const nodeDatum = this.createSkeletonNodeDatum(ctx, prepared, midDatumIndex, centerX, width, false);
                     ctx.nodeData.push(nodeDatum);
                 }
                 ctx.nodeIndex++;
             }
 
-            // Trim excess nodes if data shrunk
             if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodeData.length) {
                 ctx.nodeData.length = ctx.nodeIndex;
             }

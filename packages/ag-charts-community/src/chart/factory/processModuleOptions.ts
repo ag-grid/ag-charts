@@ -51,10 +51,8 @@ export function __clearSanitizedThemeCacheForTests() {
 function sanitizeThemeModulesUncached(theme: ChartTheme): ChartTheme {
     const missingModules = new Map<string, Set<string>>();
 
-    // Keys already covered by at least one registered axis-plugin module. A missing
-    // module must not prune a theme key that a *different* registered module also owns
-    // (e.g. `CrossLinesModule` absent should not prune `crossLines` when
-    // `PolarCrossLinesModule` — which shares `optionsKey: 'crossLines'` — is present).
+    // Keys already covered by a registered axis-plugin module. A missing module must not prune a theme key
+    // another registered module also owns (`CrossLinesModule` vs `PolarCrossLinesModule` share `crossLines`).
     const coveredAxisPluginKeys = new Set<string>(
         [...ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)].map((m) => m.optionsKey ?? m.name)
     );
@@ -174,15 +172,21 @@ function sanitizeThemeModulesUncached(theme: ChartTheme): ChartTheme {
     });
 }
 
+/** What `processModuleOptions` wrote to the console, and the full set of modules it dropped for it. */
+export interface ProcessModuleOptionsReport {
+    message: string;
+    missingModules: ModulePlaceholder[];
+}
+
 export function processModuleOptions<T extends Partial<AgChartOptions>>(
     chartType: string | undefined,
     options: T,
     additionalMissingModules: ModulePlaceholder[],
     logger: Logger
-): void {
+): ProcessModuleOptionsReport | undefined {
     const missingModules = unique(removeUnregisteredModuleOptions(chartType, options).concat(additionalMissingModules));
 
-    if (!missingModules.length) return;
+    if (!missingModules.length) return undefined;
 
     const installationReferenceUrl = ModuleRegistry.isIntegrated()
         ? 'https://www.ag-grid.com/data-grid/integrated-charts-installation/'
@@ -190,11 +194,16 @@ export function processModuleOptions<T extends Partial<AgChartOptions>>(
 
     const missingOptions = groupBy(missingModules, (module) => (module.enterprise ? 'enterprise' : 'community'));
 
+    let message: string;
     if (ModuleRegistry.isUmd()) {
-        logger.warnOnce(umdMissingModulesMessage(missingOptions.enterprise ?? []));
+        message = umdMissingModulesMessage(missingOptions.enterprise ?? []);
+        logger.warnOnce(message);
     } else {
-        logger.errorOnce(bundlerMissingModulesMessage(missingModules, missingOptions, installationReferenceUrl));
+        message = bundlerMissingModulesMessage(missingModules, missingOptions, installationReferenceUrl);
+        logger.errorOnce(message);
     }
+
+    return { message, missingModules };
 }
 
 function umdMissingModulesMessage(enterpriseModules: ModulePlaceholder[]): string {
@@ -354,9 +363,8 @@ export function removeIncompatibleModuleOptions<T extends Partial<AgChartOptions
     ) => chartType == null || !module.chartType || module.chartType === chartType;
     const incompatibleModules: string[] = [];
 
-    // Axis-plugin modules can share an `optionsKey` (e.g. `CrossLinesModule` and `PolarCrossLinesModule`
-    // both expose `axis.crossLines`). Only strip an option key if no compatible axis-plugin module
-    // claims it for the current chartType.
+    // Axis-plugin modules can share an `optionsKey`, so only strip a key when no compatible axis-plugin
+    // module claims it for the current chartType.
     const supportedAxisPluginKeys = new Set<string>();
     for (const module of ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
         if (matchChartType(module)) {

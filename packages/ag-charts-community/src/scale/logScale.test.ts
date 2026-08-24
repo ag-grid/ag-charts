@@ -211,7 +211,7 @@ describe('LogScale', () => {
     });
 
     // Log scales carry a transform, so bigints narrow to Number through the standard path rather
-    // than the linear bigint ratio — accepted limitation, AG-16608 AC #9.
+    // than the linear bigint ratio — an accepted limitation.
     describe('convert bigint', () => {
         test('positive bigints match the equivalent number conversion', () => {
             const bigScale = new LogScale();
@@ -236,9 +236,8 @@ describe('LogScale', () => {
         });
 
         test('niceDomain and ticks accept a raw bigint domain argument without throwing', () => {
-            // generateTicks passes the raw dataDomain (which can retain bigint endpoints) to
-            // niceDomain/ticks BEFORE scale.domain narrows it, so Math.min(...domain) and Math.log(bigint)
-            // must not throw "Cannot convert a BigInt value to a number" or the log axis never renders.
+            // generateTicks passes the raw dataDomain, which can retain bigint endpoints, to
+            // niceDomain/ticks before scale.domain narrows it, so those must tolerate bigints.
             const scale = new LogScale();
             const ticks = {
                 nice: [true, true] as [boolean, boolean],

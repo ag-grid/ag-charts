@@ -49,8 +49,7 @@ const {
 class TreemapNode extends _ModuleSupport.HierarchyNode<TreemapNode> {
     labelValue: string | undefined = undefined;
     secondaryLabelValue: string | undefined = undefined;
-    // Leaf-only: preserves the formatter's segment output so image segments survive the
-    // squarify step. Group titles still use the string-typed labelValue.
+    // Leaf-only: preserves the formatter's segment output so image segments survive the squarify step.
     labelText: NormalisedTextOrSegments | undefined = undefined;
     secondaryLabelText: NormalisedTextOrSegments | undefined = undefined;
     label: LabelLayout | undefined = undefined;
@@ -196,8 +195,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         node.midPoint.y = Number.NaN;
     }
 
-    // A group whose allocated box cannot fit its own padding can lay out no child, so it would render
-    // only an empty container. Leaves render at any size, so they never count as collapsed.
+    // A group whose box can't fit its own padding would render an empty container; leaves never count as collapsed.
     private collapses(node: TreemapNode, bbox: _ModuleSupport.BBox): boolean {
         if (node.children.length === 0) return false;
         if (bbox.width <= 0 || bbox.height <= 0) return true;
@@ -235,8 +233,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         const width = bbox.width - padding.left - padding.right;
         const height = bbox.height - padding.top - padding.bottom;
 
-        // A group whose inner box collapses under its own padding can lay out no child, so hide the
-        // whole subtree — otherwise it renders as an empty container tile in space no real tile fills.
+        // A group whose inner box collapses under its own padding can lay out no child, so hide the whole subtree.
         if (width <= 0 || height <= 0) {
             if (children.length > 0) {
                 node.walk((n) => this.hideNode(n));
@@ -246,10 +243,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
         const innerBox = new BBox(bbox.x + padding.left, bbox.y + padding.top, width, height);
 
-        // Lay the children out, then drop any group whose allocated box is too small to fit its own
-        // padding: it can render nothing, and leaving it in the partition reserves space no tile fills
-        // (the phantom tiles seen after a resize). Re-lay the survivors so they reclaim the freed area.
-        // Removing a collapsed group only enlarges the rest, so this reaches a fixpoint.
+        // Drop any child too small to fit its own padding and re-lay the survivors to reclaim its space; this converges since removing a collapsed child only enlarges the rest.
         let indices = sortedChildrenIndices;
         const collapsed = new Set<TreemapNode>();
         let layout = this.layoutChildren(children, indices, innerBox, allLeafNodes);
@@ -319,7 +313,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 continue;
             }
 
-            // Go one step back and process the best match
             stackSum -= value;
             stackThickness = (partThickness * stackSum) / partitionSum;
             let start = isVertical ? partition.x : partition.y;
@@ -354,7 +347,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             // Deliberately don't increment i on this control flow.
         }
 
-        // Process remaining space
         const isVertical = partition.width < partition.height;
         let start = isVertical ? partition.x : partition.y;
         for (let childIdx = startIndex; childIdx < numChildren; childIdx++) {
@@ -405,7 +397,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         const { missingDataFill } = properties.colorScale;
         const rootIndex = nodeDatum.path?.[0] ?? 0;
 
-        const fills = isLeaf ? properties.fills : properties.undocumentedGroupFills;
+        const fills = isLeaf ? properties.fills : properties.group.fills;
         const strokes = isLeaf ? properties.strokes : properties.undocumentedGroupStrokes;
         const index = isLeaf ? rootIndex : (nodeDatum.depth ?? -1);
 
@@ -466,7 +458,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         const { id: seriesId } = this;
         const { colorKey, childrenKey, sizeKey, labelKey, secondaryLabelKey } = this.properties;
 
-        // `style` is the resolved item style; its `fill` no longer carries unresolved colour refs.
         const fill = this.filterItemStylerFillParams(style.fill as InternalAgColorType) ?? style.fill;
 
         return {
@@ -589,9 +580,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
             node.labelValue = toPlainText(labelValue);
             node.secondaryLabelValue = toPlainText(secondaryLabelValue);
-            // Image-bearing segment arrays are only preserved for leaf tiles. Group titles use the
-            // plain-text representation so the (smaller) group header stays text-only — formatter
-            // output for groups that returns image segments is rendered as its `alt`-text fallback.
+            // Image-bearing segments are preserved for leaf tiles only; group headers stay text-only (alt-text fallback).
             node.labelText = isLeaf ? labelValue : undefined;
             node.secondaryLabelText = isLeaf ? secondaryLabelValue : undefined;
         });
@@ -841,7 +830,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         const highlightedIndex = highlightedNode?.path;
         const isDescendant = this.isDescendantDatumIndex(nodeIndex, highlightedIndex);
 
-        // For leaf nodes
         if (nodeDatum.children?.length === 0) {
             if (nodeIndex == null || highlightedNode == null || highlightedNode.children?.length === 0) {
                 return HierarchyHighlightState.None;
@@ -850,7 +838,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             return isDescendant ? HierarchyHighlightState.Item : HierarchyHighlightState.OtherItem;
         }
 
-        // For group nodes
         if (highlightedNode == null || highlightedNode.children?.length === 0) {
             return HierarchyHighlightState.None;
         }
@@ -974,9 +961,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             return exactMatch[0];
         }
 
-        // We don't need to recurse on the tree because the root's nodes bounding-box contain all bounding boxes
-        // of the descendants. Therefore the nearest node is always a child of the root. If there is an exact
-        // match, then the pickNodeExactShape function will return a result, and this function wouldn't be called.
+        // No need to recurse: the root's bbox contains all descendant bboxes, so the nearest node is always a direct child.
         return this.pickNodeNearestDistantObject(point, this.datumSelection.nodes());
     }
 

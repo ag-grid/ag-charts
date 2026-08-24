@@ -22,6 +22,7 @@ import {
     type CallbackParamRules,
     ChartUpdateType,
     type DeepRequired,
+    type DynamicContext,
     type Normalised,
     type NormalisedColorType,
     type NormalisedTextOrSegments,
@@ -35,6 +36,7 @@ import {
 
 import { NetworkLinkNode } from '../network/networkLinkNode';
 import { AbstractNetworkSeries } from '../network/networkSeries';
+import { NetworkStackedLayout, type NetworkStackedLayoutUpdateOptions } from '../network/networkStackedLayout';
 import { NetworkTreeLayout, type NetworkTreeLayoutUpdateOptions } from '../network/networkTreeLayout';
 import type { NetworkLinkInterpolation } from '../network/networkTypes';
 import { OrganizationGraph } from './organizationGraph';
@@ -53,12 +55,18 @@ import type {
 
 const { keyProperty, valueProperty } = _ModuleSupport;
 
+/** Highlight part naming the expander pill, as distinct from the card behind it. */
+const EXPANDER_HIGHLIGHT_PART = 'expander';
+
 interface DatumCallbackState {
     allChildren: number;
     depth: number;
     directChildren: number;
     isCollapsed: boolean;
 }
+
+type OrganizationLayoutUpdateOptions = NetworkTreeLayoutUpdateOptions<OrganizationVertex, OrganizationEdge> &
+    NetworkStackedLayoutUpdateOptions<OrganizationVertex, OrganizationEdge>;
 
 export class OrganizationSeries extends AbstractNetworkSeries<
     OrganizationVertex,
@@ -75,6 +83,17 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     override properties = new OrganizationSeriesProperties();
 
     private rootVertex?: Vertex<OrganizationVertex, OrganizationEdge>;
+
+    private stackedLayout?: NetworkStackedLayout<OrganizationVertex, OrganizationEdge>;
+
+    /** Source-data index of the node whose expander pill the pointer is currently over. */
+    private hoveredExpanderDatumIndex?: number;
+
+    constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
+        super(ctx);
+
+        this.cleanup.register(ctx.eventsHub.on('highlight:change', (event) => this.onHighlightChange(event)));
+    }
 
     createNetworkGraph() {
         return new OrganizationGraph(this.ctx.logger);
@@ -213,9 +232,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
             const isHighlight = highlightedDatum?.datumIndex === datum.datumIndex;
             const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-            // Only report `isCollapsed` for nodes whose descendants would actually be hidden;
-            // a leaf id present in `collapsedManager` is a no-op visually and would mislead
-            // styler consumers about the rendered tree state.
+            // A leaf id present in `collapsedManager` hides nothing, so reporting it as collapsed
+            // would mislead styler consumers about the rendered tree state.
             const isCollapsed =
                 allChildren > 0 && datum.itemId != null && this.ctx.collapsedManager.isCollapsed(datum.itemId);
 
@@ -226,7 +244,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 isCollapsed,
             };
 
-            const styles = this.getNodeStyle(datumIndex, isHighlight, highlightState, datumState);
+            const isExpanderHovered = this.hoveredExpanderDatumIndex === datumIndex;
+
+            const styles = this.getNodeStyle(datumIndex, isHighlight, highlightState, datumState, isExpanderHovered);
             node.opacity = this.getNodeOpacity(datumIndex, isHighlight, highlightState);
 
             const fields = this.resolveVertexFields(datum.vertex);
@@ -321,8 +341,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         let vertex = this.graph.findVertexById(id);
         if (!vertex) return;
 
-        // Iterate up the parents until we reach the root node, which does not have a datumIndex, and expand the full
-        // ancestry to ensure the active node is visible.
+        // The root has no datumIndex; the whole ancestry is expanded so the active node is visible.
         const ids: OrganizationVertexID[] = [];
         const idValues = dataModel.resolveKeysById(this, 'idValue', processedData);
         while (
@@ -365,17 +384,42 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return target?.tag === Expander;
     }
 
-    // A pointer click toggles collapse only when it lands on the expander pill; `clickToExpand`
-    // widens that to the whole card. Keyboard Enter/Space activations arrive with no pointer target,
-    // so they toggle exactly when `clickToExpand` is enabled — restoring the pre-Alt+Up/Down behaviour.
+    // The manager has already performed the pick; this hook only names the part it hit.
+    override getHighlightPart(target: _ModuleSupport.Node<unknown> | undefined): string | undefined {
+        return this.isExpanderTarget(target) ? EXPANDER_HIGHLIGHT_PART : undefined;
+    }
+
+    // The highlight carries the hovered part while the pointer is over the pill, and drops it the
+    // moment it is not.
+    private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
+        const { currentHighlight, currentHighlightPart } = event;
+        const datumIndex =
+            currentHighlight?.series === this &&
+            currentHighlightPart === EXPANDER_HIGHLIGHT_PART &&
+            typeof currentHighlight.datumIndex === 'number'
+                ? currentHighlight.datumIndex
+                : undefined;
+
+        this.setHoveredExpanderDatumIndex(datumIndex);
+    }
+
+    private setHoveredExpanderDatumIndex(datumIndex: number | undefined) {
+        if (this.hoveredExpanderDatumIndex === datumIndex) return;
+
+        this.hoveredExpanderDatumIndex = datumIndex;
+        // SERIES_UPDATE is the stage that re-runs `updateDatumNodes`, where expander paint is resolved;
+        // SCENE_RENDER sits downstream of it and would not repaint.
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SERIES_UPDATE });
+    }
+
+    // A pointer click toggles collapse only on the expander pill, which `clickToExpand` widens to the
+    // whole card. Keyboard activations carry no pointer target, so they toggle only when it is enabled.
     override hasBuiltinListener(target: _ModuleSupport.Node<unknown> | undefined): boolean {
         return this.isExpanderTarget(target) || this.properties.node.clickToExpand;
     }
 
-    // Expanding/collapsing is a distinct interaction from activating a node, so the expander pill
-    // keeps its clicks to itself (AG-17947). Note this is deliberately independent of
-    // `clickToExpand`: a card-body click still fires the node events even when it also toggles, so
-    // consumers get a consistent event surface and can `preventDefault()` if they want.
+    // Expanding is a distinct interaction from activating a node, so the expander pill keeps its
+    // clicks to itself; a card-body click still fires the node events even when it also toggles.
     override firesUserClickListeners(target: _ModuleSupport.Node<unknown> | undefined): boolean {
         return !this.isExpanderTarget(target);
     }
@@ -443,8 +487,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const itemId = vertex.value as string;
         const isCollapsed = this.ctx.collapsedManager.isCollapsed(itemId);
         const collapsedState = this.ctx.localeManager.t(isCollapsed ? 'ariaOrgChartCollapsed' : 'ariaOrgChartExpanded');
-        // Alt+Down/Up always toggle a node, so advertise them unconditionally. Enter/Space only
-        // toggle when `clickToExpand` is enabled (see `hasBuiltinListener`), so only mention them then.
+        // Enter/Space only toggle when `clickToExpand` is enabled (see `hasBuiltinListener`).
         const instructions = [
             this.ctx.localeManager.t(isCollapsed ? 'ariaDescriptionExpandNode' : 'ariaDescriptionCollapseNode'),
         ];
@@ -499,9 +542,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return node.getShapeBBox();
     }
 
-    // Drag-to-select hit-tests against the card only. The default predicate uses the node's
-    // full bbox, which for an org node also spans the expander pill's overhang, so a drag-rect
-    // touching only the pill would wrongly pick the node.
+    // Hit-test the card only: the default full-bbox predicate also spans the expander pill's overhang,
+    // so a drag-rect touching only the pill would wrongly pick the node.
     protected override pickNodesInBBoxPredicate() {
         const { containment } = this.properties.selection;
         return (selectionBox: BoxBounds, node: _ModuleSupport.Node): boolean => {
@@ -514,9 +556,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         };
     }
 
-    protected override makeLayoutUpdateOptions(): NetworkTreeLayoutUpdateOptions<OrganizationVertex, OrganizationEdge> {
+    protected override makeLayoutUpdateOptions(): OrganizationLayoutUpdateOptions {
         const {
-            properties: { node, expander, innerSpacing, outerSpacing, depthSpacing },
+            properties: { node, expander, innerSpacing, outerSpacing, depthSpacing, layout },
         } = this;
 
         return {
@@ -537,6 +579,21 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             verticalSpacingExtra: expander.enabled
                 ? (expander.text.fontSize + expander.padding.top + expander.padding.bottom + expander.strokeWidth) / 2
                 : 0,
+
+            linkIndentation: layout.linkIndentation,
+            nodeIndentation: layout.nodeIndentation,
+            stackAtDepth: layout.stackAtDepth,
+
+            getLayout:
+                layout.type === 'stacked'
+                    ? (vertex) => {
+                          const depth = this.graph.findNeighbourValue(vertex, 'depth') as number | undefined;
+                          if (depth == null || depth < layout.stackAtDepth - 1) return;
+
+                          this.stackedLayout ??= new NetworkStackedLayout();
+                          return this.stackedLayout;
+                      }
+                    : () => undefined,
         };
     }
 
@@ -554,9 +611,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return parts.join(', ');
     }
 
-    // Returns the next focus vertex per the spatial model, or `undefined` for a no-op (ArrowUp
-    // at the top tier, ArrowDown into a leaf) so focus stays put. ArrowDown on a collapsed node
-    // automatic expands it.
+    // Returns `undefined` for a no-op so focus stays put; ArrowDown on a collapsed node expands it.
     private resolveFocusVertex(
         current: Vertex<OrganizationVertex, OrganizationEdge>,
         siblingDelta: number,
@@ -781,7 +836,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         datumIndex: number,
         isHighlight: boolean,
         highlightState: _ModuleSupport.HighlightState | undefined,
-        datumState: DatumCallbackState
+        datumState: DatumCallbackState,
+        isExpanderHovered: boolean
     ): NormalisedOrganizationNodeStyle {
         const { dataModel, processedData } = this;
         const { itemStyler } = this.properties.node;
@@ -839,6 +895,12 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             highlightState,
             datumState
         );
+
+        // Applied after the styler so hovering does not re-invoke the user's callback with hover-shifted
+        // params, and so the hovered treatment wins over whatever the styler returned.
+        if (isExpanderHovered) {
+            style.expander = this.applyExpanderHoverStyle(style.expander);
+        }
 
         let labelIndex = 0;
         for (const { itemStyler: labelStyler } of this.properties.node.labels) {
@@ -963,6 +1025,26 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 showAllChildren: text.showAllChildren,
                 showDirectChildren: text.showDirectChildren,
                 textAlign: text.textAlign,
+            },
+        };
+    }
+
+    private applyExpanderHoverStyle(
+        style: NormalisedOrganizationSeriesExpanderStyle
+    ): NormalisedOrganizationSeriesExpanderStyle {
+        const { hoverStyle } = this.properties.expander;
+        return {
+            ...style,
+            fill: hoverStyle.fill ?? style.fill,
+            fillOpacity: hoverStyle.fillOpacity ?? style.fillOpacity,
+            lineDash: hoverStyle.lineDash ?? style.lineDash,
+            lineDashOffset: hoverStyle.lineDashOffset ?? style.lineDashOffset,
+            stroke: hoverStyle.stroke ?? style.stroke,
+            strokeOpacity: hoverStyle.strokeOpacity ?? style.strokeOpacity,
+            text: {
+                ...style.text,
+                color: hoverStyle.text.color ?? style.text.color,
+                fontWeight: hoverStyle.text.fontWeight ?? style.text.fontWeight,
             },
         };
     }

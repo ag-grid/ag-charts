@@ -172,12 +172,10 @@ export class DataSet<T = unknown> {
     private normalizeTransaction(transaction: DataSetTransaction<T>): DataSetTransaction<T> {
         const { add, addIndex, prepend, append, remove, update } = transaction;
 
-        // If using legacy format, return as-is
         if (add === undefined) {
             return transaction;
         }
 
-        // Convert add+addIndex to prepend/append/insertions
         const result: DataSetTransaction<T> = { remove, update };
 
         // Preserve any existing prepend/append (shouldn't happen in practice)
@@ -189,10 +187,8 @@ export class DataSet<T = unknown> {
             const currentSize = this.netSize();
 
             if (addIndex === undefined || addIndex >= currentSize) {
-                // Append to end (default behaviour)
                 result.append = append ? [...append, ...add] : add;
             } else if (addIndex === 0) {
-                // Prepend to beginning
                 result.prepend = prepend ? [...add, ...prepend] : add;
             } else {
                 // Arbitrary insertion: store in insertions array
@@ -229,20 +225,16 @@ export class DataSet<T = unknown> {
             return false;
         }
 
-        // Get all insertion values in order: prepends, insertions, appends
         const prependedValues = changeDescription.getPrependedValues<T>();
         const insertionValues = changeDescription.getInsertionValues<T>();
         const appendedValues = changeDescription.getAppendedValues<T>();
 
-        // Create a flat list of all values to insert, in the order they'll be consumed
         const allInsertionValues = [...prependedValues, ...insertionValues, ...appendedValues];
 
-        // Use a sequential index to consume insertion values in order instead of a map
-        // keyed by destination index (which causes collisions when multiple insertions
-        // target overlapping indices)
+        // Consume insertion values sequentially; keying by destination index collides when
+        // multiple insertions target overlapping indices.
         let insertionValueIndex = 0;
 
-        // Apply transformations using sequential consumption
         changeDescription.applyToArray(this.data, function applyToArrayResultFn(destIndex: number) {
             if (insertionValueIndex >= allInsertionValues.length) {
                 throw new Error(`AG Charts - Internal error: No insertion value found for index ${destIndex}`);
@@ -250,9 +242,8 @@ export class DataSet<T = unknown> {
             return allInsertionValues[insertionValueIndex++];
         });
 
-        // Apply pending replacements for ID-based updates using final indices.
-        // Only original-data updates populate pendingReplacements (via collectUpdatedOriginalIndicesById);
-        // prepend/append/insertion updates are applied in-place during collectUpdatedIndicesFromGroupsById.
+        // Only original-data updates populate pendingReplacements; prepend/append/insertion updates
+        // are already applied in place.
         if (this.cachedPendingReplacements && this.cachedPendingReplacements.size > 0) {
             const { updatedIndices } = changeDescription.indexMap;
             for (const finalIdx of updatedIndices) {
@@ -392,9 +383,8 @@ export class DataSet<T = unknown> {
             return;
         }
 
-        // Incremental maintenance: shift indices, remove deleted entries, add new entries.
-        // Safe to mutate Map during for..of: delete of current/visited keys is spec-safe,
-        // set of existing keys updates value without affecting iteration order.
+        // Safe to mutate the Map during for..of: deleting current/visited keys is spec-safe, and
+        // setting an existing key updates the value without affecting iteration order.
         const idCache = this.idToIndexCache;
         const indexShift = totalPrependCount - contiguousRemovalCount;
 
@@ -423,7 +413,6 @@ export class DataSet<T = unknown> {
             }
         }
 
-        // Add entries for appended items.
         const appendStartIndex = indexMap.finalLength - totalAppendCount;
         for (let i = 0; i < appendedValues.length; i++) {
             const id = this.getIdValue(appendedValues[i]);
@@ -456,7 +445,6 @@ export class DataSet<T = unknown> {
             return undefined;
         }
 
-        // Return cached version if available
         if (this.cachedChangeDescription) {
             return this.cachedChangeDescription;
         }
@@ -1187,9 +1175,8 @@ export class DataSet<T = unknown> {
 
                 const removalsBeforeCount = sortedRemovedAsc ? removalPtr : 0;
 
-                // Count insertions that occur before this original's position in the virtual array.
-                // An original at index `originalIdx` has virtual index `originalIdx + totalPrependCount`.
-                // Insertions with virtualIndex <= that position shift the original forward.
+                // An original at `originalIdx` sits at virtual index `originalIdx + totalPrependCount`;
+                // insertions at or before that position shift it forward.
                 const virtualPosOfOriginal = originalIdx + totalPrependCount;
                 let insertionsBeforeCount = 0;
                 for (const insertion of trackedInsertions) {

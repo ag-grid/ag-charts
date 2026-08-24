@@ -597,9 +597,7 @@ function useMemberAdditionalDetails(member: MemberNode): MemberAdditionalDetails
         return resolvedDetails;
     }
 
-    // Union of named interfaces: a direct union alias (`fill`), an empty interface whose heritage is
-    // a union alias (axis-specific cross-lines), or a union mixing primitives with named interfaces
-    // (`format`). Expand into the named interface variants; primitive members are dropped from the list.
+    // Expand a union of named interfaces into its variants; primitive members are dropped from the list.
     const aliasedUnion = resolveAliasedUnion(
         resolvedDetails && !Array.isArray(resolvedDetails) ? resolvedDetails : undefined,
         reference

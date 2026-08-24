@@ -19,6 +19,8 @@ export class AgQuadrantChart extends AgChartsBase<AgQuadrantChartOptions> {
     @Output()
     public chartReady: EventEmitter<AgChartInstance> = new EventEmitter();
 
+    protected readonly selector = 'ag-quadrant-chart';
+
     constructor(
         elementDef: ElementRef,
         protected ngZone: NgZone

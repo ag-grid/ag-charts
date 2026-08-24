@@ -84,13 +84,8 @@ describe('PieSeries', () => {
     const ctx = setupMockCanvas();
     const options: AgPolarChartOptions = prepareTestOptions({});
 
-    // The public animation data actions — initial-load, add, remove, update, legend-toggle — each
-    // asserted over the whole animation trajectory (see the animation-trajectory-tests rule). Add and
-    // remove append/truncate at the tail; the pie-series-test page's manual-only reorder, rapid-update,
-    // change-in-place and start/middle add/remove controls exercise the same span/radius/fade code paths
-    // and are not reproduced here. Pie sectors sweep their angular SPAN; the outer radius re-layouts as
-    // the callout labels claim or release room; the callout labels snap to opacity 0 when the data lands
-    // and re-fade during the trailing phase.
+    // The public animation data actions, each asserted over the whole trajectory (see the
+    // animation-trajectory-tests rule).
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
 
@@ -115,9 +110,8 @@ describe('PieSeries', () => {
         const sectorEntries = (sample: SceneGeometrySample) =>
             [...sample].filter(([key]) => /^series\[0\]\/sector\[/.test(key));
         const sectorCount = (sample: SceneGeometrySample) => sectorEntries(sample).length;
-        // A sector's angular span across the frames where it is present and finite. `span` is a
-        // derived quantity no per-property expectation can express, so the headline directional and
-        // anti-vacuity contracts are asserted over it manually (as the historic spike CASE did).
+        // A sector's angular span across the frames where it is present and finite. No per-property
+        // expectation can express a derived quantity, so its contracts are asserted manually.
         const spans = (trajectory: SceneGeometrySample[], key: string): number[] =>
             trajectory
                 .map((f) => {
@@ -153,10 +147,8 @@ describe('PieSeries', () => {
             },
         };
 
-        // The callout label containers and per-datum callout label texts re-fade during the trailing
-        // phase, after the sectors have reflowed. The globs also match the non-fading structural groups
-        // (items/phantom) and the persistent inner label `labels/text[]`, which satisfy the spec
-        // vacuously; expectCalloutsStartHidden supplies the anti-vacuity for the nodes that do fade.
+        // The globs also match non-fading structural groups, which satisfy the spec vacuously;
+        // expectCalloutsStartHidden supplies the anti-vacuity for the nodes that do fade.
         const calloutRefade: Record<string, SceneNodeExpectation> = {
             'series[0]/group[*]': { opacity: { during: 'trailing', expect: ['increases', 'bounded'] } },
             'series[0]/labels/text[*]': {
@@ -165,11 +157,8 @@ describe('PieSeries', () => {
                 y: 'any',
             },
         };
-        // Both the callout label containers (unnamed / `#n` groups) AND the per-datum label texts
-        // (`labels/text[<datum>]`) start collapsed at opacity ~0 on the first captured frame, so the
-        // re-fade specs above cannot pass vacuously — a regression that snapped them straight to full
-        // opacity would trip this. The persistent inner label (`labels/text[]`, empty key) never fades
-        // and is excluded.
+        // Anti-vacuity for the re-fade specs above: every fading callout node must start at ~0
+        // opacity. The persistent inner label (`labels/text[]`, empty key) never fades and is excluded.
         const expectCalloutsStartHidden = (trajectory: SceneGeometrySample[]) => {
             const faders = [...trajectory[0]].filter(
                 ([key]) => /^series\[0\]\/group\[(#\d+)?\]$/.test(key) || /^series\[0\]\/labels\/text\[.+\]$/.test(key)
@@ -180,10 +169,8 @@ describe('PieSeries', () => {
             }
         };
 
-        // A data update lands new / re-keyed sector nodes and snaps the callout labels to opacity 0 at
-        // frame 0, tripping captureUpdate's whole-scene start anchor — so the data-action CASEs
-        // hand-roll the capture, keeping only the end anchor (as the line/bar suites do). `setup` runs
-        // an extra settled pre-state (used by legend-show, which must start from a hidden sector).
+        // Callout labels snap to opacity 0 at frame 0, which trips captureUpdate's whole-scene start
+        // anchor, so only the end anchor is kept. `setup` establishes an extra settled pre-state.
         const captureFrom = async (
             create: AgPolarChartOptions,
             action: (proxy: AgChartInstance) => void | Promise<void>,
@@ -252,10 +239,8 @@ describe('PieSeries', () => {
             );
             expect(sectorCount(before)).toBe(6);
             expect(sectorCount(after)).toBe(4);
-            // The removed sectors are named explicitly (not left to the `sector[*]` wildcard): their
-            // outerRadius must actually tween into the freed-up radius alongside the survivors, not
-            // sit constant at the old (smaller) radius while only their span collapses — a wildcard
-            // 'increases' check alone would pass vacuously on a constant trajectory (AG-8489).
+            // Named explicitly rather than left to the `sector[*]` wildcard, whose 'increases' check
+            // would pass vacuously if a removed sector's radius sat constant while its span collapsed.
             const removedRadius: SceneNodeExpectation = {
                 startAngle: 'any',
                 endAngle: 'any',
@@ -297,10 +282,8 @@ describe('PieSeries', () => {
             );
             expect(sectorCount(before)).toBe(4);
             expect(sectorCount(after)).toBe(6);
-            // The added sectors are named explicitly (not left to the `sector[*]` wildcard): their
-            // outerRadius must actually tween down from the old (bigger) radius alongside the
-            // survivors, not snap straight to the target radius while only their span grows in — a
-            // wildcard 'decreases' check alone would pass vacuously on a constant trajectory.
+            // Named explicitly rather than left to the `sector[*]` wildcard, whose 'decreases' check
+            // would pass vacuously if an added sector snapped straight to its target radius.
             const addedRadius: SceneNodeExpectation = {
                 startAngle: 'any',
                 endAngle: 'any',
@@ -333,10 +316,8 @@ describe('PieSeries', () => {
             expect(android[0] - android.at(-1)!, 'Android span shrink').toBeGreaterThan(0.1);
         });
 
-        // "Update Data" — doubling iOS's share grows its sector at the expense of every other sector;
-        // its shared boundary with the Android anchor tweens during the update phase. The trajectory
-        // spec proves the boundary MOVES and WHEN (progresses/during); direction is proven by the span
-        // checks below (per-frame angle steps sit under monotonicTol, so a direction word is vacuous).
+        // The trajectory spec proves the shared boundary MOVES and WHEN; direction comes from the span
+        // checks below, since per-frame angle steps sit under monotonicTol.
         it('update data: doubling iOS grows its sector while the rest shrink proportionally', async () => {
             const { trajectory } = await captureFrom(pieOptions(), (proxy) =>
                 proxy.update(pieOptions(doubleIos(DATA_MARKET_SHARE)))
@@ -573,9 +554,8 @@ describe('PieSeries', () => {
         });
 
         test('normalises bigint angle data without error (AG-16608)', async () => {
-            // The angle normalise post-processor maps the domain span with Number factors; a bigint
-            // angleKey column previously threw 'Cannot mix BigInt and other types'. The same values as
-            // bigint must render identically and emit no warnings.
+            // The angle normalise post-processor maps the domain span with Number factors, so a bigint
+            // angleKey column must still render identically to the same values as numbers.
             const numberData = [
                 { label: 'A', value: 4159000 },
                 { label: 'B', value: 97000 },
@@ -1290,7 +1270,7 @@ describe('PieSeries', () => {
             data: [
                 { asset: 'Stocks', amount: 5 },
                 { asset: 'Cash', amount: 5 },
-                { asset: 'Bonds', amount: 0 }, // AG-12321 - nodeClick not triggered for datums after a zero value.
+                { asset: 'Bonds', amount: 0 }, // A zero value must not stop nodeClick firing for later datums.
                 { asset: 'Real Estate', amount: 5 },
                 { asset: 'Commodities', amount: 5 },
             ],
@@ -1550,7 +1530,6 @@ describe('PieSeries', () => {
         });
     });
 
-    // AG-8724 - Allow hiding zero value sectors in legend
     describe('hideZeroValueSectorsInLegend', () => {
         const data = [
             { id: 'a', value: 4 },
@@ -1581,7 +1560,7 @@ describe('PieSeries', () => {
         });
     });
 
-    // AG-13953 - an invalid value shouldn't affect other segments or the legend
+    // An invalid value shouldn't affect other segments or the legend.
     describe('with invalid values', () => {
         it('should render correctly', async () => {
             const invalidDataOptions: AgPolarChartOptions = {
@@ -1690,9 +1669,7 @@ describe('PieSeries', () => {
         });
     });
 
-    // CRT-1053: Pie sectors with non-string fills (patterns/gradients) should not render black
-    // during animation. The fix conditionally excludes fill from animation properties when
-    // the fill is not a plain colour string.
+    // Sectors with non-string fills (patterns/gradients) must not render black during animation.
     describe('CRT-1053 pattern fill animation', () => {
         const animate = spyOnAnimationManager();
 
@@ -1703,9 +1680,8 @@ describe('PieSeries', () => {
             { label: 'D', value: 15 },
         ];
 
-        // Intermediate ratios are load-bearing here: this is a paint regression (fills rendering black
-        // mid-interpolation), which the geometry trajectory harness cannot observe — only rendered
-        // pixels catch it, so the full ratio sweep is retained rather than trimmed to endpoints.
+        // Intermediate ratios are load-bearing: only rendered pixels catch a fill going black
+        // mid-interpolation, so the full sweep is retained rather than trimmed to the endpoints.
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`should render pattern fills (not black) at ${ratio * 100}%`, async () => {
                 animate(1200, ratio);

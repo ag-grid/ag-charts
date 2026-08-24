@@ -505,9 +505,7 @@ export class IndexSetBucketLookupManager implements BucketLookupFeature {
     }
 
     refresh(): void {
-        // No-op: cluster lookups are computed lazily against the live
-        // selection bitset, so there's no cache to invalidate when selections
-        // change.
+        // No-op: cluster lookups read the live selection bitset lazily, so there is no cache to invalidate.
     }
 
     setActiveFilter(): void {

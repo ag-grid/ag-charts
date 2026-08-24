@@ -147,9 +147,8 @@ export function buildApiReferenceTable(
         memberConfig: ApiReferenceConfig,
         prefix: string,
         depth: number,
-        // The on-page tree needs no cycle guard, as each expansion is a fresh component reacting to
-        // a click. A single pre-order pass does — tracked per branch, so a type shared between two
-        // parents still expands under each of them.
+        // A single pre-order pass needs a cycle guard the on-page tree does not; track it per
+        // branch so a type shared between two parents still expands under each.
         ancestors: ReadonlySet<string>,
         typeArguments?: string[]
     ): void {
@@ -185,8 +184,8 @@ export function buildApiReferenceTable(
                 path,
                 depth + 1,
                 new Set(ancestors).add(nested.typeName),
-                // Type arguments come from the member's own typeRef resolved through the declaring
-                // node's generics map, then apply to the target's members — as in NodeFactory.
+                // Resolve the member's own typeRef through the declaring node's generics map, as
+                // in NodeFactory.
                 buildTypeArguments(member, node.kind === 'interface' ? node.genericsMap : undefined)
             );
         }

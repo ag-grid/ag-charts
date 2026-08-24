@@ -10,6 +10,7 @@ import {
     definedZoomState,
     isDate,
     isFiniteNumber,
+    isNumberEqual,
     isNumericValue,
     isObject,
     isString,
@@ -66,13 +67,11 @@ export type CartesianAxisLike = SimpleAxis & {
     scale: Scale<any, any>;
     range: [number, number];
     boundSeries: ISeries<any, any, any>[];
-    // User-supplied `min`/`max` bounds, read by zoom autoScaling to detect a fixed
-    // domain. `NumberAxis`, `TimeAxis`, and `LogAxis` populate these via `axis.options.min/max`;
-    // axis types without numeric bounds (e.g. category) leave `options` shaped without these keys.
+    // User-supplied bounds, read by zoom autoScaling to detect a fixed domain; axis types without
+    // numeric bounds (e.g. category) leave `options` shaped without these keys.
     options?: { min?: number; max?: number };
-    // Axis-local zoom — added during the zoom-state-migration work. `CartesianAxis` implements
-    // these; `SimpleAxis` literals (e.g. topologyChart) do not, and ZoomManager must guard with
-    // `'setZoom' in axis`.
+    // Axis-local zoom. `CartesianAxis` implements these; `SimpleAxis` literals (e.g. topologyChart) do
+    // not, so ZoomManager must guard with `'setZoom' in axis`.
     getZoom(): ZoomMinMax;
     setZoom(zoom: ZoomMinMax): void;
 };
@@ -96,7 +95,6 @@ function validateChanges(changes: UpdateZoomChanges, logger: Logger): void {
                 `Attempted to update axis (${axisId}) zoom to an invalid ratio of [{ min: ${min}, max: ${max} }], expecting a ratio of 0 to 1. Ignoring.`
             );
 
-            // Remove invalid zoom state for this axis
             delete changes[axisId];
         }
     }
@@ -133,7 +131,15 @@ function refreshCoreState(nextAxes: Array<CartesianAxisLike> | Array<SimpleAxis>
     return result;
 }
 
-function areEqualCoreZooms(p: CoreZoomStateSafeRetrieval, q: CoreZoomStateSafeRetrieval) {
+function isExactNumber(a: number, b: number) {
+    return a === b;
+}
+
+function compareCoreZooms(
+    p: CoreZoomStateSafeRetrieval,
+    q: CoreZoomStateSafeRetrieval,
+    equalNumbers: (a: number, b: number) => boolean
+) {
     const pKeys = strictObjectKeys(p);
     const qKeys = strictObjectKeys(q);
 
@@ -149,13 +155,22 @@ function areEqualCoreZooms(p: CoreZoomStateSafeRetrieval, q: CoreZoomStateSafeRe
         } else if (
             pVal == undefined ||
             pVal.direction !== qVal?.direction ||
-            pVal.min !== qVal.min ||
-            pVal.max !== qVal.max
+            !equalNumbers(pVal.min, qVal.min) ||
+            !equalNumbers(pVal.max, qVal.max)
         ) {
             return false;
         }
     }
     return true;
+}
+
+function areEqualCoreZooms(p: CoreZoomStateSafeRetrieval, q: CoreZoomStateSafeRetrieval) {
+    return compareCoreZooms(p, q, isExactNumber);
+}
+
+/** Ratios differing only by float round-trip noise describe the same window, so no zoom has occurred. */
+function areEquivalentCoreZooms(p: CoreZoomStateSafeRetrieval, q: CoreZoomStateSafeRetrieval) {
+    return compareCoreZooms(p, q, isNumberEqual);
 }
 
 export function userInteraction<D extends ZoomEventSourceDetail>(sourceDetail: D) {
@@ -271,7 +286,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
                 // Maybe fire 'zoom:change-request' if the zoom-state has changed in this redraw:
                 this.updateZoom({
-                    source: 'chart-update', // FIXME(AG-16412): this is "probably" what caused, but we don't really know
+                    source: 'chart-update',
                     sourceDetail: 'unspecified',
                 });
             }),
@@ -401,9 +416,8 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     }
 
     public setAxes(nextAxes: Parameters<typeof refreshCoreState>[0]) {
-        // Snapshot outgoing per-axis zoom BEFORE replacing the axis arrays — otherwise the `state`
-        // getter would read from freshly-constructed axis instances (defaults) whenever the chart
-        // recreates axes with the same IDs.
+        // Snapshot outgoing per-axis zoom before replacing the axis arrays, or the `state` getter
+        // reads defaults off freshly-constructed instances when axes are recreated with the same IDs.
         const oldState = this.state;
 
         // Saved {min,max} ratios don't translate across a scale-type change; preserving them lets
@@ -738,10 +752,8 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     ) {
         const { lastRestoredRequiredRange, lastRestoredRequiredRangeDirection } = this;
 
-        // When the underlying required range changes (e.g. user changed barWidth), reset the iteration counter
-        // so the new range is applied. Layout-triggered re-layouts only change the ratio (via chart dimension
-        // changes) without changing the required range itself, so the counter still prevents those oscillations.
-        // @see AG-17008
+        // Reset the iteration counter when the required range itself changes (e.g. barWidth), since
+        // layout-driven re-entry only changes the ratio and must stay subject to the counter.
         if (this.lastRequiredRange !== requiredRange) {
             this.lastRequiredRange = requiredRange;
             this.restoreRequiredRangeIterations = 0;
@@ -749,14 +761,8 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
         const requiredZoom = Math.min(1, 1 / requiredRangeRatio);
 
-        // Prevent infinite loops where an x-axis label with a different height becomes visible, causing a change in
-        // the chart height. This triggers the nice algorithm to change the y-axis label widths which changes the
-        // width of the chart. This width change then triggers this function again with a different zoom ratio
-        // as a proportion of that new chart width. This changes the chart's zoom, making the taller x-axis
-        // label hidden again, creating an infinite loop.
-        // A full-range application (the content fits) changes nothing visible and cannot start that loop, so it must
-        // not consume the one-shot budget — otherwise a genuine overflow zoom after an external resize is suppressed.
-        // @see AG-16803
+        // Budget the zoom/label/layout feedback loop, in which a re-zoom changes label sizes, which
+        // resizes the chart, which re-enters here. A full-range zoom changes nothing, so it is free.
         if (requiredZoom < 1) {
             this.restoreRequiredRangeIterations += 1;
         }
@@ -892,15 +898,14 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             this.state = constrainedState;
         }
 
-        // Write to chartState only when the stored value actually differs — `toZoomState` allocates
-        // a fresh object each call, and ReactiveState notifies on reference inequality, so an
-        // unconditional write would wake every `zoom`-subscribed observer on no-op reconciliations.
+        // OPTIMIZATION: `toZoomState` allocates and ReactiveState notifies on reference inequality, so
+        // an unconditional write would wake every `zoom` observer on no-op reconciliations.
         const acceptedZoom = toZoomState(this.state);
         if (!objectsEqual(this.ctx.chartState.getValue('zoom'), acceptedZoom)) {
             this.ctx.chartState.setValue('zoom', acceptedZoom);
         }
 
-        const changeAccepted: boolean = !areEqualCoreZooms(oldState, this.state);
+        const changeAccepted: boolean = !areEquivalentCoreZooms(oldState, this.state);
         if (changeAccepted) {
             this.ctx.eventsHub.emit('zoom:change-complete', { source, sourceDetail, x: acceptedZoom?.x });
             this.pendingZoomEventSource = source; // emit API AgZoomEvent when the redraw completes

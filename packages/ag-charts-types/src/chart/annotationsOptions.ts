@@ -6,6 +6,7 @@ import type {
 import type {
     FillOptions,
     LineDashOptions,
+    Padding,
     StrokeOptions,
     TextOptions,
     Toggleable,
@@ -451,6 +452,15 @@ export interface AgNoteAnnotationBackground extends StrokeOptions, FillOptions {
 export interface AgAnnotationAxisLabel extends Toggleable, FillOptions, StrokeOptions, LineDashOptions, TextOptions {
     /** Apply rounded corners to the axis label container. */
     cornerRadius?: PixelSize;
+    /**
+     * Padding between the axis label text and the edge of its container. A number applies uniform
+     * padding to all sides; an object sets each side individually. The position of the label text
+     * itself is unaffected — increasing the padding on one side extends the container on that side,
+     * so padding on the side facing the axis extends the container towards the axis line.
+     *
+     * Default: `{ top: 4, right: 8, bottom: 4, left: 8 }`
+     */
+    padding?: Padding;
 }
 
 export interface AgLineAnnotationText extends AgLineAnnotationTextStyles {

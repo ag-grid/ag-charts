@@ -7,14 +7,14 @@ import {
     SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
 } from 'ag-charts-core';
-import type { ExtensibleTheme } from 'ag-charts-types';
+import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import { OhlcSeries } from './ohlcSeries';
 import { ohlcSeriesOptionsDef } from './ohlcSeriesOptionsDef';
 
 const { predictCartesianFinancialAxis } = _ModuleSupport;
 
-const themeTemplate: ExtensibleTheme<'ohlc'> = {
+const themeTemplate: ExtensibleSeriesTheme<'ohlc'> = {
     animation: { enabled: false },
     series: {
         item: {

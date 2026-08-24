@@ -25,9 +25,8 @@ export class BandHighlight extends AbstractModuleInstance {
 
     private options: NormalisedBandHighlightOptions | undefined;
 
-    // Internal-only fill defaults — supply built-in shape definitions to `getShapeFill`
-    // when the user provides a non-flat fill. Not exposed as user-facing options
-    // (per invariant I2 they remain plain instance fields).
+    // Built-in shape definitions for `getShapeFill` when the user supplies a non-flat fill; these
+    // are internal only, never user-facing options.
     private readonly fillGradientDefaults = new FillGradientDefaults();
     private readonly fillPatternDefaults = new FillPatternDefaults();
     private readonly fillImageDefaults = new FillImageDefaults();

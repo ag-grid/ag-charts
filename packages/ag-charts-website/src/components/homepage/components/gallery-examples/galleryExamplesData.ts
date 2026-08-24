@@ -40,12 +40,10 @@ async function getUpdateExampleFunction({
     }))!;
 
     let mainJs = generatedFiles['main.js']
-        // Remove dark mode snippets, so it can be added once later
+        // Dark-mode snippets are stripped per example and re-added once for the whole bundle.
         ?.replace(DARK_MODE_REGEX, '')
-        // Update create methods with global update function
         .replace('AgCharts.create(options);', GLOBAL_UPDATE_FUNCTION)
         .replace('AgCharts.createGauge(options);', GLOBAL_UPDATE_FUNCTION)
-        // Clean up
         .trim();
 
     let dataJs = generatedFiles['data.js']?.trim();
@@ -107,7 +105,6 @@ export async function getGalleryExamplesJs({ galleryData, allGalleryData }: Gall
         replaceNewlineToken,
     });
 
-    // Extract `updateExample` and assign to key
     const exampleKeys = Object.keys(examplesData);
     const updateExamples: Record<string, string> = {};
     for (const key of exampleKeys) {
@@ -115,7 +112,7 @@ export async function getGalleryExamplesJs({ galleryData, allGalleryData }: Gall
         updateExamples[key] = example.updateExample;
     }
 
-    // Remove start and end quotation marks, so that the code is runnable and not a string
+    // Unquote the embedded code so the emitted bundle is runnable rather than a string literal.
     const startRegex = new RegExp(`"${escape(EXAMPLE_CODE_START)}`, 'g');
     const endRegex = new RegExp(`${escape(EXAMPLE_CODE_END)}"`, 'g');
     const darkModeSnippet = getDarkModeSnippet({ chartAPI: 'agCharts.AgCharts' });
@@ -124,13 +121,11 @@ export async function getGalleryExamplesJs({ galleryData, allGalleryData }: Gall
         .replaceAll(endRegex, '')
         .replaceAll(replaceNewlineToken, '\n')
         .replaceAll('\\\\n', '\\n')
-        // Remove escaped quotes
         .replaceAll('\\"', '"')
         .replaceAll("\\'", "'");
 
-    // The dark-mode snippet reads the AgCharts UMD global, which arrives via a separate
-    // <script>. The client-side router re-inserts scripts dynamically, so document order
-    // no longer guarantees the UMD has executed by the time this bundle runs.
+    // The dark-mode snippet reads the AgCharts UMD global from a separate <script>, and the
+    // client-side router re-inserts scripts dynamically, so document order guarantees nothing.
     return `window.${GLOBAL_UPDATE_EXAMPLES_VARIABLE} = ${examplesString};
 
 (function () {

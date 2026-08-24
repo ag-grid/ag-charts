@@ -1,14 +1,11 @@
+import { replaceHistoryUrl } from '@ag-website-shared/utils/historyUrl';
 import { navigate } from 'astro:transitions/client';
 import { useEffect, useState } from 'react';
 
 import type { NavigationData } from './apiReferenceHelpers';
 
-/*
-    Astro's ClientRouter owns `history.state` — it reads `index` to work out popstate direction and
-    `scrollX`/`scrollY` to restore scroll. It spreads any `state` passed to `navigate()` alongside
-    those keys, so nesting the reference selection under a single key lets both live in one entry
-    without either overwriting the other.
-*/
+// Astro's ClientRouter owns `history.state` (`index`, `scrollX`, `scrollY`) and spreads any state
+// passed to `navigate()` alongside those keys, so the selection nests under one key of its own.
 const SELECTION_STATE_KEY = 'apiReferenceSelection';
 
 interface ApiReferenceLocation {
@@ -39,9 +36,9 @@ export function readSelection(): NavigationData | undefined {
  */
 export function seedSelection(selection: NavigationData) {
     // Astro's router seeds `index`/`scrollX`/`scrollY` when its module loads; merging onto a state
-    // it has not written yet would produce an entry it can no longer track.
+    // it has not written would produce an entry its router cannot track.
     if (!inBrowser() || !history.state || readSelection()) return;
-    history.replaceState({ ...history.state, [SELECTION_STATE_KEY]: selection }, '');
+    replaceHistoryUrl(undefined, { [SELECTION_STATE_KEY]: selection });
 }
 
 export function navigateToSelection(selection: NavigationData) {

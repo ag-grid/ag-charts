@@ -53,9 +53,7 @@ const { data: announcementBannerContent } = (await getEntry(
 
 const { showDate: bannerShowDate, untilDate: bannerUntilDate } = announcementBannerContent;
 
-// Per-banner id so a dismissal only hides THIS banner. A new title/description/date combination
-// yields a new id, so future banners reappear even for visitors who dismissed a previous one.
-// Consumed by the inline show-script and the dismiss script to build the localStorage key.
+// Content-derived id, so a dismissal recorded in localStorage hides only this banner.
 const bannerId = createHash('sha256')
     .update(
         `${announcementBannerContent.title}|${announcementBannerContent.description ?? ''}|${bannerShowDate ?? ''}|${bannerUntilDate ?? ''}`

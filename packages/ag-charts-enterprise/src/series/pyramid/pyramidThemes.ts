@@ -10,9 +10,9 @@ import {
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
-import type { ExtensibleTheme } from 'ag-charts-types';
+import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
-export const PYRAMID_SERIES_THEME: ExtensibleTheme<'pyramid'> = {
+export const PYRAMID_SERIES_THEME: ExtensibleSeriesTheme<'pyramid'> = {
     series: {
         direction: 'vertical',
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },

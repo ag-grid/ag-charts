@@ -1,0 +1,11 @@
+@use 'design-system' as *;
+
+// The shared stage forces full height on its slotted child and holds its own width, so the
+// frame just fills it. `display: block` drops the inline baseline gap under the iframe.
+.frame {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: none;
+    background-color: var(--color-bg-primary);
+}

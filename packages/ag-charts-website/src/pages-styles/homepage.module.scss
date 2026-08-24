@@ -750,3 +750,33 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
     pointer-events: none;
     z-index: $z-index-debug-canvas;
 }
+
+// LandingPageSection renders a single CTA, so this row is rendered as the section's first child
+// instead; the negative margin lifts it into the header's bottom margin, where that CTA would sit.
+.gallerySectionCtas {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: $spacing-size-3;
+    margin-top: calc(#{$spacing-size-3} - #{$spacing-size-12});
+    margin-bottom: $spacing-size-12;
+
+    a {
+        display: inline-flex;
+        align-items: center;
+        gap: $spacing-size-2;
+        width: fit-content;
+        padding: 0.5em 0.5em 0.5em 1em;
+
+        :global(.icon) {
+            --icon-size: #{$spacing-size-4};
+
+            transform: translate(-3px, 1px);
+            transition: transform $transition-default-timing;
+        }
+
+        &:hover :global(.icon) {
+            transform: translate(4px, 1px);
+        }
+    }
+}

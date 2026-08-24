@@ -27,15 +27,6 @@
     box-shadow: var(--ag-charts-popup-shadow);
 }
 
-/*
-This currently doesn't work in Chrome when the canvas moves (i.e. the window is resized)
-However, we may wish to use this in the future
-.ag-charts-tooltip--use-popover-api {
-    top: anchor(top);
-    left: anchor(left);
-}
-*/
-
 .ag-charts-tooltip--compact .ag-charts-tooltip-content {
     --tooltip-row-spacing: 2px;
     --tooltip-column-spacing: 8px;
@@ -59,7 +50,7 @@ However, we may wish to use this in the future
     border-right-color: transparent;
     background: inherit;
 
-    /* AG-11705 triangle is slightly larger to accommodate for any anti-aliasing */
+    /* Triangle is slightly oversized to absorb anti-aliasing. */
     clip-path: polygon(0 0, 100% 0, 100% 1px, 1px 100%, 0 100%);
 }
 

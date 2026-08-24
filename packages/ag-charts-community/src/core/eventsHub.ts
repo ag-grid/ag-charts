@@ -86,6 +86,17 @@ export interface SeriesAreaClickEvent {
     readonly target: Node<unknown> | undefined;
 }
 
+/**
+ * A pointer click (or double-click) inside the series area, carrying canvas coordinates so that
+ * modules owning content drawn over the series area can hit-test it and run their own listeners.
+ * Mirrors the `series-area:contextmenu` handoff; keyboard-synthesised clicks are excluded because
+ * they carry no pointer position.
+ */
+export interface SeriesAreaPointerClickEvent extends Readonly<CanvasPoint> {
+    readonly type: 'click' | 'dblclick';
+    readonly sourceEvent: Event;
+}
+
 export interface SeriesAreaContextMenuEvent extends Readonly<CanvasPoint> {
     readonly widgetEvent: MouseWidgetEvent<'contextmenu'>;
     /**
@@ -129,6 +140,7 @@ export interface EventsHubMap {
     'axis-dom-proxy:mouseleave': AxisDOMProxyMouseLeaveEvent;
     'axis-dom-proxy:update': AxisDOMProxyUpdateEvent;
     'axis-dom-proxy:wheel': AxisDOMProxyWheelEvent;
+    'canvas:resize': { width: number; height: number };
     'chart:request-refresh': null;
     'chart:request-update': UpdateRequestEvent;
     'collapsed:restore': CollapsedRestoreEvent;
@@ -161,6 +173,7 @@ export interface EventsHubMap {
     'series:keynav-collapse': SeriesKeyNavCollapseEvent;
     'series-area:hover': SeriesAreaHoverEvent;
     'series-area:click': SeriesAreaClickEvent;
+    'series-area:pointer-click': SeriesAreaPointerClickEvent;
     'series-area:contextmenu': SeriesAreaContextMenuEvent;
     'series:redo': null;
     'series:undo': null;
@@ -270,6 +283,9 @@ export interface HighlightChangeEvent {
     readonly callerId: string;
     readonly currentHighlight?: HighlightNodeDatum;
     readonly previousHighlight?: HighlightNodeDatum;
+    /** Part of the highlighted node under the pointer, for series that distinguish parts (`Series.getHighlightPart`). */
+    readonly currentHighlightPart?: string;
+    readonly previousHighlightPart?: string;
     readonly highlightSuppressed: boolean;
     readonly highlightInViewport: boolean;
 }
@@ -354,9 +370,7 @@ export interface ZoomSaveMementoEvent {
 }
 
 export interface ZoomLoadMementoEvent {
-    // Note: `zoom` is intentionally mutable. At the time of writing, only one feature (autoScaling) depends on zoom
-    // memento events, so it's safe because we do not have multiple writers. We may need to consider adding a
-    // `constrain()` method to this event.
+    // `zoom` is intentionally mutable: autoScaling is the sole consumer, so there are no competing writers.
     zoom: DefinedZoomState;
     readonly memento: DeepReadonly<ZoomMemento> | undefined;
     readonly navigatorModule: boolean;
@@ -480,6 +494,8 @@ export interface AxisLayout {
     id: string;
     rect: BBox;
     translation: { x: number; y: number };
+    /** Offset applied by `crossAt`, already included in `translation`. Zero for an axis at its `position` edge. */
+    crossAxisTranslation?: { x: number; y: number };
     position?: AgCartesianAxisPosition;
     gridPadding: number;
     seriesAreaPadding: number;

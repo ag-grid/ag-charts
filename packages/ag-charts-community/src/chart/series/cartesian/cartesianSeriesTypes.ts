@@ -11,9 +11,6 @@ import type { DataModelSeriesNodeDataContext, DataModelSeriesNodeDatum } from '.
 import type { SeriesProperties } from '../seriesProperties';
 import type { SeriesNodeDatum } from '../seriesTypes';
 
-// ============================================================================
-// Node Datum & Context Types
-// ============================================================================
 // These are the canonical definitions - cartesianSeries.ts re-exports them.
 
 export interface CartesianSeriesNodeDatum extends DataModelSeriesNodeDatum {
@@ -32,12 +29,6 @@ export interface CartesianSeriesNodeDataContext<
     visible: boolean;
     segments?: Segment[];
 }
-
-// ============================================================================
-// createNodeData() Context Pattern
-// ============================================================================
-// Base interface for series context objects used during createNodeData().
-// Provides the common shape for incremental update tracking.
 
 /**
  * Rich base context interface for createNodeData() operations.
@@ -62,25 +53,20 @@ export interface CartesianCreateNodeDataContext<TDatum extends CartesianSeriesNo
     /** Current write position in the nodes array */
     nodeIndex: number;
 
-    // Axes
     readonly xAxis: ChartAxis;
     readonly yAxis: ChartAxis;
 
-    // Scales
     readonly xScale: Scale<any, any>;
     readonly yScale: Scale<any, any>;
 
-    // Data source
     readonly rawData: any[];
     readonly xValues: any[];
 
-    // Property keys
     readonly xKey: string;
     readonly yKey?: string;
     readonly xName?: string;
     readonly yName?: string;
 
-    // Animation flag
     readonly animationEnabled: boolean;
 }
 
@@ -109,10 +95,6 @@ export interface CartesianMarkerLikeContext<
     readonly yOffset: number;
 }
 
-// ============================================================================
-// Properties Interface
-// ============================================================================
-// Defines the shape of CartesianSeriesProperties for type constraints.
 // The actual class with decorators lives in cartesianSeries.ts.
 
 /**
@@ -126,10 +108,6 @@ export interface CartesianSeriesPropertiesBase<T extends object> extends SeriesP
     pickOutsideVisibleMinorAxis: boolean;
     segmentation: NormalisedSeriesSegmentation;
 }
-
-// ============================================================================
-// Consolidated Types Interface
-// ============================================================================
 
 /**
  * Consolidated type interface for CartesianSeries generic parameters.
@@ -174,10 +152,6 @@ export interface CartesianSeriesTypes {
     readonly createNodeDataContext?: CartesianCreateNodeDataContext<this['datum']>;
 }
 
-// ============================================================================
-// Type Extractors
-// ============================================================================
-// Use these to access individual type members from a CartesianSeriesTypes interface.
 // Prefer `NodeOf<TTypes>` over `TTypes['node']` for better readability.
 
 /** Extract the node type from a CartesianSeriesTypes interface */
@@ -208,11 +182,6 @@ export type StackContextOf<T extends CartesianSeriesTypes> = T['stackContext'];
 export type CreateNodeDataContextOf<T extends CartesianSeriesTypes> = T['createNodeDataContext'] extends undefined
     ? CartesianCreateNodeDataContext<DatumOf<T>>
     : NonNullable<T['createNodeDataContext']>;
-
-// ============================================================================
-// Animation Data Types
-// ============================================================================
-// Type aliases for animation-related types that use the consolidated types interface.
 
 /**
  * Animation data type derived from a CartesianSeriesTypes interface.

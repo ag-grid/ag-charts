@@ -75,7 +75,7 @@ This is a migration guide page for AG Charts version 9.1. It focuses on:
 ### External Link Validation
 
 1. **Release Blog Post**:
-    - Verify link to https://blog.ag-grid.com/whats-new-in-ag-charts-9-1/ is valid
+    - Verify link to https://www.ag-grid.com/blog/whats-new-in-ag-charts-9-1/ is valid
     - Check if content aligns with deprecations mentioned
 
 2. **Changelog Link**:

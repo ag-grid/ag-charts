@@ -65,11 +65,8 @@ function ApiReferencePageInner({
         seedSelection(selection);
     }, []);
 
-    /*
-        The island is persisted across Astro navigations, so props stay at whatever the first-loaded
-        page supplied. Every entry this app creates carries its selection in Astro's history state,
-        which makes that state — not props — the thing to follow on back/forward.
-    */
+    // The island persists across Astro navigations, so props keep the first-loaded page's values;
+    // the selection in Astro's history state is what back/forward must follow.
     useEffect(() => {
         const restored = readSelection();
         if (restored) {

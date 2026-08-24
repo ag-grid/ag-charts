@@ -13,9 +13,7 @@ import {
     waitForChartStability,
 } from '../test/utils';
 
-// BigInt numeric-axis ticks must render at full precision. These tests drive a real chart so the
-// bigint values flow through domain extraction, scale conversion, tick generation and the axis
-// label formatter end-to-end.
+// BigInt numeric-axis ticks must render at full precision end-to-end, so these drive a real chart.
 describe('NumberAxis BigInt labels', () => {
     setupMockConsole();
     setupMockCanvas();
@@ -62,9 +60,7 @@ describe('NumberAxis BigInt labels', () => {
     });
 
     it('preserves precision past the float64 boundary (AC #15e)', async () => {
-        // A unit-span window straddling 2^53: each integer is its own tick. Odd values above 2^53
-        // (…991, …993, …995) are unrepresentable as Number — they would collapse onto an even
-        // neighbour — so their exact labels prove the tick value reached the formatter as a BigInt.
+        // Odd values above 2^53 are unrepresentable as Number, so exact labels prove the tick stayed a BigInt.
         chart = await createLineChart([
             { x: 0, y: 9_007_199_254_740_990n },
             { x: 1, y: 9_007_199_254_740_995n },
@@ -77,8 +73,7 @@ describe('NumberAxis BigInt labels', () => {
     });
 
     it('accepts a bigint returned from a label formatter (AG-16608)', async () => {
-        // A formatter receives the raw bigint tick value and may return it; output validation must
-        // accept the bigint (not reject it as an invalid callback result) and render it like a number.
+        // Output validation must accept a bigint returned from a formatter rather than reject it as invalid.
         const span = 10n ** 21n;
         const options: AgCartesianChartOptions = {
             data: [

@@ -105,6 +105,8 @@ export interface CategoryFormatterParams<TDatum, TContext> extends BaseFormatter
 > {
     /** Configuration for a category-formatted value. */
     type: 'category';
+    /** The depth of the label on a `grouped-category` axis, counted outwards from the leaf labels, which are depth `0`. Undefined on every other axis type. */
+    depth?: number;
 }
 
 export type FormatterParams<TDatum = DatumDefault, TContext = ContextDefault> =

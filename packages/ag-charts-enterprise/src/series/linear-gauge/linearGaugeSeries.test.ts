@@ -53,11 +53,8 @@ describe('LinearGaugeSeries', () => {
         });
     });
 
-    // The initial-load reveal, asserted over the whole animation trajectory (see the
-    // animation-trajectory-tests rule) rather than as per-ratio image snapshots. The value bar sweeps
-    // open by growing its clip window along the gauge's main axis during the initial phase; every other
-    // node (the background scale bar, ticks, labels) holds constant. This exercises the shared harness'
-    // Rect clip reader (clipX0/clipY0/clipX1/clipY1).
+    // The value bar sweeps open by growing its clip window along the gauge's main axis; every other
+    // node holds constant.
     describe('initial animation', () => {
         const frames = spyOnAnimationFrames();
 
@@ -72,8 +69,7 @@ describe('LinearGaugeSeries', () => {
                 const proxy = AgCharts.createGauge(options);
                 chart = deproxy(proxy);
                 const sampler = createSceneGeometrySampler(proxy);
-                // Capture immediately (the internal settle only waits for layout) so the reveal is
-                // preserved; captureUpdate would runToEnd first and consume the sweep before sampling.
+                // captureUpdate would runToEnd first and consume the sweep before sampling.
                 const trajectory = await frames.captureAnimationFrames(proxy, sampler);
                 await frames.runToEnd(proxy);
 
@@ -82,8 +78,7 @@ describe('LinearGaugeSeries', () => {
                 expect(start, 'value bar sampled at frame 0').toBeDefined();
                 expect(end, 'value bar sampled at final frame').toBeDefined();
 
-                // Anti-vacuity: the clip window is collapsed to zero main-axis extent at frame 0 and full
-                // at the end, so the directional clip spec below cannot pass on a flat trajectory.
+                // Anti-vacuity: without these the directional clip spec below could pass flat.
                 const mainAxisClipExtent = (s: SceneNodeGeometry) =>
                     direction === 'horizontal' ? s.clipX1 - s.clipX0 : s.clipY1 - s.clipY0;
                 expect(mainAxisClipExtent(start!)).toBeCloseTo(0, 3);
@@ -92,10 +87,8 @@ describe('LinearGaugeSeries', () => {
                 const grows = { during: 'initial', expect: ['increases', 'progresses', 'bounded'] } as const;
                 const shrinks = { during: 'initial', expect: ['decreases', 'progresses', 'bounded'] } as const;
 
-                // Horizontal grows the right clip edge (clipX1) and the width rightward; vertical grows
-                // upward, so the top clip edge (clipY0) and the bar's y both shrink while height grows.
-                // visible flips 0->1 as the collapsed bar becomes drawable. Every unnamed property (the
-                // static clip edges, x, opacity, and every other node) defaults to constant.
+                // Horizontal grows clipX1 and width rightward; vertical grows upward, so clipY0 and y
+                // shrink while height grows. Unnamed properties default to constant.
                 const valueBarSpec =
                     direction === 'horizontal'
                         ? { clipX1: grows, width: grows, visible: 'any' as const }
@@ -247,7 +240,6 @@ describe('LinearGaugeSeries', () => {
                 ...EXAMPLE_OPTIONS,
                 segmentation: {
                     enabled: false,
-                    // AG-14117 - Failed with  TypeError: Cannot delete property 'interval' of #<Object> previously.
                     interval: { count: 10 },
                 },
             };
@@ -298,8 +290,7 @@ describe('LinearGaugeSeries', () => {
             const lineBBox = _ModuleSupport.Transformable.toCanvas(lineNode);
             const lineCx = lineBBox.x + lineBBox.width / 2;
             const lineCy = lineBBox.y + lineBBox.height / 2;
-            // The line's local origin maps to this canvas point: empty space above the bar, far
-            // enough from the line that it must not register as hovered.
+            // Empty space above the bar, far enough from the line that it must not register as hovered.
             const emptyX = lineCx - lineNode.translationX + 4;
             const emptyY = lineCy - lineNode.translationY + 4;
 
@@ -316,9 +307,7 @@ describe('LinearGaugeSeries', () => {
     });
 
     describe('keyboard navigation (CRT-1124)', () => {
-        // Options that reproduce the bug: a segmented bar (so nodeData.length > 1 in contextNodeData)
-        // combined with enough targets that a Right→Right sequence lands on target index 2 before Up.
-        // Layer 0 (datumUnion) is always a SINGLE focusable node regardless of segmentation;
+        // Layer 0 (datumUnion) is always a single focusable node regardless of segmentation;
         // layer 1 (targetSelection) has one node per target.
         const SEGMENTED_WITH_TARGETS: AgLinearGaugeOptions = {
             type: 'linear-gauge',
@@ -340,15 +329,13 @@ describe('LinearGaugeSeries', () => {
             return chart;
         }
 
-        // Dispatches a keydown event on the .ag-charts-series-area DOM element, which is the
-        // element the seriesAreaManager's seriesWidget listens on.
+        // The seriesAreaManager's seriesWidget listens on .ag-charts-series-area.
         function pressArrowOnSeriesArea(key: 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight') {
             const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
             if (!seriesArea) throw new Error('series-area element not found');
             seriesArea.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, bubbles: true }));
         }
 
-        // Read the internal focus state written back by updatePickedFocus after each successful pick.
         function getFocusState(c: any) {
             return c.seriesAreaManager.focus as {
                 seriesIndex: number;
@@ -357,16 +344,12 @@ describe('LinearGaugeSeries', () => {
             };
         }
 
-        // AC1: repro case — segmented bar + 3 targets.
-        // ArrowDown enters the targets layer; ArrowRight×2 moves to target index 2.
-        // ArrowUp MUST return focus to layer 0 (the bar) — not get stuck.
         describe('AC1 – ArrowUp from non-first target returns to bar (regression)', () => {
             it('direct pickFocus: ArrowUp with datumIndex=2 in layer 1 resolves to layer 0 at datumIndex 0', async () => {
                 const c = await setupKeyNavChart(SEGMENTED_WITH_TARGETS);
                 const series = c.series[0];
 
-                // Simulate the exact inputs onArrow produces after Down→Right→Right→Up:
-                // focus.seriesIndex was incremented to 1 then back to 0, focus.datumIndex is 2.
+                // The inputs onArrow produces after Down→Right→Right→Up.
                 const pick = series.pickFocus({
                     datumIndex: 2,
                     datumIndexDelta: 0,
@@ -382,28 +365,23 @@ describe('LinearGaugeSeries', () => {
             it('full pipeline: focus does not get stuck after Down→Right→Right→Up', async () => {
                 const c = await setupKeyNavChart(SEGMENTED_WITH_TARGETS);
 
-                // ArrowDown: layer 0 → layer 1, target index 0.
                 pressArrowOnSeriesArea('ArrowDown');
                 await waitForChartStability(c);
 
-                // ArrowRight×2: target index 0 → 1 → 2.
                 pressArrowOnSeriesArea('ArrowRight');
                 await waitForChartStability(c);
                 pressArrowOnSeriesArea('ArrowRight');
                 await waitForChartStability(c);
 
-                // Verify we are on target index 2 before the Up.
                 expect(getFocusState(c).seriesIndex).toBe(1);
                 expect(getFocusState(c).datumIndex).toBe(2);
 
-                // ArrowUp: should return to layer 0 (bar).
                 pressArrowOnSeriesArea('ArrowUp');
                 await waitForChartStability(c);
 
                 expect(getFocusState(c).seriesIndex).toBe(0); // back on layer 0
                 expect(getFocusState(c).datumIndex).toBe(0); // reset to 0 on layer change
 
-                // Arrows must remain responsive: one more ArrowDown must move into targets again.
                 pressArrowOnSeriesArea('ArrowDown');
                 await waitForChartStability(c);
 

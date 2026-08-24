@@ -7,9 +7,9 @@ import {
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
-import type { ExtensibleTheme } from 'ag-charts-types';
+import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
-export const BOX_PLOT_SERIES_THEME: ExtensibleTheme<'box-plot'> = {
+export const BOX_PLOT_SERIES_THEME: ExtensibleSeriesTheme<'box-plot'> = {
     series: {
         direction: 'vertical',
         fill: {
