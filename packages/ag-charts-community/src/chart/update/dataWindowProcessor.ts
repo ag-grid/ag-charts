@@ -20,7 +20,7 @@ const DEFAULT_ZOOM: ZoomMinMax = { min: 0, max: 1 };
 type WindowBound = AgDataSourceCallbackParams['windowStart'];
 
 function windowBound(value: unknown): WindowBound {
-    if (isObject(value) && 'value' in value) return windowBound(value.value);
+    if (isObject(value) && 'groupPercentage' in value) return windowBound(value.value);
     if (isString(value) || isFiniteNumber(value) || isValidDate(value)) return value;
 }
 
