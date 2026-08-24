@@ -2,7 +2,7 @@ import type { AgActiveState } from '../api/activeState';
 import type { AgStateGroupingValueType, AgStateValueType } from '../api/stateTypes';
 import type { TextOrSegments } from '../series/cartesian/commonOptions';
 import type { AgAnnotation } from './annotationsOptions';
-import type { AgAxisBoundSeries, AgAxisCoordinate, AgAxisDirection, AgAxisDomain, AgAxisValue } from './axisOptions';
+import type { AgAxisCoordinate, AgAxisDirection, AgAxisValue } from './axisOptions';
 import type { AgItemType, Listener, SelectionState } from './callbackOptions';
 import type { AgNumericValue } from './dataValues';
 import type { ContextDefault, DatumDefault, Ratio, ResolvedDatumKey } from './types';
@@ -240,22 +240,10 @@ export interface AgAxisContextMenuActionEvent<TContext = ContextDefault>
     axisId: string;
 }
 
-export interface AgAxisClickEvent<TEvent extends string, TContext = ContextDefault> extends AgChartEvent<
-    TEvent,
-    TContext
-> {
+export interface AgAxisClickEvent<TEvent extends string, TContext = ContextDefault>
+    extends AgChartEvent<TEvent, TContext>, AgAxisCoordinate {
     /** Axis ID, as specified in `axes` (generated if not specified). */
     axisId: string;
-    /** The scale value of the axis at this point. */
-    value: AgAxisValue;
-    /** Direction of the clicked axis. */
-    direction: AgAxisDirection;
-    /** The index of the resolved value */
-    index: number;
-    /** Metadata about series bound to the clicked axis. */
-    boundSeries: AgAxisBoundSeries[];
-    /** Computed domain of the axis */
-    domain: AgAxisDomain;
 }
 
 /** Axis listeners. Cross Line listeners are Cartesian charts only. */
