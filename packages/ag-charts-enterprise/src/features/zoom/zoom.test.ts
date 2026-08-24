@@ -896,6 +896,29 @@ describe('Zoom', () => {
             await doubleClickAction(148, 154)(chart); // this is the position of the 1st visible node
             await compare(); // this should be a zoomed-in snapshot
         });
+
+        it('should not fire zoom listeners for a sub-tolerance zoom change', async () => {
+            let zoomCount: number = 0;
+            await prepareChart(
+                {},
+                { ratioX: { start: 0.25, end: 1 } },
+                {
+                    ...EXAMPLE_OPTIONS,
+                    listeners: { zoom: () => zoomCount++ },
+                }
+            );
+            await waitForChartStability(chart);
+            const baseline = zoomCount;
+            const saved = chart.getState();
+
+            await chart.setState({ ...saved, zoom: { ratioX: { start: 0.25 + 1e-15, end: 1 } } });
+            await waitForChartStability(chart);
+            expect(zoomCount).toBe(baseline);
+
+            await chart.setState({ ...saved, zoom: { ratioX: { start: 0.5, end: 1 } } });
+            await waitForChartStability(chart);
+            expect(zoomCount).toBe(baseline + 1);
+        });
     });
 
     describe('data changes during zoom', () => {
