@@ -41,7 +41,9 @@ import {
     toTextString,
     trapezoidBandRect,
     trapezoidBox,
+    trapezoidFitRegion,
     trapezoidOverlapsBox,
+    withFitRegion,
 } from 'ag-charts-core';
 import type { AgFunnelSeriesLabelPlacement, AgNumericValue } from 'ag-charts-types';
 
@@ -605,6 +607,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 hideable: !label.collision.alwaysShow,
                 plotRegion: labelContext.plotRegion,
                 fitted: labelContext.labelFit != null,
+                shapeAt: (anchor) => trapezoidFitRegion(trapezoid, trapezoid.vertical ? anchor.y : anchor.x),
                 text,
                 styleDatum: labelDatum,
                 resolveStyle,
@@ -636,7 +639,14 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             labelDatum.candidates = candidates;
         } else {
             // Nothing re-fits this label later, so bound its text to the region it was baked into.
-            let fitted = fitLabelToContainerAutoSize(text, labelContext.labelFit, label, first?.fitTo?.container);
+            const anchorSpan = trapezoid.vertical ? labelDatum.y : labelDatum.x;
+            const region = trapezoidFitRegion(trapezoid, anchorSpan);
+            let fitted = fitLabelToContainerAutoSize(
+                text,
+                withFitRegion(labelContext.labelFit, region),
+                label,
+                first?.fitTo?.container
+            );
             if (labelContext.labelFit != null && first != null) {
                 // Wrapping can leave the text taller than the band its width was measured across, which a
                 // tapering stage has less room for.

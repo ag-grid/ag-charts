@@ -424,4 +424,32 @@ describe('series label fit', () => {
         });
         expect(someTruncated(nestedLabelTexts(1))).toBe(true);
     });
+    // A pyramid stage is a trapezoid, and the apex one is a triangle: the room a line of text gets depends on
+    // where in the stage it sits, so a long apex label wraps into the narrowing point rather than against one
+    // inscribed rectangle's width.
+    it('wraps a long value label into the narrowing apex of a pyramid', async () => {
+        await renderAndSnapshot({
+            data: [
+                { stage: 'Awareness', value: 20 },
+                { stage: 'Interest', value: 40 },
+                { stage: 'Consideration', value: 60 },
+                { stage: 'Purchase', value: 80 },
+            ],
+            legend: { enabled: false },
+            padding: { top: 20, right: 120, bottom: 20, left: 120 },
+            series: [
+                {
+                    type: 'pyramid',
+                    stageKey: 'stage',
+                    valueKey: 'value',
+                    label: {
+                        enabled: true,
+                        wrapping: 'on-space',
+                        truncate: true,
+                        formatter: () => 'A rather long value label that has to find room inside the stage it sits in',
+                    },
+                },
+            ],
+        });
+    });
 });
