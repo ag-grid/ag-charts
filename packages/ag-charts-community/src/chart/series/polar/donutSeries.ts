@@ -20,17 +20,21 @@ import {
     cachedTextMeasurer,
     extractDomain,
     fitLabelText,
+    fitLabelTextToRegion,
     formatValue,
+    insetFitRegion,
     isGradientFill,
     isStringFillArray,
     jsonDiff,
     mergeDefaults,
     modulus,
     normalizeAngle180,
+    probedFitRegion,
     resolveLabelFit,
     toNumber,
     toPlainText,
     toRadians,
+    withFitRegion,
     wrapTextOrSegments,
 } from 'ag-charts-core';
 import type {
@@ -58,7 +62,7 @@ import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
 import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
-import { boxOverlapsSector, isPointInSector, sectorBox } from '../../../scene/util/sector';
+import { boxOverlapsSector, isBoxInSector, isPointInSector, sectorBox } from '../../../scene/util/sector';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, getMissCount } from '../../data/dataModel';
 import {
@@ -71,7 +75,7 @@ import {
     rangedValueProperty,
     valueProperty,
 } from '../../data/processors';
-import { Label, expandLabelPadding } from '../../label';
+import { Label, expandLabelBoxExtent, expandLabelPadding } from '../../label';
 import { fitLabelToContainer, fitSectorLabelRect, getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
@@ -1573,6 +1577,8 @@ export class DonutSeries extends PolarSeries<
         // Fitting only engages when the user opts into wrapping/truncation; otherwise the sector text renders in
         // full (and hides if it overruns the wedge, as before), so the default path stays untouched.
         const sectorFit = resolveLabelFit(this.properties.sectorLabel, false);
+        // The wedge holds the drawn box, not the glyphs, so the region owes the box its own extent.
+        const labelPadding = expandLabelBoxExtent(this.properties.sectorLabel);
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
@@ -1613,25 +1619,36 @@ export class DonutSeries extends PolarSeries<
                     } else {
                         const anchor = { x: datum.midCos * labelRadius, y: datum.midSin * labelRadius };
                         const rect = fitSectorLabelRect(anchor, sectorBounds, cachedTextMeasurer(style).lineHeight());
-                        text.x = rect.centerX;
                         text.y = rect.centerY;
-                        const container = { width: rect.width, height: rect.height };
-                        text.text = fitLabelToContainer(datum.sectorLabel.text, sectorFit, style, container);
+                        // The wedge itself bounds the text, so it replaces the inscribed rect's container
+                        // rather than being capped by it; the rect still anchors the label.
+                        const region = insetFitRegion(
+                            probedFitRegion(
+                                { x: rect.centerX, y: rect.centerY },
+                                (x, y) => isPointInSector(x, y, sectorBounds),
+                                Math.abs(outerRadius) * 2
+                            ),
+                            Math.max(labelPadding.left, labelPadding.right),
+                            Math.max(labelPadding.top, labelPadding.bottom)
+                        );
+                        // The wedge's own vertical extent bounds the block, so the inscribed rect no longer
+                        // caps the label to the single line it was tall enough for. A wedge holds more room
+                        // to one side of the anchor than the other, so the fit also says where to draw it.
+                        const fitted = fitLabelTextToRegion(
+                            datum.sectorLabel.text,
+                            withFitRegion(sectorFit, region),
+                            style
+                        );
+                        text.text = fitted.text;
+                        text.x = rect.centerX + fitted.offsetX;
                     }
                     text.setFont(style);
                     text.setAlign(align);
                     text.setBoxing(style);
 
-                    const bbox = text.getBBox();
-                    const corners = [
-                        [bbox.x, bbox.y],
-                        [bbox.x + bbox.width, bbox.y],
-                        [bbox.x + bbox.width, bbox.y + bbox.height],
-                        [bbox.x, bbox.y + bbox.height],
-                    ];
-                    if (corners.every(([x, y]) => isPointInSector(x, y, sectorBounds))) {
-                        isTextVisible = true;
-                    }
+                    // A shape-fitted label overhangs its own block box by design, so each line answers
+                    // for itself.
+                    isTextVisible = text.getLineBoxes().every((box) => isBoxInSector(box, sectorBounds));
                 }
                 text.visible = isTextVisible;
             });
