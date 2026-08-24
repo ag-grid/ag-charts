@@ -486,6 +486,16 @@ describe('DataSource', () => {
             { x: 7, y: 50 },
         ];
 
+        const CATEGORY_RESPONSE = [
+            { x: 'one', y: 0 },
+            { x: 'two', y: 50 },
+            { x: 'three', y: 25 },
+            { x: 'four', y: 75 },
+            { x: 'five', y: 50 },
+            { x: 'six', y: 25 },
+            { x: 'seven', y: 50 },
+        ];
+
         const serialisableDate = (value: string) => ({ __type: 'date' as const, value: new Date(value).toISOString() });
 
         let windows: Array<{ windowStart: unknown; windowEnd: unknown }>;
@@ -551,6 +561,30 @@ describe('DataSource', () => {
                 });
 
                 expect(chart.getState().zoom.ratioX).toEqual({ start: 0.5, end: 1 });
+            });
+
+            // A range may state only one of its bounds, in which case the other is the domain edge —
+            // which is exactly what an omitted window bound already means to the data source.
+            it.each([
+                ['start', { start: 4 }, { windowStart: 4, windowEnd: undefined }],
+                ['end', { end: 7 }, { windowStart: undefined, windowEnd: 7 }],
+            ] as const)('requests a %s-only range once', async (_bound, range, expected) => {
+                await prepareWithWindowCapture(NUMERIC_OPTIONS, NUMERIC_RESPONSE, { zoom: { rangeX: range } });
+
+                expect(windows).toEqual([expected]);
+            });
+
+            it('requests the range once for a grouping-valued range', async () => {
+                await prepareWithWindowCapture(CATEGORY_OPTIONS, CATEGORY_RESPONSE, {
+                    zoom: {
+                        rangeX: {
+                            start: { value: 'four', groupPercentage: 0 },
+                            end: { value: 'seven', groupPercentage: 1 },
+                        },
+                    },
+                });
+
+                expect(windows).toEqual([{ windowStart: 'four', windowEnd: 'seven' }]);
             });
         });
 
