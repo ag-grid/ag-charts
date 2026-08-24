@@ -963,6 +963,16 @@ describe('label collision avoidance', () => {
             expect(texts.some((text) => text.includes('…'))).toBe(false);
         });
 
+        it('shrinks bar labels that may not be hidden instead of overlapping them', async () => {
+            const texts = await renderCrowdedBarLabels({
+                truncate: true,
+                collision: { alwaysShow: true, collideWith: { seriesArea: false } },
+            });
+            expect(texts.length).toBe(8);
+            // Kept-forever labels still adapt: they wrap into the room their neighbours leave.
+            expect(texts.filter((text) => text.includes('\n')).length).toBeGreaterThan(4);
+        });
+
         it('drops the same bar labels when nothing about them can adapt', async () => {
             const texts = await renderCrowdedBarLabels({ wrapping: 'never', truncate: false });
             expect(texts.length).toBeLessThan(8);

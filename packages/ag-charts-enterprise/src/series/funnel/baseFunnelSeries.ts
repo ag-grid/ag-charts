@@ -562,15 +562,21 @@ export abstract class BaseFunnelSeries<
         const { placements, reportedPlacements, isVertical, isUpward, insideCrossRegion } =
             this.resolveLabelPlacements(barAlongX);
         const boxPadding = expandPlacementLabelBoxExtent(label);
+        const labelFit = resolveLabelFit(label, !label.collision.alwaysShow);
         return {
             placements,
             reportedPlacements,
             isVertical,
             isUpward,
             insideCrossRegion,
-            routesThroughEngine: barLabelRoutesThroughEngine(undefined, label.placement, label.collision.alwaysShow),
+            routesThroughEngine: barLabelRoutesThroughEngine(
+                undefined,
+                label.placement,
+                label.collision.alwaysShow,
+                labelFit
+            ),
             plotRegion: this.resolveLabelPlotRegion(label.collision),
-            labelFit: resolveLabelFit(label, !label.collision.alwaysShow),
+            labelFit,
             boxPadding,
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
         };
@@ -838,7 +844,8 @@ export abstract class BaseFunnelSeries<
 
     protected override resolveUsesPlacedLabels(): boolean {
         const { label } = this.properties;
-        return barLabelRoutesThroughEngine(undefined, label.placement, label.collision.alwaysShow);
+        const alwaysShow = label.collision.alwaysShow;
+        return barLabelRoutesThroughEngine(undefined, label.placement, alwaysShow, resolveLabelFit(label, !alwaysShow));
     }
 
     /** The bar placement a public one maps onto, for the styled box a baked label reserves. */

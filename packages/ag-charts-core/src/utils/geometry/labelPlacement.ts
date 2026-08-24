@@ -942,16 +942,41 @@ export function barLabelResolvesPlacement(placement: unknown): boolean {
 }
 
 /**
+ * Whether a bar-family label takes the positioned-candidate route rather than its unconditional
+ * fast-path bake: a multi-entry placement array cascades through obstacles, a hideable label
+ * (`alwaysShow: false`) routes even a single placement so a no-fit label can be dropped, and a label
+ * that opted into overflow control routes so an obstacle can be answered by shrinking into the room it
+ * leaves rather than by overlapping it — unless an orientation array already routes it, which resolves
+ * the same fit against the bar region on the cheaper baked path.
+ */
+export function barLabelUsesPositionedCandidates(
+    orientation: AgChartLabelOrientation | AgChartLabelOrientation[] | undefined,
+    placement: unknown,
+    alwaysShow: boolean,
+    fit: LabelFit | undefined
+): boolean {
+    return (
+        barLabelResolvesPlacement(placement) ||
+        !alwaysShow ||
+        (fit != null && !barLabelResolvesOrientation(orientation))
+    );
+}
+
+/**
  * Whether a bar-family label must route through the placement engine rather than take its unconditional
- * fast-path bake: a multi-entry orientation or placement array cascades through obstacles, and a hideable
- * label (`alwaysShow: false`) routes even a single placement so a no-fit label can be dropped and hidden.
+ * fast-path bake: a multi-entry orientation array resolves against the bar region, and everything
+ * {@link barLabelUsesPositionedCandidates} covers cascades through positioned candidates.
  */
 export function barLabelRoutesThroughEngine(
     orientation: AgChartLabelOrientation | AgChartLabelOrientation[] | undefined,
     placement: unknown,
-    alwaysShow: boolean
+    alwaysShow: boolean,
+    fit: LabelFit | undefined
 ): boolean {
-    return barLabelResolvesOrientation(orientation) || barLabelResolvesPlacement(placement) || !alwaysShow;
+    return (
+        barLabelResolvesOrientation(orientation) ||
+        barLabelUsesPositionedCandidates(orientation, placement, alwaysShow, fit)
+    );
 }
 
 /** Measured size of a label's text or rich-text segments under the given font. */
@@ -1185,6 +1210,10 @@ const boundedFit: {
 let candidateFontSize: number | undefined;
 // Size the collision-shrink search is currently re-running the cascade at, `undefined` outside a trial.
 let candidateTrialFontSize: number | undefined;
+// True while a candidate is being re-fitted to the room its obstacles leave. That pass trades text for
+// room, never font size: shrinking the font to clear a neighbour is the ladder's job (see
+// {@link shrinkToClear}), which runs once per label over every candidate rather than per candidate.
+let refittingToObstacles = false;
 // The candidate font at the trial size, refilled per candidate while a trial is running.
 const trialFont: FontOptions = { fontSize: 0 };
 
@@ -1358,68 +1387,123 @@ function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
     return testBox != null && obstacleOverlapsBox(o, testBox);
 }
 
-// Per-axis reduction of the candidate box that would take it clear of the obstacles it hits, written by
-// `measureObstacleReduction`. `Infinity` on an axis whose obstacles no amount of shrinking can clear.
-const shrinkReduction = { width: 0, height: 0 };
-// Cost of retreating one side of the candidate box past an obstacle, per pixel of intrusion: 1 when a
-// shrink moves that side, 2 when the box is centred on its anchor (each side takes half the reduction),
-// and Infinity when the side is pinned and a shrink cannot move it at all.
-let pinCostLeft = 1;
-let pinCostRight = 1;
-let pinCostTop = 1;
-let pinCostBottom = 1;
+/** Side of the candidate box a shrink brings in to clear an obstacle. */
+type RetreatSide = 'left' | 'right' | 'top' | 'bottom';
 
-// `pin` is which edge of the box stays put as it shrinks: positive the min edge (left/top), negative the
-// max edge (right/bottom), zero neither — the box is centred and both edges retreat by half.
-function sideCost(pin: number, isMinEdge: boolean): number {
-    if (pin === 0) return 2;
-    return pin > 0 === isMinEdge ? Infinity : 1;
+// How far each side of the candidate box has to come in to clear the obstacles it hits, written by
+// `measureObstacleReduction`. A shrink spends the sum of an axis' pair on that axis' extent, and slides a
+// centred box by half their difference so the room it gives up comes off the side the obstacle is on.
+const shrinkIntrusion: Record<RetreatSide, number> = { left: 0, right: 0, top: 0, bottom: 0 };
+// Extent reduction and post-recentre translation those intrusions add up to.
+const shrinkReduction = { width: 0, height: 0 };
+const shrinkSlide: Point = { x: 0, y: 0 };
+// Which edge of the box the placement pins against its anchor: positive the min edge (left/top), negative
+// the max edge (right/bottom), zero neither — a centred box, whose every edge a shrink can move.
+let shrinkPinX = 0;
+let shrinkPinY = 0;
+// The obstacle's extent across the candidate's own span on the other axis.
+const obstacleSpan = { min: 0, max: 0 };
+// The four retreats one obstacle offers, refilled per obstacle: how far each side must come in, or
+// `Infinity` for a side the box cannot afford to move that far.
+const sideRetreat: Record<RetreatSide, number> = { left: Infinity, right: Infinity, top: Infinity, bottom: Infinity };
+const RETREAT_SIDES: readonly RetreatSide[] = ['left', 'right', 'top', 'bottom'];
+
+/** True when a shrink can bring that edge of the box in, rather than the placement pinning it in place. */
+function sideRetreats(pin: number, isMinEdge: boolean): boolean {
+    return pin === 0 || pin > 0 !== isMinEdge;
+}
+
+/**
+ * Writes the obstacle's horizontal extent across `[top, bottom]` into {@link obstacleSpan}. A circle is
+ * measured at the half-width it really has where the label sits, not at its bounding box's corner, which
+ * would have the label retreat from room the marker never occupies. A custom shape has no such narrowing
+ * to offer, so it keeps its box.
+ */
+function writeObstacleSpanX(o: LabelObstacle, top: number, bottom: number) {
+    if (o.kind !== 'circle') {
+        obstacleSpan.min = o.box.x;
+        obstacleSpan.max = o.box.x + o.box.width;
+        return;
+    }
+    const dy = Math.max(0, o.cy - bottom, top - o.cy);
+    const half = Math.sqrt(Math.max(0, o.r * o.r - dy * dy));
+    obstacleSpan.min = o.cx - half;
+    obstacleSpan.max = o.cx + half;
+}
+
+/** {@link writeObstacleSpanX} on the other axis: the obstacle's vertical extent across `[left, right]`. */
+function writeObstacleSpanY(o: LabelObstacle, left: number, right: number) {
+    if (o.kind !== 'circle') {
+        obstacleSpan.min = o.box.y;
+        obstacleSpan.max = o.box.y + o.box.height;
+        return;
+    }
+    const dx = Math.max(0, o.cx - right, left - o.cx);
+    const half = Math.sqrt(Math.max(0, o.r * o.r - dx * dx));
+    obstacleSpan.min = o.cy - half;
+    obstacleSpan.max = o.cy + half;
+}
+
+/**
+ * A retreat the box can afford, or `Infinity`. A retreat past the whole extent is no candidate at all: a
+ * label clipping the edge of a wide bar must not be asked to shrink past the bar's far side.
+ */
+function affordableRetreat(retreat: number, extent: number, allowed: boolean): number {
+    return allowed && retreat > 0 && retreat < extent ? retreat : Infinity;
 }
 
 // Never returns a verdict: unlike the collision test this visits every obstacle, since the reduction has
-// to answer all of them.
+// to answer all of them. An obstacle sits in every grid cell it spans, so this visitor can see it more
+// than once: accumulating with `max` keeps the measurement idempotent.
 function accumulateObstacleReduction(o: LabelObstacle): void {
     if (obstacleExcluded(o)) return;
     const testBox = candidateTestBox();
     if (testBox == null || !obstacleOverlapsBox(o, testBox)) return;
-    // Every obstacle is cleared by retreating one side of the box past it, so the obstacle costs the
-    // cheapest of those four retreats. A circle or custom shape is measured by its AABB, overstating the
-    // retreat it needs; the caller re-tests the shrunk candidate, so an approximate budget stays safe.
-    const { box } = o;
-    const left = pinCostLeft * (box.x + box.width - testBox.x);
-    const right = pinCostRight * (testBox.x + testBox.width - box.x);
-    const top = pinCostTop * (box.y + box.height - testBox.y);
-    const bottom = pinCostBottom * (testBox.y + testBox.height - box.y);
-    const horizontal = Math.min(left, right);
-    const vertical = Math.min(top, bottom);
+    const { x, y, width, height } = testBox;
+    writeObstacleSpanX(o, y, y + height);
+    sideRetreat.left = affordableRetreat(obstacleSpan.max - x, width, sideRetreats(shrinkPinX, true));
+    sideRetreat.right = affordableRetreat(x + width - obstacleSpan.min, width, sideRetreats(shrinkPinX, false));
+    writeObstacleSpanY(o, x, x + width);
+    sideRetreat.top = affordableRetreat(obstacleSpan.max - y, height, sideRetreats(shrinkPinY, true));
+    sideRetreat.bottom = affordableRetreat(y + height - obstacleSpan.min, height, sideRetreats(shrinkPinY, false));
     // Cheapest is a fraction of the extent it comes out of, not a pixel count: an obstacle spanning the
-    // label's whole height is cleared by a few px of height and half its width, but those few px are all the
-    // height there is. An obstacle sits in every grid cell it spans, so this visitor can see it more than
-    // once: accumulating with `max` keeps the measurement idempotent.
-    if (horizontal / testBox.width <= vertical / testBox.height) {
-        shrinkReduction.width = Math.max(shrinkReduction.width, horizontal);
-    } else {
-        shrinkReduction.height = Math.max(shrinkReduction.height, vertical);
+    // label's whole height is cleared by a few px of height and half its width, but those few px are all
+    // the height there is.
+    let best: RetreatSide | undefined;
+    let bestCost = Infinity;
+    for (const side of RETREAT_SIDES) {
+        const cost = sideRetreat[side] / (side === 'left' || side === 'right' ? width : height);
+        if (cost < bestCost) {
+            bestCost = cost;
+            best = side;
+        }
     }
+    // No affordable retreat: the obstacle is left to the re-test, which fails the shrink rather than
+    // letting one unclearable obstacle suppress the reduction the others do have an answer for.
+    if (best == null) return;
+    shrinkIntrusion[best] = Math.max(shrinkIntrusion[best], sideRetreat[best]);
 }
 
 /**
  * Measures how far the candidate box has to shrink to clear the obstacles it hits, into {@link
- * shrinkReduction}. `false` when shrinking cannot clear them at all: either nothing intrudes, or what does
- * intrudes from a side the box is pinned to.
+ * shrinkReduction} and {@link shrinkSlide}. `false` when nothing it can shrink out of the way intrudes.
  */
 function measureObstacleReduction(pinX: number, pinY: number, inflate: number): boolean {
-    shrinkReduction.width = 0;
-    shrinkReduction.height = 0;
+    shrinkIntrusion.left = 0;
+    shrinkIntrusion.right = 0;
+    shrinkIntrusion.top = 0;
+    shrinkIntrusion.bottom = 0;
+    shrinkPinX = pinX;
+    shrinkPinY = pinY;
     inflateBoxInto(queryBox, candidateBox, inflate);
-    pinCostLeft = sideCost(pinX, true);
-    pinCostRight = sideCost(pinX, false);
-    pinCostTop = sideCost(pinY, true);
-    pinCostBottom = sideCost(pinY, false);
     obstacleIndex.query(queryBox, accumulateObstacleReduction);
-    const { width, height } = shrinkReduction;
-    if (width === Infinity || height === Infinity) return false;
-    return width > 0 || height > 0;
+    shrinkReduction.width = shrinkIntrusion.left + shrinkIntrusion.right;
+    shrinkReduction.height = shrinkIntrusion.top + shrinkIntrusion.bottom;
+    // Only a centred box is moved: `positionCandidate` already re-hangs a pinned one off the same edge, so
+    // its retreat comes out of the free side on its own.
+    shrinkSlide.x = pinX === 0 ? (shrinkIntrusion.left - shrinkIntrusion.right) / 2 : 0;
+    shrinkSlide.y = pinY === 0 ? (shrinkIntrusion.top - shrinkIntrusion.bottom) / 2 : 0;
+    return shrinkReduction.width > 0 || shrinkReduction.height > 0;
 }
 
 /** Cell size for the obstacle index, derived from the mean extent of every box it will hold. */
@@ -1734,8 +1818,10 @@ function fitLabelToCandidate(
     boundedFit.maxHeight = maxHeight === Infinity ? undefined : maxHeight;
     boundedFit.wrapping = policy.wrapping;
     boundedFit.overflowStrategy = policy.overflowStrategy;
-    // A trial already owns the size, so the inner search must not run a second one inside it.
-    boundedFit.minimumFontSize = candidateTrialFontSize == null ? policy.minimumFontSize : undefined;
+    // A trial already owns the size, so the inner search must not run a second one inside it; nor may the
+    // obstacle re-fit, which answers a collision with text rather than with a smaller font.
+    boundedFit.minimumFontSize =
+        candidateTrialFontSize == null && !refittingToObstacles ? policy.minimumFontSize : undefined;
     boundedFit.region = region;
     boundedFit.regionAlign = regionAlign;
     const { text: fitted, fontSize } = fitLabelTextOrOverflowAutoSize(text, boundedFit, fit.fitOverflow, font);
@@ -1933,23 +2019,30 @@ function refitCandidateShrunk(
     // extent as well would forbid the wrap that trades width for height.
     shrunkContainer.width = reduceAxis(candidateLabel.maxWidth, candidateLabel.glyphWidth, reduceWidth);
     shrunkContainer.height = reduceAxis(candidateLabel.maxHeight, candidateLabel.glyphHeight, reduceHeight);
-    if (!fitLabelToCandidate(fit, font, source, shrunkContainer)) return false;
+    refittingToObstacles = true;
+    try {
+        if (!fitLabelToCandidate(fit, font, source, shrunkContainer)) return false;
+    } finally {
+        refittingToObstacles = false;
+    }
     if (realCharCount(fittedLabel.text) < MIN_FITTED_CHARS) return false;
     writeCandidateLabel(boxPadding, font);
     return true;
 }
 
 /**
- * Slides the shrunk candidate flush inside `rawRegion` when its placement is region-bound, recording the
- * translation in {@link shrunkOffset} for the caller to hand back to the series.
+ * Moves the shrunk candidate off the obstacles it retreated from by {@link shrinkSlide}, then flush inside
+ * `rawRegion` when its placement is region-bound. The total translation lands in {@link shrunkOffset} for
+ * the caller to hand back to a series that draws from the anchor rather than from the box.
  */
-function flushShrunkCandidate(rawRegion: BoxBounds, flush: boolean) {
-    shrunkOffset.x = 0;
-    shrunkOffset.y = 0;
-    if (!flush) return;
+function slideShrunkCandidate(rawRegion: BoxBounds, flush: boolean) {
     const { x, y, width, height } = candidateBox;
-    candidateBox.x = clampAxis(x, width, rawRegion.x, rawRegion.width);
-    candidateBox.y = clampAxis(y, height, rawRegion.y, rawRegion.height);
+    candidateBox.x = x + shrinkSlide.x;
+    candidateBox.y = y + shrinkSlide.y;
+    if (flush) {
+        candidateBox.x = clampAxis(candidateBox.x, width, rawRegion.x, rawRegion.width);
+        candidateBox.y = clampAxis(candidateBox.y, height, rawRegion.y, rawRegion.height);
+    }
     shrunkOffset.x = candidateBox.x - x;
     shrunkOffset.y = candidateBox.y - y;
 }
@@ -2003,7 +2096,7 @@ function shrinkCompassCandidate(
         return false;
     }
     positionCandidate(d, placement, rotation, candidateLabel.width, candidateLabel.height, gap, spacing);
-    flushShrunkCandidate(rawRegion, flushToRegion);
+    slideShrunkCandidate(rawRegion, flushToRegion);
     const { x, y, width, height } = candidateBox;
     const insideRegion = insideRegionFor(d, placement, x, y, width, height);
     const containRegion =
@@ -2046,7 +2139,7 @@ function shrinkPositionedCandidate(
     const { width, height } = shrinkReduction;
     if (!refitCandidateShrunk(fit, styledFont ?? fit.font, source, fitTo.padding, width, height)) return false;
     resizeCandidateBox(c, candidateLabel.width, candidateLabel.height);
-    flushShrunkCandidate(rawRegion, c.region != null && c.flushToRegion !== false);
+    slideShrunkCandidate(rawRegion, c.region != null && c.flushToRegion !== false);
     return shrunkCandidateIsClear(region, inflate);
 }
 
@@ -2519,6 +2612,23 @@ function placeFromPositionedCandidates(
             const container = deflateContainer(c.fitTo.container, threshold);
             if (
                 !fitLabelToCandidate(fit, styledFont ?? fit.font, source, container, c.fitTo.shape, c.fitTo.shapeAlign)
+            ) {
+                continue;
+            }
+            // The clearance a label keeps from its own surface must not erase it: a deflated container
+            // left with no real character to draw is refitted to the surface itself, since a bare
+            // ellipsis reads as an artefact rather than as a label.
+            if (
+                container !== c.fitTo.container &&
+                realCharCount(fittedLabel.text) < MIN_FITTED_CHARS &&
+                !fitLabelToCandidate(
+                    fit,
+                    styledFont ?? fit.font,
+                    source,
+                    c.fitTo.container,
+                    c.fitTo.shape,
+                    c.fitTo.shapeAlign
+                )
             ) {
                 continue;
             }

@@ -330,9 +330,13 @@ describe('label minimumFontSize', () => {
         });
         const sized = () => Object.fromEntries(labels().map((node) => [node.text, node.fontSize]));
 
-        it('hides a colliding label when minimumFontSize is unset', async () => {
+        // `wrapping: 'never'` opts the label into overflow control, so the crowded one gives up text to
+        // fit beside its neighbour. Without a floor it keeps its size while doing so: no floor, no ladder.
+        it('truncates a colliding label at its configured size when minimumFontSize is unset', async () => {
             await render(pairChart(1.2, {}));
-            expect(sized()).toEqual({ 'Station Alpha': FONT_SIZE, Solo: FONT_SIZE });
+            const rendered = sized();
+            expect(Object.values(rendered)).toEqual([FONT_SIZE, FONT_SIZE, FONT_SIZE]);
+            expect(Object.keys(rendered).filter((text) => text.includes(ELLIPSIS))).toHaveLength(1);
         });
 
         it('shrinks a colliding label rather than hiding it', async () => {
@@ -360,11 +364,13 @@ describe('label minimumFontSize', () => {
             expect(fontSizes()).toEqual(labels().map(() => FONT_SIZE));
         });
 
-        it('hides a label that cannot clear its neighbour at any size', async () => {
+        it('truncates a label that cannot clear its neighbour at any size', async () => {
             // The two markers are close enough that even the floor sits inside the first label's box, so
-            // there is nothing for the search to find and the label stays dropped.
+            // the search finds nothing and the label falls back to giving up text at its configured size.
             await render(pairChart(0.8, { minimumFontSize: 6 }));
-            expect(sized()).toEqual({ 'Station Alpha': FONT_SIZE, Solo: FONT_SIZE });
+            const rendered = sized();
+            expect(Object.values(rendered)).toEqual([FONT_SIZE, FONT_SIZE, FONT_SIZE]);
+            expect(Object.keys(rendered).filter((text) => text.includes(ELLIPSIS))).toHaveLength(1);
         });
 
         it('keeps the full-size fallback when no size clears and alwaysShow is true', async () => {

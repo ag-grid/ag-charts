@@ -19,9 +19,9 @@ import {
     barLabelObstacles,
     barLabelOrientation,
     barLabelResolvesOrientation,
-    barLabelResolvesPlacement,
     barLabelRotation,
     barLabelRoutesThroughEngine,
+    barLabelUsesPositionedCandidates,
     buildBarLabelData,
     buildBarPositionedLabelDatum,
     createBigIntBins,
@@ -558,9 +558,11 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             label,
             labelParams
         );
-        // A placement/orientation array (or a hideable label) needs a candidate per placement ×
+        // A placement array, a hideable label or a fit policy needs a candidate per placement ×
         // orientation for the engine to cascade through; a single fixed placement bakes directly.
-        if (!label.collision.alwaysShow || barLabelResolvesPlacement(label.placement)) {
+        if (
+            barLabelUsesPositionedCandidates(label.orientation, label.placement, label.collision.alwaysShow, labelFit)
+        ) {
             const measured = measureLabelText(sourceText, label);
             const placements = toArray(label.placement);
             if (placements.length === 0) placements.push('inside-center');
@@ -1056,7 +1058,13 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
     protected override resolveUsesPlacedLabels(): boolean {
         const { label } = this.properties;
-        return barLabelRoutesThroughEngine(label.orientation, label.placement, label.collision.alwaysShow);
+        const alwaysShow = label.collision.alwaysShow;
+        return barLabelRoutesThroughEngine(
+            label.orientation,
+            label.placement,
+            alwaysShow,
+            resolveLabelFit(label, !alwaysShow)
+        );
     }
 
     override getLabelData(): PointLabelDatum[] {
@@ -1073,9 +1081,16 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const collideWith = label.collision.resolveCollideWith();
         const threshold = label.collision.threshold ?? 0;
         const fitFor = resolveLabelFitDescriptors(label, box, !alwaysShow);
-        // The positioned path serves hideable labels and placement cascades; an orientation-only
+        // The positioned path serves hideable, fitted and placement-cascading labels; an orientation-only
         // array stays on the baked path below, which resolves orientation against the bar region.
-        if (!alwaysShow || barLabelResolvesPlacement(label.placement)) {
+        if (
+            barLabelUsesPositionedCandidates(
+                label.orientation,
+                label.placement,
+                alwaysShow,
+                resolveLabelFit(label, !alwaysShow)
+            )
+        ) {
             const data: PointLabelDatum[] = [];
             for (const node of this.contextNodeData?.labelData ?? []) {
                 const nodeLabel = node.label;

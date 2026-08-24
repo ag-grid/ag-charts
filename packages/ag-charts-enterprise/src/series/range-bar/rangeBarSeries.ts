@@ -33,9 +33,9 @@ import {
     barLabelObstacles,
     barLabelOrientation,
     barLabelResolvesOrientation,
-    barLabelResolvesPlacement,
     barLabelRotation,
     barLabelRoutesThroughEngine,
+    barLabelUsesPositionedCandidates,
     buildBarLabelData,
     buildBarPositionedLabelDatum,
     findMinMax,
@@ -505,6 +505,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const yLowFacing = isOutside ? lowOuter : lowInner;
         const yHighFacing = isOutside ? lowInner : lowOuter;
         const labelRotation = barLabelRotation(toArray(this.properties.label.orientation)[0]);
+        const labelFit = resolveLabelFit(labelProps, !labelProps.collision.alwaysShow);
 
         return {
             xAxis,
@@ -533,9 +534,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             labelRoutesThroughEngine: barLabelRoutesThroughEngine(
                 this.properties.label.orientation,
                 this.properties.label.placement,
-                this.properties.label.collision.alwaysShow
+                this.properties.label.collision.alwaysShow,
+                labelFit
             ),
-            labelFit: resolveLabelFit(this.properties.label, !this.properties.label.collision.alwaysShow),
+            labelFit,
             yLowPadding: (labelProps.spacing + boxPadding[yLowFacing]) * sign,
             yHighPadding: (labelProps.spacing + boxPadding[yHighFacing]) * sign,
             labelSpacing: labelProps.spacing,
@@ -1128,9 +1130,16 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         // yLow anchors at the value-axis start end, yHigh at the end end, so each maps its coarse
         // inside/outside to the granular start/end placement at its own end.
         const coarse = placement ?? 'inside';
-        // A placement/orientation array cascades through the engine; a hideable label routes even for a
-        // single placement so a no-fit label can be dropped and hidden.
-        if (barLabelResolvesPlacement(label.placement) || !label.collision.alwaysShow) {
+        // A placement array cascades through the engine; a hideable or fitted label routes even for a
+        // single placement so a no-fit label can be dropped or shrunk into the room an obstacle leaves.
+        if (
+            barLabelUsesPositionedCandidates(
+                label.orientation,
+                label.placement,
+                label.collision.alwaysShow,
+                ctx.labelFit
+            )
+        ) {
             const coarseList = toArray(label.placement);
             if (coarseList.length === 0) coarseList.push('inside');
             const orientations = toArray(label.orientation);
@@ -1511,7 +1520,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
     protected override resolveUsesPlacedLabels(): boolean {
         const { label } = this.properties;
-        return barLabelRoutesThroughEngine(label.orientation, label.placement, label.collision.alwaysShow);
+        const alwaysShow = label.collision.alwaysShow;
+        return barLabelRoutesThroughEngine(
+            label.orientation,
+            label.placement,
+            alwaysShow,
+            resolveLabelFit(label, !alwaysShow)
+        );
     }
 
     protected override updateLabelSelection(opts: {

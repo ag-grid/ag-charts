@@ -527,7 +527,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     private routesThroughEngine(): boolean {
         const { label } = this.properties;
-        return barLabelRoutesThroughEngine(undefined, label.placement, label.collision.alwaysShow);
+        const alwaysShow = label.collision.alwaysShow;
+        return barLabelRoutesThroughEngine(undefined, label.placement, alwaysShow, resolveLabelFit(label, !alwaysShow));
     }
 
     private createLabelContext(horizontal: boolean): PyramidLabelContext {
