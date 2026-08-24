@@ -2,10 +2,10 @@ import {
     ChartAxisDirection,
     ChartUpdateType,
     CleanupRegistry,
-    isDate,
     isFiniteNumber,
-    isNumber,
+    isObject,
     isString,
+    isValidDate,
     pickDirectionZoom,
 } from 'ag-charts-core';
 import type { DynamicContext, ZoomMinMax } from 'ag-charts-core';
@@ -17,13 +17,17 @@ import type { AxisLike, ChartLike, UpdateProcessor } from './processor';
 
 const DEFAULT_ZOOM: ZoomMinMax = { min: 0, max: 1 };
 
-function isWindowBound(value: unknown): value is string | number | Date {
-    return isString(value) || isNumber(value) || isDate(value);
+type WindowBound = AgDataSourceCallbackParams['windowStart'];
+
+function windowBound(value: unknown): WindowBound {
+    if (isObject(value) && 'value' in value) return windowBound(value.value);
+    if (isString(value) || isFiniteNumber(value) || isValidDate(value)) return value;
 }
 
 export class DataWindowProcessor implements UpdateProcessor {
     private dirtyZoom = false;
     private dirtyDataSource = false;
+    private lastWindowPending = false;
     private zoomSource: AgZoomEventSource | undefined;
     private readonly lastAxisZooms = new Map<string, ZoomMinMax>();
     private lastWindow: AgDataSourceCallbackParams | undefined;
@@ -133,11 +137,13 @@ export class DataWindowProcessor implements UpdateProcessor {
         const priorAxisZoom = axis ? this.lastAxisZooms.get(axis.id) : undefined;
 
         let window: AgDataSourceCallbackParams | undefined;
+        let pendingWindow: AgDataSourceCallbackParams | undefined;
         let shouldRefresh = true;
 
         if (axis) {
             const zoom = pickDirectionZoom(this.ctx.chartState.getValue('zoom'), axis.direction) ?? DEFAULT_ZOOM;
-            window = this.getPendingWindow() ?? this.getAxisWindow(axis, zoom);
+            pendingWindow = this.getPendingWindow();
+            window = pendingWindow ?? this.getAxisWindow(axis, zoom);
             shouldRefresh = this.shouldRefresh(event, axis, zoom, window);
         }
 
@@ -147,6 +153,7 @@ export class DataWindowProcessor implements UpdateProcessor {
         this.dirtyDataSource = false;
         this.zoomSource = undefined;
         this.lastWindow = window;
+        this.lastWindowPending = pendingWindow != null;
 
         if (!shouldRefresh) return;
 
@@ -181,11 +188,16 @@ export class DataWindowProcessor implements UpdateProcessor {
 
         lastAxisZooms.set(axis.id, zoom);
 
+        // An open bound on the last window asked for everything up to the domain edge, so the
+        // resolved bound that replaces it describes data already in hand.
+        const sameBound = (bound: WindowBound, lastBound: WindowBound) =>
+            bound?.valueOf() === lastBound?.valueOf() || (this.lastWindowPending && lastBound == null);
+
         if (
             window &&
             lastWindow &&
-            window.windowStart?.valueOf() === lastWindow.windowStart?.valueOf() &&
-            window.windowEnd?.valueOf() === lastWindow.windowEnd?.valueOf()
+            sameBound(window.windowStart, lastWindow.windowStart) &&
+            sameBound(window.windowEnd, lastWindow.windowEnd)
         ) {
             return false;
         }
@@ -202,10 +214,11 @@ export class DataWindowProcessor implements UpdateProcessor {
         const range = this.ctx.zoomManager?.getPendingRangeX();
         if (!range) return;
 
-        const { start, end } = range;
-        if (!isWindowBound(start) || !isWindowBound(end)) return;
+        const windowStart = windowBound(range.start);
+        const windowEnd = windowBound(range.end);
+        if (windowStart == null && windowEnd == null) return;
 
-        return { windowStart: start, windowEnd: end };
+        return { windowStart, windowEnd };
     }
 
     private getAxisWindow(axis: AxisLike, zoom: ZoomMinMax): AgDataSourceCallbackParams | undefined {
