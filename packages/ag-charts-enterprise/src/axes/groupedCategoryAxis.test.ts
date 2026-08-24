@@ -165,6 +165,7 @@ describe('Grouped Category', () => {
                 coordinates: expect.objectContaining({ x: expect.objectContaining(p) }),
             }),
         ];
+        const rawValue = (value: unknown[]) => [{ value }];
 
         function measureBandCentres(count: number): number[] {
             const elem = document.querySelector('.ag-charts-series-area');
@@ -459,7 +460,7 @@ describe('Grouped Category', () => {
         // A crosshair label formats the axis value through the axis label formatter as well as its own
         // callbacks, so it doubles the formatter call count on hover. It gets its own chart to keep that
         // out of the tests above.
-        describe.skip('crosshair', () => {
+        describe('crosshair', () => {
             beforeEach(async () => {
                 chart = await createEnterpriseChart({
                     data: [
@@ -496,27 +497,37 @@ describe('Grouped Category', () => {
             test('label formatter', async () => {
                 await hoverEveryBand();
                 expect(crosshairFormatter.mock.calls).toMatchObject([
-                    params({ depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'], formattedValue: 'Fish' }),
-                    params({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'], formattedValue: 'Chicken' }),
-                    params({ depth: 0, index: 5, value: ['Food', 'Fruit', 'Banana'], formattedValue: 'Banana' }),
-                    params({ depth: 0, index: 6, value: ['Food', 'Fruit', 'Apple'], formattedValue: 'Apple' }),
-                    params({ depth: 0, index: 9, value: ['Drink', 'Soda', 'Coke'], formattedValue: 'Coke' }),
-                    params({ depth: 0, index: 10, value: ['Drink', 'Soda', 'Pepsi'], formattedValue: 'Pepsi' }),
-                    params({ depth: 0, index: 12, value: ['Drink', 'Tea', 'Green'], formattedValue: 'Green' }),
+                    rawValue(['Food', 'Meat', 'Fish']),
+                    rawValue(['Food', 'Meat', 'Chicken']),
+                    rawValue(['Food', 'Fruit', 'Banana']),
+                    rawValue(['Food', 'Fruit', 'Apple']),
+                    rawValue(['Drink', 'Soda', 'Coke']),
+                    rawValue(['Drink', 'Soda', 'Pepsi']),
+                    rawValue(['Drink', 'Tea', 'Green']),
                 ]);
+                for (const [arg] of crosshairFormatter.mock.calls) {
+                    expect(arg).not.toHaveProperty('depth');
+                    expect(arg).not.toHaveProperty('index');
+                    expect(arg).not.toHaveProperty('formattedValue');
+                }
             });
 
             test('label renderer', async () => {
                 await hoverEveryBand();
                 expect(crosshairRenderer.mock.calls).toMatchObject([
-                    params({ depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'], formattedValue: 'Fish' }),
-                    params({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'], formattedValue: 'Chicken' }),
-                    params({ depth: 0, index: 5, value: ['Food', 'Fruit', 'Banana'], formattedValue: 'Banana' }),
-                    params({ depth: 0, index: 6, value: ['Food', 'Fruit', 'Apple'], formattedValue: 'Apple' }),
-                    params({ depth: 0, index: 9, value: ['Drink', 'Soda', 'Coke'], formattedValue: 'Coke' }),
-                    params({ depth: 0, index: 10, value: ['Drink', 'Soda', 'Pepsi'], formattedValue: 'Pepsi' }),
-                    params({ depth: 0, index: 12, value: ['Drink', 'Tea', 'Green'], formattedValue: 'Green' }),
+                    rawValue(['Food', 'Meat', 'Fish']),
+                    rawValue(['Food', 'Meat', 'Chicken']),
+                    rawValue(['Food', 'Fruit', 'Banana']),
+                    rawValue(['Food', 'Fruit', 'Apple']),
+                    rawValue(['Drink', 'Soda', 'Coke']),
+                    rawValue(['Drink', 'Soda', 'Pepsi']),
+                    rawValue(['Drink', 'Tea', 'Green']),
                 ]);
+                for (const [arg] of crosshairFormatter.mock.calls) {
+                    expect(arg).not.toHaveProperty('depth');
+                    expect(arg).not.toHaveProperty('index');
+                    expect(arg).not.toHaveProperty('formattedValue');
+                }
             });
         });
     });
