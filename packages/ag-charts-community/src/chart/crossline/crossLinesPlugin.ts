@@ -2,6 +2,7 @@ import {
     AbstractModuleInstance,
     type AxisPluginModuleInstance,
     type CallbackParamRules,
+    type CanvasPoint,
     type DynamicContext,
     type NormalisedAxisCrossLineOptions,
     callWithContext,
@@ -10,9 +11,11 @@ import {
 import type { AgCrossLineClickEvent, AgCrossLineDoubleClickEvent } from 'ag-charts-types';
 
 import type { SeriesAreaContextMenuEvent, SeriesAreaPointerClickEvent } from '../../core/eventsHub';
+import type { MouseWidgetEvent } from '../../module-support';
 import type { AxisContext } from '../../module/axisContext';
 import type { ChartAxisRegistry } from '../../module/moduleContext';
 import { Group } from '../../scene/group';
+import type { Widget } from '../../widget/widget';
 import { getAxisLabelSideFlag } from '../axis/axisLabelUtil';
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
 import type { CrossLine, PolarCrossLine } from './crossLine';
@@ -66,7 +69,8 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         // series-area handoff, the pointer-click one runs the cross-line listeners directly.
         this.removePointerListeners = [
             this.ctx.eventsHub.on('series-area:contextmenu', (event) => this.onSeriesAreaContextMenu(event)),
-            this.ctx.eventsHub.on('series-area:pointer-click', (event) => this.onSeriesAreaPointerClick(event)),
+            this.ctx.widgets.containerWidget.addListener('click', (event) => this.onCanvasClick(event)),
+            this.ctx.widgets.containerWidget.addListener('dblclick', (event) => this.onCanvasClick(event)),
         ];
     }
 
@@ -85,9 +89,12 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         }
     }
 
-    private onSeriesAreaPointerClick(event: SeriesAreaPointerClickEvent): void {
+    private onCanvasClick(event: MouseWidgetEvent<'click' | 'dblclick'>): void {
+        if (event.device === 'keyboard' || event.sourceEvent.target !== event.sourceEvent.currentTarget) return;
+
         for (const crossLine of this.instances) {
-            if (crossLine.containsPoint?.(event) !== true) continue;
+            const { currentX: canvasX, currentY: canvasY } = event;
+            if (crossLine.containsPoint?.({ canvasX, canvasY }) !== true) continue;
 
             const isClick = event.type === 'click';
             const apiEvent: CallbackParamRules<AgCrossLineClickEvent | AgCrossLineDoubleClickEvent> = {
