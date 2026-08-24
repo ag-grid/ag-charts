@@ -4,9 +4,17 @@ import type { ContentSegment, ImageSegment, TextSegment } from 'ag-charts-types'
 
 import { measureTextSegments } from '../../rendering/textMeasurer';
 import type { ITextMeasurer, MeasuredSegment } from '../../types/text';
+import type { FitRegion } from '../geometry/fitRegion';
 import { EllipsisChar } from './textUtils';
 import type { FontOptions } from './textUtils';
-import { clipLines, fitLabelText, truncateLine, wrapLines, wrapTextSegments } from './textWrapper';
+import {
+    clipLines,
+    fitLabelText,
+    fitLabelTextToRegion,
+    truncateLine,
+    wrapLines,
+    wrapTextSegments,
+} from './textWrapper';
 
 // Mock only the canvas leaf so the real cachedTextMeasurer, measureTextSegments and
 // wrapTextSegments run their actual logic against deterministic metrics: every grapheme cluster
@@ -1004,5 +1012,82 @@ describe('fitLabelText', () => {
         expect(imageUrls(measured)).toEqual(['https://example.com/flag.png']);
         expect(textOf(measured)).not.toContain(E);
         expect(textOf(measured).replace(/\s+/g, ' ').trim()).toBe('Verylongcaption here');
+    });
+});
+
+describe('fitLabelText bounded by a shape', () => {
+    const font: FontOptions = { fontSize: 10, fontFamily: 'sans-serif' };
+
+    // A shape whose room changes across the anchor: `above` is offered to any band reaching over the
+    // anchor, `below` to the bands under it. A pyramid's apex stage and the outer half of a pie wedge are
+    // both this shape, and each is drawn from a baseline that is not the block's centre.
+    function splitRegion(above: number, below: number): FitRegion {
+        return {
+            spanAt: (top) => {
+                const half = (top < 0 ? above : below) / 2;
+                return [-half, half];
+            },
+            extentAbove: 40,
+            extentBelow: 40,
+        };
+    }
+
+    it('wraps each line to the room the shape offers where that line sits', () => {
+        // 'AAAA BBBB' is two 40px words. Centred on the anchor the first line lands above it, where the
+        // shape offers 40px, so the words cannot share a line; the second line has 200px and keeps its own.
+        expect(fitLabelText('AAAA BBBB', { region: splitRegion(40, 200), wrapping: 'on-space' }, font)).toBe(
+            'AAAA\nBBBB'
+        );
+    });
+
+    it('wraps a block drawn from the anchor downwards to the bands below it', () => {
+        // Same shape, but the label is drawn from a top baseline, so both lines sit in the 200px half and
+        // the words share a line.
+        expect(
+            fitLabelText(
+                'AAAA BBBB',
+                { region: splitRegion(40, 200), regionAlign: 'start', wrapping: 'on-space' },
+                font
+            )
+        ).toBe('AAAA BBBB');
+    });
+
+    it('does not let a block drawn downwards use room the shape only offers above the anchor', () => {
+        // The mirror case, and the damaging one: the block sits entirely in the 40px half, so it must wrap
+        // there rather than reading its width off the half it is never drawn in.
+        expect(
+            fitLabelText(
+                'AAAA BBBB',
+                { region: splitRegion(200, 40), regionAlign: 'start', wrapping: 'on-space' },
+                font
+            )
+        ).toBe('AAAA\nBBBB');
+    });
+
+    it('marks text it had to drop where the shape narrowed to nothing', () => {
+        // A shape can starve a line of width entirely (a wedge's inner end, a pyramid's apex). The wrap
+        // stops there, and what it could not place has to be marked like any other overflow.
+        const region: FitRegion = {
+            spanAt: (_top, bottom) => (bottom <= 20 ? [-50, 50] : [0, 0]),
+            extentAbove: 0,
+            extentBelow: 100,
+        };
+        const result = String(
+            fitLabelText('AAAA BBBB CCCC DDDD', { region, wrapping: 'on-space', overflowStrategy: 'ellipsis' }, font)
+        );
+        expect(result.endsWith(E)).toBe(true);
+    });
+
+    it('centres the block where the room is when the shape is lopsided about the anchor', () => {
+        // All the room lies to the left of the anchor: a block centred on the anchor could only use twice
+        // the 10px on its right, so the fit moves it into the 100px the shape actually offers.
+        const region: FitRegion = {
+            spanAt: () => [-110, 10],
+            extentAbove: 20,
+            extentBelow: 20,
+        };
+        const fitted = fitLabelTextToRegion('AAAA BBBB', { region, wrapping: 'on-space' }, font);
+        expect(fitted.text).toBe('AAAA BBBB');
+        expect(fitted.offsetX).toBe(-50);
     });
 });
