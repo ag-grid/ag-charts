@@ -1391,7 +1391,7 @@ function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
 type RetreatSide = 'left' | 'right' | 'top' | 'bottom';
 
 // How far each side of the candidate box has to come in to clear the obstacles it hits, written by
-// `measureObstacleReduction`. A shrink spends the sum of an axis' pair on that axis' extent, and slides a
+// `measureShrinkReduction`. A shrink spends the sum of an axis' pair on that axis' extent, and slides a
 // centred box by half their difference so the room it gives up comes off the side the obstacle is on.
 const shrinkIntrusion: Record<RetreatSide, number> = { left: 0, right: 0, top: 0, bottom: 0 };
 // Extent reduction and post-recentre translation those intrusions add up to.
@@ -1485,16 +1485,45 @@ function accumulateObstacleReduction(o: LabelObstacle): void {
 }
 
 /**
- * Measures how far the candidate box has to shrink to clear the obstacles it hits, into {@link
- * shrinkReduction} and {@link shrinkSlide}. `false` when nothing it can shrink out of the way intrudes.
+ * Seeds the intrusions with the candidate's own overflow of its region, so a box with more text than the
+ * room it was given comes in to meet that room. A centred box retreats by the same amount on both sides:
+ * taking the whole reduction off the overflowing side alone would carry the label off the anchor it names.
  */
-function measureObstacleReduction(pinX: number, pinY: number, inflate: number): boolean {
+function accumulateRegionIntrusion(region: BoxBounds) {
+    const { x, y, width, height } = candidateBox;
+    const left = Math.max(0, region.x - x);
+    const right = Math.max(0, x + width - (region.x + region.width));
+    const top = Math.max(0, region.y - y);
+    const bottom = Math.max(0, y + height - (region.y + region.height));
+    if (shrinkPinX === 0) {
+        shrinkIntrusion.left = shrinkIntrusion.right = Math.max(left, right);
+    } else {
+        shrinkIntrusion.left = sideRetreats(shrinkPinX, true) ? left : 0;
+        shrinkIntrusion.right = sideRetreats(shrinkPinX, false) ? right : 0;
+    }
+    if (shrinkPinY === 0) {
+        shrinkIntrusion.top = shrinkIntrusion.bottom = Math.max(top, bottom);
+    } else {
+        shrinkIntrusion.top = sideRetreats(shrinkPinY, true) ? top : 0;
+        shrinkIntrusion.bottom = sideRetreats(shrinkPinY, false) ? bottom : 0;
+    }
+}
+
+/**
+ * Measures how far the candidate box has to shrink to clear the obstacles it hits and to come inside
+ * `region`, into {@link shrinkReduction} and {@link shrinkSlide}. `false` when nothing it can shrink out
+ * of the way intrudes.
+ */
+function measureShrinkReduction(pinX: number, pinY: number, inflate: number, region?: BoxBounds): boolean {
     shrinkIntrusion.left = 0;
     shrinkIntrusion.right = 0;
     shrinkIntrusion.top = 0;
     shrinkIntrusion.bottom = 0;
     shrinkPinX = pinX;
     shrinkPinY = pinY;
+    if (region != null) {
+        accumulateRegionIntrusion(region);
+    }
     inflateBoxInto(queryBox, candidateBox, inflate);
     obstacleIndex.query(queryBox, accumulateObstacleReduction);
     shrinkReduction.width = shrinkIntrusion.left + shrinkIntrusion.right;
@@ -2084,7 +2113,7 @@ function shrinkCompassCandidate(
     // Which edges the box keeps as it shrinks, mirroring how `positionLabelBox` hangs it off the point: a
     // directional candidate is pinned to the edge facing the point, a gapless or `inside` one stays centred.
     const vec = gap > 0 && placement != null ? labelPlacements[placement] : undefined;
-    if (!measureObstacleReduction(vec?.x ?? 0, vec?.y ?? 0, inflate)) return false;
+    if (!measureShrinkReduction(vec?.x ?? 0, vec?.y ?? 0, inflate)) return false;
     // The reduction is measured on the rotated footprint, whose axes are the glyph's swapped for a
     // quarter-turned candidate.
     const upright = rotation % 180 === 0;
@@ -2133,7 +2162,7 @@ function shrinkPositionedCandidate(
     const fit = d.fit;
     const fitTo = c.fitTo;
     if (fit == null || fitTo == null || (c.rotation ?? 0) % 360 !== 0) return false;
-    if (!measureObstacleReduction(anchorPinX(fitTo.anchor), anchorPinY(fitTo.anchor), inflate)) return false;
+    if (!measureShrinkReduction(anchorPinX(fitTo.anchor), anchorPinY(fitTo.anchor), inflate, region)) return false;
     const styledFont = fitTo.font;
     const source = styledFont == null ? fitSource : styledFitSource(fit, styledFont);
     const { width, height } = shrinkReduction;
@@ -2679,9 +2708,9 @@ function placeFromPositionedCandidates(
             const overflow = regionOverflow(region, x, y, cw, ch);
             recordBestChoice(TIER_OVERFLOWING, overflow, text, width, height, rotation, offsetX, offsetY, undefined, c);
         }
-        // Obstacle-only failure: the candidate has the room, an obstacle is taking part of it. Shrinking is
-        // tried last so a failed attempt can clobber the shared candidate scratch freely.
-        if (contained && shrinkPositionedCandidate(d, c, fitSource, rawRegion, region, inflate)) {
+        // The candidate lost room to an obstacle, to its region, or to both. Shrinking is tried last so a
+        // failed attempt can clobber the shared candidate scratch freely.
+        if (shrinkPositionedCandidate(d, c, fitSource, rawRegion, region, inflate)) {
             recordBestChoice(
                 TIER_FIT,
                 candidateLabel.dropped + candidateLabel.shrink,

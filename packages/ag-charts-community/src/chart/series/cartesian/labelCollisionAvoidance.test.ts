@@ -973,6 +973,46 @@ describe('label collision avoidance', () => {
             expect(texts.filter((text) => text.includes('\n')).length).toBeGreaterThan(4);
         });
 
+        // Two bars in a plot narrower than either label, so each `outside-end` box overflows the plot on one
+        // side as well as colliding with its neighbour.
+        it('shrinks bar labels wider than the plot area they overflow', async () => {
+            const options: any = {
+                data: [
+                    { x: 'Alpha Widget', y: 9.6 },
+                    { x: 'Beta Widget', y: 9.4 },
+                ],
+                legend: { enabled: false },
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number', min: 0, max: 12 },
+                },
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        label: {
+                            enabled: true,
+                            placement: 'outside-end',
+                            formatter: () => LABEL_TEXT,
+                            truncate: true,
+                            wrapping: 'on-space',
+                            collision: { alwaysShow: true },
+                        },
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            options.width = 260;
+            options.height = 500;
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            const texts = renderedLabelTexts();
+            expect(texts.length).toBe(2);
+            expect(texts).not.toContain(LABEL_TEXT);
+            await compareImageSnapshot(chart, ctx);
+        });
+
         it('drops the same bar labels when nothing about them can adapt', async () => {
             const texts = await renderCrowdedBarLabels({ wrapping: 'never', truncate: false });
             expect(texts.length).toBeLessThan(8);
