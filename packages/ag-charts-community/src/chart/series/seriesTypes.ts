@@ -14,7 +14,7 @@ import type {
     AgActiveItemState,
     AgCoordinates,
     AgNodeContextMenuActionEvent,
-    AgNodeParams,
+    AgNodeClickParams,
     AgNumericValue,
     SelectionState as PublicSelectionState,
 } from 'ag-charts-types';
@@ -145,7 +145,7 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     fireNodeClickEvent(opts: FireNodeEventParams): boolean;
     fireNodeDoubleClickEvent(opts: FireNodeEventParams): void;
     createNodeContextMenuActionEvent(opts: FireNodeEventParams): AgNodeContextMenuActionEvent;
-    createNodeParams(datum: TDatum): AgNodeParams<unknown>;
+    createNodeParams(datum: TDatum): AgNodeClickParams<unknown>;
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
     getLabelData(): PointLabelDatum[];

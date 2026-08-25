@@ -45,7 +45,7 @@ import type {
     AgInitialStateLegendOptions,
     AgNodeClickEvent,
     AgNodeContextMenuActionEvent,
-    AgNodeParams,
+    AgNodeClickParams,
     AgSeriesTooltipRendererParams,
     AgSeriesVisibilityChange,
     FormatterParams,
@@ -1239,7 +1239,7 @@ export abstract class Series<
     // Do not override. Override createNodeParams instead.
     createNodeEvent<T extends NodeEventType>(type: T, opts: FireNodeEventParams) {
         const { event, datums, winner, coordinates } = opts;
-        const allNodeParams: AgNodeParams<unknown>[] = datums.map((d) => d.series.createNodeParams(d));
+        const allNodeParams: AgNodeClickParams<unknown>[] = datums.map((d) => d.series.createNodeParams(d));
 
         let defaultPrevented = false;
         return {
@@ -1257,7 +1257,7 @@ export abstract class Series<
         };
     }
 
-    createNodeParams(datum: TDatum): AgNodeParams<unknown> {
+    createNodeParams(datum: TDatum): AgNodeClickParams<unknown> {
         const dataIdKey = this.data?.dataIdKey;
         return {
             datum: datum.datum,
