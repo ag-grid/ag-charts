@@ -761,6 +761,66 @@ describe('CrossLine', () => {
 
             expect(click).not.toHaveBeenCalled();
         });
+
+        test('overlapping crosslines allClickParams', async () => {
+            const crossLineClick = vi.fn();
+            chart = await createChart({
+                data: [
+                    { x: 'Jan', y: 8 },
+                    { x: 'Mar', y: 6 },
+                    { x: 'May', y: 3 },
+                    { x: 'Jul', y: 9 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    myX: {
+                        type: 'category',
+                        crossAt: { value: 0 },
+                        crossLines: [
+                            { id: 'blue-line', type: 'line', value: 'May', stroke: 'blue', strokeWidth: 2 },
+                            { id: 'grey-range', type: 'range', range: ['Mar', 'Jul'], strokeWidth: 2 },
+                        ],
+                    },
+                    myY: {
+                        type: 'number',
+                        // No user-option `id`; Use auto-generated id.
+                        crossLines: [{ type: 'line', value: 8, stroke: 'lime', strokeWidth: 2 }],
+                    },
+                },
+                listeners: { crossLineClick },
+            });
+            await clickAction(505, 130)(chart);
+            expect(crossLineClick).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    crossLineId: 'blue-line',
+                    axisId: 'myX',
+                    direction: 'x',
+                    value: 'May',
+                    // TODO: add AG-17613 `coordinated`
+                    allClickParams: [
+                        expect.objectContaining({
+                            crossLineId: 'blue-line',
+                            axisId: 'myX',
+                            direction: 'x',
+                            value: 'May',
+                        }),
+                        expect.objectContaining({
+                            crossLineId: 'grey-range',
+                            axisId: 'myX',
+                            direction: 'x',
+                            range: ['Mar', 'Jul'],
+                        }),
+                        expect.objectContaining({
+                            crossLineId: 'blue-line',
+                            axisId: 'myY',
+                            direction: 'y',
+                            value: 'May',
+                        }),
+                    ],
+                })
+            );
+            expect(crossLineClick).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('TC1: secondary axes', () => {
