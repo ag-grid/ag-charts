@@ -73,22 +73,24 @@ export function mouseUpEvent(
     return makeMouseEvent('mouseup', offsets, clientX, clientY, true, modifiers);
 }
 
+/** `mouseenter` does not bubble; the browser fires it on each element being entered. */
 export function mouseEnterEvent(
     offsets: MockEvent,
     clientX: number,
     clientY: number,
     modifiers?: EventModifierInit
 ): MouseEvent {
-    return makeMouseEvent('mouseenter', offsets, clientX, clientY, true, modifiers);
+    return makeMouseEvent('mouseenter', offsets, clientX, clientY, false, modifiers);
 }
 
+/** `mouseleave` does not bubble; the browser fires it on each element being left. */
 export function mouseLeaveEvent(
     offsets: MockEvent,
     clientX: number,
     clientY: number,
     modifiers?: EventModifierInit
 ): MouseEvent {
-    return makeMouseEvent('mouseleave', offsets, clientX, clientY, true, modifiers);
+    return makeMouseEvent('mouseleave', offsets, clientX, clientY, false, modifiers);
 }
 
 export function mouseMoveEvent(
@@ -127,25 +129,30 @@ export function contextMenuEvent(
     return makeMouseEvent('contextmenu', offsets, clientX, clientY, false, modifiers);
 }
 
-export function dispatchEvent({ bubbleChain, target }: MockEvent, event: Event) {
-    if (!event.bubbles && bubbleChain.length > 0) {
-        bubbleChain = [bubbleChain[0]];
-    }
+/**
+ * Dispatches `event` on `target` only, exactly as a real user interaction does. jsdom implements
+ * bubbling, so it walks the ancestors itself and sets `target`/`currentTarget` on the way; dispatching
+ * on the ancestors here as well would deliver the event once per ancestor to every listener registered
+ * above `target` — a `click` on the series area would reach a `canvas-container` listener three times.
+ */
+export function dispatchEvent({ target }: MockEvent, event: Event) {
+    target.dispatchEvent(event);
+}
 
+/**
+ * Dispatches `event` on each element of `bubbleChain` in turn, with `target` pinned to the element the
+ * pointer is over. For the non-bubbling `mouseenter`/`mouseleave` pair, which the browser fires
+ * separately on every element being entered or left rather than propagating a single event.
+ */
+export function dispatchEventToChain({ bubbleChain, target }: MockEvent, event: Event) {
     for (const currentTarget of bubbleChain) {
         Object.defineProperty(event, 'target', {
             value: target,
             writable: true,
             configurable: true,
         });
-        Object.defineProperty(event, 'currentTarget', {
-            value: currentTarget,
-            writable: true,
-            configurable: true,
-        });
         currentTarget.dispatchEvent(event);
         delete (event as any).target;
-        delete (event as any).currentTarget;
     }
 }
 
