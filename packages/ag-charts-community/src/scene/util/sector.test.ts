@@ -172,4 +172,32 @@ describe('isBoxInSector', () => {
         const box: BoxBounds = { x: -80, y: -60, width: 40, height: 30 };
         expect(isBoxInSector(box, ring)).toBe(false);
     });
+
+    it('rejects a box straddling the wedge a reflex sector excludes', () => {
+        // 350 degrees of ring, so the 10 degrees it excludes lie along the negative x axis. Every corner
+        // of the box clears that wedge, while the middle of the box sits in it.
+        const reflex: Sector = {
+            startAngle: (Math.PI * 185) / 180,
+            endAngle: (Math.PI * 175) / 180,
+            innerRadius: 40,
+            outerRadius: 120,
+        };
+        const box: BoxBounds = { x: -110, y: -20, width: 50, height: 40 };
+        expect(isPointInSector(box.x, box.y, reflex)).toBe(true);
+        expect(isPointInSector(box.x, box.y + box.height, reflex)).toBe(true);
+        expect(boxInSectorBySampling(box, reflex)).toBe(false);
+        expect(isBoxInSector(box, reflex)).toBe(false);
+    });
+
+    it('accepts a box a reflex sector holds clear of the wedge it excludes', () => {
+        const reflex: Sector = {
+            startAngle: (Math.PI * 185) / 180,
+            endAngle: (Math.PI * 175) / 180,
+            innerRadius: 40,
+            outerRadius: 120,
+        };
+        const box: BoxBounds = { x: 60, y: -20, width: 50, height: 40 };
+        expect(boxInSectorBySampling(box, reflex)).toBe(true);
+        expect(isBoxInSector(box, reflex)).toBe(true);
+    });
 });

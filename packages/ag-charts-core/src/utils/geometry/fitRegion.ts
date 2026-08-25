@@ -47,6 +47,11 @@ export function trapezoidFitRegion(trapezoid: TrapezoidBounds, anchorSpan: numbe
  * that need probing are not convex: an annulus sector is closest to its hole between the edges of a band
  * that straddles the centre line, so an edge-only test reaches into the hole unseen. This samples the
  * band rather than proving it, so a shape that narrows sharply within one row can still be over-reported.
+ *
+ * Nor is containment monotonic along the ray, for the same reason: a wide annulus sector is left through
+ * its hole and entered again beyond it, so a plain bisection over `[0, limit]` can settle on the far arm
+ * and report room across the gap. The reach is therefore bracketed by a coarse outward scan of `probes`
+ * samples first, and bisected only inside the interval where the shape was first left.
  */
 export function probedFitRegion(
     anchor: { x: number; y: number },

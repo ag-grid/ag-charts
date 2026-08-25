@@ -49,7 +49,6 @@ import type { AgFunnelSeriesLabelPlacement, AgNumericValue } from 'ag-charts-typ
 
 import { FunnelConnector } from '../funnel/funnelConnector';
 import {
-    BAR_TO_FUNNEL_PLACEMENT,
     FUNNEL_TO_BAR_PLACEMENT,
     pyramidLabelBand,
     pyramidPlacementAxes,
@@ -716,20 +715,17 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const collideWith = label.collision.resolveCollideWith();
         const threshold = label.collision.threshold ?? 0;
         const fitFor = resolveLabelFitDescriptors(label, box, !label.collision.alwaysShow);
-        const resolveStyle = createBarCandidateStyleResolver(
-            this,
-            label,
-            this.labelStylerParams(),
-            undefined,
-            (placement) => BAR_TO_FUNNEL_PLACEMENT[placement]
-        );
+        const stylerParams = this.labelStylerParams();
         const data: PointLabelDatum[] = [];
         for (const labelDatum of this.contextNodeData?.labelData ?? []) {
             if (labelDatum.text === '' || labelDatum.candidates == null) continue;
+            // The styler is promised the funnel placement, not the bar placement the geometry runs on, so
+            // this datum's own placement is what the resolver reports back.
+            const reported = labelDatum.placement ?? 'inside-center';
             const styled = styledBarLabelBox(
-                resolveStyle,
+                createBarCandidateStyleResolver(this, label, stylerParams, undefined, () => reported),
                 labelDatum,
-                FUNNEL_TO_BAR_PLACEMENT[labelDatum.placement ?? 'inside-center'],
+                FUNNEL_TO_BAR_PLACEMENT[reported],
                 'horizontal',
                 labelDatum.text
             );

@@ -12,11 +12,7 @@ import {
     type FunnelAnimationData,
     type FunnelNodeDatum,
 } from '../funnel/baseFunnelSeries';
-import {
-    BAR_TO_CONE_FUNNEL_PLACEMENT,
-    CONE_FUNNEL_TO_BAR_PLACEMENT,
-    resolveConeFunnelPlacements,
-} from '../funnel/funnelLabelPlacement';
+import { CONE_FUNNEL_TO_BAR_PLACEMENT, resolveConeFunnelPlacements } from '../funnel/funnelLabelPlacement';
 import { ConeFunnelProperties } from './coneFunnelProperties';
 import { resetLineSelectionsFn } from './coneFunnelUtil';
 
@@ -113,10 +109,6 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
 
     protected override toBarPlacement(placement: AgConeFunnelSeriesLabelPlacement | undefined) {
         return CONE_FUNNEL_TO_BAR_PLACEMENT[placement ?? this.defaultLabelPlacement()];
-    }
-
-    protected override fromBarPlacement(placement: _ModuleSupport.BarLabelPlacement) {
-        return BAR_TO_CONE_FUNNEL_PLACEMENT[placement];
     }
 
     protected override updateDatumNodes(opts: {

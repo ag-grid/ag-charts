@@ -62,14 +62,14 @@ jobs:
             locale: ${{ steps.filter.outputs.locale }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 1
 
             - name: Detect file changes (PR only)
               id: filter
               if: github.event_name == 'pull_request'
-              uses: dorny/paths-filter@v3
+              uses: dorny/paths-filter@v4
               with:
                   filters: |
                       code:
@@ -150,7 +150,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 1
 
@@ -286,7 +286,7 @@ jobs:
 
             - name: Persist build outputs
               if: always()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: e2e-init-outputs
                   # Mostly minified JS — heavier compression buys little and costs
@@ -312,7 +312,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 1
 
@@ -360,7 +360,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 1
 
@@ -397,7 +397,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 1
 
@@ -430,7 +430,7 @@ jobs:
 
             - name: Upload UMD bundles for PR preview
               if: github.event_name == 'pull_request' && steps.build_umd.outcome == 'success'
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: pr-preview-umd
                   if-no-files-found: ignore
@@ -451,7 +451,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 1
 
@@ -504,13 +504,13 @@ jobs:
         steps:
             # Needed for the local shared action below; same-repo gate (job if) is the guard.
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 1
 
             - name: Download UMD artifact
               id: download
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               continue-on-error: true
               with:
                   name: pr-preview-umd
@@ -594,11 +594,11 @@ jobs:
             contents: read
             pull-requests: write
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7
               with:
                   fetch-depth: 0
 
-            - uses: actions/setup-node@v4
+            - uses: actions/setup-node@v7
               with:
                   node-version: 22
 
@@ -654,7 +654,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 1
 
@@ -684,7 +684,7 @@ jobs:
 
             - name: Persist website build for staging deploy
               if: github.ref == 'refs/heads/latest' && steps.build.outcome == 'success'
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: website-staging-dist
                   path: dist/packages/ag-charts-website/
@@ -713,7 +713,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 1
 
@@ -758,7 +758,7 @@ jobs:
 
             - name: Persist test results
               if: always()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: test-results-${{matrix.shard}}
                   path: |
@@ -803,7 +803,7 @@ jobs:
             - name: Restore Playwright Image Cache
               id: pw_cache
               if: steps.mirror_check.outputs.exists != 'true'
-              uses: actions/cache@v4
+              uses: actions/cache@v6
               with:
                   path: /tmp/playwright-docker-image.tar
                   key: ${{ env.PLAYWRIGHT_CACHE_KEY }}
@@ -897,10 +897,10 @@ jobs:
 
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
 
             - name: Restore Init Build Outputs
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   name: e2e-init-outputs
 
@@ -952,7 +952,7 @@ jobs:
             - name: Restore Playwright Image Cache
               id: pw_tarball
               if: steps.await_image.outputs.pulled != 'true'
-              uses: actions/cache/restore@v4
+              uses: actions/cache/restore@v6
               with:
                   path: /tmp/playwright-docker-image.tar
                   key: playwright-image-v1.60.0-jammy-v1
@@ -998,7 +998,7 @@ jobs:
 
             - name: Persist test results
               if: always()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: test-results-e2e-shard-${{matrix.shard}}
                   path: |
@@ -1056,10 +1056,10 @@ jobs:
 
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
 
             - name: Restore Init Build Outputs
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   name: e2e-init-outputs
 
@@ -1101,7 +1101,7 @@ jobs:
             - name: Restore Playwright Image Cache
               id: pw_tarball
               if: steps.await_image.outputs.pulled != 'true'
-              uses: actions/cache/restore@v4
+              uses: actions/cache/restore@v6
               with:
                   path: /tmp/playwright-docker-image.tar
                   key: playwright-image-v1.60.0-jammy-v1
@@ -1144,7 +1144,7 @@ jobs:
 
             - name: Persist test results
               if: always()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: test-results-e2e-cross-browser
                   path: |
@@ -1189,12 +1189,12 @@ jobs:
 
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 1
 
             - name: Restore Init Build Outputs
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   name: e2e-init-outputs
 
@@ -1239,7 +1239,7 @@ jobs:
             - name: Restore Playwright Image Cache
               id: pw_tarball
               if: steps.await_image.outputs.pulled != 'true'
-              uses: actions/cache/restore@v4
+              uses: actions/cache/restore@v6
               with:
                   path: /tmp/playwright-docker-image.tar
                   key: playwright-image-v1.60.0-jammy-v1
@@ -1278,7 +1278,7 @@ jobs:
 
             - name: Persist test results
               if: always()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: test-results-demos-e2e
                   path: |
@@ -1301,7 +1301,7 @@ jobs:
             - name: Checkout
               id: checkout
               if: matrix.framework != 'none'
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 1
 
@@ -1382,7 +1382,7 @@ jobs:
             BUNDLE_TREESHAKE_SHARD: ${{ matrix.treeshake_shard }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 1
 
@@ -1439,7 +1439,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 1
 
@@ -1452,7 +1452,7 @@ jobs:
                   # branch has no success tag until its first green build.
                   git fetch origin --depth 1 tag "${BRANCH_NAME}-success" || true
 
-            - uses: actions/download-artifact@v4
+            - uses: actions/download-artifact@v8
               with:
                   path: test-results/
 
@@ -1492,7 +1492,7 @@ jobs:
                   done)
 
             - name: Test Report
-              uses: dorny/test-reporter@v1
+              uses: dorny/test-reporter@v3
               if: needs.test.result == 'success' || needs.test.result == 'failure' || needs.demos_e2e.result == 'success' || needs.demos_e2e.result == 'failure'
               id: testReport
               continue-on-error: true
@@ -1576,7 +1576,7 @@ jobs:
 
             - name: Restore Website Build for Staging Deploy
               if: github.ref == 'refs/heads/latest' && needs.website_build.outputs.build == 'success' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   name: website-staging-dist
                   path: dist/packages/ag-charts-website/
@@ -1818,7 +1818,7 @@ jobs:
 
             - name: Upload CI-failure Slack thread anchor
               if: always() && steps.ci_failure_alert.outcome == 'success' && hashFiles('ci-failure-slack.json') != ''
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: ci-failure-slack
                   path: ci-failure-slack.json
@@ -1863,7 +1863,7 @@ jobs:
             cancel-in-progress: false
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
               with:
                   # Full history topology is needed for snapshot diffing, but blobs can be
                   # fetched lazily — a blob-less clone cuts checkout from ~80s to ~15s.
@@ -1947,7 +1947,7 @@ jobs:
 
             - name: Upload snapshot-review HTML reports
               if: steps.review.outputs.produced == 'true'
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: snapshot-review-html
                   path: ${{ steps.review.outputs.html_dir }}/*.html
@@ -2051,7 +2051,7 @@ jobs:
         if: vars.SONARCLOUD_ENABLED != 'false'
         runs-on: ubuntu-24.04
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7
               with:
                   # Disabling shallow clones is recommended for improving the relevancy of reporting
                   fetch-depth: 0

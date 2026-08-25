@@ -284,6 +284,28 @@ describe('buildBarLabelCandidates', () => {
         expect(outside.box.height).toBeCloseTo(50);
     });
 
+    it('holds a candidate shape clear of the box drawn around the glyph', () => {
+        // A shape reports the room the mark offers, which the drawn box eats into: a taper's full width at
+        // a band is not the text's to use when 6px of padding is drawn around it.
+        const shape = { spanAt: () => [-50, 50] as const, extentAbove: 50, extentBelow: 50 };
+        const label = makeLabel({ fill: 'red', padding: 6 });
+        const [inside] = build(['inside-center'], ['horizontal'], label, {
+            fitted: true,
+            shapeAt: () => shape,
+        });
+        expect(inside.fitTo?.shape?.spanAt(0, 10)).toEqual([-44, 44]);
+        expect(inside.fitTo?.shape?.extentAbove).toBe(44);
+    });
+
+    it('leaves a candidate shape as it is for a label with no box to draw', () => {
+        const shape = { spanAt: () => [-50, 50] as const, extentAbove: 50, extentBelow: 50 };
+        const [inside] = build(['inside-center'], ['horizontal'], makeLabel(), {
+            fitted: true,
+            shapeAt: () => shape,
+        });
+        expect(inside.fitTo?.shape).toBe(shape);
+    });
+
     it('emits no candidate when a hideable label has every placement rejected', () => {
         // The lone placement points into a stacked neighbour; a hideable label is dropped rather than
         // mislabelling that neighbour.

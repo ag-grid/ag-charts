@@ -14,7 +14,6 @@ import {
     type FunnelNodeDatum,
 } from './baseFunnelSeries';
 import {
-    BAR_TO_FUNNEL_PLACEMENT,
     FUNNEL_TO_BAR_PLACEMENT,
     funnelPlacementAxes,
     resolveFunnelPlacements,
@@ -94,10 +93,6 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
 
     protected override toBarPlacement(placement: AgFunnelSeriesLabelPlacement | undefined) {
         return FUNNEL_TO_BAR_PLACEMENT[placement ?? this.defaultLabelPlacement()];
-    }
-
-    protected override fromBarPlacement(placement: _ModuleSupport.BarLabelPlacement) {
-        return BAR_TO_FUNNEL_PLACEMENT[placement];
     }
 
     protected override labelPlacementStyle(placement: AgFunnelSeriesLabelPlacement | undefined) {
