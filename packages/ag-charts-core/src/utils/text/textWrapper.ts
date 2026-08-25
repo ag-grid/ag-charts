@@ -357,26 +357,17 @@ export function isErased(text: NormalisedTextOrSegments): boolean {
     return isArray(text) ? text.length === 0 : String(text).length === 0;
 }
 
-function countRealChars(text: string): number {
-    let count = 0;
-    for (const char of text) {
-        if (char !== EllipsisChar && char.trim() !== '') count++;
-    }
-    return count;
-}
-
 /**
- * Characters a fitted label actually shows, ignoring the ellipsis and whitespace it can be reduced to.
- * A budget too narrow for any real character leaves a bare `…`, which reads as an artefact rather than
+ * Whether a fitted label still shows a character, ignoring the ellipsis and whitespace it can be reduced
+ * to. A budget too narrow for any real character leaves a bare `…`, which reads as an artefact rather than
  * a label, so callers shrinking a budget treat that as erased.
  */
-export function realCharCount(text: NormalisedTextOrSegments): number {
-    if (!isArray(text)) return countRealChars(toTextString(text));
-    let count = 0;
+export function hasRealChars(text: NormalisedTextOrSegments): boolean {
+    if (!isArray(text)) return survivingCharacters(toTextString(text)) > 0;
     for (const segment of text) {
-        if (segment.type !== 'image') count += countRealChars(toTextString(segment.text));
+        if (segment.type !== 'image' && survivingCharacters(toTextString(segment.text)) > 0) return true;
     }
-    return count;
+    return false;
 }
 
 /**

@@ -26,6 +26,7 @@ import {
     applyPlacedBarLabelVisibility,
     barLabelObstacles,
     barLabelOrientation,
+    barLabelPropsRouteThroughEngine,
     barLabelResolvesOrientation,
     barLabelRotation,
     barLabelRoutesThroughEngine,
@@ -1256,14 +1257,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
     protected override resolveUsesPlacedLabels(): boolean {
         const { positive, negative, total } = this.properties.item;
-        return [positive, negative, total].some((item) =>
-            barLabelRoutesThroughEngine(
-                item.label.orientation,
-                item.label.placement,
-                item.label.collision.alwaysShow,
-                resolveLabelFit(item.label, !item.label.collision.alwaysShow)
-            )
-        );
+        return [positive, negative, total].some((item) => barLabelPropsRouteThroughEngine(item.label));
     }
 
     protected override updateLabelSelection(opts: {

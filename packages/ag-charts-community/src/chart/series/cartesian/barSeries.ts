@@ -27,9 +27,10 @@ import {
     areScalingEqual,
     barLabelObstacles,
     barLabelOrientation,
+    barLabelPropsRouteThroughEngine,
+    barLabelPropsUsePositionedCandidates,
     barLabelResolvesOrientation,
     barLabelRotation,
-    barLabelRoutesThroughEngine,
     barLabelUsesPositionedCandidates,
     buildBarLabelData,
     buildBarPositionedLabelDatum,
@@ -1428,14 +1429,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
      * Creates scratch objects and delegates to strategy-specific methods.
      */
     protected override resolveUsesPlacedLabels(): boolean {
-        const { label } = this.properties;
-        const alwaysShow = label.collision.alwaysShow;
-        return barLabelRoutesThroughEngine(
-            label.orientation,
-            label.placement,
-            alwaysShow,
-            resolveLabelFit(label, !alwaysShow)
-        );
+        return barLabelPropsRouteThroughEngine(this.properties.label);
     }
 
     protected override populateNodeData(ctx: BarSeriesNodeDatumContext): void {
@@ -1872,14 +1866,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const collideWith = label.collision.resolveCollideWith();
         const threshold = label.collision.threshold ?? 0;
         const fitFor = resolveLabelFitDescriptors(label, box, hideable);
-        if (
-            barLabelUsesPositionedCandidates(
-                label.orientation,
-                label.placement,
-                alwaysShow,
-                resolveLabelFit(label, hideable)
-            )
-        ) {
+        if (barLabelPropsUsePositionedCandidates(label)) {
             const data: PointLabelDatum[] = [];
             for (const node of this.contextNodeData?.labelData ?? []) {
                 const nodeLabel = node.label;

@@ -18,9 +18,10 @@ import {
     applyPlacedBarLabelVisibility,
     barLabelObstacles,
     barLabelOrientation,
+    barLabelPropsRouteThroughEngine,
+    barLabelPropsUsePositionedCandidates,
     barLabelResolvesOrientation,
     barLabelRotation,
-    barLabelRoutesThroughEngine,
     barLabelUsesPositionedCandidates,
     buildBarLabelData,
     buildBarPositionedLabelDatum,
@@ -1057,14 +1058,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     }
 
     protected override resolveUsesPlacedLabels(): boolean {
-        const { label } = this.properties;
-        const alwaysShow = label.collision.alwaysShow;
-        return barLabelRoutesThroughEngine(
-            label.orientation,
-            label.placement,
-            alwaysShow,
-            resolveLabelFit(label, !alwaysShow)
-        );
+        return barLabelPropsRouteThroughEngine(this.properties.label);
     }
 
     override getLabelData(): PointLabelDatum[] {
@@ -1083,14 +1077,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const fitFor = resolveLabelFitDescriptors(label, box, !alwaysShow);
         // The positioned path serves hideable, fitted and placement-cascading labels; an orientation-only
         // array stays on the baked path below, which resolves orientation against the bar region.
-        if (
-            barLabelUsesPositionedCandidates(
-                label.orientation,
-                label.placement,
-                alwaysShow,
-                resolveLabelFit(label, !alwaysShow)
-            )
-        ) {
+        if (barLabelPropsUsePositionedCandidates(label)) {
             const data: PointLabelDatum[] = [];
             for (const node of this.contextNodeData?.labelData ?? []) {
                 const nodeLabel = node.label;

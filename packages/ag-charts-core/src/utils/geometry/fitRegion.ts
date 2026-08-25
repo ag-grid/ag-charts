@@ -86,12 +86,15 @@ export function probedFitRegion(
 
 // Scanned outward, then bisected within the step that crossed: a ray out of an annulus sector re-enters
 // it beyond the hole, so bisecting the whole limit could land past the hole and carry the reach across it.
+// The scan resolves a gap only as narrow as `limit / probes`, so a hole thinner than one step is still
+// crossed — bounded sampling, not a guarantee.
 function firstOutside(inside: (t: number) => boolean, limit: number, probes: number, steps: number): number {
-    const step = limit / Math.max(1, probes);
+    const count = Math.max(1, probes);
+    const step = limit / count;
     let lo = 0;
     let hi = limit;
-    while (lo < limit) {
-        const t = Math.min(lo + step, limit);
+    for (let i = 1; i <= count; i += 1) {
+        const t = Math.min(i * step, limit);
         if (!inside(t)) {
             hi = t;
             break;

@@ -31,10 +31,8 @@ type LabelCollisionConfig = {
     truncate?: boolean;
 };
 
-// Line and area honour the configured placement candidates, so each candidate set resolves colliding
-// labels to different final positions; the first case also varies keep-vs-hide. `truncate: false`
-// throughout: an array-valued `placement` defaults it on, which would let a colliding label give up text
-// to fit beside its neighbour and confuse that with the placement decision under test.
+// `truncate: false` throughout: an array-valued `placement` defaults it on (see
+// `LABEL_OVERFLOW_DEFAULTS`), letting a colliding label give up text instead of taking a placement.
 const PLACED_LABEL_STRATEGIES: Record<string, LabelCollisionConfig> = {
     'keep overlapping (alwaysShow: true)': {
         placement: ['top', 'bottom'],
@@ -1108,6 +1106,56 @@ describe('label collision avoidance', () => {
 
         it('drops the same point label when nothing about it can adapt', async () => {
             expect(await renderTwoCrowdedPoints({ wrapping: 'never', truncate: false })).toHaveLength(1);
+        });
+
+        // Both charts carry the same two markers, so the size domain — and with it the roomy marker's own
+        // room — is fixed and only the neighbour's distance differs.
+        it('shrinks an inside label a neighbouring marker encroaches on, its own marker unchanged', async () => {
+            const bubbles = (data: object[], label: object = {}) => {
+                const options: any = {
+                    data,
+                    legend: { enabled: false },
+                    axes: {
+                        x: { type: 'number', min: 0, max: 10 },
+                        y: { type: 'number', min: 0, max: 10 },
+                    },
+                    series: [
+                        {
+                            type: 'bubble',
+                            xKey: 'x',
+                            yKey: 'y',
+                            sizeKey: 'size',
+                            labelKey: 'label',
+                            minSize: 26,
+                            maxSize: 190,
+                            label: {
+                                enabled: true,
+                                placement: 'inside',
+                                ...label,
+                            },
+                        },
+                    ],
+                };
+                prepareTestOptions(options);
+                options.width = 500;
+                options.height = 400;
+                return options;
+            };
+            const roomy = { x: 4, y: 5, size: 10, label: 'Roomy' };
+            const near = { x: 4.55, y: 5, size: 1, label: 'N' };
+            const far = { x: 9, y: 1, size: 1, label: 'N' };
+
+            const shrinkable = { wrapping: 'never', truncate: true, collision: { alwaysShow: false } };
+            chart = AgCharts.create(bubbles([roomy, far], shrinkable));
+            await waitForChartStability(chart);
+            expect(renderedLabelTexts()).toContain('Roomy');
+
+            chart.destroy();
+            chart = AgCharts.create(bubbles([roomy, near], shrinkable));
+            await waitForChartStability(chart);
+            const crowded = renderedLabelTexts();
+            expect(crowded).not.toContain('Roomy');
+            expect(crowded.some((text) => text.endsWith('\u2026') && 'Roomy'.startsWith(text.slice(0, -1)))).toBe(true);
         });
     });
 

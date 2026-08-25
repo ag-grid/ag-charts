@@ -32,6 +32,7 @@ import {
     areScalingEqual,
     barLabelObstacles,
     barLabelOrientation,
+    barLabelPropsRouteThroughEngine,
     barLabelResolvesOrientation,
     barLabelRotation,
     barLabelRoutesThroughEngine,
@@ -1519,14 +1520,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     }
 
     protected override resolveUsesPlacedLabels(): boolean {
-        const { label } = this.properties;
-        const alwaysShow = label.collision.alwaysShow;
-        return barLabelRoutesThroughEngine(
-            label.orientation,
-            label.placement,
-            alwaysShow,
-            resolveLabelFit(label, !alwaysShow)
-        );
+        return barLabelPropsRouteThroughEngine(this.properties.label);
     }
 
     protected override updateLabelSelection(opts: {

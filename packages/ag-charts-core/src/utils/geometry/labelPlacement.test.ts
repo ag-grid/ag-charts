@@ -2317,6 +2317,24 @@ describe('placeLabels obstacle-driven shrink', () => {
         expect(placed.placement).toBe('inside');
         expect(placed.text).toBe('WW…');
     });
+
+    // A positive threshold is clearance the label keeps from obstacles, not room taken off its own marker,
+    // so it must not narrow the inside budget — only a negative one, which widens it, reaches the text.
+    it('does not spend a positive collision threshold on the inside marker budget', () => {
+        const insideLabel = (overrides: Partial<PointLabelDatum> = {}) =>
+            shrinkableLabel({
+                point: { x: 200, y: 200, size: 100 },
+                anchor: { x: 0.5, y: 0.5 },
+                placement: 'inside',
+                placements: ['inside'],
+                insideSize: { width: 0.3, height: 0.3 },
+                alwaysShow: true,
+                ...overrides,
+            });
+        const textAt = (datum: PointLabelDatum) =>
+            placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 0, []).get('s')![0].text;
+        expect(textAt(insideLabel({ threshold: 6 }))).toBe(textAt(insideLabel()));
+    });
 });
 
 describe('placeLabels candidate styles', () => {

@@ -206,8 +206,10 @@ describe('label itemStyler participates in placement', () => {
             const options = seriesChart(type, placement, extra, seen);
             await render(options);
             expect(placementLabelData().length).toBeGreaterThan(0);
-            // A second pass re-reads the placement the engine wrote back, which is the route that resolves
-            // a styled box from a placement already mapped into the bar vocabulary.
+            expect(seen.size).toBeGreaterThan(0);
+            // The second pass is the route that resolves a styled box from a placement already mapped into
+            // the bar vocabulary, so it must be seen calling the styler in its own right.
+            seen.clear();
             await chart.update(options as AgChartOptions);
             await waitForChartStability(chart);
             expect(placementLabelData().length).toBeGreaterThan(0);

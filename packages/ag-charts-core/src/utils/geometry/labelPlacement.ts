@@ -12,8 +12,8 @@ import {
     findLargestFontSizeDescending,
     fitLabelTextOrOverflowAutoSize,
     fontWithSize,
+    hasRealChars,
     isErased,
-    realCharCount,
     resolveMinimumFontSize,
 } from '../text/textWrapper';
 import { isArray } from '../types/typeGuards';
@@ -964,8 +964,8 @@ export function barLabelUsesPositionedCandidates(
 
 /**
  * Whether a bar-family label must route through the placement engine rather than take its unconditional
- * fast-path bake: a multi-entry orientation array resolves against the bar region, and everything
- * {@link barLabelUsesPositionedCandidates} covers cascades through positioned candidates.
+ * fast-path bake: an orientation array resolves against the bar region, and a placement array, a hideable
+ * label or a fit policy cascades through {@link barLabelUsesPositionedCandidates}.
  */
 export function barLabelRoutesThroughEngine(
     orientation: AgChartLabelOrientation | AgChartLabelOrientation[] | undefined,
@@ -974,8 +974,36 @@ export function barLabelRoutesThroughEngine(
     fit: LabelFit | undefined
 ): boolean {
     return (
-        barLabelResolvesOrientation(orientation) ||
-        barLabelUsesPositionedCandidates(orientation, placement, alwaysShow, fit)
+        barLabelResolvesOrientation(orientation) || barLabelResolvesPlacement(placement) || !alwaysShow || fit != null
+    );
+}
+
+/** The label-surface fields a routing decision reads, so a caller hands over its label, not four arguments. */
+export interface BarLabelRoutingOptions extends LabelFitOptions {
+    readonly orientation?: AgChartLabelOrientation | AgChartLabelOrientation[];
+    readonly placement?: unknown;
+    readonly collision: { readonly alwaysShow: boolean };
+}
+
+/** {@link barLabelRoutesThroughEngine} for a whole label surface, resolving its own fit policy. */
+export function barLabelPropsRouteThroughEngine(label: BarLabelRoutingOptions): boolean {
+    const alwaysShow = label.collision.alwaysShow;
+    return barLabelRoutesThroughEngine(
+        label.orientation,
+        label.placement,
+        alwaysShow,
+        resolveLabelFit(label, !alwaysShow)
+    );
+}
+
+/** {@link barLabelUsesPositionedCandidates} for a whole label surface, resolving its own fit policy. */
+export function barLabelPropsUsePositionedCandidates(label: BarLabelRoutingOptions): boolean {
+    const alwaysShow = label.collision.alwaysShow;
+    return barLabelUsesPositionedCandidates(
+        label.orientation,
+        label.placement,
+        alwaysShow,
+        resolveLabelFit(label, !alwaysShow)
     );
 }
 
@@ -1947,8 +1975,11 @@ function insideMarkerContainer(
     const upright = rotation % 180 === 0;
     const width = (upright ? d.insideSize.width : d.insideSize.height) * markerSize;
     const height = (upright ? d.insideSize.height : d.insideSize.width) * markerSize;
-    candidateContainer.width = Math.max(0, width - boxWidthOf(pad) - 2 * threshold);
-    candidateContainer.height = Math.max(0, height - boxHeightOf(pad) - 2 * threshold);
+    // Only a negative threshold reaches the budget, matching how the candidate's containment region is
+    // deflated: a positive one is clearance from obstacles, not room taken off the marker.
+    const inset = 2 * containmentThreshold(threshold);
+    candidateContainer.width = Math.max(0, width - boxWidthOf(pad) - inset);
+    candidateContainer.height = Math.max(0, height - boxHeightOf(pad) - inset);
     return candidateContainer;
 }
 
@@ -2082,7 +2113,7 @@ function refitCandidateShrunk(
     } finally {
         refittingToObstacles = false;
     }
-    if (realCharCount(fittedLabel.text) < MIN_FITTED_CHARS) return false;
+    if (!hasRealChars(fittedLabel.text)) return false;
     writeCandidateLabel(boxPadding, font);
     return true;
 }
@@ -2164,7 +2195,7 @@ function shrinkCompassCandidate(
     return shrunkCandidateIsClear(containRegion, inflate);
 }
 
-/** Which edge of a positioned candidate's box stays put as it shrinks; see {@link sideCost}. */
+/** Which edge of a positioned candidate's box stays put as it shrinks; see {@link sideRetreats}. */
 function anchorPinX(anchor: OrientationAnchor): number {
     if (anchor.textAlign === 'left' || anchor.textAlign === 'start') return 1;
     if (anchor.textAlign === 'right' || anchor.textAlign === 'end') return -1;
@@ -2318,8 +2349,6 @@ const TIER_COLLIDING = 1;
 const TIER_OVERFLOWING = 2;
 /** Upper bound on {@link shrinkRatio}, keeping any amount of shrinking cheaper than losing one character. */
 const MAX_SHRINK_SCORE = 0.999;
-/** Real characters a shrunk candidate must still show; below it the budget renders a bare ellipsis. */
-const MIN_FITTED_CHARS = 1;
 
 // Best candidate seen so far in the current cascade, reused across passes to keep the loop allocation-free.
 const bestChoice: CandidateChoice = {
@@ -2502,22 +2531,31 @@ function cascadeCandidates(): PlacedLabel | undefined {
                     cascadeFlushToRegion
                 )
             ) {
-                recordBestChoice(
-                    TIER_FIT,
-                    candidateLabel.dropped + candidateLabel.shrink,
-                    candidateLabel.text,
-                    candidateLabel.width,
-                    candidateLabel.height,
-                    rotation,
-                    shrunkOffset.x,
-                    shrunkOffset.y,
-                    placement,
-                    undefined
-                );
+                recordShrunkChoice(rotation, placement, undefined);
             }
         }
     }
     return undefined;
+}
+
+/** Records the candidate a shrink pass left on the scratch, scored by the text and glyph area it gave up. */
+function recordShrunkChoice(
+    rotation: number,
+    placement: LabelPlacement | undefined,
+    candidate: PositionedLabelCandidate | undefined
+) {
+    recordBestChoice(
+        TIER_FIT,
+        candidateLabel.dropped + candidateLabel.shrink,
+        candidateLabel.text,
+        candidateLabel.width,
+        candidateLabel.height,
+        rotation,
+        shrunkOffset.x,
+        shrunkOffset.y,
+        placement,
+        candidate
+    );
 }
 
 /**
@@ -2678,12 +2716,11 @@ function placeFromPositionedCandidates(
             ) {
                 continue;
             }
-            // The clearance a label keeps from its own surface must not erase it: a deflated container
-            // left with no real character to draw is refitted to the surface itself, since a bare
-            // ellipsis reads as an artefact rather than as a label.
+            // The clearance a label keeps from its own surface must not erase it: refit to the surface
+            // itself rather than draw the bare ellipsis the deflated container left.
             if (
                 container !== c.fitTo.container &&
-                realCharCount(fittedLabel.text) < MIN_FITTED_CHARS &&
+                !hasRealChars(fittedLabel.text) &&
                 !fitLabelToCandidate(
                     fit,
                     styledFont ?? fit.font,
@@ -2742,21 +2779,10 @@ function placeFromPositionedCandidates(
             const overflow = regionOverflow(region, x, y, cw, ch);
             recordBestChoice(TIER_OVERFLOWING, overflow, text, width, height, rotation, offsetX, offsetY, undefined, c);
         }
-        // The candidate lost room to an obstacle, to its region, or to both. Shrinking is tried last so a
-        // failed attempt can clobber the shared candidate scratch freely.
+        // Ungated on containment, unlike the compass path: `measureShrinkReduction` seeds the region's own
+        // overflow here, so a candidate carrying more text than its region holds is still recoverable.
         if (shrinkPositionedCandidate(d, c, fitSource, rawRegion, region, inflate)) {
-            recordBestChoice(
-                TIER_FIT,
-                candidateLabel.dropped + candidateLabel.shrink,
-                candidateLabel.text,
-                candidateLabel.width,
-                candidateLabel.height,
-                rotation,
-                shrunkOffset.x,
-                shrunkOffset.y,
-                undefined,
-                c
-            );
+            recordShrunkChoice(rotation, undefined, c);
         }
     }
 
