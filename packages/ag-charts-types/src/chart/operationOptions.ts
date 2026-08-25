@@ -40,7 +40,16 @@ type ExtendLiteralLeavesInner<T, V, E, P extends keyof T> =
           ? T[P] | V
           : ExtendLiteralLeaves<T[P], V, E> | V;
 
-type ThemeParam = keyof AgChartAllThemeParams;
+type ThemeParam =
+    | keyof AgChartAllThemeParams
+    | 'buttonBorder.color'
+    | 'buttonBorder.width'
+    | 'inputBorder.color'
+    | 'inputBorder.width'
+    | 'menuBorder.color'
+    | 'menuBorder.width'
+    | 'tooltipBorder.color'
+    | 'tooltipBorder.width';
 
 type PaletteParam =
     | 'type'

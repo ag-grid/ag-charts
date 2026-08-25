@@ -19,8 +19,20 @@ const stylesTheme: WithThemeParams<AgRangesOptions> = {
     fontFamily: { $ref: 'chromeFontFamily' },
     fontWeight: { $ref: 'chromeFontWeight' },
     padding: { $shallow: { top: 6, right: 9, bottom: 6, left: 9 } } as any,
-    stroke: { $ref: 'borderColor' },
-    strokeWidth: { $if: [{ $ref: 'buttonBorder' }, 1, 0] },
+    stroke: {
+        $if: [
+            { $isType: [{ $ref: 'buttonBorder' }, 'boolean'] },
+            { $ref: 'borderColor' },
+            { $ref: 'buttonBorder.color' },
+        ],
+    },
+    strokeWidth: {
+        $if: [
+            { $isType: [{ $ref: 'buttonBorder' }, 'boolean'] },
+            { $if: [{ $ref: 'buttonBorder' }, 1, 0] },
+            { $ref: 'buttonBorder.width' },
+        ],
+    },
     textColor: { $ref: 'chromeTextColor' },
 };
 

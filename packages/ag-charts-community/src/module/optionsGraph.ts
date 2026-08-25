@@ -513,19 +513,22 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         return hasPathSafe(this.overrides, path);
     }
 
-    getParamValue(path: string) {
-        if (this.resolvedParams[path] != null) {
-            return this.resolvedParams[path];
+    getParamValue(pathString: string) {
+        const path = pathString.split('.');
+
+        const resolvedParam = getPathSafe(this.resolvedParams, path);
+        if (resolvedParam != null) {
+            return resolvedParam;
         }
 
-        const paramVertex = this.findVertexAlongEdge(this.params!, [path], PATH_EDGE);
+        const paramVertex = this.findVertexAlongEdge(this.params!, path, PATH_EDGE);
         if (!paramVertex) return;
 
         const defaultValueVertex = this.findNeighbour(paramVertex, DEFAULTS_EDGE);
         if (!defaultValueVertex) return;
 
         const resolved = this.resolveVertexValue(paramVertex, defaultValueVertex);
-        this.resolvedParams[path] = resolved;
+        setPathSafe(this.resolvedParams, path, resolved);
 
         return resolved;
     }
