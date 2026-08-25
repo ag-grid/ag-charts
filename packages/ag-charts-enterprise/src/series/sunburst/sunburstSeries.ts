@@ -561,8 +561,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             updateSector(datum, rect, true);
         });
 
-        const centreCircle = innerCircle != null ? this.resolveCentreCircle() : null;
-        this.innerCircleSelection.update(centreCircle != null ? [centreCircle] : []);
+        const centreCircle = innerCircle == null ? null : this.resolveCentreCircle();
+        this.innerCircleSelection.update(centreCircle == null ? [] : [centreCircle]);
         if (innerCircle != null) {
             if (centreCircle == null) {
                 this.ctx.logger.warnOnce(

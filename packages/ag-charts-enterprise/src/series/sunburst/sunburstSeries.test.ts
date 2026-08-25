@@ -29,6 +29,7 @@ import {
     expectProgresses,
     expectSceneSamplesMatch,
     expectSceneTrajectory,
+    expectWarningsCalls,
     hierarchyChartAssertions,
     hoverAction,
     setupMockCanvas,
@@ -1392,6 +1393,348 @@ describe('SunburstSeries', () => {
                 before,
                 sunburstOptions(reversed(ORG_DATA))
             );
+        });
+    });
+
+    // AG-18282: innerRadiusRatio / innerRadiusOffset carve a hole, innerCircle paints the centre.
+    describe('inner circle', () => {
+        const MULTI_ROOT_DATA = [
+            {
+                name: 'Fruits',
+                children: [
+                    { name: 'Banana', size: 10, change: 6 },
+                    { name: 'Apple', size: 5, change: null },
+                ],
+            },
+            {
+                name: 'Vegetables',
+                children: [
+                    { name: 'Cucumber', size: 6, change: -2 },
+                    { name: 'Carrot', size: 4 },
+                ],
+            },
+        ];
+        const SOLE_ROOT_DATA = [{ name: 'Produce', children: MULTI_ROOT_DATA }];
+        const DEEP_DATA = [
+            {
+                name: 'Fruits',
+                children: [
+                    {
+                        name: 'Citrus',
+                        children: [
+                            { name: 'Orange', children: [{ name: 'Navel', size: 4 }] },
+                            { name: 'Lemon', children: [{ name: 'Meyer', size: 3 }] },
+                        ],
+                    },
+                ],
+            },
+            {
+                name: 'Vegetables',
+                children: [{ name: 'Root', children: [{ name: 'Carrot', children: [{ name: 'Nantes', size: 5 }] }] }],
+            },
+        ];
+
+        const UNSUITABLE_WARNING =
+            'AG Charts - Option [series.innerCircle] does not suit the data - it requires either [series.innerRadiusRatio] or [series.innerRadiusOffset] to be set, or a root level consisting of a single node covering all of the data.';
+
+        let proxy: any;
+        let lastOptions: AgChartOptions;
+
+        const createChart = async (seriesOptions: any = {}, data: any = MULTI_ROOT_DATA, chartOptions: any = {}) => {
+            const options: AgChartOptions = {
+                data,
+                series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size', ...seriesOptions }],
+                animation: { enabled: false },
+                ...chartOptions,
+            };
+            prepareEnterpriseTestOptions(options);
+            lastOptions = options;
+            proxy = AgCharts.create(options);
+            chart = deproxy(proxy);
+            await waitForChartStability(chart);
+            return chart.series[0] as SunburstSeries;
+        };
+
+        const replaceChart = async (...args: Parameters<typeof createChart>) => {
+            chart.destroy();
+            return createChart(...args);
+        };
+
+        const seriesRadius = () => Math.min(chart.seriesRect.width, chart.seriesRect.height) / 2;
+        const maxDepthOf = (series: SunburstSeries) => (series as any).maxDepth as number;
+        const sectorsOf = (series: SunburstSeries) => Array.from<any>((series as any).sectorGroup.children());
+        const atDepth = (series: SunburstSeries, depth: number) =>
+            sectorsOf(series).filter((sector) => sector.datum?.depth === depth);
+
+        const descendants = (node: any, out: any[] = []) => {
+            if (typeof node?.children === 'function') {
+                for (const child of node.children()) {
+                    out.push(child);
+                    descendants(child, out);
+                }
+            }
+            return out;
+        };
+        // The painted centre: a full-sweep disc whose datum carries a radius and no depth, which
+        // distinguishes it from a sole root node's depth-0 disc.
+        const circleNodes = (series: SunburstSeries) =>
+            descendants((series as any).scalingGroup).filter(
+                (node: any) =>
+                    node.outerRadius != null &&
+                    node.innerRadius === 0 &&
+                    Math.abs(node.endAngle - node.startAngle - 2 * Math.PI) < 1e-6 &&
+                    node.datum?.depth === undefined &&
+                    node.datum?.radius != null
+            );
+
+        const nameTooltip = { renderer: ({ datum }: any) => datum.name };
+        const hoverAt = async (series: SunburstSeries, radius: number, theta: number, settleDelay?: number) => {
+            const { canvasX, canvasY } = _ModuleSupport.Transformable.toCanvasPoint(
+                (series as any).contentGroup,
+                radius * Math.cos(theta),
+                radius * Math.sin(theta)
+            );
+            await hoverAction(canvasX, canvasY)(chart);
+            await waitForChartStability(chart, settleDelay);
+        };
+        const tooltip = () => document.querySelector('.ag-charts-tooltip');
+        const tooltipShown = () => tooltip()?.hasAttribute('data-presented-as-popover') === true;
+
+        it('creates no inner-circle node when the options are unset', async () => {
+            const series = await createChart();
+
+            expect(circleNodes(series)).toHaveLength(0);
+            expect(atDepth(series, 0)[0].innerRadius).toBe(0);
+            expectWarningsCalls().toEqual([]);
+        });
+
+        it('carves a hole from innerRadiusRatio and spaces every level evenly', async () => {
+            const series = await createChart({ innerRadiusRatio: 0.3 });
+
+            const radius = seriesRadius();
+            const hole = radius * 0.3;
+            const maxDepth = maxDepthOf(series);
+            const radiusScale = (radius - hole) / (maxDepth + 1);
+
+            expect(atDepth(series, 0)[0].innerRadius).toBeCloseTo(hole, 5);
+            for (let depth = 0; depth <= maxDepth; depth += 1) {
+                const ring = atDepth(series, depth);
+                expect(ring.length).toBeGreaterThan(0);
+                for (const sector of ring) {
+                    expect(sector.innerRadius).toBeCloseTo(hole + depth * radiusScale, 5);
+                    expect(sector.outerRadius).toBeCloseTo(hole + (depth + 1) * radiusScale, 5);
+                }
+            }
+            expectWarningsCalls().toEqual([]);
+        });
+
+        it('keeps the hole independent of maxDepth', async () => {
+            const shallow = await createChart({ innerRadiusRatio: 0.25 });
+            expect(maxDepthOf(shallow)).toBe(1);
+            const shallowInnerRadius = atDepth(shallow, 0)[0].innerRadius;
+            expect(shallowInnerRadius).toBeCloseTo(seriesRadius() * 0.25, 5);
+
+            const deep = await replaceChart({ innerRadiusRatio: 0.25 }, DEEP_DATA);
+            expect(maxDepthOf(deep)).toBe(3);
+            expect(atDepth(deep, 0)[0].innerRadius).toBeCloseTo(shallowInnerRadius, 5);
+            expectWarningsCalls().toEqual([]);
+        });
+
+        it.each([
+            { label: 'offset alone', options: { innerRadiusOffset: 40 }, hole: (_radius: number): number => 40 },
+            {
+                label: 'ratio and offset combined',
+                options: { innerRadiusRatio: 0.2, innerRadiusOffset: 30 },
+                hole: (radius: number): number => radius * 0.2 + 30,
+            },
+        ])('carves the hole from $label', async ({ options, hole }) => {
+            const series = await createChart(options);
+
+            expect(atDepth(series, 0)[0].innerRadius).toBeCloseTo(hole(seriesRadius()), 5);
+            expectWarningsCalls().toEqual([]);
+        });
+
+        it('leaves the geometry untouched when innerCircle is set without a radius option', async () => {
+            const series = await createChart({ innerCircle: { fill: 'red' } });
+
+            expect(atDepth(series, 0)[0].innerRadius).toBe(0);
+            expect(circleNodes(series)).toHaveLength(0);
+            expectWarningsCalls().toEqual([[UNSUITABLE_WARNING]]);
+        });
+
+        it('paints the circle with innerCircle.fill rather than a scale-derived colour', async () => {
+            const series = await createChart({
+                colorKey: 'change',
+                colorScale: { fills: [{ color: 'blue' }, { color: 'yellow' }], missingDataFill: '#cccccc' },
+                innerRadiusRatio: 0.35,
+                innerCircle: { fill: 'red' },
+            });
+
+            const [circle] = circleNodes(series);
+            expect(circle).toBeDefined();
+            expect(circle.fill).toBe('red');
+            expect(circle.outerRadius).toBeCloseTo(seriesRadius() * 0.35, 5);
+            expectWarningsCalls().toEqual([]);
+        });
+
+        it('shows no tooltip inside the hole with an exact tooltip range', async () => {
+            const series = await createChart(
+                { innerRadiusRatio: 0.5, innerCircle: { fill: 'red' }, tooltip: nameTooltip },
+                MULTI_ROOT_DATA,
+                { tooltip: { range: 'exact' as InteractionRange } }
+            );
+
+            const hole = seriesRadius() * 0.5;
+            for (const [index, fraction] of [0, 0.25, 0.5, 0.9].entries()) {
+                await hoverAt(series, hole * fraction, (index * Math.PI) / 2, MIN_TOOLTIP_HIDE_DELAY);
+                expect(tooltipShown(), `hole fraction ${fraction}`).toBe(false);
+            }
+            expectWarningsCalls().toEqual([]);
+        });
+
+        // With a 'nearest' range the hole is still within reach of the surrounding sectors, so a
+        // tooltip does appear - what must never happen is the painted circle itself being picked.
+        it('never resolves the painted circle as the nearest datum', async () => {
+            const series = await createChart(
+                { innerRadiusRatio: 0.5, innerCircle: { fill: 'red' }, tooltip: nameTooltip },
+                MULTI_ROOT_DATA,
+                { tooltip: { range: 'nearest' as InteractionRange } }
+            );
+
+            const hole = seriesRadius() * 0.5;
+            const names = MULTI_ROOT_DATA.flatMap((root) => [root.name, ...root.children.map((c) => c.name)]);
+            let tooltips = 0;
+            for (const [index, fraction] of [0, 0.25, 0.5, 0.9].entries()) {
+                await hoverAt(series, hole * fraction, (index * Math.PI) / 2);
+                const text = tooltipShown() ? tooltip()?.textContent : undefined;
+                if (text != null) {
+                    tooltips += 1;
+                    expect(names, `hole fraction ${fraction}`).toContain(text);
+                }
+            }
+            expect(tooltips, 'hovers inside the hole that tooltipped').toBeGreaterThan(0);
+            expectWarningsCalls().toEqual([]);
+        });
+
+        it('never invokes itemStyler for the inner circle', async () => {
+            const itemStyler = vi.fn(() => ({}));
+            const series = await createChart({
+                innerRadiusRatio: 0.4,
+                innerCircle: { fill: 'red' },
+                itemStyler,
+            });
+
+            expect(circleNodes(series)).toHaveLength(1);
+            // The set of datums the styler saw is exactly the sector datums - the circle's
+            // `{ radius }` datum never reaches it.
+            const styledData = new Set((itemStyler.mock.calls as any[]).map(([params]) => params.datum));
+            const sectorData = new Set(
+                sectorsOf(series)
+                    .map((sector) => sector.datum?.datum)
+                    .filter((datum) => datum != null)
+            );
+            expect(styledData).toEqual(sectorData);
+            expect([...styledData].some((datum: any) => datum?.radius != null)).toBe(false);
+            expectWarningsCalls().toEqual([]);
+        });
+
+        it('parents the inner circle inside the scaling group with pointer events disabled', async () => {
+            const series = await createChart({ innerRadiusRatio: 0.3, innerCircle: { fill: 'red' } });
+
+            const [circle] = circleNodes(series);
+            expect(circle).toBeDefined();
+            expect(circle.parentNode.pointerEvents).toBe(_ModuleSupport.PointerEvents.None);
+
+            let ancestor = circle.parentNode;
+            while (ancestor != null && ancestor !== (series as any).scalingGroup) {
+                ancestor = ancestor.parentNode;
+            }
+            expect(ancestor).toBe((series as any).scalingGroup);
+            expectWarningsCalls().toEqual([]);
+        });
+
+        it('paints a sole 100% root disc without relaying the sectors out', async () => {
+            const itemStyler = vi.fn(() => ({}));
+            const control = await createChart({ itemStyler, tooltip: nameTooltip }, SOLE_ROOT_DATA);
+            const radiusScale = seriesRadius() / (maxDepthOf(control) + 1);
+            // The first hover after a chart is created never tooltips, so both charts get the same
+            // warm-up hover on an outer sector before the root sector is compared.
+            await hoverAt(control, radiusScale * 1.5, 0);
+            await hoverAt(control, radiusScale * 0.5, 0);
+            const rootTooltipWithoutCircle = tooltipShown();
+            expect(rootTooltipWithoutCircle, 'sole-root sector tooltips without the circle').toBe(true);
+            expect(itemStyler).toHaveBeenCalled();
+            expectWarningsCalls().toEqual([]);
+
+            itemStyler.mockClear();
+            const series = await replaceChart(
+                { innerCircle: { fill: 'red' }, itemStyler, tooltip: nameTooltip },
+                SOLE_ROOT_DATA
+            );
+
+            const [circle] = circleNodes(series);
+            expect(circle).toBeDefined();
+            expect(circle.outerRadius).toBeCloseTo(radiusScale, 5);
+
+            const root = atDepth(series, 0)[0];
+            expect(root.innerRadius).toBe(0);
+            expect(root.outerRadius).toBeCloseTo(radiusScale, 5);
+
+            // The painted disc covers the root sector, so it must change neither the pointer
+            // behaviour of that sector nor which datums reach the styler.
+            await hoverAt(series, radiusScale * 1.5, 0);
+            expect(tooltipShown(), 'a sector outside the disc still tooltips').toBe(true);
+            await hoverAt(series, radiusScale * 0.5, 0);
+            expect(tooltipShown()).toBe(rootTooltipWithoutCircle);
+
+            const styledData = new Set((itemStyler.mock.calls as any[]).map(([params]) => params.datum));
+            expect(styledData.has(SOLE_ROOT_DATA[0])).toBe(true);
+            expect([...styledData].some((datum: any) => datum?.radius != null)).toBe(false);
+            expectWarningsCalls().toEqual([]);
+        });
+
+        it('warns exactly once when innerCircle does not suit the data', async () => {
+            await createChart({ innerCircle: { fill: 'red' } });
+            expectWarningsCalls().toEqual([[UNSUITABLE_WARNING]]);
+
+            // `expectWarningsCalls` clears the buffer, so an empty second read means the warning
+            // did not repeat across the update.
+            await proxy.update({ ...lastOptions, data: [...MULTI_ROOT_DATA].reverse() });
+            await waitForChartStability(chart);
+            expectWarningsCalls().toEqual([]);
+        });
+
+        it('lays a sole root label inside its annulus once a hole is carved', async () => {
+            const series = await createChart({ innerRadiusRatio: 0.4 }, SOLE_ROOT_DATA);
+
+            const radius = seriesRadius();
+            const hole = radius * 0.4;
+            const radiusScale = (radius - hole) / (maxDepthOf(series) + 1);
+
+            const rootLabel = (series as any).rootNode.children[0].label;
+            expect(rootLabel).toBeDefined();
+            expect(rootLabel.radius).toBeGreaterThanOrEqual(hole);
+            expect(rootLabel.radius).toBeLessThanOrEqual(hole + radiusScale);
+            expectWarningsCalls().toEqual([]);
+        });
+
+        it('resolves the centre circle for a hole, a sole root and neither', async () => {
+            const holed = await createChart({ innerRadiusRatio: 0.3 });
+            expect(holed.resolveCentreCircle()?.radius).toBeCloseTo(seriesRadius() * 0.3, 5);
+
+            const soleRoot = await replaceChart({}, SOLE_ROOT_DATA);
+            expect(soleRoot.resolveCentreCircle()?.radius).toBeCloseTo(seriesRadius() / (maxDepthOf(soleRoot) + 1), 5);
+
+            const neither = await replaceChart();
+            expect(neither.resolveCentreCircle()).toBeNull();
+            expectWarningsCalls().toEqual([]);
+        });
+
+        it('warns when innerCircle is supplied without a fill on the series option', async () => {
+            await createChart({ innerRadiusRatio: 0.3, innerCircle: { fillOpacity: 0.5 } });
+            expectWarningsCalls().toContainEqual([
+                'AG Charts - Option `series[0].innerCircle.fill` is required and has not been provided; expecting a supported color string (hex, rgb(), hsl(), oklch() or a CSS color name), a color object or a color ref and where a color ref with [onto] or [ontoColor] must also have [mix], ignoring.',
+            ]);
         });
     });
 });

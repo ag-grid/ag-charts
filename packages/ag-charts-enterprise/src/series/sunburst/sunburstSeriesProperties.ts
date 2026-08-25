@@ -7,7 +7,7 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type InternalAgColorType, BaseProperties, Property } from 'ag-charts-core';
+import { BaseProperties, type InternalAgColorType, Property } from 'ag-charts-core';
 
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
