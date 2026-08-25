@@ -463,6 +463,57 @@ describe('DataSource', () => {
             expect(windowStart).toEqual(new Date('2024-01-22 00:00:00'));
             expect(windowEnd).toEqual(new Date('2024-02-12 00:00:00'));
         });
+
+        it('keeps the visible window when a response changes the point count', async () => {
+            const WEEKLY = [
+                { time: new Date('2024-01-01 00:00:00'), price: 0 },
+                { time: new Date('2024-01-08 00:00:00'), price: 50 },
+                { time: new Date('2024-01-15 00:00:00'), price: 25 },
+                { time: new Date('2024-01-22 00:00:00'), price: 75 },
+                { time: new Date('2024-01-29 00:00:00'), price: 50 },
+                { time: new Date('2024-02-05 00:00:00'), price: 25 },
+                { time: new Date('2024-02-12 00:00:00'), price: 50 },
+            ];
+
+            // A denser response inside the requested window, as a real server sends when the window
+            // narrows: the same range then holds more bands, which a stored ratio no longer addresses.
+            const withDailyDetail = (windowStart: unknown, windowEnd: unknown) => {
+                if (!isDate(windowStart) || !isDate(windowEnd)) return WEEKLY;
+                const daily: typeof WEEKLY = [];
+                for (let time = windowStart.getTime(); time <= windowEnd.getTime(); time += 24 * 3600 * 1000) {
+                    daily.push({ time: new Date(time), price: 40 });
+                }
+                return [...WEEKLY.filter(({ time }) => time < windowStart || time > windowEnd), ...daily];
+            };
+
+            const calls: Array<{ windowStart: unknown; windowEnd: unknown }> = [];
+            const ranges: Array<{ start?: unknown; end?: unknown }> = [];
+            await prepareChart(
+                {
+                    getData: ({ windowStart, windowEnd }) => {
+                        calls.push({ windowStart, windowEnd });
+                        return delay(1).then(() => withDailyDetail(windowStart, windowEnd));
+                    },
+                },
+                {
+                    ...ORDINAL_TIME_OPTIONS,
+                    listeners: { zoom: (event) => ranges.push({ ...event.rangeX }) },
+                }
+            );
+            await waitForChartStability(chart);
+
+            calls.length = 0;
+            await scrollAction(cx, cy, -1)(chart);
+            await settleUntil(() => calls.length > 0, 'the zoomed data request');
+            // The window the load itself moves is only requested a frame or two later, so asserting a
+            // single request means waiting past the point where a second one would have arrived.
+            for (let i = 0; i < 10; i++) {
+                await waitForChartStability(chart);
+            }
+
+            expect(calls).toHaveLength(1);
+            expect(ranges.at(-1)?.start).toEqual(calls[0].windowStart);
+        });
     });
 
     describe('initial zoom state', () => {
