@@ -25,7 +25,7 @@ on:
                 type: string
                 required: true
             driver:
-                description: 'Review engine. explore (default) = Codex is given the PR intent, a ranked changed-file list and the unresolved review threads, then reads the diff itself (no chunking, no per-turn input limit). claude / codex are deprecated escape hatches. See ag-dev-prompts docs/installation.md.'
+                description: 'Review engine. explore is the default; claude and codex are deprecated. See ag-dev-prompts docs/installation.md.'
                 type: choice
                 options: [explore, claude, codex]
                 default: explore
@@ -129,10 +129,6 @@ jobs:
                   github-token: ${{ github.token }}
                   inline-comments: 'true'
                   dev-prompts-version: ${{ env.DEV_PROMPTS_CHANNEL }}
-                  # explore is the default driver. pull_request / plain /pr-review
-                  # supply no driver input, so they fall through to the
-                  # `|| 'explore'` default. To force a deprecated path on a
-                  # one-off, dispatch with driver=claude or driver=codex.
                   # See ag-dev-prompts docs/installation.md.
                   driver: ${{ inputs.driver || 'explore' }}
                   quiet: ${{ inputs.quiet || 'false' }}
