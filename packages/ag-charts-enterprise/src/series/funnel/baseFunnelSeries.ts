@@ -23,14 +23,12 @@ import {
     SeriesZIndexMap,
     applyBarLabelOrientation,
     applyPlacedBarLabelVisibility,
-    barLabelObstacles,
+    barLabelPropsRouteThroughEngine,
     barLabelRoutesThroughEngine,
     buildBarPositionedLabelDatum,
-    fontWithSize,
     maxValue,
     measureLabelText,
     resolveLabelFit,
-    resolveLabelFitDescriptors,
 } from 'ag-charts-core';
 import type { AgNumericValue, PaddingOptions } from 'ag-charts-types';
 
@@ -39,6 +37,8 @@ import { FunnelConnector } from './funnelConnector';
 import { prepareConnectorAnimationFunctions, resetConnectorSelectionsFn } from './funnelUtil';
 
 const {
+    barLabelObstaclesFor,
+    barLabelDataContext,
     SeriesNodePickMode,
     valueProperty,
     keyProperty,
@@ -782,23 +782,19 @@ export abstract class BaseFunnelSeries<
     }
 
     getLabelObstacles() {
-        const { label } = this.properties;
-        const box = expandPlacementLabelBoxExtent(label);
-        return barLabelObstacles(
+        return barLabelObstaclesFor(
+            this.properties.label,
             this.contextNodeData?.nodeData,
             this.contextNodeData?.labelData,
             this.isLabelEnabled() && !this.usesPlacedLabels,
-            (labelDatum) => ({ label: labelDatum, config: fontWithSize(label, labelDatum.fittedFontSize), box })
+            (labelDatum) => labelDatum
         );
     }
 
     override getLabelData(): PointLabelDatum[] {
         const { label } = this.properties;
         if (!this.usesPlacedLabels || !label.enabled) return [];
-        const box = expandPlacementLabelBoxExtent(label);
-        const collideWith = label.collision.resolveCollideWith();
-        const threshold = label.collision.threshold ?? 0;
-        const fitFor = resolveLabelFitDescriptors(label, box, !label.collision.alwaysShow);
+        const { alwaysShow, collideWith, threshold, measureBox, fitFor } = barLabelDataContext(label);
         const stylerParams = this.labelStylerParams();
         const data: PointLabelDatum[] = [];
         for (const labelDatum of this.contextNodeData?.labelData ?? []) {
@@ -813,8 +809,7 @@ export abstract class BaseFunnelSeries<
                 'horizontal',
                 labelDatum.text
             );
-            const { width, height } = measureLabelText(labelDatum.text, label);
-            const size = styled?.size ?? { width: width + box.left + box.right, height: height + box.top + box.bottom };
+            const size = styled?.size ?? measureBox(labelDatum.text);
             const configuredFit = fitFor(labelDatum.text);
             const fit =
                 configuredFit == null || styled == null
@@ -828,7 +823,7 @@ export abstract class BaseFunnelSeries<
                     labelDatum.candidates,
                     labelDatum,
                     labelDatum.ownBox ?? { x: labelDatum.x, y: labelDatum.y, width: 0, height: 0 },
-                    label.collision.alwaysShow,
+                    alwaysShow,
                     collideWith,
                     threshold,
                     true,
@@ -846,9 +841,7 @@ export abstract class BaseFunnelSeries<
     }
 
     protected override resolveUsesPlacedLabels(): boolean {
-        const { label } = this.properties;
-        const alwaysShow = label.collision.alwaysShow;
-        return barLabelRoutesThroughEngine(undefined, label.placement, alwaysShow, resolveLabelFit(label, !alwaysShow));
+        return barLabelPropsRouteThroughEngine(this.properties.label);
     }
 
     /** The bar placement a public one maps onto, for the styled box a baked label reserves. */

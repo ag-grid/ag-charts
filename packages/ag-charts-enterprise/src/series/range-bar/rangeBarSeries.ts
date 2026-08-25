@@ -30,7 +30,6 @@ import {
     applyBarLabelOrientation,
     applyPlacedBarLabelVisibility,
     areScalingEqual,
-    barLabelObstacles,
     barLabelOrientation,
     barLabelPropsRouteThroughEngine,
     barLabelResolvesOrientation,
@@ -47,7 +46,6 @@ import {
     measureLabelText,
     mergeDefaults,
     resolveLabelFit,
-    resolveLabelFitDescriptors,
     rotatedGlyphDrift,
     rotatedLabelInset,
     toArray,
@@ -63,6 +61,8 @@ import {
 import { RangeBarProperties } from './rangeBarProperties';
 
 const {
+    barLabelObstaclesFor,
+    barLabelDataContext,
     SeriesNodePickMode,
     valueProperty,
     keyProperty,
@@ -1415,27 +1415,20 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     }
 
     getLabelObstacles() {
-        const { label } = this.properties;
-        const box = expandPlacementLabelBoxExtent(label);
         // labelData is the flattened low+high labels, so each element is itself a baked label.
-        return barLabelObstacles(
+        return barLabelObstaclesFor(
+            this.properties.label,
             this.contextNodeData?.nodeData,
             this.contextNodeData?.labelData,
             this.isLabelEnabled() && !this.usesPlacedLabels,
-            (labelDatum) => ({ label: labelDatum, config: fontWithSize(label, labelDatum.fittedFontSize), box })
+            (labelDatum) => labelDatum
         );
     }
 
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels || !this.properties.label.enabled) return [];
         const { label } = this.properties;
-        // Inflate the measured text by the label's drawn box (padding + border stroke) so orientation
-        // resolution avoids the box, not just the text.
-        const box = expandPlacementLabelBoxExtent(label);
-        const collideWith = label.collision.resolveCollideWith();
-        const threshold = label.collision.threshold ?? 0;
-        const alwaysShow = label.collision.alwaysShow;
-        const fitFor = resolveLabelFitDescriptors(label, box, !alwaysShow);
+        const { alwaysShow, collideWith, threshold, measureBox, fitFor } = barLabelDataContext(label);
         const resolveStyle =
             label.itemStyler == null
                 ? undefined
@@ -1463,8 +1456,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 firstOrientation,
                 labelDatum.text
             );
-            const { width, height } = measureLabelText(labelDatum.text, label);
-            const size = styled?.size ?? { width: width + box.left + box.right, height: height + box.top + box.bottom };
+            const size = styled?.size ?? measureBox(labelDatum.text);
             const configuredFit = fitFor(labelDatum.text);
             const fit =
                 configuredFit == null || styled == null
