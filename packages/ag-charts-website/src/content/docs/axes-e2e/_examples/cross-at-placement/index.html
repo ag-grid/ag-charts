@@ -1,0 +1,24 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <code>crossAt.titlePlacement:</code>
+        <select onchange="setTitlePlacement(event.target.value)">
+            <option value="crossing">crossing</option>
+            <option value="edge">edge</option>
+        </select>
+    </div>
+    <div class="controls-row">
+        <code>crossAt.labelPlacement:</code>
+        <select onchange="setLabelPlacement(event.target.value)">
+            <option value="crossing">crossing</option>
+            <option value="edge">edge</option>
+        </select>
+    </div>
+    <div class="controls-row">
+        <code>crossAt.crosshairLabelPlacement:</code>
+        <select onchange="setCrosshairLabelPlacement(event.target.value)">
+            <option value="edge">edge</option>
+            <option value="crossing">crossing</option>
+        </select>
+    </div>
+</div>
+<div id="myChart"></div>
