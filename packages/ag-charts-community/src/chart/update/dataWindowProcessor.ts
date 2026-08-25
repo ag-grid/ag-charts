@@ -3,6 +3,7 @@ import {
     ChartUpdateType,
     CleanupRegistry,
     isFiniteNumber,
+    isNumberEqual,
     isObject,
     isString,
     isValidDate,
@@ -182,7 +183,7 @@ export class DataWindowProcessor implements UpdateProcessor {
         if (!this.dirtyZoom) return false;
 
         const lastZoom = lastAxisZooms.get(axis.id);
-        if (zoom.min === lastZoom?.min && zoom.max === lastZoom?.max) {
+        if (lastZoom && isNumberEqual(zoom.min, lastZoom.min) && isNumberEqual(zoom.max, lastZoom.max)) {
             return false;
         }
 
