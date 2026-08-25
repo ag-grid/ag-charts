@@ -88,7 +88,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     }
 
     private onCanvasClick(event: MouseWidgetEvent<'click' | 'dblclick'>): void {
-        if (event.device === 'keyboard' || event.sourceEvent.target !== event.sourceEvent.currentTarget) return;
+        if (event.device === 'keyboard') return;
 
         for (const crossLine of this.instances) {
             const { currentX: canvasX, currentY: canvasY } = event;

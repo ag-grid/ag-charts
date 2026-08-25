@@ -17,6 +17,7 @@ import {
     contextMenuEvent,
     createSceneWalk,
     dispatchEvent,
+    dispatchEventToChain,
     doubleClickEvent,
     keydownEvent,
     mouseDownEvent,
@@ -758,8 +759,8 @@ export function hoverAction(
         const enterTarget: MockEvent = { ...testTarget, bubbleChain: enterChain };
         testChart.testLastMouseMoveBubbleChain = testTarget.bubbleChain;
 
-        dispatchEvent(leaveTarget, mouseLeaveEvent(leaveTarget, canvasX, canvasY, modifiers));
-        dispatchEvent(enterTarget, mouseEnterEvent(enterTarget, canvasX, canvasY, modifiers));
+        dispatchEventToChain(leaveTarget, mouseLeaveEvent(leaveTarget, canvasX, canvasY, modifiers));
+        dispatchEventToChain(enterTarget, mouseEnterEvent(enterTarget, canvasX, canvasY, modifiers));
         dispatchEvent(testTarget, mouseMoveEvent(testTarget, canvasX, canvasY, modifiers));
         return delay(50);
     };
