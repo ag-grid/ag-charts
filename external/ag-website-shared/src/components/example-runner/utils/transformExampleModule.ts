@@ -4,6 +4,10 @@ import ts from 'typescript';
  * Examples are authored in TypeScript (and JSX/TSX for React), which browsers cannot
  * execute. Transpiling here lets the browser load the result as a plain ES module, with no
  * loader or in-browser compiler in the page.
+ *
+ * Shared by every documentation site. The one thing that varies between them is which
+ * compiler options an example is built with, so those arrive as data rather than being
+ * decided here -- see `NamedCompilerOptions`.
  */
 
 export const EXTENSIONS = ['.ts', '.tsx', '.jsx'] as const;
@@ -19,11 +23,17 @@ export const CSS_IMPORT_REGEX = /^[ \t]*import\s+(['"])([^'"]+\.css)\1;?[ \t]*$/
 /** The options whose value names a TypeScript enum member rather than being one */
 export const COMPILER_OPTION_ENUMS = { module: 'ModuleKind', target: 'ScriptTarget', jsx: 'JsxEmit' } as const;
 
+/**
+ * Compiler options named rather than resolved, so the in-page transpiler can be handed them
+ * as data: a page cannot serialise a TypeScript enum, so it names the member instead.
+ */
 export type NamedCompilerOptions = Record<string, string | boolean>;
 
 /**
- * Named rather than resolved, so the in-page transpiler can be handed them as data.
- * `emitDecoratorMetadata` is what lets the Angular JIT compiler resolve constructor injection.
+ * The options every example is transpiled with unless a site narrows them.
+ * `emitDecoratorMetadata` is what lets the Angular JIT compiler resolve constructor
+ * injection: without the emitted `design:paramtypes`, any component or service with
+ * constructor dependencies fails to instantiate (NG0202).
  */
 export const COMPILER_OPTION_NAMES: NamedCompilerOptions = {
     module: 'ESNext',
@@ -36,16 +46,17 @@ export const COMPILER_OPTION_NAMES: NamedCompilerOptions = {
 
 export const resolveCompilerOptions = (tsModule: typeof ts, named: NamedCompilerOptions): ts.CompilerOptions =>
     Object.fromEntries(
-        Object.keys(named).map((name) => {
+        Object.entries(named).map(([name, value]) => {
             const tsModuleKey = COMPILER_OPTION_ENUMS[name as keyof typeof COMPILER_OPTION_ENUMS];
-            const value = named[name];
 
             return [name, tsModuleKey ? tsModule[tsModuleKey][value as any] : value];
         })
     );
 
-export const getCompilerOptions = (tsModule: typeof ts): ts.CompilerOptions =>
-    resolveCompilerOptions(tsModule, COMPILER_OPTION_NAMES);
+export const getCompilerOptions = (
+    tsModule: typeof ts,
+    named: NamedCompilerOptions = COMPILER_OPTION_NAMES
+): ts.CompilerOptions => resolveCompilerOptions(tsModule, named);
 
 /** Playwright specs live alongside an example but are not part of it, and are never served */
 export const isSpecFile = (fileName: string) => fileName.includes('.spec.') || fileName.includes('.test.');
@@ -108,7 +119,7 @@ export const STYLESHEET_LOADER_NAME = '__agLoadStylesheet';
  * create its grid in a collapsed container. A stylesheet the template already linked is
  * matched by path, since the template's href can carry a cache-busting query.
  */
-export const STYLESHEET_LOADER = `const ${STYLESHEET_LOADER_NAME} = (href) => new Promise((resolve) => {
+const STYLESHEET_LOADER = `const ${STYLESHEET_LOADER_NAME} = (href) => new Promise((resolve) => {
     const { pathname } = new URL(href, document.baseURI);
     const linked = (link) => new URL(link.href, document.baseURI).pathname === pathname;
     if (Array.from(document.querySelectorAll('link[rel="stylesheet"]')).some(linked)) {
@@ -138,10 +149,19 @@ const rewriteCssImports = (source: string) => {
     return rewritten === source ? source : `${STYLESHEET_LOADER}${rewritten}`;
 };
 
-export const transformExampleModule = ({ fileName, source }: { fileName: string; source: string }) => {
+export const transformExampleModule = ({
+    fileName,
+    source,
+    compilerOptionNames = COMPILER_OPTION_NAMES,
+}: {
+    fileName: string;
+    source: string;
+    /** Defaults to every option; a site that builds examples per framework narrows them */
+    compilerOptionNames?: NamedCompilerOptions;
+}) => {
     const { outputText } = ts.transpileModule(rewriteCssImports(rewriteRelativeSpecifiers(source)), {
         fileName,
-        compilerOptions: getCompilerOptions(ts),
+        compilerOptions: getCompilerOptions(ts, compilerOptionNames),
     });
 
     return outputText;

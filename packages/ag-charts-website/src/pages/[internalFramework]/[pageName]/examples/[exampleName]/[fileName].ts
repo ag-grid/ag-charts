@@ -1,7 +1,10 @@
 import type { InternalFramework } from '@ag-grid-types';
+import {
+    getModuleSourceFileName,
+    transformExampleModule,
+} from '@ag-website-shared/components/example-runner/utils/transformExampleModule';
 import { getDocExampleFiles } from '@components/docs/utils/pageData';
 import { getIsDev } from '@utils/env';
-import { getModuleSourceFileName, transformExampleModule } from '@utils/example-modules/transformExampleModule';
 import { fileNameToMimeType } from '@utils/mimeType';
 import { getContentRootFileUrl } from '@utils/pages';
 import { getCollection } from 'astro:content';

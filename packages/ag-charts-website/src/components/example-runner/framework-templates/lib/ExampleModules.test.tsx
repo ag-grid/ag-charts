@@ -1,8 +1,7 @@
+import { EXAMPLE_RUNNER_SCRIPT_FILE_NAME } from '@ag-website-shared/components/example-runner/components/ExampleRunnerClient';
 import type { ExampleFramework } from '@utils/example-modules/getImportMap';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, describe, expect, test, vi } from 'vitest';
-
-import { EXAMPLE_RUNNER_SCRIPT_FILE_NAME } from './ExampleRunnerClient';
 
 const FRAMEWORKS: ExampleFramework[] = ['typescript', 'react', 'angular', 'vue3'];
 
