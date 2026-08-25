@@ -85,8 +85,8 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         this.opts = opts;
     }
 
-    update() {
-        const bounds = this.getBounds();
+    update(index: number) {
+        const bounds = this.getBounds(index);
 
         this.regionGroup.visible = bounds != null;
 
@@ -177,19 +177,24 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         labelNode.rotationCenterY = y;
     }
 
-    private getBounds(): Bounds4 | undefined {
+    private getBounds(index: number): Bounds4 | undefined {
         const { opts, xAxis, yAxis } = this;
         if (!xAxis || !yAxis) return;
 
-        const x = this.getAxisExtent(xAxis.scale, opts.xRange, 'xRange');
-        const y = this.getAxisExtent(yAxis.scale, opts.yRange, 'yRange');
+        const x = this.getAxisExtent(index, xAxis.scale, opts.xRange, 'xRange');
+        const y = this.getAxisExtent(index, yAxis.scale, opts.yRange, 'yRange');
         if (!x || !y) return;
 
         const bounds = Vec4.from(x[0], y[0], x[1], y[1]);
 
-        if (Vec4.width(bounds) === 0 || Vec4.height(bounds) === 0) {
+        // Only warn if the user has set both the start and end of a range. Otherwise the range will match the domain,
+        // which can vary, and so should not warn.
+        const xRangeHasBound = opts.xRange?.start != null && opts.xRange?.end != null;
+        const yRangeHasBound = opts.yRange?.start != null && opts.yRange?.end != null;
+
+        if ((Vec4.width(bounds) === 0 && xRangeHasBound) || (Vec4.height(bounds) === 0 && yRangeHasBound)) {
             this.logger.warnOnce(
-                `\`seriesArea.backgroundRegions\` region has no width or height, ignoring. Check that \`start\` and \`end\` differ.`
+                `\`seriesArea.backgroundRegions[${index}]\` region has no width or height, ignoring. Check that \`start\` and \`end\` differ.`
             );
             return;
         }
@@ -219,6 +224,7 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
      * the series area; a bound the axis cannot resolve drops the whole region.
      */
     private getAxisExtent(
+        index: number,
         scale: Scale<any, number, number | AgTimeInterval | AgTimeIntervalUnit>,
         range: NormalisedSeriesAreaBackgroundRegionRange | undefined,
         optionsKey: string
@@ -227,7 +233,7 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
 
         if ((start != null && !isValidScaleValue(start, scale)) || (end != null && !isValidScaleValue(end, scale))) {
             this.logger.warnOnce(
-                `\`seriesArea.backgroundRegions[].${optionsKey}\` does not match the axis type or domain, ignoring.`
+                `\`seriesArea.backgroundRegions[${index}].${optionsKey}\` does not match the axis type or domain, ignoring.`
             );
             return;
         }

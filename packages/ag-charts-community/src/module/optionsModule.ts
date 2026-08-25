@@ -857,8 +857,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (!module.chartType || module.chartType === chartType || seriesArea[module.name] == null) continue;
 
             delete seriesArea[module.name];
+
+            const seriesTypeMessage =
+                options.series?.at(0)?.type == null ? 'this series type' : `\`${options.series?.at(0)?.type}\` series`;
             this.recordValidationMessage(
-                `Option \`seriesArea.${module.name}\` is not supported by chart type \`${chartType}\`, ignoring.`
+                `Option \`seriesArea.${module.name}\` is not supported by ${seriesTypeMessage}, ignoring.`
             );
         }
     }
