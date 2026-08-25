@@ -19,12 +19,15 @@ export const ExampleRunnerClient = ({ isExported, nonce }: ClientProps) => (
     <script nonce={nonce} src={exampleRunnerScriptSrc(isExported)} crossOrigin={isExported ? undefined : 'anonymous'} />
 );
 
+/** What survives a round trip through `JSON.stringify`, and so can be passed to the runner */
+export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+
 /** `<` is escaped so a value containing `</script>` cannot end the element early */
-const toScriptLiteral = (value: unknown) => JSON.stringify(value).replaceAll('<', '\\u003c');
+const toScriptLiteral = (value: JsonValue) => JSON.stringify(value).replaceAll('<', '\\u003c');
 
 interface CallProps {
     fn: string;
-    args?: unknown[];
+    args?: JsonValue[];
     nonce?: string;
 }
 

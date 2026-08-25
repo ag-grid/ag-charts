@@ -100,15 +100,18 @@ export const ASSET_REGEX = /\.(css|json|html|svg|png|jpe?g|gif|webp|wasm|txt)$/i
  */
 const rewriteRelativeSpecifiers = (source: string) =>
     source.replace(SPECIFIER_REGEX, (match, prefix, quote, specifier) => {
-        const servedAsAuthored = SERVED_AS_AUTHORED_REGEX.test(specifier) && !isTransformableModule(specifier);
+        // A specifier can carry a query or fragment (`./worker.ts?v=1`). Only the path part
+        // names the file, so the extension is read from -- and rewritten on -- that alone.
+        const [, path, suffix = ''] = specifier.match(/^([^?#]*)(.*)$/) as RegExpMatchArray;
+        const servedAsAuthored = SERVED_AS_AUTHORED_REGEX.test(path) && !isTransformableModule(path);
 
-        if (!isRelative(specifier) || servedAsAuthored) {
+        if (!isRelative(path) || servedAsAuthored) {
             return match;
         }
 
-        const rewritten = toModuleFileName(specifier);
+        const rewritten = toModuleFileName(path);
 
-        return `${prefix}${quote}${rewritten.endsWith('.js') ? rewritten : `${rewritten}.js`}${quote}`;
+        return `${prefix}${quote}${rewritten.endsWith('.js') ? rewritten : `${rewritten}.js`}${suffix}${quote}`;
     });
 
 export const STYLESHEET_LOADER_NAME = '__agLoadStylesheet';
@@ -143,7 +146,9 @@ const STYLESHEET_LOADER = `const ${STYLESHEET_LOADER_NAME} = (href) => new Promi
 const rewriteCssImports = (source: string) => {
     const rewritten = source.replace(
         CSS_IMPORT_REGEX,
-        (_match, _quote, specifier) => `await ${STYLESHEET_LOADER_NAME}(import.meta.resolve('${specifier}'));`
+        // Serialised rather than re-quoted, so a path containing a quote stays valid JS
+        (_match, _quote, specifier) =>
+            `await ${STYLESHEET_LOADER_NAME}(import.meta.resolve(${JSON.stringify(specifier)}));`
     );
 
     return rewritten === source ? source : `${STYLESHEET_LOADER}${rewritten}`;
