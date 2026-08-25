@@ -16,22 +16,36 @@ export const SPECIFIER_REGEX = /(\bfrom\s*|\bimport\s*\(?\s*|\bexport\s*\*\s*fro
 /** A bare `import 'foo.css';` with no bindings */
 export const CSS_IMPORT_REGEX = /^[ \t]*import\s+(['"])([^'"]+\.css)\1;?[ \t]*$/gm;
 
+/** The options whose value names a TypeScript enum member rather than being one */
+export const COMPILER_OPTION_ENUMS = { module: 'ModuleKind', target: 'ScriptTarget', jsx: 'JsxEmit' } as const;
+
+export type NamedCompilerOptions = Record<string, string | boolean>;
+
 /**
- * `emitDecoratorMetadata` is what lets the Angular JIT compiler resolve constructor
- * injection: without the emitted `design:paramtypes`, any component or service with
- * constructor dependencies fails to instantiate (NG0202).
- *
- * Self-contained, because the Plunker template serialises this function into the page it
- * generates (see `BrowserTranspiler`) so that both transpilers stay on the same options.
+ * Named rather than resolved, so the in-page transpiler can be handed them as data.
+ * `emitDecoratorMetadata` is what lets the Angular JIT compiler resolve constructor injection.
  */
-export const getCompilerOptions = (tsModule: typeof ts): ts.CompilerOptions => ({
-    module: tsModule.ModuleKind.ESNext,
+export const COMPILER_OPTION_NAMES: NamedCompilerOptions = {
+    module: 'ESNext',
     // ES2022 so the top-level `await` a stylesheet import compiles to is emitted as authored
-    target: tsModule.ScriptTarget.ES2022,
-    jsx: tsModule.JsxEmit.React,
+    target: 'ES2022',
+    jsx: 'React',
     experimentalDecorators: true,
     emitDecoratorMetadata: true,
-});
+};
+
+export const resolveCompilerOptions = (tsModule: typeof ts, named: NamedCompilerOptions): ts.CompilerOptions =>
+    Object.fromEntries(
+        Object.keys(named).map((name) => {
+            const tsModuleKey = COMPILER_OPTION_ENUMS[name as keyof typeof COMPILER_OPTION_ENUMS];
+            const value = named[name];
+
+            return [name, tsModuleKey ? tsModule[tsModuleKey][value as any] : value];
+        })
+    );
+
+export const getCompilerOptions = (tsModule: typeof ts): ts.CompilerOptions =>
+    resolveCompilerOptions(tsModule, COMPILER_OPTION_NAMES);
 
 /** Playwright specs live alongside an example but are not part of it, and are never served */
 export const isSpecFile = (fileName: string) => fileName.includes('.spec.') || fileName.includes('.test.');

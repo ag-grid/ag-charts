@@ -2,6 +2,10 @@ import type { InternalFramework } from '@ag-grid-types';
 import { OpenInCodeSandbox } from '@ag-website-shared/components/codeSandbox/components/OpenInCodeSandbox';
 import { OpenInPlunkr } from '@ag-website-shared/components/plunkr/components/OpenInPlunkr';
 import type { FileContents } from '@components/example-generator/types';
+import {
+    EXAMPLE_RUNNER_SCRIPT_FILE_NAME,
+    exampleRunnerScriptSrc,
+} from '@components/example-runner/framework-templates/lib/ExampleRunnerClient';
 import type { ExampleOptions } from '@components/example-runner/types';
 
 export function ExternalLinks({
@@ -24,6 +28,9 @@ export function ExternalLinks({
     plunkrHtmlUrl?: string;
     codeSandboxHtmlUrl?: string;
 }) {
+    // Both exports transpile in the page, so each needs its own copy of the example runtime
+    const runtimeFileUrls = { [EXAMPLE_RUNNER_SCRIPT_FILE_NAME]: exampleRunnerScriptSrc() };
+
     return (
         <>
             {!options?.noCodeSandbox && codeSandboxHtmlUrl && exampleFiles ? (
@@ -34,6 +41,7 @@ export function ExternalLinks({
                         htmlUrl={codeSandboxHtmlUrl}
                         internalFramework={internalFramework}
                         packageJson={packageJson}
+                        runtimeFileUrls={runtimeFileUrls}
                     />
                 </li>
             ) : undefined}
@@ -45,6 +53,7 @@ export function ExternalLinks({
                         htmlUrl={plunkrHtmlUrl}
                         packageJson={packageJson!}
                         fileToOpen={initialSelectedFile!}
+                        runtimeFileUrls={runtimeFileUrls}
                     />
                 </li>
             ) : undefined}
