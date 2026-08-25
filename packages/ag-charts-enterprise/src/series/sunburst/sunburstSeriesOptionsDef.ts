@@ -16,8 +16,7 @@ export const sunburstSeriesOptionsDef: OptionsDefs<AgSunburstSeriesOptions> = {
     ...sunburstSeriesThemeableOptionsDef,
     ...without(commonSeriesOptionsDefs, ['highlightStyle', 'highlight', 'showInLegend']),
     type: required(constant('sunburst')),
-    // Re-declared after the themeable spread so `fill` is required on the SERIES option while a
-    // theme override may still set `fillOpacity` alone.
+    // Re-declared after the themeable spread, which would otherwise leave `fill` optional.
     innerCircle: {
         fill: required(colorUnion),
         fillOpacity: ratio,

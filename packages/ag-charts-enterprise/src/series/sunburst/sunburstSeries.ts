@@ -50,11 +50,6 @@ class SunburstNode extends _ModuleSupport.HierarchyNode<SunburstNode> {
     endAngle: number = 0;
 }
 
-/** Datum for the painted centre circle - deliberately not a `SunburstNode`, it carries no data. */
-interface InnerCircleDatum {
-    radius: number;
-}
-
 interface LabelLayout {
     text: NormalisedTextOrSegments;
     fontSize: number;
@@ -138,9 +133,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         this.highlightSectorGroup,
         Sector
     );
-    private readonly innerCircleSelection = Selection.select<_ModuleSupport.Sector<InnerCircleDatum>>(
+    private readonly innerCircleSelection = Selection.select<_ModuleSupport.Sector<{ radius: number }>>(
         this.innerCircleGroup,
-        Sector<InnerCircleDatum>
+        Sector<{ radius: number }>
     );
 
     /** Resolved once per layout pass; read back by `resolveCentreCircle()`. */
@@ -150,9 +145,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         super(moduleCtx);
 
         this.sectorLabelGroup.pointerEvents = PointerEvents.None;
-        // Mandatory, not defensive: `Series.pickNodesExactShape` walks `contentGroup` and accepts any
-        // non-missing object datum, so without this the painted circle would show a tooltip and reach
-        // `itemStyler`.
+        // Load-bearing: `pickNodesExactShape` walks `contentGroup` and accepts any non-missing object
+        // datum, so without this the painted circle would show a tooltip and reach `itemStyler`.
         this.innerCircleGroup.pointerEvents = PointerEvents.None;
     }
 
@@ -290,12 +284,14 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const baseInset = sectorSpacing * 0.5;
         const radius = Math.min(width, height) / 2;
         // No hole unless one of the inner-radius options is explicitly set - the short-circuit keeps an
-        // unconfigured sunburst identical to before. The clamp degrades a negative or over-large offset
-        // to "no hole" rather than to inverted geometry.
-        const hole =
+        // unconfigured sunburst identical to before.
+        const requestedHole =
             innerRadiusRatio == null && innerRadiusOffset == null
                 ? 0
-                : Math.max(0, Math.min(radius * (innerRadiusRatio ?? 0) + (innerRadiusOffset ?? 0), radius));
+                : radius * (innerRadiusRatio ?? 0) + (innerRadiusOffset ?? 0);
+        // A hole that is negative, or that would consume the whole radius and leave the data no room,
+        // degrades to no hole rather than to degenerate geometry - as `DonutSeries.getInnerRadius()` does.
+        const hole = requestedHole > 0 && requestedHole < radius ? requestedHole : 0;
         const radiusScale = (radius - hole) / (maxDepth + 1);
         const angleOffset = -Math.PI / 2;
 
@@ -313,7 +309,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             this.centreCircle = { radius: radiusScale };
         }
 
-        this.rootNode?.walk((node) => {
+        rootNode?.walk((node) => {
             const { startAngle, endAngle } = node;
             if (node.depth != null) {
                 const midAngle = (startAngle + endAngle) / 2 + angleOffset;
@@ -323,7 +319,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             }
         });
 
-        this.rootNode?.walk((node) => {
+        rootNode?.walk((node) => {
             const { datum, depth, startAngle, endAngle, parent, sumSize } = node;
 
             node.label = undefined;
@@ -563,26 +559,22 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
         const centreCircle = innerCircle == null ? null : this.resolveCentreCircle();
         this.innerCircleSelection.update(centreCircle == null ? [] : [centreCircle]);
-        if (innerCircle != null) {
-            if (centreCircle == null) {
-                this.ctx.logger.warnOnce(
-                    'Option [series.innerCircle] does not suit the data - it requires either [series.innerRadiusRatio] or [series.innerRadiusOffset] to be set, or a root level consisting of a single node covering all of the data.'
-                );
-            } else {
-                const { fill, fillOpacity = 1 } = innerCircle;
-                const fillBBox = isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
-                this.innerCircleSelection.each((sector, { radius: circleRadius }) => {
-                    // `fillOpacity`, not `opacity` - opacity on a shape inside `scalingGroup` is owned
-                    // by the entry animation.
-                    sector.setStyleProperties({ fill, fillOpacity }, fillBBox);
-                    sector.centerX = 0;
-                    sector.centerY = 0;
-                    sector.innerRadius = 0;
-                    sector.outerRadius = circleRadius;
-                    sector.startAngle = 0;
-                    sector.endAngle = 2 * Math.PI;
-                });
-            }
+        if (innerCircle != null && centreCircle == null) {
+            this.ctx.logger.warnOnce(
+                'Option [series.innerCircle] does not suit the data - it requires either [series.innerRadiusRatio] or [series.innerRadiusOffset] to be set, or a root level consisting of a single node covering all of the data.'
+            );
+        } else if (innerCircle != null) {
+            const { fill, fillOpacity = 1 } = innerCircle;
+            const fillBBox = isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
+            this.innerCircleSelection.each((sector, { radius: circleRadius }) => {
+                sector.setStyleProperties({ fill, fillOpacity }, fillBBox);
+                sector.centerX = 0;
+                sector.centerY = 0;
+                sector.innerRadius = 0;
+                sector.outerRadius = circleRadius;
+                sector.startAngle = 0;
+                sector.endAngle = 2 * Math.PI;
+            });
         }
 
         const highlightedNode = this.getActiveHighlightNode();
