@@ -704,6 +704,12 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
     sectorSpacing: positiveNumber,
     cornerRadius: positiveNumber,
     padding: positiveNumber,
+    innerRadiusRatio: ratio,
+    innerRadiusOffset: number,
+    innerCircle: {
+        fill: colorUnion,
+        fillOpacity: ratio,
+    },
     itemStyler: callbackDefs<AgSunburstSeriesStyle>({
         ...fillOptionsDef,
         ...strokeOptionsDef,
