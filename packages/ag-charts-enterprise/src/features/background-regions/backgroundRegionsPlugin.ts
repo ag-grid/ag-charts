@@ -62,8 +62,10 @@ export class BackgroundRegionsPlugin extends AbstractModuleInstance implements S
         // matching cross line labels.
         this.regionGroup.setClipRectCanvasSpace(clipRect);
 
+        let index = 0;
         for (const instance of this.instances) {
-            instance.update();
+            instance.update(index);
+            index++;
         }
     }
 

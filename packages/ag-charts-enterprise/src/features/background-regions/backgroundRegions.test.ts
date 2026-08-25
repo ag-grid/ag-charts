@@ -430,7 +430,7 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
         },
         assertions,
         warnings: [
-            ['AG Charts - `seriesArea.backgroundRegions[].xRange` does not match the axis type or domain, ignoring.'],
+            ['AG Charts - `seriesArea.backgroundRegions[0].xRange` does not match the axis type or domain, ignoring.'],
         ],
     },
 
@@ -443,7 +443,7 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
         },
         assertions: cartesianChartAssertions({ seriesTypes: ['bar'], axisTypes: { x: 'category', y: 'number' } }),
         warnings: [
-            ['AG Charts - `seriesArea.backgroundRegions[].xRange` does not match the axis type or domain, ignoring.'],
+            ['AG Charts - `seriesArea.backgroundRegions[0].xRange` does not match the axis type or domain, ignoring.'],
         ],
     },
 
@@ -474,7 +474,7 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
         assertions,
         warnings: [
             [
-                'AG Charts - `seriesArea.backgroundRegions` region has no width or height, ignoring. Check that `start` and `end` differ.',
+                'AG Charts - `seriesArea.backgroundRegions[0]` region has no width or height, ignoring. Check that `start` and `end` differ.',
             ],
         ],
     },
@@ -661,7 +661,7 @@ describe('Background Regions on unsupported chart types', () => {
         await waitForChartStability(chart);
 
         expectWarningsCalls().toEqual([
-            ['AG Charts - Option `seriesArea.backgroundRegions` is not supported by chart type `polar`, ignoring.'],
+            ['AG Charts - Option `seriesArea.backgroundRegions` is not supported by `pie` series, ignoring.'],
         ]);
     });
 });
