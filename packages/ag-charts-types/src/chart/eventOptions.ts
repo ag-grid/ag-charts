@@ -38,7 +38,7 @@ export interface AgNodeClickEvent<
     TDatum,
     TContext = ContextDefault,
 > extends AgBaseNodeClickEvent<TEvent, TDatum, TContext> {
-    /** TODO: writeme */
+    /** Every click event that matched at the click point, including the winning scope carred by these root params. */
     allClickParams: AgNodeClickParams<TDatum>[];
 }
 
