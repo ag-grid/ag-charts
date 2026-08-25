@@ -27,7 +27,7 @@ jobs:
         timeout-minutes: 60
         steps:
             - name: Checkout ag-charts
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
 
             - name: Setup
               uses: ./.github/actions/setup-nx

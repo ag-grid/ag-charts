@@ -117,14 +117,14 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 120
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7
               with:
                   # Full history so release-branch diffs resolve.
                   fetch-depth: 0
 
             - name: Mint ag-dev-prompts read token
               id: prompts-token
-              uses: actions/create-github-app-token@v1
+              uses: actions/create-github-app-token@v3
               with:
                   app-id: ${{ vars.JIRA_AGENT_APP_ID }}
                   private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
@@ -163,13 +163,13 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 60
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7
               with:
                   fetch-depth: 0
 
             - name: Mint ag-dev-prompts read token
               id: prompts-token
-              uses: actions/create-github-app-token@v1
+              uses: actions/create-github-app-token@v3
               with:
                   app-id: ${{ vars.JIRA_AGENT_APP_ID }}
                   private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
