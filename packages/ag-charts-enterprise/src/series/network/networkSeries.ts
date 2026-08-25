@@ -244,6 +244,13 @@ export abstract class AbstractNetworkSeries<
     }
 
     override update(_opts: { seriesRect?: _ModuleSupport.BBox }) {
+        if (!this.hasData) {
+            this.contentGroup.visible = false;
+            return;
+        }
+
+        this.contentGroup.visible = true;
+
         // TODO: this.contentGroup.batchedUpdate() ?
         this.updateSelections();
         this.updateNodes();
