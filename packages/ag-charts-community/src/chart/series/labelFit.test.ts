@@ -265,7 +265,30 @@ describe('series label fit', () => {
             });
             const texts = sectorTexts();
             expect(someWrapped(texts)).toBe(true);
-            expect(someTruncated(texts)).toBe(true);
+            // Nothing is ellipsised here: fitting the text to the wedge rather than to one rectangle
+            // inside it leaves room for even the longest label. Truncation is covered below, where the
+            // wedges are genuinely too small for the same labels.
+            expect(someTruncated(texts)).toBe(false);
+        });
+
+        it(`ellipsises ${type} sector labels the wedge cannot hold at any width`, async () => {
+            await renderAndSnapshot({
+                data: sectorLabelData,
+                legend: { enabled: false },
+                series: [
+                    {
+                        type,
+                        angleKey: 'value',
+                        sectorLabelKey: 'label',
+                        ...(type === 'donut' ? { innerRadiusRatio: 0.3 } : {}),
+                        // Text far too large for these wedges: the fit runs out of room however it wraps.
+                        sectorLabel: { enabled: true, wrapping: 'on-space', truncate: true, fontSize: 40 },
+                    },
+                ],
+            });
+            // Only the smallest wedge ends in an ellipsis: see the known limitation in textWrapper.test.ts,
+            // where a band narrowed to nothing drops the rest of the text without marking it.
+            expect(someTruncated(sectorTexts())).toBe(true);
         });
     }
 

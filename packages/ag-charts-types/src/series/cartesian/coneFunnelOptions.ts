@@ -1,6 +1,10 @@
 import type { AgNumericAxisFormattableLabelOptions } from '../../chart/axisOptions';
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState } from '../../chart/callbackOptions';
-import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type {
+    AgConeFunnelSeriesLabelPlacement,
+    AgConeFunnelSeriesLabelPlacementAlias,
+} from '../../chart/collisionAvoidanceOptions';
+import type { AgChartLabelCollisionFitOptions, AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
 import type {
@@ -11,15 +15,18 @@ import type {
 } from '../seriesOptions';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-export interface AgConeFunnelSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault> extends AgChartLabelOptions<
-    TDatum,
-    TParams,
-    TContext
-> {
+export interface AgConeFunnelSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
+    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgChartLabelCollisionFitOptions {
     /** Spacing between label and the associated divider. */
     spacing?: PixelSize;
-    /** The placement of the label in relation to the divider between drop-offs. */
-    placement?: 'before' | 'middle' | 'after';
+    /**
+     * Where to render series labels relative to the divider between drop-offs. Either a single
+     * placement or an ordered fallback list tried in turn until one fits.
+     */
+    placement?:
+        | AgConeFunnelSeriesLabelPlacement
+        | AgConeFunnelSeriesLabelPlacementAlias
+        | (AgConeFunnelSeriesLabelPlacement | AgConeFunnelSeriesLabelPlacementAlias)[];
 }
 
 export interface AgConeFunnelSeriesStageLabelOptions<

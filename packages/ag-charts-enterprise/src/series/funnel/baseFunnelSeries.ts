@@ -1,15 +1,38 @@
-import { type AgFunnelSeriesLabelFormatterParams, type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgConeFunnelSeriesLabelPlacement,
+    type AgFunnelSeriesLabelFormatterParams,
+    type AgFunnelSeriesLabelPlacement,
+    type AgFunnelSeriesStyle,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import type {
+    BoxBounds,
     DomainWithMetadata,
     DynamicContext,
     FillStrokeMorph,
+    LabelFit,
     Normalised,
     NormalisedTextOrSegments,
+    PlacedLabel,
     Point,
+    PointLabelDatum,
     RequireOptional,
 } from 'ag-charts-core';
-import { ChartAxisDirection, SeriesZIndexMap, maxValue } from 'ag-charts-core';
-import type { AgNumericValue } from 'ag-charts-types';
+import {
+    ChartAxisDirection,
+    SeriesZIndexMap,
+    applyBarLabelOrientation,
+    applyPlacedBarLabelVisibility,
+    barLabelObstacles,
+    barLabelRoutesThroughEngine,
+    buildBarPositionedLabelDatum,
+    fontWithSize,
+    maxValue,
+    measureLabelText,
+    resolveLabelFit,
+    resolveLabelFitDescriptors,
+} from 'ag-charts-core';
+import type { AgNumericValue, PaddingOptions } from 'ag-charts-types';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 import { FunnelConnector } from './funnelConnector';
@@ -20,6 +43,11 @@ const {
     valueProperty,
     keyProperty,
     updateLabelNode,
+    buildBarLabelCandidates,
+    createBarCandidateStyleResolver,
+    expandPlacementLabelBoxExtent,
+    fitLabelToContainerAutoSize,
+    styledBarLabelBox,
     SMALLEST_KEY_INTERVAL,
     LARGEST_KEY_INTERVAL,
     diff,
@@ -38,6 +66,9 @@ const {
     getItemId,
 } = _ModuleSupport;
 
+/** The placement vocabularies of the funnel family; each series uses one of them. */
+export type FunnelLabelPlacement = AgFunnelSeriesLabelPlacement | AgConeFunnelSeriesLabelPlacement;
+
 export type Bounds = {
     x: number;
     y: number;
@@ -53,15 +84,53 @@ function renderedCornerRadius(cornerRadius: number, { width, height }: Bounds) {
     return Math.min(cornerRadius, width / 2, height / 2);
 }
 
-export type FunnelNodeLabelDatum = Readonly<Point> & {
+export type FunnelNodeLabelDatum = Point & {
     datumIndex: number;
     text: NormalisedTextOrSegments;
+    /** Text the placement engine fitted to its chosen candidate; rendered in place of `text` when set. */
+    fittedText?: NormalisedTextOrSegments;
+    /** Reduced font size the text was fitted at; `undefined` when it renders at the configured size. */
+    fittedFontSize?: number;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
+    /** Always upright: these series expose no label orientation. */
+    rotation: number;
+    /** Flush offset written by the placement engine to keep a label inside its region. */
+    offsetX?: number;
+    offsetY?: number;
+    region?: BoxBounds;
+    /** Public resolved placement, coarsened to select the placement styles where a series has them. */
+    placement?: FunnelLabelPlacement;
+    /** Pre-positioned cascade candidates, present only when the label routes through the engine. */
+    candidates?: readonly _ModuleSupport.BarPositionedCandidate<FunnelLabelPlacement>[];
+    /** Own bar rect, so a positioned candidate avoids neighbouring bars but never its own. */
+    ownBox?: BoxBounds;
+    /** Engine-routed label the placement engine dropped (no candidate fit); rendered invisible. */
+    hidden?: boolean;
     datum: any;
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
     visible: boolean;
 };
+
+/**
+ * Everything a funnel-family label needs that is invariant across the datums of one node-data pass:
+ * the resolved placement lists, the axis flags they are positioned against, and the fit inputs.
+ */
+export interface FunnelLabelContext {
+    /** Bar-vocabulary placements, index-parallel with {@link reportedPlacements}. */
+    placements: readonly _ModuleSupport.BarLabelPlacement[];
+    /** The public placement values the label datum and `itemStyler` report. */
+    reportedPlacements: readonly FunnelLabelPlacement[];
+    isVertical: boolean;
+    isUpward: boolean;
+    /** Cross-axis extent for the inside regions of a divider with no thickness of its own. */
+    insideCrossRegion?: BoxBounds;
+    routesThroughEngine: boolean;
+    plotRegion?: BoxBounds;
+    labelFit?: LabelFit;
+    boxPadding: Required<PaddingOptions>;
+    yDomain: any[];
+}
 
 export interface FunnelNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
@@ -327,6 +396,8 @@ export abstract class BaseFunnelSeries<
             this.largestDataInterval
         );
 
+        const labelContext = this.createLabelContext(barAlongX);
+
         interface ConnectorConfig {
             itemId: string;
             rect: Bounds;
@@ -366,10 +437,10 @@ export abstract class BaseFunnelSeries<
                 y: rect.y + rect.height / 2,
             };
 
-            const labelData: FunnelNodeDatum['label'] = this.createLabelData({
+            const labelData: FunnelNodeDatum['label'] = this.createFunnelLabelDatum({
+                labelContext,
                 datumIndex,
                 rect,
-                barAlongX,
                 yDatum,
                 datum,
                 visible,
@@ -463,19 +534,144 @@ export abstract class BaseFunnelSeries<
         _isHighlight: boolean
     ): RequireOptional<AgFunnelSeriesStyle>;
 
-    protected abstract createLabelData({
+    /** The placement a label falls back to when none resolves, in this series' own vocabulary. */
+    protected abstract defaultLabelPlacement(): FunnelLabelPlacement;
+
+    /** Maps this series' placement vocabulary onto the bar candidates it is positioned by. */
+    protected abstract resolveLabelPlacements(barAlongX: boolean): {
+        placements: readonly _ModuleSupport.BarLabelPlacement[];
+        reportedPlacements: readonly FunnelLabelPlacement[];
+        isVertical: boolean;
+        isUpward: boolean;
+        insideCrossRegion?: BoxBounds;
+    };
+
+    /** The placement-style overrides for a resolved placement; `undefined` where a series has none. */
+    protected labelPlacementStyle(
+        _placement: FunnelLabelPlacement | undefined
+    ): _ModuleSupport.LabelPlacementStyle | undefined {
+        return undefined;
+    }
+
+    private labelStylerParams(): RequireOptional<AgFunnelSeriesLabelFormatterParams> {
+        return { stageKey: this.properties.stageKey, valueKey: this.properties.valueKey };
+    }
+
+    private createLabelContext(barAlongX: boolean): FunnelLabelContext {
+        const { label } = this.properties;
+        const { placements, reportedPlacements, isVertical, isUpward, insideCrossRegion } =
+            this.resolveLabelPlacements(barAlongX);
+        const boxPadding = expandPlacementLabelBoxExtent(label);
+        return {
+            placements,
+            reportedPlacements,
+            isVertical,
+            isUpward,
+            insideCrossRegion,
+            routesThroughEngine: barLabelRoutesThroughEngine(undefined, label.placement, label.collision.alwaysShow),
+            plotRegion: this.resolveLabelPlotRegion(label.collision),
+            labelFit: resolveLabelFit(label, !label.collision.alwaysShow),
+            boxPadding,
+            yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
+        };
+    }
+
+    private createFunnelLabelDatum({
+        labelContext,
         datumIndex,
         rect,
         yDatum,
         datum,
+        visible,
     }: {
+        labelContext: FunnelLabelContext;
         datumIndex: number;
         rect: Bounds;
-        barAlongX: boolean;
         yDatum: AgNumericValue;
         datum: any;
         visible: boolean;
-    }): FunnelNodeLabelDatum | undefined;
+    }): FunnelNodeLabelDatum | undefined {
+        const { stageKey, valueKey, label } = this.properties;
+
+        if (!label.enabled) return;
+
+        const text = this.getLabelText<AgFunnelSeriesLabelFormatterParams>(
+            yDatum,
+            datum,
+            valueKey,
+            'y',
+            labelContext.yDomain,
+            label,
+            { itemId: this.resolveItemId(datum, datumIndex), value: yDatum, datum, stageKey, valueKey }
+        );
+
+        const labelDatum: FunnelNodeLabelDatum = {
+            x: 0,
+            y: 0,
+            rotation: 0,
+            offsetX: 0,
+            offsetY: 0,
+            textAlign: 'center',
+            textBaseline: 'middle',
+            text,
+            ownBox: rect,
+            hidden: false,
+            datum,
+            datumIndex,
+            series: this,
+            visible,
+        };
+
+        const measured = measureLabelText(text, label);
+        const candidates = buildBarLabelCandidates<AgFunnelSeriesLabelFormatterParams, FunnelLabelPlacement>({
+            isUpward: labelContext.isUpward,
+            isVertical: labelContext.isVertical,
+            placements: labelContext.placements,
+            reportedPlacements: labelContext.reportedPlacements,
+            orientations: ['horizontal'],
+            spacing: label.spacing,
+            label,
+            textWidth: measured.width,
+            textHeight: measured.height,
+            rect,
+            insideCrossRegion: labelContext.insideCrossRegion,
+            hideable: !label.collision.alwaysShow,
+            plotRegion: labelContext.plotRegion,
+            fitted: labelContext.labelFit != null,
+            text,
+            styleDatum: labelDatum,
+            resolveStyle: createBarCandidateStyleResolver(
+                this,
+                label,
+                this.labelStylerParams(),
+                undefined,
+                (placement) => labelContext.reportedPlacements[labelContext.placements.indexOf(placement)]
+            ),
+        });
+
+        // The engine picks the first candidate that fits; the first is baked so rendering is correct
+        // even when the label never routes through the engine.
+        const [first] = candidates;
+        if (first != null) {
+            labelDatum.x = first.anchor.x;
+            labelDatum.y = first.anchor.y;
+            labelDatum.textAlign = first.anchor.textAlign;
+            labelDatum.textBaseline = first.anchor.textBaseline;
+            labelDatum.region = first.region;
+            labelDatum.placement = first.placement;
+        }
+
+        if (labelContext.routesThroughEngine) {
+            labelDatum.candidates = candidates;
+        } else {
+            // Nothing re-fits this label later, so bound its text to the region it was baked into.
+            const fitted = fitLabelToContainerAutoSize(text, labelContext.labelFit, label, first?.fitTo?.container);
+            labelDatum.fittedText = fitted.text;
+            labelDatum.fittedFontSize = fitted.fontSize;
+        }
+
+        return labelDatum;
+    }
 
     protected override updateNodes(seriesHighlighted: boolean, nodeRefresh: boolean) {
         super.updateNodes(seriesHighlighted, nodeRefresh);
@@ -553,27 +749,111 @@ export abstract class BaseFunnelSeries<
         labelSelection: _ModuleSupport.Selection<FunnelNodeLabelDatum, _ModuleSupport.Text<FunnelNodeLabelDatum>>;
         isHighlight?: boolean;
     }) {
-        const params: RequireOptional<AgFunnelSeriesLabelFormatterParams> = {
-            stageKey: this.properties.stageKey,
-            valueKey: this.properties.valueKey,
-        };
+        const params = this.labelStylerParams();
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const { isHighlight = false, labelSelection } = opts;
         labelSelection.each((textNode, datum) => {
+            if (datum.hidden) {
+                textNode.visible = false;
+                return;
+            }
             const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
             textNode.visible = datum.visible || isHighlight;
             textNode.fillOpacity = highlightStyle.opacity ?? 1;
             textNode.opacity = highlightStyle.opacity ?? 1;
-            updateLabelNode(this, textNode, params, this.properties.label, datum, { isHighlight, activeHighlight });
+            updateLabelNode(
+                this,
+                textNode,
+                params,
+                this.properties.label,
+                datum,
+                { isHighlight, activeHighlight },
+                undefined,
+                this.labelPlacementStyle(datum.placement),
+                { placement: datum.placement, orientation: 'horizontal' }
+            );
         });
     }
+
+    getLabelObstacles() {
+        const { label } = this.properties;
+        const box = expandPlacementLabelBoxExtent(label);
+        return barLabelObstacles(
+            this.contextNodeData?.nodeData,
+            this.contextNodeData?.labelData,
+            this.isLabelEnabled() && !this.usesPlacedLabels,
+            (labelDatum) => ({ label: labelDatum, config: fontWithSize(label, labelDatum.fittedFontSize), box })
+        );
+    }
+
+    override getLabelData(): PointLabelDatum[] {
+        const { label } = this.properties;
+        if (!this.usesPlacedLabels || !label.enabled) return [];
+        const box = expandPlacementLabelBoxExtent(label);
+        const collideWith = label.collision.resolveCollideWith();
+        const threshold = label.collision.threshold ?? 0;
+        const fitFor = resolveLabelFitDescriptors(label, box, !label.collision.alwaysShow);
+        const stylerParams = this.labelStylerParams();
+        const data: PointLabelDatum[] = [];
+        for (const labelDatum of this.contextNodeData?.labelData ?? []) {
+            if (labelDatum.text === '' || labelDatum.candidates == null) continue;
+            // The styler is promised the funnel-family placement, not the bar placement the geometry runs
+            // on, so this datum's own placement is what the resolver reports back.
+            const reported = labelDatum.placement ?? this.defaultLabelPlacement();
+            const styled = styledBarLabelBox(
+                createBarCandidateStyleResolver(this, label, stylerParams, undefined, () => reported),
+                labelDatum,
+                this.toBarPlacement(labelDatum.placement),
+                'horizontal',
+                labelDatum.text
+            );
+            const { width, height } = measureLabelText(labelDatum.text, label);
+            const size = styled?.size ?? { width: width + box.left + box.right, height: height + box.top + box.bottom };
+            const configuredFit = fitFor(labelDatum.text);
+            const fit =
+                configuredFit == null || styled == null
+                    ? configuredFit
+                    : { ...configuredFit, font: styled.font, boxPadding: styled.boxPadding };
+            data.push(
+                buildBarPositionedLabelDatum(
+                    labelDatum.text,
+                    size.width,
+                    size.height,
+                    labelDatum.candidates,
+                    labelDatum,
+                    labelDatum.ownBox ?? { x: labelDatum.x, y: labelDatum.y, width: 0, height: 0 },
+                    label.collision.alwaysShow,
+                    collideWith,
+                    threshold,
+                    true,
+                    fit
+                )
+            );
+        }
+        return data;
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<FunnelNodeLabelDatum>[]) {
+        applyBarLabelOrientation(placed);
+        applyPlacedBarLabelVisibility(this.contextNodeData?.labelData, placed, (labelDatum) => labelDatum);
+        this.refreshPlacedLabelNodes();
+    }
+
+    protected override resolveUsesPlacedLabels(): boolean {
+        const { label } = this.properties;
+        return barLabelRoutesThroughEngine(undefined, label.placement, label.collision.alwaysShow);
+    }
+
+    /** The bar placement a public one maps onto, for the styled box a baked label reserves. */
+    protected abstract toBarPlacement(placement: FunnelLabelPlacement | undefined): _ModuleSupport.BarLabelPlacement;
 
     protected override getHighlightLabelData(
         _labelData: FunnelNodeLabelDatum[],
         highlightedItem: FunnelNodeDatum
     ): FunnelNodeLabelDatum[] | undefined {
+        // The live label object, not a copy: the placement engine writes back through this reference.
         if (highlightedItem.label) {
-            return [{ ...highlightedItem.label }];
+            return [highlightedItem.label];
         }
 
         return undefined;

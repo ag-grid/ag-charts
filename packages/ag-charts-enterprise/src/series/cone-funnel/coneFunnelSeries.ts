@@ -1,20 +1,18 @@
 import {
-    type AgConeFunnelSeriesLabelFormatterParams,
+    type AgConeFunnelSeriesLabelPlacement,
     type AgConeFunnelSeriesOptions,
     type AgConeFunnelSeriesStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { DynamicContext, RequireOptional } from 'ag-charts-core';
-import { ChartAxisDirection } from 'ag-charts-core';
 
 import {
     BaseFunnelSeries,
     type BaseFunnelSeriesTypes,
-    type Bounds,
     type FunnelAnimationData,
     type FunnelNodeDatum,
-    type FunnelNodeLabelDatum,
 } from '../funnel/baseFunnelSeries';
+import { CONE_FUNNEL_TO_BAR_PLACEMENT, resolveConeFunnelPlacements } from '../funnel/funnelLabelPlacement';
 import { ConeFunnelProperties } from './coneFunnelProperties';
 import { resetLineSelectionsFn } from './coneFunnelUtil';
 
@@ -87,88 +85,30 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
         return new Line<FunnelNodeDatum>();
     }
 
-    protected override createLabelData({
-        datumIndex,
-        rect,
-        barAlongX,
-        yDatum,
-        datum,
-        visible,
-    }: {
-        datumIndex: number;
-        rect: Bounds;
-        barAlongX: boolean;
-        yDatum: number;
-        datum: any;
-        visible: boolean;
-    }): FunnelNodeLabelDatum | undefined {
-        const { stageKey, valueKey, label } = this.properties;
-        const { spacing, placement } = label;
+    protected override defaultLabelPlacement(): AgConeFunnelSeriesLabelPlacement {
+        return 'before-center';
+    }
 
-        if (!label.enabled) return;
-
-        let x: number;
-        let y: number;
-        let textAlign: CanvasTextAlign;
-        let textBaseline: CanvasTextBaseline;
-        if (barAlongX) {
-            x = rect.x + rect.width / 2;
-            textAlign = 'center';
-
-            switch (placement) {
-                case 'before':
-                    y = rect.y - spacing;
-                    textBaseline = 'bottom';
-                    break;
-                case 'after':
-                    y = rect.y + rect.height + spacing;
-                    textBaseline = 'top';
-                    break;
-                default:
-                    y = rect.y + rect.height / 2;
-                    textBaseline = 'middle';
-            }
-        } else {
-            y = rect.y + rect.height / 2;
-            textBaseline = 'middle';
-
-            switch (placement) {
-                case 'before':
-                    x = rect.x - spacing;
-                    textAlign = 'right';
-                    break;
-                case 'after':
-                    x = rect.x + rect.width + spacing;
-                    textAlign = 'left';
-                    break;
-                default:
-                    x = rect.x + rect.width / 2;
-                    textAlign = 'center';
-            }
-        }
-
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y).domain;
-        const text = this.getLabelText<AgConeFunnelSeriesLabelFormatterParams>(
-            yDatum,
-            datum,
-            valueKey,
-            'y',
-            yDomain,
-            label,
-            { itemId: this.resolveItemId(datum, datumIndex), value: yDatum, datum, stageKey, valueKey }
+    protected override resolveLabelPlacements(barAlongX: boolean) {
+        const reportedPlacements = resolveConeFunnelPlacements(
+            this.properties.label.placement,
+            this.defaultLabelPlacement(),
+            barAlongX,
+            this.ctx.domManager.isRtl
         );
-
         return {
-            x,
-            y,
-            textAlign,
-            textBaseline,
-            text,
-            datum,
-            datumIndex,
-            series: this,
-            visible,
+            placements: reportedPlacements.map((placement) => CONE_FUNNEL_TO_BAR_PLACEMENT[placement]),
+            reportedPlacements,
+            // A divider spans the value axis, so `before`/`after` is the cross axis: the bar convention.
+            isVertical: !barAlongX,
+            isUpward: true,
+            // The divider has no thickness, so a `middle-*` region takes its cross extent from the plot.
+            insideCrossRegion: this.getSeriesPlotRegion(),
         };
+    }
+
+    protected override toBarPlacement(placement: AgConeFunnelSeriesLabelPlacement | undefined) {
+        return CONE_FUNNEL_TO_BAR_PLACEMENT[placement ?? this.defaultLabelPlacement()];
     }
 
     protected override updateDatumNodes(opts: {

@@ -24,7 +24,16 @@ const markedSymbol = Symbol('marked');
 const undocumentedSymbol = Symbol('undocumented');
 const deprecatedSymbol = Symbol('deprecated');
 const enterpriseSymbol = Symbol('enterprise');
+const deprecatedValueSymbol = Symbol('deprecatedValue');
 export const unionSymbol = Symbol('union');
+
+export interface DeprecatedValue {
+    [deprecatedValueSymbol]: string;
+    value: unknown;
+}
+
+const isDeprecatedValue = (value: unknown): value is DeprecatedValue =>
+    isObject(value) && deprecatedValueSymbol in value;
 
 // Memoised Object.keys per OptionsDefs node. WeakMap avoids mutating (and thus
 // failing on) frozen / sealed / proxied schema objects.
@@ -461,6 +470,16 @@ export function deprecated<T extends Validator | OptionsDefs<any>>(validatorOrDe
 }
 
 /**
+ * Marks a single member of a `union` / `unionOrArray` as deprecated. The value keeps validating, but
+ * supplying it emits a one-shot notice naming the replacement (e.g. "Use `before-center` instead.").
+ * Deprecated members are omitted from the validator description, so error messages advertise only the
+ * supported keywords.
+ */
+export function deprecatedValue(value: unknown, message: string): DeprecatedValue {
+    return { [deprecatedValueSymbol]: message, value };
+}
+
+/**
  * Creates a validator for ensuring an object matches the provided option definitions.
  * @param defs The option definitions against which to validate an object.
  * @param description (Optional) A description for the validator, defaulting to 'an object'.
@@ -660,11 +679,33 @@ export const greaterThan = (otherField: string) =>
 export function union(allowed: object): Validator;
 export function union(...allowed: any[]): Validator;
 export function union(...allowed: any[]) {
-    if (isObject(allowed[0])) {
+    if (isObject(allowed[0]) && !isDeprecatedValue(allowed[0])) {
         allowed = Object.values(allowed[0]);
     }
-    const keywords = joinFormatted(allowed, 'or', (value) => `'${value}'`);
-    return attachDescription((value) => allowed.includes(value), `a keyword such as ${keywords}`);
+    const deprecations = new Map<unknown, string>();
+    const values = allowed.map((entry) => {
+        if (!isDeprecatedValue(entry)) return entry;
+        deprecations.set(entry.value, entry[deprecatedValueSymbol]);
+        return entry.value;
+    });
+    const keywords = joinFormatted(
+        values.filter((value) => !deprecations.has(value)),
+        'or',
+        (value) => `'${value}'`
+    );
+    if (deprecations.size === 0) {
+        return attachDescription((value) => values.includes(value), `a keyword such as ${keywords}`);
+    }
+    return attachDescription((value, context) => {
+        if (!values.includes(value)) return false;
+        const message = deprecations.get(value);
+        if (message != null && !context.params?.silentAdvisories) {
+            const notice = `Value \`${stringifyValue(value)}\` of option \`${context.path}\` is deprecated. ${message}`;
+            context.params.logger.deprecationOnce(notice);
+            context.params.onDeprecation?.(notice, context.path);
+        }
+        return true;
+    }, `a keyword such as ${keywords}`);
 }
 
 /**

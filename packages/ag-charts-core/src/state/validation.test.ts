@@ -24,6 +24,7 @@ import {
     constant,
     date,
     deprecated,
+    deprecatedValue,
     enterprise,
     greaterThan,
     instanceOf,
@@ -294,6 +295,73 @@ describe('Validation utils', () => {
             );
             expect(onDeprecation).not.toHaveBeenCalled();
             expect(console.warn).not.toHaveBeenCalled();
+        });
+
+        describe('deprecatedValue in a union', () => {
+            const placement = unionOrArray(
+                'before-center',
+                'after-center',
+                deprecatedValue('before', 'Use `before-center` instead.'),
+                deprecatedValue('after', 'Use `after-center` instead.')
+            );
+
+            test('passes the deprecated value through and warns once', () => {
+                const onDeprecation = vi.fn();
+                const { cleared, invalid } = validate<{ placement: string }>(
+                    { placement: 'before' },
+                    { placement },
+                    '',
+                    {
+                        onDeprecation,
+                    }
+                );
+                expect(cleared).toEqual({ placement: 'before' });
+                expect(invalid).toEqual([]);
+                expect(console.warn).toHaveBeenCalledTimes(1);
+                expect((console.warn as Mock).mock.calls[0][0]).toContain(
+                    'Value `"before"` of option `placement` is deprecated. Use `before-center` instead.'
+                );
+                expect(onDeprecation).toHaveBeenCalledWith(
+                    'Value `"before"` of option `placement` is deprecated. Use `before-center` instead.',
+                    'placement'
+                );
+            });
+
+            test('warns for a deprecated value inside a fallback array', () => {
+                const { cleared, invalid } = validate<{ placement: string[] }>(
+                    { placement: ['before-center', 'after'] },
+                    { placement }
+                );
+                expect(cleared).toEqual({ placement: ['before-center', 'after'] });
+                expect(invalid).toEqual([]);
+                expect(console.warn).toHaveBeenCalledTimes(1);
+                expect((console.warn as Mock).mock.calls[0][0]).toContain('Use `after-center` instead.');
+            });
+
+            test('stays silent for a supported value', () => {
+                const onDeprecation = vi.fn();
+                validate<{ placement: string }>({ placement: 'before-center' }, { placement }, '', { onDeprecation });
+                expect(onDeprecation).not.toHaveBeenCalled();
+                expect(console.warn).not.toHaveBeenCalled();
+            });
+
+            test('stays silent for a theme-injected value under silentAdvisories', () => {
+                const onDeprecation = vi.fn();
+                const { cleared } = validate<{ placement: string }>({ placement: 'before' }, { placement }, '', {
+                    onDeprecation,
+                    silentAdvisories: true,
+                });
+                expect(cleared).toEqual({ placement: 'before' });
+                expect(onDeprecation).not.toHaveBeenCalled();
+                expect(console.warn).not.toHaveBeenCalled();
+            });
+
+            test('omits deprecated values from the expected-keyword message', () => {
+                const { invalid } = validate({ placement: 'middle' }, { placement });
+                expect(invalid.map(String)).toEqual([
+                    "Option `placement` cannot be set to `\"middle\"`; expecting a keyword such as 'before-center' or 'after-center' or a non-empty array containing these keywords, ignoring.",
+                ]);
+            });
         });
     });
 

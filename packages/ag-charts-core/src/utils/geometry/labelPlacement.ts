@@ -8,6 +8,7 @@ import { toArray } from '../data/arrays';
 import { toFontString, toTextString } from '../text/textUtils';
 import {
     type LabelFit,
+    type RegionAlign,
     findLargestFontSizeDescending,
     fitLabelTextOrOverflowAutoSize,
     fontWithSize,
@@ -17,6 +18,7 @@ import {
 import { isArray } from '../types/typeGuards';
 import { toDegrees, toRadians } from './angle';
 import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
+import type { FitRegion } from './fitRegion';
 import { getMinOuterRectSize } from './math/shapeUtils';
 import { SpatialIndex, gridCellSize } from './spatialIndex';
 
@@ -137,6 +139,10 @@ export function resolveLabelFitDescriptors(
  */
 export interface CandidateFitTarget {
     readonly container?: { readonly width: number; readonly height: number };
+    /** Shape the text is fitted to, when the candidate's container is only its bounding box. */
+    readonly shape?: FitRegion;
+    /** Where the block sits against {@link anchor} within that shape; defaults to centred on it. */
+    readonly shapeAlign?: RegionAlign;
     /** Anchor the drawn box hangs off, so its centre can be re-derived when the fitted glyph resizes it. */
     readonly anchor: OrientationAnchor;
     /** Per-side extent of the drawn box around the glyph. */
@@ -1161,6 +1167,8 @@ const boundedFit: {
     wrapping?: TextWrap;
     overflowStrategy?: OverflowStrategy;
     minimumFontSize?: number;
+    region?: FitRegion;
+    regionAlign?: RegionAlign;
 } = {};
 // Reduced font size the candidate being tested was fitted at, `undefined` at the configured size. Read
 // by `recordBestChoice` rather than threaded through it as one more positional argument.
@@ -1606,13 +1614,17 @@ function fitLabelToCandidate(
     fit: LabelFitDescriptor,
     font: FontOptions,
     source: { width: number; height: number } | undefined,
-    container: { width: number; height: number } | undefined
+    container: { width: number; height: number } | undefined,
+    region?: FitRegion,
+    regionAlign?: RegionAlign
 ) {
     const { text, policy } = fit;
     const maxWidth = Math.min(policy.maxWidth ?? Infinity, container?.width ?? Infinity);
     const maxHeight = Math.min(policy.maxHeight ?? Infinity, container?.height ?? Infinity);
     const full = source ?? measureLabelText(text, font);
-    if (full.width <= maxWidth && full.height <= maxHeight) {
+    // A shape can be narrower than its bounding box anywhere the text lands, so the whole-text shortcut
+    // is only sound for a rectangular bound.
+    if (region == null && full.width <= maxWidth && full.height <= maxHeight) {
         fittedLabel.text = text;
         fittedLabel.width = full.width;
         fittedLabel.height = full.height;
@@ -1627,6 +1639,8 @@ function fitLabelToCandidate(
     boundedFit.overflowStrategy = policy.overflowStrategy;
     // A trial already owns the size, so the inner search must not run a second one inside it.
     boundedFit.minimumFontSize = candidateTrialFontSize == null ? policy.minimumFontSize : undefined;
+    boundedFit.region = region;
+    boundedFit.regionAlign = regionAlign;
     const { text: fitted, fontSize } = fitLabelTextOrOverflowAutoSize(text, boundedFit, fit.fitOverflow, font);
     // `overflowStrategy: 'hide'` empties the text rather than truncating it; the candidate cannot show
     // this label at all, so the cascade must move on rather than place an empty box.
@@ -2138,7 +2152,11 @@ function placeFromPositionedCandidates(
             const styledFont = c.fitTo.font;
             const source = styledFont == null ? fitSource : styledFitSource(fit, styledFont);
             const container = deflateContainer(c.fitTo.container, threshold);
-            if (!fitLabelToCandidate(fit, styledFont ?? fit.font, source, container)) continue;
+            if (
+                !fitLabelToCandidate(fit, styledFont ?? fit.font, source, container, c.fitTo.shape, c.fitTo.shapeAlign)
+            ) {
+                continue;
+            }
             ({ text, dropped, fontSize: candidateFontSize } = fittedLabel);
             const { padding } = c.fitTo;
             width = fittedLabel.width + padding.left + padding.right;

@@ -13,6 +13,7 @@ import {
     commonSeriesThemeableOptionsDefs,
     defined,
     deprecated,
+    deprecatedValue,
     fillOptionsDef,
     fontOptionsDef,
     highlightOptionsDef,
@@ -244,14 +245,38 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
 
 Object.assign(chordSeriesThemeableOptionsDef.label, without(undocumentedLabelFitOptionsDefs, ['maxWidth']));
 
+const funnelPlacementDef = unionOrArray(
+    'inside-center',
+    'inside-before',
+    'inside-after',
+    'outside-before',
+    'outside-after'
+);
+
+const coneFunnelPlacementDef = unionOrArray(
+    'before-start',
+    'before-center',
+    'before-end',
+    'middle-start',
+    'middle-center',
+    'middle-end',
+    'after-start',
+    'after-center',
+    'after-end',
+    deprecatedValue('before', 'Use `before-center` instead.'),
+    deprecatedValue('middle', 'Use `middle-center` instead.'),
+    deprecatedValue('after', 'Use `after-center` instead.')
+);
+
 export const coneFunnelSeriesThemeableOptionsDef: OptionsDefs<AgConeFunnelSeriesThemeableOptions> = {
     direction: union('horizontal', 'vertical'),
     fills: arrayOf(colorUnion),
     strokes: arrayOf(colorOrRef),
     label: {
-        spacing: positiveNumber,
-        placement: union('before', 'middle', 'after'),
         ...seriesLabelOptionsDefs,
+        ...labelCollisionFitOptionsDefs,
+        placement: coneFunnelPlacementDef,
+        spacing: positiveNumber,
     },
     stageLabel: {
         placement: union('before', 'after'),
@@ -289,7 +314,13 @@ export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeabl
         format: numberFormatValidator,
         ...commonAxisLabelOptionsDefs,
     },
-    label: seriesLabelOptionsDefs,
+    label: {
+        ...seriesLabelOptionsDefs,
+        ...labelCollisionFitOptionsDefs,
+        ...labelPlacementStyleDefs,
+        placement: funnelPlacementDef,
+        spacing: positiveNumber,
+    },
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
     ...without(commonSeriesThemeableOptionsDefs, ['showInLegend']),
@@ -469,7 +500,13 @@ export const pyramidSeriesThemeableOptionsDef: OptionsDefs<AgPyramidSeriesThemea
     }),
     fills: arrayOf(colorUnion),
     strokes: arrayOf(colorOrRef),
-    label: seriesLabelOptionsDefs,
+    label: {
+        ...seriesLabelOptionsDefs,
+        ...labelCollisionFitOptionsDefs,
+        ...labelPlacementStyleDefs,
+        placement: funnelPlacementDef,
+        spacing: positiveNumber,
+    },
     stageLabel: {
         spacing: positiveNumber,
         placement: union('before', 'after'),

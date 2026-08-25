@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { BoxBounds } from 'ag-charts-core';
 
-import { boxOverlapsSector, clockwiseAngles, isPointInSector } from './sector';
+import { boxOverlapsSector, clockwiseAngles, isBoxInSector, isPointInSector } from './sector';
 
 const TAU = 2 * Math.PI;
 
@@ -127,5 +127,77 @@ describe('boxOverlapsSector', () => {
 
         // Only measure-zero boundary grazes should differ from the area-sampling oracle.
         expect(disagreements / trials).toBeLessThan(0.01);
+    });
+});
+
+describe('isBoxInSector', () => {
+    // A ring wide enough to hold a box on its left-hand side, opening to the left so the box straddles
+    // the centre line: the arrangement a wrapped sector label lands in.
+    const ring: Sector = { startAngle: Math.PI * 0.75, endAngle: Math.PI * 1.25, innerRadius: 40, outerRadius: 120 };
+
+    /** Ground truth: every point of the box has to be in the sector, sampled densely. */
+    function boxInSectorBySampling(box: BoxBounds, sector: Sector, steps = 120): boolean {
+        for (let i = 0; i <= steps; i++) {
+            for (let j = 0; j <= steps; j++) {
+                const x = box.x + (box.width * i) / steps;
+                const y = box.y + (box.height * j) / steps;
+                if (!isPointInSector(x, y, sector)) return false;
+            }
+        }
+        return true;
+    }
+
+    it('accepts a box clear of both radii and both edges', () => {
+        const box: BoxBounds = { x: -100, y: -12, width: 45, height: 24 };
+        expect(isBoxInSector(box, ring)).toBe(true);
+        expect(boxInSectorBySampling(box, ring)).toBe(true);
+    });
+
+    it('rejects a box whose right edge dips into the hole between its corners', () => {
+        // Both right-hand corners clear the 40px hole (their radius is hypot(38, 20) > 40), but the
+        // middle of that edge sits 38px out and is inside it.
+        const box: BoxBounds = { x: -90, y: -20, width: 52, height: 40 };
+        expect(isPointInSector(box.x + box.width, box.y, ring)).toBe(true);
+        expect(isPointInSector(box.x + box.width, box.y + box.height, ring)).toBe(true);
+        expect(boxInSectorBySampling(box, ring)).toBe(false);
+        expect(isBoxInSector(box, ring)).toBe(false);
+    });
+
+    it('rejects a box reaching past the outer radius', () => {
+        const box: BoxBounds = { x: -130, y: -10, width: 40, height: 20 };
+        expect(isBoxInSector(box, ring)).toBe(false);
+    });
+
+    it('rejects a box crossing an angular edge', () => {
+        const box: BoxBounds = { x: -80, y: -60, width: 40, height: 30 };
+        expect(isBoxInSector(box, ring)).toBe(false);
+    });
+
+    it('rejects a box straddling the wedge a reflex sector excludes', () => {
+        // 350 degrees of ring, so the 10 degrees it excludes lie along the negative x axis. Every corner
+        // of the box clears that wedge, while the middle of the box sits in it.
+        const reflex: Sector = {
+            startAngle: (Math.PI * 185) / 180,
+            endAngle: (Math.PI * 175) / 180,
+            innerRadius: 40,
+            outerRadius: 120,
+        };
+        const box: BoxBounds = { x: -110, y: -20, width: 50, height: 40 };
+        expect(isPointInSector(box.x, box.y, reflex)).toBe(true);
+        expect(isPointInSector(box.x, box.y + box.height, reflex)).toBe(true);
+        expect(boxInSectorBySampling(box, reflex)).toBe(false);
+        expect(isBoxInSector(box, reflex)).toBe(false);
+    });
+
+    it('accepts a box a reflex sector holds clear of the wedge it excludes', () => {
+        const reflex: Sector = {
+            startAngle: (Math.PI * 185) / 180,
+            endAngle: (Math.PI * 175) / 180,
+            innerRadius: 40,
+            outerRadius: 120,
+        };
+        const box: BoxBounds = { x: 60, y: -20, width: 50, height: 40 };
+        expect(boxInSectorBySampling(box, reflex)).toBe(true);
+        expect(isBoxInSector(box, reflex)).toBe(true);
     });
 });

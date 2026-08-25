@@ -44,6 +44,48 @@ export function sectorBox({ startAngle, endAngle, innerRadius, outerRadius }: Se
     return new BBox(x0, y0, x1 - x0, y1 - y0);
 }
 
+/**
+ * True when the whole of `box` lies inside the sector. The outer radius is settled by the corners, and so
+ * is the angular range while the sector holds no more than half a turn; the hole and a reflex sector's
+ * excluded wedge are not, since a box reaching across the centre line comes closest to the origin at the
+ * middle of an edge, and one straddling the wedge can keep every corner inside the range.
+ */
+export function isBoxInSector(box: BoxBounds, sector: SectorBoundaries) {
+    const x1 = box.x + box.width;
+    const y1 = box.y + box.height;
+    if (
+        !isPointInSector(box.x, box.y, sector) ||
+        !isPointInSector(x1, box.y, sector) ||
+        !isPointInSector(x1, y1, sector) ||
+        !isPointInSector(box.x, y1, sector)
+    ) {
+        return false;
+    }
+    const nearestX = Math.min(Math.max(0, box.x), x1);
+    const nearestY = Math.min(Math.max(0, box.y), y1);
+    const innerRadius = Math.min(sector.innerRadius, sector.outerRadius);
+    if (nearestX ** 2 + nearestY ** 2 < innerRadius ** 2) return false;
+    // Nor is the angular range settled by the corners once the sector is wider than half a turn: the wedge
+    // it excludes can pass between them, so the box has to be clear of both boundary edges as well.
+    if (angleBetween(sector.startAngle, sector.endAngle) <= Math.PI) return true;
+    const radius = Math.max(sector.innerRadius, sector.outerRadius);
+    return !edgeCrossesBox(box, sector.startAngle, radius) && !edgeCrossesBox(box, sector.endAngle, radius);
+}
+
+/** True when the sector edge at `angle`, from the centre out to `radius`, crosses `box`. */
+function edgeCrossesBox(box: BoxBounds, angle: number, radius: number) {
+    const x1 = box.x + box.width;
+    const y1 = box.y + box.height;
+    const ex = radius * Math.cos(angle);
+    const ey = radius * Math.sin(angle);
+    return (
+        segmentIntersection(0, 0, ex, ey, box.x, box.y, x1, box.y) === 1 ||
+        segmentIntersection(0, 0, ex, ey, x1, box.y, x1, y1) === 1 ||
+        segmentIntersection(0, 0, ex, ey, x1, y1, box.x, y1) === 1 ||
+        segmentIntersection(0, 0, ex, ey, box.x, y1, box.x, box.y) === 1
+    );
+}
+
 export function isPointInSector(x: number, y: number, sector: SectorBoundaries) {
     const radius = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
     const { innerRadius, outerRadius } = sector;

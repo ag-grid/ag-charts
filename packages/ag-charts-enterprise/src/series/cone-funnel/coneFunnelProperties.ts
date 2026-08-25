@@ -1,5 +1,7 @@
 import type {
     AgConeFunnelSeriesLabelFormatterParams,
+    AgConeFunnelSeriesLabelPlacement,
+    AgConeFunnelSeriesLabelPlacementAlias,
     AgConeFunnelSeriesOptions,
     AgConeFunnelSeriesStyle,
     AgConeFunnelSeriesTooltipRendererParams,
@@ -10,13 +12,20 @@ import { Property } from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from '../funnel/baseFunnelSeriesProperties';
 
-const { Label, AbstractBarSeriesProperties, makeSeriesTooltip, SeriesLabelProperties } = _ModuleSupport;
+const { Label, LabelPlacementStyle, AbstractBarSeriesProperties, makeSeriesTooltip, SeriesLabelProperties } =
+    _ModuleSupport;
 class ConeFunnelSeriesLabel extends Label<AgConeFunnelSeriesLabelFormatterParams> {
     @Property
-    placement: string | undefined;
+    placement: AgConeFunnelSeriesLabelPlacement | AgConeFunnelSeriesLabelPlacementAlias | undefined;
 
     @Property
     spacing: number = 0;
+
+    // Every cone funnel placement is outside the divider, so no placement styles are exposed; the
+    // empty defaults leave the shared bar-label helpers on the label's own style.
+    readonly insideStyle = new LabelPlacementStyle();
+
+    readonly outsideStyle = new LabelPlacementStyle();
 }
 
 class ConeFunnelSeriesStageLabel extends SeriesLabelProperties {
