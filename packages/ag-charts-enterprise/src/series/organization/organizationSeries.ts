@@ -89,6 +89,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     /** Source-data index of the node whose expander pill the pointer is currently over. */
     private hoveredExpanderDatumIndex?: number;
 
+    private hasAnyKeyedValue = false;
+
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(ctx);
 
@@ -123,6 +125,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     async processData(dataController: _ModuleSupport.DataController) {
+        this.hasAnyKeyedValue = false;
+
         const { data } = this;
         if (data == null) return;
 
@@ -174,6 +178,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         this.createGraphData();
         this.processPendingCollapse();
+    }
+
+    override get hasData() {
+        return this.hasAnyKeyedValue;
     }
 
     createNodeData() {
@@ -712,7 +720,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         }
 
         // TODO: This is passing `any[]` in as the values, and the build fn then constrains the types without any safety.
-        this.graph.build(
+        this.hasAnyKeyedValue = this.graph.build(
             idValues,
             parentIdValues,
             imageValues,
@@ -721,6 +729,12 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             labelsValues,
             this.rootVertex
         );
+
+        if (!this.hasAnyKeyedValue) {
+            this.ctx.logger.warnOnce(
+                `None of [title.key], [subtitle.key], [image.key] or [labels[].key] were found in the data for [${this.id}].`
+            );
+        }
 
         this.graph.computeDescendants(this.getRootVertices());
     }

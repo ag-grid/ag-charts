@@ -31,24 +31,32 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
         subtitleValues: (string | undefined)[],
         labelsValues: (string[] | undefined)[],
         root: Vertex<OrganizationVertex, OrganizationEdge>
-    ) {
+    ): boolean {
         this.verticesById = {};
 
         let index = 0;
+
+        let hasAnyKeyedValue = false;
+
         for (const id of idValues) {
             const vertex = this.addVertex(id);
 
             if (imageValues[index] != null) {
+                hasAnyKeyedValue = true;
                 this.addEdge(vertex, this.addVertex(imageValues[index] as string), 'image');
             }
             if (titleValues[index] != null) {
+                hasAnyKeyedValue = true;
                 this.addEdge(vertex, this.addVertex(titleValues[index] as string), 'title');
             }
             if (subtitleValues[index] != null) {
+                hasAnyKeyedValue = true;
                 this.addEdge(vertex, this.addVertex(subtitleValues[index] as string), 'subtitle');
             }
             // Keep undefined slots — filtering shifts values out of sync with `labels[i]` styles.
             const labels = labelsValues.map((ls) => ls?.[index]);
+            hasAnyKeyedValue ||= labels.length > 0 && labels.some((label) => label != null);
+
             this.addEdge(vertex, this.addVertex(labels), 'labels');
             this.addEdge(vertex, this.addVertex(index), 'datumIndex');
 
@@ -65,7 +73,7 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
 
             if (childVertex == null) {
                 // throw an error?
-                return;
+                return hasAnyKeyedValue;
             }
 
             if (parentId == null) {
@@ -77,13 +85,15 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
             const parentVertex = this.verticesById[parentId];
             if (!parentVertex) {
                 this.logger.warnOnce(`Could not find parentId [${parentId}] on node [${childId}], skipping.`);
-                return;
+                return hasAnyKeyedValue;
             }
 
             this.attachChild(parentVertex, childVertex);
 
             index++;
         }
+
+        return hasAnyKeyedValue;
     }
 
     computeDescendants(vertices: Vertex<OrganizationVertex, OrganizationEdge>[]) {
