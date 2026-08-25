@@ -656,10 +656,6 @@ const boundedFit: {
 let candidateFontSize: number | undefined;
 // Size the collision-shrink search is currently re-running the cascade at, `undefined` outside a trial.
 let candidateTrialFontSize: number | undefined;
-// True while a candidate is being re-fitted to the room its obstacles leave. That pass trades text for
-// room, never font size: shrinking the font to clear a neighbour is the ladder's job (see
-// {@link shrinkToClear}), which runs once per label over every candidate rather than per candidate.
-let refittingToObstacles = false;
 // The candidate font at the trial size, refilled per candidate while a trial is running.
 const trialFont: FontOptions = { fontSize: 0 };
 
@@ -1291,6 +1287,7 @@ function fitLabelToCandidate(
     font: FontOptions,
     source: { width: number; height: number } | undefined,
     container: { width: number; height: number } | undefined,
+    fontSearch: boolean,
     candidateRegion?: FitRegion,
     candidateRegionAlign?: RegionAlign
 ) {
@@ -1321,10 +1318,7 @@ function fitLabelToCandidate(
     boundedFit.maxHeight = maxHeight === Infinity ? undefined : maxHeight;
     boundedFit.wrapping = policy.wrapping;
     boundedFit.overflowStrategy = policy.overflowStrategy;
-    // A trial already owns the size, so the inner search must not run a second one inside it; nor may the
-    // obstacle re-fit, which answers a collision with text rather than with a smaller font.
-    boundedFit.minimumFontSize =
-        candidateTrialFontSize == null && !refittingToObstacles ? policy.minimumFontSize : undefined;
+    boundedFit.minimumFontSize = fontSearch ? policy.minimumFontSize : undefined;
     boundedFit.region = region;
     boundedFit.regionAlign = regionAlign;
     const { text: fitted, fontSize } = fitLabelTextOrOverflowAutoSize(text, boundedFit, fit.fitOverflow, font);
@@ -1475,7 +1469,7 @@ function sizeCandidateLabel(
     // A styled or trialled candidate re-measures the source under its own font; an unstyled one at the
     // configured size shares the cascade's single measurement.
     const source = style == null && candidateTrialFontSize == null ? fitSource : styledFitSource(fit, font);
-    if (!fitLabelToCandidate(fit, font, source, container)) return false;
+    if (!fitLabelToCandidate(fit, font, source, container, candidateTrialFontSize == null)) return false;
     writeCandidateLabel(boxPadding, font);
     return true;
 }
@@ -1525,12 +1519,9 @@ function refitCandidateShrunk(
     // extent as well would forbid the wrap that trades width for height.
     shrunkContainer.width = reduceAxis(candidateLabel.maxWidth, candidateLabel.glyphWidth, reduceWidth);
     shrunkContainer.height = reduceAxis(candidateLabel.maxHeight, candidateLabel.glyphHeight, reduceHeight);
-    refittingToObstacles = true;
-    try {
-        if (!fitLabelToCandidate(fit, font, source, shrunkContainer)) return false;
-    } finally {
-        refittingToObstacles = false;
-    }
+    // The obstacle re-fit answers a collision with text, never with a smaller font: reducing the size is
+    // the ladder's job, which runs once per label over every candidate rather than per candidate.
+    if (!fitLabelToCandidate(fit, font, source, shrunkContainer, false)) return false;
     if (!hasRealChars(fittedLabel.text)) return false;
     writeCandidateLabel(boxPadding, font);
     return true;
@@ -2113,7 +2104,15 @@ function placeFromPositionedCandidates(
             const source = styledFont == null ? fitSource : styledFitSource(fit, styledFont);
             const container = deflateContainer(c.fitTo.container, threshold);
             if (
-                !fitLabelToCandidate(fit, styledFont ?? fit.font, source, container, c.fitTo.shape, c.fitTo.shapeAlign)
+                !fitLabelToCandidate(
+                    fit,
+                    styledFont ?? fit.font,
+                    source,
+                    container,
+                    candidateTrialFontSize == null,
+                    c.fitTo.shape,
+                    c.fitTo.shapeAlign
+                )
             ) {
                 continue;
             }
@@ -2127,6 +2126,7 @@ function placeFromPositionedCandidates(
                     styledFont ?? fit.font,
                     source,
                     c.fitTo.container,
+                    candidateTrialFontSize == null,
                     c.fitTo.shape,
                     c.fitTo.shapeAlign
                 )
