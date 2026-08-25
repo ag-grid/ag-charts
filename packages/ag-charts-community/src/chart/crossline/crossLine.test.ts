@@ -695,6 +695,40 @@ describe('CrossLine', () => {
             expect(click).not.toHaveBeenCalled();
         });
 
+        test('AC4: clicking a cross line label outside the series-area fires `click`', async () => {
+            const click = vi.fn();
+            const build = (labelText?: string) =>
+                fullRangeOptions({
+                    axes: {
+                        x: { type: 'category' },
+                        y: {
+                            type: 'number',
+                            min: FULL_RANGE[0],
+                            max: FULL_RANGE[1],
+                            crossLines: [
+                                {
+                                    id: 'threshold',
+                                    type: 'line',
+                                    value: 5,
+                                    label: { text: labelText, position: 'right' },
+                                    listeners: { click },
+                                },
+                            ],
+                        },
+                    },
+                });
+
+            chart = await createChart(build('Threshold'));
+
+            const { x, y } = crossLineLabelCentre(chart, 'y');
+            await clickAction(x, y)(chart);
+
+            expect(click).toHaveBeenCalledTimes(1);
+            expect(click).toHaveBeenCalledWith(
+                expect.objectContaining({ crossLineId: 'threshold', crossLineType: 'line', value: 5 })
+            );
+        });
+
         test('clicking outside every cross line fires nothing', async () => {
             const click = vi.fn();
             chart = await createChart(

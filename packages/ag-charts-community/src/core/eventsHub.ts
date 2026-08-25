@@ -173,7 +173,6 @@ export interface EventsHubMap {
     'series:keynav-collapse': SeriesKeyNavCollapseEvent;
     'series-area:hover': SeriesAreaHoverEvent;
     'series-area:click': SeriesAreaClickEvent;
-    'series-area:pointer-click': SeriesAreaPointerClickEvent;
     'series-area:contextmenu': SeriesAreaContextMenuEvent;
     'series:redo': null;
     'series:undo': null;
