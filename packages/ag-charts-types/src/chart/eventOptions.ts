@@ -259,10 +259,7 @@ export interface AgAxisListeners<TContext = ContextDefault> {
 }
 
 /** Identifies the Cross Line an event refers to, along with the axis that owns it. */
-export interface AgCrossLineEvent<TEvent extends string, TContext = ContextDefault> extends AgChartEvent<
-    TEvent,
-    TContext
-> {
+interface AgCrossLineClickParams {
     /** Cross Line ID (generated if not specified). */
     crossLineId: string;
     /** ID of the axis the Cross Line belongs to, as specified in `axes`. */
@@ -277,18 +274,19 @@ export interface AgCrossLineEvent<TEvent extends string, TContext = ContextDefau
     range?: [AgAxisValue, AgAxisValue];
 }
 
+interface AgAllCrossLineClickParams {
+    /** Every click event that matched at the click point, including the winning scope carred by these root params. */
+    allClickParams: AgCrossLineClickParams[];
+}
+
 export interface AgCrossLineContextMenuActionEvent<TContext = ContextDefault>
-    extends AgCrossLineEvent<'crossLineContextMenuAction', TContext>, AgCoordinatedEvent {}
+    extends AgChartEvent<'crossLineContextMenuAction', TContext>, AgCrossLineClickParams, AgCoordinatedEvent {}
 
-export interface AgCrossLineClickEvent<TContext = ContextDefault> extends AgCrossLineEvent<
-    'crossLineClick',
-    TContext
-> {}
+export interface AgCrossLineClickEvent<TContext = ContextDefault>
+    extends AgChartEvent<'crossLineClick', TContext>, AgCrossLineClickParams, AgAllCrossLineClickParams {}
 
-export interface AgCrossLineDoubleClickEvent<TContext = ContextDefault> extends AgCrossLineEvent<
-    'crossLineDoubleClick',
-    TContext
-> {}
+export interface AgCrossLineDoubleClickEvent<TContext = ContextDefault>
+    extends AgChartEvent<'crossLineDoubleClick', TContext>, AgCrossLineClickParams, AgAllCrossLineClickParams {}
 
 export interface AgCaptionContextMenuActionEvent<TContext = ContextDefault> extends AgChartEvent<
     'captionContextMenuAction',
