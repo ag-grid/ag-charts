@@ -13,8 +13,8 @@ import type {
 import type {
     AgActiveItemState,
     AgCoordinates,
-    AgNodeContextMenuActionEvent,
     AgNodeClickParams,
+    AgNodeContextMenuActionEvent,
     AgNumericValue,
     SelectionState as PublicSelectionState,
 } from 'ag-charts-types';
