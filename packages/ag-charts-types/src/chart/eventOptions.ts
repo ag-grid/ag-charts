@@ -39,7 +39,7 @@ export interface AgNodeClickEvent<
     TContext = ContextDefault,
 > extends AgBaseNodeClickEvent<TEvent, TDatum, TContext> {
     /** TODO: writeme */
-    allNodeParams: AgNodeParams<TDatum>[];
+    allClickParams: AgNodeClickParams<TDatum>[];
 }
 
 /**
