@@ -25,10 +25,10 @@ on:
                 type: string
                 required: true
             driver:
-                description: 'Review engine. claude (default) = Claude Code orchestrates a chunked Codex review — same standard pass, split across per-turn-safe chunks (survives large PRs that exceed Codex per-turn input limits). codex = legacy single-turn Codex review (can fail on large PRs that exceed the per-turn input limit).'
+                description: 'Review engine. explore (default) = Codex is given the PR intent, a ranked changed-file list and the unresolved review threads, then reads the diff itself (no chunking, no per-turn input limit). claude / codex are deprecated escape hatches. See ag-dev-prompts docs/installation.md.'
                 type: choice
-                options: [claude, codex]
-                default: claude
+                options: [explore, claude, codex]
+                default: explore
                 required: false
             quiet:
                 description: 'Quiet/soak mode: post nothing to the PR; upload the review as an artifact (pr-review-<driver>-<pr#>) instead. Use to compare drivers without touching the PR.'
@@ -129,10 +129,10 @@ jobs:
                   github-token: ${{ github.token }}
                   inline-comments: 'true'
                   dev-prompts-version: ${{ env.DEV_PROMPTS_CHANNEL }}
-                  # claude is the default driver. pull_request / plain /pr-review supply
-                  # no driver input, so they fall through to the `|| 'claude'` default.
-                  # To force codex on a one-off, dispatch with driver=codex. quiet stays
-                  # false → claude reviews post to the PR as normal.
-                  driver: ${{ inputs.driver || 'claude' }}
+                  # explore is the default driver. pull_request / plain /pr-review
+                  # supply no driver input, so they fall through to the
+                  # `|| 'explore'` default. To force a deprecated path on a
+                  # one-off, dispatch with driver=claude or driver=codex.
+                  # See ag-dev-prompts docs/installation.md.
+                  driver: ${{ inputs.driver || 'explore' }}
                   quiet: ${{ inputs.quiet || 'false' }}
-                  anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
