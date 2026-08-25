@@ -921,7 +921,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         return changeAccepted;
     }
 
-    private getRange(axisId: AxisID, ratio: ZoomMinMax) {
+    public getRange(axisId: AxisID, ratio: ZoomMinMax) {
         return this.getRangeAxis(this.findAxis(axisId), ratio);
     }
 
@@ -953,6 +953,10 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
     public getPendingRangeX(): ZoomMementoRange | undefined {
         return this.pendingMemento?.memento?.rangeX;
+    }
+
+    public rangeToRatio(axisId: AxisID, range: ZoomMementoRange): ZoomMinMax | undefined {
+        return this.rangeToRatioAxis(this.findAxis(axisId), range);
     }
 
     public rangeToRatioDirection(direction: CartesianAxisDirection, range: ZoomMementoRange): ZoomMinMax | undefined {
