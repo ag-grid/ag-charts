@@ -49,6 +49,7 @@ import type { AgFunnelSeriesLabelPlacement, AgNumericValue } from 'ag-charts-typ
 
 import { FunnelConnector } from '../funnel/funnelConnector';
 import {
+    BAR_TO_FUNNEL_PLACEMENT,
     FUNNEL_TO_BAR_PLACEMENT,
     pyramidLabelBand,
     pyramidPlacementAxes,
@@ -715,7 +716,13 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const collideWith = label.collision.resolveCollideWith();
         const threshold = label.collision.threshold ?? 0;
         const fitFor = resolveLabelFitDescriptors(label, box, !label.collision.alwaysShow);
-        const resolveStyle = createBarCandidateStyleResolver(this, label, this.labelStylerParams());
+        const resolveStyle = createBarCandidateStyleResolver(
+            this,
+            label,
+            this.labelStylerParams(),
+            undefined,
+            (placement) => BAR_TO_FUNNEL_PLACEMENT[placement]
+        );
         const data: PointLabelDatum[] = [];
         for (const labelDatum of this.contextNodeData?.labelData ?? []) {
             if (labelDatum.text === '' || labelDatum.candidates == null) continue;

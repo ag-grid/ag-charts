@@ -799,7 +799,13 @@ export abstract class BaseFunnelSeries<
         const collideWith = label.collision.resolveCollideWith();
         const threshold = label.collision.threshold ?? 0;
         const fitFor = resolveLabelFitDescriptors(label, box, !label.collision.alwaysShow);
-        const resolveStyle = createBarCandidateStyleResolver(this, label, this.labelStylerParams());
+        const resolveStyle = createBarCandidateStyleResolver(
+            this,
+            label,
+            this.labelStylerParams(),
+            undefined,
+            (placement) => this.fromBarPlacement(placement)
+        );
         const data: PointLabelDatum[] = [];
         for (const labelDatum of this.contextNodeData?.labelData ?? []) {
             if (labelDatum.text === '' || labelDatum.candidates == null) continue;
@@ -850,6 +856,9 @@ export abstract class BaseFunnelSeries<
 
     /** The bar placement a public one maps onto, for the styled box a baked label reserves. */
     protected abstract toBarPlacement(placement: FunnelLabelPlacement | undefined): _ModuleSupport.BarLabelPlacement;
+
+    /** Inverse of {@link toBarPlacement}, so an `itemStyler` is told the placement in its own vocabulary. */
+    protected abstract fromBarPlacement(placement: _ModuleSupport.BarLabelPlacement): FunnelLabelPlacement | undefined;
 
     protected override getHighlightLabelData(
         _labelData: FunnelNodeLabelDatum[],

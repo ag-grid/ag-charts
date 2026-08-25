@@ -38,6 +38,22 @@ export const CONE_FUNNEL_TO_BAR_PLACEMENT: Record<AgConeFunnelSeriesLabelPlaceme
     'after-end': 'beside-after-end',
 };
 
+/**
+ * Inverse of a public-to-bar placement map, so a caller holding the bar vocabulary can report the public
+ * value back — an `itemStyler` is a documented API and must never see `beside-before-center`.
+ */
+function invertPlacements<T extends string>(map: Record<T, BarLabelPlacement>): Partial<Record<BarLabelPlacement, T>> {
+    const inverse: Partial<Record<BarLabelPlacement, T>> = {};
+    for (const placement of Object.keys(map) as T[]) {
+        inverse[map[placement]] = placement;
+    }
+    return inverse;
+}
+
+export const BAR_TO_FUNNEL_PLACEMENT = invertPlacements(FUNNEL_TO_BAR_PLACEMENT);
+
+export const BAR_TO_CONE_FUNNEL_PLACEMENT = invertPlacements(CONE_FUNNEL_TO_BAR_PLACEMENT);
+
 const CONE_FUNNEL_ALIASES: Record<AgConeFunnelSeriesLabelPlacementAlias, AgConeFunnelSeriesLabelPlacement> = {
     before: 'before-center',
     middle: 'middle-center',
@@ -135,9 +151,8 @@ export function resolveFunnelPlacements(
 export function resolveConeFunnelPlacements(
     placement:
         | AgConeFunnelSeriesLabelPlacement
-        | AgConeFunnelSeriesLabelPlacement[]
         | AgConeFunnelSeriesLabelPlacementAlias
-        | AgConeFunnelSeriesLabelPlacementAlias[]
+        | (AgConeFunnelSeriesLabelPlacement | AgConeFunnelSeriesLabelPlacementAlias)[]
         | undefined,
     fallback: AgConeFunnelSeriesLabelPlacement,
     barAlongX: boolean,

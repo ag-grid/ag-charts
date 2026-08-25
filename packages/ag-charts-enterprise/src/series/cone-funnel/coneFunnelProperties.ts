@@ -16,7 +16,11 @@ const { Label, LabelPlacementStyle, AbstractBarSeriesProperties, makeSeriesToolt
     _ModuleSupport;
 class ConeFunnelSeriesLabel extends Label<AgConeFunnelSeriesLabelFormatterParams> {
     @Property
-    placement: AgConeFunnelSeriesLabelPlacement | AgConeFunnelSeriesLabelPlacementAlias | undefined;
+    placement:
+        | AgConeFunnelSeriesLabelPlacement
+        | AgConeFunnelSeriesLabelPlacementAlias
+        | (AgConeFunnelSeriesLabelPlacement | AgConeFunnelSeriesLabelPlacementAlias)[]
+        | undefined;
 
     @Property
     spacing: number = 0;

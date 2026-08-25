@@ -40,7 +40,7 @@ export function trapezoidFitRegion(trapezoid: TrapezoidBounds, anchorSpan: numbe
 
 /**
  * A region probed from a containment test, for shapes with no closed form: at each band the horizontal
- * reach is bisected outward from the anchor on both sides, and the two are reported as they are, so a
+ * reach is scanned outward from the anchor on both sides, and the two are reported as they are, so a
  * caller can use the wider side rather than folding it away.
  *
  * A band is tested at `rows` evenly spaced rows rather than at its two edges alone, because the shapes
@@ -53,49 +53,56 @@ export function probedFitRegion(
     contains: (x: number, y: number) => boolean,
     limit: number,
     steps = 20,
-    rows = 5
+    rows = 5,
+    probes = 16
 ): FitRegion {
     const reach = (top: number, bottom: number, direction: number) => {
         const sampled = Math.max(2, rows);
         const step = (bottom - top) / (sampled - 1);
-        const insideBand = (x: number) => {
+        const insideBand = (t: number) => {
+            const x = anchor.x + direction * t;
             for (let i = 0; i < sampled; i += 1) {
                 if (!contains(x, anchor.y + top + step * i)) return false;
             }
             return true;
         };
-        let lo = 0;
-        let hi = limit;
-        for (let i = 0; i < steps; i += 1) {
-            const t = (lo + hi) / 2;
-            if (insideBand(anchor.x + direction * t)) {
-                lo = t;
-            } else {
-                hi = t;
-            }
-        }
-        return lo;
+        return firstOutside(insideBand, limit, probes, steps);
     };
-    const vertical = (direction: number) => {
-        let lo = 0;
-        let hi = limit;
-        for (let i = 0; i < steps; i += 1) {
-            const t = (lo + hi) / 2;
-            if (contains(anchor.x, anchor.y + direction * t)) {
-                lo = t;
-            } else {
-                hi = t;
-            }
-        }
-        return lo;
-    };
+    const vertical = (direction: number) =>
+        firstOutside((t) => contains(anchor.x, anchor.y + direction * t), limit, probes, steps);
     return {
-        // Wrapping asks for the same band once per candidate word, and each ask is a pair of bisections
-        // over a containment test, so the answer is memoised for the label's own short-lived region.
+        // Wrapping asks for the same band once per candidate word, and each ask is a pair of outward
+        // scans over a containment test, so the answer is memoised for the label's own short-lived region.
         spanAt: memoiseByBand((top, bottom) => [-reach(top, bottom, -1), reach(top, bottom, 1)]),
         extentAbove: vertical(-1),
         extentBelow: vertical(1),
     };
+}
+
+// Scanned outward, then bisected within the step that crossed: a ray out of an annulus sector re-enters
+// it beyond the hole, so bisecting the whole limit could land past the hole and carry the reach across it.
+function firstOutside(inside: (t: number) => boolean, limit: number, probes: number, steps: number): number {
+    const step = limit / Math.max(1, probes);
+    let lo = 0;
+    let hi = limit;
+    while (lo < limit) {
+        const t = Math.min(lo + step, limit);
+        if (!inside(t)) {
+            hi = t;
+            break;
+        }
+        lo = t;
+    }
+    if (lo >= limit) return limit;
+    for (let i = 0; i < steps; i += 1) {
+        const t = (lo + hi) / 2;
+        if (inside(t)) {
+            lo = t;
+        } else {
+            hi = t;
+        }
+    }
+    return lo;
 }
 
 function memoiseByBand(spanAt: (top: number, bottom: number) => readonly [number, number]) {

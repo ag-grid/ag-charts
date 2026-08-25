@@ -100,6 +100,14 @@ describe('probedFitRegion over a shape with a hole', () => {
         return r2 >= inner * inner && r2 <= outer * outer;
     };
 
+    test('stops at the near edge of the hole rather than crossing to the band beyond it', () => {
+        // A single-slice donut: the wedge spans the whole circle, so the ray leftward out of the ring
+        // re-enters it past the hole. The room to the left of the anchor is 60 - 20, not the far rim.
+        const region = probedFitRegion({ x: 60, y: 0 }, annulus(20, 100), 200);
+        const [left] = region.spanAt(-7, 7);
+        expect(left).toBeCloseTo(-40, 1);
+    });
+
     test("does not reach into the hole between a band's edges", () => {
         const region = probedFitRegion({ x: 100, y: 0 }, annulus(50, 200), 200);
         // The band spans y in [-10, 10], so it is closest to the origin at y = 0: the reach inward has to
