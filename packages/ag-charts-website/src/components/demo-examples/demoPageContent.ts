@@ -38,6 +38,10 @@ export const DEMO_PAGE_CONTENT = {
         metaTitle: 'Web Analytics Demo | AG Charts',
         metaDescription: 'AG Charts: traffic, funnel and retention charts over a shared date range.',
     },
+    procurement: {
+        metaTitle: 'Procurement Manager Demo | AG Charts',
+        metaDescription: 'AG Charts: spend, supplier and delivery charts for a procurement manager workspace.',
+    },
     'real-time': {
         metaTitle: 'Real-Time Monitoring Demo | AG Charts',
         metaDescription: 'AG Charts: streaming time-series with thresholds and annotations.',
