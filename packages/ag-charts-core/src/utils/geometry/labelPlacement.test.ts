@@ -2539,3 +2539,179 @@ describe('placeLabels collision shrink', () => {
         expect(placed[1].x).toBeCloseTo(220);
     });
 });
+
+// Brute-force reference for the positioned-candidate path (bar family): the engine owns only the
+// generic containment/obstacle/flush/least-overflow logic there, so it can be restated directly.
+// Deliberately covers the no-fit case only — a datum without `fit` skips every shrink and re-fit
+// branch, leaving the candidate cascade itself as the thing under test.
+function obstacleExcludedOracle(o: LabelObstacle, d: PointLabelDatum): boolean {
+    const category = o.category ?? 'seriesItem';
+    const { ownBox } = d;
+    if (
+        ownBox != null &&
+        !(d.ownBoxLabelsCollide === true && category === 'label') &&
+        boxCollides(o.box, ownBox.x, ownBox.y, ownBox.width, ownBox.height)
+    ) {
+        return true;
+    }
+    return d.collideWith?.[category] === false;
+}
+
+function clampAxisOracle(pos: number, size: number, min: number, extent: number): number {
+    if (size > extent) return pos;
+    return Math.min(Math.max(pos, min), min + extent - size);
+}
+
+function regionOverflowOracle(region: BoxBounds, x: number, y: number, w: number, h: number): number {
+    return (
+        Math.max(0, region.x - x) +
+        Math.max(0, x + w - (region.x + region.width)) +
+        Math.max(0, region.y - y) +
+        Math.max(0, y + h - (region.y + region.height))
+    );
+}
+
+function orderKeepFirstOracle(data: Map<string, SeriesLabels>): [string, SeriesLabels][] {
+    const hides = (e: SeriesLabels) => e.defaults?.alwaysShow === false || e.datums.some((d) => d.alwaysShow === false);
+    const entries = [...data.entries()];
+    return entries.filter(([, e]) => !hides(e)).concat(entries.filter(([, e]) => hides(e)));
+}
+
+function placePositionedLabelsOracle(
+    data: Map<string, SeriesLabels>,
+    bounds: BoxBounds,
+    externalObstacles: readonly LabelObstacle[] = []
+) {
+    const result = new Map<string, PlacedLabel[]>();
+    const obstacles: LabelObstacle[] = [...externalObstacles];
+    for (const [seriesId, entry] of orderKeepFirstOracle(data)) {
+        const labels: PlacedLabel[] = [];
+        if (!entry.datums[0]?.label) continue;
+        for (let index = 0, ln = entry.datums.length; index < ln; index++) {
+            const d = entry.datums[index];
+            if (d.label.text === '') continue;
+            const { width, height } = d.label;
+            let winner: { x: number; y: number } | undefined;
+            let best: { x: number; y: number; overflow: number } | undefined;
+            for (const c of d.positionedCandidates ?? []) {
+                if (c.hidden === true) continue;
+                const region = c.region ?? bounds;
+                let { x, y } = c.box;
+                const { width: cw, height: ch } = c.box;
+                if (c.region != null && c.flushToRegion !== false) {
+                    x = clampAxisOracle(x, cw, region.x, region.width);
+                    y = clampAxisOracle(y, ch, region.y, region.height);
+                }
+                const contained = boxContains(region, x, y, cw, ch);
+                const blocked = obstacles.some(
+                    (o) => !obstacleExcludedOracle(o, d) && boxCollides(o.box, x, y, cw, ch)
+                );
+                if (contained && !blocked) {
+                    winner = { x, y };
+                    break;
+                }
+                if (d.neverDrop === true) {
+                    const overflow = regionOverflowOracle(region, x, y, cw, ch);
+                    if (best == null || overflow < best.overflow) best = { x, y, overflow };
+                }
+            }
+            const chosen = winner ?? best;
+            if (chosen == null) continue;
+            const placed = { index, text: d.label.text, x: chosen.x, y: chosen.y, width, height, datum: d };
+            labels.push(placed);
+            obstacles.push({ kind: 'rect', box: placed, category: 'label' });
+        }
+        result.set(seriesId, labels);
+    }
+    return result;
+}
+
+function makePositionedFixture(seriesCount: number, perSeries: number, bounds: BoxBounds, seed0: number) {
+    let seed = seed0;
+    const next = () => {
+        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+        return seed / 0x7fffffff;
+    };
+    const data = new Map<string, SeriesLabels>();
+    for (let s = 0; s < seriesCount; s++) {
+        const datums: PointLabelDatum[] = [];
+        const barWidth = bounds.width / perSeries;
+        for (let i = 0; i < perSeries; i++) {
+            // A bar rect, its label box, and the candidates a bar series would offer around it.
+            const barHeight = 20 + next() * 200;
+            const ownBox: BoxBounds = {
+                x: bounds.x + i * barWidth + 2,
+                y: bounds.y + bounds.height - barHeight,
+                width: barWidth - 4,
+                height: barHeight,
+            };
+            const width = 20 + next() * 60;
+            const height = 10 + next() * 10;
+            const cx = ownBox.x + ownBox.width / 2 - width / 2;
+            const candidates: PositionedLabelCandidate[] = [
+                // inside-start, region-bound and flushed
+                { box: { x: cx, y: ownBox.y + 2, width, height }, region: ownBox },
+                // inside-center, collision boundary only
+                {
+                    box: { x: cx, y: ownBox.y + ownBox.height / 2 - height / 2, width, height },
+                    region: ownBox,
+                    flushToRegion: false,
+                },
+                // outside-start, unbounded
+                { box: { x: cx, y: ownBox.y - height - 2, width, height } },
+            ];
+            if (next() < 0.25) candidates[1] = { ...candidates[1], hidden: true };
+            const alwaysShow = next() < 0.5;
+            datums.push(
+                buildBarPositionedLabelDatum(
+                    `s${s}-${i}`,
+                    width,
+                    height,
+                    candidates,
+                    {} as BarLabelTarget,
+                    ownBox,
+                    alwaysShow,
+                    { marker: true, label: true, seriesItem: true },
+                    0,
+                    next() < 0.3
+                )
+            );
+        }
+        data.set(`series-${s}`, seriesLabels(datums));
+    }
+    return data;
+}
+
+describe('placeLabels (positioned candidates)', () => {
+    const bounds: BoxBounds = { x: 0, y: 0, width: 600, height: 400 };
+
+    it.each([1, 2, 3])('matches the brute-force oracle (%i series)', (seriesCount) => {
+        let placedCount = 0;
+        let droppedCount = 0;
+        for (let seed = 1; seed <= 12; seed++) {
+            const data = makePositionedFixture(seriesCount, 9, bounds, seed);
+            const placed = placeLabels(data, bounds, 5);
+            expect(normalise(placed)).toEqual(normalise(placePositionedLabelsOracle(data, bounds)));
+            for (const [id, labels] of placed) {
+                placedCount += labels.length;
+                droppedCount += (data.get(id)?.datums.length ?? 0) - labels.length;
+            }
+        }
+        // Parity is only worth asserting over a fixture that exercises both outcomes.
+        expect(placedCount).toBeGreaterThan(0);
+        expect(droppedCount).toBeGreaterThan(0);
+    });
+
+    it('matches the brute-force oracle with cross-series obstacles', () => {
+        const obstacles: LabelObstacle[] = [
+            { kind: 'rect', category: 'seriesItem', box: { x: 100, y: 150, width: 120, height: 80 } },
+            { kind: 'rect', category: 'label', box: { x: 380, y: 60, width: 90, height: 40 } },
+        ];
+        for (let seed = 1; seed <= 12; seed++) {
+            const data = makePositionedFixture(2, 9, bounds, seed);
+            expect(normalise(placeLabels(data, bounds, 5, obstacles))).toEqual(
+                normalise(placePositionedLabelsOracle(data, bounds, obstacles))
+            );
+        }
+    });
+});
