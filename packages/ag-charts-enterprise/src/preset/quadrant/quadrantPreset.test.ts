@@ -357,17 +357,16 @@ describe('Quadrant Preset bigint pivot (AG-18313)', () => {
         { x: PIVOT_X + 2n, y: PIVOT_Y + 2n },
     ];
 
-    const bigintPivotOptions = (): AgQuadrantChartOptions =>
-        ({
-            data: BIGINT_DATA,
-            xKey: 'x',
-            yKey: 'y',
-            pivot: { x: PIVOT_X, y: PIVOT_Y },
-        }) as unknown as AgQuadrantChartOptions;
+    const bigintPivotOptions = (): AgQuadrantChartOptions => ({
+        data: BIGINT_DATA,
+        xKey: 'x',
+        yKey: 'y',
+        pivot: { x: PIVOT_X, y: PIVOT_Y },
+    });
 
     it('passes a bigint pivot through to crossAt without coercion', () => {
         const { processedOptions } = new _ModuleSupport.ChartOptions(
-            bigintPivotOptions() as unknown as AgChartOptions,
+            bigintPivotOptions() as AgChartOptions,
             {} as AgChartOptions,
             {},
             {},
@@ -380,7 +379,7 @@ describe('Quadrant Preset bigint pivot (AG-18313)', () => {
 
     it('renders a bigint pivot without validation warnings', async () => {
         const options = bigintPivotOptions();
-        prepareEnterpriseTestOptions(options as unknown as AgChartOptions);
+        prepareEnterpriseTestOptions(options as AgChartOptions);
 
         chart = AgCharts.createQuadrantChart(options);
         await waitForChartStability(chart);
