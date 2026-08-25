@@ -3,10 +3,26 @@ import { describe, expect, it, vi } from 'vitest';
 import type { AgChartLabelOrientation, PaddingOptions } from 'ag-charts-types';
 
 import type { Point, SizedPoint } from '../../types/scene';
-import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
 import {
     type BarLabelTarget,
     type BarPlacedLabelDatum,
+    applyBarLabelOrientation,
+    bakedLabelObstacles,
+    barLabelResolvesOrientation,
+    barLabelResolvesPlacement,
+    buildBarLabelDatum,
+    buildBarPositionedLabelDatum,
+    insideBarContainer,
+    insideBarRegion,
+    insideBarValueInsets,
+    labelFootprintBox,
+    rectLabelObstacles,
+    rotatedGlyphDrift,
+    rotatedLabelInset,
+    sectorLabelContainer,
+} from './barLabelGeometry';
+import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
+import {
     type CandidateLabelStyle,
     type CandidateStyleResolver,
     type CollideWith,
@@ -18,24 +34,10 @@ import {
     type PositionedLabelCandidate,
     type SeriesLabelDefaults,
     type SeriesLabels,
-    applyBarLabelOrientation,
-    bakedLabelObstacles,
-    barLabelResolvesOrientation,
-    barLabelResolvesPlacement,
-    buildBarLabelDatum,
-    buildBarPositionedLabelDatum,
-    insideBarContainer,
-    insideBarRegion,
-    insideBarValueInsets,
-    labelFootprintBox,
     labelGlyphCentre,
     measureLabelText,
     placeLabels,
-    rectLabelObstacles,
     resolveLabelFit,
-    rotatedGlyphDrift,
-    rotatedLabelInset,
-    sectorLabelContainer,
 } from './labelPlacement';
 import { SpatialIndex } from './spatialIndex';
 
@@ -1986,7 +1988,7 @@ describe('placeLabels per-candidate fit', () => {
     const fittedLabel = (region: BoxBounds, overrides: Partial<PointLabelDatum> = {}): PointLabelDatum => ({
         point: { x: region.x + region.width / 2, y: region.y + region.height / 2, size: 0 },
         label: { text: TEXT, width: 50, height: 20 },
-        fit: { text: TEXT, policy: { overflowStrategy: 'ellipsis' }, font: FONT },
+        fit: { text: TEXT, policy: { overflowStrategy: 'ellipsis' }, font: FONT, boundByRegion: true },
         anchor: undefined,
         placement: undefined,
         orientation: ['horizontal', 'vertical'],
@@ -2048,7 +2050,12 @@ describe('placeLabels per-candidate fit', () => {
                 { x: 0, y: 0, width: 400, height: 400 },
                 {
                     region: undefined,
-                    fit: { text: TEXT, policy: { maxWidth: 34, overflowStrategy: 'ellipsis' }, font: FONT },
+                    fit: {
+                        text: TEXT,
+                        policy: { maxWidth: 34, overflowStrategy: 'ellipsis' },
+                        font: FONT,
+                        boundByRegion: true,
+                    },
                 }
             )
         );
@@ -2063,7 +2070,7 @@ describe('placeLabels per-candidate fit', () => {
                 { x: 0, y: 0, width: 34, height: 34 },
                 {
                     orientation: 'horizontal',
-                    fit: { text: TEXT, policy: { overflowStrategy: 'hide' }, font: FONT },
+                    fit: { text: TEXT, policy: { overflowStrategy: 'hide' }, font: FONT, boundByRegion: true },
                 }
             )
         );
@@ -2177,7 +2184,7 @@ describe('placeLabels obstacle-driven shrink', () => {
     const shrinkableLabel = (overrides: Partial<PointLabelDatum> = {}): PointLabelDatum => ({
         point: POINT,
         label: { text: TEXT, width: 50, height: 20 },
-        fit: { text: TEXT, policy: { overflowStrategy: 'ellipsis' }, font: FONT },
+        fit: { text: TEXT, policy: { overflowStrategy: 'ellipsis' }, font: FONT, boundByRegion: true },
         anchor: undefined,
         placement: 'top',
         placements: ['top'],
