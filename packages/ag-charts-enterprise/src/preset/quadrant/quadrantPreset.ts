@@ -231,8 +231,13 @@ export function createQuadrant(
     };
 
     if (alignAxesToPivot) {
-        axes.x.crossAt = { value: pivotY, titlePlacement: 'edge', labelPlacement: 'crossing' };
-        axes.y.crossAt = { value: pivotX, titlePlacement: 'edge', labelPlacement: 'crossing' };
+        const placement = {
+            titlePlacement: 'edge',
+            labelPlacement: 'crossing',
+            crosshairLabelPlacement: 'crossing',
+        } as const;
+        axes.x.crossAt = { value: pivotY, ...placement };
+        axes.y.crossAt = { value: pivotX, ...placement };
     }
 
     return {

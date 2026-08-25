@@ -44,6 +44,10 @@ export class Crosshair
 
     private options: NormalisedCrosshairOptions | undefined;
 
+    get labelEnabled(): boolean {
+        return (this.options?.enabled && this.options.label.enabled) ?? false;
+    }
+
     private readonly labels: { [key: string]: CrosshairLabel };
 
     private readonly axisCtx: _ModuleSupport.AxisContext;
@@ -472,8 +476,8 @@ export class Crosshair
         const axisPosition = this.axisCtx.position;
         let padding = this.axisLayout.label.spacing + this.axisLayout.tickSize;
 
-        // `crossAt` moves the axis line off its `position` edge, so the label must follow by the same offset.
-        const crossOffset = this.axisLayout.crossAxisTranslation ?? { x: 0, y: 0 };
+        // `crossAt` moves the axis line off its `position` edge; the offset is zero unless the label follows it.
+        const crossOffset = this.axisLayout.crosshairOffset ?? { x: 0, y: 0 };
 
         // CSS translate percentages avoid synchronous dimension reads.
         if (this.axisCtx.direction === ChartAxisDirection.X) {

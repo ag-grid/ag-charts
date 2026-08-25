@@ -4,9 +4,11 @@ import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
     AgCartesianAxesOptions,
+    AgCartesianAxisCrossAt,
     AgCartesianAxisPosition,
     AgCartesianChartOptions,
     AgChartOptions,
+    AgCrosshairOptions,
 } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
@@ -713,9 +715,12 @@ describe('Crosshair', () => {
             await waitForChartStability(chart);
         };
 
-        const axesAt = (crossAt?: { value: number }): AgCartesianAxesOptions => ({
-            x: { type: 'number', position: 'bottom', crosshair: { enabled: true, snap: false }, crossAt },
-            y: { type: 'number', position: 'left', crosshair: { enabled: true, snap: false }, crossAt },
+        const axesAt = (
+            crossAt?: AgCartesianAxisCrossAt,
+            crosshair: AgCrosshairOptions = { enabled: true, snap: false }
+        ): AgCartesianAxesOptions => ({
+            x: { type: 'number', position: 'bottom', crosshair, crossAt },
+            y: { type: 'number', position: 'left', crosshair, crossAt },
         });
 
         it('should place labels against the axes at their position edges', async () => {
@@ -733,8 +738,23 @@ describe('Crosshair', () => {
             `);
         });
 
-        it('should follow the axis lines when crossAt moves them off their position edges', async () => {
+        it('should keep labels at the position edges when crossAt moves the axis lines', async () => {
             await hoverWithAxes(axesAt({ value: 0 }));
+
+            expect(labelPlacement('x')).toMatchInlineSnapshot(`
+              [
+                "480px 562px (-50% 0)",
+              ]
+            `);
+            expect(labelPlacement('y')).toMatchInlineSnapshot(`
+              [
+                "46px 250px (-100% -50%)",
+              ]
+            `);
+        });
+
+        it('should follow the axis lines when crosshairLabelPlacement is crossing', async () => {
+            await hoverWithAxes(axesAt({ value: 0, crosshairLabelPlacement: 'crossing' }));
 
             expect(labelPlacement('x')).toMatchInlineSnapshot(`
               [
@@ -744,6 +764,66 @@ describe('Crosshair', () => {
             expect(labelPlacement('y')).toMatchInlineSnapshot(`
               [
                 "397px 250px (-100% -50%)",
+              ]
+            `);
+        });
+
+        it('should align with the axis labels when both are at the position edges', async () => {
+            await hoverWithAxes(axesAt({ value: 0, labelPlacement: 'edge' }));
+
+            expect(labelPlacement('x')).toMatchInlineSnapshot(`
+              [
+                "480px 562px (-50% 0)",
+              ]
+            `);
+            expect(labelPlacement('y')).toMatchInlineSnapshot(`
+              [
+                "46px 250px (-100% -50%)",
+              ]
+            `);
+        });
+
+        it('should place labels at the position edges of top and right axes', async () => {
+            await hoverWithAxes({
+                x: {
+                    type: 'number',
+                    position: 'top',
+                    crosshair: { enabled: true, snap: false },
+                    crossAt: { value: 0 },
+                },
+                y: {
+                    type: 'number',
+                    position: 'right',
+                    crosshair: { enabled: true, snap: false },
+                    crossAt: { value: 0 },
+                },
+            });
+
+            expect(labelPlacement('x')).toMatchInlineSnapshot(`
+              [
+                "480px 38px (-50% -100%)",
+              ]
+            `);
+            expect(labelPlacement('y')).toMatchInlineSnapshot(`
+              [
+                "754px 250px (0 -50%)",
+              ]
+            `);
+        });
+
+        it('should place a custom rendered label like the default one', async () => {
+            await hoverWithAxes(
+                axesAt({ value: 0 }, { enabled: true, snap: false, label: { renderer: () => 'custom' } })
+            );
+
+            expect(labelPlacement('x')).toMatchInlineSnapshot(`
+              [
+                "480px 562px (-50% 0)",
+              ]
+            `);
+            expect(labelPlacement('y')).toMatchInlineSnapshot(`
+              [
+                "46px 250px (-100% -50%)",
               ]
             `);
         });
