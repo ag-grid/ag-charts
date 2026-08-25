@@ -1239,15 +1239,15 @@ export abstract class Series<
     // Do not override. Override createNodeParams instead.
     createNodeEvent<T extends NodeEventType>(type: T, opts: FireNodeEventParams) {
         const { event, datums, winner, coordinates } = opts;
-        const allNodeParams: AgNodeClickParams<unknown>[] = datums.map((d) => d.series.createNodeParams(d));
+        const allClickParams: AgNodeClickParams<unknown>[] = datums.map((d) => d.series.createNodeParams(d));
 
         let defaultPrevented = false;
         return {
-            ...allNodeParams[winner],
+            ...allClickParams[winner],
             type,
             event,
             coordinates,
-            allNodeParams,
+            allClickParams,
             get defaultPrevented() {
                 return defaultPrevented;
             },
