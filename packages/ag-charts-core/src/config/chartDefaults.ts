@@ -211,6 +211,7 @@ const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {
     spacing: positiveNumber,
     maxWidth: positiveNumber,
     maxHeight: positiveNumber,
+    minimumFontSize: and(positiveNumberNonZero, lessThanOrEqual('fontSize')),
     ...fontOptionsDef,
     ...labelBoxOptionsDef,
     tooltip: {
