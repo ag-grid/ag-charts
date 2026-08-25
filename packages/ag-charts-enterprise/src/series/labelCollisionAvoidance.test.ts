@@ -1263,6 +1263,13 @@ describe('label collision avoidance', () => {
                 expect(aliased).toEqual(expanded);
             });
 
+            it('resolves a fallback list mixing canonical placements with a deprecated alias', async () => {
+                const mixed = await anchors(options({ placement: ['before-center', 'after'] }));
+                expectWarningsCalls().toEqual([[expect.stringContaining('deprecated')]]);
+                const canonical = await anchors(options({ placement: ['before-center', 'after-center'] }));
+                expect(mixed).toEqual(canonical);
+            });
+
             it('warns once for a deprecated alias and not at all for the default', async () => {
                 await render(options({ placement: 'before' }));
                 expectWarningsCalls().toEqual([[expect.stringContaining('deprecated')]]);

@@ -26,10 +26,11 @@ import {
     applyPlacedBarLabelVisibility,
     barLabelObstacles,
     barLabelOrientation,
+    barLabelPropsRouteThroughEngine,
     barLabelResolvesOrientation,
-    barLabelResolvesPlacement,
     barLabelRotation,
     barLabelRoutesThroughEngine,
+    barLabelUsesPositionedCandidates,
     buildBarLabelData,
     buildBarPositionedLabelDatum,
     easeOut,
@@ -748,11 +749,19 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             const { text: fittedLabelText, fontSize: fittedFontSize } = barLabelRoutesThroughEngine(
                 label.orientation,
                 label.placement,
-                label.collision.alwaysShow
+                label.collision.alwaysShow,
+                labelFit
             )
                 ? { text: labelText, fontSize: undefined }
                 : fitLabelToContainerAutoSize(labelText, labelFit, label, bounds?.container);
-            if (!label.collision.alwaysShow || barLabelResolvesPlacement(label.placement)) {
+            if (
+                barLabelUsesPositionedCandidates(
+                    label.orientation,
+                    label.placement,
+                    label.collision.alwaysShow,
+                    labelFit
+                )
+            ) {
                 // Pre-positions a candidate per placement x orientation for the engine to cascade through until one fits.
                 const measured = measureLabelText(fittedLabelText, label);
                 const placements = toArray(label.placement);
@@ -1248,9 +1257,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
     protected override resolveUsesPlacedLabels(): boolean {
         const { positive, negative, total } = this.properties.item;
-        return [positive, negative, total].some((item) =>
-            barLabelRoutesThroughEngine(item.label.orientation, item.label.placement, item.label.collision.alwaysShow)
-        );
+        return [positive, negative, total].some((item) => barLabelPropsRouteThroughEngine(item.label));
     }
 
     protected override updateLabelSelection(opts: {

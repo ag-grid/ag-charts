@@ -2021,15 +2021,17 @@ describe('placeLabels per-candidate fit', () => {
     });
 
     it('does not let an obstacle-blocked untruncated candidate pre-empt a clear truncated one', () => {
-        // 60px of width holds the whole text horizontally, so that candidate wins outright; an obstacle
-        // over its (wider) box leaves only the vertical candidate, which the 34px height truncates.
+        // 60px of width holds the whole text horizontally, so that candidate wins outright. An obstacle over
+        // its box costs it text: shrinking clear of this one leaves 'WW…', the same as rotating into the
+        // 34px height does, so the horizontal candidate keeps the cascade on a tie — but only shrunk clear
+        // of the obstacle, never returned overlapping it at full width.
         const region = { x: 0, y: 0, width: 60, height: 34 };
-        const blocker: LabelObstacle = { kind: 'rect', box: { x: 0, y: 7, width: 8, height: 20 }, category: 'label' };
+        const blocker: LabelObstacle = { kind: 'rect', box: { x: 0, y: 7, width: 20, height: 20 }, category: 'label' };
         expect(placeOne(fittedLabel(region)).rotation).toBeUndefined();
 
         const blocked = placeOne(fittedLabel(region), [blocker]);
-        expect(blocked.rotation).toBe(-90);
         expect(blocked.text).toBe('WW…');
+        expect(blocked.x).toBeGreaterThanOrEqual(20);
     });
 
     it('leaves the text unfitted when the datum carries no fit descriptor', () => {
@@ -2123,6 +2125,215 @@ describe('placeLabels per-candidate fit', () => {
             expect(placed.text).toBe(TEXT);
             expect(placed.y).toBe(140);
         });
+
+        it('shrinks a floating candidate to the room a neighbouring label leaves', () => {
+            // The fallback candidate offers no container, so only an obstacle can bound its text. Shrinking
+            // clear of the neighbour costs it one character, where truncating into the first candidate's
+            // 34px container costs two.
+            const blocker: LabelObstacle = {
+                kind: 'rect',
+                box: { x: 70, y: 140, width: 40, height: 20 },
+                category: 'label',
+            };
+            const placed = placeLabels(
+                new Map([
+                    [
+                        's',
+                        seriesLabels([
+                            buildBarPositionedLabelDatum(
+                                TEXT,
+                                50,
+                                20,
+                                candidates(34),
+                                target(),
+                                { x: 20, y: 20, width: 60, height: 60 },
+                                false,
+                                {},
+                                0,
+                                false,
+                                { text: TEXT, policy: { overflowStrategy: 'ellipsis' }, font: FONT }
+                            ),
+                        ]),
+                    ],
+                ]),
+                bounds,
+                0,
+                [blocker]
+            ).get('s')![0];
+            expect(placed.text).toBe('WWW…');
+            expect(placed.width).toBe(40);
+            expect(placed.y).toBe(140);
+        });
+    });
+});
+
+describe('placeLabels obstacle-driven shrink', () => {
+    const bounds: BoxBounds = { x: 0, y: 0, width: 400, height: 400 };
+    const FONT = { fontSize: 12, fontFamily: 'sans-serif' };
+    const TEXT = 'WWWWW';
+    const POINT = { x: 200, y: 200, size: 0 };
+
+    /** A `TEXT` label offset 10px off `POINT`, refitted per candidate, bound only by its obstacles. */
+    const shrinkableLabel = (overrides: Partial<PointLabelDatum> = {}): PointLabelDatum => ({
+        point: POINT,
+        label: { text: TEXT, width: 50, height: 20 },
+        fit: { text: TEXT, policy: { overflowStrategy: 'ellipsis' }, font: FONT },
+        anchor: undefined,
+        placement: 'top',
+        placements: ['top'],
+        orientation: 'horizontal',
+        gap: 10,
+        spacing: 0,
+        alwaysShow: false,
+        ...overrides,
+    });
+
+    const placeOne = (datum: PointLabelDatum, obstacles: LabelObstacle[] = []) =>
+        placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 0, obstacles).get('s')![0];
+
+    // The `top` candidate box: 50x20 centred on x, sitting gap+height above the point.
+    const TOP_BOX: BoxBounds = { x: 175, y: 170, width: 50, height: 20 };
+    /** A label obstacle reaching `depth` px into the right of {@link TOP_BOX}. */
+    const fromTheRight = (depth: number): LabelObstacle => ({
+        kind: 'rect',
+        box: { x: TOP_BOX.x + TOP_BOX.width - depth, y: TOP_BOX.y, width: 60, height: TOP_BOX.height },
+        category: 'label',
+    });
+
+    // A `top` label is centred over its point, so it gives up the intrusion once and slides off the
+    // obstacle by half of it: 10px of intrusion costs 10px of width, leaving 'WWW…'.
+    it('truncates a colliding label into the room the obstacle leaves rather than hiding it', () => {
+        expect(placeOne(shrinkableLabel(), [fromTheRight(10)])).toMatchObject({ text: 'WWW…', width: 40 });
+    });
+
+    // The room it gives up comes off the side the obstacle is on, so the far edge stays where it was.
+    it('takes the reduction out of the side the obstacle intrudes from', () => {
+        const placed = placeOne(shrinkableLabel(), [fromTheRight(10)]);
+        expect(placed.x).toBe(TOP_BOX.x);
+        expect(placed.x + placed.width).toBe(TOP_BOX.x + TOP_BOX.width - 10);
+    });
+
+    it('truncates rather than overlapping when the label may not be hidden', () => {
+        const placed = placeOne(shrinkableLabel({ alwaysShow: true }), [fromTheRight(10)]);
+        expect(placed.text).toBe('WWW…');
+        expect(placed.x + placed.width).toBeLessThanOrEqual(215);
+    });
+
+    it('wraps into the room the obstacle leaves rather than dropping characters', () => {
+        const text = 'WW WW';
+        const placed = placeOne(
+            shrinkableLabel({
+                label: { text, width: 50, height: 20 },
+                fit: { text, policy: { wrapping: 'on-space', overflowStrategy: 'ellipsis' }, font: FONT },
+            }),
+            [fromTheRight(10)]
+        );
+        expect(placed.text).toBe('WW\nWW');
+        expect(placed.width).toBe(20);
+        expect(placed.height).toBe(40);
+    });
+
+    it('prefers a placement that needs no shrinking at all', () => {
+        const placed = placeOne(shrinkableLabel({ placements: ['top', 'bottom'] }), [fromTheRight(10)]);
+        expect(placed.text).toBe(TEXT);
+        expect(placed.placement).toBe('bottom');
+    });
+
+    it('prefers the colliding placement that loses the least text', () => {
+        // Both candidates collide; the bottom obstacle leaves room for two more characters than the top one.
+        const below = fromTheRight(10);
+        const placed = placeOne(shrinkableLabel({ placements: ['top', 'bottom'] }), [
+            fromTheRight(25),
+            { ...below, box: { ...below.box, y: 210 } },
+        ]);
+        expect(placed.text).toBe('WWW…');
+        expect(placed.placement).toBe('bottom');
+    });
+
+    it('does not shrink away from an obstacle on the edge the label is pinned to', () => {
+        // A `left` label hangs off its right edge, so shrinking walks that edge no further from the obstacle
+        // sitting against it: the reduction that would clear it is the whole label, and it hides instead.
+        const placed = placeOne(shrinkableLabel({ placement: 'left', placements: ['left'] }), [
+            { kind: 'rect', box: { x: 180, y: 185, width: 30, height: 30 }, category: 'label' },
+        ]);
+        expect(placed).toBeUndefined();
+    });
+
+    it('hides a label the obstacles leave no real character of', () => {
+        // 45px of intrusion leaves 5px of the 50px box: room for the ellipsis alone, which is not a label.
+        expect(placeOne(shrinkableLabel(), [fromTheRight(45)])).toBeUndefined();
+    });
+
+    // A round obstacle is cleared at the width it really has where the label sits, not at its bounding
+    // box's corner: the marker's box reaches the label's whole span, its outline barely reaches it at all.
+    it('measures a circular obstacle at its true width across the label, not by its box', () => {
+        const cx = TOP_BOX.x + TOP_BOX.width;
+        const cy = TOP_BOX.y + TOP_BOX.height + 18;
+        const circle: LabelObstacle = {
+            kind: 'circle',
+            cx,
+            cy,
+            r: 20,
+            box: { x: cx - 20, y: cy - 20, width: 40, height: 40 },
+            category: 'marker',
+        };
+        // Its box intrudes 20px into the label and would leave 'WW…'; the outline reaches only 9px in,
+        // because the label sits near the top of the circle where it is far narrower than its box.
+        expect(placeOne(shrinkableLabel(), [circle]).text).toBe('WWW…');
+    });
+
+    // A label clipping the edge of a shape far larger than itself must give up the overlap, not the whole
+    // box: the retreat that would clear the shape's far side is no retreat the label can afford.
+    it('shrinks off the near edge of an obstacle wider than the label', () => {
+        const wide: LabelObstacle = {
+            kind: 'rect',
+            box: { x: TOP_BOX.x + TOP_BOX.width - 10, y: TOP_BOX.y, width: 400, height: TOP_BOX.height },
+            category: 'seriesItem',
+        };
+        const placed = placeOne(shrinkableLabel({ collideWith: { seriesItem: true } }), [wide]);
+        expect(placed.text).toBe('WWW…');
+        expect(placed.x + placed.width).toBeLessThanOrEqual(wide.box.x);
+    });
+
+    it('leaves a label with no fit policy overlapping its obstacle', () => {
+        const placed = placeOne(shrinkableLabel({ fit: undefined, alwaysShow: true }), [fromTheRight(10)]);
+        expect(placed.text).toBe(TEXT);
+        expect(placed.width).toBe(50);
+    });
+
+    it('truncates an inside label into its marker rather than dropping it', () => {
+        // The obstacle spans the whole `top` candidate, which no shrinking can clear: it is only as tall as
+        // the room it leaves above, and clearing it sideways costs the whole label. The marker rect is left.
+        const placed = placeOne(
+            shrinkableLabel({
+                point: { x: 200, y: 200, size: 100 },
+                anchor: { x: 0.5, y: 0.5 },
+                placement: 'inside',
+                placements: ['inside', 'top'],
+                insideSize: { width: 0.3, height: 0.3 },
+            }),
+            [{ kind: 'rect', box: { x: 150, y: 168, width: 100, height: 16 }, category: 'label' }]
+        );
+        expect(placed.placement).toBe('inside');
+        expect(placed.text).toBe('WW…');
+    });
+
+    // A positive threshold is clearance the label keeps from obstacles, not room taken off its own marker,
+    // so it must not narrow the inside budget — only a negative one, which widens it, reaches the text.
+    it('does not spend a positive collision threshold on the inside marker budget', () => {
+        const insideLabel = (overrides: Partial<PointLabelDatum> = {}) =>
+            shrinkableLabel({
+                point: { x: 200, y: 200, size: 100 },
+                anchor: { x: 0.5, y: 0.5 },
+                placement: 'inside',
+                placements: ['inside'],
+                insideSize: { width: 0.3, height: 0.3 },
+                alwaysShow: true,
+                ...overrides,
+            });
+        const textAt = (datum: PointLabelDatum) =>
+            placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 0, []).get('s')![0].text;
+        expect(textAt(insideLabel({ threshold: 6 }))).toBe(textAt(insideLabel()));
     });
 });
 

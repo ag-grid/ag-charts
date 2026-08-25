@@ -168,6 +168,74 @@ describe('label itemStyler participates in placement', () => {
     });
 
     /**
+     * Funnel-family series map their public placements onto the bar vocabulary internally, so every route
+     * that resolves a styled box has to report the public value back: `itemStyler` is documented API and
+     * must never be handed `inside-start` or `beside-before-center`.
+     */
+    describe('funnel family reports public placements to the styler', () => {
+        const FUNNEL_PLACEMENT = /^(inside|outside)-(center|before|after)$/;
+        const CONE_FUNNEL_PLACEMENT = /^(before|middle|after)-(start|center|end)$/;
+
+        const seriesChart = (type: string, placement: string[], extra: object, seen: Set<string>) => ({
+            data: [
+                { stage: 'A', value: 9 },
+                { stage: 'B', value: 6 },
+                { stage: 'C', value: 3 },
+            ],
+            legend: { enabled: false },
+            series: [
+                {
+                    type,
+                    stageKey: 'stage',
+                    valueKey: 'value',
+                    ...extra,
+                    label: {
+                        enabled: true,
+                        placement,
+                        itemStyler: (params: any) => {
+                            seen.add(String(params.placement));
+                            return {};
+                        },
+                    },
+                },
+            ],
+        });
+
+        const styledPlacements = async (type: string, placement: string[], extra: object = {}) => {
+            const seen = new Set<string>();
+            const options = seriesChart(type, placement, extra, seen);
+            await render(options);
+            expect(placementLabelData().length).toBeGreaterThan(0);
+            expect(seen.size).toBeGreaterThan(0);
+            // The second pass is the route that resolves a styled box from a placement already mapped into
+            // the bar vocabulary, so it must be seen calling the styler in its own right.
+            seen.clear();
+            await chart.update(options as AgChartOptions);
+            await waitForChartStability(chart);
+            expect(placementLabelData().length).toBeGreaterThan(0);
+            expect(seen.size).toBeGreaterThan(0);
+            return [...seen];
+        };
+
+        it('reports funnel placements to a funnel label styler', async () => {
+            const seen = await styledPlacements('funnel', ['inside-before', 'inside-after']);
+            expect(seen.every((placement) => FUNNEL_PLACEMENT.test(placement))).toBe(true);
+        });
+
+        it('reports pyramid placements to a pyramid label styler', async () => {
+            const seen = await styledPlacements('pyramid', ['inside-before', 'inside-after'], {
+                direction: 'vertical',
+            });
+            expect(seen.every((placement) => FUNNEL_PLACEMENT.test(placement))).toBe(true);
+        });
+
+        it('reports cone-funnel placements to a cone-funnel label styler', async () => {
+            const seen = await styledPlacements('cone-funnel', ['before-center', 'after-center']);
+            expect(seen.every((placement) => CONE_FUNNEL_PLACEMENT.test(placement))).toBe(true);
+        });
+    });
+
+    /**
      * Map labels resolve one series-wide style (their styler takes no datum), so a disabled label is known
      * before the label data is built and must be left out of it — hiding it at render time alone would
      * leave it reserving placement space and displacing its neighbours.

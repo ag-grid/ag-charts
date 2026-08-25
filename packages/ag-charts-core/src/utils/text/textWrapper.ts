@@ -358,6 +358,19 @@ export function isErased(text: NormalisedTextOrSegments): boolean {
 }
 
 /**
+ * Whether a fitted label still shows a character, ignoring the ellipsis and whitespace it can be reduced
+ * to. A budget too narrow for any real character leaves a bare `…`, which reads as an artefact rather than
+ * a label, so callers shrinking a budget treat that as erased.
+ */
+export function hasRealChars(text: NormalisedTextOrSegments): boolean {
+    if (!isArray(text)) return survivingCharacters(toTextString(text)) > 0;
+    for (const segment of text) {
+        if (segment.type !== 'image' && survivingCharacters(toTextString(segment.text)) > 0) return true;
+    }
+    return false;
+}
+
+/**
  * Fits `text` to `fit`, falling back to `fitOverflow` when that leaves nothing to draw. An erased label is
  * dropped by the placement engine, so one that must always show overflows its bound rather than vanishing.
  */

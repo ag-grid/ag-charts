@@ -30,9 +30,10 @@ export interface LabelMeasureContext {
 
 /**
  * Per-candidate fit inputs, so the placement engine re-fits a label's text at each candidate rather than
- * reusing the up-front {@link measurePlacedLabel} measurement. Produced for a label whose font varies per
- * candidate: one an `itemStyler` restyles, or one that may shrink towards `minimumFontSize`. `policy` is
- * overridden by series that bound the text per datum (a marker container scaled by that datum's size).
+ * reusing the up-front {@link measurePlacedLabel} measurement, and to the room each candidate leaves once
+ * obstacles have taken their share. Produced for a label whose font varies per candidate (one an
+ * `itemStyler` restyles) or whose text can adapt to the room it has. `policy` is overridden by series that
+ * bound the text per datum (a marker container scaled by that datum's size).
  */
 export function placedLabelFit(
     labelText: NormalisedTextOrSegments | undefined,
@@ -40,8 +41,7 @@ export function placedLabelFit(
     ctx: LabelMeasureContext,
     policy = ctx.labelFit
 ): LabelFitDescriptor | undefined {
-    if (labelText == null) return undefined;
-    if (!ctx.labelStyled && policy?.minimumFontSize == null) return undefined;
+    if (labelText == null || (!ctx.labelStyled && policy == null)) return undefined;
     return {
         text: labelText,
         policy: policy ?? {},
