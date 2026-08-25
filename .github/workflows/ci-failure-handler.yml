@@ -108,7 +108,7 @@ jobs:
             slack_channel: ${{ steps.pf.outputs.slack_channel }}
             slack_thread_ts: ${{ steps.pf.outputs.slack_thread_ts }}
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7
               with:
                   fetch-depth: 1
 
@@ -201,7 +201,7 @@ jobs:
             # doesn't trigger the fix PR's CI). The App token (minted in the action)
             # is the sole credential for all git ops. (The handler also strips any
             # extraheader defensively, but setting this is the clean belt-and-braces.)
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7
               with:
                   fetch-depth: 0
                   persist-credentials: false

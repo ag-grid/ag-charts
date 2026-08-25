@@ -60,7 +60,7 @@ runs:
         # ./.github/actions/pr-report-comment. No comment is created here.
         - name: Write snapshot-status section
           if: steps.snapshot_check.outputs.updated == 'true' && github.ref != 'refs/heads/latest'
-          uses: actions/github-script@v7
+          uses: actions/github-script@v9
           continue-on-error: true
           with:
               script: |
