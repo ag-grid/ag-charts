@@ -1062,6 +1062,50 @@ describe('label collision avoidance', () => {
             expect(texts.some((text) => text !== LABEL_TEXT)).toBe(true);
         });
 
+        // A marker whose label overhangs it only slightly on the vertical: the cheapest retreat off the
+        // colliding box is a couple of pixels of height, which a single-line label cannot spend.
+        it('truncates a point label whose cheapest retreat is height it cannot give up', async () => {
+            const options: any = {
+                data: [
+                    { x: 7, y: 7, size: 6, label: 'Tiny Bubble Descriptive Label' },
+                    { x: 2, y: 8, size: 30, label: 'Roomy' },
+                    { x: 8, y: 2, size: 30, label: 'Spacious' },
+                    { x: 8.5, y: 8.5, size: 25, label: 'Wide Open' },
+                ],
+                padding: { top: 100, right: 10, bottom: 10, left: 10 },
+                axes: {
+                    x: { type: 'number', min: 0, max: 10 },
+                    y: { type: 'number', min: 0, max: 10 },
+                },
+                series: [
+                    {
+                        type: 'bubble',
+                        xKey: 'x',
+                        yKey: 'y',
+                        sizeKey: 'size',
+                        labelKey: 'label',
+                        label: {
+                            enabled: true,
+                            placement: ['inside', 'top'],
+                            truncate: true,
+                            wrapping: 'never',
+                            collision: { alwaysShow: false },
+                        },
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            options.width = 350;
+            options.height = 350;
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            const texts = renderedLabelTexts();
+            expect(texts.length).toBe(4);
+            expect(texts).not.toContain('Tiny Bubble Descriptive Label');
+            expect(texts.some((text) => text.startsWith('Tiny Bubble') && text.endsWith('\u2026'))).toBe(true);
+            await compareImageSnapshot(chart, ctx);
+        });
+
         it('drops the same point label when nothing about it can adapt', async () => {
             expect(await renderTwoCrowdedPoints({ wrapping: 'never', truncate: false })).toHaveLength(1);
         });

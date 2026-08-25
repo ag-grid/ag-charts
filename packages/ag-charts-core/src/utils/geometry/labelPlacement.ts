@@ -1401,6 +1401,10 @@ const shrinkSlide: Point = { x: 0, y: 0 };
 // the max edge (right/bottom), zero neither — a centred box, whose every edge a shrink can move.
 let shrinkPinX = 0;
 let shrinkPinY = 0;
+// Least retreat worth taking off each axis: a re-fit answering obstacles may not shrink the font, so height
+// only comes back a whole line at a time and any smaller reduction returns the box unchanged.
+let shrinkFloorX = 0;
+let shrinkFloorY = 0;
 // The obstacle's extent across the candidate's own span on the other axis.
 const obstacleSpan = { min: 0, max: 0 };
 // The four retreats one obstacle offers, refilled per obstacle: how far each side must come in, or
@@ -1446,10 +1450,11 @@ function writeObstacleSpanY(o: LabelObstacle, left: number, right: number) {
 
 /**
  * A retreat the box can afford, or `Infinity`. A retreat past the whole extent is no candidate at all: a
- * label clipping the edge of a wide bar must not be asked to shrink past the bar's far side.
+ * label clipping the edge of a wide bar must not be asked to shrink past the bar's far side. `floor` is the
+ * least retreat the re-fit can spend on that axis, below which it hands the same box back.
  */
-function affordableRetreat(retreat: number, extent: number, allowed: boolean): number {
-    return allowed && retreat > 0 && retreat < extent ? retreat : Infinity;
+function affordableRetreat(retreat: number, extent: number, allowed: boolean, floor: number): number {
+    return allowed && retreat >= floor && retreat > 0 && retreat < extent ? retreat : Infinity;
 }
 
 // Never returns a verdict: unlike the collision test this visits every obstacle, since the reduction has
@@ -1461,11 +1466,21 @@ function accumulateObstacleReduction(o: LabelObstacle): void {
     if (testBox == null || !obstacleOverlapsBox(o, testBox)) return;
     const { x, y, width, height } = testBox;
     writeObstacleSpanX(o, y, y + height);
-    sideRetreat.left = affordableRetreat(obstacleSpan.max - x, width, sideRetreats(shrinkPinX, true));
-    sideRetreat.right = affordableRetreat(x + width - obstacleSpan.min, width, sideRetreats(shrinkPinX, false));
+    sideRetreat.left = affordableRetreat(obstacleSpan.max - x, width, sideRetreats(shrinkPinX, true), shrinkFloorX);
+    sideRetreat.right = affordableRetreat(
+        x + width - obstacleSpan.min,
+        width,
+        sideRetreats(shrinkPinX, false),
+        shrinkFloorX
+    );
     writeObstacleSpanY(o, x, x + width);
-    sideRetreat.top = affordableRetreat(obstacleSpan.max - y, height, sideRetreats(shrinkPinY, true));
-    sideRetreat.bottom = affordableRetreat(y + height - obstacleSpan.min, height, sideRetreats(shrinkPinY, false));
+    sideRetreat.top = affordableRetreat(obstacleSpan.max - y, height, sideRetreats(shrinkPinY, true), shrinkFloorY);
+    sideRetreat.bottom = affordableRetreat(
+        y + height - obstacleSpan.min,
+        height,
+        sideRetreats(shrinkPinY, false),
+        shrinkFloorY
+    );
     // Cheapest is a fraction of the extent it comes out of, not a pixel count: an obstacle spanning the
     // label's whole height is cleared by a few px of height and half its width, but those few px are all
     // the height there is.
@@ -1484,6 +1499,10 @@ function accumulateObstacleReduction(o: LabelObstacle): void {
     shrinkIntrusion[best] = Math.max(shrinkIntrusion[best], sideRetreat[best]);
 }
 
+function spendableRetreat(retreat: number, floor: number): number {
+    return retreat >= floor ? retreat : 0;
+}
+
 /**
  * Seeds the intrusions with the candidate's own overflow of its region, so a box with more text than the
  * room it was given comes in to meet that room. A centred box retreats by the same amount on both sides:
@@ -1496,16 +1515,16 @@ function accumulateRegionIntrusion(region: BoxBounds) {
     const top = Math.max(0, region.y - y);
     const bottom = Math.max(0, y + height - (region.y + region.height));
     if (shrinkPinX === 0) {
-        shrinkIntrusion.left = shrinkIntrusion.right = Math.max(left, right);
+        shrinkIntrusion.left = shrinkIntrusion.right = spendableRetreat(Math.max(left, right), shrinkFloorX);
     } else {
-        shrinkIntrusion.left = sideRetreats(shrinkPinX, true) ? left : 0;
-        shrinkIntrusion.right = sideRetreats(shrinkPinX, false) ? right : 0;
+        shrinkIntrusion.left = sideRetreats(shrinkPinX, true) ? spendableRetreat(left, shrinkFloorX) : 0;
+        shrinkIntrusion.right = sideRetreats(shrinkPinX, false) ? spendableRetreat(right, shrinkFloorX) : 0;
     }
     if (shrinkPinY === 0) {
-        shrinkIntrusion.top = shrinkIntrusion.bottom = Math.max(top, bottom);
+        shrinkIntrusion.top = shrinkIntrusion.bottom = spendableRetreat(Math.max(top, bottom), shrinkFloorY);
     } else {
-        shrinkIntrusion.top = sideRetreats(shrinkPinY, true) ? top : 0;
-        shrinkIntrusion.bottom = sideRetreats(shrinkPinY, false) ? bottom : 0;
+        shrinkIntrusion.top = sideRetreats(shrinkPinY, true) ? spendableRetreat(top, shrinkFloorY) : 0;
+        shrinkIntrusion.bottom = sideRetreats(shrinkPinY, false) ? spendableRetreat(bottom, shrinkFloorY) : 0;
     }
 }
 
@@ -1514,13 +1533,22 @@ function accumulateRegionIntrusion(region: BoxBounds) {
  * `region`, into {@link shrinkReduction} and {@link shrinkSlide}. `false` when nothing it can shrink out
  * of the way intrudes.
  */
-function measureShrinkReduction(pinX: number, pinY: number, inflate: number, region?: BoxBounds): boolean {
+function measureShrinkReduction(
+    pinX: number,
+    pinY: number,
+    inflate: number,
+    floorX: number,
+    floorY: number,
+    region?: BoxBounds
+): boolean {
     shrinkIntrusion.left = 0;
     shrinkIntrusion.right = 0;
     shrinkIntrusion.top = 0;
     shrinkIntrusion.bottom = 0;
     shrinkPinX = pinX;
     shrinkPinY = pinY;
+    shrinkFloorX = floorX;
+    shrinkFloorY = floorY;
     if (region != null) {
         accumulateRegionIntrusion(region);
     }
@@ -2113,11 +2141,14 @@ function shrinkCompassCandidate(
     // Which edges the box keeps as it shrinks, mirroring how `positionLabelBox` hangs it off the point: a
     // directional candidate is pinned to the edge facing the point, a gapless or `inside` one stays centred.
     const vec = gap > 0 && placement != null ? labelPlacements[placement] : undefined;
-    if (!measureShrinkReduction(vec?.x ?? 0, vec?.y ?? 0, inflate)) return false;
     // The reduction is measured on the rotated footprint, whose axes are the glyph's swapped for a
     // quarter-turned candidate.
     const upright = rotation % 180 === 0;
     const font = candidateFontAt(style?.font ?? fit.font);
+    const lineHeight = cachedTextMeasurer(font).lineHeight();
+    const floorX = upright ? 0 : lineHeight;
+    const floorY = upright ? lineHeight : 0;
+    if (!measureShrinkReduction(vec?.x ?? 0, vec?.y ?? 0, inflate, floorX, floorY)) return false;
     const source = style == null && candidateTrialFontSize == null ? fitSource : styledFitSource(fit, font);
     const reduceWidth = upright ? shrinkReduction.width : shrinkReduction.height;
     const reduceHeight = upright ? shrinkReduction.height : shrinkReduction.width;
@@ -2162,7 +2193,10 @@ function shrinkPositionedCandidate(
     const fit = d.fit;
     const fitTo = c.fitTo;
     if (fit == null || fitTo == null || (c.rotation ?? 0) % 360 !== 0) return false;
-    if (!measureShrinkReduction(anchorPinX(fitTo.anchor), anchorPinY(fitTo.anchor), inflate, region)) return false;
+    const lineHeight = cachedTextMeasurer(fitTo.font ?? fit.font).lineHeight();
+    if (!measureShrinkReduction(anchorPinX(fitTo.anchor), anchorPinY(fitTo.anchor), inflate, 0, lineHeight, region)) {
+        return false;
+    }
     const styledFont = fitTo.font;
     const source = styledFont == null ? fitSource : styledFitSource(fit, styledFont);
     const { width, height } = shrinkReduction;
