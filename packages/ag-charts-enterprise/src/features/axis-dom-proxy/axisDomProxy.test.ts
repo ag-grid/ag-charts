@@ -106,14 +106,14 @@ describe('AxisDOMProxy', () => {
 
         // Check that click's indices match the DFS ordering of the x-grouping.
         test('click - value/index match', async () => {
-            await clickAction(257, 572)(chart); // 'Food'
-            await clickAction(150, 545)(chart); // 'Meat'
+            await clickAction(100, 572)(chart); // 'Food'
+            await clickAction(100, 545)(chart); // 'Meat'
             await clickAction(100, 493)(chart); // 'Fish'
             await clickAction(205, 495)(chart); // 'Chicken'
-            await clickAction(364, 548)(chart); // 'Fruit'
+            await clickAction(309, 548)(chart); // 'Fruit'
             await clickAction(309, 500)(chart); // 'Banana'
             await clickAction(412, 499)(chart); // 'Apple'
-            await clickAction(621, 571)(chart); // 'Drink'
+            await clickAction(519, 571)(chart); // 'Drink'
             await clickAction(569, 545)(chart); // 'Soda'
             await clickAction(519, 499)(chart); // 'Coke'
             await clickAction(624, 494)(chart); // 'Pepsi'
@@ -157,8 +157,8 @@ describe('AxisDOMProxy', () => {
                 [expect.objectContaining({ value: ['Food', 'Fruit', 'Apple'], index: 0, depth: 2 })],
                 [expect.objectContaining({ value: ['Food', 'Meat', 'Fish'], index: 1, depth: 1 })],
                 [expect.objectContaining({ value: ['Food', 'Meat', 'Chicken'], index: 1, depth: 1 })],
-                [expect.objectContaining({ value: ['Food', 'Fruit', 'Banana'], index: 5, depth: 1 })],
-                [expect.objectContaining({ value: ['Food', 'Fruit', 'Apple'], index: 5, depth: 1 })],
+                [expect.objectContaining({ value: ['Food', 'Fruit', 'Banana'], index: 4, depth: 1 })],
+                [expect.objectContaining({ value: ['Food', 'Fruit', 'Apple'], index: 4, depth: 1 })],
                 [expect.objectContaining({ value: ['Drink', 'Soda', 'Pepsi'], index: 7, depth: 2 })],
                 [expect.objectContaining({ value: ['Drink', 'Soda', 'Coke'], index: 8, depth: 1 })],
                 [expect.objectContaining({ value: ['Drink', 'Soda', 'Pepsi'], index: 8, depth: 1 })],
@@ -214,7 +214,7 @@ describe('AxisDOMProxy', () => {
 
         test('click on groups reports the nearest leaf value', async () => {
             await clickAction(25, 228)(chart); // 'Food' (to the left of 'Chicken')
-            await clickAction(25, 250)(chart); // 'Food' (to the left of 'Banana')
+            await clickAction(25, 350)(chart); // 'Food' (to the left of 'Banana')
             await clickAction(55, 228)(chart); // 'Meat' (to the left of 'Chicken');
             expect(click.mock.calls).toMatchObject([
                 [expect.objectContaining({ value: ['Food', 'Meat', 'Chicken'], index: 0, depth: 2 })],
