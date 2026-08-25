@@ -561,9 +561,9 @@ export interface BarLabelDataContext {
     readonly collideWith: CollideWith;
     readonly threshold: number;
     /** Drawn-box footprint of `text` under the configured label font: the measured glyph plus {@link box}. */
-    measureBox(text: NormalisedTextOrSegments): { width: number; height: number };
+    readonly measureBox: (text: NormalisedTextOrSegments) => { width: number; height: number };
     /** Per-candidate fit inputs for `text`, or `undefined` when the label opted out of overflow control. */
-    fitFor(text: NormalisedTextOrSegments): LabelFitDescriptor | undefined;
+    readonly fitFor: (text: NormalisedTextOrSegments) => LabelFitDescriptor | undefined;
 }
 
 /**
@@ -580,7 +580,7 @@ export function barLabelDataContext<TParams>(label: BarLabelSurface<TParams>): B
         alwaysShow,
         collideWith: label.collision.resolveCollideWith(),
         threshold: label.collision.threshold ?? 0,
-        measureBox(text) {
+        measureBox: (text) => {
             const { width, height } = measureLabelText(text, label);
             return { width: width + box.left + box.right, height: height + box.top + box.bottom };
         },
