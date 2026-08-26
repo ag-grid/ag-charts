@@ -73,7 +73,7 @@ export interface AgBaseCartesianAxisOptions<
 
 export interface AgCartesianAxisCrossAt {
     /** The value on the perpendicular axis' domain where this axis should intersect. */
-    value: number | Date | string | string[];
+    value: AgNumericValue | Date | string | string[];
     /**
      * Whether the axis should remain visible when the cross position is outside the perpendicular axis domain.
      *

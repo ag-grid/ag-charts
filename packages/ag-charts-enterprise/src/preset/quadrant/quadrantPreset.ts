@@ -231,9 +231,8 @@ export function createQuadrant(
     };
 
     if (alignAxesToPivot) {
-        // TODO: bigint on crossAt
-        axes.x.crossAt = { value: Number(pivotY), titlePlacement: 'edge', labelPlacement: 'crossing' };
-        axes.y.crossAt = { value: Number(pivotX), titlePlacement: 'edge', labelPlacement: 'crossing' };
+        axes.x.crossAt = { value: pivotY, titlePlacement: 'edge', labelPlacement: 'crossing' };
+        axes.y.crossAt = { value: pivotX, titlePlacement: 'edge', labelPlacement: 'crossing' };
     }
 
     return {

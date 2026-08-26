@@ -11,7 +11,7 @@ import type {
 
 import { AgCharts } from '../../api/agCharts';
 import { Transformable } from '../../scene/transformable';
-import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
+import { BIG, expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
@@ -928,6 +928,97 @@ describe('CartesianAxis', () => {
                     optionsFactory({ value: 0, titlePlacement: 'edge', labelPlacement: 'edge' }),
                     'cartesian-axes-cross-at-0-title-and-labels-at-edge'
                 );
+            });
+        });
+
+        describe('bigint values (AG-18313)', () => {
+            const bigintDomainOptions = (value: AgCartesianAxisCrossAt['value']): AgCartesianChartOptions => ({
+                data: [
+                    { x: -10, y: BIG },
+                    { x: 10, y: BIG + 4n },
+                ],
+                theme: THEME,
+                axes: {
+                    x: { type: 'number', position: 'bottom', crossAt: { value } },
+                    y: { type: 'number', position: 'left', min: BIG, max: BIG + 4n, nice: false },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            const crossTranslationY = async (value: AgCartesianAxisCrossAt['value']) => {
+                const options = bigintDomainOptions(value);
+                prepareTestOptions(options);
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+                const chartInstance = deproxy(chart as any) as any;
+                const bottomAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
+                expect(bottomAxis).toBeDefined();
+                const { y } = bottomAxis.crossAxisTranslation;
+                chart.destroy();
+                (chart as unknown) = undefined;
+                return y;
+            };
+
+            it('resolves adjacent bigints beyond MAX_SAFE_INTEGER to distinct cross positions', async () => {
+                const at0 = await crossTranslationY(BIG);
+                const at1 = await crossTranslationY(BIG + 1n);
+                const at2 = await crossTranslationY(BIG + 2n);
+
+                expect(new Set([at0, at1, at2]).size).toBe(3);
+                expect(at1 - at0).toBeCloseTo(at2 - at1, 6);
+            });
+
+            it('renders a bigint crossAt value identically to the equivalent number', async () => {
+                const options = (value: AgCartesianAxisCrossAt['value']): AgCartesianChartOptions => ({
+                    data: NUMERIC_DATA,
+                    theme: THEME,
+                    axes: {
+                        x: { type: 'number', position: 'bottom', crossAt: { value } },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                });
+
+                await expectPixelIdenticalAcrossUpdate(ctx, createChart, options(0), options(0n), options(0));
+            });
+
+            it('accepts a bigint crossAt value on a log axis without warning', async () => {
+                const options: AgCartesianChartOptions = {
+                    data: [
+                        { x: 1, y: 10 },
+                        { x: 2, y: 1000 },
+                    ],
+                    theme: THEME,
+                    axes: {
+                        x: { type: 'number', position: 'bottom', crossAt: { value: 100n } },
+                        y: { type: 'log', position: 'left' },
+                    },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                };
+                prepareTestOptions(options);
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+                expectWarningsCalls().toHaveLength(0);
+            });
+
+            it('degrades to the uncrossed fallback for a bigint crossAt value on a category axis', async () => {
+                const options: AgCartesianChartOptions = {
+                    data: CATEGORY_DATA,
+                    theme: THEME,
+                    axes: {
+                        x: { type: 'category', position: 'bottom' },
+                        y: { type: 'number', position: 'left', crossAt: { value: 1n } },
+                    },
+                    series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+                };
+                prepareTestOptions(options);
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                const chartInstance = deproxy(chart as any) as any;
+                const leftAxis = chartInstance.axes.find((axis: any) => axis.position === 'left');
+                expect(leftAxis.crossAxisTranslation).toEqual({ x: 0, y: 0 });
+                expectWarningsCalls().toHaveLength(0);
             });
         });
     });
