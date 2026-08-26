@@ -1097,6 +1097,49 @@ describe('CrossLine', () => {
             expect(crossLineLabelText(chart, 'y')).toEqual(veryLongLabel);
         });
 
+        it('clip-text shortens monotonically as the room runs out, ending at an ellipsis', async () => {
+            // A rotated label extends along the axis's short side, which is the only direction whose room
+            // a label padding can exhaust; upright text is bounded by the far wider horizontal extent.
+            const { x, y } = examples.LINE_CROSSLINES.axes as any;
+            const build = (padding: number): AgCartesianChartOptions => ({
+                ...examples.LINE_CROSSLINES,
+                axes: {
+                    y,
+                    x: {
+                        ...x,
+                        crossLines: [
+                            {
+                                type: 'line',
+                                value: 5,
+                                label: {
+                                    text: 'A cross line label',
+                                    position: 'top',
+                                    overflow: 'clip-text',
+                                    rotation: 90,
+                                    padding,
+                                },
+                            },
+                        ],
+                    },
+                },
+            });
+
+            chart = await createChart(build(0));
+            const rendered = [crossLineLabelText(chart, 'x')];
+            for (const padding of [20, 40, 60, 200]) {
+                await chart.publicApi!.update(build(padding));
+                await waitForChartStability(chart);
+                rendered.push(crossLineLabelText(chart, 'x'));
+            }
+
+            // Room only ever shrinks, so neither may the text — a bound that stopped applying once the
+            // room went negative would show up here as a jump back to the full label.
+            const lengths = rendered.map((text) => text.length);
+            expect(lengths).toEqual([...lengths].sort((a, b) => b - a));
+            expect(rendered[0]).not.toEqual('\u2026');
+            expect(rendered.at(-1)).toEqual('\u2026');
+        });
+
         // Only `left`/`right` on a vertical axis and `top`/`bottom` on a horizontal one sit outside the
         // cross line, so these four cover every padding branch and all four anchor tables at once.
         type OverflowCase = { overflow: AgCrossLineLabelOverflow; label?: string };

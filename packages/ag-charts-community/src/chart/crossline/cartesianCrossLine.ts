@@ -505,17 +505,19 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         const textWidth = cachedTextMeasurer(label).measureLines(text).width;
         const cos = Math.abs(Math.cos(crossLineLabel.rotation));
         const sin = Math.abs(Math.sin(crossLineLabel.rotation));
+        // Only a direction the text actually extends along can bound it; the bound is not floored before
+        // the minimum, so shrinking room keeps shortening the text instead of jumping back to full length.
         let maxWidth = Infinity;
-        // An anchor pinned outside the container has no room to measure; leave such a label as authored.
-        if (cos > ROTATION_EPSILON && availableX > 0) {
+        if (cos > ROTATION_EPSILON) {
             maxWidth = Math.min(maxWidth, (availableX - (bbox.width - textWidth * cos)) / cos);
         }
-        if (sin > ROTATION_EPSILON && availableY > 0) {
+        if (sin > ROTATION_EPSILON) {
             maxWidth = Math.min(maxWidth, (availableY - (bbox.height - textWidth * sin)) / sin);
         }
-        if (maxWidth <= 0 || maxWidth >= textWidth) return;
+        if (maxWidth >= textWidth) return;
 
-        const fitted = fitLabelText(text, { maxWidth, wrapping: 'never', overflowStrategy: 'ellipsis' }, label);
+        const fit = { maxWidth: Math.max(maxWidth, 0), wrapping: 'never', overflowStrategy: 'ellipsis' } as const;
+        const fitted = fitLabelText(text, fit, label);
         if (typeof fitted === 'string') {
             crossLineLabel.text = fitted;
         }
