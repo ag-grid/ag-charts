@@ -1256,9 +1256,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
         const drawingMode = this.getDrawingMode(isHighlight, opts.drawingMode);
 
-        // Widest stroke the marker can be drawn with across every highlight state, for both item
-        // types — resolved once so `Marker.isPointInPath` treats the stroke as part of the node
-        // (AG-8173).
+        // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
         const pickInflation = Math.max(
             maxMarkerStrokePickInflation(contextNodeData.styles.low),
             maxMarkerStrokePickInflation(contextNodeData.styles.high)

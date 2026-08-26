@@ -506,8 +506,7 @@ export abstract class RadarSeries<
 
         drawingMode = this.getDrawingMode(isHighlight, drawingMode);
 
-        // Widest stroke the marker can be drawn with across every highlight state — resolved once
-        // here so `Marker.isPointInPath` can treat the stroke as part of the node (AG-8173).
+        // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
         const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
 
         selection.each((node, datum) => {

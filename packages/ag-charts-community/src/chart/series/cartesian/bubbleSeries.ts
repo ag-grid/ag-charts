@@ -1247,8 +1247,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         // other mode it returns the input unchanged. Hoist that constant out of the per-marker loop.
         const constantDrawingMode = drawingMode === 'cutout' ? undefined : drawingMode;
 
-        // Widest stroke the marker can be drawn with across every highlight state — resolved once
-        // here so `Marker.isPointInPath` can treat the stroke as part of the node (AG-8173).
+        // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
         const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
 
         datumSelection.each((node, datum, index) => {
