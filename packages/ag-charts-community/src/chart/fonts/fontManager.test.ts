@@ -36,6 +36,21 @@ class MockResizeObserver {
 // Install mock before importing fontManager (getResizeObserver reads globalThis)
 (globalThis as any).ResizeObserver = MockResizeObserver;
 
+function createMockAnimationManager(active = false) {
+    const listeners = new Set<() => void>();
+    return {
+        isActive: () => active,
+        addListener: (_type: string, listener: () => void) => {
+            listeners.add(listener);
+            return () => listeners.delete(listener);
+        },
+        stopAnimation() {
+            active = false;
+            for (const listener of listeners) listener();
+        },
+    };
+}
+
 function createMockDomManager(): DOMManager {
     return {
         addStyles: vi.fn(),
@@ -52,7 +67,11 @@ describe('FontManager', () => {
     it('should emit font:load on eventsHub when a font loads', () => {
         const eventsHub = new EventEmitter<EventsHubMap>();
         const domManager = createMockDomManager();
-        const fontManager = new FontManager({ domManager, eventsHub } as unknown as DynamicContext<ChartRegistry>);
+        const fontManager = new FontManager({
+            domManager,
+            eventsHub,
+            animationManager: createMockAnimationManager(),
+        } as unknown as DynamicContext<ChartRegistry>);
 
         const handler = vi.fn();
         eventsHub.on('font:load', handler);
@@ -71,7 +90,11 @@ describe('FontManager', () => {
     it('should not emit font:load when observed width is zero', () => {
         const eventsHub = new EventEmitter<EventsHubMap>();
         const domManager = createMockDomManager();
-        const fontManager = new FontManager({ domManager, eventsHub } as unknown as DynamicContext<ChartRegistry>);
+        const fontManager = new FontManager({
+            domManager,
+            eventsHub,
+            animationManager: createMockAnimationManager(),
+        } as unknown as DynamicContext<ChartRegistry>);
 
         const handler = vi.fn();
         eventsHub.on('font:load', handler);
@@ -92,6 +115,7 @@ describe('FontManager', () => {
         const fontManager = new FontManager({
             domManager: createMockDomManager(),
             eventsHub,
+            animationManager: createMockAnimationManager(),
         } as unknown as DynamicContext<ChartRegistry>);
         const handler = vi.fn();
         eventsHub.on('font:load', handler);
@@ -225,5 +249,30 @@ describe('FontManager', () => {
         await Promise.resolve();
 
         expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('holds font:load until the running animation stops', () => {
+        const eventsHub = new EventEmitter<EventsHubMap>();
+        const animationManager = createMockAnimationManager(true);
+        const fontManager = new FontManager({
+            domManager: createMockDomManager(),
+            eventsHub,
+            animationManager,
+        } as unknown as DynamicContext<ChartRegistry>);
+
+        const handler = vi.fn();
+        eventsHub.on('font:load', handler);
+
+        fontManager.updateFonts(new Set(['Pacifico']));
+        resizeObserverCallback?.(
+            [{ contentBoxSize: [{ inlineSize: 42 }] }] as unknown as ResizeObserverEntry[],
+            {} as ResizeObserver
+        );
+
+        expect(handler).not.toHaveBeenCalled();
+
+        animationManager.stopAnimation();
+
+        expect(handler).toHaveBeenCalledTimes(1);
     });
 });

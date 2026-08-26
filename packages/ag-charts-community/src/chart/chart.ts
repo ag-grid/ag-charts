@@ -514,7 +514,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 this.title.node.markDirty();
                 this.subtitle.node.markDirty();
                 this.footnote.node.markDirty();
-                this.fontLayoutCorrection = true;
                 this.update(ChartUpdateType.PERFORM_LAYOUT);
             }),
             ctx.eventsHub.on('rtl:change', () => {
@@ -1635,9 +1634,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         await this.performLayout(ctx);
 
-        const fontLayoutCorrection = this.fontLayoutCorrection;
-        this.fontLayoutCorrection = false;
-        if (oldRect && !this.animationRect?.equals(oldRect) && !fontLayoutCorrection) {
+        if (oldRect && !this.animationRect?.equals(oldRect)) {
             // Skip animations if the layout changed.
             this.ctx.animationManager.skipCurrentBatch();
         }
@@ -1650,8 +1647,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
     public seriesRect?: BBox;
     // BBox of the chart area containing animatable elements; if this changes, we skip animations.
     protected animationRect?: BBox;
-    // A late webfont re-measure is not a layout change worth abandoning an animation for.
-    private fontLayoutCorrection = false;
 
     protected getDebugColors(): { background?: string; foreground?: string } | undefined {
         const bg = this.ctx.chartState.getValue('options', 'background').fill;
