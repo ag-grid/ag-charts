@@ -811,10 +811,10 @@ describe('CrossLine', () => {
                             range: ['Mar', 'Jul'],
                         }),
                         expect.objectContaining({
-                            crossLineId: 'blue-line',
+                            crossLineId: 'CrossLine-3',
                             axisId: 'myY',
                             direction: 'y',
-                            value: 'May',
+                            value: 8,
                         }),
                     ],
                 })
