@@ -6,6 +6,7 @@ import faqData from '../../content/faqs/homepage.json';
 import homepage from '../../content/homepage/homepage.json';
 import versionsData from '../../content/versions/ag-charts-versions.json';
 import { latestReleasesMarkdown } from './latestReleasesMarkdown';
+import { withDefaultFramework } from './withDefaultFramework';
 
 const NUM_LATEST_RELEASES = 3;
 
@@ -18,8 +19,7 @@ interface HomepageHero {
     subHeading: string;
     cta: HomepageCta;
 }
-// Sections carrying a "read more" CTA share this shape; `subHeading` is absent on the
-// gallery section, which only has a CTA.
+// Sections carrying a single "read more" CTA share this shape.
 interface CtaSection {
     tag: string;
     heading: string;
@@ -28,12 +28,18 @@ interface CtaSection {
     ctaUrl: string;
     ctaId: string;
 }
+// The gallery section carries a row of CTAs instead of one.
+interface CtaListSection {
+    tag: string;
+    heading: string;
+    ctas: HomepageCta[];
+}
 interface MapCard {
     heading: string;
     description: string;
 }
 interface HomepageSections {
-    gallery: Omit<CtaSection, 'subHeading'>;
+    gallery: CtaListSection;
     financial: CtaSection;
     maps: CtaSection & { cards: MapCard[] };
     integrated: { tag: string; heading: string; subHeadingHtml: string };
@@ -49,19 +55,20 @@ interface FaqItem {
     answer: string;
 }
 function ctaLink(title: string, url: string, siteRoot?: string): string {
-    return `[${title}](${toAbsoluteUrl(urlWithBaseUrl(url), siteRoot)})`;
+    return `[${title}](${toAbsoluteUrl(urlWithBaseUrl(withDefaultFramework(url)), siteRoot)})`;
 }
 
-function ctaSectionBlock(
-    section: { heading: string; subHeading?: string; ctaTitle?: string; ctaUrl?: string },
-    siteRoot?: string
-): string {
+type CtaSectionBlock = Partial<Omit<CtaSection, 'heading'>> & { heading: string; ctas?: HomepageCta[] };
+
+function ctaSectionBlock(section: CtaSectionBlock, siteRoot?: string): string {
     const parts = [`## ${section.heading}`];
     if (section.subHeading) {
         parts.push(section.subHeading);
     }
-    if (section.ctaTitle && section.ctaUrl) {
-        parts.push(ctaLink(section.ctaTitle, section.ctaUrl, siteRoot));
+    const ctas =
+        section.ctas ?? (section.ctaTitle && section.ctaUrl ? [{ title: section.ctaTitle, url: section.ctaUrl }] : []);
+    if (ctas.length) {
+        parts.push(ctas.map((cta) => ctaLink(cta.title, cta.url, siteRoot)).join(' | '));
     }
     return parts.join('\n\n');
 }

@@ -6,6 +6,7 @@ import { getPageHashUrl } from '@components/gallery/utils/urlPaths';
 import type { GalleryData, GalleryExample, GalleryExampleChartType } from '@ag-grid-types';
 import { GalleryExampleLink } from '@components/gallery/components/GalleryExampleLink';
 import { GalleryExampleThemeDropdown } from '@components/gallery/components/GalleryExampleThemeDropdown';
+import { GALLERY_CTAS } from '@components/gallery/galleryCtas';
 import { DISABLE_MARKDOWN_DOCS, GALLERY_IMAGE_DPR_ENHANCEMENT } from '@constants';
 import { getModifiedGalleryExamples } from '@components/gallery/utils/modifiedExamples';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
@@ -26,6 +27,24 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
     showSearchBar={true}
     markdownUrl={markdownUrl}
 >
+    <div class={styles.toolbar} data-gallery-toolbar>
+        <div class:list={[styles.toolbarInner, 'layout-page-max-width']}>
+            <div class={styles.toolbarTitleGroup}>
+                <h1>AG Charts Gallery</h1>
+                <div class={styles.toolbarCtas}>
+                    {
+                        GALLERY_CTAS.map((cta) => (
+                            <a id={cta.id} href={urlWithBaseUrl(cta.url)} class="button-tertiary">
+                                {cta.title} <Icon name="chevronRight" />
+                            </a>
+                        ))
+                    }
+                </div>
+            </div>
+            <GalleryExampleThemeDropdown client:only="react" />
+        </div>
+    </div>
+
     <div class="gallery-outer layout-grid text-sm">
         <div class="menu">
             <ul class="list-style-none">
@@ -51,10 +70,6 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
         </div>
 
         <div class="content">
-            <div class={styles.toolPanel}>
-                <h1>AG Charts Gallery</h1>
-                <GalleryExampleThemeDropdown client:only="react" />
-            </div>
             <div>
                 {
                     series.map((series: GalleryExampleChartType[]) => (
@@ -105,6 +120,11 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
         headings.push({ slug: id, depth: 1, text: anchor.text.trim() });
     });
 
+    // Measured, not read off --gallery-sticky-top: getPropertyValue returns that
+    // variable's calc() expression unevaluated.
+    const siteHeader = document.querySelector<HTMLElement>('.site-header');
+    const toolbar = document.querySelector<HTMLElement>('[data-gallery-toolbar]');
+
     scrollspy(
         headings,
         (slug) => {
@@ -112,7 +132,7 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
                 navItem.classList.toggle('active', navItem.getAttribute('href') === `#${slug}`);
             }
         },
-        { offset: 120 }
+        { offset: (siteHeader?.offsetHeight ?? 0) + (toolbar?.offsetHeight ?? 0) }
     );
 </script>
 
@@ -135,27 +155,27 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
     .menu {
         position: sticky;
         flex-shrink: 0;
-        max-height: calc(100vh - var(--layout-site-header-height));
+        max-height: calc(100vh - var(--gallery-sticky-top));
         width: var(--layout-width-3-12);
-        top: var(--layout-site-header-height);
+        top: var(--gallery-sticky-top);
         left: 0;
-        padding-top: $spacing-size-20;
+        padding-top: $spacing-size-4;
         background-color: var(--color-bg-primary);
         border-right: solid 1px var(--color-util-gray-200);
         overflow-y: scroll;
-
         @media screen and (max-width: $breakpoint-gallery-small) {
-            position: fixed;
             height: var(--layout-site-header-height);
-            width: 100%;
-            top: 120px;
-            left: 0;
+            // Vertical padding would grow the strip past --gallery-strip-height, which
+            // the anchor offsets are derived from.
             padding-top: 0;
+            width: calc(100% + var(--layout-horizontal-margins) * 2);
+            margin-left: calc(var(--layout-horizontal-margins) * -1);
+            margin-right: calc(var(--layout-horizontal-margins) * -1);
             padding-left: var(--layout-gap);
             background-color: var(--color-bg-toolbar);
             border-bottom: 1px solid var(--color-border-primary);
             overflow-x: scroll;
-            z-index: 1;
+            z-index: 10000;
         }
 
         @media screen and (min-width: $breakpoint-gallery-large) {
@@ -232,7 +252,7 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
         @media screen and (max-width: $breakpoint-gallery-small) {
             position: fixed;
             height: var(--layout-site-header-height);
-            top: var(--layout-site-header-height);
+            top: var(--gallery-sticky-top);
             left: auto;
             right: 0;
             width: $spacing-size-24;
@@ -242,28 +262,18 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
 
     .content {
         flex: 1;
-        padding-top: 140px;
+        padding-top: $spacing-size-6;
         padding-bottom: $spacing-size-24;
 
         > div {
             display: flex;
             flex-wrap: wrap;
             gap: var(--gallery-list-gap);
-            margin-top: $spacing-size-3;
         }
 
         @media screen and (min-width: $breakpoint-gallery-small) {
-            padding-top: $spacing-size-16;
             padding-bottom: $spacing-size-56;
         }
-
-        @media screen and (min-width: 1050px) {
-            padding-top: $spacing-size-4;
-        }
-    }
-
-    .chart-type:first-child {
-        padding-top: $spacing-size-4;
     }
 
     .chart-type,
