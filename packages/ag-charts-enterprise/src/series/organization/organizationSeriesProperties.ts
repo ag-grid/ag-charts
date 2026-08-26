@@ -183,10 +183,10 @@ class OrganizationSeriesLayoutProperties extends BaseProperties {
     type?: 'stacked';
 
     @Property
-    linkIndentation: number = 50;
+    linkIndentation: number = 26;
 
     @Property
-    nodeIndentation: number = 30;
+    nodeIndentation: number = 26;
 
     @Property
     stackAtDepth: number = 4;

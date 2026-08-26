@@ -24,8 +24,8 @@ const options: AgStandaloneChartOptions = {
             parentIdKey: 'parentId',
             layout: {
                 type: 'stacked',
-                linkIndentation: 50,
-                nodeIndentation: 30,
+                linkIndentation: 26,
+                nodeIndentation: 26,
                 stackAtDepth: 4,
             },
             node: {
