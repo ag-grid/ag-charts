@@ -16,6 +16,7 @@ import type {
     PlacedLabel,
     Point,
     PointLabelDatum,
+    PositionedCandidateResolver,
     RequireOptional,
 } from 'ag-charts-core';
 import {
@@ -45,9 +46,10 @@ const {
     updateLabelNode,
     buildBarLabelCandidates,
     createBarCandidateStyleResolver,
+    createBarPositionedCandidateResolver,
+    resolveBarLabelCandidate,
     expandPlacementLabelBoxExtent,
     fitLabelToContainerAutoSize,
-    styledBarLabelBox,
     SMALLEST_KEY_INTERVAL,
     LARGEST_KEY_INTERVAL,
     diff,
@@ -645,19 +647,26 @@ export abstract class BaseFunnelSeries<
             plotRegion: labelContext.plotRegion,
             fitted: labelContext.labelFit != null,
             text,
-            styleDatum: labelDatum,
-            resolveStyle: createBarCandidateStyleResolver(
-                this,
-                label,
-                this.labelStylerParams(),
-                undefined,
-                (placement) => labelContext.reportedPlacements[labelContext.placements.indexOf(placement)]
-            ),
         });
 
-        // The engine picks the first candidate that fits; the first is baked so rendering is correct
-        // even when the label never routes through the engine.
-        const [first] = candidates;
+        // The engine picks the first candidate that fits; the first is baked so rendering is correct even
+        // when the label never routes through the engine. A routed label is restyled per candidate by the
+        // engine, so only a label that stops here resolves its style now.
+        const [built] = candidates;
+        const first =
+            built == null || labelContext.routesThroughEngine
+                ? built
+                : resolveBarLabelCandidate(
+                      built,
+                      labelDatum,
+                      createBarCandidateStyleResolver(
+                          this,
+                          label,
+                          this.labelStylerParams(),
+                          undefined,
+                          (placement) => labelContext.reportedPlacements[labelContext.placements.indexOf(placement)]
+                      )
+                  );
         if (first != null) {
             labelDatum.x = first.anchor.x;
             labelDatum.y = first.anchor.y;
@@ -795,26 +804,11 @@ export abstract class BaseFunnelSeries<
         const { label } = this.properties;
         if (!this.usesPlacedLabels || !label.enabled) return [];
         const { alwaysShow, collideWith, threshold, measureBox, fitFor } = barLabelDataContext(label);
-        const stylerParams = this.labelStylerParams();
         const data: PointLabelDatum[] = [];
         for (const labelDatum of this.contextNodeData?.labelData ?? []) {
             if (labelDatum.text === '' || labelDatum.candidates == null) continue;
-            // The styler is promised the funnel-family placement, not the bar placement the geometry runs
-            // on, so this datum's own placement is what the resolver reports back.
-            const reported = labelDatum.placement ?? this.defaultLabelPlacement();
-            const styled = styledBarLabelBox(
-                createBarCandidateStyleResolver(this, label, stylerParams, undefined, () => reported),
-                labelDatum,
-                this.toBarPlacement(labelDatum.placement),
-                'horizontal',
-                labelDatum.text
-            );
-            const size = styled?.size ?? measureBox(labelDatum.text);
-            const configuredFit = fitFor(labelDatum.text);
-            const fit =
-                configuredFit == null || styled == null
-                    ? configuredFit
-                    : { ...configuredFit, font: styled.font, boxPadding: styled.boxPadding };
+            // Every label here cascades, so the engine resolves its styled box per candidate.
+            const size = measureBox(labelDatum.text);
             data.push(
                 buildBarPositionedLabelDatum(
                     labelDatum.text,
@@ -827,11 +821,17 @@ export abstract class BaseFunnelSeries<
                     collideWith,
                     threshold,
                     true,
-                    fit
+                    fitFor(labelDatum.text),
+                    labelDatum
                 )
             );
         }
         return data;
+    }
+
+    override getLabelCandidateResolver(): PositionedCandidateResolver | undefined {
+        const params = this.labelStylerParams();
+        return createBarPositionedCandidateResolver(this, this.properties.label, () => params);
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<FunnelNodeLabelDatum>[]) {
@@ -843,9 +843,6 @@ export abstract class BaseFunnelSeries<
     protected override resolveUsesPlacedLabels(): boolean {
         return barLabelPropsRouteThroughEngine(this.properties.label);
     }
-
-    /** The bar placement a public one maps onto, for the styled box a baked label reserves. */
-    protected abstract toBarPlacement(placement: FunnelLabelPlacement | undefined): _ModuleSupport.BarLabelPlacement;
 
     protected override getHighlightLabelData(
         _labelData: FunnelNodeLabelDatum[],

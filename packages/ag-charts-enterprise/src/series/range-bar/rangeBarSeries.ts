@@ -26,6 +26,7 @@ import {
     type PlacedLabel,
     type Point,
     type PointLabelDatum,
+    type PositionedCandidateResolver,
     type RequireOptional,
     applyBarLabelOrientation,
     applyPlacedBarLabelVisibility,
@@ -70,6 +71,7 @@ const {
     fitLabelToContainerAutoSize,
     buildBarLabelCandidates,
     createBarCandidateStyleResolver,
+    createBarPositionedCandidateResolver,
     styledBarLabelBox,
     toResolvedPlacement,
     updateLabelNode,
@@ -1146,15 +1148,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             const orientations = toArray(label.orientation);
             if (orientations.length === 0) orientations.push('horizontal');
             const plotRegion = this.resolveLabelPlotRegion(label.collision);
-            const resolveStyle =
-                label.itemStyler == null
-                    ? undefined
-                    : createBarCandidateStyleResolver(this, label, this.makeLabelStylerParams());
-            const buildCandidates = (
-                text: NormalisedTextOrSegments,
-                end: 'start' | 'end',
-                styleDatum: RangeBarNodeLabelDatum
-            ) => {
+            const buildCandidates = (text: NormalisedTextOrSegments, end: 'start' | 'end') => {
                 const size = measureLabelText(text, label);
                 return buildBarLabelCandidates({
                     // A reversed value axis flips which rect edge the start/end candidates anchor to.
@@ -1170,12 +1164,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                     plotRegion,
                     fitted: ctx.labelFit != null,
                     text,
-                    styleDatum,
-                    resolveStyle,
                 });
             };
-            bakeFirstCandidate(low, buildCandidates(yLowText, 'start', labels[0]));
-            bakeFirstCandidate(high, buildCandidates(yHighText, 'end', labels[1]));
+            bakeFirstCandidate(low, buildCandidates(yLowText, 'start'));
+            bakeFirstCandidate(high, buildCandidates(yHighText, 'end'));
         } else {
             low.candidates = undefined;
             high.candidates = undefined;
@@ -1447,24 +1439,19 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 );
                 continue;
             }
-            // A styler resolves the box per placement × orientation; on the orientation-only route below the
-            // placement is baked, so the styled geometry is resolved at the first orientation.
-            const styled = styledBarLabelBox(
-                resolveStyle,
-                labelDatum,
-                labelDatum.placement ?? `inside-${labelDatum.itemType === 'low' ? 'start' : 'end'}`,
-                firstOrientation,
-                labelDatum.text
-            );
-            const size = styled?.size ?? measureBox(labelDatum.text);
             const configuredFit = fitFor(labelDatum.text);
-            const fit =
-                configuredFit == null || styled == null
-                    ? configuredFit
-                    : { ...configuredFit, font: styled.font, boxPadding: styled.boxPadding };
             // A cascading label carries pre-positioned candidates; an orientation-only array resolves its
             // orientation against the bar region via the baked path.
             if (labelDatum.candidates == null) {
+                // A styler resolves the box per placement × orientation; on this route the placement is
+                // baked, so the styled geometry is resolved at the first orientation.
+                const styled = styledBarLabelBox(
+                    resolveStyle,
+                    labelDatum,
+                    labelDatum.placement ?? `inside-${labelDatum.itemType === 'low' ? 'start' : 'end'}`,
+                    firstOrientation,
+                    labelDatum.text
+                );
                 // A label its styler disabled reserves nothing and blocks no neighbour. Only the baked
                 // route needs this; the engine skips hidden candidates on the cascading one itself.
                 if (styled?.hidden === true) continue;
@@ -1472,13 +1459,18 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                     ...buildBarLabelData([labelDatum], () => ({
                         label: labelDatum,
                         config: label,
-                        size,
+                        size: styled?.size ?? measureBox(labelDatum.text),
                         collideWith,
                         threshold,
-                        fit,
+                        fit:
+                            configuredFit == null || styled == null
+                                ? configuredFit
+                                : { ...configuredFit, font: styled.font, boxPadding: styled.boxPadding },
                     }))
                 );
             } else {
+                // Each candidate carries the box its own style resolves.
+                const size = measureBox(labelDatum.text);
                 const ownBox = labelDatum.ownBox ?? { x: labelDatum.x, y: labelDatum.y, width: 0, height: 0 };
                 data.push(
                     buildBarPositionedLabelDatum(
@@ -1492,12 +1484,18 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                         collideWith,
                         threshold,
                         true,
-                        fit
+                        configuredFit,
+                        labelDatum
                     )
                 );
             }
         }
         return data;
+    }
+
+    override getLabelCandidateResolver(): PositionedCandidateResolver | undefined {
+        const params = this.makeLabelStylerParams();
+        return createBarPositionedCandidateResolver(this, this.properties.label, () => params);
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<RangeBarNodeLabelDatum>[]) {

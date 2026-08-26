@@ -107,10 +107,6 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
         };
     }
 
-    protected override toBarPlacement(placement: AgConeFunnelSeriesLabelPlacement | undefined) {
-        return CONE_FUNNEL_TO_BAR_PLACEMENT[placement ?? this.defaultLabelPlacement()];
-    }
-
     protected override updateDatumNodes(opts: {
         datumSelection: _ModuleSupport.Selection<FunnelNodeDatum, _ModuleSupport.Line<FunnelNodeDatum>>;
         isHighlight: boolean;

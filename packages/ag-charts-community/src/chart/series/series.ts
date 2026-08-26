@@ -15,6 +15,7 @@ import type {
     PlacedLabel,
     Point,
     PointLabelDatum,
+    PositionedCandidateResolver,
     RequireOptional,
     SeriesLabelDefaults,
     SeriesPluginModuleInstance,
@@ -1193,6 +1194,9 @@ export abstract class Series<
         return undefined;
     }
     public getLabelCandidateStyler(): CandidateStyleResolver | undefined {
+        return undefined;
+    }
+    public getLabelCandidateResolver(): PositionedCandidateResolver | undefined {
         return undefined;
     }
     public updatePlacedLabelData(_labels: PlacedLabel<TLabel>[]) {

@@ -84,6 +84,7 @@ export class LabelManager {
                     datums: labelData,
                     defaults: series.getLabelDefaults?.(),
                     resolveCandidateStyle: series.getLabelCandidateStyler?.(),
+                    resolveCandidate: series.getLabelCandidateResolver?.(),
                 });
             } else {
                 const carried = previous.get(series.id);
