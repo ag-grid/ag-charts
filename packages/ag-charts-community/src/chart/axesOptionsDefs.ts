@@ -90,6 +90,8 @@ export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOp
     padding: signedPadding,
     border: borderOptionsDef,
     cornerRadius: number,
+    overflow: union('pad-chart', 'realign-text', 'clip-text'),
+    avoidCollisions: boolean,
     ...fontOptionsDef,
     ...fillOptionsDef,
 };

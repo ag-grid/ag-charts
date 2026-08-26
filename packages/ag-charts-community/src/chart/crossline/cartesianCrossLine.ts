@@ -1,8 +1,18 @@
-import { BaseProperties, Property, clampArray, createId, findMinMax, toRadians } from 'ag-charts-core';
-import type { CanvasPoint, Scale } from 'ag-charts-core';
+import {
+    BaseProperties,
+    Property,
+    cachedTextMeasurer,
+    clampArray,
+    createId,
+    findMinMax,
+    fitLabelText,
+    toRadians,
+} from 'ag-charts-core';
+import type { BoxBounds, CanvasPoint, Scale } from 'ag-charts-core';
 import type {
     AgCartesianAxisPosition,
     AgCartesianCrossLineLabelOptions,
+    AgCrossLineLabelOverflow,
     AgCrossLineLabelPosition,
     AgCrossLineListeners,
     Padding,
@@ -109,6 +119,35 @@ const verticalRangeAnchors: Record<AgCrossLineLabelPosition, Anchor> = {
     inside: { rangeH: 0, rangeV: 0, labelH: 0, labelV: 0 },
 };
 
+/**
+ * Mirrors an outward-facing anchor back across the cross line. The guards match
+ * {@link CartesianCrossLine.calculatePadding}'s exactly, so a realigned label can never demand padding.
+ */
+function realignAnchor(anchor: Anchor, horizontal: boolean): Anchor {
+    if (horizontal) {
+        if (anchor.rangeH === -1 && anchor.labelH === 1) return { ...anchor, labelH: -1 };
+        if (anchor.rangeH === 1 && anchor.labelH === -1) return { ...anchor, labelH: 1 };
+    } else {
+        if (anchor.rangeV === -1 && anchor.labelV === 1) return { ...anchor, labelV: -1 };
+        if (anchor.rangeV === 1 && anchor.labelV === -1) return { ...anchor, labelV: 1 };
+    }
+    return anchor;
+}
+
+/** A rotation component below this is a rounding artefact, not a real one, and must not divide a bound. */
+const ROTATION_EPSILON = 1e-6;
+
+/**
+ * Room the label has along one axis, measured from the point its anchor pins rather than from the box it
+ * would draw untruncated. `labelDir` is the anchor's `labelH`/`labelV`: the label grows away from
+ * `anchorAt` when that is `1` or `-1`, and symmetrically about it when it is `0`.
+ */
+function availableExtent(anchorAt: number, labelDir: AnchorDirection, pad: number, low: number, high: number) {
+    if (labelDir === 1) return anchorAt - pad - low;
+    if (labelDir === -1) return high - (anchorAt + pad);
+    return 2 * Math.min(anchorAt - low, high - anchorAt);
+}
+
 class CartesianCrossLineLabel extends LabelStyle implements AgCartesianCrossLineLabelOptions {
     @Property
     enabled!: boolean;
@@ -121,6 +160,12 @@ class CartesianCrossLineLabel extends LabelStyle implements AgCartesianCrossLine
 
     @Property
     position?: CrossLineLabelPosition;
+
+    @Property
+    overflow?: AgCrossLineLabelOverflow;
+
+    @Property
+    avoidCollisions?: boolean;
 
     @Property
     rotation?: number;
@@ -184,6 +229,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     clippedRange: [number, number] = [-Infinity, Infinity];
     gridLength: number = 0;
     gridPadding: number = 0;
+    containerBox?: BoxBounds = undefined;
     position: AgCartesianAxisPosition = 'top';
 
     get defaultLabelPosition(): AgCrossLineLabelPosition {
@@ -353,6 +399,9 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         const { label } = this;
         if (label.enabled !== false && label.text) {
             this.updateLabel();
+            if (label.overflow === 'clip-text') {
+                this.clipLabelText(bounds);
+            }
             this.positionLabel(bounds);
         }
     }
@@ -397,6 +446,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
         crossLineLabel.fill = label.color;
         crossLineLabel.text = label.text;
+        crossLineLabel.rotation = toRadians(label.rotation ?? 0);
         crossLineLabel.textAlign = 'center';
         crossLineLabel.textBaseline = 'middle';
         crossLineLabel.setFont(label);
@@ -406,40 +456,87 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     private get anchor(): Anchor {
         const horizontal = this.position === 'left' || this.position === 'right';
         const range = this.type === 'range';
-        const { position = this.defaultLabelPosition } = this.label;
+        const { position = this.defaultLabelPosition, overflow } = this.label;
 
+        let anchors;
         if (range) {
-            const anchors = horizontal ? horizontalRangeAnchors : verticalRangeAnchors;
-            return anchors[position];
+            anchors = horizontal ? horizontalRangeAnchors : verticalRangeAnchors;
         } else {
-            const anchors = horizontal ? horizontalLineAnchors : verticalLineAnchors;
-            return anchors[position];
+            anchors = horizontal ? horizontalLineAnchors : verticalLineAnchors;
+        }
+
+        const anchor = anchors[position];
+        if (overflow !== 'realign-text') return anchor;
+        return realignAnchor(anchor, horizontal);
+    }
+
+    /** Offsets `positionLabel` applies to the anchor point, shared so both agree on where the box sits. */
+    private labelAnchorOffsets() {
+        const {
+            crossLineLabel,
+            label: { padding },
+        } = this;
+        const numeric = typeof padding === 'number';
+        return {
+            pad: numeric && !crossLineLabel.hasBoxing() ? padding : 0,
+            xPaddingDiff: numeric ? 0 : (padding.right ?? 0) - (padding.left ?? 0),
+            yPaddingDiff: numeric ? 0 : (padding.bottom ?? 0) - (padding.top ?? 0),
+        };
+    }
+
+    /**
+     * Truncates a `'clip-text'` label with an ellipsis so its box stays inside the chart container. The
+     * label keeps its configured position, so the room available is measured from the anchor point, which
+     * truncation does not move — a box-relative bound would shift as the text shortened and never settle.
+     */
+    private clipLabelText(bounds: BBox) {
+        const { crossLineLabel, containerBox, label, anchor } = this;
+        const { text } = label;
+        if (containerBox == null || !text) return;
+
+        const bbox = crossLineLabel.getBBox();
+        if (!bbox) return;
+
+        const { x, y, width, height } = containerBox;
+        const container = Transformable.fromCanvas(this.labelGroup, new BBox(x, y, width, height));
+        const { pad, xPaddingDiff, yPaddingDiff } = this.labelAnchorOffsets();
+        const anchorX = bounds.x + (bounds.width * (anchor.rangeH + 1)) / 2 - xPaddingDiff / 2;
+        const anchorY = bounds.y + (bounds.height * (anchor.rangeV + 1)) / 2 - yPaddingDiff / 2;
+        const availableX = availableExtent(anchorX, anchor.labelH, pad, container.x, container.x + container.width);
+        const availableY = availableExtent(anchorY, anchor.labelV, pad, container.y, container.y + container.height);
+
+        // The drawn box is the rotated footprint of the text plus whatever boxing pads it by, so its extent
+        // along either axis is `textWidth * component + a constant` — solving for the text width keeps the
+        // boxing padding out of the arithmetic entirely.
+        const textWidth = cachedTextMeasurer(label).measureLines(text).width;
+        const cos = Math.abs(Math.cos(crossLineLabel.rotation));
+        const sin = Math.abs(Math.sin(crossLineLabel.rotation));
+        let maxWidth = Infinity;
+        // An anchor pinned outside the container has no room to measure; leave such a label as authored.
+        if (cos > ROTATION_EPSILON && availableX > 0) {
+            maxWidth = Math.min(maxWidth, (availableX - (bbox.width - textWidth * cos)) / cos);
+        }
+        if (sin > ROTATION_EPSILON && availableY > 0) {
+            maxWidth = Math.min(maxWidth, (availableY - (bbox.height - textWidth * sin)) / sin);
+        }
+        if (maxWidth <= 0 || maxWidth >= textWidth) return;
+
+        const fitted = fitLabelText(text, { maxWidth, wrapping: 'never', overflowStrategy: 'ellipsis' }, label);
+        if (typeof fitted === 'string') {
+            crossLineLabel.text = fitted;
         }
     }
 
     private positionLabel(bounds: BBox) {
-        const {
-            crossLineLabel,
-            label: { padding, rotation },
-            anchor,
-        } = this;
-
-        crossLineLabel.rotation = toRadians(rotation ?? 0);
+        const { crossLineLabel, anchor } = this;
 
         const bbox = crossLineLabel.getBBox();
         if (!bbox) return;
         const { width, height } = bbox;
 
-        const xPaddingDiff = typeof padding === 'number' ? 0 : (padding.right ?? 0) - (padding.left ?? 0);
-        const yPaddingDiff = typeof padding === 'number' ? 0 : (padding.bottom ?? 0) - (padding.top ?? 0);
-
-        let xOffset = width / 2;
-        let yOffset = height / 2;
-
-        if (typeof padding === 'number' && !crossLineLabel.hasBoxing()) {
-            xOffset += padding;
-            yOffset += padding;
-        }
+        const { pad, xPaddingDiff, yPaddingDiff } = this.labelAnchorOffsets();
+        const xOffset = width / 2 + pad;
+        const yOffset = height / 2 + pad;
 
         const x = bounds.x + (bounds.width * (anchor.rangeH + 1)) / 2 - xOffset * anchor.labelH - xPaddingDiff / 2;
         const y = bounds.y + (bounds.height * (anchor.rangeV + 1)) / 2 - yOffset * anchor.labelV - yPaddingDiff / 2;
@@ -472,9 +569,11 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
     calculatePadding(into: Partial<Record<AgCrossLineLabelPosition, number>>) {
         const {
-            label: { padding },
+            label: { padding, overflow },
             anchor,
         } = this;
+
+        if (overflow !== 'pad-chart') return;
 
         const size = this.computeLabelSize();
         if (!size) return;

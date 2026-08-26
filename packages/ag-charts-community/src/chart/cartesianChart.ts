@@ -31,6 +31,28 @@ interface State {
 
 const directions: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left'];
 
+/** Share of the space left over by the axes that cross-line labels may claim on one dimension. */
+const CROSS_LINE_PADDING_SLACK_RATIO = 0.5;
+
+/**
+ * Scales an opposing pair of cross-line paddings down proportionally so together they claim no more
+ * than their share of `slack`, keeping the series area non-empty however long a label is.
+ */
+function clampPaddingPair(
+    padding: Record<'top' | 'right' | 'bottom' | 'left', number>,
+    low: 'left' | 'top',
+    high: 'right' | 'bottom',
+    slack: number
+) {
+    const total = padding[low] + padding[high];
+    const budget = Math.max(slack, 0) * CROSS_LINE_PADDING_SLACK_RATIO;
+    if (total <= budget) return;
+
+    const scale = total > 0 ? budget / total : 0;
+    padding[low] *= scale;
+    padding[high] *= scale;
+}
+
 interface SyncModule extends ModuleInstance {
     enabled?: boolean;
     getSyncedDomain(axis: ChartAxis): Promise<any[] | undefined>;
@@ -277,16 +299,14 @@ export class CartesianChart extends Chart {
         const totalHeight = (axisAreaWidths.get('top') ?? 0) + (axisAreaWidths.get('bottom') ?? 0);
         const crossLinePadding = this.buildCrossLinePadding(axisAreaWidths);
 
-        const crossLineHPadding = crossLinePadding.left + crossLinePadding.right;
-        const crossLineVPadding = crossLinePadding.top + crossLinePadding.bottom;
-
-        if (
-            axisAreaBound.width <= totalWidth + crossLineHPadding ||
-            axisAreaBound.height <= totalHeight + crossLineVPadding
-        ) {
+        if (axisAreaBound.width <= totalWidth || axisAreaBound.height <= totalHeight) {
             // Not enough space for rendering
             overflows = true;
         } else {
+            // A cross-line label demanding more room than is spare must not blank the chart, so its
+            // request is scaled down to the slack budget instead of failing the whole layout.
+            clampPaddingPair(crossLinePadding, 'left', 'right', axisAreaBound.width - totalWidth);
+            clampPaddingPair(crossLinePadding, 'top', 'bottom', axisAreaBound.height - totalHeight);
             axisAreaBound.shrink(crossLinePadding);
         }
 

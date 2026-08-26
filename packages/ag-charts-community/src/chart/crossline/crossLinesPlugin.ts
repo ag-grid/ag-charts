@@ -145,9 +145,12 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     onAxisUpdate(): void {
         const visible = this.axisCtx.hasDefinedDomain() || this.axisCtx.hasVisibleSeries();
         const { gridPadding } = this.axisCtx;
+        const { width, height } = this.ctx.scene;
+        const containerBox = { x: 0, y: 0, width, height };
         const polar = this.axisCtx.getPolarLayout?.();
         for (const crossLine of this.instances) {
             crossLine.gridPadding = gridPadding;
+            crossLine.containerBox = containerBox;
             if (polar) (crossLine as PolarCrossLine).applyPolarLayout(polar);
             crossLine.update(visible);
         }
