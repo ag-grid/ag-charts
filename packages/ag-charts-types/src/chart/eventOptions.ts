@@ -28,7 +28,7 @@ interface AgCoordinatedEvent {
 }
 
 export interface AgBaseNodeClickEvent<TEvent extends string, TDatum, TContext = ContextDefault>
-    extends AgChartEvent<TEvent, TContext>, AgPreventableEvent, AgCoordinatedEvent, AgNodeParams<TDatum> {
+    extends AgChartEvent<TEvent, TContext>, AgPreventableEvent, AgCoordinatedEvent, AgNodeClickParams<TDatum> {
     /** Event type. */
     type: TEvent;
 }
@@ -38,15 +38,15 @@ export interface AgNodeClickEvent<
     TDatum,
     TContext = ContextDefault,
 > extends AgBaseNodeClickEvent<TEvent, TDatum, TContext> {
-    /** TODO: writeme */
-    allNodeParams: AgNodeParams<TDatum>[];
+    /** Every click event that matched at the click point, including the winning scope carred by these root params. */
+    allClickParams: AgNodeClickParams<TDatum>[];
 }
 
 /**
  * Everything a node event reports about the picked datum itself, i.e. an {@link AgNodeClickEvent} minus the
  * event-delivery fields. Most fields are optional, because each series type only sets the properties applicable to it.
  */
-export interface AgNodeParams<TDatum> {
+export interface AgNodeClickParams<TDatum> {
     /** Series ID, as specified in `series.id` (or generated if not specified) */
     seriesId: string;
     /** The unique identifier of the picked datum. */

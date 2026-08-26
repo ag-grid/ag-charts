@@ -40,7 +40,7 @@ export function trapezoidFitRegion(trapezoid: TrapezoidBounds, anchorSpan: numbe
 
 /**
  * A region probed from a containment test, for shapes with no closed form: at each band the horizontal
- * reach is bisected outward from the anchor on both sides, and the two are reported as they are, so a
+ * reach is scanned outward from the anchor on both sides, and the two are reported as they are, so a
  * caller can use the wider side rather than folding it away.
  *
  * A band is tested at `rows` evenly spaced rows rather than at its two edges alone, because the shapes
@@ -50,7 +50,7 @@ export function trapezoidFitRegion(trapezoid: TrapezoidBounds, anchorSpan: numbe
  *
  * Nor is containment monotonic along the ray, for the same reason: a wide annulus sector is left through
  * its hole and entered again beyond it, so a plain bisection over `[0, limit]` can settle on the far arm
- * and report room across the gap. The reach is therefore bracketed by a coarse outward scan of `scans`
+ * and report room across the gap. The reach is therefore bracketed by a coarse outward scan of `probes`
  * samples first, and bisected only inside the interval where the shape was first left.
  */
 export function probedFitRegion(
@@ -59,50 +59,58 @@ export function probedFitRegion(
     limit: number,
     steps = 20,
     rows = 5,
-    scans = 8
+    probes = 16
 ): FitRegion {
-    const probe = (inside: (t: number) => boolean) => {
-        const coarse = Math.max(1, scans);
-        let lo = 0;
-        let hi = limit;
-        for (let i = 1; i <= coarse; i += 1) {
-            const t = (limit * i) / coarse;
-            if (!inside(t)) {
-                hi = t;
-                break;
-            }
-            lo = t;
-        }
-        if (lo === limit) return limit;
-        for (let i = 0; i < steps; i += 1) {
-            const t = (lo + hi) / 2;
-            if (inside(t)) {
-                lo = t;
-            } else {
-                hi = t;
-            }
-        }
-        return lo;
-    };
     const reach = (top: number, bottom: number, direction: number) => {
         const sampled = Math.max(2, rows);
         const step = (bottom - top) / (sampled - 1);
-        return probe((t) => {
+        const insideBand = (t: number) => {
             const x = anchor.x + direction * t;
             for (let i = 0; i < sampled; i += 1) {
                 if (!contains(x, anchor.y + top + step * i)) return false;
             }
             return true;
-        });
+        };
+        return firstOutside(insideBand, limit, probes, steps);
     };
-    const vertical = (direction: number) => probe((t) => contains(anchor.x, anchor.y + direction * t));
+    const vertical = (direction: number) =>
+        firstOutside((t) => contains(anchor.x, anchor.y + direction * t), limit, probes, steps);
     return {
-        // Wrapping asks for the same band once per candidate word, and each ask is a pair of bisections
-        // over a containment test, so the answer is memoised for the label's own short-lived region.
+        // Wrapping asks for the same band once per candidate word, and each ask is a pair of outward
+        // scans over a containment test, so the answer is memoised for the label's own short-lived region.
         spanAt: memoiseByBand((top, bottom) => [-reach(top, bottom, -1), reach(top, bottom, 1)]),
         extentAbove: vertical(-1),
         extentBelow: vertical(1),
     };
+}
+
+// Scanned outward, then bisected within the step that crossed: a ray out of an annulus sector re-enters
+// it beyond the hole, so bisecting the whole limit could land past the hole and carry the reach across it.
+// The scan resolves a gap only as narrow as `limit / probes`, so a hole thinner than one step is still
+// crossed — bounded sampling, not a guarantee.
+function firstOutside(inside: (t: number) => boolean, limit: number, probes: number, steps: number): number {
+    const count = Math.max(1, probes);
+    const step = limit / count;
+    let lo = 0;
+    let hi = limit;
+    for (let i = 1; i <= count; i += 1) {
+        const t = Math.min(i * step, limit);
+        if (!inside(t)) {
+            hi = t;
+            break;
+        }
+        lo = t;
+    }
+    if (lo >= limit) return limit;
+    for (let i = 0; i < steps; i += 1) {
+        const t = (lo + hi) / 2;
+        if (inside(t)) {
+            lo = t;
+        } else {
+            hi = t;
+        }
+    }
+    return lo;
 }
 
 function memoiseByBand(spanAt: (top: number, bottom: number) => readonly [number, number]) {

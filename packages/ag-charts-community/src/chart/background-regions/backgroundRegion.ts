@@ -9,5 +9,5 @@ export interface BackgroundRegion {
     xAxis?: AxisContext;
     yAxis?: AxisContext;
     setOptions(opts: NormalisedSeriesAreaBackgroundRegion): void;
-    update(): void;
+    update(index: number): void;
 }

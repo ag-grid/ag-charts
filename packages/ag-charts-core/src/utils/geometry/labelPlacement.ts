@@ -12,6 +12,7 @@ import {
     findLargestFontSizeDescending,
     fitLabelTextOrOverflowAutoSize,
     fontWithSize,
+    hasRealChars,
     isErased,
     resolveMinimumFontSize,
 } from '../text/textWrapper';
@@ -941,16 +942,69 @@ export function barLabelResolvesPlacement(placement: unknown): boolean {
 }
 
 /**
+ * Whether a bar-family label takes the positioned-candidate route rather than its unconditional
+ * fast-path bake: a multi-entry placement array cascades through obstacles, a hideable label
+ * (`alwaysShow: false`) routes even a single placement so a no-fit label can be dropped, and a label
+ * that opted into overflow control routes so an obstacle can be answered by shrinking into the room it
+ * leaves rather than by overlapping it — unless an orientation array already routes it, which resolves
+ * the same fit against the bar region on the cheaper baked path.
+ */
+export function barLabelUsesPositionedCandidates(
+    orientation: AgChartLabelOrientation | AgChartLabelOrientation[] | undefined,
+    placement: unknown,
+    alwaysShow: boolean,
+    fit: LabelFit | undefined
+): boolean {
+    return (
+        barLabelResolvesPlacement(placement) ||
+        !alwaysShow ||
+        (fit != null && !barLabelResolvesOrientation(orientation))
+    );
+}
+
+/**
  * Whether a bar-family label must route through the placement engine rather than take its unconditional
- * fast-path bake: a multi-entry orientation or placement array cascades through obstacles, and a hideable
- * label (`alwaysShow: false`) routes even a single placement so a no-fit label can be dropped and hidden.
+ * fast-path bake: an orientation array resolves against the bar region, and a placement array, a hideable
+ * label or a fit policy cascades through {@link barLabelUsesPositionedCandidates}.
  */
 export function barLabelRoutesThroughEngine(
     orientation: AgChartLabelOrientation | AgChartLabelOrientation[] | undefined,
     placement: unknown,
-    alwaysShow: boolean
+    alwaysShow: boolean,
+    fit: LabelFit | undefined
 ): boolean {
-    return barLabelResolvesOrientation(orientation) || barLabelResolvesPlacement(placement) || !alwaysShow;
+    return (
+        barLabelResolvesOrientation(orientation) || barLabelResolvesPlacement(placement) || !alwaysShow || fit != null
+    );
+}
+
+/** The label-surface fields a routing decision reads, so a caller hands over its label, not four arguments. */
+export interface BarLabelRoutingOptions extends LabelFitOptions {
+    readonly orientation?: AgChartLabelOrientation | AgChartLabelOrientation[];
+    readonly placement?: unknown;
+    readonly collision: { readonly alwaysShow: boolean };
+}
+
+/** {@link barLabelRoutesThroughEngine} for a whole label surface, resolving its own fit policy. */
+export function barLabelPropsRouteThroughEngine(label: BarLabelRoutingOptions): boolean {
+    const alwaysShow = label.collision.alwaysShow;
+    return barLabelRoutesThroughEngine(
+        label.orientation,
+        label.placement,
+        alwaysShow,
+        resolveLabelFit(label, !alwaysShow)
+    );
+}
+
+/** {@link barLabelUsesPositionedCandidates} for a whole label surface, resolving its own fit policy. */
+export function barLabelPropsUsePositionedCandidates(label: BarLabelRoutingOptions): boolean {
+    const alwaysShow = label.collision.alwaysShow;
+    return barLabelUsesPositionedCandidates(
+        label.orientation,
+        label.placement,
+        alwaysShow,
+        resolveLabelFit(label, !alwaysShow)
+    );
 }
 
 /** Measured size of a label's text or rich-text segments under the given font. */
@@ -1146,19 +1200,28 @@ let candidateOwnBox: BoxBounds | undefined;
 // own-box gate (range-bar's two labels share one bar rect and must still avoid each other).
 let candidateOwnBoxLabelsCollide = false;
 // The label's text/box after the fit step, reused per candidate to keep the hot path allocation-free.
-// `dropped` ranks candidates when none holds the full text; `fontSize` is the auto-sized reduction.
+// `dropped` is how many characters truncation removed and `shrink` how much of the source text's area the
+// glyph gave up, ranking candidates when none holds the full text at full size; `fontSize` is the
+// auto-sized reduction. `maxWidth`/`maxHeight` are the glyph budget that produced it (`Infinity` when
+// unbounded), which a shrink pass narrows further.
 const fittedLabel: {
     text: NormalisedTextOrSegments;
     width: number;
     height: number;
     dropped: number;
+    shrink: number;
     fontSize: number | undefined;
+    maxWidth: number;
+    maxHeight: number;
 } = {
     text: '',
     width: 0,
     height: 0,
     dropped: 0,
+    shrink: 0,
     fontSize: undefined,
+    maxWidth: Infinity,
+    maxHeight: Infinity,
 };
 // The fit policy bounded by the current candidate's container, refilled per candidate.
 const boundedFit: {
@@ -1175,6 +1238,10 @@ const boundedFit: {
 let candidateFontSize: number | undefined;
 // Size the collision-shrink search is currently re-running the cascade at, `undefined` outside a trial.
 let candidateTrialFontSize: number | undefined;
+// True while a candidate is being re-fitted to the room its obstacles leave. That pass trades text for
+// room, never font size: shrinking the font to clear a neighbour is the ladder's job (see
+// {@link shrinkToClear}), which runs once per label over every candidate rather than per candidate.
+let refittingToObstacles = false;
 // The candidate font at the trial size, refilled per candidate while a trial is running.
 const trialFont: FontOptions = { fontSize: 0 };
 
@@ -1203,6 +1270,7 @@ let cascadeFitSource: { width: number; height: number } | undefined;
 let cascadeGap = 0;
 let cascadeSpacing = 0;
 let cascadeInflate = 0;
+let cascadeThreshold = 0;
 let cascadeContainThreshold = 0;
 let cascadeRawRegion: BoxBounds;
 let cascadeRegion: BoxBounds;
@@ -1287,7 +1355,8 @@ function worstObstacleOverlap(o: LabelObstacle): void {
     }
 }
 
-function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
+/** True when `o` is one of the obstacles the candidate is allowed to sit on, so no test applies to it. */
+function obstacleExcluded(o: LabelObstacle): boolean {
     const category = o.category ?? 'seriesItem';
     // An `inside` label is centred on its own anchor marker, so it can never be said to avoid it;
     // directional labels fall through to the circle test, which measures their real clearance.
@@ -1299,7 +1368,7 @@ function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
         o.cy === candidateOwnMarkerCy &&
         o.r === candidateOwnMarkerR
     ) {
-        return false;
+        return true;
     }
 
     // An inside label never collides with the shape it sits on, so anything overlapping its own box is
@@ -1309,21 +1378,26 @@ function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
         !(candidateOwnBoxLabelsCollide && category === 'label') &&
         boxCollides(o.box, candidateOwnBox.x, candidateOwnBox.y, candidateOwnBox.width, candidateOwnBox.height)
     ) {
-        return false;
+        return true;
     }
 
-    if (candidateCollideWith?.[category] === false) return false;
+    return candidateCollideWith?.[category] === false;
+}
 
-    // Grow (positive) or shrink (negative) the candidate box by the collision threshold before testing.
+/**
+ * The box obstacles are tested against: the candidate box grown (positive threshold) or shrunk (negative)
+ * by the collision threshold. `undefined` when a negative threshold collapses it past its own extent,
+ * meaning the label tolerates any overlap rather than testing an inverted box.
+ */
+function candidateTestBox(): BoxBounds | undefined {
     // No inflation (the common case, threshold 0): test the candidate box directly.
-    let testBox = candidateBox;
-    if (candidateThreshold !== 0) {
-        inflateBoxInto(inflatedBox, candidateBox, candidateThreshold);
-        // A negative threshold that shrinks the box past its own extent means the label tolerates any
-        // overlap on that axis; a collapsed box clears every obstacle rather than testing an inverted one.
-        if (inflatedBox.width <= 0 || inflatedBox.height <= 0) return false;
-        testBox = inflatedBox;
-    }
+    if (candidateThreshold === 0) return candidateBox;
+    inflateBoxInto(inflatedBox, candidateBox, candidateThreshold);
+    if (inflatedBox.width <= 0 || inflatedBox.height <= 0) return undefined;
+    return inflatedBox;
+}
+
+function obstacleOverlapsBox(o: LabelObstacle, testBox: BoxBounds): boolean {
     const { x, y, width, height } = testBox;
     switch (o.kind) {
         case 'circle':
@@ -1333,6 +1407,188 @@ function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
         case 'custom':
             return o.overlaps(testBox);
     }
+}
+
+function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
+    if (obstacleExcluded(o)) return false;
+    const testBox = candidateTestBox();
+    return testBox != null && obstacleOverlapsBox(o, testBox);
+}
+
+/** Side of the candidate box a shrink brings in to clear an obstacle. */
+type RetreatSide = 'left' | 'right' | 'top' | 'bottom';
+
+// How far each side of the candidate box has to come in to clear the obstacles it hits, written by
+// `measureShrinkReduction`. A shrink spends the sum of an axis' pair on that axis' extent, and slides a
+// centred box by half their difference so the room it gives up comes off the side the obstacle is on.
+const shrinkIntrusion: Record<RetreatSide, number> = { left: 0, right: 0, top: 0, bottom: 0 };
+// Extent reduction and post-recentre translation those intrusions add up to.
+const shrinkReduction = { width: 0, height: 0 };
+const shrinkSlide: Point = { x: 0, y: 0 };
+// Which edge of the box the placement pins against its anchor: positive the min edge (left/top), negative
+// the max edge (right/bottom), zero neither — a centred box, whose every edge a shrink can move.
+let shrinkPinX = 0;
+let shrinkPinY = 0;
+// Least retreat worth taking off each axis: a re-fit answering obstacles may not shrink the font, so height
+// only comes back a whole line at a time and any smaller reduction returns the box unchanged.
+let shrinkFloorX = 0;
+let shrinkFloorY = 0;
+// The obstacle's extent across the candidate's own span on the other axis.
+const obstacleSpan = { min: 0, max: 0 };
+// The four retreats one obstacle offers, refilled per obstacle: how far each side must come in, or
+// `Infinity` for a side the box cannot afford to move that far.
+const sideRetreat: Record<RetreatSide, number> = { left: Infinity, right: Infinity, top: Infinity, bottom: Infinity };
+const RETREAT_SIDES: readonly RetreatSide[] = ['left', 'right', 'top', 'bottom'];
+
+/** True when a shrink can bring that edge of the box in, rather than the placement pinning it in place. */
+function sideRetreats(pin: number, isMinEdge: boolean): boolean {
+    return pin === 0 || pin > 0 !== isMinEdge;
+}
+
+/**
+ * Writes the obstacle's horizontal extent across `[top, bottom]` into {@link obstacleSpan}. A circle is
+ * measured at the half-width it really has where the label sits, not at its bounding box's corner, which
+ * would have the label retreat from room the marker never occupies. A custom shape has no such narrowing
+ * to offer, so it keeps its box.
+ */
+function writeObstacleSpanX(o: LabelObstacle, top: number, bottom: number) {
+    if (o.kind !== 'circle') {
+        obstacleSpan.min = o.box.x;
+        obstacleSpan.max = o.box.x + o.box.width;
+        return;
+    }
+    const dy = Math.max(0, o.cy - bottom, top - o.cy);
+    const half = Math.sqrt(Math.max(0, o.r * o.r - dy * dy));
+    obstacleSpan.min = o.cx - half;
+    obstacleSpan.max = o.cx + half;
+}
+
+/** {@link writeObstacleSpanX} on the other axis: the obstacle's vertical extent across `[left, right]`. */
+function writeObstacleSpanY(o: LabelObstacle, left: number, right: number) {
+    if (o.kind !== 'circle') {
+        obstacleSpan.min = o.box.y;
+        obstacleSpan.max = o.box.y + o.box.height;
+        return;
+    }
+    const dx = Math.max(0, o.cx - right, left - o.cx);
+    const half = Math.sqrt(Math.max(0, o.r * o.r - dx * dx));
+    obstacleSpan.min = o.cy - half;
+    obstacleSpan.max = o.cy + half;
+}
+
+/**
+ * A retreat the box can afford, or `Infinity`. A retreat past the whole extent is no candidate at all: a
+ * label clipping the edge of a wide bar must not be asked to shrink past the bar's far side. `floor` is the
+ * least retreat the re-fit can spend on that axis, below which it hands the same box back.
+ */
+function affordableRetreat(retreat: number, extent: number, allowed: boolean, floor: number): number {
+    return allowed && retreat >= floor && retreat > 0 && retreat < extent ? retreat : Infinity;
+}
+
+// Never returns a verdict: unlike the collision test this visits every obstacle, since the reduction has
+// to answer all of them. An obstacle sits in every grid cell it spans, so this visitor can see it more
+// than once: accumulating with `max` keeps the measurement idempotent.
+function accumulateObstacleReduction(o: LabelObstacle): void {
+    if (obstacleExcluded(o)) return;
+    const testBox = candidateTestBox();
+    if (testBox == null || !obstacleOverlapsBox(o, testBox)) return;
+    const { x, y, width, height } = testBox;
+    writeObstacleSpanX(o, y, y + height);
+    sideRetreat.left = affordableRetreat(obstacleSpan.max - x, width, sideRetreats(shrinkPinX, true), shrinkFloorX);
+    sideRetreat.right = affordableRetreat(
+        x + width - obstacleSpan.min,
+        width,
+        sideRetreats(shrinkPinX, false),
+        shrinkFloorX
+    );
+    writeObstacleSpanY(o, x, x + width);
+    sideRetreat.top = affordableRetreat(obstacleSpan.max - y, height, sideRetreats(shrinkPinY, true), shrinkFloorY);
+    sideRetreat.bottom = affordableRetreat(
+        y + height - obstacleSpan.min,
+        height,
+        sideRetreats(shrinkPinY, false),
+        shrinkFloorY
+    );
+    // Cheapest is a fraction of the extent it comes out of, not a pixel count: an obstacle spanning the
+    // label's whole height is cleared by a few px of height and half its width, but those few px are all
+    // the height there is.
+    let best: RetreatSide | undefined;
+    let bestCost = Infinity;
+    for (const side of RETREAT_SIDES) {
+        const cost = sideRetreat[side] / (side === 'left' || side === 'right' ? width : height);
+        if (cost < bestCost) {
+            bestCost = cost;
+            best = side;
+        }
+    }
+    // No affordable retreat: the obstacle is left to the re-test, which fails the shrink rather than
+    // letting one unclearable obstacle suppress the reduction the others do have an answer for.
+    if (best == null) return;
+    shrinkIntrusion[best] = Math.max(shrinkIntrusion[best], sideRetreat[best]);
+}
+
+function spendableRetreat(retreat: number, floor: number): number {
+    return retreat >= floor ? retreat : 0;
+}
+
+/**
+ * Seeds the intrusions with the candidate's own overflow of its region, so a box with more text than the
+ * room it was given comes in to meet that room. A centred box retreats by the same amount on both sides:
+ * taking the whole reduction off the overflowing side alone would carry the label off the anchor it names.
+ */
+function accumulateRegionIntrusion(region: BoxBounds) {
+    const { x, y, width, height } = candidateBox;
+    const left = Math.max(0, region.x - x);
+    const right = Math.max(0, x + width - (region.x + region.width));
+    const top = Math.max(0, region.y - y);
+    const bottom = Math.max(0, y + height - (region.y + region.height));
+    if (shrinkPinX === 0) {
+        shrinkIntrusion.left = shrinkIntrusion.right = spendableRetreat(Math.max(left, right), shrinkFloorX);
+    } else {
+        shrinkIntrusion.left = sideRetreats(shrinkPinX, true) ? spendableRetreat(left, shrinkFloorX) : 0;
+        shrinkIntrusion.right = sideRetreats(shrinkPinX, false) ? spendableRetreat(right, shrinkFloorX) : 0;
+    }
+    if (shrinkPinY === 0) {
+        shrinkIntrusion.top = shrinkIntrusion.bottom = spendableRetreat(Math.max(top, bottom), shrinkFloorY);
+    } else {
+        shrinkIntrusion.top = sideRetreats(shrinkPinY, true) ? spendableRetreat(top, shrinkFloorY) : 0;
+        shrinkIntrusion.bottom = sideRetreats(shrinkPinY, false) ? spendableRetreat(bottom, shrinkFloorY) : 0;
+    }
+}
+
+/**
+ * Measures how far the candidate box has to shrink to clear the obstacles it hits and to come inside
+ * `region`, into {@link shrinkReduction} and {@link shrinkSlide}. `false` when nothing it can shrink out
+ * of the way intrudes.
+ */
+function measureShrinkReduction(
+    pinX: number,
+    pinY: number,
+    inflate: number,
+    floorX: number,
+    floorY: number,
+    region?: BoxBounds
+): boolean {
+    shrinkIntrusion.left = 0;
+    shrinkIntrusion.right = 0;
+    shrinkIntrusion.top = 0;
+    shrinkIntrusion.bottom = 0;
+    shrinkPinX = pinX;
+    shrinkPinY = pinY;
+    shrinkFloorX = floorX;
+    shrinkFloorY = floorY;
+    if (region != null) {
+        accumulateRegionIntrusion(region);
+    }
+    inflateBoxInto(queryBox, candidateBox, inflate);
+    obstacleIndex.query(queryBox, accumulateObstacleReduction);
+    shrinkReduction.width = shrinkIntrusion.left + shrinkIntrusion.right;
+    shrinkReduction.height = shrinkIntrusion.top + shrinkIntrusion.bottom;
+    // Only a centred box is moved: `positionCandidate` already re-hangs a pinned one off the same edge, so
+    // its retreat comes out of the free side on its own.
+    shrinkSlide.x = pinX === 0 ? (shrinkIntrusion.left - shrinkIntrusion.right) / 2 : 0;
+    shrinkSlide.y = pinY === 0 ? (shrinkIntrusion.top - shrinkIntrusion.bottom) / 2 : 0;
+    return shrinkReduction.width > 0 || shrinkReduction.height > 0;
 }
 
 /** Cell size for the obstacle index, derived from the mean extent of every box it will hold. */
@@ -1439,11 +1695,13 @@ function orderKeepFirst(data: Map<string, SeriesLabels>): [string, SeriesLabels]
  * A label with a single kept placement: the obstacle query could only ever return that same placement,
  * so it takes its placement unconditionally and never touches the index — neither querying it nor
  * seeding it. When every label across every series is sole-candidate, the index is never consulted and
- * building it is wasted work (see {@link placeLabels}).
+ * building it is wasted work (see {@link placeLabels}). A label that opted into overflow control is not
+ * sole-candidate: it has a second answer to an obstacle beyond moving, which is to shrink into the room
+ * the obstacle leaves.
  */
 function isSoleCandidateKeep(d: PointLabelDatum, defaults: SeriesLabelDefaults | undefined): boolean {
     const alwaysShow = d.alwaysShow ?? defaults?.alwaysShow ?? true;
-    if (!alwaysShow || d.positionedCandidates != null || d.neverDrop === true) return false;
+    if (!alwaysShow || d.positionedCandidates != null || d.neverDrop === true || d.fit != null) return false;
     const placements = d.placements ?? defaults?.placements;
     return (placements?.length ?? 1) <= 1 && (orientationsOf(d)?.length ?? 1) <= 1;
 }
@@ -1615,13 +1873,20 @@ function fitLabelToCandidate(
     font: FontOptions,
     source: { width: number; height: number } | undefined,
     container: { width: number; height: number } | undefined,
-    region?: FitRegion,
-    regionAlign?: RegionAlign
+    candidateRegion?: FitRegion,
+    candidateRegionAlign?: RegionAlign
 ) {
     const { text, policy } = fit;
     const maxWidth = Math.min(policy.maxWidth ?? Infinity, container?.width ?? Infinity);
     const maxHeight = Math.min(policy.maxHeight ?? Infinity, container?.height ?? Infinity);
     const full = source ?? measureLabelText(text, font);
+    fittedLabel.maxWidth = maxWidth;
+    fittedLabel.maxHeight = maxHeight;
+    // A candidate carrying its own shape overrides the policy's; a datum bounded by a shape (a label
+    // inside a marker outline) keeps it across every candidate, so a re-fit is never looser than the
+    // up-front measurement was.
+    const region = candidateRegion ?? policy.region;
+    const regionAlign = candidateRegionAlign ?? policy.regionAlign;
     // A shape can be narrower than its bounding box anywhere the text lands, so the whole-text shortcut
     // is only sound for a rectangular bound.
     if (region == null && full.width <= maxWidth && full.height <= maxHeight) {
@@ -1629,6 +1894,7 @@ function fitLabelToCandidate(
         fittedLabel.width = full.width;
         fittedLabel.height = full.height;
         fittedLabel.dropped = 0;
+        fittedLabel.shrink = 0;
         fittedLabel.fontSize = undefined;
         return true;
     }
@@ -1637,8 +1903,10 @@ function fitLabelToCandidate(
     boundedFit.maxHeight = maxHeight === Infinity ? undefined : maxHeight;
     boundedFit.wrapping = policy.wrapping;
     boundedFit.overflowStrategy = policy.overflowStrategy;
-    // A trial already owns the size, so the inner search must not run a second one inside it.
-    boundedFit.minimumFontSize = candidateTrialFontSize == null ? policy.minimumFontSize : undefined;
+    // A trial already owns the size, so the inner search must not run a second one inside it; nor may the
+    // obstacle re-fit, which answers a collision with text rather than with a smaller font.
+    boundedFit.minimumFontSize =
+        candidateTrialFontSize == null && !refittingToObstacles ? policy.minimumFontSize : undefined;
     boundedFit.region = region;
     boundedFit.regionAlign = regionAlign;
     const { text: fitted, fontSize } = fitLabelTextOrOverflowAutoSize(text, boundedFit, fit.fitOverflow, font);
@@ -1653,8 +1921,21 @@ function fitLabelToCandidate(
     fittedLabel.width = size.width;
     fittedLabel.height = size.height;
     fittedLabel.dropped = Math.max(0, textLength(text) - textLength(fitted));
+    fittedLabel.shrink = shrinkRatio(size, full);
     fittedLabel.fontSize = fontSize;
     return true;
+}
+
+/**
+ * How much of the source text's area a fitted glyph gave up, in `[0, 1)`. Kept below `1` so that any
+ * amount of shrinking still ranks ahead of losing a single character (see {@link recordBestChoice}), and
+ * `0` for a glyph that wrapping made no smaller — growing taller is not a better fit than staying put.
+ */
+function shrinkRatio(fitted: { width: number; height: number }, full: { width: number; height: number }): number {
+    const fullArea = full.width * full.height;
+    if (fullArea <= 0) return 0;
+    const ratio = 1 - (fitted.width * fitted.height) / fullArea;
+    return ratio <= 0 ? 0 : Math.min(ratio, MAX_SHRINK_SCORE);
 }
 
 /**
@@ -1676,6 +1957,32 @@ function compassCandidateContainer(
     return candidateContainer;
 }
 
+/**
+ * The glyph budget an `inside` candidate offers: the marker inscribed rect {@link insideRegionFor} contains
+ * it by, minus the drawn box. Fitting to it is what lets a label too large for its marker truncate into it
+ * as a last resort; the truncation keeps the candidate out of the immediate-return path, so a directional
+ * placement that holds the whole text still wins the cascade. `undefined` for every other candidate.
+ */
+function insideMarkerContainer(
+    d: PointLabelDatum,
+    placement: LabelPlacement | undefined,
+    pad: Required<PaddingOptions> | undefined,
+    rotation: number,
+    threshold: number
+) {
+    if (placement !== 'inside' || d.insideSize == null) return undefined;
+    const markerSize = markerSizeOf(d);
+    const upright = rotation % 180 === 0;
+    const width = (upright ? d.insideSize.width : d.insideSize.height) * markerSize;
+    const height = (upright ? d.insideSize.height : d.insideSize.width) * markerSize;
+    // Only a negative threshold reaches the budget, matching how the candidate's containment region is
+    // deflated: a positive one is clearance from obstacles, not room taken off the marker.
+    const inset = 2 * containmentThreshold(threshold);
+    candidateContainer.width = Math.max(0, width - boxWidthOf(pad) - inset);
+    candidateContainer.height = Math.max(0, height - boxHeightOf(pad) - inset);
+    return candidateContainer;
+}
+
 /** The datum's source text measured under `font`, reused for as long as the candidate font is unchanged. */
 function styledFitSource(fit: LabelFitDescriptor, font: FontOptions) {
     const key = toFontString(font);
@@ -1688,12 +1995,29 @@ function styledFitSource(fit: LabelFitDescriptor, font: FontOptions) {
     return styledSource;
 }
 
-// Drawn-box size of the candidate being tested, written by `sizeCandidateLabel`.
-const candidateLabel: { text: NormalisedTextOrSegments; width: number; height: number; dropped: number } = {
+// Drawn-box size of the candidate being tested, written by `sizeCandidateLabel`. `width`/`height` are the
+// drawn box, `glyphWidth`/`glyphHeight` the text inside it and `maxWidth`/`maxHeight` the budget it was
+// fitted to, which the obstacle-shrink pass narrows.
+const candidateLabel: {
+    text: NormalisedTextOrSegments;
+    width: number;
+    height: number;
+    dropped: number;
+    shrink: number;
+    glyphWidth: number;
+    glyphHeight: number;
+    maxWidth: number;
+    maxHeight: number;
+} = {
     text: '',
     width: 0,
     height: 0,
     dropped: 0,
+    shrink: 0,
+    glyphWidth: 0,
+    glyphHeight: 0,
+    maxWidth: Infinity,
+    maxHeight: Infinity,
 };
 
 /**
@@ -1705,7 +2029,9 @@ const candidateLabel: { text: NormalisedTextOrSegments; width: number; height: n
 function sizeCandidateLabel(
     d: PointLabelDatum,
     style: CandidateLabelStyle | undefined,
+    placement: LabelPlacement | undefined,
     rotation: number,
+    threshold: number,
     fitRegion: BoxBounds | undefined,
     fitSource: { width: number; height: number } | undefined
 ): boolean {
@@ -1715,25 +2041,200 @@ function sizeCandidateLabel(
         candidateLabel.text = d.label.text;
         candidateLabel.width = d.label.width;
         candidateLabel.height = d.label.height;
+        candidateLabel.glyphWidth = d.label.width;
+        candidateLabel.glyphHeight = d.label.height;
         candidateLabel.dropped = 0;
+        candidateLabel.shrink = 0;
+        candidateLabel.maxWidth = Infinity;
+        candidateLabel.maxHeight = Infinity;
         return true;
     }
     const font = candidateFontAt(style?.font ?? fit.font);
     const boxPadding = style?.boxPadding ?? fit.boxPadding;
     const container =
-        fit.boundByRegion === false ? undefined : compassCandidateContainer(fitRegion, boxPadding, rotation);
+        insideMarkerContainer(d, placement, boxPadding, rotation, threshold) ??
+        (fit.boundByRegion === false ? undefined : compassCandidateContainer(fitRegion, boxPadding, rotation));
     // A styled or trialled candidate re-measures the source under its own font; an unstyled one at the
     // configured size shares the cascade's single measurement.
     const source = style == null && candidateTrialFontSize == null ? fitSource : styledFitSource(fit, font);
     if (!fitLabelToCandidate(fit, font, source, container)) return false;
+    writeCandidateLabel(boxPadding, font);
+    return true;
+}
+
+/**
+ * Copies the fit result into {@link candidateLabel}, inflated by the box drawn around the glyph, and into
+ * {@link candidateFontSize} for {@link recordBestChoice} to read back.
+ */
+function writeCandidateLabel(boxPadding: Required<PaddingOptions> | undefined, font: FontOptions) {
     candidateLabel.text = fittedLabel.text;
+    candidateLabel.glyphWidth = fittedLabel.width;
+    candidateLabel.glyphHeight = fittedLabel.height;
     candidateLabel.width = fittedLabel.width + boxWidthOf(boxPadding);
     candidateLabel.height = fittedLabel.height + boxHeightOf(boxPadding);
     candidateLabel.dropped = fittedLabel.dropped;
+    candidateLabel.shrink = fittedLabel.shrink;
+    candidateLabel.maxWidth = fittedLabel.maxWidth;
+    candidateLabel.maxHeight = fittedLabel.maxHeight;
     // Text that already fits reports no size of its own, so a trial's size comes from the font it ran at
     // — which is the trial size, or the styler-resolved one when the trial was clamped back to it.
     candidateFontSize = fittedLabel.fontSize ?? (candidateTrialFontSize == null ? undefined : font.fontSize);
+}
+
+// Glyph budget of the candidate being re-fitted to the room its obstacles leave.
+const shrunkContainer = { width: 0, height: 0 };
+// Flush offset a shrink pass' repositioning produced, read back by the cascade that records the candidate.
+const shrunkOffset: Point = { x: 0, y: 0 };
+
+function reduceAxis(budget: number, extent: number, reduce: number): number {
+    return reduce > 0 ? Math.max(0, Math.min(budget, extent - reduce)) : budget;
+}
+
+/**
+ * Re-fits the candidate's text into its own glyph budget reduced by {@link shrinkReduction}, writing the
+ * result into {@link candidateLabel}. `false` when the reduced budget leaves no real character to draw, so
+ * the label falls back to overlapping or hiding rather than rendering a bare ellipsis.
+ */
+function refitCandidateShrunk(
+    fit: LabelFitDescriptor,
+    font: FontOptions,
+    source: { width: number; height: number } | undefined,
+    boxPadding: Required<PaddingOptions> | undefined,
+    reduceWidth: number,
+    reduceHeight: number
+): boolean {
+    // Only the reduced axis is bound to what the glyph currently occupies: pinning the other to its current
+    // extent as well would forbid the wrap that trades width for height.
+    shrunkContainer.width = reduceAxis(candidateLabel.maxWidth, candidateLabel.glyphWidth, reduceWidth);
+    shrunkContainer.height = reduceAxis(candidateLabel.maxHeight, candidateLabel.glyphHeight, reduceHeight);
+    refittingToObstacles = true;
+    try {
+        if (!fitLabelToCandidate(fit, font, source, shrunkContainer)) return false;
+    } finally {
+        refittingToObstacles = false;
+    }
+    if (!hasRealChars(fittedLabel.text)) return false;
+    writeCandidateLabel(boxPadding, font);
     return true;
+}
+
+/**
+ * Moves the shrunk candidate off the obstacles it retreated from by {@link shrinkSlide}, then flush inside
+ * `rawRegion` when its placement is region-bound. The total translation lands in {@link shrunkOffset} for
+ * the caller to hand back to a series that draws from the anchor rather than from the box.
+ */
+function slideShrunkCandidate(rawRegion: BoxBounds, flush: boolean) {
+    const { x, y, width, height } = candidateBox;
+    candidateBox.x = x + shrinkSlide.x;
+    candidateBox.y = y + shrinkSlide.y;
+    if (flush) {
+        candidateBox.x = clampAxis(candidateBox.x, width, rawRegion.x, rawRegion.width);
+        candidateBox.y = clampAxis(candidateBox.y, height, rawRegion.y, rawRegion.height);
+    }
+    shrunkOffset.x = candidateBox.x - x;
+    shrunkOffset.y = candidateBox.y - y;
+}
+
+/** Containment and obstacle re-test of the candidate a shrink pass just resized and repositioned. */
+function shrunkCandidateIsClear(region: BoxBounds, inflate: number): boolean {
+    const { x, y, width, height } = candidateBox;
+    if (!boxContains(region, x, y, width, height)) return false;
+    inflateBoxInto(queryBox, candidateBox, inflate);
+    return !obstacleIndex.query(queryBox, obstacleOverlapsCandidate);
+}
+
+/**
+ * Second chance for a compass candidate that fits its region but hits an obstacle: the text is re-fitted to
+ * the room the obstacles leave, and the candidate repositioned and re-tested. `true` leaves the shrunk
+ * candidate in {@link candidateLabel}/{@link candidateBox} for the caller to record — a candidate that only
+ * clears its obstacles by giving up text or size is a fallback, never the cascade's outright answer, so
+ * a later placement that needs no compromise still wins.
+ *
+ * One attempt only: wrapping trades width for height, so the reduction is a budget rather than a solution,
+ * and the re-test is what keeps an approximate budget safe.
+ */
+function shrinkCompassCandidate(
+    d: PointLabelDatum,
+    style: CandidateLabelStyle | undefined,
+    placement: LabelPlacement | undefined,
+    rotation: number,
+    gap: number,
+    spacing: number,
+    fitSource: { width: number; height: number } | undefined,
+    rawRegion: BoxBounds,
+    region: BoxBounds,
+    containThreshold: number,
+    inflate: number,
+    flushToRegion: boolean
+): boolean {
+    const fit = d.fit;
+    if (fit == null) return false;
+    // Which edges the box keeps as it shrinks, mirroring how `positionLabelBox` hangs it off the point: a
+    // directional candidate is pinned to the edge facing the point, a gapless or `inside` one stays centred.
+    const vec = gap > 0 && placement != null ? labelPlacements[placement] : undefined;
+    // The reduction is measured on the rotated footprint, whose axes are the glyph's swapped for a
+    // quarter-turned candidate.
+    const upright = rotation % 180 === 0;
+    const font = candidateFontAt(style?.font ?? fit.font);
+    const lineHeight = cachedTextMeasurer(font).lineHeight();
+    const floorX = upright ? 0 : lineHeight;
+    const floorY = upright ? lineHeight : 0;
+    if (!measureShrinkReduction(vec?.x ?? 0, vec?.y ?? 0, inflate, floorX, floorY)) return false;
+    const source = style == null && candidateTrialFontSize == null ? fitSource : styledFitSource(fit, font);
+    const reduceWidth = upright ? shrinkReduction.width : shrinkReduction.height;
+    const reduceHeight = upright ? shrinkReduction.height : shrinkReduction.width;
+    if (!refitCandidateShrunk(fit, font, source, style?.boxPadding ?? fit.boxPadding, reduceWidth, reduceHeight)) {
+        return false;
+    }
+    positionCandidate(d, placement, rotation, candidateLabel.width, candidateLabel.height, gap, spacing);
+    slideShrunkCandidate(rawRegion, flushToRegion);
+    const { x, y, width, height } = candidateBox;
+    const insideRegion = insideRegionFor(d, placement, x, y, width, height);
+    const containRegion =
+        insideRegion == null ? region : deflateRegion(deflatedInsideRegionBox, insideRegion, containThreshold);
+    return shrunkCandidateIsClear(containRegion, inflate);
+}
+
+/** Which edge of a positioned candidate's box stays put as it shrinks; see {@link sideRetreats}. */
+function anchorPinX(anchor: OrientationAnchor): number {
+    if (anchor.textAlign === 'left' || anchor.textAlign === 'start') return 1;
+    if (anchor.textAlign === 'right' || anchor.textAlign === 'end') return -1;
+    return 0;
+}
+
+function anchorPinY(anchor: OrientationAnchor): number {
+    if (anchor.textBaseline === 'top') return 1;
+    if (anchor.textBaseline === 'bottom') return -1;
+    return 0;
+}
+
+/**
+ * {@link shrinkCompassCandidate} for the positioned-candidate path, where the box hangs off `fitTo.anchor`
+ * rather than off a placement vector. Skips a rotated candidate: its anchor pins the glyph box, whose axes
+ * a rotation does not share with the footprint the obstacles were measured against.
+ */
+function shrinkPositionedCandidate(
+    d: PointLabelDatum,
+    c: PositionedLabelCandidate,
+    fitSource: { width: number; height: number } | undefined,
+    rawRegion: BoxBounds,
+    region: BoxBounds,
+    inflate: number
+): boolean {
+    const fit = d.fit;
+    const fitTo = c.fitTo;
+    if (fit == null || fitTo == null || (c.rotation ?? 0) % 360 !== 0) return false;
+    const lineHeight = cachedTextMeasurer(fitTo.font ?? fit.font).lineHeight();
+    if (!measureShrinkReduction(anchorPinX(fitTo.anchor), anchorPinY(fitTo.anchor), inflate, 0, lineHeight, region)) {
+        return false;
+    }
+    const styledFont = fitTo.font;
+    const source = styledFont == null ? fitSource : styledFitSource(fit, styledFont);
+    const { width, height } = shrinkReduction;
+    if (!refitCandidateShrunk(fit, styledFont ?? fit.font, source, fitTo.padding, width, height)) return false;
+    resizeCandidateBox(c, candidateLabel.width, candidateLabel.height);
+    slideShrunkCandidate(rawRegion, c.region != null && c.flushToRegion !== false);
+    return shrunkCandidateIsClear(region, inflate);
 }
 
 /**
@@ -1773,7 +2274,7 @@ function tryPlaceLabel(
         styledSourceFont = '';
         const style = resolveCandidateStyle?.(d, placement, orientation);
         if (style?.hidden === true) return undefined;
-        if (!sizeCandidateLabel(d, style, rotation, d.region, undefined)) return undefined;
+        if (!sizeCandidateLabel(d, style, placement, rotation, threshold, d.region, undefined)) return undefined;
         const { text, width, height } = candidateLabel;
         positionCandidate(d, placement, rotation, width, height, gap, spacing);
         const { x, y } = candidateBox;
@@ -1836,12 +2337,18 @@ interface CandidateChoice {
     fontSize: number | undefined;
 }
 
-/** Tier of a candidate that fits its region and clears every obstacle, but only by truncating its text. */
-const TIER_TRUNCATED = 0;
+/**
+ * Tier of a candidate that fits its region and clears every obstacle, but only by wrapping, shrinking or
+ * truncating its text. Scored `dropped + shrink`: every character lost costs a whole point and shrinking
+ * less than one, so the least-truncated candidate wins and, among equally truncated ones, the least shrunk.
+ */
+const TIER_FIT = 0;
 /** Tier of a candidate that fits its region but hits an obstacle, scored by how much of it is buried. */
 const TIER_COLLIDING = 1;
 /** Tier of a candidate that overflows its region; kept only to avoid dropping the label. */
 const TIER_OVERFLOWING = 2;
+/** Upper bound on {@link shrinkRatio}, keeping any amount of shrinking cheaper than losing one character. */
+const MAX_SHRINK_SCORE = 0.999;
 
 // Best candidate seen so far in the current cascade, reused across passes to keep the loop allocation-free.
 const bestChoice: CandidateChoice = {
@@ -1931,8 +2438,12 @@ function cascadeCandidates(): PlacedLabel | undefined {
             // obstacle index, so it reserves no space from its neighbours.
             const style = cascadeStyle?.(d, placement, orientation);
             if (style?.hidden === true) continue;
-            if (!sizeCandidateLabel(d, style, rotation, cascadeFitRegion, cascadeFitSource)) continue;
-            const { text, width, height, dropped } = candidateLabel;
+            if (
+                !sizeCandidateLabel(d, style, placement, rotation, cascadeThreshold, cascadeFitRegion, cascadeFitSource)
+            ) {
+                continue;
+            }
+            const { text, width, height, dropped, shrink } = candidateLabel;
             positionCandidate(d, placement, rotation, width, height, cascadeGap, cascadeSpacing);
             let { x, y } = candidateBox;
             const { width: cw, height: ch } = candidateBox;
@@ -1953,7 +2464,8 @@ function cascadeCandidates(): PlacedLabel | undefined {
                     ? cascadeRegion
                     : deflateRegion(deflatedInsideRegionBox, insideRegion, cascadeContainThreshold);
             inflateBoxInto(queryBox, candidateBox, cascadeInflate);
-            if (boxContains(containRegion, x, y, cw, ch) && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
+            const contained = boxContains(containRegion, x, y, cw, ch);
+            if (contained && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
                 if (dropped === 0) {
                     return {
                         index: cascadeIndex,
@@ -1972,8 +2484,8 @@ function cascadeCandidates(): PlacedLabel | undefined {
                 }
                 if (recordBest) {
                     recordBestChoice(
-                        TIER_TRUNCATED,
-                        dropped,
+                        TIER_FIT,
+                        dropped + shrink,
                         text,
                         width,
                         height,
@@ -1984,7 +2496,9 @@ function cascadeCandidates(): PlacedLabel | undefined {
                         undefined
                     );
                 }
-            } else if (cascadeKeepBest && recordBest) {
+                continue;
+            }
+            if (cascadeKeepBest && recordBest) {
                 const overflow = regionOverflow(containRegion, x, y, cw, ch);
                 let tier = TIER_OVERFLOWING;
                 let score = overflow;
@@ -1996,9 +2510,52 @@ function cascadeCandidates(): PlacedLabel | undefined {
                 }
                 recordBestChoice(tier, score, text, width, height, rotation, offsetX, offsetY, placement, undefined);
             }
+            // Obstacle-only failure: the candidate has the room, an obstacle is taking part of it. Shrinking
+            // is tried last so a failed attempt can clobber the shared candidate scratch freely, and only
+            // outside a trial, whose candidates can win outright but record nothing.
+            if (
+                contained &&
+                recordBest &&
+                shrinkCompassCandidate(
+                    d,
+                    style,
+                    placement,
+                    rotation,
+                    cascadeGap,
+                    cascadeSpacing,
+                    cascadeFitSource,
+                    cascadeRawRegion,
+                    cascadeRegion,
+                    cascadeContainThreshold,
+                    cascadeInflate,
+                    cascadeFlushToRegion
+                )
+            ) {
+                recordShrunkChoice(rotation, placement, undefined);
+            }
         }
     }
     return undefined;
+}
+
+/** Records the candidate a shrink pass left on the scratch, scored by the text and glyph area it gave up. */
+function recordShrunkChoice(
+    rotation: number,
+    placement: LabelPlacement | undefined,
+    candidate: PositionedLabelCandidate | undefined
+) {
+    recordBestChoice(
+        TIER_FIT,
+        candidateLabel.dropped + candidateLabel.shrink,
+        candidateLabel.text,
+        candidateLabel.width,
+        candidateLabel.height,
+        rotation,
+        shrunkOffset.x,
+        shrunkOffset.y,
+        placement,
+        candidate
+    );
 }
 
 /**
@@ -2071,6 +2628,7 @@ function placeAvoidingLabel(
     cascadeGap = gap;
     cascadeSpacing = spacing;
     cascadeInflate = Math.max(threshold, 0);
+    cascadeThreshold = threshold;
     candidateCollideWith = collideWith;
     candidateThreshold = threshold;
     markerCentreOf(d);
@@ -2143,6 +2701,7 @@ function placeFromPositionedCandidates(
         let { text } = d.label;
         let { width, height } = c.size ?? d.label;
         let dropped = 0;
+        let shrink = 0;
         candidateFontSize = undefined;
         candidateBox.x = c.box.x;
         candidateBox.y = c.box.y;
@@ -2157,10 +2716,25 @@ function placeFromPositionedCandidates(
             ) {
                 continue;
             }
-            ({ text, dropped, fontSize: candidateFontSize } = fittedLabel);
-            const { padding } = c.fitTo;
-            width = fittedLabel.width + padding.left + padding.right;
-            height = fittedLabel.height + padding.top + padding.bottom;
+            // The clearance a label keeps from its own surface must not erase it: refit to the surface
+            // itself rather than draw the bare ellipsis the deflated container left.
+            if (
+                container !== c.fitTo.container &&
+                !hasRealChars(fittedLabel.text) &&
+                !fitLabelToCandidate(
+                    fit,
+                    styledFont ?? fit.font,
+                    source,
+                    c.fitTo.container,
+                    c.fitTo.shape,
+                    c.fitTo.shapeAlign
+                )
+            ) {
+                continue;
+            }
+            ({ text, dropped, shrink } = fittedLabel);
+            writeCandidateLabel(c.fitTo.padding, styledFont ?? fit.font);
+            ({ width, height } = candidateLabel);
             resizeCandidateBox(c, width, height);
         }
         let { x, y } = candidateBox;
@@ -2179,7 +2753,8 @@ function placeFromPositionedCandidates(
         }
         inflateBoxInto(queryBox, candidateBox, inflate);
         const rotation = c.rotation ?? 0;
-        if (boxContains(region, x, y, cw, ch) && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
+        const contained = boxContains(region, x, y, cw, ch);
+        if (contained && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
             if (dropped === 0) {
                 return {
                     index,
@@ -2197,10 +2772,17 @@ function placeFromPositionedCandidates(
                     fontSize: candidateFontSize,
                 };
             }
-            recordBestChoice(TIER_TRUNCATED, dropped, text, width, height, rotation, offsetX, offsetY, undefined, c);
-        } else if (d.neverDrop === true) {
+            recordBestChoice(TIER_FIT, dropped + shrink, text, width, height, rotation, offsetX, offsetY, undefined, c);
+            continue;
+        }
+        if (d.neverDrop === true) {
             const overflow = regionOverflow(region, x, y, cw, ch);
             recordBestChoice(TIER_OVERFLOWING, overflow, text, width, height, rotation, offsetX, offsetY, undefined, c);
+        }
+        // Ungated on containment, unlike the compass path: `measureShrinkReduction` seeds the region's own
+        // overflow here, so a candidate carrying more text than its region holds is still recoverable.
+        if (shrinkPositionedCandidate(d, c, fitSource, rawRegion, region, inflate)) {
+            recordShrunkChoice(rotation, undefined, c);
         }
     }
 

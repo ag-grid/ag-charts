@@ -135,9 +135,8 @@ export function resolveFunnelPlacements(
 export function resolveConeFunnelPlacements(
     placement:
         | AgConeFunnelSeriesLabelPlacement
-        | AgConeFunnelSeriesLabelPlacement[]
         | AgConeFunnelSeriesLabelPlacementAlias
-        | AgConeFunnelSeriesLabelPlacementAlias[]
+        | (AgConeFunnelSeriesLabelPlacement | AgConeFunnelSeriesLabelPlacementAlias)[]
         | undefined,
     fallback: AgConeFunnelSeriesLabelPlacement,
     barAlongX: boolean,
