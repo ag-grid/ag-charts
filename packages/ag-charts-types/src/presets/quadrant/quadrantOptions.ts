@@ -15,10 +15,10 @@ export type AgQuadrantChartPresets<TDatum, TContext> = AgQuadrantPreset<TDatum, 
 export interface AgQuadrantPreset<TDatum, TContext>
     extends
         Omit<AgScatterSeriesOptionsKeys<TDatum>, 'colorKey'>,
-        Omit<AgScatterSeriesOptionsNames, 'colorName'>,
+        Omit<AgScatterSeriesOptionsNames, 'colorName' | 'legendItemName'>,
         Omit<
             AgScatterSeriesThemeableOptions<TDatum, TContext>,
-            'colorScale' | 'itemStyler' | 'showInMiniChart' | 'title'
+            'colorScale' | 'itemStyler' | 'showInLegend' | 'showInMiniChart' | 'title'
         > {
     /** Whether to move the axis lines so that they cross at the pivot, with the axis titles remaining at the edge of
      * the chart. When `false`, the axes stay at the bottom and left of the chart. The regions are divided at the
