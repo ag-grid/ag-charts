@@ -188,15 +188,7 @@ export class ContextMenu extends AbstractModuleInstance {
         const result: CrossLineParams[] = [];
         for (const pick of picks) {
             const { crossLineId, axisId, direction, crossLineType, value, range } = pick;
-            result.push({
-                showOn: 'cross-line',
-                crossLineId,
-                axisId,
-                direction,
-                crossLineType,
-                value: value as CrossLineParams['value'],
-                range: range as CrossLineParams['range'],
-            });
+            result.push({ showOn: 'cross-line', crossLineId, axisId, direction, crossLineType, value, range });
         }
         return result;
     }
@@ -644,8 +636,8 @@ export class ContextMenu extends AbstractModuleInstance {
                         axisId,
                         direction,
                         crossLineType,
-                        value: value as AgCrossLineContextMenuActionEvent<never>['value'],
-                        range: range as AgCrossLineContextMenuActionEvent<never>['range'],
+                        value,
+                        range,
                     };
                     callWithContext(callers, callback, apiEvent);
                 } else {
