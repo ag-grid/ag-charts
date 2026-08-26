@@ -1987,6 +1987,87 @@ describe('AG-17830 QA — validations.onErrorRaised', () => {
         errorMock.mockClear();
     });
 
+    // A second chart is a separate listener registration, so it must still be told about its own
+    // issues while the first chart's listener is on the stack.
+    it('reports to a second chart listener from inside the first listener', () => {
+        const innerListener = vi.fn();
+        const outerListener = vi.fn(() => {
+            AgCharts.create({
+                container: document.body,
+                data: [{ x: 'A', y: 10 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+                validations: { throwOn: 'warning', onErrorRaised: innerListener },
+            });
+        });
+
+        expect(() =>
+            AgCharts.create({
+                container: document.body,
+                data: [{ x: 'A', y: 10 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+                validations: { throwOn: 'warning', onErrorRaised: outerListener },
+            })
+        ).toThrow(/validations.throwOn: warning/);
+
+        expect(outerListener).toHaveBeenCalledTimes(1);
+        expect(innerListener).toHaveBeenCalledWith({
+            level: 'warning',
+            message: expect.stringContaining('series[0].strokeWidth'),
+        });
+        expectWarningsCalls().toHaveLength(2);
+        // The inner chart's own fail-fast error unwinds through the outer listener.
+        const errorMock = console.error as Mock;
+        expect(errorMock).toHaveBeenCalledWith(
+            'AG Charts - validations.onErrorRaised threw an error',
+            expect.any(Error)
+        );
+        errorMock.mockClear();
+    });
+
+    // The same listener re-entering is the runaway case the guard exists for: one dispatch only.
+    it('does not recurse when the listener re-applies the same failing options', () => {
+        const failingOptions = () => ({
+            container: document.body,
+            data: [{ x: 'A', y: 10 }],
+            series: [{ type: 'bar' as const, xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+            validations: { throwOn: 'warning' as const, onErrorRaised },
+        });
+        const onErrorRaised = vi.fn(() => {
+            AgCharts.create(failingOptions());
+        });
+
+        expect(() => AgCharts.create(failingOptions())).toThrow(/validations.throwOn: warning/);
+
+        expect(onErrorRaised).toHaveBeenCalledTimes(1);
+        expectWarningsCalls().toHaveLength(2);
+        (console.error as Mock).mockClear();
+    });
+
+    // The Angular wrapper hands a freshly bound listener to every options pass, so listener identity
+    // alone cannot bound the recursion.
+    it('stops recursion from a listener whose identity changes on every pass', () => {
+        const calls: unknown[] = [];
+        const create = () =>
+            AgCharts.create({
+                container: document.body,
+                data: [{ x: 'A', y: 10 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+                validations: {
+                    throwOn: 'warning',
+                    onErrorRaised: (event) => {
+                        calls.push(event);
+                        create();
+                    },
+                },
+            });
+
+        expect(create).toThrow(/validations.throwOn: warning/);
+
+        expect(calls).toHaveLength(4);
+        expectWarningsCalls().toHaveLength(5);
+        (console.error as Mock).mockClear();
+    });
+
     // The callbacks run in the render pass that a first-render update-type shortcut restarted, which
     // no longer counts as re-evaluating them — so the buffered error was never committed.
     it('reports a callback that throws on the first render to both the overlay and the listener', async () => {

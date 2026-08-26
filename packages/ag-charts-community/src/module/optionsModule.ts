@@ -95,6 +95,9 @@ const DEFAULT_CONSOLE_LOG_LEVEL: AgChartValidationLevel = 'deprecation';
 /** The default `validations.throwOn` — fail-fast is opt-in, so nothing throws unless a consumer asks for it. */
 const DEFAULT_THROW_ON: AgChartValidationLevel = 'none';
 
+/** How deep nested fail-fast dispatches may go before the recursion backstop stops them. */
+const MAX_DISPATCH_DEPTH = 4;
+
 /** The `validations` subtree of options that are not yet known to be valid: public keys, unknown values. */
 type UnvalidatedValidations = { [K in keyof AgChartValidationsOptions]?: unknown };
 
@@ -286,8 +289,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private static readonly debug = Debug.create(true, 'opts');
 
-    /** Re-entrancy guard for {@link ChartOptions.dispatchIssuesBeforeThrow}; see its comment. */
-    private static dispatchingIssues = false;
+    /**
+     * Re-entrancy guard for {@link ChartOptions.dispatchIssuesBeforeThrow}, keyed by listener rather
+     * than global; see its comment.
+     */
+    private static readonly dispatchingListeners = new Set<ValidationIssueListener>();
+
+    /** Backstop for a consumer whose listener identity changes per pass, e.g. the Angular zone wrapper. */
+    private static dispatchDepth = 0;
 
     constructor(
         currentUserOptions: T | ChartOptions<T> | undefined,
@@ -827,8 +836,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Static, unlike the collector's instance-level guard: a consumer that re-applies options from
         // its callback re-enters through a *new* `ChartOptions`, so nothing on `this` can see the
         // recursion. Without this a handler that re-applies the same failing options recurses until the
-        // stack overflows, and the fail-fast error the caller is owed never surfaces.
-        if (ChartOptions.dispatchingIssues) return;
+        // stack overflows, and the fail-fast error the caller is owed never surfaces. Keyed by listener
+        // so a callback that builds a *different* chart still gets that chart's own listener called.
+        if (ChartOptions.dispatchingListeners.has(listener) || ChartOptions.dispatchDepth >= MAX_DISPATCH_DEPTH) {
+            return;
+        }
         // Cleared first: `recordOptionsArgumentError` can throw from a second call site after this
         // one, and a consumer must not be told the same issue twice for a single options pass.
         // The dropped-module call site trips fail-fast with an issue it never adds to the collection —
@@ -836,7 +848,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const recorded = this.validationIssues;
         const issues = recorded.includes(trigger) ? recorded : [...recorded, trigger];
         this.validationIssues = [];
-        ChartOptions.dispatchingIssues = true;
+        ChartOptions.dispatchingListeners.add(listener);
+        ChartOptions.dispatchDepth++;
         try {
             for (const issue of issues) {
                 try {
@@ -847,7 +860,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 }
             }
         } finally {
-            ChartOptions.dispatchingIssues = false;
+            ChartOptions.dispatchingListeners.delete(listener);
+            ChartOptions.dispatchDepth--;
         }
     }
 
