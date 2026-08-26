@@ -7,7 +7,14 @@ import type {
 import type { AgChartAutoSizedLabelOptions, AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, Opacity, PixelSize, Ratio } from '../../chart/types';
-import type { AgColorScale, AgColorType, FillOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type {
+    AgColorScale,
+    AgColorType,
+    FillOptions,
+    StrokeOptions,
+    TextOptions,
+    TextOrSegments,
+} from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export type AgSunburstHighlightState = HierarchyHighlightState;
@@ -44,6 +51,15 @@ export interface AgSunburstSeriesHighlightOptions {
     unhighlightedBranch?: AgSunburstSeriesHighlightStyle;
 }
 
+export interface AgSunburstInnerLabel extends TextOptions {
+    /** The text to show in the inner label. */
+    text: TextOrSegments;
+    /** The spacing in pixels before and after the inner label. */
+    spacing?: PixelSize;
+}
+
+export interface AgSunburstInnerLabelThemeOptions extends Omit<AgSunburstInnerLabel, 'text'> {}
+
 export interface AgSunburstInnerCircle {
     /** The fill for the inner circle. A colour string, or an object for a gradient, pattern, or image fill. */
     fill: AgColorType;
@@ -71,6 +87,8 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContex
     innerRadiusOffset?: PixelSize;
     /** Configuration for the area at the centre of the series. */
     innerCircle?: AgSunburstInnerCircle;
+    /** Configuration for the labels at the centre of the series. */
+    innerLabels?: AgSunburstInnerLabelThemeOptions;
     /** Spacing between the sectors. */
     sectorSpacing?: PixelSize;
     /** Minimum distance between text and the edges of the sectors. */
@@ -100,9 +118,11 @@ export interface AgSunburstSeriesOptions<TDatum = DatumDefault, TContext = Conte
         Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'highlightStyle' | 'showInLegend' | 'selection'>,
         AgSunburstSeriesOptionsKeys,
         AgSunburstSeriesOptionsNames,
-        AgSunburstSeriesThemeableOptions<TDatum, TContext> {
+        Omit<AgSunburstSeriesThemeableOptions<TDatum, TContext>, 'innerLabels'> {
     /** Configuration for the Sunburst Series. */
     type: 'sunburst';
+    /** Configuration for the labels at the centre of the series. */
+    innerLabels?: AgSunburstInnerLabel[];
 }
 
 export interface AgSunburstSeriesOptionsKeys {

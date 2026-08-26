@@ -747,6 +747,11 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
         fill: colorUnion,
         fillOpacity: ratio,
     },
+    innerLabels: {
+        spacing: positiveNumber,
+        ...fontOptionsDef,
+        ...labelBoxOptionsDef,
+    },
     itemStyler: callbackDefs<AgSunburstSeriesStyle>({
         ...fillOptionsDef,
         ...strokeOptionsDef,
