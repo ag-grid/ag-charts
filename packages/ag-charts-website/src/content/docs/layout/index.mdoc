@@ -183,6 +183,24 @@ height of the subtitle and its additional `subtitle.spacing`.
 
 `footnote` configuration applies next, horizontally centring on the remaining space and consuming the height of the footnote and its additional `footnote.spacing` at the bottom.
 
+### Reducing the Caption Font Size
+
+The `title`, `subtitle` and `footnote` captions can shrink to fit the space available to them instead of being wrapped or truncated. Set `minimumFontSize` to the smallest size the text may use:
+
+```js format="snippet"
+{
+    title: {
+        text: 'Quarterly Revenue by Region',
+        fontSize: 20,
+        minimumFontSize: 12,
+    },
+}
+```
+
+The caption picks the largest size between its `fontSize` and `minimumFontSize` at which the whole text fits, so it consumes less layout height than it would at its configured size. `wrapping` applies at each size tried, so a caption can wrap and shrink together to fit. Only when the text still does not fit at `minimumFontSize` is it truncated.
+
+Series labels support the same option, see [Reducing the Font Size](./series-labels/#reducing-the-font-size).
+
 ### Legend
 
 `legend` configuration is applied to the remaining space. The exact space consumed depends on how the

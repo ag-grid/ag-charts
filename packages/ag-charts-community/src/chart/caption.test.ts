@@ -103,6 +103,111 @@ describe('Caption', () => {
         });
     });
 
+    describe('minimumFontSize', () => {
+        const titleText = 'Quarterly revenue by region';
+        const baseOptions: AgCartesianChartOptions = {
+            data: [
+                { x: 'A', y: 3 },
+                { x: 'B', y: 5 },
+            ],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            legend: { enabled: false },
+        };
+
+        async function createTitle(title: AgCartesianChartOptions['title']) {
+            const proxy = AgCharts.create(prepareTestOptions({ ...baseOptions, title })) as AgChartProxy;
+            const chartInstance = deproxy(proxy);
+            await waitForChartStability(chartInstance);
+            return { proxy, caption: chartInstance.title };
+        }
+
+        test('a title that cannot fit its maxWidth truncates at its configured font size', async () => {
+            const { proxy, caption } = await createTitle({
+                text: titleText,
+                fontSize: 20,
+                maxWidth: 150,
+                wrapping: 'never',
+            });
+            expect(caption.node.fontSize).toBe(20);
+            expect(String(caption.node.text)).toContain('\u2026');
+            proxy.destroy();
+        });
+
+        test('minimumFontSize shrinks the title so it fits whole instead of truncating', async () => {
+            const { proxy, caption } = await createTitle({
+                text: titleText,
+                fontSize: 20,
+                minimumFontSize: 8,
+                maxWidth: 150,
+                wrapping: 'never',
+            });
+            expect(caption.node.fontSize).toBeLessThan(20);
+            expect(caption.node.fontSize).toBeGreaterThanOrEqual(8);
+            expect(String(caption.node.text)).toBe(titleText);
+            proxy.destroy();
+        });
+
+        test('title, subtitle and footnote all shrink rather than truncate', async () => {
+            chart = await createChart({
+                title: { text: titleText, fontSize: 20, minimumFontSize: 8, maxWidth: 150, wrapping: 'never' },
+                subtitle: { text: titleText, fontSize: 16, minimumFontSize: 8, maxWidth: 150, wrapping: 'never' },
+                footnote: { text: titleText, fontSize: 14, minimumFontSize: 8, maxWidth: 150, wrapping: 'never' },
+            });
+            await compare();
+        });
+
+        test('a wrapping title shrinks until every line fits its maxHeight', async () => {
+            const { proxy, caption } = await createTitle({
+                text: titleText,
+                fontSize: 20,
+                minimumFontSize: 8,
+                maxWidth: 150,
+                maxHeight: 30,
+            });
+            expect(caption.node.fontSize).toBeLessThan(20);
+            expect(String(caption.node.text).replace('\n', ' ')).toBe(titleText);
+            proxy.destroy();
+        });
+
+        test('a title that still does not fit at minimumFontSize truncates at that size', async () => {
+            const { proxy, caption } = await createTitle({
+                text: titleText,
+                fontSize: 20,
+                minimumFontSize: 18,
+                maxWidth: 60,
+                wrapping: 'never',
+            });
+            expect(caption.node.fontSize).toBe(18);
+            expect(String(caption.node.text)).toContain('\u2026');
+            proxy.destroy();
+        });
+
+        test('a title that already fits keeps its configured font size', async () => {
+            const { proxy, caption } = await createTitle({
+                text: titleText,
+                fontSize: 20,
+                minimumFontSize: 8,
+                maxWidth: 600,
+                wrapping: 'never',
+            });
+            expect(caption.node.fontSize).toBe(20);
+            expect(String(caption.node.text)).toBe(titleText);
+            proxy.destroy();
+        });
+
+        test('minimumFontSize above fontSize is rejected', async () => {
+            const { proxy } = await createTitle({ text: titleText, fontSize: 12, minimumFontSize: 20 });
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`title.minimumFontSize\` cannot be set to \`20\`; expecting a number greater than 0 and the value to be less than or equal to \`fontSize\`, ignoring.",
+                ],
+              ]
+            `);
+            proxy.destroy();
+        });
+    });
+
     describe('#validation', () => {
         test('invalid text align', async () => {
             await createChart({
