@@ -1665,6 +1665,121 @@ describe('CartesianAxis', () => {
         });
     });
 
+    describe('picked groupPercentage', () => {
+        const barSeries = (xKey: string, yKey: string) => [{ type: 'bar' as const, xKey, yKey }];
+        const lineSeries = (xKey: string, yKey: string) => [{ type: 'line' as const, xKey, yKey }];
+
+        const categoryOptions = (reverse = false): OptionsFactory => () => ({
+            data: CATEGORY_DATA,
+            axes: { x: { type: 'category', position: 'bottom', reverse }, y: { type: 'number', position: 'left' } },
+            series: barSeries('category', 'value'),
+        });
+
+        const groupedCategoryOptions: OptionsFactory = () => ({
+            data: GROUPED_CATEGORY_DATA,
+            axes: { x: { type: 'grouped-category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+            series: barSeries('location', 'gold'),
+        });
+
+        async function createBottomAxis(optionsFactory: OptionsFactory) {
+            const options = optionsFactory();
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const axis = (deproxy(chart as any) as any).axes.find((a: any) => a.position === 'bottom');
+            expect(axis).toBeDefined();
+            return axis;
+        }
+
+        const bandWidth = (axis: any) => (axis.scale.bandwidth === 0 ? axis.scale.step : axis.scale.bandwidth);
+
+        /** Picks at an axis-local scale position, on the series-area side of the axis line. */
+        function pickAt(axis: any, position: number) {
+            const origin = axis.getLayoutTranslation();
+            const pick = axis.pickValue({ canvasX: origin.x + position, canvasY: origin.y });
+            expect(pick).toBeDefined();
+            return pick;
+        }
+
+        const pickAtBandFraction = (axis: any, value: unknown, fraction: number) =>
+            pickAt(axis, axis.scale.convert(value) + bandWidth(axis) * fraction);
+
+        it('reports where in a category band the point falls', async () => {
+            const axis = await createBottomAxis(categoryOptions());
+
+            for (const fraction of [0, 0.25, 0.5, 0.75]) {
+                const pick = pickAtBandFraction(axis, 'B', fraction);
+                expect(pick.value).toBe('B');
+                expect(pick.groupPercentage).toBeCloseTo(fraction);
+            }
+        });
+
+        // The contract annotations and initial state rely on: `scale.convert(value)` offset by
+        // `groupPercentage` band widths is the picked point, whichever band the value resolved to.
+        it.each([false, true])('round-trips every position across a category axis (reverse: %s)', async (reverse) => {
+            const axis = await createBottomAxis(categoryOptions(reverse));
+            const [start, end] = axis.range;
+
+            expect(bandWidth(axis)).not.toBe(0);
+            for (let position = Math.min(start, end); position <= Math.max(start, end); position += 8) {
+                const pick = pickAt(axis, position);
+                const reconstructed = axis.scale.convert(pick.value) + bandWidth(axis) * pick.groupPercentage;
+                expect(reconstructed).toBeCloseTo(position);
+            }
+        });
+
+        // A group row reports the leaf value its group starts at, so its offset spans the whole group and
+        // reads well above 1 — but must still describe the same point.
+        it('round-trips a grouped-category group row', async () => {
+            const axis = await createBottomAxis(groupedCategoryOptions);
+            const { x, y } = axis.getLayoutTranslation();
+            const position = (axis.range[0] + axis.range[1]) / 2;
+            const outwards = 0.5 * axis.options.thickness;
+
+            const pick = axis.pickValue({ canvasX: x + position, canvasY: y + outwards });
+            expect(pick.depth).toBeGreaterThan(0);
+
+            const reconstructed = axis.scale.convert(pick.value) + bandWidth(axis) * pick.groupPercentage;
+            expect(reconstructed).toBeCloseTo(position);
+        });
+
+        const continuousScenarios: [string, OptionsFactory][] = [
+            [
+                'number',
+                () => ({
+                    data: NUMERIC_DATA,
+                    axes: { x: { type: 'number', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                    series: lineSeries('x', 'y'),
+                }),
+            ],
+            [
+                // `y2` is the strictly-positive column, the only one a log axis can render.
+                'log',
+                () => ({
+                    data: LOG_DATA,
+                    axes: { x: { type: 'log', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                    series: lineSeries('y2', 'x2'),
+                }),
+            ],
+            [
+                'time',
+                () => ({
+                    data: TIME_DATA,
+                    axes: { x: { type: 'time', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                    series: lineSeries('date', 'value'),
+                }),
+            ],
+        ];
+
+        it.each(continuousScenarios)('is undefined on a continuous %s axis', async (_name, optionsFactory) => {
+            const axis = await createBottomAxis(optionsFactory);
+
+            const pick = pickAt(axis, (axis.range[0] + axis.range[1]) / 2);
+            expect(pick.groupPercentage).toBeUndefined();
+        });
+    });
+
     // `axis.label.textAlign` re-anchors unrotated vertical-axis labels within their column, so long
     // labels cannot grow back over the axis line into the plot area.
     describe('axis label textAlign', () => {

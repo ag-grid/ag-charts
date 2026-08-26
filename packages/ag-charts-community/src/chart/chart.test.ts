@@ -1203,6 +1203,47 @@ describe('Chart', () => {
         });
     });
 
+    describe('click event coordinates', () => {
+        // A click placed a known fraction into a category band must report that fraction back, so a
+        // consumer can hand `{ value, groupPercentage }` to an annotation and land under the pointer.
+        it('reports where in a category band the click landed', async () => {
+            const click = vi.fn();
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: [
+                    { category: 'A', value: 1 },
+                    { category: 'B', value: 2 },
+                    { category: 'C', value: 3 },
+                ],
+                axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+                listeners: { click },
+            });
+            const chartInstance = AgCharts.create(options) as AgChartProxy;
+            chart = deproxy(chartInstance);
+            await waitForChartStability(chart);
+
+            const xAxis = (chart as any).axes.find((axis: any) => axis.direction === ChartAxisDirection.X);
+            const { scale } = xAxis;
+            const bandWidth = scale.bandwidth === 0 ? scale.step : scale.bandwidth;
+            const origin = xAxis.getLayoutTranslation();
+
+            // Above every bar, so the click reaches the chart-level listener rather than a series node.
+            const emptyPlotY = (chart as any).seriesRect.y + 5;
+
+            for (const fraction of [0.25, 0.5, 0.75]) {
+                click.mockClear();
+                const canvasX = origin.x + scale.convert('B') + bandWidth * fraction;
+                await clickAction(canvasX, emptyPlotY)(chartInstance);
+
+                expect(click).toHaveBeenCalledTimes(1);
+                const { coordinates } = click.mock.calls[0][0];
+                expect(coordinates.x.value).toBe('B');
+                expect(coordinates.x.groupPercentage).toBeCloseTo(fraction);
+                expect(coordinates.y.groupPercentage).toBeUndefined();
+            }
+        });
+    });
+
     describe('AG-16337 listeners undefined update', () => {
         it('should handle chart-level listeners set to undefined', async () => {
             const chartClick = vi.fn();
