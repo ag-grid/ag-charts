@@ -177,6 +177,47 @@ describe('RangeAreaSeries', () => {
         await compare();
     });
 
+    describe('node pickability with markers disabled (AG-10226)', () => {
+        const withMarkers = async (low: boolean, high: boolean) => {
+            const options: AgChartOptions = {
+                ...RANGE_AREA_OPTIONS,
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'month',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        item: {
+                            low: { marker: { enabled: low } },
+                            high: { marker: { enabled: high } },
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return deproxy(chart).series[0] as any;
+        };
+
+        it('reports node shapes pickable only when both sides render markers', async () => {
+            expect((await withMarkers(true, true)).hasPickableNodeShapes()).toBe(true);
+        });
+
+        it('reports nothing pickable when neither side renders markers', async () => {
+            expect((await withMarkers(false, false)).hasPickableNodeShapes()).toBe(false);
+        });
+
+        it.each([
+            ['low only', true, false],
+            ['high only', false, true],
+        ])('reports nothing pickable with %s markers, as the other side has no shape', async (_, low, high) => {
+            // The disabled side's datums are filtered out of the marker selection, so exact-shape
+            // matching cannot resolve for them.
+            expect((await withMarkers(low, high)).hasPickableNodeShapes()).toBe(false);
+        });
+    });
+
     it(`should render a range-area chart with inverted high and low values`, async () => {
         const options: AgChartOptions = {
             ...RANGE_AREA_OPTIONS,
