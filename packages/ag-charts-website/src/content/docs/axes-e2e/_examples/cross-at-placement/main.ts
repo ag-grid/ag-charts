@@ -54,3 +54,10 @@ function setCrosshairLabelPlacement(placement: AgCartesianAxisCrossAtPlacement) 
     options.axes!.y!.crossAt!.crosshairLabelPlacement = placement;
     chart.update(options);
 }
+
+function setAxisPositions(positions: 'bottom-left' | 'top-right') {
+    const flipped = positions === 'top-right';
+    options.axes!.x!.position = flipped ? 'top' : 'bottom';
+    options.axes!.y!.position = flipped ? 'right' : 'left';
+    chart.update(options);
+}

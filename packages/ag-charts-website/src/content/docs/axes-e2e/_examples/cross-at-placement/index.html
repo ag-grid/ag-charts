@@ -20,5 +20,12 @@
             <option value="crossing">crossing</option>
         </select>
     </div>
+    <div class="controls-row">
+        <code>position:</code>
+        <select onchange="setAxisPositions(event.target.value)">
+            <option value="bottom-left">bottom &amp; left</option>
+            <option value="top-right">top &amp; right</option>
+        </select>
+    </div>
 </div>
 <div id="myChart"></div>

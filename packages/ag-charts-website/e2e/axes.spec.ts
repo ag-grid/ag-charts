@@ -119,6 +119,25 @@ test.describe('axes', () => {
                 }
             }
         }
+
+        // The `position` edge each label falls back to differs per axis position, so sweep the new option
+        // against the opposite two edges. `titlePlacement` and `labelPlacement` are position-independent
+        // and already covered above.
+        for (const crosshairLabelPlacement of PLACEMENTS) {
+            test(`places the crosshair label at the ${crosshairLabelPlacement} of top and right axes`, async ({
+                page,
+            }) => {
+                await page.selectOption('select[onchange^="setAxisPositions"]', 'top-right');
+                await page.selectOption('select[onchange^="setCrosshairLabelPlacement"]', crosshairLabelPlacement);
+                await hoverQuadrant(page);
+
+                await expectChartScreenshot(
+                    page,
+                    page.locator(SELECTORS.canvasCenter),
+                    `cross-at-placement-top-right-crosshair-${crosshairLabelPlacement}.png`
+                );
+            });
+        }
     });
 
     // The default (auto rotation, uniform labels, collision detection on) is the render baseline above;
