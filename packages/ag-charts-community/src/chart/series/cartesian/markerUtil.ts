@@ -10,7 +10,8 @@ import type { Node } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import { Transformable } from '../../../scene/transformable';
 import type { AnimationManager } from '../../interaction/animationManager';
-import { Marker } from '../../marker/marker';
+import type { MarkerStrokePickStyle } from '../../marker/marker';
+import { Marker, markerStrokePickInflation } from '../../marker/marker';
 import type { PickFocusInputs } from '../series';
 import type { SeriesMarker } from '../seriesMarker';
 import { highlightStates } from '../seriesProperties';
@@ -258,23 +259,6 @@ export function getMarkerStyles<TStylerParams, TStylerResult, TItemStylerParams>
     );
 }
 
-/** The only parts of a marker style the pick-inflation resolution reads. */
-type StrokePickInflationStyle = { stroke?: unknown; strokeWidth?: number; strokeOpacity?: number };
-
-/**
- * Half the width of the stroke this marker style actually draws, in local-space pixels — the amount
- * a node's pick region must grow by so that clicking/hovering the stroke counts as hitting the node
- * (AG-8173). A style that draws no stroke contributes nothing, so unstroked nodes keep exactly
- * today's hit region.
- */
-export function markerStrokePickInflation(style: StrokePickInflationStyle | undefined): number {
-    if (style == null) return 0;
-    const { stroke, strokeWidth = 0, strokeOpacity = 1 } = style;
-    // Same predicate the renderer uses to decide whether to stroke at all (see `Shape.strokeIsDrawn`).
-    const strokeIsDrawn = stroke != null && stroke !== 'none' && strokeWidth > 0 && strokeOpacity > 0;
-    return strokeIsDrawn ? strokeWidth / 2 : 0;
-}
-
 /**
  * The widest {@link markerStrokePickInflation} across every highlight state the marker can be drawn
  * in. Highlight styles are drawn by a node in `highlightGroup`, which picking never traverses, so
@@ -282,7 +266,7 @@ export function markerStrokePickInflation(style: StrokePickInflationStyle | unde
  * region invariant to the current highlight state (nothing to invalidate in `Series._pickNodeCache`).
  */
 export function maxMarkerStrokePickInflation(
-    styles: Record<HighlightState, StrokePickInflationStyle> | undefined
+    styles: Record<HighlightState, MarkerStrokePickStyle> | undefined
 ): number {
     if (styles == null) return 0;
     let inflation = 0;

@@ -121,4 +121,33 @@ describe('AG-8173 node stroke click detection', () => {
 
         expect(seriesNodeClick).not.toHaveBeenCalled();
     });
+
+    // The review finding on #7926: an `itemStyler` can widen a single datum's stroke, and that
+    // width is not visible in `contextNodeData.styles`. No highlight override here, so the styler
+    // is the only thing that can inflate the region.
+    it('fires seriesNodeClick when clicking a stroke widened only by marker.itemStyler', async () => {
+        const seriesNodeClick = vi.fn();
+        const options = createOptions(seriesNodeClick);
+        (options.series as any)[0].highlight = undefined;
+        (options.series as any)[0].marker = {
+            size: 20,
+            itemStyler: () => ({ stroke: 'blue', strokeWidth: 10 }),
+        };
+        chart = deproxy(AgCharts.create(prepareTestOptions(options)));
+        await waitForChartStability(chart);
+
+        const [series] = chart.series;
+        const [node] = (series as any).contextNodeData?.nodeData ?? [];
+        const seriesRect = (chart as any).seriesRect;
+        const cx = seriesRect.x + node.point.x;
+        const cy = seriesRect.y + node.point.y;
+
+        // 12px is outside the size/2 = 10 pick radius but inside the styler's drawn outer radius of 15.
+        await hoverAction(cx + 12, cy)(chart);
+        await waitForChartStability(chart);
+        await clickAction(cx + 12, cy)(chart);
+        await waitForChartStability(chart);
+
+        expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+    });
 });

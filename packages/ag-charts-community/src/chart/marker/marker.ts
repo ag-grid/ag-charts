@@ -20,6 +20,23 @@ const CENTRE_ANCHOR: Point = Object.freeze({ x: 0.5, y: 0.5 });
 const DRAW_BBOX_SCRATCH = new BBox(0, 0, 0, 0);
 const FILL_BBOX_SCRATCH = new BBox(0, 0, 0, 0);
 
+/** The only parts of a marker style the pick-inflation resolution reads. */
+export type MarkerStrokePickStyle = { stroke?: unknown; strokeWidth?: number; strokeOpacity?: number };
+
+/**
+ * Half the width of the stroke this marker style actually draws, in local-space pixels — the amount
+ * a node's pick region must grow by so that clicking/hovering the stroke counts as hitting the node
+ * (AG-8173). A style that draws no stroke contributes nothing, so unstroked nodes keep exactly
+ * today's hit region.
+ */
+export function markerStrokePickInflation(style: MarkerStrokePickStyle | undefined): number {
+    if (style == null) return 0;
+    const { stroke, strokeWidth = 0, strokeOpacity = 1 } = style;
+    // Same predicate the renderer uses to decide whether to stroke at all (see `Shape.strokeIsDrawn`).
+    const strokeIsDrawn = stroke != null && stroke !== 'none' && strokeWidth > 0 && strokeOpacity > 0;
+    return strokeIsDrawn ? strokeWidth / 2 : 0;
+}
+
 class InternalMarker<D = any> extends Path<D> {
     @DeclaredSceneObjectChangeDetection({ equals: TRIPLE_EQ })
     shape: AgMarkerShape = 'square';

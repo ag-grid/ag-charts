@@ -333,7 +333,6 @@ export {
     getMarkerStyles,
     cartesianMarkerDrawMode,
     markerFadeInAnimation,
-    markerStrokePickInflation,
     markerSwipeScaleInAnimation,
     maxMarkerStrokePickInflation,
     resetMarkerFn,

@@ -79,6 +79,7 @@ import type { DataModel, ProcessedData } from '../data/dataModel';
 import { DataSet } from '../data/dataSet';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
+import { markerStrokePickInflation } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 import { getItemId } from './pickManager';
 import { mergeMarkerStyles, mergeMarkerStylesPair } from './seriesMarker';
@@ -1575,13 +1576,16 @@ export abstract class Series<
             crossFilterSelected?: boolean;
             hideWithSize0: boolean;
             /**
-             * Local-space pick-region widening for the node's drawn stroke (AG-8173) — resolved once
-             * per update by the caller via `maxMarkerStrokePickInflation`, never per datum.
+             * Floor for the node's local-space pick-region widening (AG-8173) — the widest stroke the
+             * series can draw this marker with across every highlight state, resolved once per update
+             * by the caller via `maxMarkerStrokePickInflation`. The per-datum style resolved below is
+             * folded in on top of it, so an `itemStyler` that widens one datum's stroke widens that
+             * datum's hit region too.
              */
             pickInflation?: number;
         }
     ) {
-        const { shape, size = 0 } = style;
+        const { shape, size = 0, strokeWidth = 0 } = style;
         const { applyPosition = true, crossFilterSelected = true, hideWithSize0, pickInflation = 0 } = opts;
         const visible =
             this.visible &&
@@ -1589,7 +1593,12 @@ export abstract class Series<
 
         markerNode.setStyleProperties(style, fillBBox);
         markerNode.setVisibilityAndPosition(!!visible, shape!, size, applyPosition ? point : undefined);
-        markerNode.pickInflation = pickInflation;
+        // The caller's floor covers the highlight states, which are drawn by an unpickable node in
+        // `highlightGroup`; `style` covers this datum's own stroke, including an `itemStyler`'s.
+        // `markerStrokePickInflation` can never exceed `strokeWidth / 2`, so the comparison below
+        // keeps the common case (no styler widening) at one extra numeric test per marker.
+        markerNode.pickInflation =
+            strokeWidth > pickInflation * 2 ? Math.max(pickInflation, markerStrokePickInflation(style)) : pickInflation;
 
         if (!crossFilterSelected) {
             markerNode.fillOpacity *= CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR;
