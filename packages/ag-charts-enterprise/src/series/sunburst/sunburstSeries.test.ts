@@ -1435,7 +1435,7 @@ describe('SunburstSeries', () => {
         ];
 
         const UNSUITABLE_WARNING =
-            'AG Charts - Option [series.innerCircle] does not suit the data - it requires either [series.innerRadiusRatio] or [series.innerRadiusOffset] to be set, or a root level consisting of a single node covering all of the data.';
+            'AG Charts - Options [series.innerCircle] and [series.innerLabels] do not suit the data - they require either [series.innerRadiusRatio] or [series.innerRadiusOffset] to be set, or a root level consisting of a single node covering all of the data.';
 
         let proxy: any;
         let lastOptions: AgChartOptions;

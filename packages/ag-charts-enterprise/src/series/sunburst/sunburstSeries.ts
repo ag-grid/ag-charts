@@ -15,6 +15,7 @@ import {
     isGradientFill,
     mergeDefaults,
     normalizeAngle360,
+    resolveLabelFit,
 } from 'ag-charts-core';
 import type {
     AgSunburstSeriesItemStylerParams,
@@ -25,7 +26,7 @@ import type {
 } from 'ag-charts-types';
 
 import { formatLabels } from '../util/labelFormatter';
-import { SunburstSeriesProperties } from './sunburstSeriesProperties';
+import { type SunburstInnerLabel, SunburstSeriesProperties } from './sunburstSeriesProperties';
 
 const {
     fromToMotion,
@@ -35,8 +36,10 @@ const {
     Group,
     ScalableGroup,
     Selection,
+    Text,
     TransformableText,
     BBox,
+    fitLabelToContainer,
     getLabelStyles,
     toHierarchyHighlightString,
 } = _ModuleSupport;
@@ -120,6 +123,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     // label is not painted over. Inside `scalingGroup`, so it takes the series' entry animation.
     private readonly innerCircleGroup = this.scalingGroup.appendChild(new Group());
     private readonly sectorLabelGroup = this.scalingGroup.appendChild(new Group<SunburstNode>());
+    // Last in `scalingGroup`, so the inner labels paint above both the inner circle and the sector
+    // labels, and named so the scene sampler cannot renumber the unnamed groups around it.
+    private readonly innerLabelsGroup = this.scalingGroup.appendChild(new Group({ name: 'innerLabels' }));
 
     readonly datumSelection = Selection.select<_ModuleSupport.Sector<SunburstNode>>(
         this.sectorGroup,
@@ -137,6 +143,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         this.innerCircleGroup,
         Sector<{ radius: number }>
     );
+    readonly innerLabelsSelection = Selection.select<_ModuleSupport.Text<SunburstInnerLabel>>(
+        this.innerLabelsGroup,
+        Text
+    );
 
     /** Resolved once per layout pass; read back by `resolveCentreCircle()`. */
     private centreCircle: { radius: number } | null = null;
@@ -148,6 +158,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         // Load-bearing: `pickNodesExactShape` walks `contentGroup` and accepts any non-missing object
         // datum, so without this the painted circle would show a tooltip and reach `itemStyler`.
         this.innerCircleGroup.pointerEvents = PointerEvents.None;
+        this.innerLabelsGroup.pointerEvents = PointerEvents.None;
     }
 
     override processData() {
@@ -557,11 +568,15 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             updateSector(datum, rect, true);
         });
 
-        const centreCircle = innerCircle == null ? null : this.resolveCentreCircle();
-        this.innerCircleSelection.update(centreCircle == null ? [] : [centreCircle]);
-        if (innerCircle != null && centreCircle == null) {
+        const { innerLabels } = this.properties;
+        const centre = this.resolveCentreCircle();
+        this.innerCircleSelection.update(innerCircle == null || centre == null ? [] : [centre]);
+        this.innerLabelsSelection.update(centre == null ? [] : innerLabels, (node) => {
+            node.pointerEvents = PointerEvents.None;
+        });
+        if ((innerCircle != null || innerLabels.length > 0) && centre == null) {
             this.ctx.logger.warnOnce(
-                'Option [series.innerCircle] does not suit the data - it requires either [series.innerRadiusRatio] or [series.innerRadiusOffset] to be set, or a root level consisting of a single node covering all of the data.'
+                'Options [series.innerCircle] and [series.innerLabels] do not suit the data - they require either [series.innerRadiusRatio] or [series.innerRadiusOffset] to be set, or a root level consisting of a single node covering all of the data.'
             );
         } else if (innerCircle != null) {
             const { fill, fillOpacity = 1 } = innerCircle;
@@ -625,6 +640,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
             switch (labelPlacement) {
                 case LabelPlacement.CenterCircle:
+                    if (innerLabels.length > 0 && centre != null) {
+                        text.visible = false;
+                        return;
+                    }
                     text.textAlign = 'center';
                     text.textBaseline = 'top';
                     text.translationX = 0;
@@ -664,6 +683,54 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             const datum = text.unsafeClosestDatum();
             updateText(datum, text, text.tag, datum === highlightedDatum);
         }
+
+        if (centre != null) {
+            this.updateInnerLabelNodes(centre);
+        }
+    }
+
+    private updateInnerLabelNodes(centre: { radius: number }) {
+        const { radius } = centre;
+        const textBBoxes: _ModuleSupport.BBox[] = [];
+        const margins: number[] = [];
+        // The inner labels fit the square inscribed in the centre circle (diagonal 2·r ⇒ side r·√2).
+        const extent = radius * Math.SQRT2;
+        const box = { width: extent, height: extent };
+        this.innerLabelsSelection.each((text, datum) => {
+            const { fontStyle, fontWeight, fontSize, fontFamily, color } = datum;
+            text.fontStyle = fontStyle;
+            text.fontWeight = fontWeight;
+            text.fontSize = fontSize;
+            text.fontFamily = fontFamily;
+            text.text = fitLabelToContainer(datum.text, resolveLabelFit(datum, false), datum, box);
+            text.x = 0;
+            text.y = 0;
+            text.fill = color;
+            text.textAlign = 'center';
+            textBBoxes.push(text.getBBox());
+            margins.push(datum.spacing);
+        });
+        const getMarginTop = (index: number) => (index === 0 ? 0 : margins[index]);
+        const getMarginBottom = (index: number) => (index === margins.length - 1 ? 0 : margins[index]);
+        const totalWidth = textBBoxes.reduce((max, bbox) => Math.max(max, bbox.width), 0);
+        const totalHeight = textBBoxes.reduce(
+            (sum, bbox, i) => sum + bbox.height + getMarginTop(i) + getMarginBottom(i),
+            0
+        );
+        const labelRadius = Math.sqrt(Math.pow(totalWidth / 2, 2) + Math.pow(totalHeight / 2, 2));
+        const labelsVisible = labelRadius <= radius;
+
+        const textBottoms: number[] = [];
+        for (let i = 0, prev = -totalHeight / 2; i < textBBoxes.length; i++) {
+            const bbox = textBBoxes[i];
+            const bottom = bbox.height + prev + getMarginTop(i);
+            textBottoms.push(bottom);
+            prev = bottom + getMarginBottom(i);
+        }
+        this.innerLabelsSelection.each((text, _datum, index) => {
+            text.visible = labelsVisible;
+            text.y = textBottoms[index];
+        });
     }
 
     override getTooltipContent(datumIndex: _ModuleSupport.DatumIndex): _ModuleSupport.TooltipContent | undefined {
