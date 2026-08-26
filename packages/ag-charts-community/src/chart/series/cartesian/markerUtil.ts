@@ -258,13 +258,16 @@ export function getMarkerStyles<TStylerParams, TStylerResult, TItemStylerParams>
     );
 }
 
+/** The only parts of a marker style the pick-inflation resolution reads. */
+type StrokePickInflationStyle = { stroke?: unknown; strokeWidth?: number; strokeOpacity?: number };
+
 /**
  * Half the width of the stroke this marker style actually draws, in local-space pixels — the amount
  * a node's pick region must grow by so that clicking/hovering the stroke counts as hitting the node
  * (AG-8173). A style that draws no stroke contributes nothing, so unstroked nodes keep exactly
  * today's hit region.
  */
-export function markerStrokePickInflation(style: NormalisedSeriesMarkerStyle | undefined): number {
+export function markerStrokePickInflation(style: StrokePickInflationStyle | undefined): number {
     if (style == null) return 0;
     const { stroke, strokeWidth = 0, strokeOpacity = 1 } = style;
     // Same predicate the renderer uses to decide whether to stroke at all (see `Shape.strokeIsDrawn`).
@@ -279,7 +282,7 @@ export function markerStrokePickInflation(style: NormalisedSeriesMarkerStyle | u
  * region invariant to the current highlight state (nothing to invalidate in `Series._pickNodeCache`).
  */
 export function maxMarkerStrokePickInflation(
-    styles: Record<HighlightState, NormalisedSeriesMarkerStyle> | undefined
+    styles: Record<HighlightState, StrokePickInflationStyle> | undefined
 ): number {
     if (styles == null) return 0;
     let inflation = 0;
