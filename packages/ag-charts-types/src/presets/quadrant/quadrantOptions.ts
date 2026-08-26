@@ -1,6 +1,7 @@
 import type { Styler } from '../../chart/callbackOptions';
 import type { AgNumberAxisOptions, AgSeriesAreaBackgroundRegion } from '../../chart/cartesianOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
+import type { AgErrorBarOptions } from '../../chart/errorBarOptions';
 import type { DatumKey, PixelSize } from '../../chart/types';
 import type {
     AgScatterSeriesItemStylerParams,
@@ -18,7 +19,7 @@ export interface AgQuadrantPreset<TDatum, TContext>
         Omit<AgScatterSeriesOptionsNames, 'colorName' | 'legendItemName'>,
         Omit<
             AgScatterSeriesThemeableOptions<TDatum, TContext>,
-            'colorScale' | 'itemStyler' | 'showInLegend' | 'showInMiniChart' | 'title'
+            'colorScale' | 'errorBar' | 'itemStyler' | 'showInLegend' | 'showInMiniChart' | 'title'
         > {
     /** Whether to move the axis lines so that they cross at the pivot, with the axis titles remaining at the edge of
      * the chart. When `false`, the axes stay at the bottom and left of the chart. The regions are divided at the
@@ -27,8 +28,9 @@ export interface AgQuadrantPreset<TDatum, TContext>
      * Default: `true`
      */
     alignAxesToPivot?: boolean;
-    /** Function used to return formatting for individual markers, based on the supplied information.
-     */
+    /** Configuration for the Error Bars. */
+    errorBar?: AgErrorBarOptions<TDatum, TContext>;
+    /** Function used to return formatting for individual markers, based on the supplied information.*/
     itemStyler?: Styler<AgQuadrantItemStylerParams<TDatum, TContext>, AgQuadrantRegionMarkerStyle>;
     /** The data values at which the chart is divided into four regions. */
     pivot?: AgQuadrantPivotOptions;
