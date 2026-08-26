@@ -84,48 +84,44 @@
     flex-wrap: wrap;
 }
 
-/* ---- demo notice banner ---- */
-.wa-banner {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 24px;
-    background: var(--wa-accent-soft);
-    border: 1px solid var(--wa-accent);
-    color: var(--wa-accent-strong);
-    font-size: 14px;
-    font-weight: 600;
-    flex: 0 0 auto;
-}
-.wa-banner-icon {
-    flex: none;
-    color: var(--wa-accent);
-}
-.wa-banner-text {
-    flex: 1 1 auto;
-}
-.wa-banner-dismiss {
+/* ---- demo notice (top bar info icon + Radix tooltip) ---- */
+.wa-notice-trigger {
     flex: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     padding: 0;
-    border-radius: var(--wa-radius-sm);
     border: none;
+    border-radius: var(--wa-radius-sm);
     background: transparent;
-    color: var(--wa-accent-strong);
-    font: inherit;
-    line-height: 1;
+    color: var(--wa-muted);
     cursor: pointer;
 }
-.wa-banner-dismiss:hover {
-    background: color-mix(in srgb, var(--wa-accent) 18%, transparent);
+.wa-notice-trigger:hover {
+    background: var(--wa-accent-soft);
+    color: var(--wa-accent-strong);
 }
-.wa-banner-dismiss:focus-visible {
+.wa-notice-trigger:focus-visible {
     outline: 2px solid var(--wa-accent);
     outline-offset: 1px;
+}
+.wa-notice-tip {
+    z-index: 60;
+    max-width: 380px;
+    padding: 10px 12px;
+    border: 1px solid var(--wa-border);
+    border-radius: var(--wa-radius-sm);
+    background: var(--wa-panel);
+    box-shadow: var(--wa-shadow-popover);
+    color: var(--wa-muted);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.45;
+}
+.wa-notice-arrow {
+    fill: var(--wa-panel);
 }
 
 /* ---- icon + label grid cells (country flag, browser icon) ---- */
