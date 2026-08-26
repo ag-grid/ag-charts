@@ -1027,13 +1027,17 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 );
             }
         } finally {
-            // Unconditional, unlike `beginCallbackIssues()` above: `performUpdate()` consumes
-            // `clearCallbackCacheOnUpdate` before it renders, so when an update-type shortcut restarts the
-            // pass, the pass that actually invokes the callbacks sees `callbacksReEvaluated === false`.
-            // Gating the commit on it stranded a first-render callback failure in the buffer until an
-            // unrelated redraw (a hover) happened to re-evaluate the callbacks. Committing an unchanged
-            // buffer is a no-op, so an un-re-evaluated pass still costs nothing.
-            this.validationCollector.commitCallbackIssues();
+            // `performUpdate()` consumes `clearCallbackCacheOnUpdate` before it renders, so when an
+            // update-type shortcut restarts the pass, the pass that actually invokes the callbacks sees
+            // `callbacksReEvaluated === false` — gating the commit on that flag alone stranded a
+            // first-render callback failure in the buffer until an unrelated redraw happened to
+            // re-evaluate the callbacks. The buffer check is what commits it. Both conditions are needed:
+            // dropping the flag would let a pass that shortcut out before the callbacks ran commit an
+            // empty buffer over a still-live callback error, and dropping the buffer check reinstates the
+            // bug. A pass that re-evaluated callbacks and legitimately found none must still clear.
+            if (callbacksReEvaluated || this.validationCollector.hasPendingCallbackIssues()) {
+                this.validationCollector.commitCallbackIssues();
+            }
         }
     }
 

@@ -169,6 +169,11 @@ export class ValidationIssueCollector {
         this.pendingCallbackIssues = [];
     }
 
+    /** Whether this cycle buffered anything worth committing — see `Chart.tryPerformUpdate()`. */
+    hasPendingCallbackIssues(): boolean {
+        return this.pendingCallbackIssues.length > 0;
+    }
+
     /** Buffer a caught callback error for the current render cycle, de-duplicated by severity + message. */
     recordCallbackIssue(issue: ValidationIssue) {
         const duplicate = this.pendingCallbackIssues.some(
