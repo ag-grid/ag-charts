@@ -639,6 +639,32 @@ describe('AgCharts', () => {
             expect(deproxy(chart).series.map((s) => s.type)).toEqual(['line']);
         });
 
+        it('keeps the skipped options as the base, so a later delta update recovers them', async () => {
+            await withOnlyBarRegistered(async () => {
+                chart = AgCharts.create({
+                    container,
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                } as AgChartOptions);
+                await chart.waitForUpdate();
+
+                await chart.update({
+                    container,
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                } as AgChartOptions);
+                takeErrorMessages();
+
+                ModuleRegistry.registerModules([LineSeriesModule]);
+                // A delta cannot restate the series, so it recovers only if the skipped options are
+                // what it merges onto.
+                await chart.updateDelta({ data: [{ x: 'a', y: 2 }] });
+                await chart.waitForUpdate();
+            });
+
+            expect(deproxy(chart).series.map((s) => s.type)).toEqual(['line']);
+        });
+
         it('still renders a series type that is registered', async () => {
             let created: AgChartInstance | undefined;
             await withOnlyBarRegistered(() => {

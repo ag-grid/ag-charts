@@ -444,7 +444,10 @@ class AgChartsInternal {
         // without the chart-level defaults the lead series type's theme entry carries, an update
         // dereferences absent ones (`touch`, `keyboard`, `background`). A later call recovers
         // normally once a module for the type is registered.
-        if (chartOptions.unusableLeadSeriesType != null) return proxy;
+        if (chartOptions.unusableLeadSeriesType != null) {
+            AgChartsInternal.queueSkippedUpdate(chart, chartOptions);
+            return proxy;
+        }
 
         AgChartsInternal.requestFactoryUpdate(chart, chartOptions);
 
@@ -517,6 +520,29 @@ class AgChartsInternal {
             this.destroy,
             Infinity // Unbounded, so Grid sorting cannot exhaust the pool.
         );
+    }
+
+    /** The options of updates skipped by the `unusableLeadSeriesType` short-circuit - see below. */
+    private static readonly skippedChartOptions = new WeakSet<ChartOptions>();
+
+    /**
+     * Queues a skipped update's options without applying them, so they - and not the last successfully
+     * applied configuration - are the base a subsequent update merges onto. Without this a delta update
+     * made once a module for the type is registered would revive the superseded configuration and drop
+     * the caller's, which a delta cannot restate.
+     *
+     * Nothing ever splices a skipped entry off the queue, since only an applied update does that, so a
+     * further skipped update replaces the entry rather than stacking on it.
+     */
+    private static queueSkippedUpdate(chart: Chart, chartOptions: ChartOptions) {
+        const queued = chart.queuedChartOptions.at(-1);
+        if (queued != null && AgChartsInternal.skippedChartOptions.has(queued)) {
+            chart.queuedChartOptions.pop();
+            chart.queuedUserOptions.pop();
+        }
+        AgChartsInternal.skippedChartOptions.add(chartOptions);
+        chart.queuedUserOptions.push(chartOptions.userOptions);
+        chart.queuedChartOptions.push(chartOptions);
     }
 
     private static requestFactoryUpdate(chart: Chart, chartOptions: ChartOptions) {

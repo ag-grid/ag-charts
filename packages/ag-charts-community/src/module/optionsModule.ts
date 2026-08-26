@@ -240,6 +240,20 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     activeTheme: ChartTheme;
     processedOptions: T;
     userOptions: Partial<T>;
+    /**
+     * The chart's lead series type when nothing was registered to draw it at the time these options
+     * were processed — an explicit `series[0].type` with no series module, or the implicit `'line'`
+     * default when `series` is absent.
+     *
+     * The theme carries a chart's entire default set under its lead series type's entry, so with no
+     * module for that type `processedOptions` carries none of the chart-level defaults and an update
+     * dereferences an absent one. Derived from `userOptions` rather than the processed options, which
+     * have the unusable series stripped, and skipped for presets, which supply their own series.
+     *
+     * Resolved once per instance rather than on demand, so it also records that `processedOptions` is
+     * missing those defaults after a module for the type has been registered.
+     */
+    readonly unusableLeadSeriesType: string | undefined;
     processedOverrides: Partial<T>;
     specialOverrides: ChartSpecialOverrides;
     optionMetadata: ChartInternalOptionMetadata;
@@ -346,6 +360,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         );
 
         this.findSeriesWithUserVisiblity(newUserOptions, deltaOptions);
+        this.unusableLeadSeriesType = this.resolveUnusableLeadSeriesType();
 
         if (stripSymbols) {
             this.removeLeftoverSymbols(this.userOptions);
@@ -376,6 +391,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             deltaOptions !== undefined &&
             ChartOptions.isFastPathDelta(deltaOptions, presetDef?.fastUpdateKeys) &&
             baseChartOptions != null &&
+            // The base's processed options lack the chart-level defaults its lead series type's theme
+            // entry carries, so carrying them forward would apply a set an update dereferences.
+            baseChartOptions.unusableLeadSeriesType == null &&
             !dataChangedLength &&
             // An armed `throwOn` must re-validate on every pass — the fast path carries `validationIssues`
             // forward without calling the `record*` methods that throw.
@@ -1046,16 +1064,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return options.series?.[0]?.type ?? 'line';
     }
 
-    /**
-     * The chart's lead series type when nothing is registered to draw it — an explicit `series[0].type`
-     * with no series module, or the implicit `'line'` default when `series` is absent.
-     *
-     * The theme carries a chart's entire default set under its lead series type's entry, so with no
-     * module for that type the resolved options contain none of the chart-level defaults and the first
-     * update dereferences an absent one. Derived from `userOptions` rather than the processed options,
-     * which have the unusable series stripped, and skipped for presets, which supply their own series.
-     */
-    get unusableLeadSeriesType(): string | undefined {
+    private resolveUnusableLeadSeriesType(): string | undefined {
         if (this.optionMetadata.presetType != null) return undefined;
         const seriesType = this.optionsType(this.userOptions);
         return ModuleRegistry.getSeriesModule(seriesType) == null ? seriesType : undefined;
