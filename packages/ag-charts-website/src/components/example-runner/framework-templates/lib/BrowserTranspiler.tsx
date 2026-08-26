@@ -1,3 +1,4 @@
+import { ExampleRunnerCall } from '@ag-website-shared/components/example-runner/components/ExampleRunnerClient';
 import {
     ASSET_REGEX,
     COMPILER_OPTION_NAMES,
@@ -5,10 +6,8 @@ import {
     EXTENSIONS,
     SPECIFIER_REGEX,
     STYLESHEET_LOADER_NAME,
-} from '@utils/example-modules/transformExampleModule';
+} from '@ag-website-shared/components/example-runner/utils/transformExampleModule';
 import ts from 'typescript';
-
-import { ExampleRunnerCall } from './ExampleRunnerClient';
 
 interface Props {
     /** The example's entry file, as authored -- `main.ts`, not `main.js` */

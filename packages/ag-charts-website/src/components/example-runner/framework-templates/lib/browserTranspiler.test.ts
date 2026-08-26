@@ -3,7 +3,7 @@ import {
     COMPILER_OPTION_NAMES,
     getCompilerOptions,
     resolveCompilerOptions,
-} from '@utils/example-modules/transformExampleModule';
+} from '@ag-website-shared/components/example-runner/utils/transformExampleModule';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import ts from 'typescript';
