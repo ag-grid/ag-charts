@@ -119,10 +119,7 @@ const verticalRangeAnchors: Record<AgCrossLineLabelPosition, Anchor> = {
     inside: { rangeH: 0, rangeV: 0, labelH: 0, labelV: 0 },
 };
 
-/**
- * Mirrors an outward-facing anchor back across the cross line. The guards match
- * {@link CartesianCrossLine.calculatePadding}'s exactly, so a realigned label can never demand padding.
- */
+/** Mirrors an anchor across the cross line. Guards match `calculatePadding`, so the result cannot pad. */
 function realignAnchor(anchor: Anchor, horizontal: boolean): Anchor {
     if (horizontal) {
         if (anchor.rangeH === -1 && anchor.labelH === 1) return { ...anchor, labelH: -1 };
@@ -138,9 +135,8 @@ function realignAnchor(anchor: Anchor, horizontal: boolean): Anchor {
 const ROTATION_EPSILON = 1e-6;
 
 /**
- * Room the label has along one axis, measured from the point its anchor pins rather than from the box it
- * would draw untruncated. `labelDir` is the anchor's `labelH`/`labelV`: the label grows away from
- * `anchorAt` when that is `1` or `-1`, and symmetrically about it when it is `0`.
+ * Room along one axis from the point the anchor pins. `labelDir` is `labelH`/`labelV`: the label grows away
+ * from `anchorAt` when that is `1` or `-1`, symmetrically about it when `0`.
  */
 function availableExtent(anchorAt: number, labelDir: AnchorDirection, pad: number, low: number, high: number) {
     if (labelDir === 1) return anchorAt - pad - low;
@@ -485,9 +481,8 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     }
 
     /**
-     * Truncates a `'clip-text'` label with an ellipsis so its box stays inside the chart container. The
-     * label keeps its configured position, so the room available is measured from the anchor point, which
-     * truncation does not move — a box-relative bound would shift as the text shortened and never settle.
+     * Ellipsises a `'clip-text'` label to the chart container. Bounded from the anchor point, not the drawn
+     * box: a box-relative bound moves as the text shortens, so it would never settle.
      */
     private clipLabelText(bounds: BBox) {
         const { crossLineLabel, containerBox, label, anchor } = this;
@@ -505,8 +500,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         const availableX = availableExtent(anchorX, anchor.labelH, pad, container.x, container.x + container.width);
         const availableY = availableExtent(anchorY, anchor.labelV, pad, container.y, container.y + container.height);
 
-        // The drawn box is the rotated footprint of the text plus whatever boxing pads it by, so its extent
-        // along either axis is `textWidth * component + a constant` — solving for the text width keeps the
+        // The rotated footprint's extent is affine in the text width, so solving for that width keeps the
         // boxing padding out of the arithmetic entirely.
         const textWidth = cachedTextMeasurer(label).measureLines(text).width;
         const cos = Math.abs(Math.cos(crossLineLabel.rotation));

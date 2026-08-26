@@ -73,8 +73,8 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     gridLength: number;
     gridPadding: number;
     /**
-     * Chart container in canvas coordinates, bounding where a `'clip-text'` label may draw. Set by
-     * {@link CrossLinesPlugin} on every update, since the canvas can resize without the axis relaying out.
+     * Chart container in canvas coordinates, bounding where a `'clip-text'` label may draw. Set on every
+     * update, since the canvas can resize without the axis relaying out.
      */
     containerBox?: BoxBounds;
     lineGroup: Group;
