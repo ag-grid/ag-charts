@@ -669,6 +669,8 @@ export abstract class Axis<
                 ...defaultStyle,
             });
         }
+        // OPTIMIZATION: with nothing to merge over it, `defaultStyle` is already the resolved style.
+        if (stylerOutput == null && additionalStyles == null) return defaultStyle;
         const merged = mergeDefaults(stylerOutput, additionalStyles, defaultStyle);
         return {
             border: merged.border,
