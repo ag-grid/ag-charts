@@ -14,7 +14,7 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'category',
-            crossAt: { value: 35 },
+            crossAt: { value: 35, crosshairLabelPlacement: 'crossing' },
             title: { text: 'Index' },
             line: {
                 stroke: 'black',
@@ -23,7 +23,7 @@ const options: AgCartesianChartOptions = {
         },
         y: {
             type: 'number',
-            crossAt: { value: 5 },
+            crossAt: { value: 5, crosshairLabelPlacement: 'crossing' },
             title: { text: 'Value' },
             line: {
                 stroke: 'black',

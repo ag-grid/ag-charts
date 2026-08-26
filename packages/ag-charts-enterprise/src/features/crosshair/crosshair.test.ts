@@ -733,17 +733,17 @@ describe('Crosshair', () => {
             `);
         });
 
-        it('should follow the axis lines when crossAt moves them off their position edges', async () => {
+        it('should keep labels at the position edges when crossAt moves the axis lines', async () => {
             await hoverWithAxes(axesAt({ value: 0 }));
 
             expect(labelPlacement('x')).toMatchInlineSnapshot(`
               [
-                "480px 307px (-50% 0)",
+                "480px 562px (-50% 0)",
               ]
             `);
             expect(labelPlacement('y')).toMatchInlineSnapshot(`
               [
-                "397px 250px (-100% -50%)",
+                "46px 250px (-100% -50%)",
               ]
             `);
         });

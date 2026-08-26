@@ -648,7 +648,8 @@ export abstract class CartesianAxis<
 
     override getLayoutState() {
         const layout = super.getLayoutState();
-        return { ...layout, position: this.position, crossAxisTranslation: { ...this.crossAxisTranslation } };
+        const crosshairOffset = this.isCrosshairLabelAtEdge() ? { x: 0, y: 0 } : { ...this.crossAxisTranslation };
+        return { ...layout, position: this.position, crosshairOffset };
     }
 
     protected override updatePosition(): void {
@@ -893,6 +894,15 @@ export abstract class CartesianAxis<
         return this.options.crossAt?.labelPlacement === 'edge';
     }
 
+    private isCrosshairLabelAtEdge() {
+        return (this.options.crossAt?.crosshairLabelPlacement ?? 'edge') === 'edge';
+    }
+
+    crosshairLabelNeedsEdgeSpace(): boolean {
+        if (!this.isCrosshairLabelAtEdge()) return false;
+        return this.getModuleMap().getModule<{ labelEnabled: boolean }>('crosshair')?.labelEnabled === true;
+    }
+
     /** The title and labels render in the same place unless exactly one of them is at the edge. */
     private titleRendersWithLabels() {
         return this.isTitleAtEdge() === this.isLabelsAtEdge();
@@ -907,12 +917,13 @@ export abstract class CartesianAxis<
     getCrossAtThicknesses(): { atEdge: number; atCrossing: number } {
         const titleAtEdge = this.isTitleAtEdge();
         const labelsAtEdge = this.isLabelsAtEdge();
+        const crosshairLabelAtEdge = this.crosshairLabelNeedsEdgeSpace();
 
         const title = this.titleThickness;
         const labels = this.layout.labelThickness ?? 0;
 
         return {
-            atEdge: Math.max(titleAtEdge ? title : 0, labelsAtEdge ? labels : 0),
+            atEdge: Math.max(titleAtEdge ? title : 0, labelsAtEdge || crosshairLabelAtEdge ? labels : 0),
             atCrossing: Math.max(titleAtEdge ? 0 : title, labelsAtEdge ? 0 : labels),
         };
     }

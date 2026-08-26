@@ -2,7 +2,15 @@ import type { Locator, Page } from '@playwright/test';
 
 import { test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
-import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl, waitForAllChartUpdates } from './util';
+import {
+    SELECTORS,
+    gotoExample,
+    hoverCanvas,
+    locateCanvas,
+    setupIntrinsicAssertions,
+    toExamplePageUrl,
+    waitForAllChartUpdates,
+} from './util';
 
 // Each consolidated axes example renders a deterministic layout (grouped-category axes, bigint / ISO
 // datetime domains, label rotation); the screenshot is the visual-regression baseline for that render path.
@@ -67,6 +75,70 @@ test.describe('axes', () => {
             await expectChartScreenshot(page, canvas, `${example}-rotation-0.png`);
         });
     }
+
+    // `crossAt` splits the axis furniture between the crossing point and the `position` edge, and the title,
+    // the axis labels and the crosshair label each choose independently — so every combination of the three
+    // is a distinct layout with its own baseline.
+    test.describe('cross-at-placement', () => {
+        const PLACEMENTS = ['crossing', 'edge'] as const;
+
+        test.beforeEach(async ({ page }) => {
+            await gotoAxesExample(page, 'cross-at-placement');
+        });
+
+        // Both axes cross at 0 and their crosshairs do not snap, so a pointer in the top-right quadrant
+        // puts each crosshair label on the far side of its axis line from the `position` edge.
+        async function hoverQuadrant(page: Page): Promise<void> {
+            await waitForAllChartUpdates(page);
+            const { bbox } = await locateCanvas(page);
+            await hoverCanvas(page, { x: Math.round(bbox.width * 0.7), y: Math.round(bbox.height * 0.3) });
+        }
+
+        for (const titlePlacement of PLACEMENTS) {
+            for (const labelPlacement of PLACEMENTS) {
+                for (const crosshairLabelPlacement of PLACEMENTS) {
+                    const name = `title-${titlePlacement}-labels-${labelPlacement}-crosshair-${crosshairLabelPlacement}`;
+
+                    test(`places the title at the ${titlePlacement}, the labels at the ${labelPlacement} and the crosshair label at the ${crosshairLabelPlacement}`, async ({
+                        page,
+                    }) => {
+                        await page.selectOption('select[onchange^="setTitlePlacement"]', titlePlacement);
+                        await page.selectOption('select[onchange^="setLabelPlacement"]', labelPlacement);
+                        await page.selectOption(
+                            'select[onchange^="setCrosshairLabelPlacement"]',
+                            crosshairLabelPlacement
+                        );
+                        await hoverQuadrant(page);
+
+                        await expectChartScreenshot(
+                            page,
+                            page.locator(SELECTORS.canvasCenter),
+                            `cross-at-placement-${name}.png`
+                        );
+                    });
+                }
+            }
+        }
+
+        // The `position` edge each label falls back to differs per axis position, so sweep the new option
+        // against the opposite two edges. `titlePlacement` and `labelPlacement` are position-independent
+        // and already covered above.
+        for (const crosshairLabelPlacement of PLACEMENTS) {
+            test(`places the crosshair label at the ${crosshairLabelPlacement} of top and right axes`, async ({
+                page,
+            }) => {
+                await page.selectOption('select[onchange^="setAxisPositions"]', 'top-right');
+                await page.selectOption('select[onchange^="setCrosshairLabelPlacement"]', crosshairLabelPlacement);
+                await hoverQuadrant(page);
+
+                await expectChartScreenshot(
+                    page,
+                    page.locator(SELECTORS.canvasCenter),
+                    `cross-at-placement-top-right-crosshair-${crosshairLabelPlacement}.png`
+                );
+            });
+        }
+    });
 
     // The default (auto rotation, uniform labels, collision detection on) is the render baseline above;
     // "No rotation" is byte-identical to it here since these uniform labels already fit.
