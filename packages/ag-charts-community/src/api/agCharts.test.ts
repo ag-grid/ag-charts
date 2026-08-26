@@ -5,6 +5,7 @@ import type { AgChartInstance, AgChartOptions, AgLineSeriesOptions, AgSparklineO
 
 import { AgCharts } from '../api/agCharts';
 import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
+import { LineSeriesModule } from '../chart/series/cartesian/lineSeriesModule';
 import {
     deproxy,
     expectWarningsCalls,
@@ -561,12 +562,12 @@ describe('AgCharts', () => {
     });
     describe('no registered series module for the lead series type', () => {
         // Restore by value: re-registering a bundle drops anything registered at collection time.
-        function withOnlyBarRegistered(run: () => void) {
+        async function withOnlyBarRegistered(run: () => void | Promise<void>) {
             const registeredModules = [...ModuleRegistry.listModules()];
             ModuleRegistry.reset();
             ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
             try {
-                run();
+                await run();
             } finally {
                 ModuleRegistry.reset();
                 ModuleRegistry.registerModules(registeredModules);
@@ -580,8 +581,8 @@ describe('AgCharts', () => {
             return messages;
         }
 
-        it('reports the implicit `line` default and renders nothing instead of crashing', () => {
-            withOnlyBarRegistered(() => {
+        it('reports the implicit `line` default and renders nothing instead of crashing', async () => {
+            await withOnlyBarRegistered(() => {
                 expect(() => (chart = AgCharts.create({ container } as AgChartOptions))).not.toThrow();
             });
 
@@ -592,8 +593,8 @@ describe('AgCharts', () => {
             expect(deproxy(chart).series).toHaveLength(0);
         });
 
-        it('reports an explicit series type with no module and renders nothing instead of crashing', () => {
-            withOnlyBarRegistered(() => {
+        it('reports an explicit series type with no module and renders nothing instead of crashing', async () => {
+            await withOnlyBarRegistered(() => {
                 expect(
                     () =>
                         (chart = AgCharts.create({
@@ -610,9 +611,37 @@ describe('AgCharts', () => {
             expect(deproxy(chart).series).toHaveLength(0);
         });
 
+        it('replaces the refresh listener, so a refresh after the module is registered applies the latest options', async () => {
+            let created: AgChartInstance | undefined;
+            await withOnlyBarRegistered(async () => {
+                created = AgCharts.create({
+                    container,
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                } as AgChartOptions);
+                chart = created!;
+                await chart.waitForUpdate();
+
+                // Skipped — no line module yet — but it must still own the refresh listener.
+                await chart.update({
+                    container,
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                } as AgChartOptions);
+                takeErrorMessages();
+                expect(deproxy(chart).series.map((s) => s.type)).toEqual(['bar']);
+
+                ModuleRegistry.registerModules([LineSeriesModule]);
+                deproxy(chart).ctx.eventsHub.emit('chart:request-refresh', null);
+                await chart.waitForUpdate();
+            });
+
+            expect(deproxy(chart).series.map((s) => s.type)).toEqual(['line']);
+        });
+
         it('still renders a series type that is registered', async () => {
             let created: AgChartInstance | undefined;
-            withOnlyBarRegistered(() => {
+            await withOnlyBarRegistered(() => {
                 created = AgCharts.create({
                     container,
                     data: [{ x: 'a', y: 1 }],
