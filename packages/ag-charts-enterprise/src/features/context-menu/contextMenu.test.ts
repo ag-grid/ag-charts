@@ -238,9 +238,7 @@ describe('Context Menu', () => {
 
         it('surfaces series-node items carrying the picked datum', async () => {
             const action = vi.fn();
-            const items: AgContextMenuItem[] = [
-                { type: 'action', label: 'Node Item', showOn: 'series-node', action },
-            ];
+            const items: AgContextMenuItem[] = [{ type: 'action', label: 'Node Item', showOn: 'series-node', action }];
             await prepareChart({ enabled: true, items }, MARKERLESS_LINE_OPTIONS);
 
             const { canvasX: x, canvasY: y } = nodeCanvasPoint(4);
