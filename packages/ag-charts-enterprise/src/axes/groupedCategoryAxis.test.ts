@@ -366,6 +366,18 @@ describe('Grouped Category', () => {
                 ]);
             });
 
+            // Both rows report the same leaf value, so `groupPercentage` is what separates them: the leaf
+            // click sits inside its own band, while the group row spans every leaf beneath it.
+            test('label click reports where in the band the click landed', async () => {
+                await clickPoint({ x: 100, y: 493 }); // 'Fish', the leaf its group starts at
+                await clickPoint({ x: 257, y: 572 }); // 'Food', the group row above it
+                await waitForChartStability(chart);
+                expect(click.mock.calls).toMatchObject([
+                    params({ depth: 0, value: ['Food', 'Meat', 'Fish'], groupPercentage: expect.closeTo(0.5397, 3) }),
+                    params({ depth: 2, value: ['Food', 'Meat', 'Fish'], groupPercentage: expect.closeTo(3.0317, 3) }),
+                ]);
+            });
+
             test('label contextMenu - getItems', async () => {
                 await contextMenuPoint({ x: 100, y: 493 }); // 'Fish'
                 await waitForChartStability(chart);
