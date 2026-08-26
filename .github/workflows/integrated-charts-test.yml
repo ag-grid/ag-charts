@@ -17,6 +17,12 @@ env:
     GIT_CONFIG_VALUE_1: 'false'
     NX_NO_CLOUD: true
     AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
+    # Shared by both Slack steps below; only the color/title/message differ per-step.
+    SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+    SLACK_ICON: https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png
+    SLACK_USERNAME: ag-charts CI
+    SLACK_FOOTER: ''
+    SLACK_CHANNEL: '#charts_teamcity_status'
 
 permissions:
     contents: read
@@ -86,26 +92,28 @@ jobs:
 
             - name: Check previous run status
               id: prev_run
-              if: always()
+              # A flaky `gh` call here must never redden a build that actually
+              # passed, so it can't trip the job-level failure() check below.
+              continue-on-error: true
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
-                  # The current run is still in_progress, so --status completed gives us
-                  # the last finished run - i.e. the one before this one.
-                  PREV_CONCLUSION=$(gh run list \
-                    --workflow integrated-charts-test.yml \
-                    --branch ${{ github.ref_name }} \
-                    --status completed \
-                    --limit 1 \
-                    --json conclusion \
-                    --jq '.[0].conclusion // ""')
-
-                  # On a re-run, this same run is still in_progress, so the query above skips
-                  # it and answers with whatever finished *before* the failing attempt - not
-                  # the failure that triggered the re-run. There's no way to query a run's own
-                  # earlier attempt, so assume the common case: a re-run follows a failure.
                   if [[ "${GITHUB_RUN_ATTEMPT}" -ge 2 ]]; then
-                    PREV_CONCLUSION="failure"
+                    # A re-run's own earlier attempt is directly queryable, unlike
+                    # --status completed below (which only sees prior runs).
+                    PREV_CONCLUSION=$(gh api \
+                      "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/$((GITHUB_RUN_ATTEMPT - 1))" \
+                      --jq '.conclusion // ""' || true)
+                  else
+                    # --status completed also matches cancelled/skipped runs, so skip
+                    # those and take the last run that actually passed or failed.
+                    PREV_CONCLUSION=$(gh run list \
+                      --workflow integrated-charts-test.yml \
+                      --branch "${{ github.ref_name }}" \
+                      --status completed \
+                      --limit 10 \
+                      --json conclusion \
+                      --jq '[.[] | select(.conclusion == "success" or .conclusion == "failure")][0].conclusion // ""' || true)
                   fi
 
                   echo "conclusion=${PREV_CONCLUSION}" >> "$GITHUB_OUTPUT"
@@ -114,34 +122,23 @@ jobs:
               if: failure()
               uses: rtCamp/action-slack-notify@v2
               env:
-                  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
                   SLACK_COLOR: failure
-                  SLACK_ICON: https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png
-                  SLACK_USERNAME: ag-charts CI
-                  SLACK_FOOTER: ''
                   SLACK_TITLE: Integrated Charts Pre-Integration Test Failed
                   SLACK_MESSAGE: >
                       The ag-grid integration build check failed. AG Charts changes
                       on the `latest` branch are likely to break the next Charts
                       Pre-Integration Build in TeamCity.
                       ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-                  SLACK_CHANNEL: '#charts_teamcity_status'
 
             - name: Slack Notification (recovery)
-              # Only announce a return to green, not every routine pass - a daily
-              # "still fine" ping would just be noise. Mirrors the back-to-green gate in
-              # post-deploy-verification.yml.
+              # Only announce a return to green, not every routine pass, so a daily
+              # "still fine" ping doesn't become noise.
               if: success() && steps.prev_run.outputs.conclusion == 'failure'
               uses: rtCamp/action-slack-notify@v2
               env:
-                  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
                   SLACK_COLOR: good
-                  SLACK_ICON: https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png
-                  SLACK_USERNAME: ag-charts CI
-                  SLACK_FOOTER: ''
                   SLACK_TITLE: Integrated Charts Pre-Integration Test Recovered
                   SLACK_MESSAGE: >
                       The ag-grid integration build check is passing again after a
                       previous failure.
                       ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-                  SLACK_CHANNEL: '#charts_teamcity_status'
