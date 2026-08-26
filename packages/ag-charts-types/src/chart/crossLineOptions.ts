@@ -93,12 +93,6 @@ export interface AgBaseCrossLineLabelOptions extends Omit<AgChartLabelStyleOptio
      * Default: `pad-chart`
      */
     overflow?: AgCrossLineLabelOverflow;
-    /**
-     * Whether the label may be moved, shortened or hidden to avoid overlapping other labels.
-     *
-     * Default: `false`
-     */
-    avoidCollisions?: boolean;
 }
 
 /** How a Cross Line label behaves when it does not fit the space available. */

@@ -41,9 +41,6 @@ export class PolarCrossLineLabel extends LabelStyle implements AgBaseCrossLineLa
     @Property
     overflow?: AgCrossLineLabelOverflow;
 
-    @Property
-    avoidCollisions?: boolean;
-
     /** Used by radius cross-lines only; ignored on angle cross-lines. */
     @Property
     positionAngle?: number = undefined;

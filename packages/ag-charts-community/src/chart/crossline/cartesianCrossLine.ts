@@ -161,9 +161,6 @@ class CartesianCrossLineLabel extends LabelStyle implements AgCartesianCrossLine
     overflow?: AgCrossLineLabelOverflow;
 
     @Property
-    avoidCollisions?: boolean;
-
-    @Property
     rotation?: number;
 
     @Property

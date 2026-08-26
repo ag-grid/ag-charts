@@ -24,7 +24,6 @@ export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions
                 strokeWidth: 1,
                 label: {
                     overflow: 'pad-chart',
-                    avoidCollisions: false,
                     fontSize: { $ref: 'fontSize' },
                     fontFamily: { $ref: 'fontFamily' },
                     fontWeight: { $ref: 'fontWeight' },
