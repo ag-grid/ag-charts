@@ -18,6 +18,7 @@ ModuleRegistry.registerModules([
     TreemapSeriesModule,
     ContextMenuModule,
 ]);
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data,
@@ -25,10 +26,14 @@ const options: AgChartOptions = {
         {
             type: 'treemap',
             labelKey: 'name',
+            group: {
+                // Two colours over a three-deep hierarchy, so the third band rotates back to the first.
+                fills: ['#6f9be8', '#f3a93b'],
+            },
         },
     ],
     title: {
-        text: 'Organisational Chart',
+        text: 'Group Fills Cycle By Depth',
     },
 };
 

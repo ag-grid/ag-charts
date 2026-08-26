@@ -18,6 +18,7 @@ ModuleRegistry.registerModules([
     TreemapSeriesModule,
     ContextMenuModule,
 ]);
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data,
@@ -25,10 +26,15 @@ const options: AgChartOptions = {
         {
             type: 'treemap',
             labelKey: 'name',
+            group: {
+                // An explicit fill wins at every depth; the fills array is never consulted.
+                fill: '#8e6fb8',
+                fills: ['#6f9be8', '#f3a93b'],
+            },
         },
     ],
     title: {
-        text: 'Organisational Chart',
+        text: 'Explicit Group Fill Wins Over Group Fills',
     },
 };
 
