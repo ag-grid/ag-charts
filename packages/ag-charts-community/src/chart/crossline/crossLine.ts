@@ -1,4 +1,4 @@
-import type { AxisID, BoxBounds, CanvasPoint, ChartAxisDirection, Forbid, RequireOptional, Scale } from 'ag-charts-core';
+import type { BoxBounds, CanvasPoint, ChartAxisDirection, Forbid, RequireOptional, Scale } from 'ag-charts-core';
 import { callWithContext } from 'ag-charts-core';
 import type {
     AgBaseCrossLineLabelOptions,
