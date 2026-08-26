@@ -991,6 +991,19 @@ describe('CrossLine', () => {
             }
         );
 
+        it('an unset overflow pads as pad-chart does', () => {
+            const crossLine = new CartesianCrossLine();
+            crossLine.type = 'line';
+            crossLine.position = 'bottom';
+            crossLine.label.set({ enabled: true, text: 'A long enough label', position: 'top' });
+
+            const into: Partial<Record<AgCrossLineLabelPosition, number>> = {};
+            crossLine.calculatePadding(into);
+
+            expect(into).toEqual(paddingFor('pad-chart', 'top', 'line'));
+            expect(Object.values(into).some((v) => (v ?? 0) > 0)).toBe(true);
+        });
+
         it.each(['realign-text', 'clip-text'] as const)('%s reserves no space at any label position', (overflow) => {
             for (const type of ['line', 'range'] as const) {
                 for (const position of labelPositions) {

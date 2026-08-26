@@ -567,7 +567,8 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             anchor,
         } = this;
 
-        if (overflow !== 'pad-chart') return;
+        // The theme supplies the default, but a cross line built without one must still pad as it always did.
+        if ((overflow ?? 'pad-chart') !== 'pad-chart') return;
 
         const size = this.computeLabelSize();
         if (!size) return;
