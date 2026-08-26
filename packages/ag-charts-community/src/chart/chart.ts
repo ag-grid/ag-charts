@@ -1012,7 +1012,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
             await this.debug.group(`Chart.performUpdate() ${status}`, async () => {
                 await this.performUpdate(count);
             });
-            if (callbacksReEvaluated) this.validationCollector.commitCallbackIssues();
         } catch (error: any) {
             this.ctx.logger.error('update error', error, error.stack);
             this.validationCollector.recordRuntimeError({
@@ -1027,6 +1026,14 @@ export abstract class Chart implements ModuleInstance, ChartService {
                     `AG Charts - validations.throwOn: error - ${String(error?.message ?? error)}`
                 );
             }
+        } finally {
+            // Unconditional, unlike `beginCallbackIssues()` above: `performUpdate()` consumes
+            // `clearCallbackCacheOnUpdate` before it renders, so when an update-type shortcut restarts the
+            // pass, the pass that actually invokes the callbacks sees `callbacksReEvaluated === false`.
+            // Gating the commit on it stranded a first-render callback failure in the buffer until an
+            // unrelated redraw (a hover) happened to re-evaluate the callbacks. Committing an unchanged
+            // buffer is a no-op, so an un-re-evaluated pass still costs nothing.
+            this.validationCollector.commitCallbackIssues();
         }
     }
 

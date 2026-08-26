@@ -1880,3 +1880,120 @@ describe('validations.onErrorRaised', () => {
         expect(onErrorRaised).toHaveBeenCalledWith({ level: 'error', message: thrownError.message });
     });
 });
+
+describe('AG-17830 QA — validations.onErrorRaised', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Chart;
+    afterEach(() => {
+        chart?.destroy();
+        (chart as unknown) = undefined;
+    });
+
+    // AC 3: the listener is never gated by a severity threshold, and `throwOn` is one. The throw
+    // unwinds out of `new ChartOptions()`, so the chart never adopts the issues that caused it.
+    it('fires on create() for an issue that also trips throwOn', () => {
+        const onErrorRaised = vi.fn();
+
+        expect(() =>
+            AgCharts.create({
+                container: document.body,
+                data: [{ x: 'A', y: 10 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+                validations: { throwOn: 'warning', onErrorRaised },
+            })
+        ).toThrow(/validations.throwOn: warning/);
+
+        expect(onErrorRaised).toHaveBeenCalledWith({
+            level: 'warning',
+            message: expect.stringContaining('series[0].strokeWidth'),
+        });
+        expectWarningsCalls().toHaveLength(1);
+    });
+
+    it('fires on update() for an issue that also trips throwOn', async () => {
+        const onErrorRaised = vi.fn();
+        const options: AgCartesianChartOptions = {
+            container: document.body,
+            data: [{ x: 'A', y: 10 }],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            validations: { throwOn: 'warning', onErrorRaised },
+        };
+        const proxy = AgCharts.create(options) as AgChartProxy;
+        chart = deproxy(proxy);
+        await waitForChartStability(chart);
+        onErrorRaised.mockClear();
+
+        await expect(
+            proxy.update({
+                ...options,
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+            })
+        ).rejects.toThrow(/validations.throwOn: warning/);
+
+        expect(onErrorRaised).toHaveBeenCalledWith({
+            level: 'warning',
+            message: expect.stringContaining('series[0].strokeWidth'),
+        });
+        expectWarningsCalls().toHaveLength(1);
+    });
+
+    it('a throwing consumer callback does not displace the fail-fast error', () => {
+        const onErrorRaised = vi.fn(() => {
+            throw new Error('consumer boom');
+        });
+
+        expect(() =>
+            AgCharts.create({
+                container: document.body,
+                data: [{ x: 'A', y: 10 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+                validations: { throwOn: 'warning', onErrorRaised },
+            })
+        ).toThrow(/validations.throwOn: warning/);
+
+        expect(onErrorRaised).toHaveBeenCalled();
+        expectWarningsCalls().toHaveLength(1);
+        const errorMock = console.error as Mock;
+        expect(errorMock).toHaveBeenCalledWith(
+            'AG Charts - validations.onErrorRaised threw an error',
+            expect.any(Error)
+        );
+        errorMock.mockClear();
+    });
+
+    // The callbacks run in the render pass that a first-render update-type shortcut restarted, which
+    // no longer counts as re-evaluating them — so the buffered error was never committed.
+    it('reports a callback that throws on the first render to both the overlay and the listener', async () => {
+        const onErrorRaised = vi.fn();
+
+        const proxy = AgCharts.create({
+            container: document.body,
+            data: [
+                { x: 'A', y: 10 },
+                { x: 'B', y: 20 },
+            ],
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: 'y',
+                    itemStyler: () => {
+                        throw new Error('itemStyler boom');
+                    },
+                },
+            ],
+            validations: { overlayLevel: 'error', onErrorRaised },
+        }) as AgChartProxy;
+        chart = deproxy(proxy);
+        await waitForChartStability(chart);
+
+        expect(onErrorRaised).toHaveBeenCalledWith({
+            level: 'error',
+            message: expect.stringContaining('itemStyler boom'),
+        });
+        expect(chart.validationCollector.hasVisibleIssues()).toBe(true);
+        expectWarningsCalls().toHaveLength(1);
+    });
+});

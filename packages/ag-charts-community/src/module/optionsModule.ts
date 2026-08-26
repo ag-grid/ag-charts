@@ -69,7 +69,11 @@ import {
 import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
 import { ChartTheme } from '../chart/themes/chartTheme';
-import { type ValidationIssue, severityAtOrAbove } from '../chart/validation/validationIssueCollector';
+import {
+    type ValidationIssue,
+    type ValidationIssueListener,
+    severityAtOrAbove,
+} from '../chart/validation/validationIssueCollector';
 import {
     type OptionsGraphAccessor,
     SHALLOW_OPTION_KEYS,
@@ -272,6 +276,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private throwOn: AgChartValidationLevel = 'none';
 
+    // `validations.onErrorRaised`, resolved here rather than read off the chart because a fail-fast
+    // throw aborts this constructor: the chart never adopts these issues, so this is the only
+    // reference to the listener that survives to report them. See `dispatchIssuesBeforeThrow`.
+    private issueListener?: ValidationIssueListener;
+
     // CSS-refresh re-construction runs from a DOM `transitionend` handler with no caller to throw to.
     private readonly suppressFailFast: boolean;
 
@@ -344,6 +353,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 ? userValidations.throwOn
                 : getValidations(this.processedOverrides)?.throwOn
         );
+        // Armed before the first validation pass for the same reason as `throwOn`: an issue raised
+        // during `slowSetup()` can abort it, and the listener must already be known to be told.
+        this.applyIssueListener(
+            isObjectWithProperty(userValidations, 'onErrorRaised')
+                ? userValidations.onErrorRaised
+                : getValidations(this.processedOverrides)?.onErrorRaised
+        );
 
         this.findSeriesWithUserVisiblity(newUserOptions, deltaOptions);
 
@@ -408,6 +424,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.applyConsoleLogLevel(getValidations(this.processedOptions)?.consoleLogLevel);
         // State consistency only: this runs after every `record*` call, so it arms nothing this pass.
         this.applyThrowOn(getValidations(this.processedOptions)?.throwOn);
+        // As above: re-applied from the merged result so a theme- or preset-supplied listener also counts.
+        this.applyIssueListener(getValidations(this.processedOptions)?.onErrorRaised);
         this.fastDelta = fastDelta ?? undefined;
         this.themeParameters = themeParameters;
         this.annotationThemes = annotationThemes;
@@ -744,8 +762,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.logger = logger;
         // A pooled chart adopts a different Logger after validation, so the level must be re-applied.
         this.applyConsoleLogLevel(getValidations(this.processedOptions)?.consoleLogLevel);
-        // Likewise for the throw threshold.
+        // Likewise for the throw threshold and the issue listener.
         this.applyThrowOn(getValidations(this.processedOptions)?.throwOn);
+        this.applyIssueListener(getValidations(this.processedOptions)?.onErrorRaised);
     }
 
     /** Point wrapped user callbacks at the owning chart's validation sink, so a swallowed throw surfaces. */
@@ -782,6 +801,38 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private applyThrowOn(level: unknown) {
         // Reuses `isLogLevel` so a new level cannot be missed by either union.
         this.throwOn = isLogLevel(level) ? level : DEFAULT_THROW_ON;
+    }
+
+    /**
+     * Resolves `validations.onErrorRaised`. This runs before the union validator has, hence the
+     * coercion rather than trusting the value.
+     */
+    private applyIssueListener(listener: unknown) {
+        this.issueListener = typeof listener === 'function' ? (listener as ValidationIssueListener) : undefined;
+    }
+
+    /**
+     * Reports every issue accumulated this pass to `validations.onErrorRaised` immediately before a
+     * fail-fast throw. AC 3: the listener is never gated by a severity threshold, and `throwOn` is a
+     * threshold — but the throw unwinds out of this constructor, so `Chart.applyOptions()` never runs
+     * and the collector that normally dispatches never receives these issues. Delivering here is what
+     * makes the two independent. Ordering is the listener first, then the throw.
+     */
+    private dispatchIssuesBeforeThrow() {
+        const listener = this.issueListener;
+        if (listener == null) return;
+        // Cleared first: `recordOptionsArgumentError` can throw from a second call site after this
+        // one, and a consumer must not be told the same issue twice for a single options pass.
+        const issues = this.validationIssues;
+        this.validationIssues = [];
+        for (const issue of issues) {
+            try {
+                listener({ level: issue.severity, message: issue.message });
+            } catch (error) {
+                // A throwing consumer must not displace the fail-fast error the caller is about to get.
+                this.logger.error('validations.onErrorRaised threw an error', error);
+            }
+        }
     }
 
     private get validateParams(): ValidateParams {
@@ -838,12 +889,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     /**
      * Throws for the first issue whose severity meets the armed `validations.throwOn` threshold — never
-     * called before the console record and the overlay push above have already happened.
+     * called before the console record and the overlay push above have already happened, and never
+     * before this pass's issues have reached `validations.onErrorRaised`.
      */
     private throwIfFailFast(issue: ValidationIssue): void {
         if (this.suppressFailFast || this.throwOn === 'none' || !severityAtOrAbove(this.throwOn, issue.severity)) {
             return;
         }
+        this.dispatchIssuesBeforeThrow();
         const location = issue.code ? `\`${issue.code}\`: ` : '';
         throw new Error(`AG Charts - validations.throwOn: ${issue.severity} - ${location}${issue.message}`);
     }
