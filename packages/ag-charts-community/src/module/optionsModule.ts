@@ -286,6 +286,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private static readonly debug = Debug.create(true, 'opts');
 
+    /** Re-entrancy guard for {@link ChartOptions.dispatchIssuesBeforeThrow}; see its comment. */
+    private static dispatchingIssues = false;
+
     constructor(
         currentUserOptions: T | ChartOptions<T> | undefined,
         newUserOptions: T,
@@ -821,17 +824,27 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private dispatchIssuesBeforeThrow() {
         const listener = this.issueListener;
         if (listener == null) return;
+        // Static, unlike the collector's instance-level guard: a consumer that re-applies options from
+        // its callback re-enters through a *new* `ChartOptions`, so nothing on `this` can see the
+        // recursion. Without this a handler that re-applies the same failing options recurses until the
+        // stack overflows, and the fail-fast error the caller is owed never surfaces.
+        if (ChartOptions.dispatchingIssues) return;
         // Cleared first: `recordOptionsArgumentError` can throw from a second call site after this
         // one, and a consumer must not be told the same issue twice for a single options pass.
         const issues = this.validationIssues;
         this.validationIssues = [];
-        for (const issue of issues) {
-            try {
-                listener({ level: issue.severity, message: issue.message });
-            } catch (error) {
-                // A throwing consumer must not displace the fail-fast error the caller is about to get.
-                this.logger.error('validations.onErrorRaised threw an error', error);
+        ChartOptions.dispatchingIssues = true;
+        try {
+            for (const issue of issues) {
+                try {
+                    listener({ level: issue.severity, message: issue.message });
+                } catch (error) {
+                    // A throwing consumer must not displace the fail-fast error the caller is about to get.
+                    this.logger.error('validations.onErrorRaised threw an error', error);
+                }
             }
+        } finally {
+            ChartOptions.dispatchingIssues = false;
         }
     }
 
