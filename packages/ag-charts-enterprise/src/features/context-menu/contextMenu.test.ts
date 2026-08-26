@@ -223,6 +223,60 @@ describe('Context Menu', () => {
         });
     });
 
+    describe('series-node items on a markerless series (AG-10226)', () => {
+        const MARKERLESS_LINE_OPTIONS: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: false } }],
+        };
+
+        const nodeCanvasPoint = (datumIndex: number) => {
+            const series = deproxy(chart).series[0] as any;
+            const node = series.getNodeData()[datumIndex];
+            expect(node).toBeDefined();
+            return _ModuleSupport.Transformable.toCanvasPoint(series.contentGroup, node.point.x, node.point.y);
+        };
+
+        it('surfaces series-node items carrying the picked datum', async () => {
+            const action = vi.fn();
+            const items: AgContextMenuItem[] = [
+                { type: 'action', label: 'Node Item', showOn: 'series-node', action },
+            ];
+            await prepareChart({ enabled: true, items }, MARKERLESS_LINE_OPTIONS);
+
+            const { canvasX: x, canvasY: y } = nodeCanvasPoint(4);
+            await contextMenuAction(x, y)(chart);
+            await waitForChartStability(chart);
+
+            const menuItems = Array.from(
+                document.body.getElementsByClassName(
+                    `${DEFAULT_CONTEXT_MENU_CLASS}__item`
+                ) as HTMLCollectionOf<HTMLElement>
+            );
+            const nodeItem = menuItems.find((item) => item.textContent?.includes('Node Item'));
+            expect(nodeItem).toBeDefined();
+
+            nodeItem!.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+            await waitForChartStability(chart);
+
+            expect(action).toHaveBeenCalledTimes(1);
+            expect(action.mock.calls[0][0].datum).toEqual({ x: 4, y: 50 });
+        });
+
+        it('passes the picked datum to getItems under the series-node scope', async () => {
+            const getItems = vi.fn((_params: any) => []);
+            await prepareChart({ enabled: true, getItems }, MARKERLESS_LINE_OPTIONS);
+
+            const { canvasX: x, canvasY: y } = nodeCanvasPoint(4);
+            await contextMenuAction(x, y)(chart);
+            await waitForChartStability(chart);
+
+            expect(getItems).toHaveBeenCalledTimes(1);
+            const params = getItems.mock.calls[0][0];
+            expect(params.showOn).toBe('series-node');
+            expect(params.datum).toEqual({ x: 4, y: 50 });
+        });
+    });
+
     describe('legend-item without toggleSeries (AG-17832)', () => {
         test('shows legend-item items when toggleSeries is false', async () => {
             await prepareChart(

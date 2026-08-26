@@ -123,6 +123,13 @@ export abstract class RadarSeries<
 
     protected resetInvalidToZero: boolean = false;
     private hideWithSize0 = false;
+    // Must default `true`: a markered series would otherwise report "nothing pickable" until its
+    // first marker update.
+    private markerNodesPickable = true;
+
+    protected override hasPickableNodeShapes(): boolean {
+        return this.markerNodesPickable;
+    }
 
     public contextNodeData?: RadarSeriesNodeDataContext;
 
@@ -379,6 +386,7 @@ export abstract class RadarSeries<
 
         const markerDrawMode = radarMarkerDrawMode(this);
         this.hideWithSize0 = markerDrawMode.hideWithSize0;
+        this.markerNodesPickable = markerDrawMode.needsNodeData && !markerDrawMode.hideWithSize0;
 
         const data = markerDrawMode.needsNodeData ? this.nodeData : [];
         this.itemSelection.update(data);

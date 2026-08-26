@@ -50,6 +50,7 @@ import type {
     AgSeriesVisibilityChange,
     FormatterParams,
     FormatterPropertyType,
+    InteractionRange,
     Listener,
     HighlightState as PublicHighlightState,
     SelectionState as PublicSelectionState,
@@ -122,6 +123,50 @@ export enum SeriesNodePickMode {
 }
 
 export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'highlight-tooltip' | 'context-menu' | 'event';
+
+/**
+ * Pick radius used when a series' `nodeClickRange` resolves to `'exact'` but the series has no
+ * pickable node shapes right now (e.g. `marker.enabled: false`). Matches the bounded radius the
+ * area series theme already uses under `selection.enabled`, so click-away-to-clear still works.
+ */
+export const MARKERLESS_NODE_PICK_RANGE = 10;
+
+/**
+ * Resolves the effective pick distance and pick modes for a single `pickNodes()` call.
+ *
+ * When the resolved `nodeClickRange` is `'exact'` but no node shapes are pickable, exact-shape
+ * matching cannot succeed, so fall through to the series' geometric pick modes bounded to
+ * `MARKERLESS_NODE_PICK_RANGE`.
+ */
+export function resolveNodePickModes(params: {
+    pickModes: readonly SeriesNodePickMode[];
+    intent: SeriesNodePickIntent;
+    tooltipRange: InteractionRange | undefined;
+    nodeClickRange: InteractionRange | undefined;
+    exactMatchOnly: boolean;
+    hasPickableNodeShapes: boolean;
+}): { maxDistance: number; selectedPickModes: SeriesNodePickMode[] } {
+    const { pickModes, intent, tooltipRange, nodeClickRange, hasPickableNodeShapes } = params;
+
+    let maxDistance = Infinity;
+    let exactMatchOnly = params.exactMatchOnly;
+
+    if (intent === 'tooltip' || intent === 'highlight-tooltip') {
+        maxDistance = typeof tooltipRange === 'number' ? tooltipRange : Infinity;
+        exactMatchOnly ||= tooltipRange === 'exact';
+    } else if (intent === 'event' || intent === 'context-menu') {
+        maxDistance = typeof nodeClickRange === 'number' ? nodeClickRange : Infinity;
+        if (nodeClickRange === 'exact' && !hasPickableNodeShapes) {
+            maxDistance = MARKERLESS_NODE_PICK_RANGE;
+        } else {
+            exactMatchOnly ||= nodeClickRange === 'exact';
+        }
+    }
+
+    const selectedPickModes = pickModes.filter((m) => !exactMatchOnly || m === SeriesNodePickMode.EXACT_SHAPE_MATCH);
+
+    return { maxDistance, selectedPickModes };
+}
 
 export type SeriesNodePickMatch = {
     datum: SeriesNodeDatum;
@@ -1012,26 +1057,32 @@ export abstract class Series<
         return undefined;
     }
 
+    /**
+     * Whether `EXACT_SHAPE_MATCH` could plausibly resolve against this series right now, i.e.
+     * whether it currently has drawn, pickable node shapes. Series which can render without any
+     * pickable node shape (e.g. markers disabled) override this so that a `nodeClickRange` of
+     * `'exact'` falls through to the geometric pick modes instead of matching nothing.
+     */
+    protected hasPickableNodeShapes(): boolean {
+        return true;
+    }
+
     protected _pickNodeCache = new LRUCache<PickResult | undefined>(5);
     pickNodes(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {
         const { pickModes, pickModeAxis, visible, contentGroup } = this;
 
         if (!visible || !contentGroup.visible) return;
 
-        let maxDistance = Infinity;
-        if (intent === 'tooltip' || intent === 'highlight-tooltip') {
-            const { tooltip } = this.properties;
-            maxDistance = typeof tooltip.range === 'number' ? tooltip.range : Infinity;
-            exactMatchOnly ||= tooltip.range === 'exact';
-        } else if (intent === 'event' || intent === 'context-menu') {
-            const { nodeClickRange } = this.properties;
-            maxDistance = typeof nodeClickRange === 'number' ? nodeClickRange : Infinity;
-            exactMatchOnly ||= nodeClickRange === 'exact';
-        }
-
-        const selectedPickModes = pickModes.filter(
-            (m) => !exactMatchOnly || m === SeriesNodePickMode.EXACT_SHAPE_MATCH
-        );
+        const { maxDistance, selectedPickModes } = resolveNodePickModes({
+            pickModes,
+            intent,
+            tooltipRange: this.properties.tooltip.range,
+            nodeClickRange: this.properties.nodeClickRange,
+            exactMatchOnly,
+            // Mini-charts / sparklines render markerless by construction, so they are excluded from
+            // the markerless fall-through to keep their behaviour unchanged.
+            hasPickableNodeShapes: this.chart?.isMiniChart === true || this.hasPickableNodeShapes(),
+        });
 
         const { x, y } = point;
         const key = JSON.stringify({ x, y, maxDistance, selectedPickModes });
