@@ -665,6 +665,19 @@ describe('AgCharts', () => {
             expect(deproxy(chart).series.map((s) => s.type)).toEqual(['line']);
         });
 
+        it('skips a chart-driven update instead of crashing on the pruned chart-level defaults', async () => {
+            // The chart's own constructor updates (via `parentResize`) before `AgCharts.create()` can
+            // short-circuit, so the skip has to hold inside `Chart.update()` too — a browser hits this
+            // path on every sized container and threw `reading 'dragAction'` until it did.
+            await withOnlyBarRegistered(() => {
+                chart = AgCharts.create({ container } as AgChartOptions);
+                expect(() => deproxy(chart).update()).not.toThrow();
+            });
+
+            takeErrorMessages();
+            expect(deproxy(chart).series).toHaveLength(0);
+        });
+
         it('still renders a series type that is registered', async () => {
             let created: AgChartInstance | undefined;
             await withOnlyBarRegistered(() => {

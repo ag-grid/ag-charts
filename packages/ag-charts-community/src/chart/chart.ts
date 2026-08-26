@@ -928,6 +928,12 @@ export abstract class Chart implements ModuleInstance, ChartService {
     });
     public update(type = ChartUpdateType.FULL, opts?: UpdateOpts) {
         if (this.destroyed) return;
+        // No module is registered for the lead series type, so the theme pruned that type's entry and
+        // with it the chart-level defaults an update dereferences (`touch`, `keyboard`, `background`).
+        // The mismatch is already reported; skip rather than crash. Cleared by `applyOptions()` as soon
+        // as usable options arrive, which is why this reads the field rather than caching it — the
+        // constructor runs an update of its own, before `AgCharts.create()` can short-circuit.
+        if (this.chartOptions.unusableLeadSeriesType != null) return;
 
         const {
             forceNodeDataRefresh = false,
