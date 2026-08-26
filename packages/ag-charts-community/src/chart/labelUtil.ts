@@ -1,16 +1,19 @@
 import type {
     AutoSizedLabelText,
+    BakedLabelSource,
     BarValueAnchor,
     BoxBounds,
     Callback,
     CallbackParam,
     CandidateLabelStyle,
     CandidateStyleResolver,
+    CollideWith,
     DynamicContext,
     FitRegion,
     FontOptions,
     IsAny,
     LabelFit,
+    LabelFitDescriptor,
     LabelPlacement,
     NormalisedColorType,
     NormalisedTextOrSegments,
@@ -18,12 +21,15 @@ import type {
     Point,
     PointLabelDatum,
     PositionedLabelCandidate,
+    RectObstacleSource,
     RegionAlign,
 } from 'ag-charts-core';
 import {
     type NormalisedChartLabelStyleOptions,
+    barLabelObstacles,
     fitLabelTextOrOverflow,
     fitLabelTextOrOverflowAutoSize,
+    fontWithSize,
     getMinOuterRectSize,
     insetFitRegion,
     insideBarContainer,
@@ -32,6 +38,7 @@ import {
     measureLabelText,
     mergeDefaults,
     orientationAngles,
+    resolveLabelFitDescriptors,
     rotatedGlyphDrift,
     rotatedLabelInset,
     sectorLabelContainer,
@@ -60,6 +67,7 @@ import {
     type Label,
     type LabelPlacementStyle,
     expandLabelBoxExtent,
+    expandPlacementLabelBoxExtent,
     resolvePlacementLabelBoxExtent,
     resolvePlacementLabelStyle,
 } from './label';
@@ -538,6 +546,69 @@ export interface StyledBarLabelBox {
     /** The styler disabled this label, so it must be left out of the label data entirely. */
     readonly hidden: boolean;
 }
+
+/** A bar-family label surface: the placement-styled label every bar/histogram/waterfall/funnel series holds. */
+export type BarLabelSurface<TParams = never> = Label<TParams> & {
+    insideStyle: LabelPlacementStyle;
+    outsideStyle: LabelPlacementStyle;
+};
+
+/** The per-series values a bar-family `getLabelData` resolves once before walking its label data. */
+export interface BarLabelDataContext {
+    /** Per-side extent of the drawn box (padding plus border) around the glyph. */
+    readonly box: Required<PaddingOptions>;
+    readonly alwaysShow: boolean;
+    readonly collideWith: CollideWith;
+    readonly threshold: number;
+    /** Drawn-box footprint of `text` under the configured label font: the measured glyph plus {@link box}. */
+    readonly measureBox: (text: NormalisedTextOrSegments) => { width: number; height: number };
+    /** Per-candidate fit inputs for `text`, or `undefined` when the label opted out of overflow control. */
+    readonly fitFor: (text: NormalisedTextOrSegments) => LabelFitDescriptor | undefined;
+}
+
+/**
+ * Resolves the collision and fit inputs shared by every label in a bar-family series. Every such series
+ * needs the same six values in the same way, so they are derived here rather than restated per series.
+ */
+export function barLabelDataContext<TParams>(label: BarLabelSurface<TParams>): BarLabelDataContext {
+    // Inflate the measured text by the label's drawn box (padding + border stroke) so collisions
+    // avoid the box, not just the text.
+    const box = expandPlacementLabelBoxExtent(label);
+    const alwaysShow = label.collision.alwaysShow;
+    return {
+        box,
+        alwaysShow,
+        collideWith: label.collision.resolveCollideWith(),
+        threshold: label.collision.threshold ?? 0,
+        measureBox: (text) => {
+            const { width, height } = measureLabelText(text, label);
+            return { width: width + box.left + box.right, height: height + box.top + box.bottom };
+        },
+        fitFor: resolveLabelFitDescriptors(label, box, !alwaysShow),
+    };
+}
+
+/**
+ * The obstacles a bar-family series contributes: its bar rects, plus its own baked labels when they are
+ * not routed through the placement engine. `pick` names the label on each element, which is the only
+ * part that differs between series (a bar hangs its label off the node, a range bar flattens the pair).
+ */
+export function barLabelObstaclesFor<TParams, TElement>(
+    label: BarLabelSurface<TParams>,
+    nodeData: readonly RectObstacleSource[] | undefined,
+    labelData: Iterable<TElement> | undefined,
+    includeBaked: boolean,
+    pick: (element: TElement) => BakedBarLabel | undefined
+) {
+    const box = expandPlacementLabelBoxExtent(label);
+    return barLabelObstacles(nodeData, labelData, includeBaked, (element) => {
+        const picked = pick(element);
+        return { label: picked, config: fontWithSize(label, picked?.fittedFontSize), box };
+    });
+}
+
+/** A baked bar label, plus the reduced font size a shrink-to-fit pass left it drawn at. */
+type BakedBarLabel = NonNullable<BakedLabelSource['label']> & { readonly fittedFontSize?: number };
 
 /** The `itemStyler` geometry of one bar-label candidate; see {@link buildBarLabelCandidates}. */
 export type BarCandidateStyleResolver = (

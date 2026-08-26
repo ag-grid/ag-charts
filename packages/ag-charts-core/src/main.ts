@@ -127,6 +127,7 @@ export * as Vec2 from './utils/geometry/vector';
 export * as Vec4 from './utils/geometry/vector4';
 export * from './utils/geometry/fill';
 export * from './utils/geometry/bezier';
+export * from './utils/geometry/barLabelGeometry';
 export * from './utils/geometry/labelPlacement';
 export * from './utils/geometry/spatialIndex';
 export * from './utils/geometry/fitRegion';

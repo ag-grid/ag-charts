@@ -3,7 +3,6 @@ import type {
     DynamicContext,
     LabelFit,
     NormalisedHistogramSeriesStyle,
-    NormalisedTextOrSegments,
     PlacedLabel,
     PointLabelDatum,
 } from 'ag-charts-core';
@@ -16,7 +15,6 @@ import {
     addValues,
     applyBarLabelOrientation,
     applyPlacedBarLabelVisibility,
-    barLabelObstacles,
     barLabelOrientation,
     barLabelPropsRouteThroughEngine,
     barLabelPropsUsePositionedCandidates,
@@ -39,7 +37,6 @@ import {
     measureLabelText,
     mergeDefaults,
     resolveLabelFit,
-    resolveLabelFitDescriptors,
     tickStep,
     toArray,
     toNumber,
@@ -85,6 +82,8 @@ import {
 import { expandPlacementLabelBoxExtent, resolvePlacementLabelBoxExtent } from '../../label';
 import {
     adjustLabelPlacement,
+    barLabelDataContext,
+    barLabelObstaclesFor,
     buildBarLabelCandidates,
     createBarCandidateStyleResolver,
     fitLabelToContainerAutoSize,
@@ -981,13 +980,12 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     }
 
     getLabelObstacles() {
-        const { label } = this.properties;
-        const box = expandPlacementLabelBoxExtent(label);
-        return barLabelObstacles(
+        return barLabelObstaclesFor(
+            this.properties.label,
             this.contextNodeData?.nodeData,
             this.contextNodeData?.labelData,
             this.isLabelEnabled() && !this.usesPlacedLabels,
-            (node) => ({ label: node.label, config: fontWithSize(label, node.label?.fittedFontSize), box })
+            (node) => node.label
         );
     }
 
@@ -1064,17 +1062,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels || !this.isLabelEnabled()) return [];
         const { label } = this.properties;
-        // Inflate the measured text by the label's drawn box (padding + border stroke) so collisions
-        // avoid the box, not just the text.
-        const box = expandPlacementLabelBoxExtent(label);
-        const measureBox = (text: NormalisedTextOrSegments) => {
-            const { width, height } = measureLabelText(text, label);
-            return { width: width + box.left + box.right, height: height + box.top + box.bottom };
-        };
-        const alwaysShow = label.collision.alwaysShow;
-        const collideWith = label.collision.resolveCollideWith();
-        const threshold = label.collision.threshold ?? 0;
-        const fitFor = resolveLabelFitDescriptors(label, box, !alwaysShow);
+        const { alwaysShow, collideWith, threshold, measureBox, fitFor } = barLabelDataContext(label);
         // The positioned path serves hideable, fitted and placement-cascading labels; an orientation-only
         // array stays on the baked path below, which resolves orientation against the bar region.
         if (barLabelPropsUsePositionedCandidates(label)) {

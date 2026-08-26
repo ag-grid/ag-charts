@@ -155,6 +155,12 @@ Exercises the per-datum styling pipeline when `selection.enabled` is on across e
 
 {% chartExampleRunner title="Data Selection Zoom (Scatter / Bubble / Histogram)" name="data-selection-zoom-xy" type="generated" initialLoadDeferred=true /%}
 
+## Series Label Collision
+
+Exercises the cross-series label placement pass: clustered bubble labels that cascade through their fallback placements, and bar labels that cascade and shrink. Each series runs with labels off, at a single placement, and with the full cascade, so the cost of placement is separated from the cost of drawing the labels. The highlight case measures the cached-solve path a hover takes.
+
+{% chartExampleRunner title="Series Label Collision" name="series-labels-collision" type="generated" initialLoadDeferred=true /%}
+
 ## High-Frequency Data Updates
 
 Exercise incremental data update operations (append, remove, rolling window) with large datasets:
