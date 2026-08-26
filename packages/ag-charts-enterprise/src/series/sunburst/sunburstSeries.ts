@@ -116,6 +116,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     private readonly scalingGroup = this.contentGroup.appendChild(new ScalableGroup());
     private readonly sectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>());
     private readonly highlightSectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>());
+    // Above every sector fill so the centre reads as chrome, below the labels so a sole root node's
+    // label is not painted over. Inside `scalingGroup`, so it takes the series' entry animation.
+    private readonly innerCircleGroup = this.scalingGroup.appendChild(new Group());
     private readonly sectorLabelGroup = this.scalingGroup.appendChild(new Group<SunburstNode>());
 
     readonly datumSelection = Selection.select<_ModuleSupport.Sector<SunburstNode>>(
@@ -130,11 +133,21 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         this.highlightSectorGroup,
         Sector
     );
+    private readonly innerCircleSelection = Selection.select<_ModuleSupport.Sector<{ radius: number }>>(
+        this.innerCircleGroup,
+        Sector<{ radius: number }>
+    );
+
+    /** Resolved once per layout pass; read back by `resolveCentreCircle()`. */
+    private centreCircle: { radius: number } | null = null;
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(moduleCtx);
 
         this.sectorLabelGroup.pointerEvents = PointerEvents.None;
+        // Load-bearing: `pickNodesExactShape` walks `contentGroup` and accepts any non-missing object
+        // datum, so without this the painted circle would show a tooltip and reach `itemStyler`.
+        this.innerCircleGroup.pointerEvents = PointerEvents.None;
     }
 
     override processData() {
@@ -239,6 +252,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     }
 
     updateNodes() {
+        // Reset before the early return, so a layout pass that cannot run leaves no stale centre.
+        this.centreCircle = null;
+
         const { chart, data, maxDepth } = this;
 
         if (chart == null || data == null) {
@@ -257,6 +273,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             secondaryLabelKey,
             sizeKey,
             sizeName,
+            innerRadiusRatio,
+            innerRadiusOffset,
+            innerCircle,
         } = this.properties;
 
         this.contentGroup.translationX = width / 2;
@@ -264,7 +283,16 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
         const baseInset = sectorSpacing * 0.5;
         const radius = Math.min(width, height) / 2;
-        const radiusScale = radius / (maxDepth + 1);
+        // No hole unless one of the inner-radius options is explicitly set - the short-circuit keeps an
+        // unconfigured sunburst identical to before.
+        const requestedHole =
+            innerRadiusRatio == null && innerRadiusOffset == null
+                ? 0
+                : radius * (innerRadiusRatio ?? 0) + (innerRadiusOffset ?? 0);
+        // A hole that is negative, or that would consume the whole radius and leave the data no room,
+        // degrades to no hole rather than to degenerate geometry - as `DonutSeries.getInnerRadius()` does.
+        const hole = requestedHole > 0 && requestedHole < radius ? requestedHole : 0;
+        const radiusScale = (radius - hole) / (maxDepth + 1);
         const angleOffset = -Math.PI / 2;
 
         const seriesFillBBox: _ModuleSupport.ShapeFillBBox = {
@@ -272,17 +300,26 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             axis: new BBox(-radius, -radius, 2 * radius, 2 * radius),
         };
 
-        this.rootNode?.walk((node) => {
+        const { rootNode } = this;
+        // The centre region: the carved hole when there is one, otherwise the depth-0 disc of a sole
+        // root node covering all of the data (the same discriminator `isCenterCircle` uses below).
+        if (hole > 0) {
+            this.centreCircle = { radius: hole };
+        } else if (rootNode?.children.some((child) => child.sumSize === rootNode.sumSize) === true) {
+            this.centreCircle = { radius: radiusScale };
+        }
+
+        rootNode?.walk((node) => {
             const { startAngle, endAngle } = node;
             if (node.depth != null) {
                 const midAngle = (startAngle + endAngle) / 2 + angleOffset;
-                const midRadius = (node.depth + 0.5) * radiusScale;
+                const midRadius = hole + (node.depth + 0.5) * radiusScale;
                 node.midPoint.x = Math.cos(midAngle) * midRadius;
                 node.midPoint.y = Math.sin(midAngle) * midRadius;
             }
         });
 
-        this.rootNode?.walk((node) => {
+        rootNode?.walk((node) => {
             const { datum, depth, startAngle, endAngle, parent, sumSize } = node;
 
             node.label = undefined;
@@ -347,8 +384,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
             if (depth == null) return;
 
-            const innerRadius = depth * radiusScale + baseInset;
-            const outerRadius = (depth + 1) * radiusScale - baseInset;
+            const innerRadius = hole + depth * radiusScale + baseInset;
+            const outerRadius = hole + (depth + 1) * radiusScale - baseInset;
             const innerAngleOffset = innerRadius > baseInset ? baseInset / innerRadius : baseInset;
             const outerAngleOffset = outerRadius > baseInset ? baseInset / outerRadius : baseInset;
             const innerStartAngle = startAngle + innerAngleOffset;
@@ -359,7 +396,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             const deltaOuterAngle = outerEndAngle - outerStartAngle;
 
             const sizeFittingHeight = (labelHeight: number) => {
-                const isCenterCircle = depth === 0 && parent?.sumSize === sumSize;
+                // With a hole carved, depth 0 is a genuine annulus rather than a disc, so the
+                // centre-circle and wedge-from-centre label forms no longer apply to it.
+                const isCenterCircle = depth === 0 && hole === 0 && parent?.sumSize === sumSize;
                 if (isCenterCircle) {
                     const labelWidth = 2 * Math.sqrt(outerRadius ** 2 - (labelHeight * 0.5) ** 2);
                     return { width: labelWidth, height: labelHeight, meta: LabelPlacement.CenterCircle };
@@ -378,7 +417,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 const maxPerpendicularAngle = Math.PI / 4;
                 let perpendicularHeight: number;
                 let perpendicularWidth: number;
-                if (depth === 0) {
+                if (depth === 0 && hole === 0) {
                     // Wedge from center - maximize the width of a box with fixed height
                     perpendicularHeight = labelHeight;
                     perpendicularWidth =
@@ -432,7 +471,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                     break;
                 }
                 case LabelPlacement.Perpendicular:
-                    if (depth === 0) {
+                    if (depth === 0 && hole === 0) {
                         const minimumRadius = labelHeight / (2 * Math.tan(deltaInnerAngle * 0.5)) + labelWidth * 0.5;
                         const maximumRadius = Math.sqrt(outerRadius ** 2 - (labelHeight * 0.5) ** 2) - labelWidth * 0.5;
                         labelRadius = (minimumRadius + maximumRadius) * 0.5;
@@ -503,8 +542,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             sector.setStyleProperties(style, fillBBox);
             sector.centerX = 0;
             sector.centerY = 0;
-            sector.innerRadius = depth * radiusScale;
-            sector.outerRadius = (depth + 1) * radiusScale;
+            sector.innerRadius = hole + depth * radiusScale;
+            sector.outerRadius = hole + (depth + 1) * radiusScale;
             sector.startAngle = startAngle + angleOffset;
             sector.endAngle = endAngle + angleOffset;
             sector.inset = baseInset + strokeWidth * 0.5;
@@ -517,6 +556,26 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         this.highlightSelection.each((rect, datum) => {
             updateSector(datum, rect, true);
         });
+
+        const centreCircle = innerCircle == null ? null : this.resolveCentreCircle();
+        this.innerCircleSelection.update(centreCircle == null ? [] : [centreCircle]);
+        if (innerCircle != null && centreCircle == null) {
+            this.ctx.logger.warnOnce(
+                'Option [series.innerCircle] does not suit the data - it requires either [series.innerRadiusRatio] or [series.innerRadiusOffset] to be set, or a root level consisting of a single node covering all of the data.'
+            );
+        } else if (innerCircle != null) {
+            const { fill, fillOpacity = 1 } = innerCircle;
+            const fillBBox = isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
+            this.innerCircleSelection.each((sector, { radius: circleRadius }) => {
+                sector.setStyleProperties({ fill, fillOpacity }, fillBBox);
+                sector.centerX = 0;
+                sector.centerY = 0;
+                sector.innerRadius = 0;
+                sector.outerRadius = circleRadius;
+                sector.startAngle = 0;
+                sector.endAngle = 2 * Math.PI;
+            });
+        }
 
         const highlightedNode = this.getActiveHighlightNode();
 
@@ -719,6 +778,15 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     override createNodeData() {
         return undefined;
+    }
+
+    /**
+     * The centre region of the series, resolved by the last layout pass: the carved hole when
+     * `innerRadiusRatio`/`innerRadiusOffset` are set, otherwise the depth-0 disc of a sole root node
+     * covering all of the data, otherwise `null`.
+     */
+    resolveCentreCircle(): { radius: number } | null {
+        return this.centreCircle;
     }
 
     protected override pickNodeClosestDatum(point: Point): _ModuleSupport.SeriesNodePickMatch | undefined {

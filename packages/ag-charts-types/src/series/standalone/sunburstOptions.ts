@@ -6,7 +6,7 @@ import type {
 } from '../../chart/callbackOptions';
 import type { AgChartAutoSizedLabelOptions, AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { ContextDefault, CssColor, DatumDefault, Opacity, PixelSize } from '../../chart/types';
+import type { ContextDefault, CssColor, DatumDefault, Opacity, PixelSize, Ratio } from '../../chart/types';
 import type { AgColorScale, AgColorType, FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
@@ -44,6 +44,13 @@ export interface AgSunburstSeriesHighlightOptions {
     unhighlightedBranch?: AgSunburstSeriesHighlightStyle;
 }
 
+export interface AgSunburstInnerCircle {
+    /** The fill for the inner circle. A colour string, or an object for a gradient, pattern, or image fill. */
+    fill: AgColorType;
+    /** The opacity of the fill for the inner circle. */
+    fillOpacity?: Opacity;
+}
+
 export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
     AgBaseSeriesThemeableOptions<TDatum, TContext>,
     'highlight' | 'showInLegend'
@@ -58,6 +65,12 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContex
     >;
     /** Apply rounded corners to each sector. */
     cornerRadius?: PixelSize;
+    /** The ratio of the inner radius of the series. Carves a hole at the centre of the series. */
+    innerRadiusRatio?: Ratio;
+    /** The offset in pixels of the inner radius of the series. Carves a hole at the centre of the series. */
+    innerRadiusOffset?: PixelSize;
+    /** Configuration for the area at the centre of the series. */
+    innerCircle?: AgSunburstInnerCircle;
     /** Spacing between the sectors. */
     sectorSpacing?: PixelSize;
     /** Minimum distance between text and the edges of the sectors. */
