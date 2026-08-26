@@ -73,6 +73,10 @@ export type AreExact<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T e
 
 export type AreMutuallyExclusive<A, B> = AreExact<never, A & B>;
 
+export type Forbidden<Ks extends keyof any> = { [K in Ks]?: never };
+
+export type Forbid<T, Ks extends keyof T> = Omit<T, Ks> & Forbidden<Ks>;
+
 export type ConstructorReturnType<T extends abstract new (...args: any) => any> = T extends abstract new (
     ...args: any
 ) => infer P

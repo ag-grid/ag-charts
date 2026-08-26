@@ -1,6 +1,7 @@
-import type { BoxBounds, CanvasPoint, ChartAxisDirection, Scale } from 'ag-charts-core';
+import type { BoxBounds, CanvasPoint, ChartAxisDirection, RequireOptional, Scale } from 'ag-charts-core';
 import type {
     AgBaseCrossLineLabelOptions,
+    AgCrossLineClickParams,
     AgCrossLineLabelPosition,
     AgCrossLineListeners,
     AgTimeInterval,
@@ -12,6 +13,7 @@ import type { Group } from '../../scene/group';
 import { isValidScaleValue } from '../scaleValue';
 
 export type CrossLineType = 'line' | 'range';
+export type CrossLineValuePick = RequireOptional<AgCrossLineClickParams>;
 
 interface ICrossLine {
     type: CrossLineType;
@@ -41,20 +43,6 @@ export function validateCrossLineValue(crossLine: ICrossLine, scale: Scale<any, 
     } else {
         return isValidScaleValue(value, scale);
     }
-}
-
-/**
- * Identifies a cross line hit by a pointer interaction, assembled by the cross-lines plugin from the
- * hit {@link CrossLine} instance plus its owning axis. Mirrors {@link AxisValuePick}; consumed by the
- * context-menu `cross-line` scope.
- */
-export interface CrossLineValuePick {
-    readonly crossLineId: string;
-    readonly axisId: string;
-    readonly direction: ChartAxisDirection;
-    readonly type: CrossLineType;
-    readonly value?: unknown;
-    readonly range?: [unknown, unknown];
 }
 
 export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {

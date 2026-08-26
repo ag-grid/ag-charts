@@ -259,7 +259,7 @@ export interface AgAxisListeners<TContext = ContextDefault> {
 }
 
 /** Identifies the Cross Line an event refers to, along with the axis that owns it. */
-interface AgCrossLineClickParams {
+export interface AgCrossLineClickParams {
     /** Cross Line ID (generated if not specified). */
     crossLineId: string;
     /** ID of the axis the Cross Line belongs to, as specified in `axes`. */

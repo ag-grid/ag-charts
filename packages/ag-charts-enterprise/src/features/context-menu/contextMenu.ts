@@ -187,13 +187,13 @@ export class ContextMenu extends AbstractModuleInstance {
     private crossLineRegions(picks: ContextShowOnMap['cross-line']['context']): CrossLineParams[] {
         const result: CrossLineParams[] = [];
         for (const pick of picks) {
-            const { crossLineId, axisId, direction, type, value, range } = pick;
+            const { crossLineId, axisId, direction, crossLineType, value, range } = pick;
             result.push({
                 showOn: 'cross-line',
                 crossLineId,
                 axisId,
                 direction,
-                crossLineType: type,
+                crossLineType,
                 value: value as CrossLineParams['value'],
                 range: range as CrossLineParams['range'],
             });
@@ -633,7 +633,7 @@ export class ContextMenu extends AbstractModuleInstance {
         } else if (ContextMenuRegistry.checkCallback('cross-line', showOn, callback)) {
             return () => {
                 if (this.pickedCrossLine && this.pickedCrossLine.length > 0) {
-                    const { crossLineId, axisId, direction, type, value, range } = this.pickedCrossLine[0];
+                    const { crossLineId, axisId, direction, crossLineType, value, range } = this.pickedCrossLine[0];
                     const coordinates: AgCoordinates | undefined = this.ctx.chartService.toAgCoordinates(event);
                     const callers: Caller = this.ctx.chartService;
                     const apiEvent: CallbackParamRules<AgCrossLineContextMenuActionEvent<never>> = {
@@ -643,7 +643,7 @@ export class ContextMenu extends AbstractModuleInstance {
                         crossLineId,
                         axisId,
                         direction,
-                        crossLineType: type,
+                        crossLineType,
                         value: value as AgCrossLineContextMenuActionEvent<never>['value'],
                         range: range as AgCrossLineContextMenuActionEvent<never>['range'],
                     };

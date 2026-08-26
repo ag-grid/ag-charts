@@ -1,12 +1,12 @@
-import {
-    AbstractModuleInstance,
-    type AxisPluginModuleInstance,
-    type CallbackParamRules,
-    type DynamicContext,
-    type NormalisedAxisCrossLineOptions,
-    callWithContext,
-    jsonDiff,
+import type {
+    AxisPluginModuleInstance,
+    CallbackParamRules,
+    CanvasPoint,
+    DynamicContext,
+    Forbid,
+    NormalisedAxisCrossLineOptions,
 } from 'ag-charts-core';
+import { AbstractModuleInstance, callWithContext, jsonDiff } from 'ag-charts-core';
 import type { AgCrossLineClickEvent, AgCrossLineDoubleClickEvent } from 'ag-charts-types';
 
 import type { SeriesAreaContextMenuEvent } from '../../core/eventsHub';
@@ -16,7 +16,7 @@ import { Group } from '../../scene/group';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import { getAxisLabelSideFlag } from '../axis/axisLabelUtil';
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
-import type { CrossLine, PolarCrossLine } from './crossLine';
+import type { CrossLine, CrossLineValuePick, PolarCrossLine } from './crossLine';
 
 /**
  * Axis plugin that owns a per-axis runtime list of {@link CrossLine} instances along with the
@@ -72,47 +72,62 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         ];
     }
 
-    private onSeriesAreaContextMenu(event: SeriesAreaContextMenuEvent): void {
+    private pickCrosslines(point: CanvasPoint): CrossLine[] {
+        const result: CrossLine[] = [];
         for (const crossLine of this.instances) {
-            if (crossLine.containsPoint?.(event) !== true) continue;
-
-            event.crossLine.push({
-                crossLineId: crossLine.id ?? crossLine.internalId,
-                axisId: this.axisCtx.userAxisId,
-                direction: this.axisCtx.direction,
-                type: crossLine.type,
-                value: crossLine.value,
-                range: crossLine.range,
-            });
+            if (crossLine.containsPoint?.(point)) {
+                result.push(crossLine);
+            }
         }
+        return result;
+    }
+
+    private toParamsArray(matches: CrossLine[], result: CrossLineValuePick[]): CrossLineValuePick[] {
+        const { axisId, direction } = this.axisCtx;
+        for (const crossLine of matches) {
+            const { type: crossLineType, range, value } = crossLine;
+            const crossLineId = crossLine.id ?? crossLine.internalId;
+            result.push({ axisId, direction, crossLineId, crossLineType, range, value });
+        }
+        return result satisfies AgCrossLineClickEvent<unknown>['allClickParams'];
+    }
+
+    private onSeriesAreaContextMenu(event: SeriesAreaContextMenuEvent): void {
+        const picks = this.pickCrosslines(event);
+        this.toParamsArray(picks, event.crossLine);
     }
 
     private onCanvasClick(event: MouseWidgetEvent<'click' | 'dblclick'>): void {
         if (event.device === 'keyboard') return;
 
-        for (const crossLine of this.instances) {
-            const { currentX: canvasX, currentY: canvasY } = event;
-            if (crossLine.containsPoint?.({ canvasX, canvasY }) !== true) continue;
-
+        const picks = this.pickCrosslines({ canvasX: event.currentX, canvasY: event.currentY });
+        if (picks.length > 0) {
+            const allClickParams = this.toParamsArray(picks, []);
             const isClick = event.type === 'click';
-            const apiEvent: CallbackParamRules<AgCrossLineClickEvent | AgCrossLineDoubleClickEvent> = {
-                type: isClick ? 'crossLineClick' : 'crossLineDoubleClick',
+
+            // Use `Forbid` to ensure that allClickParams and rootLevelParams do have conflicting keys,
+            // otherwise the `...` spreading could silently and unintentionally override something.
+            type ParamType = (typeof allClickParams)[number];
+            type EventType = AgCrossLineClickEvent | AgCrossLineDoubleClickEvent;
+            const rootLevelParams: Forbid<EventType, keyof ParamType> = {
+                allClickParams,
                 event: event.sourceEvent,
-                crossLineId: crossLine.id ?? crossLine.internalId,
-                axisId: this.axisCtx.userAxisId,
-                direction: this.axisCtx.direction,
-                crossLineType: crossLine.type,
-                value: crossLine.value,
-                range: crossLine.range,
+                type: isClick ? 'crossLineClick' : 'crossLineDoubleClick',
+            };
+            const apiEvent: CallbackParamRules<AgCrossLineClickEvent | AgCrossLineDoubleClickEvent> = {
+                ...allClickParams[0],
+                ...rootLevelParams,
             };
 
             // Cross line, then axis, then chart, all sharing one params object so `callWithContext`
             // resolves the context axis-first for every listener, including the chart's.
             const { listeners } = this.axisCtx;
             const callers = [this.axisCtx.caller, this.ctx.chartService];
-            const crossLineListener = isClick ? crossLine.listeners?.click : crossLine.listeners?.doubleClick;
+            for (const crossLine of picks) {
+                const crossLineListener = isClick ? crossLine.listeners?.click : crossLine.listeners?.doubleClick;
+                if (crossLineListener) callWithContext(callers, crossLineListener, apiEvent);
+            }
             const axisListener = isClick ? listeners?.crossLineClick : listeners?.crossLineDoubleClick;
-            if (crossLineListener) callWithContext(callers, crossLineListener, apiEvent);
             if (axisListener) callWithContext(callers, axisListener, apiEvent);
             callWithContext(callers, (params: typeof apiEvent) => this.ctx.chartService.callListener(params), apiEvent);
         }
