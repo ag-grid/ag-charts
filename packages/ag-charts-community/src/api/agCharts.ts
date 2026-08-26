@@ -419,6 +419,12 @@ class AgChartsInternal {
 
         chart.ctx.domManager.updateCSSVariableWatchers(chartOptions.processedCSSVariables);
 
+        // Short-circuit rather than crash: the mismatch has already been reported as an error, and
+        // without the chart-level defaults the lead series type's theme entry carries, an update
+        // dereferences absent ones (`touch`, `keyboard`, `background`). A later call re-registers the
+        // refresh listener, so a caller that registers the module and updates recovers normally.
+        if (chartOptions.unusableLeadSeriesType != null) return proxy;
+
         chart.setRequestRefreshListener(() => {
             const refreshedChartOptions = new ChartOptions(
                 baseOptions,
@@ -432,16 +438,10 @@ class AgChartsInternal {
                 Debug.check('scene:stats', 'scene:stats:verbose') ? performance.now() : undefined,
                 chart.ctx.logger
             );
-            if (refreshedChartOptions.unusableLeadSeriesType != null) return;
             AgChartsInternal.requestFactoryUpdate(chart, refreshedChartOptions);
         });
 
-        // Short-circuit rather than crash: the mismatch has already been reported as an error, and
-        // without the chart-level defaults the lead series type's theme entry carries, the update
-        // below dereferences absent ones (`touch`, `keyboard`, `background`).
-        if (chartOptions.unusableLeadSeriesType == null) {
-            AgChartsInternal.requestFactoryUpdate(chart, chartOptions);
-        }
+        AgChartsInternal.requestFactoryUpdate(chart, chartOptions);
 
         return proxy;
     }
