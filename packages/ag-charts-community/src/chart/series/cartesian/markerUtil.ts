@@ -266,12 +266,10 @@ export function getMarkerStyles<TStylerParams, TStylerResult, TItemStylerParams>
  */
 export function markerStrokePickInflation(style: NormalisedSeriesMarkerStyle | undefined): number {
     if (style == null) return 0;
-    const { stroke, strokeWidth, strokeOpacity } = style;
+    const { stroke, strokeWidth = 0, strokeOpacity = 1 } = style;
     // Same predicate the renderer uses to decide whether to stroke at all (see `Shape.strokeIsDrawn`).
-    if (stroke == null || stroke === 'none' || !(strokeWidth! > 0) || !((strokeOpacity ?? 1) > 0)) {
-        return 0;
-    }
-    return strokeWidth! / 2;
+    const strokeIsDrawn = stroke != null && stroke !== 'none' && strokeWidth > 0 && strokeOpacity > 0;
+    return strokeIsDrawn ? strokeWidth / 2 : 0;
 }
 
 /**
