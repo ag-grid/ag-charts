@@ -1570,16 +1570,26 @@ export abstract class Series<
         markerNode: Marker,
         point: { x: number; y: number; size?: number; focusSize?: number } | undefined,
         fillBBox: ShapeFillBBox | undefined,
-        opts: { applyPosition?: boolean; crossFilterSelected?: boolean; hideWithSize0: boolean }
+        opts: {
+            applyPosition?: boolean;
+            crossFilterSelected?: boolean;
+            hideWithSize0: boolean;
+            /**
+             * Local-space pick-region widening for the node's drawn stroke (AG-8173) — resolved once
+             * per update by the caller via `maxMarkerStrokePickInflation`, never per datum.
+             */
+            pickInflation?: number;
+        }
     ) {
         const { shape, size = 0 } = style;
-        const { applyPosition = true, crossFilterSelected = true, hideWithSize0 } = opts;
+        const { applyPosition = true, crossFilterSelected = true, hideWithSize0, pickInflation = 0 } = opts;
         const visible =
             this.visible &&
             (hideWithSize0 || (this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y)));
 
         markerNode.setStyleProperties(style, fillBBox);
         markerNode.setVisibilityAndPosition(!!visible, shape!, size, applyPosition ? point : undefined);
+        markerNode.pickInflation = pickInflation;
 
         if (!crossFilterSelected) {
             markerNode.fillOpacity *= CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR;

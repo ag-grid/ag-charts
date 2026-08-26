@@ -84,6 +84,7 @@ const {
     pathSwipeInAnimation,
     resetMotion,
     markerSwipeScaleInAnimation,
+    maxMarkerStrokePickInflation,
     seriesLabelFadeInAnimation,
     animationValidation,
     diff,
@@ -1255,6 +1256,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
         const drawingMode = this.getDrawingMode(isHighlight, opts.drawingMode);
 
+        // Widest stroke the marker can be drawn with across every highlight state, for both item
+        // types — resolved once so `Marker.isPointInPath` treats the stroke as part of the node
+        // (AG-8173).
+        const pickInflation = Math.max(
+            maxMarkerStrokePickInflation(contextNodeData.styles.low),
+            maxMarkerStrokePickInflation(contextNodeData.styles.high)
+        );
+
         datumSelection.each((node, datum) => {
             const { itemType } = datum;
             const style =
@@ -1263,7 +1272,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                     this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
                 ];
             // Style colours are resolved at runtime before reaching the scene node.
-            this.applyMarkerStyle(style as NormalisedSeriesMarkerStyle, node, datum.point, fillBBox, { hideWithSize0 });
+            this.applyMarkerStyle(style as NormalisedSeriesMarkerStyle, node, datum.point, fillBBox, {
+                hideWithSize0,
+                pickInflation,
+            });
             node.drawingMode = drawingMode;
         });
 

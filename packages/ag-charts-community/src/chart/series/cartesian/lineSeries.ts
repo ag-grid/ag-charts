@@ -102,6 +102,7 @@ import {
     getMarkerStyles,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
+    maxMarkerStrokePickInflation,
     resetMarkerFn,
     resetMarkerPositionFn,
     resetMarkerSelectionsDirect,
@@ -949,6 +950,10 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         // other mode it returns the input unchanged. Hoist that constant out of the per-marker loop.
         const constantDrawingMode = drawingMode === 'cutout' ? undefined : drawingMode;
 
+        // Widest stroke the marker can be drawn with across every highlight state — resolved once
+        // here so `Marker.isPointInPath` can treat the stroke as part of the node (AG-8173).
+        const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
+
         const thisSeries = this;
         datumSelection.each(function datumSelectionUpdate(node, datum) {
             // updateDatumStyles populates datum.style for non-garbage nodes; the fallback below is rare.
@@ -959,6 +964,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 applyPosition,
                 crossFilterSelected: datum.crossFilterSelected,
                 hideWithSize0,
+                pickInflation,
             });
             const nextDrawingMode =
                 constantDrawingMode ?? thisSeries.resolveMarkerDrawingModeForState(drawingMode, style);

@@ -95,7 +95,8 @@ export type OverflowStrategy = 'ellipsis' | 'hide';
 /**
  * Define a range within which an interaction can trigger on a point with one of:
  * A distance in pixels from a point within which the event can be triggered.
- * - `'exact'` triggers when the event occurs directly over a point.
+ * - `'exact'` triggers when the event occurs directly over a point, including over the stroke drawn
+ *   around it — a node's stroke counts as part of the node.
  * - `'nearest'` always tracks the nearest point anywhere on the chart.
  * - `'area'` (area series only) triggers only when inside the filled area boundary.
  */

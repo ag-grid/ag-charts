@@ -257,3 +257,36 @@ export function getMarkerStyles<TStylerParams, TStylerResult, TItemStylerParams>
         {} as Record<HighlightState, NormalisedSeriesMarkerStyle>
     );
 }
+
+/**
+ * Half the width of the stroke this marker style actually draws, in local-space pixels — the amount
+ * a node's pick region must grow by so that clicking/hovering the stroke counts as hitting the node
+ * (AG-8173). A style that draws no stroke contributes nothing, so unstroked nodes keep exactly
+ * today's hit region.
+ */
+export function markerStrokePickInflation(style: NormalisedSeriesMarkerStyle | undefined): number {
+    if (style == null) return 0;
+    const { stroke, strokeWidth, strokeOpacity } = style;
+    // Same predicate the renderer uses to decide whether to stroke at all (see `Shape.strokeIsDrawn`).
+    if (stroke == null || stroke === 'none' || !(strokeWidth! > 0) || !((strokeOpacity ?? 1) > 0)) {
+        return 0;
+    }
+    return strokeWidth! / 2;
+}
+
+/**
+ * The widest {@link markerStrokePickInflation} across every highlight state the marker can be drawn
+ * in. Highlight styles are drawn by a node in `highlightGroup`, which picking never traverses, so
+ * the *base* node has to carry the widest region the user can ever see — which also keeps the pick
+ * region invariant to the current highlight state (nothing to invalidate in `Series._pickNodeCache`).
+ */
+export function maxMarkerStrokePickInflation(
+    styles: Record<HighlightState, NormalisedSeriesMarkerStyle> | undefined
+): number {
+    if (styles == null) return 0;
+    let inflation = 0;
+    for (const state of highlightStates) {
+        inflation = Math.max(inflation, markerStrokePickInflation(styles[state]));
+    }
+    return inflation;
+}

@@ -38,6 +38,7 @@ const {
     fixNumericExtent,
     seriesLabelFadeInAnimation,
     markerFadeInAnimation,
+    maxMarkerStrokePickInflation,
     resetMarkerFn,
     resetLabelFn,
     animationValidation,
@@ -505,12 +506,16 @@ export abstract class RadarSeries<
 
         drawingMode = this.getDrawingMode(isHighlight, drawingMode);
 
+        // Widest stroke the marker can be drawn with across every highlight state — resolved once
+        // here so `Marker.isPointInPath` can treat the stroke as part of the node (AG-8173).
+        const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
+
         selection.each((node, datum) => {
             // datum.style is populated from resolved (ref-free) marker styles by the style passes.
             const style =
                 (datum.style as NormalisedSeriesMarkerStyle | undefined) ??
                 contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
-            this.applyMarkerStyle(style, node, datum.point, fillBBox, { hideWithSize0 });
+            this.applyMarkerStyle(style, node, datum.point, fillBBox, { hideWithSize0, pickInflation });
 
             node.drawingMode = drawingMode;
         });

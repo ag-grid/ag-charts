@@ -51,8 +51,25 @@ class InternalMarker<D = any> extends Path<D> {
         super.onChangeDetection(property);
     }
 
+    /**
+     * Local-space widening of the pick region, in pixels, so that a node's drawn stroke counts as
+     * part of the node for `nodeClickRange`/`tooltip.range` `'exact'` hit testing (AG-8173).
+     *
+     * Half the widest stroke width the marker can be drawn with, resolved once per style update by
+     * the owning series (`Series.applyMarkerStyle`) — never derived per hit test. Deliberately a
+     * plain field rather than a change-detected one: the pick region is not rendered, so a change
+     * here must not dirty the scene.
+     */
+    pickInflation: number = 0;
+
     override isPointInPath(x: number, y: number): boolean {
-        return this.distanceSquaredLocal(x, y) <= 0;
+        // `distanceSquaredLocal` returns `d² - r²` clamped at 0, so the stroke-inflated test
+        // `d² <= (r + pickInflation)²` becomes `d² - r² <= pickInflation² + 2·r·pickInflation`,
+        // and `2·r` is `size`. Keeps the un-inflated case at one extra comparison, and leaves the
+        // metric used by `distanceSquared` (nearest/numeric ranges) untouched.
+        const { pickInflation } = this;
+        const tolerance = pickInflation > 0 ? pickInflation * (pickInflation + this.size) : 0;
+        return this.distanceSquaredLocal(x, y) <= tolerance;
     }
 
     // Exact hit-test against the shared origin-centred path; for subclasses (e.g. AnnotationShape)
