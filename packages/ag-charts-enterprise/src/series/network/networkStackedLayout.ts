@@ -147,7 +147,7 @@ class NetworkStackedVerticalLayout<TVertex, TEdge> extends NetworkDirectionalLay
         const radius = interpolation.cornerRadius ?? 0;
 
         path.clear();
-        pathWithElbows(path, start, [elbow1, elbow2, elbow3], end, [0, radius, radius, radius]);
+        pathWithElbows(path, start, [elbow1, elbow2, elbow3], end, [radius, radius, radius, radius]);
     }
 }
 
@@ -239,6 +239,6 @@ class NetworkStackedHorizontalLayout<TVertex, TEdge> extends NetworkDirectionalL
         const radius = interpolation.cornerRadius ?? 0;
 
         path.clear();
-        pathWithElbows(path, start, [elbow1, elbow2, elbow3], end, [0, radius, radius, radius]);
+        pathWithElbows(path, start, [elbow1, elbow2, elbow3], end, [radius, radius, radius, radius]);
     }
 }
