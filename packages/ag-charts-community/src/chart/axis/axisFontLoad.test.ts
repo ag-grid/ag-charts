@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ChartUpdateType } from 'ag-charts-core';
 import type { AgCartesianChartOptions } from 'ag-charts-types';
 
+import { BBox } from '../../scene/bbox';
 import { createChart, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
 
 const OPTIONS: AgCartesianChartOptions = {
@@ -42,5 +43,25 @@ describe('Axis font loading', () => {
         chart.ctx.eventsHub.emit('font:load', null);
         await waitForChartStability(chart);
         expect(calculateTickLayout).toHaveBeenCalled();
+    });
+
+    it('keeps animating when a font load moves the layout', async () => {
+        chart = await createChart(OPTIONS);
+        const skipCurrentBatch = vi.spyOn(chart.ctx.animationManager, 'skipCurrentBatch');
+
+        const perturbAnimationRect = () => {
+            (chart as any).animationRect = new BBox(0, 0, 1, 1);
+        };
+
+        perturbAnimationRect();
+        chart.update(ChartUpdateType.PERFORM_LAYOUT);
+        await waitForChartStability(chart);
+        expect(skipCurrentBatch).toHaveBeenCalled();
+
+        skipCurrentBatch.mockClear();
+        perturbAnimationRect();
+        chart.ctx.eventsHub.emit('font:load', null);
+        await waitForChartStability(chart);
+        expect(skipCurrentBatch).not.toHaveBeenCalled();
     });
 });

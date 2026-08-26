@@ -485,8 +485,7 @@ export abstract class Axis<
         this.cleanup.register(
             this.moduleCtx.widgets.containerWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
             this.moduleCtx.widgets.containerWidget.addListener('mouseleave', () => this.endHovering()),
-            // The tick-layout cache key carries no font identity, so a late webfont load would otherwise
-            // keep label thicknesses measured against the fallback font.
+            // The tick-layout cache key carries no font identity.
             this.moduleCtx.eventsHub.on('font:load', () => this.invalidateLayoutCache())
         );
     }
