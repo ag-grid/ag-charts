@@ -12,11 +12,6 @@ const sharedThemeTemplate: ExtensibleSeriesTheme<'bubble' | 'scatter'> = {
             label: { enabled: false },
             line: { enabled: true, width: 2, stroke: { $foregroundBackgroundMix: 0.5 } },
             tick: { enabled: false },
-            // TODO: ignore required `value`
-            // crossAt: {
-            //     titlePlacement: 'edge',
-            //     labelPlacement: 'crossing',
-            // },
         },
     },
     seriesArea: {

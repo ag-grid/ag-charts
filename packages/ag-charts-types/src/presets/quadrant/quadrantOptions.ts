@@ -1,5 +1,9 @@
 import type { RichFormatter, Styler } from '../../chart/callbackOptions';
-import type { AgNumberAxisOptions, AgSeriesAreaBackgroundRegion } from '../../chart/cartesianOptions';
+import type {
+    AgCartesianAxisCrossAtPlacement,
+    AgNumberAxisOptions,
+    AgSeriesAreaBackgroundRegion,
+} from '../../chart/cartesianOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgErrorBarOptions } from '../../chart/errorBarOptions';
 import type {
@@ -44,6 +48,8 @@ export interface AgQuadrantPreset<TDatum, TContext>
      * Default: `true`
      */
     alignAxesToPivot?: boolean;
+    /** Configuration for placement of axis titles and labels. */
+    axisPlacement?: AgQuadrantAxisPlacementOptions;
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarOptions<TDatum, TContext>;
     /** Function used to return formatting for individual markers, based on the supplied information.*/
@@ -70,6 +76,27 @@ export interface AgQuadrantPreset<TDatum, TContext>
      * default, and its line is drawn more heavily than a standard axis line.
      */
     yAxis?: AgQuadrantAxisOptions<TContext>;
+}
+
+export interface AgQuadrantAxisPlacementOptions {
+    /**
+     * Whether the axis title is placed at the crossing point, or at the axis' `position` edge.
+     *
+     * Default: `'edge'`
+     */
+    title?: AgCartesianAxisCrossAtPlacement;
+    /**
+     * Whether the axis labels are placed at the crossing point, or at the axis' `position` edge.
+     *
+     * Default: `'crossing'`
+     */
+    label?: AgCartesianAxisCrossAtPlacement;
+    /**
+     * Whether the crosshair label is placed at the crossing point, or at the axis' `position` edge.
+     *
+     * Default: `'edge'`
+     */
+    crosshairLabel?: AgCartesianAxisCrossAtPlacement;
 }
 
 export interface AgQuadrantPivotOptions {
