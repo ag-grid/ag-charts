@@ -684,7 +684,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             updateText(datum, text, text.tag, datum === highlightedDatum);
         }
 
-        if (centre != null) {
+        if (centre != null && innerLabels.length > 0) {
             this.updateInnerLabelNodes(centre);
         }
     }
