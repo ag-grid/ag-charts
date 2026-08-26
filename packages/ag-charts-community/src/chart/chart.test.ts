@@ -1912,6 +1912,30 @@ describe('AG-17830 QA — validations.onErrorRaised', () => {
         expectWarningsCalls().toHaveLength(1);
     });
 
+    // The dropped-module issue is reported to the console by `processModuleOptions`, so it never
+    // enters `validationIssues` — the throw path has to dispatch the issue that tripped it.
+    it('fires for a dropped-module error that trips throwOn', () => {
+        const onErrorRaised = vi.fn();
+
+        expect(() =>
+            AgCharts.create({
+                container: document.body,
+                data: [{ x: 'A', y: 10 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                zoom: { enabled: true },
+                validations: { throwOn: 'error', onErrorRaised },
+            })
+        ).toThrow(/validations.throwOn: error/);
+
+        const errorMock = console.error as Mock;
+        expect(onErrorRaised).toHaveBeenCalledWith({
+            level: 'error',
+            message: expect.stringContaining('required modules are not registered'),
+        });
+        expect(errorMock).toHaveBeenCalledTimes(1);
+        errorMock.mockClear();
+    });
+
     it('fires on update() for an issue that also trips throwOn', async () => {
         const onErrorRaised = vi.fn();
         const options: AgCartesianChartOptions = {

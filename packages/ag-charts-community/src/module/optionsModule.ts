@@ -815,13 +815,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     /**
-     * Reports every issue accumulated this pass to `validations.onErrorRaised` immediately before a
-     * fail-fast throw. AC 3: the listener is never gated by a severity threshold, and `throwOn` is a
-     * threshold — but the throw unwinds out of this constructor, so `Chart.applyOptions()` never runs
+     * Reports every issue this pass produced — the accumulated ones plus the `trigger` that tripped
+     * the threshold — to `validations.onErrorRaised` immediately before a fail-fast throw. AC 3: the
+     * listener is never gated by a severity threshold, and `throwOn` is a threshold — but the throw unwinds out of this constructor, so `Chart.applyOptions()` never runs
      * and the collector that normally dispatches never receives these issues. Delivering here is what
      * makes the two independent. Ordering is the listener first, then the throw.
      */
-    private dispatchIssuesBeforeThrow() {
+    private dispatchIssuesBeforeThrow(trigger: ValidationIssue) {
         const listener = this.issueListener;
         if (listener == null) return;
         // Static, unlike the collector's instance-level guard: a consumer that re-applies options from
@@ -831,7 +831,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (ChartOptions.dispatchingIssues) return;
         // Cleared first: `recordOptionsArgumentError` can throw from a second call site after this
         // one, and a consumer must not be told the same issue twice for a single options pass.
-        const issues = this.validationIssues;
+        // The dropped-module call site trips fail-fast with an issue it never adds to the collection —
+        // `processModuleOptions` is what writes that one to the console — so append it by identity.
+        const recorded = this.validationIssues;
+        const issues = recorded.includes(trigger) ? recorded : [...recorded, trigger];
         this.validationIssues = [];
         ChartOptions.dispatchingIssues = true;
         try {
@@ -909,7 +912,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (this.suppressFailFast || this.throwOn === 'none' || !severityAtOrAbove(this.throwOn, issue.severity)) {
             return;
         }
-        this.dispatchIssuesBeforeThrow();
+        this.dispatchIssuesBeforeThrow(issue);
         const location = issue.code ? `\`${issue.code}\`: ` : '';
         throw new Error(`AG Charts - validations.throwOn: ${issue.severity} - ${location}${issue.message}`);
     }

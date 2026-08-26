@@ -169,7 +169,10 @@ export class ValidationIssueCollector {
         this.pendingCallbackIssues = [];
     }
 
-    /** Whether this cycle buffered anything worth committing — see `Chart.tryPerformUpdate()`. */
+    /**
+     * Whether anything has been buffered since the last {@link beginCallbackIssues} or
+     * {@link commitCallbackIssues} — see `Chart.tryPerformUpdate()`.
+     */
     hasPendingCallbackIssues(): boolean {
         return this.pendingCallbackIssues.length > 0;
     }
@@ -192,6 +195,9 @@ export class ValidationIssueCollector {
         // Copy, not alias: a callback that throws outside a render cycle (e.g. a tooltip formatter on
         // hover) still calls recordCallbackIssue, which must not mutate the shown set in place.
         this.callbackIssues = [...this.pendingCallbackIssues];
+        // Emptied here too, not only in `beginCallbackIssues`: a retained buffer keeps
+        // `hasPendingCallbackIssues()` true, and `Chart.tryPerformUpdate()` recommits on every update.
+        this.pendingCallbackIssues = [];
         this.issuesChanged();
         this.listeners.dispatch('change');
     }
