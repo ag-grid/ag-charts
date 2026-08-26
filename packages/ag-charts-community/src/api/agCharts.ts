@@ -432,10 +432,16 @@ class AgChartsInternal {
                 Debug.check('scene:stats', 'scene:stats:verbose') ? performance.now() : undefined,
                 chart.ctx.logger
             );
+            if (refreshedChartOptions.unusableLeadSeriesType != null) return;
             AgChartsInternal.requestFactoryUpdate(chart, refreshedChartOptions);
         });
 
-        AgChartsInternal.requestFactoryUpdate(chart, chartOptions);
+        // Short-circuit rather than crash: the mismatch has already been reported as an error, and
+        // without the chart-level defaults the lead series type's theme entry carries, the update
+        // below dereferences absent ones (`touch`, `keyboard`, `background`).
+        if (chartOptions.unusableLeadSeriesType == null) {
+            AgChartsInternal.requestFactoryUpdate(chart, chartOptions);
+        }
 
         return proxy;
     }

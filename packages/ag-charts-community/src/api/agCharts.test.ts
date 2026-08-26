@@ -1,9 +1,10 @@
 import { type Mock, afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { getDocument } from 'ag-charts-core';
+import { ModuleRegistry, getDocument } from 'ag-charts-core';
 import type { AgChartInstance, AgChartOptions, AgLineSeriesOptions, AgSparklineOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
+import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import {
     deproxy,
     expectWarningsCalls,
@@ -12,6 +13,8 @@ import {
     setupMockCanvas,
     setupMockConsole,
 } from '../chart/test/utils';
+import { CategoryAxisModule } from '../module/axis-modules/categoryAxisModule';
+import { NumberAxisModule } from '../module/axis-modules/numberAxisModule';
 
 describe('AgCharts', () => {
     setupMockConsole({ includeAllLevels: true });
@@ -554,6 +557,73 @@ describe('AgCharts', () => {
             await chart.waitForUpdate();
 
             expect(deproxy(chart).series).toHaveLength(1);
+        });
+    });
+    describe('no registered series module for the lead series type', () => {
+        // Restore by value: re-registering a bundle drops anything registered at collection time.
+        function withOnlyBarRegistered(run: () => void) {
+            const registeredModules = [...ModuleRegistry.listModules()];
+            ModuleRegistry.reset();
+            ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
+            try {
+                run();
+            } finally {
+                ModuleRegistry.reset();
+                ModuleRegistry.registerModules(registeredModules);
+            }
+        }
+
+        function takeErrorMessages() {
+            const errorMock = console.error as Mock;
+            const messages = errorMock.mock.calls.map(([message]) => String(message));
+            errorMock.mockClear();
+            return messages;
+        }
+
+        it('reports the implicit `line` default and renders nothing instead of crashing', () => {
+            withOnlyBarRegistered(() => {
+                expect(() => (chart = AgCharts.create({ container } as AgChartOptions))).not.toThrow();
+            });
+
+            const messages = takeErrorMessages();
+            expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+            expect(messages.some((m) => m.includes('LineSeriesModule'))).toBe(true);
+            expect(messages.some((m) => m.includes("reading 'dragAction'"))).toBe(false);
+            expect(deproxy(chart).series).toHaveLength(0);
+        });
+
+        it('reports an explicit series type with no module and renders nothing instead of crashing', () => {
+            withOnlyBarRegistered(() => {
+                expect(
+                    () =>
+                        (chart = AgCharts.create({
+                            container,
+                            data: [{ x: 'a', y: 1 }],
+                            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                        } as AgChartOptions))
+                ).not.toThrow();
+            });
+
+            const messages = takeErrorMessages();
+            expect(messages.some((m) => m.includes('LineSeriesModule'))).toBe(true);
+            expect(messages.some((m) => m.includes("reading 'dragAction'"))).toBe(false);
+            expect(deproxy(chart).series).toHaveLength(0);
+        });
+
+        it('still renders a series type that is registered', async () => {
+            let created: AgChartInstance | undefined;
+            withOnlyBarRegistered(() => {
+                created = AgCharts.create({
+                    container,
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                } as AgChartOptions);
+            });
+            chart = created!;
+            await chart.waitForUpdate();
+
+            expect(deproxy(chart).series).toHaveLength(1);
+            expect(console.error).not.toHaveBeenCalled();
         });
     });
 });

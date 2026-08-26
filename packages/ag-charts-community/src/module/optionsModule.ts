@@ -1046,6 +1046,21 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return options.series?.[0]?.type ?? 'line';
     }
 
+    /**
+     * The chart's lead series type when nothing is registered to draw it — an explicit `series[0].type`
+     * with no series module, or the implicit `'line'` default when `series` is absent.
+     *
+     * The theme carries a chart's entire default set under its lead series type's entry, so with no
+     * module for that type the resolved options contain none of the chart-level defaults and the first
+     * update dereferences an absent one. Derived from `userOptions` rather than the processed options,
+     * which have the unusable series stripped, and skipped for presets, which supply their own series.
+     */
+    get unusableLeadSeriesType(): string | undefined {
+        if (this.optionMetadata.presetType != null) return undefined;
+        const seriesType = this.optionsType(this.userOptions);
+        return ModuleRegistry.getSeriesModule(seriesType) == null ? seriesType : undefined;
+    }
+
     private processSeriesOptions(options: T) {
         const displayNullData = (options as any).displayNullData;
 
