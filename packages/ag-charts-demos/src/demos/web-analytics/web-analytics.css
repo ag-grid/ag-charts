@@ -92,7 +92,6 @@
     padding: 10px 24px;
     background: var(--wa-accent-soft);
     border: 1px solid var(--wa-accent);
-    /* border-top: 1px solid var(--wa-accent); */
     color: var(--wa-accent-strong);
     font-size: 14px;
     font-weight: 600;
@@ -127,6 +126,26 @@
 .wa-banner-dismiss:focus-visible {
     outline: 2px solid var(--wa-accent);
     outline-offset: 1px;
+}
+
+/* ---- icon + label grid cells (country flag, browser icon) ---- */
+.wa-icon-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.wa-flag {
+    flex: none;
+    width: 18px;
+    height: 12px;
+    object-fit: cover;
+    border: 1px solid var(--wa-border);
+    border-radius: 2px;
+}
+.wa-cell-icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
 }
 
 /* ---- body / scroll region ---- */

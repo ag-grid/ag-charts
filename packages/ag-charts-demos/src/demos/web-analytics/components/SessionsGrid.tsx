@@ -2,10 +2,52 @@ import type { ColDef, FilterChangedEvent, GridApi, GridReadyEvent } from 'ag-gri
 import { AgGridReact } from 'ag-grid-react';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 
+import { browserIconUrl } from '../browsers';
+import { deviceIconUrl } from '../devices';
+import { flagUrl } from '../flags';
 import { fmtCurrency, fmtDateTime, fmtDuration } from '../format';
 import type { Session } from '../types';
 import { buildDateFilterModel, dateFilterModelToDays, sameDaySet, startOfDay } from './dateFilter';
 import { baseColDef, gridTheme } from './grid';
+
+// The flag is decorative — the country name beside it carries the meaning, so it
+// is hidden from assistive tech. The "Unknown" bucket has no flag and renders as
+// text alone.
+function CountryCell({ value }: { value?: string }) {
+    if (!value) return null;
+    const src = flagUrl(value);
+    return (
+        <span className="wa-icon-cell">
+            {src && <img className="wa-flag" src={src} alt="" aria-hidden="true" loading="lazy" />}
+            {value}
+        </span>
+    );
+}
+
+// Every device category has an icon, so there is no text-only fallback here.
+function DeviceCell({ value }: { value?: string }) {
+    if (!value) return null;
+    const src = deviceIconUrl(value);
+    return (
+        <span className="wa-icon-cell">
+            {src && <img className="wa-cell-icon" src={src} alt="" aria-hidden="true" loading="lazy" />}
+            {value}
+        </span>
+    );
+}
+
+// As with the flag: decorative, the browser name beside it carries the meaning.
+// The "Other" bucket has no icon and renders as text alone.
+function BrowserCell({ value }: { value?: string }) {
+    if (!value) return null;
+    const src = browserIconUrl(value);
+    return (
+        <span className="wa-icon-cell">
+            {src && <img className="wa-cell-icon" src={src} alt="" aria-hidden="true" loading="lazy" />}
+            {value}
+        </span>
+    );
+}
 
 interface SessionsGridProps {
     sessions: Session[];
@@ -112,9 +154,27 @@ export const SessionsGrid = forwardRef<SessionsGridHandle, SessionsGridProps>(fu
                 valueFormatter: ({ value }) => (value == null ? '' : fmtDateTime(new Date(value))),
             },
             { field: 'channel', headerName: 'Channel', minWidth: 100, filter: 'agSetColumnFilter' },
-            { field: 'deviceCategory', headerName: 'Device', minWidth: 100, filter: 'agSetColumnFilter' },
-            { field: 'browser', headerName: 'Browser', minWidth: 100, filter: 'agSetColumnFilter' },
-            { field: 'country', headerName: 'Country', minWidth: 130, filter: 'agSetColumnFilter' },
+            {
+                field: 'deviceCategory',
+                headerName: 'Device',
+                minWidth: 120,
+                filter: 'agSetColumnFilter',
+                cellRenderer: DeviceCell,
+            },
+            {
+                field: 'browser',
+                headerName: 'Browser',
+                minWidth: 120,
+                filter: 'agSetColumnFilter',
+                cellRenderer: BrowserCell,
+            },
+            {
+                field: 'country',
+                headerName: 'Country',
+                minWidth: 150,
+                filter: 'agSetColumnFilter',
+                cellRenderer: CountryCell,
+            },
             {
                 colId: 'visitor',
                 headerName: 'Visitor',
