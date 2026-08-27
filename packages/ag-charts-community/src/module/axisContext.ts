@@ -39,6 +39,7 @@ export interface AxisValuePick {
     readonly value: AgAxisValue;
     readonly index: number;
     readonly depth?: number;
+    readonly groupPercentage?: number;
     readonly direction: ChartAxisDirection;
     readonly boundSeries: AgAxisBoundSeries[];
     readonly domain: AgAxisDomain;
