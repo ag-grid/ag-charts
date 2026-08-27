@@ -9,10 +9,36 @@ export const DARK_MODE_END = '/** DARK MODE END **/';
  * for changes, so an example paints in the right scheme first time and repaints itself on a toggle.
  *
  * Only the parameters `ag-default-dark` retunes are listed; the rest are `$ref`s onto these and
- * follow. Any other theme - a preset's included - also differs by palette, which no parameter can
- * carry, so it keeps resolving the `-dark` theme name and still needs an explicit re-render.
+ * follow. What no parameter can carry is the palette, and `ag-default-dark` retunes that too - so
+ * the series listed in `PALETTE_SENSITIVE_TYPES`, and every non-default theme and preset, keep
+ * resolving the `-dark` theme name and still need an explicit re-render.
  */
 const THEME_MUTATION = `
+/**
+ * Series whose visible colours come from the parts of the palette that differ between
+ * \`ag-default\` and \`ag-default-dark\` - marker and candle strokes, the hierarchy ramp, and the
+ * second sequential colours. A CSS variable cannot reach any of them: \`theme.palette\` takes no
+ * option for the hierarchy or sequential colours, and supplying \`strokes\` would flip
+ * \`paletteType\` to \`user-indexed\`, which changes how ~8 series types render in light mode too.
+ */
+const PALETTE_SENSITIVE_TYPES = new Set([
+    'scatter',
+    'bubble',
+    'candlestick',
+    'ohlc',
+    'treemap',
+    'cone-funnel',
+    'radial-gauge',
+    'linear-gauge',
+    'map-shape-background',
+    'map-line-background',
+]);
+
+const isPaletteSensitive = (options) => {
+    if (PALETTE_SENSITIVE_TYPES.has(options.type)) return true;
+    return (options.series ?? []).some((series) => PALETTE_SENSITIVE_TYPES.has(series?.type));
+};
+
 const DEFAULT_THEME_PARAMS = {
     axisLineColor: 'var(--ag-example-chart-axis-line-color)',
     backgroundColor: 'var(--ag-example-chart-background-color)',
@@ -47,7 +73,7 @@ __chartAPI.optionsMutationFn = function update(options, preset) {
     const setsOwnScheme = params?.backgroundColor != null || params?.foregroundColor != null;
     const isDefaultTheme = baseTheme == null || baseTheme.replace(/-dark$/, '') === 'ag-default';
 
-    if (preset == null && isDefaultTheme && !setsOwnScheme) {
+    if (preset == null && isDefaultTheme && !setsOwnScheme && !isPaletteSensitive(options)) {
         return {
             ...options,
             theme: {
