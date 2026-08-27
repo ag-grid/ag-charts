@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     type AgCartesianChartOptions,
@@ -9,6 +9,7 @@ import {
     type AgRangeAreaSeriesStylerParams,
     type AgSeriesMarkerStyle,
     type AgSeriesMarkerStylerParams,
+    _ModuleSupport,
 } from 'ag-charts-community';
 import {
     BIG,
@@ -20,6 +21,7 @@ import {
     STRIPPED_NUMBER_AXES,
     STRIPPED_UNIT_TIME_AXES,
     type SceneNodeExpectation,
+    clickAction,
     compareImageSnapshot,
     createSceneGeometrySampler,
     deproxy,
@@ -177,9 +179,11 @@ describe('RangeAreaSeries', () => {
         await compare();
     });
 
-    describe('node pickability with markers disabled (AG-10226)', () => {
-        const withMarkers = async (low: boolean, high: boolean) => {
-            const options: AgChartOptions = {
+    describe('node interactions with markers disabled (AG-10226)', () => {
+        const seriesNodeClick = vi.fn();
+
+        const createRangeAreaChart = async (low: boolean, high: boolean) => {
+            const options: AgCartesianChartOptions = {
                 ...RANGE_AREA_OPTIONS,
                 series: [
                     {
@@ -191,30 +195,49 @@ describe('RangeAreaSeries', () => {
                             low: { marker: { enabled: low } },
                             high: { marker: { enabled: high } },
                         },
+                        listeners: { seriesNodeClick },
                     },
                 ],
             };
             prepareEnterpriseTestOptions(options);
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
-            return deproxy(chart).series[0] as any;
         };
 
-        it('reports node shapes pickable only when both sides render markers', async () => {
-            expect((await withMarkers(true, true)).hasPickableNodeShapes()).toBe(true);
+        const clickNode = async (month: string) => {
+            const series = deproxy(chart).series[0] as any;
+            const node = series.getNodeData().find((d: any) => d.datum.month === month);
+            expect(node).toBeDefined();
+            const { canvasX, canvasY } = _ModuleSupport.Transformable.toCanvasPoint(
+                series.contentGroup,
+                node.point.x,
+                node.point.y
+            );
+            await clickAction(canvasX, canvasY)(chart);
+            await waitForChartStability(chart);
+        };
+
+        beforeEach(() => {
+            seriesNodeClick.mockReset();
         });
 
-        it('reports nothing pickable when neither side renders markers', async () => {
-            expect((await withMarkers(false, false)).hasPickableNodeShapes()).toBe(false);
+        it('fires nodeClick when neither side renders markers', async () => {
+            await createRangeAreaChart(false, false);
+            await clickNode('Feb');
+
+            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+            expect(seriesNodeClick.mock.calls[0][0].datum).toEqual(CATEGORY_DATA[1]);
         });
 
         it.each([
             ['low only', true, false],
             ['high only', false, true],
-        ])('reports nothing pickable with %s markers, as the other side has no shape', async (_, low, high) => {
-            // The disabled side's datums are filtered out of the marker selection, so exact-shape
-            // matching cannot resolve for them.
-            expect((await withMarkers(low, high)).hasPickableNodeShapes()).toBe(false);
+        ])('fires nodeClick with %s markers, as the other side has no shape to match', async (_, low, high) => {
+            await createRangeAreaChart(low, high);
+            await clickNode('Feb');
+
+            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+            expect(seriesNodeClick.mock.calls[0][0].datum).toEqual(CATEGORY_DATA[1]);
         });
     });
 
