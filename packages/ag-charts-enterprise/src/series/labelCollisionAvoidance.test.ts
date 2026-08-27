@@ -1170,6 +1170,20 @@ describe('label collision avoidance', () => {
                 expect(await visibleCount(spaced(0))).toBeGreaterThan(await visibleCount(spaced(200)));
             });
 
+            it('drops a hideable outside label overlapping the neighbouring stage', async () => {
+                // Taller than the gap between stages, with seriesArea off: only the stage above is left.
+                const overlapping = (seriesItems?: boolean) =>
+                    options({
+                        placement: 'outside-before',
+                        formatter: () => 'A',
+                        fontSize: 30,
+                        collision: { alwaysShow: false, collideWith: { seriesArea: false, seriesItems } },
+                    });
+
+                expect(await visibleCount(overlapping())).toBe(0);
+                expect(await visibleCount(overlapping(false))).toBeGreaterThan(0);
+            });
+
             it('cascades to the first placement that fits', async () => {
                 // `outside-before` on every stage collides with the neighbouring stage's bar, so the
                 // cascade falls through to the inside candidate rather than dropping the label.
@@ -1245,11 +1259,28 @@ describe('label collision avoidance', () => {
                 expect(rtl.map((label) => label.placement)).toEqual(stageData.map(() => 'before-end'));
             });
 
-            it('leaves start and end alone under RTL when the dividers span the vertical axis', async () => {
-                const rtl = await anchors(
-                    options({ placement: 'before-start' }, { direction: 'horizontal' }, { enableRtl: true })
-                );
-                expect(rtl.map((label) => label.placement)).toEqual(stageData.map(() => 'before-start'));
+            it('mirrors before and after, but not start and end, under RTL when the dividers span the vertical axis', async () => {
+                const horizontal = (chartOptions: object = {}) =>
+                    options({ placement: 'before-start' }, { direction: 'horizontal' }, chartOptions);
+                const ltr = await anchors(horizontal());
+                const rtl = await anchors(horizontal({ enableRtl: true }));
+
+                expect(rtl.map((label) => label.placement)).toEqual(stageData.map(() => 'after-start'));
+                for (const [index, label] of ltr.entries()) {
+                    expect(rtl[index].x).toBeGreaterThan(label.x);
+                    expect(rtl[index].y).toBeCloseTo(label.y, 5);
+                }
+            });
+
+            it('runs start to end down a vertical divider', async () => {
+                const along = (placement: string) => anchors(options({ placement }, { direction: 'horizontal' }));
+                const start = await along('before-start');
+                const end = await along('before-end');
+
+                for (const [index, label] of start.entries()) {
+                    expect(label.y).toBeLessThan(end[index].y);
+                    expect(label.x).toBeCloseTo(end[index].x, 5);
+                }
             });
 
             it.each([

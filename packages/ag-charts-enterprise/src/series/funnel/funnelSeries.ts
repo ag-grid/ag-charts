@@ -91,10 +91,6 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         };
     }
 
-    protected override toBarPlacement(placement: AgFunnelSeriesLabelPlacement | undefined) {
-        return FUNNEL_TO_BAR_PLACEMENT[placement ?? this.defaultLabelPlacement()];
-    }
-
     protected override labelPlacementStyle(placement: AgFunnelSeriesLabelPlacement | undefined) {
         const { label } = this.properties;
         return placement == null ? undefined : pickPlacementStyle(label, toResolvedFunnelPlacement(placement));

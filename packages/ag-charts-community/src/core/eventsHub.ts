@@ -511,6 +511,13 @@ export interface AxisLayout {
         fractionDigits: number;
         spacing: number;
         format?: string | Record<string, string>;
+        /**
+         * Signed adjustment the axis applies to its own tick labels' distance from the axis line when
+         * the label draws a box, so anything else placed in the label column (annotation axis labels,
+         * axis buttons) lands on the same offset. `0` for a boxless label, which is every label that
+         * does not set `fill` or an enabled bordered stroke.
+         */
+        boxOffset: number;
     };
     direction: ChartAxisDirection;
     domain: any[];

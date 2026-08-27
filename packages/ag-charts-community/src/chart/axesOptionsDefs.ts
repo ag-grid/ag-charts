@@ -90,6 +90,7 @@ export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOp
     padding: signedPadding,
     border: borderOptionsDef,
     cornerRadius: number,
+    overflow: union('pad-chart', 'realign-text', 'clip-text'),
     ...fontOptionsDef,
     ...fillOptionsDef,
 };
@@ -148,6 +149,7 @@ export function crossLineOptionsDefs(
 
 export const cartesianCrossLineLabelOptionsDefs: OptionsDefs<AgCartesianCrossLineLabelOptions> = {
     ...commonCrossLineLabelOptionsDefs,
+    reserveSpace: boolean,
     position: union(
         'top',
         'left',

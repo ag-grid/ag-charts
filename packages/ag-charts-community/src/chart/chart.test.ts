@@ -2,10 +2,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 
 import { ChartAxisDirection, ChartUpdateType, ambientLogger } from 'ag-charts-core';
-import { testLogger } from 'ag-charts-test';
+import { Caster, classCast, testLogger } from 'ag-charts-test';
 import type {
     AgCartesianChartOptions,
     AgChartValidationsOptions,
+    AgLineSeriesOptions,
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-types';
@@ -21,6 +22,7 @@ import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
 import { DataSet } from './data/dataSet';
 import { Marker } from './marker/marker';
+import { LineSeries } from './series/cartesian/lineSeries';
 import {
     MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
@@ -331,6 +333,77 @@ describe('Chart', () => {
                 const yValue = item.datum[series.properties['yKey']];
                 return [xValue, yValue];
             },
+        });
+    });
+
+    // A markerless series' node is the point on the line where the marker would have been.
+    describe(`Markerless Line Series node interactions (AG-10226)`, () => {
+        const createMarkerlessLineChart = async (listeners: any) =>
+            createChart({
+                container: document.body,
+                data: datasets.economy.data,
+                series: [
+                    {
+                        type: 'line',
+                        xKey: datasets.economy.categoryKey,
+                        yKey: datasets.economy.valueKey,
+                        marker: { enabled: false },
+                        listeners,
+                    },
+                ],
+            } as AgCartesianChartOptions);
+
+        const nodeCanvasPoint = (chartInstance: Chart, datumIndex: number) => {
+            const series = chartInstance.series[0] as any;
+            const item = series.contextNodeData.nodeData[datumIndex];
+            expect(item).toBeDefined();
+            return Transformable.toCanvasPoint(series.contentGroup, item.point.x, item.point.y);
+        };
+
+        it(`should handle nodeClick event at a datum's notional marker position`, async () => {
+            const seriesNodeClick = vi.fn();
+            chart = await createMarkerlessLineChart({ seriesNodeClick });
+
+            const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
+            await clickAction(canvasX, canvasY)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+            expect(seriesNodeClick.mock.calls[0][0].datum).toEqual(datasets.economy.data[1]);
+        });
+
+        it(`should not handle nodeClick event well outside the markerless pick range`, async () => {
+            const seriesNodeClick = vi.fn();
+            chart = await createMarkerlessLineChart({ seriesNodeClick });
+
+            const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
+            await clickAction(canvasX, canvasY + 60)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeClick).not.toHaveBeenCalled();
+        });
+
+        it(`should handle nodeDoubleClick event at a datum's notional marker position`, async () => {
+            const seriesNodeDoubleClick = vi.fn();
+            chart = await createMarkerlessLineChart({ seriesNodeDoubleClick });
+
+            const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
+            await doubleClickAction(canvasX, canvasY)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeDoubleClick).toHaveBeenCalledTimes(1);
+            expect(seriesNodeDoubleClick.mock.calls[0][0].datum).toEqual(datasets.economy.data[1]);
+        });
+
+        it(`should not handle nodeDoubleClick event well outside the markerless pick range`, async () => {
+            const seriesNodeDoubleClick = vi.fn();
+            chart = await createMarkerlessLineChart({ seriesNodeDoubleClick });
+
+            const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
+            await doubleClickAction(canvasX, canvasY + 60)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeDoubleClick).not.toHaveBeenCalled();
         });
     });
 
@@ -1016,6 +1089,117 @@ describe('Chart', () => {
             expect(seriesNodeDoubleClick).toHaveBeenCalledWith(
                 expect.objectContaining({ type: 'seriesNodeDoubleClick' })
             );
+        });
+    });
+
+    // AG-8173 — clicking a node's stroke must fire seriesNodeClick. Replicates the reporter's repro:
+    // a line marker of size 20 (pick radius 10) whose highlighted state draws a 10px stroke, so the
+    // drawn outer radius is 15 and a point 12px from the centre lies in the stroke band.
+    describe('AG-8173 node stroke click detection', () => {
+        const highlightedStroke: Partial<AgLineSeriesOptions> = {
+            highlight: { highlightedItem: { fill: 'orange', stroke: 'blue', strokeWidth: 10 } },
+        };
+
+        const createOptions = (
+            seriesNodeClick: () => void,
+            overrides: Partial<AgLineSeriesOptions> = highlightedStroke
+        ): AgCartesianChartOptions => ({
+            data: [
+                { year: '2015', spending: 35 },
+                { year: '2016', spending: 40 },
+                { year: '2017', spending: 43 },
+                { year: '2018', spending: 44 },
+            ],
+            series: [
+                {
+                    type: 'line',
+                    xKey: 'year',
+                    yKey: 'spending',
+                    marker: { size: 20 },
+                    listeners: { seriesNodeClick },
+                    ...overrides,
+                },
+            ],
+        });
+
+        const createMarkerChart = async (options: AgCartesianChartOptions) => {
+            chart = deproxy(AgCharts.create(prepareTestOptions(options)));
+            await waitForChartStability(chart);
+
+            const [node] = classCast(chart.series[0], LineSeries).contextNodeData?.nodeData ?? [];
+            expect(node).toBeDefined();
+
+            const seriesRect = new Caster(chart.seriesRect).cast(BBox).value;
+            return { cx: seriesRect.x + node.point.x, cy: seriesRect.y + node.point.y };
+        };
+
+        it('fires seriesNodeClick when clicking within the highlighted stroke of a marker', async () => {
+            const seriesNodeClick = vi.fn();
+            const { cx, cy } = await createMarkerChart(createOptions(seriesNodeClick));
+
+            // Hover the marker centre so it highlights and draws the 10px blue stroke.
+            await hoverAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+
+            // 12px from the centre is outside the size / 2 = 10 pick radius, inside the drawn 15.
+            await hoverAction(cx + 12, cy)(chart);
+            await waitForChartStability(chart);
+            await clickAction(cx + 12, cy)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+        });
+
+        // Control: proves the harness reaches the real click path in jsdom, so a failure above is the
+        // missing stroke hit region and not a broken fixture.
+        it('control — fires seriesNodeClick when clicking the marker centre', async () => {
+            const seriesNodeClick = vi.fn();
+            const { cx, cy } = await createMarkerChart(createOptions(seriesNodeClick));
+
+            await hoverAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+            await clickAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not widen the hit region when no stroke is drawn', async () => {
+            const seriesNodeClick = vi.fn();
+            // A strokeWidth without a stroke colour draws nothing, so nothing may be inflated.
+            const { cx, cy } = await createMarkerChart(
+                createOptions(seriesNodeClick, {
+                    marker: { size: 20, stroke: 'none', strokeWidth: 0 },
+                    highlight: { highlightedItem: { fill: 'orange', strokeWidth: 10 } },
+                })
+            );
+
+            await hoverAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+            await hoverAction(cx + 12, cy)(chart);
+            await waitForChartStability(chart);
+            await clickAction(cx + 12, cy)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeClick).not.toHaveBeenCalled();
+        });
+
+        // An `itemStyler` can widen a single datum's stroke, and that width is not visible in
+        // `contextNodeData.styles`. No highlight override here, so the styler is the only source.
+        it('fires seriesNodeClick when clicking a stroke widened only by marker.itemStyler', async () => {
+            const seriesNodeClick = vi.fn();
+            const { cx, cy } = await createMarkerChart(
+                createOptions(seriesNodeClick, {
+                    marker: { size: 20, itemStyler: () => ({ stroke: 'blue', strokeWidth: 10 }) },
+                })
+            );
+
+            await hoverAction(cx + 12, cy)(chart);
+            await waitForChartStability(chart);
+            await clickAction(cx + 12, cy)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -1837,6 +2021,38 @@ describe('validations.throwOn — runtime errors', () => {
         // directly, never AgChartInstanceProxy's fail-fast-aware wrapper.
         await expect(chart.applyTransaction({ update: [{ x: 'A', y: 99 }] })).resolves.toBeUndefined();
         await expect(proxy.setState(proxy.getState())).resolves.toBeUndefined();
+    });
+
+    // AG-17831 TC1 (QA repro T17d): arming `throwOn` forces the slow option-processing path, so a
+    // datum that throws while being read escapes `new ChartOptions()` synchronously — before the
+    // update loop's catch. That escape must still write the console record and carry the prefix.
+    it('prefixes and logs an error that escapes option processing on a warm updateDelta', async () => {
+        let boom = false;
+        const rows = [
+            { x: 'A', y: 10 },
+            {
+                x: 'B',
+                get y() {
+                    if (boom) throw new Error(RUNTIME_ERROR_MESSAGE);
+                    return 20;
+                },
+            },
+        ];
+
+        const proxy = AgCharts.create(throwOnOptions({ throwOn: 'error' }, rows)) as AgChartProxy;
+        chart = deproxy(proxy);
+        await proxy.waitForUpdate();
+        drainErrorLog();
+
+        boom = true;
+        await expect(proxy.updateDelta({ data: rows.slice() })).rejects.toThrow(
+            /^AG Charts - validations\.throwOn: error - /
+        );
+        boom = false;
+
+        const errorCalls = drainErrorLog();
+        expect(errorCalls.length).toBeGreaterThan(0);
+        expect(errorCalls.some((call) => call.some((arg) => String(arg).includes(RUNTIME_ERROR_MESSAGE)))).toBe(true);
     });
 });
 

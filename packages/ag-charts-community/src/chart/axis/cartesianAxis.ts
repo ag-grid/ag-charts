@@ -2,6 +2,7 @@ import type {
     AxisID,
     ChartAnimationPhase,
     DynamicContext,
+    NormalisedBaseAxisLabelOptions,
     NormalisedBaseCartesianAxisOptions,
     ResolvedTextAlign,
     Scale,
@@ -1004,6 +1005,15 @@ export abstract class CartesianAxis<
         };
     }
 
+    /** See {@link AxisLayout.label.boxOffset}, which this is reported through. */
+    private labelBoxOffset(label: NormalisedBaseAxisLabelOptions): number {
+        return -getAxisLabelSideFlag(this.mirrored) * expandLabelPadding(label)[this.position];
+    }
+
+    protected override getLabelBoxOffset(): number {
+        return this.labelBoxOffset(this.options.label);
+    }
+
     private getTickLabelProps(
         datum: TickDatum,
         tickGenerationResult: { rotation: number; textAlign: ResolvedTextAlign; textBaseline: CanvasTextBaseline },
@@ -1020,10 +1030,13 @@ export abstract class CartesianAxis<
         const textAlign = labelTextAlign ?? tickGenerationResult.textAlign;
         const { range } = scale;
         const sideFlag = getAxisLabelSideFlag(this.mirrored);
-        const borderOffset = expandLabelPadding(label)[this.position];
         let labelOffset =
-            sideFlag * (this.getTickSize(tick) + this.getTickSpacing(tick) + label.spacing + seriesAreaPadding) -
-            borderOffset;
+            sideFlag *
+            (this.getTickSize(tick) +
+                this.getTickSpacing(tick) +
+                label.spacing +
+                seriesAreaPadding +
+                this.labelBoxOffset(label));
 
         if (scrollbarThickness) {
             labelOffset += sideFlag * scrollbarThickness;

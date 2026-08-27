@@ -245,38 +245,6 @@ To prevent the last visible series from being hidden, use the `preventHidingAll`
 }
 ```
 
-### Toggled-off Styling
-
-{% chartExampleRunner title="Toggled-off Legend Item Styling" name="legend-disabled-style" type="generated" /%}
-
-Toggled-off Legend items are dimmed as a whole by default. Use the `disabledStyle` option on
-`legend.item.marker`, `legend.item.label` and `legend.item.line` to control the appearance of each
-sub-element independently, for example to meet a contrast requirement or match an application's own
-disabled-state styling.
-
-```js format="snippet"
-{
-    legend: {
-        item: {
-            marker: {
-                disabledStyle: { fill: '#6b6b6b', stroke: '#6b6b6b', opacity: 1 },
-            },
-            label: {
-                disabledStyle: { color: '#6b6b6b', opacity: 1 },
-            },
-            line: {
-                disabledStyle: { stroke: '#6b6b6b', opacity: 1 },
-            },
-        },
-    },
-}
-```
-
-Setting any `disabledStyle` property moves the dimming from the item onto its sub-elements, so each
-`opacity` is absolute rather than a multiplier: `opacity: 1` renders that sub-element at full
-contrast. Sub-elements without an explicit `opacity` are dimmed to 50%, and any other property left
-unspecified keeps its enabled-state value.
-
 ## Legend Events
 
 The `legendItemClick` and `legendItemDoubleClick` events can be used to listen to Legend item clicks and double clicks, respectively.

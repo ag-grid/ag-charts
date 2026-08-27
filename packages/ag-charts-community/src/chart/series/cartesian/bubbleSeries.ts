@@ -130,6 +130,7 @@ import {
     computeMarkerFocusBounds,
     getMarkerStyles,
     markerScaleInAnimation,
+    maxMarkerStrokePickInflation,
     resetMarkerFn,
     resetMarkerSelectionsDirect,
 } from './markerUtil';
@@ -1246,6 +1247,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         // other mode it returns the input unchanged. Hoist that constant out of the per-marker loop.
         const constantDrawingMode = drawingMode === 'cutout' ? undefined : drawingMode;
 
+        // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
+        const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
+
         datumSelection.each((node, datum, index) => {
             const {
                 point: { size },
@@ -1272,6 +1276,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             this.applyMarkerStyle(style, node, datum.point, fillBBox, {
                 crossFilterSelected: datum.crossFilterSelected,
                 hideWithSize0: false,
+                pickInflation,
             });
             const nextDrawingMode = constantDrawingMode ?? this.resolveMarkerDrawingModeForState(drawingMode, style);
             if (node.__drawingMode !== nextDrawingMode) {

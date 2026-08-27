@@ -84,6 +84,7 @@ const {
     pathSwipeInAnimation,
     resetMotion,
     markerSwipeScaleInAnimation,
+    maxMarkerStrokePickInflation,
     seriesLabelFadeInAnimation,
     animationValidation,
     diff,
@@ -287,6 +288,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
     private readonly aggregationManager = new AggregationManager<RangeAreaSeriesDataAggregationFilter>();
     private hideWithSize0 = false;
+    private markerNodesPickable = true;
+
+    protected override hasPickableNodeShapes(): boolean {
+        return this.markerNodesPickable;
+    }
     private placedLabelData: PlacedLabel<RangeAreaLabelDatum>[] = [];
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
@@ -1108,6 +1114,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             this.chart?.isMiniChart
         );
         this.hideWithSize0 = markerDrawMode.hideWithSize0;
+        // A disabled side's datums are filtered out of `resolvedNodeData`, so both must be drawn.
+        this.markerNodesPickable =
+            markerDrawMode.needsNodeData && !markerDrawMode.hideWithSize0 && low.marker.enabled && high.marker.enabled;
 
         if (properties.item.low.marker.isDirty() || properties.item.high.marker.isDirty()) {
             datumSelection.clear();
@@ -1255,6 +1264,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
         const drawingMode = this.getDrawingMode(isHighlight, opts.drawingMode);
 
+        // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
+        const pickInflation = Math.max(
+            maxMarkerStrokePickInflation(contextNodeData.styles.low),
+            maxMarkerStrokePickInflation(contextNodeData.styles.high)
+        );
+
         datumSelection.each((node, datum) => {
             const { itemType } = datum;
             const style =
@@ -1263,7 +1278,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                     this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
                 ];
             // Style colours are resolved at runtime before reaching the scene node.
-            this.applyMarkerStyle(style as NormalisedSeriesMarkerStyle, node, datum.point, fillBBox, { hideWithSize0 });
+            this.applyMarkerStyle(style as NormalisedSeriesMarkerStyle, node, datum.point, fillBBox, {
+                hideWithSize0,
+                pickInflation,
+            });
             node.drawingMode = drawingMode;
         });
 

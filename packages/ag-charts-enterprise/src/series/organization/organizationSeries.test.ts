@@ -931,7 +931,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         options: {
             ...TEAM_DIRECTORY_ORG_CHART,
             initialState: { collapsed: [] },
-            theme: { overrides: { organization: { series: { layout: { type: 'stacked', stackAtDepth: 3 } } } } },
+            theme: { overrides: { organization: { series: { layout: { type: 'stacked', stackFromDepth: 3 } } } } },
         },
         assertions,
     },
@@ -942,7 +942,11 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
             theme: {
                 overrides: {
                     organization: {
-                        series: { layout: { type: 'stacked', stackAtDepth: 3 }, direction: 'vertical', reverse: true },
+                        series: {
+                            layout: { type: 'stacked', stackFromDepth: 3 },
+                            direction: 'vertical',
+                            reverse: true,
+                        },
                     },
                 },
             },
@@ -955,7 +959,9 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
             initialState: { collapsed: [] },
             theme: {
                 overrides: {
-                    organization: { series: { layout: { type: 'stacked', stackAtDepth: 3 }, direction: 'horizontal' } },
+                    organization: {
+                        series: { layout: { type: 'stacked', stackFromDepth: 3 }, direction: 'horizontal' },
+                    },
                 },
             },
         },
@@ -969,7 +975,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 overrides: {
                     organization: {
                         series: {
-                            layout: { type: 'stacked', stackAtDepth: 3 },
+                            layout: { type: 'stacked', stackFromDepth: 3 },
                             direction: 'horizontal',
                             reverse: true,
                         },

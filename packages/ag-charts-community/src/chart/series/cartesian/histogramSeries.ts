@@ -5,6 +5,7 @@ import type {
     NormalisedHistogramSeriesStyle,
     PlacedLabel,
     PointLabelDatum,
+    PositionedCandidateResolver,
 } from 'ag-charts-core';
 import {
     ChartAxisDirection,
@@ -86,6 +87,7 @@ import {
     barLabelObstaclesFor,
     buildBarLabelCandidates,
     createBarCandidateStyleResolver,
+    createBarPositionedCandidateResolver,
     fitLabelToContainerAutoSize,
     insideBarLabelBounds,
     pickPlacementStyle,
@@ -516,7 +518,6 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
      */
     private createLabelData(
         ctx: HistogramSeriesNodeDatumContext,
-        node: HistogramNodeDatum,
         bin: CalculatedBin,
         x: number,
         y: number,
@@ -582,11 +583,6 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 plotRegion,
                 fitted: labelFit != null,
                 text: sourceText,
-                styleDatum: node,
-                resolveStyle:
-                    label.itemStyler == null
-                        ? undefined
-                        : createBarCandidateStyleResolver(this, label, this.makeLabelStylerParams(node)),
             });
             // The engine picks the first candidate that fits; the first is baked as a backward-safe default
             // until the engine writes the chosen one back.
@@ -750,7 +746,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         mutableNode.bottomLeftCornerRadius = yAxisReversed;
 
         // Update label
-        mutableNode.label = this.createLabelData(ctx, node, bin, x, y, w, h, isUpward);
+        mutableNode.label = this.createLabelData(ctx, bin, x, y, w, h, isUpward);
     }
 
     /**
@@ -1085,7 +1081,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                         collideWith,
                         threshold,
                         false,
-                        fitFor(nodeLabel.text)
+                        fitFor(nodeLabel.text),
+                        node
                     )
                 );
             }
@@ -1123,6 +1120,12 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                         : { ...fit, font: styledBox.font, boxPadding: styledBox.boxPadding },
             };
         });
+    }
+
+    override getLabelCandidateResolver(): PositionedCandidateResolver | undefined {
+        return createBarPositionedCandidateResolver(this, this.properties.label, (node) =>
+            this.makeLabelStylerParams(node as HistogramNodeDatum)
+        );
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<HistogramNodeDatum>[]) {

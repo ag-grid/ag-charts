@@ -1,11 +1,17 @@
 import { vi } from 'vitest';
 
-import type { AgChartInstance } from 'ag-charts-types';
+import type { AgBarSeriesLabelPlacement, AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
 import { Label, LabelCollision, LabelPlacementStyle, resolvePlacementLabelPadding } from './label';
 import { adjustLabelPlacement } from './labelUtil';
-import { compareImageSnapshot, prepareTestOptions, setupMockCanvas, setupMockConsole } from './test/utils';
+import {
+    compareImageSnapshot,
+    prepareTestOptions,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from './test/utils';
 
 describe('Labels', () => {
     setupMockConsole();
@@ -48,6 +54,52 @@ describe('Labels', () => {
             });
             chart = AgCharts.create(options);
             await compare();
+        });
+    });
+
+    describe('itemStyler placement cascade', () => {
+        // A styler is user code: it must run for the placements the cascade actually tries, and never
+        // ahead of them for fallbacks the label turned out not to need.
+        async function placementsStyled(placement: AgBarSeriesLabelPlacement[], barHeight: number) {
+            const placements: (string | undefined)[] = [];
+            chart = AgCharts.create(
+                prepareTestOptions({
+                    // The tall bar sets the axis domain, so `barHeight` is what the short bar's label has
+                    // to fit inside; only that bar's styler calls are recorded.
+                    data: [
+                        { x: 'A', y: barHeight },
+                        { x: 'B', y: 100 },
+                    ],
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y',
+                            label: {
+                                placement,
+                                itemStyler: (params) => {
+                                    if ((params.datum as { x: string }).x === 'A') placements.push(params.placement);
+                                    return {};
+                                },
+                            },
+                        },
+                    ],
+                })
+            );
+            await waitForChartStability(chart);
+            return Array.from(new Set(placements));
+        }
+
+        test('stops at the placement that fits', async () => {
+            expect(await placementsStyled(['inside-center', 'outside-end'], 95)).toEqual(['inside-center']);
+        });
+
+        test('reaches the fallback only once the first placement fails', async () => {
+            // A bar with no room inside for the label cascades on, so both placements are styled.
+            expect(await placementsStyled(['inside-center', 'outside-end'], 1)).toEqual([
+                'inside-center',
+                'outside-end',
+            ]);
         });
     });
 
