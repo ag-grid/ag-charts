@@ -419,9 +419,7 @@ class AgChartsInternal {
 
         chart.ctx.domManager.updateCSSVariableWatchers(chartOptions.processedCSSVariables);
 
-        // Registered even when this update is short-circuited below, so the listener a previous update
-        // left behind — which closes over that update's options — is always replaced by one carrying
-        // the caller's latest options.
+        // Must precede the short-circuit below: each listener closes over its own update's options.
         chart.setRequestRefreshListener(() => {
             const refreshedChartOptions = new ChartOptions(
                 baseOptions,
@@ -435,15 +433,13 @@ class AgChartsInternal {
                 Debug.check('scene:stats', 'scene:stats:verbose') ? performance.now() : undefined,
                 chart.ctx.logger
             );
-            // Re-derived rather than captured, so a refresh after the module is registered recovers.
+            // Re-derived per refresh, so registering the module later recovers.
             if (refreshedChartOptions.unusableLeadSeriesType != null) return;
             AgChartsInternal.requestFactoryUpdate(chart, refreshedChartOptions);
         });
 
-        // Short-circuit rather than crash: the mismatch has already been reported as an error, and
-        // without the chart-level defaults the lead series type's theme entry carries, an update
-        // dereferences absent ones (`touch`, `keyboard`, `background`). A later call recovers
-        // normally once a module for the type is registered.
+        // The theme prunes an unusable lead series type's entry, and with it the chart-level defaults
+        // an update dereferences. The mismatch is already reported as an error.
         if (chartOptions.unusableLeadSeriesType != null) {
             AgChartsInternal.queueSkippedUpdate(chart, chartOptions);
             return proxy;
@@ -522,17 +518,13 @@ class AgChartsInternal {
         );
     }
 
-    /** The options of updates skipped by the `unusableLeadSeriesType` short-circuit - see below. */
+    /** Options of updates the `unusableLeadSeriesType` short-circuit skipped. */
     private static readonly skippedChartOptions = new WeakSet<ChartOptions>();
 
     /**
-     * Queues a skipped update's options without applying them, so they - and not the last successfully
-     * applied configuration - are the base a subsequent update merges onto. Without this a delta update
-     * made once a module for the type is registered would revive the superseded configuration and drop
-     * the caller's, which a delta cannot restate.
-     *
-     * Nothing ever splices a skipped entry off the queue, since only an applied update does that, so a
-     * further skipped update replaces the entry rather than stacking on it.
+     * Queues without applying, so a later delta merges onto the caller's latest options rather than the
+     * last applied ones. Only an applied update splices its entry off the queue, so replace rather than
+     * stack.
      */
     private static queueSkippedUpdate(chart: Chart, chartOptions: ChartOptions) {
         const queued = chart.queuedChartOptions.at(-1);

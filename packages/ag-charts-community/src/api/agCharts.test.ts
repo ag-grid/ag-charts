@@ -656,8 +656,7 @@ describe('AgCharts', () => {
                 takeErrorMessages();
 
                 ModuleRegistry.registerModules([LineSeriesModule]);
-                // A delta cannot restate the series, so it recovers only if the skipped options are
-                // what it merges onto.
+                // A delta cannot restate the series, so it must merge onto the skipped options.
                 await chart.updateDelta({ data: [{ x: 'a', y: 2 }] });
                 await chart.waitForUpdate();
             });
@@ -666,9 +665,8 @@ describe('AgCharts', () => {
         });
 
         it('skips a chart-driven update instead of crashing on the pruned chart-level defaults', async () => {
-            // The chart's own constructor updates (via `parentResize`) before `AgCharts.create()` can
-            // short-circuit, so the skip has to hold inside `Chart.update()` too — a browser hits this
-            // path on every sized container and threw `reading 'dragAction'` until it did.
+            // The constructor updates (via `parentResize`) before `AgCharts.create()` can short-circuit,
+            // so the skip has to hold inside `Chart.update()` too.
             await withOnlyBarRegistered(() => {
                 chart = AgCharts.create({ container } as AgChartOptions);
                 expect(() => deproxy(chart).update()).not.toThrow();
