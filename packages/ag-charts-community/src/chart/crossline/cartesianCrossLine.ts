@@ -161,6 +161,9 @@ class CartesianCrossLineLabel extends LabelStyle implements AgCartesianCrossLine
     overflow?: AgCrossLineLabelOverflow;
 
     @Property
+    reserveSpace: boolean = false;
+
+    @Property
     rotation?: number;
 
     @Property
@@ -366,6 +369,18 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         this.data = [clampedYStart, clampedYEnd];
 
         if (this.label.enabled === false || !this.label.text) return;
+    }
+
+    get reservesLabelSpace(): boolean {
+        return this.label.reserveSpace;
+    }
+
+    /** Taken from the drawn node, so whatever `positionLabel` and `clipLabelText` settled on is reserved. */
+    getLabelBox(): BoxBounds | undefined {
+        const { crossLineLabel, label } = this;
+        if (label.enabled === false || !label.text || !this.labelGroup.visible) return;
+
+        return Transformable.toCanvas(crossLineLabel);
     }
 
     private updateNodes() {

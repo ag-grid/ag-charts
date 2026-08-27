@@ -99,6 +99,10 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     fillOpacity?: number;
     gridLength: number;
     gridPadding: number;
+    /** Whether the label reserves its space from other labels. Cartesian cross lines only. */
+    readonly reservesLabelSpace?: boolean;
+    /** The drawn label's footprint in canvas coordinates, or `undefined` when it draws no label. */
+    getLabelBox?(): BoxBounds | undefined;
     /**
      * Chart container in canvas coordinates, bounding where a `'clip-text'` label may draw. Set on every
      * update, since the canvas can resize without the axis relaying out.

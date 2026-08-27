@@ -1435,7 +1435,7 @@ describe('SunburstSeries', () => {
         ];
 
         const UNSUITABLE_WARNING =
-            'AG Charts - Option [series.innerCircle] does not suit the data - it requires either [series.innerRadiusRatio] or [series.innerRadiusOffset] to be set, or a root level consisting of a single node covering all of the data.';
+            'AG Charts - Options [series.innerCircle] and [series.innerLabels] have no effect unless either [series.innerRadiusRatio] or [series.innerRadiusOffset] is set to carve out a centre.';
 
         let proxy: any;
         let lastOptions: AgChartOptions;
@@ -1653,10 +1653,14 @@ describe('SunburstSeries', () => {
             expectWarningsCalls().toEqual([]);
         });
 
-        it('paints a sole 100% root disc without relaying the sectors out', async () => {
+        // AG-18283: a sole 100% root node is not a centre. Without an inner-radius option the series
+        // renders exactly as it did before innerCircle/innerLabels existed, and the options warn.
+        it('leaves a sole 100% root node exactly as it renders without the centre options', async () => {
             const itemStyler = vi.fn(() => ({}));
             const control = await createChart({ itemStyler, tooltip: nameTooltip }, SOLE_ROOT_DATA);
             const radiusScale = seriesRadius() / (maxDepthOf(control) + 1);
+            const controlRoot = atDepth(control, 0)[0];
+            const controlGeometry = { inner: controlRoot.innerRadius, outer: controlRoot.outerRadius };
             // The first hover after a chart is created never tooltips, so both charts get the same
             // warm-up hover on an outer sector before the root sector is compared.
             await hoverAt(control, radiusScale * 1.5, 0);
@@ -1668,38 +1672,51 @@ describe('SunburstSeries', () => {
 
             itemStyler.mockClear();
             const series = await replaceChart(
-                { innerCircle: { fill: 'red' }, itemStyler, tooltip: nameTooltip },
+                {
+                    innerCircle: { fill: 'red' },
+                    innerLabels: [{ text: 'Total', fontSize: 14 }],
+                    itemStyler,
+                    tooltip: nameTooltip,
+                },
                 SOLE_ROOT_DATA
             );
 
-            const [circle] = circleNodes(series);
-            expect(circle).toBeDefined();
-            expect(circle.outerRadius).toBeCloseTo(radiusScale, 5);
+            expect(series.resolveCentreCircle()).toBeNull();
+            expect(circleNodes(series)).toHaveLength(0);
+            expect(series.innerLabelsSelection.nodes()).toHaveLength(0);
 
             const root = atDepth(series, 0)[0];
-            expect(root.innerRadius).toBe(0);
+            expect(root.innerRadius).toBe(controlGeometry.inner);
+            expect(root.outerRadius).toBeCloseTo(controlGeometry.outer, 5);
             expect(root.outerRadius).toBeCloseTo(radiusScale, 5);
 
-            // The painted disc covers the root sector, so it must change neither the pointer
-            // behaviour of that sector nor which datums reach the styler.
             await hoverAt(series, radiusScale * 1.5, 0);
-            expect(tooltipShown(), 'a sector outside the disc still tooltips').toBe(true);
+            expect(tooltipShown(), 'a sector outside the centre still tooltips').toBe(true);
             await hoverAt(series, radiusScale * 0.5, 0);
             expect(tooltipShown()).toBe(rootTooltipWithoutCircle);
 
             const styledData = new Set((itemStyler.mock.calls as any[]).map(([params]) => params.datum));
             expect(styledData.has(SOLE_ROOT_DATA[0])).toBe(true);
             expect([...styledData].some((datum: any) => datum?.radius != null)).toBe(false);
-            expectWarningsCalls().toEqual([]);
+            expectWarningsCalls().toEqual([[UNSUITABLE_WARNING]]);
         });
 
-        it('warns exactly once when innerCircle does not suit the data', async () => {
+        it('warns exactly once when innerCircle has no centre to paint, even once innerLabels join it', async () => {
             await createChart({ innerCircle: { fill: 'red' } });
             expectWarningsCalls().toEqual([[UNSUITABLE_WARNING]]);
 
             // `expectWarningsCalls` clears the buffer, so an empty second read means the warning
             // did not repeat across the update.
             await proxy.update({ ...lastOptions, data: [...MULTI_ROOT_DATA].reverse() });
+            await waitForChartStability(chart);
+            expectWarningsCalls().toEqual([]);
+
+            // Adding innerLabels on top via a further update must not add a second warning - both
+            // options share one message, so the chart has warned exactly once across its lifetime.
+            await proxy.update({
+                ...lastOptions,
+                series: [{ ...(lastOptions.series![0] as any), innerLabels: [{ text: 'Total' }] }],
+            });
             await waitForChartStability(chart);
             expectWarningsCalls().toEqual([]);
         });
@@ -1718,12 +1735,19 @@ describe('SunburstSeries', () => {
             expectWarningsCalls().toEqual([]);
         });
 
-        it('resolves the centre circle for a hole, a sole root and neither', async () => {
+        it('resolves the centre circle only for a carved hole', async () => {
             const holed = await createChart({ innerRadiusRatio: 0.3 });
             expect(holed.resolveCentreCircle()?.radius).toBeCloseTo(seriesRadius() * 0.3, 5);
 
+            const offset = await replaceChart({ innerRadiusOffset: 20 });
+            expect(offset.resolveCentreCircle()?.radius).toBeCloseTo(20, 5);
+
+            // A ratio of zero is "supplied" but carves nothing, so it resolves no centre either.
+            const zeroRatio = await replaceChart({ innerRadiusRatio: 0 });
+            expect(zeroRatio.resolveCentreCircle()).toBeNull();
+
             const soleRoot = await replaceChart({}, SOLE_ROOT_DATA);
-            expect(soleRoot.resolveCentreCircle()?.radius).toBeCloseTo(seriesRadius() / (maxDepthOf(soleRoot) + 1), 5);
+            expect(soleRoot.resolveCentreCircle()).toBeNull();
 
             const neither = await replaceChart();
             expect(neither.resolveCentreCircle()).toBeNull();
@@ -1735,6 +1759,296 @@ describe('SunburstSeries', () => {
             expectWarningsCalls().toContainEqual([
                 'AG Charts - Option `series[0].innerCircle.fill` is required and has not been provided; expecting a supported color string (hex, rgb(), hsl(), oklch() or a CSS color name), a color object or a color ref and where a color ref with [onto] or [ontoColor] must also have [mix], ignoring.',
             ]);
+        });
+
+        // AG-18283: innerLabels stack text inside the same centre circle innerCircle paints into.
+        describe('inner labels', () => {
+            const innerLabelGeometry = (series: SunburstSeries) =>
+                series.innerLabelsSelection.nodes().map((node) => {
+                    const bbox = node.getBBox();
+                    return { y: node.y, visible: node.visible, width: bbox.width, height: bbox.height };
+                });
+
+            const rootPrimaryLabelText = (series: SunburstSeries): _ModuleSupport.TransformableText | undefined => {
+                let group: any;
+                (series as any).labelSelection.each((candidate: any, datum: any) => {
+                    if (datum.depth === 0) group = candidate;
+                });
+                if (group == null) return undefined;
+                return _ModuleSupport.Selection.selectByClass(group, _ModuleSupport.TransformableText).find(
+                    (text) => text.tag === 0
+                );
+            };
+
+            it('creates one node per innerLabels entry, each carrying its own font styling', async () => {
+                const series = await createChart({
+                    innerRadiusRatio: 0.4,
+                    innerLabels: [
+                        { text: 'Total', fontSize: 20, fontWeight: 'bold', color: 'red' },
+                        { text: '100', fontSize: 12, fontWeight: 'normal', color: 'blue' },
+                    ],
+                });
+
+                const nodes = series.innerLabelsSelection.nodes();
+                expect(nodes).toHaveLength(2);
+                expect(nodes[0].fontSize).toBe(20);
+                expect(nodes[0].fontWeight).toBe('bold');
+                expect(nodes[0].fill).toBe('red');
+                expect(nodes[1].fontSize).toBe(12);
+                expect(nodes[1].fontWeight).toBe('normal');
+                expect(nodes[1].fill).toBe('blue');
+                expectWarningsCalls().toEqual([]);
+            });
+
+            it("stacks inner labels using each entry's own spacing, anchored symmetrically about the centre", async () => {
+                const withSpacing = (spacing0: number, spacing1: number) => ({
+                    ...lastOptions,
+                    series: [
+                        {
+                            ...(lastOptions.series![0] as any),
+                            innerLabels: [
+                                { text: 'Total', fontSize: 16, spacing: spacing0 },
+                                { text: '100', fontSize: 12, spacing: spacing1 },
+                            ],
+                        },
+                    ],
+                });
+
+                const series = await createChart({
+                    innerRadiusRatio: 0.4,
+                    innerLabels: [
+                        { text: 'Total', fontSize: 16, spacing: 4 },
+                        { text: '100', fontSize: 12, spacing: 4 },
+                    ],
+                });
+
+                const g0 = innerLabelGeometry(series);
+                expect(g0[0].y - g0[0].height).toBeCloseTo(-g0.at(-1)!.y, 5);
+                const gap0 = g0[1].y - g0[0].y;
+                expect(gap0).toBeCloseTo(g0[1].height + 4 + 4, 5);
+
+                await proxy.update(withSpacing(10, 4));
+                await waitForChartStability(chart);
+                const g1 = innerLabelGeometry(series);
+                expect(g1[1].y - g1[0].y).toBeCloseTo(gap0 + 6, 5);
+                expect(g1[0].y - g1[0].height).toBeCloseTo(-g1.at(-1)!.y, 5);
+
+                await proxy.update(withSpacing(10, 10));
+                await waitForChartStability(chart);
+                const g2 = innerLabelGeometry(series);
+                expect(g2[1].y - g2[0].y).toBeCloseTo(gap0 + 12, 5);
+                expect(g2[0].y - g2[0].height).toBeCloseTo(-g2.at(-1)!.y, 5);
+                expectWarningsCalls().toEqual([]);
+            });
+
+            it('hides every inner label together when the stack cannot fit the hole, and shows them all when it can', async () => {
+                const cramped = await createChart({
+                    innerRadiusRatio: 0.06,
+                    innerLabels: [
+                        { text: 'A dramatically long inner label string that will never fit', fontSize: 40 },
+                        { text: 'Second line also far too long', fontSize: 40 },
+                    ],
+                });
+                const crampedNodes = innerLabelGeometry(cramped);
+                expect(crampedNodes.length).toBeGreaterThan(0);
+                expect(crampedNodes.every((node) => node.visible === false)).toBe(true);
+                expect(crampedNodes[0].width).toBeGreaterThan(seriesRadius() * 0.06 * Math.SQRT2);
+
+                const comfortable = await replaceChart({
+                    innerRadiusRatio: 0.4,
+                    innerLabels: [
+                        { text: 'Total', fontSize: 14 },
+                        { text: '100', fontSize: 12 },
+                    ],
+                });
+                const comfortableNodes = innerLabelGeometry(comfortable);
+                expect(comfortableNodes.length).toBeGreaterThan(0);
+                expect(comfortableNodes.every((node) => node.visible === true)).toBe(true);
+                expectWarningsCalls().toEqual([]);
+            });
+
+            // AG-18283: there is no precedence to arbitrate. A sole root's centre label keeps the
+            // centre because innerLabels never render without a hole; with a hole carved, depth 0 is
+            // an annulus whose label sits outside the hole, so the two can never collide.
+            it('never displaces the sole-root centre label, and coexists with it once a hole is carved', async () => {
+                const withoutInnerLabels = await createChart({ secondaryLabelKey: 'change' }, SOLE_ROOT_DATA);
+                expect(rootPrimaryLabelText(withoutInnerLabels)?.visible).toBe(true);
+                expectWarningsCalls().toEqual([]);
+
+                const withInnerLabels = await replaceChart(
+                    { secondaryLabelKey: 'change', innerLabels: [{ text: 'Total', fontSize: 14 }] },
+                    SOLE_ROOT_DATA
+                );
+                expect(rootPrimaryLabelText(withInnerLabels)?.visible).toBe(true);
+                expect(withInnerLabels.innerLabelsSelection.nodes()).toHaveLength(0);
+                expectWarningsCalls().toEqual([[UNSUITABLE_WARNING]]);
+
+                const holed = await replaceChart(
+                    {
+                        secondaryLabelKey: 'change',
+                        innerRadiusRatio: 0.4,
+                        innerLabels: [{ text: 'Total', fontSize: 14 }],
+                    },
+                    SOLE_ROOT_DATA
+                );
+                const holedRootLabel = rootPrimaryLabelText(holed);
+                expect(holedRootLabel?.visible).toBe(true);
+                expect(holed.innerLabelsSelection.nodes()[0].visible).toBe(true);
+                // The root label is laid out in its annulus, never at dead centre with the stack.
+                const rootLabelDistance = Math.hypot(holedRootLabel!.translationX, holedRootLabel!.translationY);
+                expect(rootLabelDistance).toBeGreaterThan(seriesRadius() * 0.4 - 1e-6);
+                expectWarningsCalls().toEqual([]);
+            });
+
+            it('excludes the inner labels group and every node from pointer events', async () => {
+                const series = await createChart({
+                    innerRadiusRatio: 0.4,
+                    innerLabels: [{ text: 'Total', fontSize: 16 }],
+                });
+
+                expect((series as any).innerLabelsGroup.pointerEvents).toBe(_ModuleSupport.PointerEvents.None);
+                for (const node of series.innerLabelsSelection.nodes()) {
+                    expect(node.pointerEvents).toBe(_ModuleSupport.PointerEvents.None);
+                }
+                expectWarningsCalls().toEqual([]);
+            });
+
+            it('never invokes itemStyler for an inner label', async () => {
+                const itemStyler = vi.fn(() => ({}));
+                const series = await createChart({
+                    innerRadiusRatio: 0.4,
+                    innerLabels: [{ text: 'Total', fontSize: 16 }],
+                    itemStyler,
+                });
+
+                const styledData = new Set((itemStyler.mock.calls as any[]).map(([params]) => params.datum));
+                const sectorData = new Set(
+                    sectorsOf(series)
+                        .map((sector) => sector.datum?.datum)
+                        .filter((datum) => datum != null)
+                );
+                expect(styledData).toEqual(sectorData);
+                expectWarningsCalls().toEqual([]);
+            });
+
+            it('shows no tooltip inside the hole with an exact tooltip range', async () => {
+                const series = await createChart(
+                    {
+                        innerRadiusRatio: 0.4,
+                        innerLabels: [{ text: 'Total', fontSize: 16 }],
+                        tooltip: nameTooltip,
+                    },
+                    MULTI_ROOT_DATA,
+                    { tooltip: { range: 'exact' as InteractionRange } }
+                );
+
+                const hole = seriesRadius() * 0.4;
+                for (const [index, fraction] of [0, 0.25, 0.5, 0.9].entries()) {
+                    await hoverAt(series, hole * fraction, (index * Math.PI) / 2, MIN_TOOLTIP_HIDE_DELAY);
+                    expect(tooltipShown(), `hole fraction ${fraction}`).toBe(false);
+                }
+                expectWarningsCalls().toEqual([]);
+            });
+
+            it('resolves only a sector as the nearest datum inside the hole, never an inner label', async () => {
+                const innerLabelTexts = ['Total', '100'];
+                const series = await createChart(
+                    {
+                        innerRadiusRatio: 0.4,
+                        innerLabels: innerLabelTexts.map((text) => ({ text, fontSize: 16 })),
+                        tooltip: nameTooltip,
+                    },
+                    MULTI_ROOT_DATA,
+                    { tooltip: { range: 'nearest' as InteractionRange } }
+                );
+
+                const hole = seriesRadius() * 0.4;
+                const names = MULTI_ROOT_DATA.flatMap((root) => [root.name, ...root.children.map((c) => c.name)]);
+                let tooltips = 0;
+                for (const [index, fraction] of [0, 0.25, 0.5, 0.9].entries()) {
+                    await hoverAt(series, hole * fraction, (index * Math.PI) / 2);
+                    const text = tooltipShown() ? tooltip()?.textContent : undefined;
+                    if (text != null) {
+                        tooltips += 1;
+                        expect(names, `hole fraction ${fraction}`).toContain(text);
+                        expect(innerLabelTexts).not.toContain(text);
+                    }
+                }
+                expect(tooltips, 'hovers inside the hole that tooltipped').toBeGreaterThan(0);
+                expectWarningsCalls().toEqual([]);
+            });
+
+            it('warns exactly once when innerLabels alone has no centre to render into', async () => {
+                await createChart({ innerLabels: [{ text: 'Total', fontSize: 14 }] });
+                expectWarningsCalls().toEqual([[UNSUITABLE_WARNING]]);
+            });
+
+            it('accepts an innerLabels text segments array without warnings and still rejects a malformed segment', async () => {
+                await createChart({
+                    innerRadiusRatio: 0.4,
+                    innerLabels: [
+                        {
+                            text: [
+                                { text: 'Total ' },
+                                { text: '100', fontSize: 20, color: 'red', verticalAlign: 'middle' },
+                            ],
+                            fontSize: 14,
+                        },
+                    ],
+                });
+                expectWarningsCalls().toEqual([]);
+
+                await proxy.update({
+                    ...lastOptions,
+                    series: [
+                        {
+                            ...(lastOptions.series![0] as any),
+                            innerLabels: [{ text: [{ type: 'image', width: 10, height: 10 } as any] }],
+                        },
+                    ],
+                });
+                await waitForChartStability(chart);
+
+                expectWarningsCalls().toMatchInlineSnapshot(`
+                  [
+                    [
+                      "AG Charts - Option \`series[0].innerLabels[0].text\` cannot be set to \`[{"type":"image","width":10,"height":10}]\`; expecting a string, a number or bigint, a date or text or image segments array, ignoring.",
+                    ],
+                  ]
+                `);
+            });
+
+            it('leaves the inner-labels selection and group empty when innerLabels is unset or an explicit empty array', async () => {
+                const unset = await createChart({ innerRadiusRatio: 0.4 });
+                expect(unset.innerLabelsSelection.nodes()).toHaveLength(0);
+                expect(Array.from((unset as any).innerLabelsGroup.children())).toHaveLength(0);
+                expectWarningsCalls().toEqual([]);
+
+                const empty = await replaceChart({ innerRadiusRatio: 0.4, innerLabels: [] });
+                expect(empty.innerLabelsSelection.nodes()).toHaveLength(0);
+                expect(Array.from((empty as any).innerLabelsGroup.children())).toHaveLength(0);
+                expectWarningsCalls().toEqual([]);
+            });
+
+            it('renders inner labels using theme defaults when no font options are set at all', async () => {
+                const series = await createChart({ innerRadiusRatio: 0.4, innerLabels: [{ text: 'Total' }] });
+
+                const [node] = series.innerLabelsSelection.nodes();
+                expect(node.fill).toBeDefined();
+                expect(node.fontSize).toBeGreaterThan(0);
+                expect(node.visible).toBe(true);
+                const bbox = node.getBBox();
+                expect(bbox.width).toBeGreaterThan(0);
+                expect(bbox.height).toBeGreaterThan(0);
+                expectWarningsCalls().toEqual([]);
+            });
+
+            it('defaults innerLabels to an empty array so no theme default can populate it', async () => {
+                const series = await createChart();
+                const { properties } = series as unknown as { properties: { innerLabels: unknown[] } };
+                expect(properties.innerLabels).toHaveLength(0);
+                expectWarningsCalls().toEqual([]);
+            });
         });
     });
 });

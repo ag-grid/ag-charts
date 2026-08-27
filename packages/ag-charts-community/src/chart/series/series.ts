@@ -792,7 +792,9 @@ export abstract class Series<
         }
 
         if (datumIndex != null && this.getSharedCategoryMatch(highlightedDatum) === datumIndex) {
-            return HighlightState.OtherItem;
+            // `highlight.mode: 'shared'`: an item sharing the hovered item's category is lit exactly like
+            // the hovered one. Its in-place node carries the style — only the hovered node gets an overlay.
+            return HighlightState.Item;
         }
 
         return HighlightState.OtherSeries;

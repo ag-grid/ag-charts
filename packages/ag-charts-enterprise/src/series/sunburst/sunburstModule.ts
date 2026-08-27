@@ -62,6 +62,16 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
             overflowStrategy: 'ellipsis',
             wrapping: 'never',
         },
+        innerLabels: {
+            $apply: {
+                ...LABEL_BOXING_DEFAULTS,
+                fontSize: { $ref: 'fontSize' },
+                fontFamily: { $ref: 'fontFamily' },
+                fontWeight: { $ref: 'fontWeight' },
+                color: { $ref: 'textColor' },
+                spacing: 2,
+            },
+        },
         sectorSpacing: 2,
         padding: 3,
         highlight: {

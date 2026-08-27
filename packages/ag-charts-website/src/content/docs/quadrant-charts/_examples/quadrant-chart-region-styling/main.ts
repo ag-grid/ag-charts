@@ -39,7 +39,6 @@ const options: AgQuadrantChartOptions = {
             marker: { fill: '#38bdf8', strokeWidth: 0 },
             label: {
                 text: 'Slower Warming, Wetter',
-                position: 'inside-top-left',
                 color: '#0284c7',
             },
         },
@@ -59,7 +58,6 @@ const options: AgQuadrantChartOptions = {
             marker: { fill: '#a855f7', strokeWidth: 0 },
             label: {
                 text: 'Faster Warming, Wetter',
-                position: 'inside-top-right',
                 color: '#9333ea',
             },
         },
@@ -79,7 +77,6 @@ const options: AgQuadrantChartOptions = {
             marker: { fill: '#14b8a6', strokeWidth: 0 },
             label: {
                 text: 'Slower Warming, Drier',
-                position: 'inside-bottom-left',
                 color: '#0d9488',
             },
         },
@@ -99,7 +96,6 @@ const options: AgQuadrantChartOptions = {
             marker: { fill: '#f97316', strokeWidth: 0 },
             label: {
                 text: 'Faster Warming, Drier',
-                position: 'inside-bottom-right',
                 color: '#ea580c',
             },
         },

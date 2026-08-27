@@ -574,6 +574,8 @@ export interface AgCartesianCrossLineLabelOptions extends AgBaseCrossLineLabelOp
     position?: AgCrossLineLabelPosition;
     /** The rotation of the Cross Line label in degrees. */
     rotation?: Degree;
+    /** Whether other labels are placed clear of this label rather than overlapping it. */
+    reserveSpace?: boolean;
 }
 
 export interface AgSeriesAreaBackgroundRegion extends FillOptions, StrokeOptions {
@@ -622,4 +624,8 @@ export type AgSeriesAreaBackgroundRegionLabelPosition =
     | 'inside-top-left'
     | 'inside-bottom-left'
     | 'inside-top-right'
-    | 'inside-bottom-right';
+    | 'inside-bottom-right'
+    | 'top-left-above'
+    | 'top-right-above'
+    | 'bottom-left-below'
+    | 'bottom-right-below';

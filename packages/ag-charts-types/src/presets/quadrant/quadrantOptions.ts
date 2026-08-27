@@ -115,7 +115,7 @@ export interface AgQuadrantPivotOptions {
 
 export interface AgQuadrantRegionsOptions {
     /** Configuration for labels shared across every region. */
-    label?: AgQuadrantRegionLabelOptions;
+    label?: AgQuadrantRegionsLabelOptions;
     /** Configuration for the region containing values below the pivot on the x-axis and above it on the y-axis. */
     topLeft?: AgQuadrantRegionOptions;
     /** Configuration for the region containing values above the pivot on both axes. */
@@ -126,9 +126,41 @@ export interface AgQuadrantRegionsOptions {
     bottomRight?: AgQuadrantRegionOptions;
 }
 
-export interface AgQuadrantRegionLabelOptions extends Omit<AgSeriesAreaBackgroundRegionLabel, 'text'> {}
+export interface AgQuadrantRegionsLabelOptions extends Omit<AgSeriesAreaBackgroundRegionLabel, 'position' | 'text'> {
+    /** The placement of the label within its region, resolved relative to the pivot so that one value places all
+     * four region labels symmetrically.
+     *
+     * Default: `'inside-outer-outer'`
+     */
+    position?: AgQuadrantRegionLabelPosition;
+}
 
-export interface AgQuadrantRegionOptions extends Omit<AgSeriesAreaBackgroundRegion, 'xRange' | 'yRange'> {
+export interface AgQuadrantRegionLabelOptions extends AgQuadrantRegionsLabelOptions {
+    /** The text to show in the label. */
+    text?: string;
+}
+
+/** A region label placement, in which `inner` is towards the pivot, `outer` towards the edge of the series area,
+ * and `center` midway between them. The first token of an `inside` placement places the label vertically,
+ * against the top or bottom edge, and the second horizontally, against the left or right edge.
+ */
+export type AgQuadrantRegionLabelPosition =
+    | 'outside-outer'
+    | 'outside-center'
+    | 'outside-inner'
+    | 'inside-outer-outer'
+    | 'inside-outer-center'
+    | 'inside-outer-inner'
+    | 'inside-center-outer'
+    | 'inside-center'
+    | 'inside-center-inner'
+    | 'inside-inner-outer'
+    | 'inside-inner-center'
+    | 'inside-inner-inner';
+
+export interface AgQuadrantRegionOptions extends Omit<AgSeriesAreaBackgroundRegion, 'label' | 'xRange' | 'yRange'> {
+    /** Configuration for the label displayed with the region. */
+    label?: AgQuadrantRegionLabelOptions;
     /** Styling for the markers of the data points that fall within this region. When `fill` is omitted, markers use
      * the region's own `fill` at full opacity.
      */

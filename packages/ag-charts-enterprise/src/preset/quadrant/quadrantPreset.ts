@@ -8,18 +8,102 @@ import type {
     AgNumberAxisOptions,
     AgNumericValue,
     AgQuadrantChartOptions,
+    AgQuadrantRegionLabelOptions,
+    AgQuadrantRegionLabelPosition,
+    AgQuadrantRegionsLabelOptions,
     AgScatterSeriesItemStylerParams,
     AgScatterSeriesLabelFormatterParams,
     AgScatterSeriesOptions,
     AgScatterSeriesOptionsKeys,
     AgScatterSeriesTooltipRendererParams,
     AgSeriesAreaBackgroundRegion,
+    AgSeriesAreaBackgroundRegionLabel,
+    AgSeriesAreaBackgroundRegionLabelPosition,
     AgSeriesMarkerStyle,
     ContextDefault,
     DatumDefault,
 } from 'ag-charts-types';
 
 type Region = keyof Omit<NonNullable<AgQuadrantChartOptions['regions']>, 'label'>;
+
+const DEFAULT_LABEL_POSITION: AgQuadrantRegionLabelPosition = 'inside-outer-outer';
+
+const LABEL_POSITIONS: Record<
+    AgQuadrantRegionLabelPosition,
+    Record<Region, AgSeriesAreaBackgroundRegionLabelPosition>
+> = {
+    'outside-outer': {
+        topLeft: 'top-left-above',
+        topRight: 'top-right-above',
+        bottomLeft: 'bottom-left-below',
+        bottomRight: 'bottom-right-below',
+    },
+    'outside-center': { topLeft: 'top', topRight: 'top', bottomLeft: 'bottom', bottomRight: 'bottom' },
+    'outside-inner': {
+        topLeft: 'top-right-above',
+        topRight: 'top-left-above',
+        bottomLeft: 'bottom-right-below',
+        bottomRight: 'bottom-left-below',
+    },
+    'inside-outer-outer': {
+        topLeft: 'inside-top-left',
+        topRight: 'inside-top-right',
+        bottomLeft: 'inside-bottom-left',
+        bottomRight: 'inside-bottom-right',
+    },
+    'inside-outer-center': {
+        topLeft: 'inside-top',
+        topRight: 'inside-top',
+        bottomLeft: 'inside-bottom',
+        bottomRight: 'inside-bottom',
+    },
+    'inside-outer-inner': {
+        topLeft: 'inside-top-right',
+        topRight: 'inside-top-left',
+        bottomLeft: 'inside-bottom-right',
+        bottomRight: 'inside-bottom-left',
+    },
+    'inside-center-outer': {
+        topLeft: 'inside-left',
+        topRight: 'inside-right',
+        bottomLeft: 'inside-left',
+        bottomRight: 'inside-right',
+    },
+    'inside-center': { topLeft: 'inside', topRight: 'inside', bottomLeft: 'inside', bottomRight: 'inside' },
+    'inside-center-inner': {
+        topLeft: 'inside-right',
+        topRight: 'inside-left',
+        bottomLeft: 'inside-right',
+        bottomRight: 'inside-left',
+    },
+    'inside-inner-outer': {
+        topLeft: 'inside-bottom-left',
+        topRight: 'inside-bottom-right',
+        bottomLeft: 'inside-top-left',
+        bottomRight: 'inside-top-right',
+    },
+    'inside-inner-center': {
+        topLeft: 'inside-bottom',
+        topRight: 'inside-bottom',
+        bottomLeft: 'inside-top',
+        bottomRight: 'inside-top',
+    },
+    'inside-inner-inner': {
+        topLeft: 'inside-bottom-right',
+        topRight: 'inside-bottom-left',
+        bottomLeft: 'inside-top-right',
+        bottomRight: 'inside-top-left',
+    },
+};
+
+function createRegionLabel(
+    region: Region,
+    shared: AgQuadrantRegionsLabelOptions | undefined,
+    label: AgQuadrantRegionLabelOptions | undefined
+): AgSeriesAreaBackgroundRegionLabel {
+    const position = label?.position ?? shared?.position ?? DEFAULT_LABEL_POSITION;
+    return { ...mergeDefaults(label, shared), position: LABEL_POSITIONS[position][region] };
+}
 
 function getRegionMeta(
     params: AgChartCallbackParams<any, any> & AgScatterSeriesOptionsKeys,
@@ -120,25 +204,25 @@ export function createQuadrant(
     const backgroundRegions: Record<Region, AgSeriesAreaBackgroundRegion> = {
         topLeft: {
             ...topLeft,
-            label: mergeDefaults(topLeft.label, regions?.label),
+            label: createRegionLabel('topLeft', regions?.label, topLeft.label),
             xRange: { axis: 'x', end: pivotX },
             yRange: { axis: 'y', start: pivotY },
         },
         topRight: {
             ...topRight,
-            label: mergeDefaults(topRight.label, regions?.label),
+            label: createRegionLabel('topRight', regions?.label, topRight.label),
             xRange: { axis: 'x', start: pivotX },
             yRange: { axis: 'y', start: pivotY },
         },
         bottomLeft: {
             ...bottomLeft,
-            label: mergeDefaults(bottomLeft.label, regions?.label),
+            label: createRegionLabel('bottomLeft', regions?.label, bottomLeft.label),
             xRange: { axis: 'x', end: pivotX },
             yRange: { axis: 'y', end: pivotY },
         },
         bottomRight: {
             ...bottomRight,
-            label: mergeDefaults(bottomRight.label, regions?.label),
+            label: createRegionLabel('bottomRight', regions?.label, bottomRight.label),
             xRange: { axis: 'x', start: pivotX },
             yRange: { axis: 'y', end: pivotY },
         },

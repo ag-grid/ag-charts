@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 
 import { ChartAxisDirection, ChartUpdateType, ambientLogger } from 'ag-charts-core';
@@ -1200,6 +1200,127 @@ describe('Chart', () => {
             await waitForChartStability(chart);
 
             expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('click event coordinates', () => {
+        const CATEGORY_DATA = [
+            { category: 'A', value: 1 },
+            { category: 'B', value: 2 },
+            { category: 'C', value: 3 },
+        ];
+        const NUMERIC_DATA = [
+            { x: 1, y: 10 },
+            { x: 2, y: 100 },
+            { x: 3, y: 1000 },
+        ];
+        const TIME_DATA = [
+            { date: new Date('2024-01-01T00:00:00Z'), value: 1 },
+            { date: new Date('2024-01-02T00:00:00Z'), value: 2 },
+        ];
+
+        let click: Mock;
+        let chartInstance: AgChartProxy;
+
+        async function createChartWithClickListener(options: AgCartesianChartOptions) {
+            click = vi.fn();
+            chartInstance = AgCharts.create(
+                prepareTestOptions<AgCartesianChartOptions>({ ...options, listeners: { click } })
+            ) as AgChartProxy;
+            chart = deproxy(chartInstance);
+            await waitForChartStability(chart);
+        }
+
+        /**
+         * Clicks the point an annotation placed at `{ value, groupPercentage: fraction }` would occupy,
+         * offsetting from the band the same way the annotation options do, so that what the listener
+         * reports back can be compared against the fraction that was aimed at.
+         */
+        async function clickAtBandFraction(value: string, fraction: number) {
+            const xAxis = (chart as any).axes.find((axis: any) => axis.direction === ChartAxisDirection.X);
+            const { scale } = xAxis;
+            const bandWidth = scale.bandwidth === 0 ? scale.step : scale.bandwidth;
+            const canvasX = xAxis.getLayoutTranslation().x + scale.convert(value) + bandWidth * fraction;
+            await clickAtEmptyPlot(canvasX);
+        }
+
+        /** Clicks clear of every mark, so the click reaches the chart listener rather than a series node. */
+        async function clickAtEmptyPlot(canvasX?: number) {
+            const { x, y, width } = (chart as any).seriesRect;
+            await clickAction(canvasX ?? x + width / 2, y + 5)(chartInstance);
+        }
+
+        function popClickEvents() {
+            const events = click.mock.calls.map(([event]) => event);
+            click.mockClear();
+            return events;
+        }
+
+        // A click placed a known fraction into a category band must report that fraction back, so a
+        // consumer can hand `{ value, groupPercentage }` to an annotation and land under the pointer.
+        describe.each([false, true])('category axis (reverse: %s)', (reverse) => {
+            beforeEach(async () => {
+                await createChartWithClickListener({
+                    data: CATEGORY_DATA,
+                    axes: {
+                        x: { type: 'category', position: 'bottom', reverse },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+                });
+            });
+
+            it.each([0, 0.25, 0.5, 0.75])('reports a click %s of the way into the band', async (fraction) => {
+                await clickAtBandFraction('B', fraction);
+
+                expect(popClickEvents()).toMatchObject([
+                    { coordinates: { x: { value: 'B', groupPercentage: expect.closeTo(fraction, 3) } } },
+                ]);
+            });
+
+            it('reports no groupPercentage for the continuous y axis', async () => {
+                await clickAtBandFraction('B', 0.5);
+
+                const [{ coordinates }] = popClickEvents();
+                expect(coordinates.y.value).toBeDefined();
+                expect(coordinates.y.groupPercentage).toBeUndefined();
+            });
+        });
+
+        const continuousAxes: [string, AgCartesianChartOptions][] = [
+            [
+                'number',
+                {
+                    data: NUMERIC_DATA,
+                    axes: { x: { type: 'number', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                },
+            ],
+            [
+                'log',
+                {
+                    data: NUMERIC_DATA,
+                    axes: { x: { type: 'log', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                    series: [{ type: 'line', xKey: 'y', yKey: 'x' }],
+                },
+            ],
+            [
+                'time',
+                {
+                    data: TIME_DATA,
+                    axes: { x: { type: 'time', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                    series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
+                },
+            ],
+        ];
+
+        it.each(continuousAxes)('reports no groupPercentage on a %s axis', async (_name, options) => {
+            await createChartWithClickListener(options);
+            await clickAtEmptyPlot();
+
+            const [{ coordinates }] = popClickEvents();
+            expect(coordinates.x.value).toBeDefined();
+            expect(coordinates.x.groupPercentage).toBeUndefined();
         });
     });
 
