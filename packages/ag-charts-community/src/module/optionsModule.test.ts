@@ -4472,6 +4472,24 @@ describe('ChartOptions', () => {
             ).toThrowError(/^AG Charts - validations\.throwOn: warning - `series\[0\]\.strokeWidth`: /);
         });
 
+        it('does not claim the option was ignored in the thrown message, while the console record is unchanged (TC2)', () => {
+            expect(
+                () =>
+                    new ChartOptions(
+                        invalidOptions({ validations: { throwOn: 'warning' } }),
+                        {} as AgChartOptions,
+                        {},
+                        {},
+                        {}
+                    )
+            ).toThrowError(/expecting a number greater than or equal to 0\.$/);
+
+            // The warn-and-default wording still describes the console record accurately: it is written
+            // for every chart, armed or not, and unarmed charts really do ignore the value.
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.endsWith(', ignoring.'))).toBe(true);
+        });
+
         it('writes the console record before throwing (AC2)', () => {
             expect(
                 () =>
