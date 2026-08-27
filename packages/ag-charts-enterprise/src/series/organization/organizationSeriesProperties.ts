@@ -189,7 +189,7 @@ class OrganizationSeriesLayoutProperties extends BaseProperties {
     nodeIndentation: number = 26;
 
     @Property
-    stackAtDepth: number = 4;
+    stackFromDepth: number = 4;
 }
 
 class OrganizationSeriesLinkStepInterpolationProperties extends BaseProperties {

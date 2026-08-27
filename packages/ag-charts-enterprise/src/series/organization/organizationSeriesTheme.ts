@@ -59,7 +59,7 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
         layout: {
             linkIndentation: { $if: [{ $eq: [{ $path: '../direction' }, 'horizontal'] }, 18, 26] },
             nodeIndentation: 26,
-            stackAtDepth: 4,
+            stackFromDepth: 4,
         } as any,
         link: {
             interpolation: {

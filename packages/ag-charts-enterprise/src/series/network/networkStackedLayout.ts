@@ -33,7 +33,7 @@ export interface NetworkStackedLayoutUpdateOptions<TVertex, TEdge> extends Netwo
 
     linkIndentation: number;
     nodeIndentation: number;
-    stackAtDepth: number;
+    stackFromDepth: number;
 }
 
 /**
