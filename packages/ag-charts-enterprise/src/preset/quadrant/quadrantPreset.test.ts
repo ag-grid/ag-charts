@@ -90,6 +90,10 @@ const STYLED: AgQuadrantChartOptions = {
         fontWeight: 'bold',
     },
     regions: {
+        label: {
+            color: 'white',
+            fontSize: 20,
+        },
         topLeft: {
             fill: 'red',
             fillOpacity: 0.5,
@@ -98,8 +102,6 @@ const STYLED: AgQuadrantChartOptions = {
             strokeWidth: 4,
             label: {
                 text: 'Top Left',
-                color: 'white',
-                fontSize: 20,
             },
         },
         topRight: {
@@ -110,8 +112,6 @@ const STYLED: AgQuadrantChartOptions = {
             label: {
                 text: 'Top Right',
                 position: 'inside-bottom-left',
-                color: 'white',
-                fontSize: 20,
             },
         },
         bottomLeft: {
@@ -129,7 +129,6 @@ const STYLED: AgQuadrantChartOptions = {
                 text: 'Bottom Left',
                 color: 'red',
                 rotation: 45,
-                fontSize: 20,
             },
         },
         bottomRight: {
@@ -148,8 +147,8 @@ const STYLED: AgQuadrantChartOptions = {
             strokeWidth: 4,
             label: {
                 text: 'Bottom Right',
+                color: { ref: 'foregroundColor' },
                 position: 'left' as const,
-                fontSize: 20,
                 fontWeight: 'bold',
             },
         },

@@ -1,4 +1,4 @@
-import { type CartesianAxisDirection, Logger, pick } from 'ag-charts-core';
+import { type CartesianAxisDirection, Logger, mergeDefaults, pick } from 'ag-charts-core';
 import type {
     AgBubbleSeriesOptions,
     AgCartesianChartOptions,
@@ -19,7 +19,7 @@ import type {
     DatumDefault,
 } from 'ag-charts-types';
 
-type Region = keyof NonNullable<AgQuadrantChartOptions['regions']>;
+type Region = keyof Omit<NonNullable<AgQuadrantChartOptions['regions']>, 'label'>;
 
 function getRegionMeta(
     params: AgChartCallbackParams<any, any> & AgScatterSeriesOptionsKeys,
@@ -120,21 +120,25 @@ export function createQuadrant(
     const backgroundRegions: Record<Region, AgSeriesAreaBackgroundRegion> = {
         topLeft: {
             ...topLeft,
+            label: mergeDefaults(topLeft.label, regions?.label),
             xRange: { axis: 'x', end: pivotX },
             yRange: { axis: 'y', start: pivotY },
         },
         topRight: {
             ...topRight,
+            label: mergeDefaults(topRight.label, regions?.label),
             xRange: { axis: 'x', start: pivotX },
             yRange: { axis: 'y', start: pivotY },
         },
         bottomLeft: {
             ...bottomLeft,
+            label: mergeDefaults(bottomLeft.label, regions?.label),
             xRange: { axis: 'x', end: pivotX },
             yRange: { axis: 'y', end: pivotY },
         },
         bottomRight: {
             ...bottomRight,
+            label: mergeDefaults(bottomRight.label, regions?.label),
             xRange: { axis: 'x', start: pivotX },
             yRange: { axis: 'y', end: pivotY },
         },

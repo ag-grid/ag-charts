@@ -3,6 +3,7 @@ import type {
     AgCartesianAxisCrossAtPlacement,
     AgNumberAxisOptions,
     AgSeriesAreaBackgroundRegion,
+    AgSeriesAreaBackgroundRegionLabel,
 } from '../../chart/cartesianOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgErrorBarOptions } from '../../chart/errorBarOptions';
@@ -113,6 +114,8 @@ export interface AgQuadrantPivotOptions {
 }
 
 export interface AgQuadrantRegionsOptions {
+    /** Configuration for labels shared across every region. */
+    label?: AgQuadrantRegionLabelOptions;
     /** Configuration for the region containing values below the pivot on the x-axis and above it on the y-axis. */
     topLeft?: AgQuadrantRegionOptions;
     /** Configuration for the region containing values above the pivot on both axes. */
@@ -122,6 +125,8 @@ export interface AgQuadrantRegionsOptions {
     /** Configuration for the region containing values above the pivot on the x-axis and below it on the y-axis. */
     bottomRight?: AgQuadrantRegionOptions;
 }
+
+export interface AgQuadrantRegionLabelOptions extends Omit<AgSeriesAreaBackgroundRegionLabel, 'text'> {}
 
 export interface AgQuadrantRegionOptions extends Omit<AgSeriesAreaBackgroundRegion, 'xRange' | 'yRange'> {
     /** Styling for the markers of the data points that fall within this region. When `fill` is omitted, markers use
