@@ -1349,5 +1349,20 @@ describe('CrossLine', () => {
 
             expect(on.overlappingDrawn).toBe(0);
         });
+
+        it('reserves nothing while the cross line is hidden by an overflowing layout', async () => {
+            chart = await createChart(reservationChart({ text: 'CROSSLINE LABEL', fontSize: 40 }, true));
+
+            const axis = chart.axes.findById('y')!;
+            const plugin = getCrossLinesPlugin(axis)!;
+
+            expect(plugin.getLabelObstacles(BBox.zero)).toHaveLength(1);
+
+            const version = plugin.nodeDataVersion;
+            plugin.setVisible(false);
+
+            expect(plugin.getLabelObstacles(BBox.zero)).toBeUndefined();
+            expect(plugin.nodeDataVersion).toBeGreaterThan(version);
+        });
     });
 });

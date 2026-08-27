@@ -61,6 +61,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     private readonly lineGroup = new Group({ name: 'CrossLines-Line' });
     private readonly labelGroup = new Group({ name: 'CrossLines-Label' });
     private instances: CrossLine[] = [];
+    private visible = true;
     private lastOptions: NormalisedAxisCrossLineOptions[] | undefined;
     private readonly removePointerListeners: (() => void)[];
 
@@ -204,6 +205,9 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     }
 
     setVisible(visible: boolean): void {
+        // Layout has already bumped the version by now, so a flip has to invalidate the solve itself.
+        if (visible !== this.visible) this.nodeDataVersion++;
+        this.visible = visible;
         this.rangeGroup.visible = visible;
         this.lineGroup.visible = visible;
         this.labelGroup.visible = visible;
@@ -218,6 +222,8 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
      * every other label routes around them whatever order the sources are solved in.
      */
     getLabelObstacles(seriesRect: BBox): LabelObstacle[] | undefined {
+        if (!this.visible) return;
+
         const obstacles: LabelObstacle[] = [];
         for (const crossLine of this.instances) {
             if (crossLine.reservesLabelSpace !== true) continue;
