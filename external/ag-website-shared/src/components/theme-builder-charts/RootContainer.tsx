@@ -5,9 +5,9 @@ import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { ChartPreview } from './ChartPreview';
 import { EditorPanel } from './EditorPanel';
+import { GetThemeButton } from './GetTheme';
 import { PresetSelector } from './PresetSelector';
 import { PreviewOptions } from './PreviewOptions';
-import { ThemeCodePanel } from './ThemeCodePanel';
 import { usePreviewChartType, usePreviewSeriesCount } from './chartTypes';
 import { type ChartsThemeSelection, toChartTheme } from './chartsThemeOutput';
 import { setStoredPalette, useStoredPalette } from './paletteModel';
@@ -64,6 +64,9 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
                 <EditorScroller>
                     <EditorPanel />
                 </EditorScroller>
+                <MenuBottom>
+                    <GetThemeButton selection={selection} />
+                </MenuBottom>
             </Menu>
             <Main>
                 <PresetSelector chartType={chartType} selectedId={preset.id} />
@@ -82,7 +85,6 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
                 </PreviewToolbar>
                 <Preview>
                     <ChartPreview theme={previewTheme} chartType={chartType} seriesCount={seriesCount} />
-                    <ThemeCodePanel selection={selection} />
                 </Preview>
             </Main>
         </Container>
@@ -113,6 +115,7 @@ const Menu = styled('div')`
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
+    position: relative;
 `;
 
 const EditorScroller = styled('div')`
@@ -130,6 +133,27 @@ const SidebarHeader = styled('h2')`
     color: var(--color-fg-secondary);
     font-weight: var(--text-semibold);
     font-size: var(--text-fs-base);
+`;
+
+// Pinned to the foot of the sidebar so the way out of the tool is reachable
+// however far the editor list is scrolled. The fade sits over the scroller's
+// last few pixels, marking the edge the button would otherwise butt against.
+const MenuBottom = styled('div')`
+    flex-shrink: 0;
+    position: relative;
+    display: flex;
+    padding: 12px 10px 16px 6px;
+
+    &:before {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: -12px;
+        height: 12px;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, var(--color-bg-primary) 100%);
+        pointer-events: none;
+    }
 `;
 
 const Main = styled('div')`
