@@ -5,6 +5,7 @@ import type {
     AgCartesianChartOptions,
     AgCartesianCrossLineOptions,
     AgCrossLineClickEvent,
+    AgCrossLineLabelOverflow,
     AgCrossLineLabelPosition,
     AgCrossLineListeners,
 } from 'ag-charts-types';
@@ -26,6 +27,8 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
+import { CartesianCrossLine } from './cartesianCrossLine';
+import type { CrossLineType } from './crossLine';
 import { getCrossLinesPlugin } from './getCrossLinesPlugin';
 import * as examples from './test/examples';
 
@@ -397,6 +400,15 @@ function crossLineLabelCentre(chart: Chart, axisId: string): { x: number; y: num
     const [crossLine] = plugin?.getInstances() ?? [];
     const bbox = Transformable.toCanvas(crossLine.labelGroup);
     return { x: bbox.x + bbox.width / 2, y: bbox.y + bbox.height / 2 };
+}
+
+/** The text the cross line actually rendered, which `'clip-text'` may have truncated. */
+function crossLineLabelText(chart: Chart, axisId: string): string {
+    const axis = chart.axes.findById(axisId);
+    const plugin = axis ? getCrossLinesPlugin(axis) : undefined;
+    const [crossLine] = plugin?.getInstances() ?? [];
+    const [label] = crossLine.labelGroup.children() as any;
+    return label?.text ?? '';
 }
 
 describe('CrossLine', () => {
@@ -938,6 +950,298 @@ describe('CrossLine', () => {
 
             expect(first).not.toHaveBeenCalled();
             expect(second).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('AG-7486: label overflow', () => {
+        const outsidePositions: AgCrossLineLabelPosition[] = labelPositions.filter((p) => !p.startsWith('inside'));
+
+        function crossLineWith(
+            overflow: AgCrossLineLabelOverflow,
+            position: AgCrossLineLabelPosition,
+            type: CrossLineType
+        ) {
+            const crossLine = new CartesianCrossLine();
+            crossLine.type = type;
+            crossLine.position = 'bottom';
+            crossLine.label.set({ enabled: true, text: 'A long enough label', overflow, position });
+            return crossLine;
+        }
+
+        function paddingFor(
+            overflow: AgCrossLineLabelOverflow,
+            position: AgCrossLineLabelPosition,
+            type: CrossLineType
+        ) {
+            const into: Partial<Record<AgCrossLineLabelPosition, number>> = {};
+            crossLineWith(overflow, position, type).calculatePadding(into);
+            return into;
+        }
+
+        it.each(['line', 'range'] as const)(
+            'pad-chart reserves space for an outside label on a %s cross line',
+            (type) => {
+                const reserved = outsidePositions.filter((position) => {
+                    const into = paddingFor('pad-chart', position, type);
+                    return Object.values(into).some((v) => (v ?? 0) > 0);
+                });
+
+                // Guards against a vacuous realign/clip assertion below: pad-chart must actually pad somewhere.
+                expect(reserved.length).toBeGreaterThan(0);
+            }
+        );
+
+        it('an unset overflow pads as pad-chart does', () => {
+            const crossLine = new CartesianCrossLine();
+            crossLine.type = 'line';
+            crossLine.position = 'bottom';
+            crossLine.label.set({ enabled: true, text: 'A long enough label', position: 'top' });
+
+            const into: Partial<Record<AgCrossLineLabelPosition, number>> = {};
+            crossLine.calculatePadding(into);
+
+            expect(into).toEqual(paddingFor('pad-chart', 'top', 'line'));
+            expect(Object.values(into).some((v) => (v ?? 0) > 0)).toBe(true);
+        });
+
+        it.each(['realign-text', 'clip-text'] as const)('%s reserves no space at any label position', (overflow) => {
+            for (const type of ['line', 'range'] as const) {
+                for (const position of labelPositions) {
+                    expect({ overflow, type, position, padding: paddingFor(overflow, position, type) }).toEqual({
+                        overflow,
+                        type,
+                        position,
+                        padding: {},
+                    });
+                }
+            }
+        });
+
+        it('realign-text leaves the series area larger than pad-chart', async () => {
+            const build = (overflow: AgCrossLineLabelOverflow): AgCartesianChartOptions => ({
+                ...examples.LINE_CROSSLINES,
+                axes: mapValues(examples.LINE_CROSSLINES.axes ?? {}, (axis: any) =>
+                    axis.crossLines
+                        ? {
+                              ...axis,
+                              crossLines: axis.crossLines.map((c: any) => ({
+                                  ...c,
+                                  label: { ...c.label, text: 'A long enough label', position: 'top', overflow },
+                              })),
+                          }
+                        : axis
+                ),
+            });
+
+            chart = await createChart(build('pad-chart'));
+            const padded = (chart as any).seriesRect.clone();
+
+            await chart.publicApi!.update(build('realign-text'));
+            await waitForChartStability(chart);
+            const realigned = (chart as any).seriesRect;
+
+            expect(realigned.height).toBeGreaterThan(padded.height);
+        });
+
+        it('renders the chart when a label demands more room than is spare', async () => {
+            // `position: 'left'` on the left-hand axis pads horizontally, so a very wide label is what
+            // outgrows the space available.
+            const veryLongLabel = 'A'.repeat(400);
+            const { x, y } = examples.LINE_CROSSLINES.axes as any;
+
+            chart = await createChart({
+                ...examples.LINE_CROSSLINES,
+                axes: {
+                    x,
+                    y: {
+                        ...y,
+                        crossLines: [{ type: 'line', value: 0.87, label: { text: veryLongLabel, position: 'left' } }],
+                    },
+                },
+            });
+
+            const seriesRect = (chart as any).seriesRect;
+
+            expect((chart as any).seriesRoot.visible).toBe(true);
+            expect(seriesRect.width).toBeGreaterThan(0);
+            expect(seriesRect.height).toBeGreaterThan(0);
+        });
+
+        it('clip-text truncates a label that would run past the container edge', async () => {
+            const veryLongLabel = 'A cross line label far too long to fit the chart it is drawn on';
+            const { x, y } = examples.LINE_CROSSLINES.axes as any;
+            const build = (overflow: AgCrossLineLabelOverflow): AgCartesianChartOptions => ({
+                ...examples.LINE_CROSSLINES,
+                axes: {
+                    x,
+                    y: {
+                        ...y,
+                        crossLines: [
+                            { type: 'line', value: 0.87, label: { text: veryLongLabel, position: 'left', overflow } },
+                        ],
+                    },
+                },
+            });
+
+            chart = await createChart(build('clip-text'));
+            const clipped = crossLineLabelText(chart, 'y');
+
+            expect(clipped).not.toEqual(veryLongLabel);
+            expect(clipped.endsWith('\u2026')).toBe(true);
+            expect(veryLongLabel.startsWith(clipped.slice(0, -1))).toBe(true);
+
+            // Guards against the assertion above passing because the label never fits under any mode.
+            await chart.publicApi!.update(build('realign-text'));
+            await waitForChartStability(chart);
+
+            expect(crossLineLabelText(chart, 'y')).toEqual(veryLongLabel);
+        });
+
+        it('clip-text shortens monotonically as the room runs out, ending at an ellipsis', async () => {
+            // A rotated label extends along the axis's short side, which is the only direction whose room
+            // a label padding can exhaust; upright text is bounded by the far wider horizontal extent.
+            const { x, y } = examples.LINE_CROSSLINES.axes as any;
+            const build = (padding: number): AgCartesianChartOptions => ({
+                ...examples.LINE_CROSSLINES,
+                axes: {
+                    y,
+                    x: {
+                        ...x,
+                        crossLines: [
+                            {
+                                type: 'line',
+                                value: 5,
+                                label: {
+                                    text: 'A cross line label',
+                                    position: 'top',
+                                    overflow: 'clip-text',
+                                    rotation: 90,
+                                    padding,
+                                },
+                            },
+                        ],
+                    },
+                },
+            });
+
+            chart = await createChart(build(0));
+            const rendered = [crossLineLabelText(chart, 'x')];
+            for (const padding of [20, 40, 60, 200]) {
+                await chart.publicApi!.update(build(padding));
+                await waitForChartStability(chart);
+                rendered.push(crossLineLabelText(chart, 'x'));
+            }
+
+            // Room only ever shrinks, so neither may the text — a bound that stopped applying once the
+            // room went negative would show up here as a jump back to the full label.
+            const lengths = rendered.map((text) => text.length);
+            expect(lengths).toEqual([...lengths].sort((a, b) => b - a));
+            expect(rendered[0]).not.toEqual('\u2026');
+            expect(rendered.at(-1)).toEqual('\u2026');
+        });
+
+        // Only `left`/`right` on a vertical axis and `top`/`bottom` on a horizontal one sit outside the
+        // cross line, so these four cover every padding branch and all four anchor tables at once.
+        type OverflowCase = { overflow: AgCrossLineLabelOverflow; label?: string };
+
+        function overflowChart(
+            xLine: OverflowCase,
+            xRange: OverflowCase,
+            yLine: OverflowCase,
+            yRange: OverflowCase
+        ): AgCartesianChartOptions {
+            return {
+                data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: Math.sin(i / 2) * 40 + 50 })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        crossLines: [
+                            {
+                                type: 'line',
+                                value: 3,
+                                stroke: 'red',
+                                strokeWidth: 1,
+                                label: {
+                                    text: xLine.label ?? 'x line top',
+                                    position: 'top',
+                                    fontSize: 24,
+                                    overflow: xLine.overflow,
+                                },
+                            },
+                            {
+                                type: 'range',
+                                range: [6, 8],
+                                stroke: 'green',
+                                strokeWidth: 1,
+                                fill: 'green',
+                                fillOpacity: 0.2,
+                                label: {
+                                    text: xRange.label ?? 'x range bottom',
+                                    position: 'bottom',
+                                    fontSize: 24,
+                                    overflow: xRange.overflow,
+                                },
+                            },
+                        ],
+                    },
+                    y: {
+                        type: 'number',
+                        position: 'left',
+                        crossLines: [
+                            {
+                                type: 'line',
+                                value: 20,
+                                stroke: 'blue',
+                                strokeWidth: 1,
+                                label: {
+                                    text: yLine.label ?? 'y-axis line cross line',
+                                    position: 'left',
+                                    overflow: yLine.overflow,
+                                },
+                            },
+                            {
+                                type: 'range',
+                                range: [70, 85],
+                                stroke: 'orange',
+                                strokeWidth: 1,
+                                fill: 'orange',
+                                fillOpacity: 0.2,
+                                label: {
+                                    text: yRange.label ?? 'y-axis range cross line',
+                                    position: 'right',
+                                    overflow: yRange.overflow,
+                                },
+                            },
+                        ],
+                    },
+                },
+            };
+        }
+
+        it('renders every padding branch under pad-chart', async () => {
+            const padChart: OverflowCase = { overflow: 'pad-chart' };
+            chart = await createChart(overflowChart(padChart, padChart, padChart, padChart));
+            await compare();
+        });
+
+        it('renders every padding branch under realign-text', async () => {
+            const realign: OverflowCase = { overflow: 'realign-text' };
+            chart = await createChart(overflowChart(realign, realign, realign, realign));
+            await compare();
+        });
+
+        it('renders mixed overflow modes alongside a label larger than the space available', async () => {
+            chart = await createChart(
+                overflowChart(
+                    { overflow: 'pad-chart' },
+                    { overflow: 'realign-text' },
+                    { overflow: 'pad-chart', label: 'A'.repeat(400) },
+                    { overflow: 'realign-text' }
+                )
+            );
+            await compare();
         });
     });
 });
