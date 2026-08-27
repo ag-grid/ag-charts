@@ -119,8 +119,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     private readonly scalingGroup = this.contentGroup.appendChild(new ScalableGroup());
     private readonly sectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>());
     private readonly highlightSectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>());
-    // Above every sector fill so the centre reads as chrome, below the labels so a sole root node's
-    // label is not painted over. Inside `scalingGroup`, so it takes the series' entry animation.
+    // Above every sector fill so the centre reads as chrome, and below the labels so no sector label
+    // is painted over. Inside `scalingGroup`, so it takes the series' entry animation.
     private readonly innerCircleGroup = this.scalingGroup.appendChild(new Group());
     private readonly sectorLabelGroup = this.scalingGroup.appendChild(new Group<SunburstNode>());
     // Last in `scalingGroup`, so the inner labels paint above both the inner circle and the sector
@@ -312,12 +312,11 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         };
 
         const { rootNode } = this;
-        // The centre region: the carved hole when there is one, otherwise the depth-0 disc of a sole
-        // root node covering all of the data (the same discriminator `isCenterCircle` uses below).
+        // The centre region is the carved hole and nothing else. Without an inner-radius option the
+        // series renders exactly as it did before the inner circle existed - including a sole 100%
+        // root node, whose depth-0 disc keeps its own centre label rather than becoming a container.
         if (hole > 0) {
             this.centreCircle = { radius: hole };
-        } else if (rootNode?.children.some((child) => child.sumSize === rootNode.sumSize) === true) {
-            this.centreCircle = { radius: radiusScale };
         }
 
         rootNode?.walk((node) => {
@@ -576,7 +575,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         });
         if ((innerCircle != null || innerLabels.length > 0) && centre == null) {
             this.ctx.logger.warnOnce(
-                'Options [series.innerCircle] and [series.innerLabels] do not suit the data - they require either [series.innerRadiusRatio] or [series.innerRadiusOffset] to be set, or a root level consisting of a single node covering all of the data.'
+                'Options [series.innerCircle] and [series.innerLabels] have no effect unless either [series.innerRadiusRatio] or [series.innerRadiusOffset] is set to carve out a centre.'
             );
         } else if (innerCircle != null) {
             const { fill, fillOpacity = 1 } = innerCircle;
@@ -640,10 +639,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
             switch (labelPlacement) {
                 case LabelPlacement.CenterCircle:
-                    if (innerLabels.length > 0 && centre != null) {
-                        text.visible = false;
-                        return;
-                    }
+                    // No precedence to arbitrate against the inner labels: this placement is only
+                    // chosen when no hole is carved, which is exactly when no centre circle resolves.
                     text.textAlign = 'center';
                     text.textBaseline = 'top';
                     text.translationX = 0;
@@ -848,9 +845,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     }
 
     /**
-     * The centre region of the series, resolved by the last layout pass: the carved hole when
-     * `innerRadiusRatio`/`innerRadiusOffset` are set, otherwise the depth-0 disc of a sole root node
-     * covering all of the data, otherwise `null`.
+     * The centre region of the series, resolved by the last layout pass: the hole carved by
+     * `innerRadiusRatio`/`innerRadiusOffset`, or `null` when neither carves one.
      */
     resolveCentreCircle(): { radius: number } | null {
         return this.centreCircle;
