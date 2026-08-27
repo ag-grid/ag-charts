@@ -576,11 +576,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         // Gate the warning on whether the inner-radius options are set, not on the hole they compute:
         // a deliberate `innerRadiusRatio: 0` or an oversized offset is a configured series, not a
         // misconfigured one, so it renders without a hole and says nothing.
-        if (
-            (innerCircle != null || innerLabels.length > 0) &&
-            innerRadiusRatio == null &&
-            innerRadiusOffset == null
-        ) {
+        if ((innerCircle != null || innerLabels.length > 0) && innerRadiusRatio == null && innerRadiusOffset == null) {
             this.ctx.logger.warnOnce(
                 'Options [series.innerCircle] and [series.innerLabels] have no effect unless either [series.innerRadiusRatio] or [series.innerRadiusOffset] is set.'
             );
