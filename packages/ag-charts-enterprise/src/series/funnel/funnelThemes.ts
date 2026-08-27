@@ -9,6 +9,7 @@ import {
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
+    undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -101,6 +102,8 @@ export const FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'funnel'> = {
             collision: {
                 threshold: 4,
                 alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
+                // A value label must avoid the neighbouring stages; its own stage is excluded separately.
+                ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }),
             },
             insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('chartBackgroundColor'),
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),

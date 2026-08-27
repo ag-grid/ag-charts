@@ -8,6 +8,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    type BarPlacedLabelDatum,
     type BoxBounds,
     type CallbackParamRules,
     ChartAxisDirection,
@@ -21,6 +22,7 @@ import {
     type PlacedLabel,
     type Point,
     type PointLabelDatum,
+    type PositionedCandidateResolver,
     type RequireOptional,
     applyBarLabelOrientation,
     applyPlacedBarLabelVisibility,
@@ -59,6 +61,7 @@ const {
     adjustLabelPlacement,
     buildBarLabelCandidates,
     createBarCandidateStyleResolver,
+    createBarPositionedCandidateResolver,
     styledBarLabelBox,
     toResolvedPlacement,
     insideBarLabelBounds,
@@ -783,16 +786,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                     plotRegion,
                     fitted: labelFit != null,
                     text: fittedLabelText,
-                    styleDatum: node,
-                    resolveStyle:
-                        label.itemStyler == null
-                            ? undefined
-                            : createBarCandidateStyleResolver(
-                                  this,
-                                  label,
-                                  this.makeLabelStylerParams(node, mutableNode.totalValue),
-                                  this.labelPath(seriesItemType)
-                              ),
                 });
                 // The first candidate is baked as a backward-safe default until the engine writes the chosen one back.
                 const { anchor, region, placement: granular } = candidates[0];
@@ -1190,42 +1183,41 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             // Inflate the measured text by the label's drawn box (padding + border stroke) so collisions
             // avoid the box, not just the text.
             const box = expandPlacementLabelBoxExtent(label);
-            // On the orientation-only route the placement is baked, so styled geometry resolves at the first orientation.
-            const styled = styledBarLabelBox(
-                label.itemStyler == null
-                    ? undefined
-                    : createBarCandidateStyleResolver(
-                          this,
-                          label,
-                          this.makeLabelStylerParams(node, node.totalValue),
-                          this.labelPath(node.itemType)
-                      ),
-                node,
-                nodeLabel.placement ?? 'inside-center',
-                firstCandidate(label.orientation) ?? 'horizontal',
-                nodeLabel.text
-            );
             const { width, height } = measureLabelText(nodeLabel.text, label);
-            const size = styled?.size ?? {
+            const measured = {
                 width: width + box.left + box.right,
                 height: height + box.top + box.bottom,
             };
             const configuredFit = resolveLabelFitDescriptors(label, box, !label.collision.alwaysShow)(nodeLabel.text);
-            const fit =
-                configuredFit == null || styled == null
-                    ? configuredFit
-                    : { ...configuredFit, font: styled.font, boxPadding: styled.boxPadding };
             if (nodeLabel.candidates == null) {
+                // On this route the placement is baked, so styled geometry resolves at the first orientation.
+                const styled = styledBarLabelBox(
+                    label.itemStyler == null
+                        ? undefined
+                        : createBarCandidateStyleResolver(
+                              this,
+                              label,
+                              this.makeLabelStylerParams(node, node.totalValue),
+                              this.labelPath(node.itemType)
+                          ),
+                    node,
+                    nodeLabel.placement ?? 'inside-center',
+                    firstCandidate(label.orientation) ?? 'horizontal',
+                    nodeLabel.text
+                );
                 // A label its styler disabled reserves nothing and blocks no neighbour on the baked route.
                 if (styled?.hidden === true) continue;
                 data.push(
                     ...buildBarLabelData([node], () => ({
                         label: nodeLabel,
                         config: label,
-                        size,
+                        size: styled?.size ?? measured,
                         collideWith,
                         threshold,
-                        fit,
+                        fit:
+                            configuredFit == null || styled == null
+                                ? configuredFit
+                                : { ...configuredFit, font: styled.font, boxPadding: styled.boxPadding },
                     }))
                 );
             } else {
@@ -1233,8 +1225,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 data.push(
                     buildBarPositionedLabelDatum(
                         nodeLabel.text,
-                        size.width,
-                        size.height,
+                        // Each candidate carries the box its own style resolves.
+                        measured.width,
+                        measured.height,
                         nodeLabel.candidates,
                         nodeLabel,
                         ownBox,
@@ -1242,12 +1235,43 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                         collideWith,
                         threshold,
                         false,
-                        fit
+                        configuredFit,
+                        node
                     )
                 );
             }
         }
         return data;
+    }
+
+    override getLabelCandidateResolver(): PositionedCandidateResolver | undefined {
+        const { positive, negative, total } = this.properties.item;
+        if (positive.label.itemStyler == null && negative.label.itemStyler == null && total.label.itemStyler == null) {
+            return undefined;
+        }
+        const paramsFor = (styleDatum: _ModuleSupport.SeriesNodeDatum) => {
+            const node = styleDatum as WaterfallNodeDatum;
+            return this.makeLabelStylerParams(node, node.totalValue);
+        };
+        // Each item type carries its own label config, styler and options path, so unlike the other bar
+        // series the resolver is picked per node rather than bound once.
+        const byItemType = new Map<AgWaterfallSeriesItemType, PositionedCandidateResolver | null>();
+        return (datum, candidate) => {
+            const node = (datum as BarPlacedLabelDatum<WaterfallNodeDatum>).styleDatum;
+            if (node == null) return candidate;
+            let resolve = byItemType.get(node.itemType);
+            if (resolve === undefined) {
+                resolve =
+                    createBarPositionedCandidateResolver(
+                        this,
+                        this.getItemConfig(node.itemType).label,
+                        paramsFor,
+                        this.labelPath(node.itemType)
+                    ) ?? null;
+                byItemType.set(node.itemType, resolve);
+            }
+            return resolve?.(datum, candidate) ?? candidate;
+        };
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<WaterfallNodeDatum>[]) {

@@ -44,6 +44,20 @@ const CONE_FUNNEL_ALIASES: Record<AgConeFunnelSeriesLabelPlacementAlias, AgConeF
     after: 'after-center',
 };
 
+/** Mirrors the side of a vertical divider, whose `before`/`after` is the horizontal axis. */
+const CONE_FUNNEL_RTL_SIDE_SWAP: Record<AgConeFunnelSeriesLabelPlacement, AgConeFunnelSeriesLabelPlacement> = {
+    'before-start': 'after-start',
+    'before-center': 'after-center',
+    'before-end': 'after-end',
+    'middle-start': 'middle-start',
+    'middle-center': 'middle-center',
+    'middle-end': 'middle-end',
+    'after-start': 'before-start',
+    'after-center': 'before-center',
+    'after-end': 'before-end',
+};
+
+/** Mirrors the position along a horizontal divider, whose `start`/`end` is the horizontal axis. */
 const CONE_FUNNEL_RTL_SWAP: Record<AgConeFunnelSeriesLabelPlacement, AgConeFunnelSeriesLabelPlacement> = {
     'before-start': 'before-end',
     'before-end': 'before-start',
@@ -129,8 +143,9 @@ export function resolveFunnelPlacements(
 
 /**
  * The ordered placement list a cone funnel label cascades through, with the deprecated single-word
- * aliases mapped onto their `*-center` equivalents. `start`/`end` follow text-alignment semantics, so
- * they swap in a right-to-left chart whose dividers span the horizontal axis.
+ * aliases mapped onto their `*-center` equivalents. A right-to-left chart mirrors whichever half of a
+ * placement runs along the horizontal axis: `start`/`end` for a horizontal divider, `before`/`after` for
+ * a vertical one.
  */
 export function resolveConeFunnelPlacements(
     placement:
@@ -142,10 +157,13 @@ export function resolveConeFunnelPlacements(
     barAlongX: boolean,
     isRtl: boolean
 ): AgConeFunnelSeriesLabelPlacement[] {
-    const swap = barAlongX && isRtl;
+    let swap: Record<AgConeFunnelSeriesLabelPlacement, AgConeFunnelSeriesLabelPlacement> | undefined;
+    if (isRtl) {
+        swap = barAlongX ? CONE_FUNNEL_RTL_SWAP : CONE_FUNNEL_RTL_SIDE_SWAP;
+    }
     const resolved = toArray(placement).map((value) => {
         const canonical = CONE_FUNNEL_ALIASES[value as AgConeFunnelSeriesLabelPlacementAlias] ?? value;
-        return swap ? CONE_FUNNEL_RTL_SWAP[canonical] : canonical;
+        return swap?.[canonical] ?? canonical;
     });
     return dedupe(resolved, fallback);
 }

@@ -20,6 +20,7 @@ import {
     type PlacedLabel,
     type Point,
     type PointLabelDatum,
+    type PositionedCandidateResolver,
     type RequireOptional,
     StateMachine,
     type Writeable,
@@ -74,11 +75,12 @@ const {
     updateLabelNode,
     buildBarLabelCandidates,
     createBarCandidateStyleResolver,
+    createBarPositionedCandidateResolver,
+    resolveBarLabelCandidate,
     expandLabelBoxExtent,
     expandPlacementLabelBoxExtent,
     fitLabelToContainerAutoSize,
     pickPlacementStyle,
-    styledBarLabelBox,
 } = _ModuleSupport;
 
 type PyramidStageLabelDatum = Readonly<Point> & {
@@ -583,13 +585,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         if (!label.enabled) return labelDatum;
 
         const measured = measureLabelText(text, label);
-        const resolveStyle = createBarCandidateStyleResolver(
-            this,
-            label,
-            this.labelStylerParams(),
-            undefined,
-            (placement) => labelContext.reportedPlacements[labelContext.placements.indexOf(placement)]
-        );
         const spanOf = (size: { width: number; height: number }) => (trapezoid.vertical ? size.height : size.width);
         const buildCandidates = (index: number, rect: BoxBounds) =>
             buildBarLabelCandidates<AgPyramidSeriesLabelFormatterParams, AgFunnelSeriesLabelPlacement>({
@@ -608,12 +603,12 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 fitted: labelContext.labelFit != null,
                 shapeAt: (anchor) => trapezoidFitRegion(trapezoid, trapezoid.vertical ? anchor.y : anchor.x),
                 text,
-                styleDatum: labelDatum,
-                resolveStyle,
             });
         // An inside label is bound by the stage width across the band its own text occupies; an outside one
         // by the stage's bounding box, so a tapering end does not pull it into the shape. Narrowing the
         // cross axis cannot move an anchor, so an inside placement's first pass only locates that band.
+        // That pass runs on the configured style: locating the band must not invoke the `itemStyler` for a
+        // placement the cascade may never reach.
         const placementCandidates = (index: number, spanExtent: number) => {
             const located = buildCandidates(index, stageBox);
             if (located.length === 0 || !labelContext.placements[index].startsWith('inside')) return located;
@@ -622,9 +617,24 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         };
         const candidates = labelContext.placements.flatMap((_, index) => placementCandidates(index, spanOf(measured)));
 
-        // The engine picks the first candidate that fits; the first is baked so rendering is correct
-        // even when the label never routes through the engine.
-        const [first] = candidates;
+        // The engine picks the first candidate that fits; the first is baked so rendering is correct even
+        // when the label never routes through the engine. A routed label is restyled per candidate by the
+        // engine, so only a label that stops here resolves its style now.
+        const [built] = candidates;
+        const first =
+            built == null || labelContext.routesThroughEngine
+                ? built
+                : resolveBarLabelCandidate(
+                      built,
+                      labelDatum,
+                      createBarCandidateStyleResolver(
+                          this,
+                          label,
+                          this.labelStylerParams(),
+                          undefined,
+                          (placement) => labelContext.reportedPlacements[labelContext.placements.indexOf(placement)]
+                      )
+                  );
         if (first != null) {
             labelDatum.x = first.anchor.x;
             labelDatum.y = first.anchor.y;
@@ -710,26 +720,11 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const { label } = this.properties;
         if (!this.usesPlacedLabels || !label.enabled) return [];
         const { alwaysShow, collideWith, threshold, measureBox, fitFor } = barLabelDataContext(label);
-        const stylerParams = this.labelStylerParams();
         const data: PointLabelDatum[] = [];
         for (const labelDatum of this.contextNodeData?.labelData ?? []) {
             if (labelDatum.text === '' || labelDatum.candidates == null) continue;
-            // The styler is promised the funnel placement, not the bar placement the geometry runs on, so
-            // this datum's own placement is what the resolver reports back.
-            const reported = labelDatum.placement ?? 'inside-center';
-            const styled = styledBarLabelBox(
-                createBarCandidateStyleResolver(this, label, stylerParams, undefined, () => reported),
-                labelDatum,
-                FUNNEL_TO_BAR_PLACEMENT[reported],
-                'horizontal',
-                labelDatum.text
-            );
-            const size = styled?.size ?? measureBox(labelDatum.text);
-            const configuredFit = fitFor(labelDatum.text);
-            const fit =
-                configuredFit == null || styled == null
-                    ? configuredFit
-                    : { ...configuredFit, font: styled.font, boxPadding: styled.boxPadding };
+            // Every label here cascades, so the engine resolves its styled box per candidate.
+            const size = measureBox(labelDatum.text);
             data.push(
                 buildBarPositionedLabelDatum(
                     labelDatum.text,
@@ -742,11 +737,17 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                     collideWith,
                     threshold,
                     true,
-                    fit
+                    fitFor(labelDatum.text),
+                    labelDatum
                 )
             );
         }
         return data;
+    }
+
+    override getLabelCandidateResolver(): PositionedCandidateResolver | undefined {
+        const params = this.labelStylerParams();
+        return createBarPositionedCandidateResolver(this, this.properties.label, () => params);
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<PyramidNodeLabelDatum>[]) {
