@@ -56,7 +56,13 @@ export type ChartsPreset = {
      * read - so a dark design on `ag-default` gets white slice separators.
      */
     baseTheme: AgChartThemeName;
-    /** Behind the preview pane. Not part of the theme, as in grid's builder. */
+    /**
+     * The page the chart is imagined to sit on - not part of the theme, and not
+     * drawn anywhere yet: the preview is filled edge to edge by the chart's own
+     * background. Required by the shared `Preset`, which persists it, and it is
+     * what a surround or a page-colour picker would read if charts grows one, so
+     * each preset names a colour that belongs with it rather than a placeholder.
+     */
     pageBackgroundColor: string;
     params: Record<string, unknown>;
     palette: Palette;

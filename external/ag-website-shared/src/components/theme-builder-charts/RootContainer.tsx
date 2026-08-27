@@ -1,4 +1,3 @@
-import { useApplicationConfigAtom } from '@ag-website-shared/theming/application-config';
 import { useRenderedTheme, useRenderedThemeInfo } from '@ag-website-shared/theming/rendered-theme';
 import styled from '@emotion/styled';
 import { useStore } from 'jotai';
@@ -22,7 +21,6 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
     const storedPalette = useStoredPalette();
     const [chartType, setChartType] = usePreviewChartType();
     const [seriesCount, setSeriesCount] = usePreviewSeriesCount();
-    const [pageBackgroundColor] = useApplicationConfigAtom('previewPaneBackgroundColor');
 
     const preset = findPreset(useSelectedPresetId()) ?? initialPreset;
 
@@ -69,22 +67,21 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
             </Menu>
             <Main>
                 <PresetSelector chartType={chartType} selectedId={preset.id} />
+                {/* Outside the preview, because these are the tool's controls
+                    rather than part of the theme. Inside, they sat on whatever
+                    background the preset chose while keeping the site's own
+                    chrome, so a light theme in dark mode put dark pills and
+                    near-invisible labels on a white surface. */}
+                <PreviewToolbar>
+                    <PreviewOptions
+                        chartType={chartType}
+                        onChartTypeChange={setChartType}
+                        seriesCount={seriesCount}
+                        onSeriesCountChange={setSeriesCount}
+                    />
+                </PreviewToolbar>
                 <Preview>
-                    {/* The page colour goes behind the chart and its toolbar, not
-                        behind the snippet: the code is highlighted in the site's
-                        own palette and would be unreadable on a dark theme's
-                        background while the docs are in light mode. */}
-                    <Stage style={{ background: pageBackgroundColor || preset.pageBackgroundColor }}>
-                        <PreviewToolbar>
-                            <PreviewOptions
-                                chartType={chartType}
-                                onChartTypeChange={setChartType}
-                                seriesCount={seriesCount}
-                                onSeriesCountChange={setSeriesCount}
-                            />
-                        </PreviewToolbar>
-                        <ChartPreview theme={previewTheme} chartType={chartType} seriesCount={seriesCount} />
-                    </Stage>
+                    <ChartPreview theme={previewTheme} chartType={chartType} seriesCount={seriesCount} />
                     <ThemeCodePanel selection={selection} />
                 </Preview>
             </Main>
@@ -149,11 +146,11 @@ const Main = styled('div')`
     --preset-scroller-height: 152px;
 `;
 
+// Flush with the preview's right edge below it, so the two read as one column.
 const PreviewToolbar = styled('div')`
     flex-shrink: 0;
     display: flex;
     justify-content: flex-end;
-    padding: 10px 12px 0;
 `;
 
 const Preview = styled('div')`
@@ -166,11 +163,4 @@ const Preview = styled('div')`
     border: 1px solid var(--color-border-primary);
     border-radius: var(--radius-md, 8px);
     background: var(--color-bg-primary);
-`;
-
-const Stage = styled('div')`
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
 `;
