@@ -5,8 +5,10 @@ import type { InternalFramework } from '../types';
 import { getFileList } from './fileUtils';
 
 // Relative to root
-const EXAMPLE_STYLES_FILE_PATH =
-    './external/ag-website-shared/src/components/example-runner/styles/example-controls.css';
+const EXAMPLE_STYLES_FILE_PATHS = [
+    './external/ag-website-shared/src/components/example-runner/styles/example-chart-theme.css',
+    './external/ag-website-shared/src/components/example-runner/styles/example-controls.css',
+];
 const EXAMPLE_STYLE_FILE_NAME = 'ag-example-styles.css';
 
 export const filterStyleFiles = (fileList: string[]) => {
@@ -23,8 +25,8 @@ export const getStyleFiles = async ({
     folderPath: string;
     sourceFileList: string[];
 }) => {
-    const exampleControlsStyles = fs.readFileSync(EXAMPLE_STYLES_FILE_PATH, 'utf-8');
-    const exampleStyle = exampleControlsStyles + getFrameworkStyles(internalFramework);
+    const sharedStyles = EXAMPLE_STYLES_FILE_PATHS.map((filePath) => fs.readFileSync(filePath, 'utf-8')).join('\n');
+    const exampleStyle = sharedStyles + getFrameworkStyles(internalFramework);
     const exampleStyleContents = {
         [EXAMPLE_STYLE_FILE_NAME]: exampleStyle,
     };

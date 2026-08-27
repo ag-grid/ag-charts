@@ -161,7 +161,9 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         let transformedEntryFile = entryFile;
         // Add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
         if (!ignoreDarkMode) {
-            transformedEntryFile = transformedEntryFile + '\n' + getDarkModeSnippet({ chartAPI, fixedTheme });
+            // Prepended: the options mutation has to be in place before the example creates its
+            // chart, so that the very first render resolves the dark mode variables.
+            transformedEntryFile = getDarkModeSnippet({ chartAPI, fixedTheme }) + '\n' + transformedEntryFile;
             transformedEntryFile = transformedEntryFile + '\n' + getE2ETestThemeSnippet({ chartAPI });
         }
 
