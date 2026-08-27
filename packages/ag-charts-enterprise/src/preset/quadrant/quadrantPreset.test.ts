@@ -10,7 +10,12 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import type { AgChartOptions, AgQuadrantChartOptions } from 'ag-charts-types';
+import type {
+    AgChartOptions,
+    AgQuadrantChartOptions,
+    AgQuadrantRegionLabelOptions,
+    AgQuadrantRegionLabelPosition,
+} from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -111,7 +116,7 @@ const STYLED: AgQuadrantChartOptions = {
             strokeWidth: 8,
             label: {
                 text: 'Top Right',
-                position: 'inside-bottom-left',
+                position: 'inside-inner-outer',
             },
         },
         bottomLeft: {
@@ -148,7 +153,7 @@ const STYLED: AgQuadrantChartOptions = {
             label: {
                 text: 'Bottom Right',
                 color: { ref: 'foregroundColor' },
-                position: 'left' as const,
+                position: 'inside-center-inner' as const,
                 fontWeight: 'bold',
             },
         },
@@ -186,7 +191,6 @@ const THEMED: AgQuadrantChartOptions = {
                             fontSize: 14,
                             fontWeight: 'bold' as const,
                             padding: { top: 12, right: 20, bottom: 12, left: 20 },
-                            position: 'inside' as const,
                         },
                     },
                 },
@@ -194,6 +198,39 @@ const THEMED: AgQuadrantChartOptions = {
         },
     },
 };
+
+const REGION_LABEL_POSITIONS: AgQuadrantRegionLabelPosition[] = [
+    'outside-outer',
+    'outside-center',
+    'outside-inner',
+    'inside-outer-outer',
+    'inside-outer-center',
+    'inside-outer-inner',
+    'inside-center-outer',
+    'inside-center',
+    'inside-center-inner',
+    'inside-inner-outer',
+    'inside-inner-center',
+    'inside-inner-inner',
+];
+
+/** An off-centre pivot so that a mirrored placement is distinguishable from a centred one. */
+function regionLabelOptions(
+    position: AgQuadrantRegionLabelPosition,
+    regions?: Partial<Record<'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight', AgQuadrantRegionLabelOptions>>
+): AgQuadrantChartOptions {
+    return {
+        ...NUMERIC,
+        pivot: { x: 25, y: -25 },
+        regions: {
+            label: { position },
+            topLeft: { label: { text: 'Top Left', ...regions?.topLeft } },
+            topRight: { label: { text: 'Top Right', ...regions?.topRight } },
+            bottomLeft: { label: { text: 'Bottom Left', ...regions?.bottomLeft } },
+            bottomRight: { label: { text: 'Bottom Right', ...regions?.bottomRight } },
+        },
+    };
+}
 
 const assertions = cartesianChartAssertions({ seriesTypes: ['scatter'], axisTypes: { x: 'number', y: 'number' } });
 
@@ -212,7 +249,15 @@ const EXAMPLES: Record<string, QuadrantTestCase> = {
     },
     STYLED: { options: STYLED, assertions },
     THEMED: { options: THEMED, assertions },
+    REGION_LABEL_PER_REGION: {
+        options: regionLabelOptions('inside-outer-outer', { bottomRight: { position: 'inside-inner-inner' } }),
+        assertions,
+    },
 };
+
+for (const position of REGION_LABEL_POSITIONS) {
+    EXAMPLES[`REGION_LABEL_${position}`] = { options: regionLabelOptions(position), assertions };
+}
 
 describe('Quadrant Preset', () => {
     setupMockConsole();

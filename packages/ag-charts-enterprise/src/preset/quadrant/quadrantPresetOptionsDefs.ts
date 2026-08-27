@@ -25,14 +25,27 @@ const regionLabelOptionsDefs: OptionsDefs<NonNullable<NonNullable<AgQuadrantChar
     fill: defined,
     fillOpacity: defined,
     padding: defined,
-    position: defined,
+    position: union(
+        'outside-outer',
+        'outside-center',
+        'outside-inner',
+        'inside-outer-outer',
+        'inside-outer-center',
+        'inside-outer-inner',
+        'inside-center-outer',
+        'inside-center',
+        'inside-center-inner',
+        'inside-inner-outer',
+        'inside-inner-center',
+        'inside-inner-inner'
+    ),
     rotation: defined,
 };
 
 const regionOptionsDefs: OptionsDefs<NonNullable<NonNullable<AgQuadrantChartOptions['regions']>['topLeft']>> = {
     fill: defined,
     fillOpacity: defined,
-    label: defined,
+    label: { ...regionLabelOptionsDefs, text: string },
     marker: defined,
     stroke: defined,
     strokeOpacity: defined,

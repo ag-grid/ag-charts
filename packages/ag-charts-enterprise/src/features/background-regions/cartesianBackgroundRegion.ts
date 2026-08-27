@@ -24,42 +24,26 @@ interface Anchor {
     labelV: AnchorDirection;
 }
 
-const horizontalAnchors: Record<AgSeriesAreaBackgroundRegionLabelPosition, Anchor> = {
-    top: { regionH: 0, regionV: -1, labelH: 0, labelV: 1 },
-    'inside-top': { regionH: 0, regionV: -1, labelH: 0, labelV: -1 },
-    'top-left': { regionH: -1, regionV: -1, labelH: -1, labelV: 1 },
-    'inside-top-left': { regionH: -1, regionV: -1, labelH: -1, labelV: -1 },
-    left: { regionH: -1, regionV: 0, labelH: 1, labelV: 0 },
-    'inside-left': { regionH: -1, regionV: 0, labelH: -1, labelV: 0 },
-    'bottom-left': { regionH: -1, regionV: 1, labelH: -1, labelV: -1 },
-    'inside-bottom-left': { regionH: -1, regionV: 1, labelH: -1, labelV: 1 },
-    bottom: { regionH: 0, regionV: 1, labelH: 0, labelV: -1 },
-    'inside-bottom': { regionH: 0, regionV: 1, labelH: 0, labelV: 1 },
-    'bottom-right': { regionH: 1, regionV: 1, labelH: 1, labelV: -1 },
-    'inside-bottom-right': { regionH: 1, regionV: 1, labelH: 1, labelV: 1 },
-    right: { regionH: 1, regionV: 0, labelH: -1, labelV: 0 },
-    'inside-right': { regionH: 1, regionV: 0, labelH: 1, labelV: 0 },
-    'top-right': { regionH: 1, regionV: -1, labelH: 1, labelV: 1 },
-    'inside-top-right': { regionH: 1, regionV: -1, labelH: 1, labelV: -1 },
-    inside: { regionH: 0, regionV: 0, labelH: 0, labelV: 0 },
-};
-
-const verticalAnchors: Record<AgSeriesAreaBackgroundRegionLabelPosition, Anchor> = {
+const anchors: Record<AgSeriesAreaBackgroundRegionLabelPosition, Anchor> = {
     top: { regionH: 0, regionV: -1, labelH: 0, labelV: 1 },
     'inside-top': { regionH: 0, regionV: -1, labelH: 0, labelV: -1 },
     'top-left': { regionH: -1, regionV: -1, labelH: 1, labelV: -1 },
+    'top-left-above': { regionH: -1, regionV: -1, labelH: -1, labelV: 1 },
     'inside-top-left': { regionH: -1, regionV: -1, labelH: -1, labelV: -1 },
     left: { regionH: -1, regionV: 0, labelH: 1, labelV: 0 },
     'inside-left': { regionH: -1, regionV: 0, labelH: -1, labelV: 0 },
     'bottom-left': { regionH: -1, regionV: 1, labelH: 1, labelV: 1 },
+    'bottom-left-below': { regionH: -1, regionV: 1, labelH: -1, labelV: -1 },
     'inside-bottom-left': { regionH: -1, regionV: 1, labelH: -1, labelV: 1 },
     bottom: { regionH: 0, regionV: 1, labelH: 0, labelV: -1 },
     'inside-bottom': { regionH: 0, regionV: 1, labelH: 0, labelV: 1 },
     'bottom-right': { regionH: 1, regionV: 1, labelH: -1, labelV: 1 },
+    'bottom-right-below': { regionH: 1, regionV: 1, labelH: 1, labelV: -1 },
     'inside-bottom-right': { regionH: 1, regionV: 1, labelH: 1, labelV: 1 },
     right: { regionH: 1, regionV: 0, labelH: -1, labelV: 0 },
     'inside-right': { regionH: 1, regionV: 0, labelH: 1, labelV: 0 },
     'top-right': { regionH: 1, regionV: -1, labelH: -1, labelV: -1 },
+    'top-right-above': { regionH: 1, regionV: -1, labelH: 1, labelV: 1 },
     'inside-top-right': { regionH: 1, regionV: -1, labelH: 1, labelV: -1 },
     inside: { regionH: 0, regionV: 0, labelH: 0, labelV: 0 },
 };
@@ -259,12 +243,7 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
     }
 
     private getAnchor(): Anchor {
-        const { opts } = this;
-
-        const horizontal = opts.label?.position === 'left' || opts?.label?.position === 'right';
-        const { position = 'top' } = opts?.label ?? {};
-
-        const anchors = horizontal ? horizontalAnchors : verticalAnchors;
+        const { position = 'top' } = this.opts.label ?? {};
         return anchors[position];
     }
 }
