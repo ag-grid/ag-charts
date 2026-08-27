@@ -1,6 +1,7 @@
 import type {
     CanvasPoint,
     DynamicContext,
+    LabelFit,
     NormalisedChartCaptionOptions,
     NormalisedTextOrSegments,
 } from 'ag-charts-core';
@@ -8,14 +9,13 @@ import {
     FONT_SIZE,
     callWithContext,
     createId,
+    fitLabelTextAutoSize,
     isArray,
     isSegmentTruncated,
     isTextTruncated,
     resolvePadding,
     toPlainText,
     toTextString,
-    wrapText,
-    wrapTextSegments,
 } from 'ag-charts-core';
 import type {
     AgCaptionClickEvent,
@@ -142,14 +142,12 @@ export class ChartCaption implements CaptionLike {
 
     computeTextWrap(containerWidth: number, containerHeight: number) {
         const opts = this.opts;
-        const wrapping = opts.wrapping ?? 'always';
         const truncate = opts.truncate ?? true;
         const { left, right, top, bottom } = this.contentPadding;
         const effectiveContainerWidth = truncate ? containerWidth : Infinity;
         const effectiveContainerHeight = truncate ? containerHeight : Infinity;
         const maxWidth = Math.min(opts.maxWidth ?? Infinity, effectiveContainerWidth) - (left + right);
         const maxHeight = opts.maxHeight ?? effectiveContainerHeight - (top + bottom);
-        const options = { maxWidth, maxHeight, font: captionFont(opts), textWrap: wrapping };
 
         const text = opts.text;
         if (!Number.isFinite(maxWidth) && !Number.isFinite(maxHeight)) {
@@ -157,15 +155,21 @@ export class ChartCaption implements CaptionLike {
             return;
         }
 
-        let wrappedText;
-        if (isArray(text)) {
-            wrappedText = wrapTextSegments(text, options);
-            this.truncated = wrappedText.some(isSegmentTruncated);
-        } else {
-            wrappedText = wrapText(toTextString(text), options);
-            this.truncated = isTextTruncated(wrappedText);
-        }
-        this.node.text = wrappedText;
+        const font = captionFont(opts);
+        // Ellipsis is the caption's overflow policy, so the auto-size search shrinks the text first.
+        const fit: LabelFit = {
+            maxWidth,
+            maxHeight,
+            wrapping: opts.wrapping ?? 'always',
+            overflowStrategy: 'ellipsis',
+            minimumFontSize: opts.minimumFontSize,
+        };
+        const { text: fittedText, fontSize } = fitLabelTextAutoSize(text ?? '', fit, font);
+        this.truncated = isArray(fittedText)
+            ? fittedText.some(isSegmentTruncated)
+            : isTextTruncated(toTextString(fittedText));
+        this.node.text = fittedText;
+        this.node.fontSize = fontSize ?? font.fontSize;
     }
 
     private updateA11yText(moduleCtx: DynamicContext<ChartRegistry>, where: 'beforebegin' | 'afterend') {

@@ -7,7 +7,7 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { BaseProperties, Property } from 'ag-charts-core';
+import { BaseProperties, type InternalAgColorType, Property } from 'ag-charts-core';
 
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
@@ -41,6 +41,15 @@ class SunburstSeriesHighlight extends HighlightProperties<AgSunburstSeriesOption
     readonly unhighlightedBranch = new SunburstSeriesHighlightStyle();
 }
 
+/**
+ * The internal shape of `AgSunburstInnerCircle` - `fill` carries the colour type the scene consumes,
+ * with theme references already resolved.
+ */
+export interface SunburstInnerCircle {
+    fill: InternalAgColorType;
+    fillOpacity?: number;
+}
+
 export class SunburstSeriesProperties extends HierarchySeriesProperties<AgSunburstSeriesOptions> {
     @Property
     sizeName?: string;
@@ -68,6 +77,18 @@ export class SunburstSeriesProperties extends HierarchySeriesProperties<AgSunbur
 
     @Property
     padding?: number;
+
+    @Property
+    innerRadiusRatio?: number;
+
+    @Property
+    innerRadiusOffset?: number;
+
+    // An OPTIONAL plain-object property, deliberately not a `BaseProperties` subclass: it must stay
+    // `undefined` until the user supplies one, so `innerCircle != null` is an exact "user set it"
+    // predicate for the warning below and for leaving unconfigured sunbursts untouched.
+    @Property
+    innerCircle?: SunburstInnerCircle;
 
     @Property
     itemStyler?: Styler<AgSunburstSeriesItemStylerParams<unknown>, AgSunburstSeriesStyle>;

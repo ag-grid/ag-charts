@@ -1,9 +1,12 @@
+import {
+    ExampleRunnerCall,
+    ExampleRunnerClient,
+} from '@ag-website-shared/components/example-runner/components/ExampleRunnerClient';
+import { toModuleFileName } from '@ag-website-shared/components/example-runner/utils/transformExampleModule';
 import { type ExampleFramework, getImportMap } from '@utils/example-modules/getImportMap';
-import { toModuleFileName } from '@utils/example-modules/transformExampleModule';
 import { pathJoin } from '@utils/pathJoin';
 
 import { BrowserTranspiler } from './BrowserTranspiler';
-import { ExampleRunnerCall, ExampleRunnerClient } from './ExampleRunnerClient';
 
 interface Props {
     appLocation: string;

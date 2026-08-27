@@ -26,7 +26,7 @@ import {
     applyBarLabelOrientation,
     applyPlacedBarLabelVisibility,
     bakedLabelObstacles,
-    barLabelRoutesThroughEngine,
+    barLabelPropsRouteThroughEngine,
     buildBarPositionedLabelDatum,
     cachedTextMeasurer,
     fontWithSize,
@@ -35,7 +35,6 @@ import {
     measureTextSegments,
     mergeDefaults,
     resolveLabelFit,
-    resolveLabelFitDescriptors,
     toNumber,
     toPlainText,
     toTextString,
@@ -60,6 +59,7 @@ import { PyramidProperties } from './pyramidProperties';
 import { applyPyramidDatum, preparePyramidAnimationFunctions } from './pyramidUtil';
 
 const {
+    barLabelDataContext,
     valueProperty,
     SeriesNodePickMode,
     createDatumId,
@@ -526,9 +526,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     private routesThroughEngine(): boolean {
-        const { label } = this.properties;
-        const alwaysShow = label.collision.alwaysShow;
-        return barLabelRoutesThroughEngine(undefined, label.placement, alwaysShow, resolveLabelFit(label, !alwaysShow));
+        return barLabelPropsRouteThroughEngine(this.properties.label);
     }
 
     private createLabelContext(horizontal: boolean): PyramidLabelContext {
@@ -711,10 +709,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     override getLabelData(): PointLabelDatum[] {
         const { label } = this.properties;
         if (!this.usesPlacedLabels || !label.enabled) return [];
-        const box = expandPlacementLabelBoxExtent(label);
-        const collideWith = label.collision.resolveCollideWith();
-        const threshold = label.collision.threshold ?? 0;
-        const fitFor = resolveLabelFitDescriptors(label, box, !label.collision.alwaysShow);
+        const { alwaysShow, collideWith, threshold, measureBox, fitFor } = barLabelDataContext(label);
         const stylerParams = this.labelStylerParams();
         const data: PointLabelDatum[] = [];
         for (const labelDatum of this.contextNodeData?.labelData ?? []) {
@@ -729,8 +724,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 'horizontal',
                 labelDatum.text
             );
-            const { width, height } = measureLabelText(labelDatum.text, label);
-            const size = styled?.size ?? { width: width + box.left + box.right, height: height + box.top + box.bottom };
+            const size = styled?.size ?? measureBox(labelDatum.text);
             const configuredFit = fitFor(labelDatum.text);
             const fit =
                 configuredFit == null || styled == null
@@ -744,7 +738,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                     labelDatum.candidates,
                     labelDatum,
                     labelDatum.ownBox ?? { x: labelDatum.x, y: labelDatum.y, width: 0, height: 0 },
-                    label.collision.alwaysShow,
+                    alwaysShow,
                     collideWith,
                     threshold,
                     true,

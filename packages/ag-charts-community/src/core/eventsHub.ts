@@ -493,8 +493,8 @@ export interface AxisLayout {
     id: string;
     rect: BBox;
     translation: { x: number; y: number };
-    /** Offset applied by `crossAt`, already included in `translation`. Zero for an axis at its `position` edge. */
-    crossAxisTranslation?: { x: number; y: number };
+    /** Offset the crosshair label follows to stay with the axis line. Zero when the label is placed at the `position` edge. */
+    crosshairOffset?: { x: number; y: number };
     position?: AgCartesianAxisPosition;
     gridPadding: number;
     seriesAreaPadding: number;

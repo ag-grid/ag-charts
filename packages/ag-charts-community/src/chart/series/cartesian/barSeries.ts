@@ -25,7 +25,6 @@ import {
     applyBarLabelOrientation,
     applyPlacedBarLabelVisibility,
     areScalingEqual,
-    barLabelObstacles,
     barLabelOrientation,
     barLabelPropsRouteThroughEngine,
     barLabelPropsUsePositionedCandidates,
@@ -42,7 +41,6 @@ import {
     mergeDefaults,
     minValue,
     resolveLabelFit,
-    resolveLabelFitDescriptors,
     toArray,
     toNumber,
     zeroLike,
@@ -91,6 +89,8 @@ import { expandPlacementLabelBoxExtent, resolvePlacementLabelBoxExtent } from '.
 import type { BarCandidateStyleResolver, BarLabelPlacement, BarPositionedCandidate } from '../../labelUtil';
 import {
     adjustLabelPlacement,
+    barLabelDataContext,
+    barLabelObstaclesFor,
     buildBarLabelCandidates,
     createBarCandidateStyleResolver,
     fitLabelToContainerAutoSize,
@@ -1841,31 +1841,19 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     getLabelObstacles() {
-        const { label } = this.properties;
-        const box = expandPlacementLabelBoxExtent(label);
-        return barLabelObstacles(
+        return barLabelObstaclesFor(
+            this.properties.label,
             this.contextNodeData?.nodeData,
             this.contextNodeData?.labelData,
             this.isLabelEnabled() && !this.usesPlacedLabels,
-            (node) => ({ label: node.label, config: fontWithSize(label, node.label?.fittedFontSize), box })
+            (node) => node.label
         );
     }
 
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels || !this.isLabelEnabled()) return [];
         const { label } = this.properties;
-        // Inflate the measured text by the label's drawn box (padding + border stroke) so collisions
-        // avoid the box, not just the text.
-        const box = expandPlacementLabelBoxExtent(label);
-        const measureBox = (text: NormalisedTextOrSegments) => {
-            const { width, height } = measureLabelText(text, label);
-            return { width: width + box.left + box.right, height: height + box.top + box.bottom };
-        };
-        const alwaysShow = label.collision.alwaysShow;
-        const hideable = !alwaysShow;
-        const collideWith = label.collision.resolveCollideWith();
-        const threshold = label.collision.threshold ?? 0;
-        const fitFor = resolveLabelFitDescriptors(label, box, hideable);
+        const { alwaysShow, collideWith, threshold, measureBox, fitFor } = barLabelDataContext(label);
         if (barLabelPropsUsePositionedCandidates(label)) {
             const data: PointLabelDatum[] = [];
             for (const node of this.contextNodeData?.labelData ?? []) {

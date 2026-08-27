@@ -124,6 +124,12 @@ export interface AgChartCaptionOptions<TContext = ContextDefault> extends LabelB
     /** Used to constrain the height of the title before text is truncated. */
     maxHeight?: PixelSize;
     /**
+     * If the text does not fit within the space available to it, setting this will allow the text to pick a
+     * font size between its normal `fontSize` and `minimumFontSize` to fit. The text is only truncated when
+     * it still does not fit at `minimumFontSize`.
+     */
+    minimumFontSize?: FontSize;
+    /**
      * Text wrapping strategy for long text.
      * - `'always'` will always wrap text to fit within the `maxWidth`.
      * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.

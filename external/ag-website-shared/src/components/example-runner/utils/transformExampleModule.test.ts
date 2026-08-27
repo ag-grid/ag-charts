@@ -123,7 +123,7 @@ describe('transformExampleModule', () => {
         const code = transform('main.ts', "import 'ag-charts-community/styles/ag-charts.css';");
 
         expect(code).toContain(
-            "await __agLoadStylesheet(import.meta.resolve('ag-charts-community/styles/ag-charts.css'))"
+            'await __agLoadStylesheet(import.meta.resolve("ag-charts-community/styles/ag-charts.css"))'
         );
         expect(code).toContain("link.rel = 'stylesheet'");
     });
@@ -131,7 +131,7 @@ describe('transformExampleModule', () => {
     test('turns relative stylesheet imports into a link element too, awaited before the module runs', () => {
         const code = transform('main.ts', ["import './styles.css';", 'export const x = 1;'].join('\n'));
 
-        expect(code).toContain("await __agLoadStylesheet(import.meta.resolve('./styles.css'))");
+        expect(code).toContain('await __agLoadStylesheet(import.meta.resolve("./styles.css"))');
         // The template links the stylesheet itself for some frameworks, so it must not be loaded twice
         expect(code).toContain('link[rel="stylesheet"]');
     });
@@ -143,6 +143,25 @@ describe('transformExampleModule', () => {
         );
 
         expect(code).toContain('process.env.NODE_ENV');
+    });
+
+    test('rewrites the path of a specifier that carries a query or fragment, keeping the suffix', () => {
+        const code = transformExampleModule({
+            fileName: 'main.ts',
+            source: "export { default as worker } from './worker.ts?v=1';\nexport { m } from './mod#frag';\n",
+        });
+
+        expect(code).toContain("'./worker.js?v=1'");
+        expect(code).toContain("'./mod.js#frag'");
+    });
+
+    test('leaves an asset that carries a query as authored', () => {
+        const code = transformExampleModule({
+            fileName: 'main.ts',
+            source: "export { default as data } from './data.json?v=1';\n",
+        });
+
+        expect(code).toContain("'./data.json?v=1'");
     });
 });
 

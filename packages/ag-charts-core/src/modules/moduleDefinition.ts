@@ -137,6 +137,9 @@ export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<
     baseTheme?: AgChartThemeName;
     themeTemplate?: ExtensibleTheme;
 
+    // Remove these keys from the compiled theme to treat them as `undefined` with priority over the series theme.
+    removeThemeSeriesKeys?: string[];
+
     create(this: void, options: unknown, ...args: any[]): any;
     // Used only by sparklines, types should be normalised to support generic cases
     processData?(this: void, data: unknown): { data?: unknown[]; series?: Array<{ xKey: string; yKey: string }> };

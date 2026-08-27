@@ -1,18 +1,49 @@
-import { type CartesianAxisDirection, Logger, isGradientFill, isImageFill, isPatternFill, pick } from 'ag-charts-core';
+import { type CartesianAxisDirection, Logger, mergeDefaults, pick } from 'ag-charts-core';
 import type {
     AgBubbleSeriesOptions,
     AgCartesianChartOptions,
+    AgChartCallbackParams,
+    AgChartLabelFormatterParams,
+    AgChartLabelStylerParams,
     AgNumberAxisOptions,
+    AgNumericValue,
     AgQuadrantChartOptions,
     AgScatterSeriesItemStylerParams,
+    AgScatterSeriesLabelFormatterParams,
     AgScatterSeriesOptions,
+    AgScatterSeriesOptionsKeys,
+    AgScatterSeriesTooltipRendererParams,
     AgSeriesAreaBackgroundRegion,
     AgSeriesMarkerStyle,
     ContextDefault,
     DatumDefault,
 } from 'ag-charts-types';
 
-type Region = keyof NonNullable<AgQuadrantChartOptions['regions']>;
+type Region = keyof Omit<NonNullable<AgQuadrantChartOptions['regions']>, 'label'>;
+
+function getRegionMeta(
+    params: AgChartCallbackParams<any, any> & AgScatterSeriesOptionsKeys,
+    pivotX: AgNumericValue,
+    pivotY: AgNumericValue
+) {
+    const xValue = params.datum[params.xKey];
+    const yValue = params.datum[params.yKey];
+
+    let regionName: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' = 'bottom-left';
+    let index = 2;
+    if (xValue > pivotX && yValue > pivotY) {
+        regionName = 'top-right';
+        index = 1;
+    } else if (xValue > pivotX) {
+        regionName = 'bottom-right';
+        index = 3;
+    } else if (yValue > pivotY) {
+        regionName = 'top-left';
+        index = 0;
+    }
+
+    return { regionName, index };
+}
 
 export function createQuadrant(
     options: AgQuadrantChartOptions,
@@ -60,11 +91,9 @@ export function createQuadrant(
         'label',
         'labelName',
         'labelKey',
-        'legendItemName',
         'maxRenderedItems',
         'nodeClickRange',
         'styler',
-        'showInLegend',
         'shape',
         'stroke',
         'strokeOpacity',
@@ -91,59 +120,49 @@ export function createQuadrant(
     const backgroundRegions: Record<Region, AgSeriesAreaBackgroundRegion> = {
         topLeft: {
             ...topLeft,
+            label: mergeDefaults(topLeft.label, regions?.label),
             xRange: { axis: 'x', end: pivotX },
             yRange: { axis: 'y', start: pivotY },
         },
         topRight: {
             ...topRight,
+            label: mergeDefaults(topRight.label, regions?.label),
             xRange: { axis: 'x', start: pivotX },
             yRange: { axis: 'y', start: pivotY },
         },
         bottomLeft: {
             ...bottomLeft,
+            label: mergeDefaults(bottomLeft.label, regions?.label),
             xRange: { axis: 'x', end: pivotX },
             yRange: { axis: 'y', end: pivotY },
         },
         bottomRight: {
             ...bottomRight,
+            label: mergeDefaults(bottomRight.label, regions?.label),
             xRange: { axis: 'x', start: pivotX },
             yRange: { axis: 'y', end: pivotY },
         },
     };
 
     const composedItemStyler = (params: AgScatterSeriesItemStylerParams): AgSeriesMarkerStyle => {
-        const xValue = params.datum[params.xKey];
-        const yValue = params.datum[params.yKey];
+        const { regionName, index } = getRegionMeta(params, pivotX, pivotY);
 
-        let regionKey: Region = 'bottomLeft';
-        let regionName: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' = 'bottom-left';
-        let index = 2;
         let defaultMarker = bottomLeftMarker;
-        if (xValue > pivotX && yValue > pivotY) {
-            regionKey = 'topRight';
-            regionName = 'top-right';
+        if (regionName === 'top-right') {
             defaultMarker = topRightMarker;
-            index = 1;
-        } else if (xValue > pivotX) {
-            regionKey = 'bottomRight';
-            regionName = 'bottom-right';
+        } else if (regionName === 'bottom-right') {
             defaultMarker = bottomRightMarker;
-            index = 3;
-        } else if (yValue > pivotY) {
-            regionKey = 'topLeft';
-            regionName = 'top-left';
+        } else if (regionName === 'top-left') {
             defaultMarker = topLeftMarker;
-            index = 0;
         }
 
-        // Get the default marker style, without the fill so we can retrieve it from the region fill.
+        // Get the default marker style, without the fill or stroke so we can retrieve them from the region.
         let defaultStyle: AgSeriesMarkerStyle = pick(params, [
             'fillOpacity',
             'lineDash',
             'lineDashOffset',
             'shape',
             'size',
-            'stroke',
             'strokeOpacity',
             'strokeWidth',
         ]);
@@ -161,18 +180,8 @@ export function createQuadrant(
             { pick: false }
         );
 
-        // Apply the fill to the stroke if possible.
-        const stroke =
-            backgroundRegions[regionKey].stroke ??
-            (isGradientFill(resolvedRegionStyle.fill) ||
-            isPatternFill(resolvedRegionStyle.fill) ||
-            isImageFill(resolvedRegionStyle.fill)
-                ? undefined
-                : resolvedRegionStyle.fill);
-
         let result: AgSeriesMarkerStyle = {
             ...pick(resolvedRegionStyle, [
-                'fill',
                 'fillOpacity',
                 'lineDash',
                 'lineDashOffset',
@@ -181,10 +190,8 @@ export function createQuadrant(
                 'strokeOpacity',
                 'strokeWidth',
             ]),
-            stroke,
-            // The region's own marker style is the most specific choice available, so it outranks
-            // anything derived from the region itself.
-            ...defaultMarker,
+            stroke: defaultMarker?.stroke ?? params.stroke ?? resolvedRegionStyle.stroke,
+            fill: defaultMarker?.fill ?? params.fill ?? resolvedRegionStyle.fill,
         };
 
         // Compose the user's itemStyler within the region's itemStyler.
@@ -195,6 +202,25 @@ export function createQuadrant(
         return result;
     };
 
+    const composedTooltipRenderer = (params: AgScatterSeriesTooltipRendererParams) => {
+        const { regionName } = getRegionMeta(params, pivotX, pivotY);
+        return options.tooltip?.renderer?.({ ...params, region: regionName });
+    };
+
+    const composedLabelFormatter = options.label?.formatter
+        ? (params: AgChartLabelFormatterParams<any, any> & AgScatterSeriesLabelFormatterParams) => {
+              const { regionName } = getRegionMeta(params, pivotX, pivotY);
+              return options.label?.formatter?.({ ...params, region: regionName });
+          }
+        : undefined;
+
+    const composedLabelItemStyler = options.label?.itemStyler
+        ? (params: AgChartLabelStylerParams<any, any> & AgScatterSeriesLabelFormatterParams) => {
+              const { regionName } = getRegionMeta(params, pivotX, pivotY);
+              return options.label?.itemStyler?.({ ...params, region: regionName });
+          }
+        : undefined;
+
     const series: (AgScatterSeriesOptions | AgBubbleSeriesOptions)[] = [];
 
     if (options.sizeKey == null) {
@@ -203,6 +229,15 @@ export function createQuadrant(
             type: 'scatter',
             context,
             itemStyler: composedItemStyler,
+            tooltip: {
+                ...options.tooltip,
+                renderer: composedTooltipRenderer,
+            },
+            label: {
+                ...options.label,
+                formatter: composedLabelFormatter,
+                itemStyler: composedLabelItemStyler,
+            },
         });
     } else {
         series.push({
@@ -212,6 +247,15 @@ export function createQuadrant(
             type: 'bubble',
             context,
             itemStyler: composedItemStyler,
+            tooltip: {
+                ...options.tooltip,
+                renderer: composedTooltipRenderer,
+            },
+            label: {
+                ...options.label,
+                formatter: composedLabelFormatter,
+                itemStyler: composedLabelItemStyler,
+            },
         });
     }
 
@@ -231,9 +275,13 @@ export function createQuadrant(
     };
 
     if (alignAxesToPivot) {
-        // TODO: bigint on crossAt
-        axes.x.crossAt = { value: Number(pivotY), titlePlacement: 'edge', labelPlacement: 'crossing' };
-        axes.y.crossAt = { value: Number(pivotX), titlePlacement: 'edge', labelPlacement: 'crossing' };
+        const placement = {
+            titlePlacement: options.axisPlacement?.title ?? 'edge',
+            labelPlacement: options.axisPlacement?.label ?? 'crossing',
+            crosshairLabelPlacement: options.axisPlacement?.crosshairLabel ?? 'edge',
+        } as const;
+        axes.x.crossAt = { value: pivotY, ...placement };
+        axes.y.crossAt = { value: pivotX, ...placement };
     }
 
     return {

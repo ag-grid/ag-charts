@@ -25,9 +25,6 @@ const options: AgChartOptions = {
         {
             type: 'treemap',
             labelKey: 'name',
-            group: {
-                fills: ['#6f9be8', '#f3a93b', '#59a14f'],
-            },
         },
     ],
     title: {

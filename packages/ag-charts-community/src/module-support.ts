@@ -192,6 +192,8 @@ export {
 export type { PreSceneRenderEvent, ProcessDataEvent } from './core/eventsHub';
 export {
     adjustLabelPlacement,
+    barLabelDataContext,
+    barLabelObstaclesFor,
     buildBarLabelCandidates,
     compassCandidatePlacement,
     createBarCandidateStyleResolver,
@@ -207,7 +209,9 @@ export {
 } from './chart/labelUtil';
 export type {
     BarCandidateStyleResolver,
+    BarLabelDataContext,
     BarLabelPlacement,
+    BarLabelSurface,
     BarPositionedCandidate,
     CandidatePlacementMapper,
     ResolvedLabelPlacement,

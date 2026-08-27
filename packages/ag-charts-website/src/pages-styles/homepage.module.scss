@@ -137,8 +137,12 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
     }
 }
 
+// FrameworkTextAnimation clips the cycling word inside a `--word-height: 1.2em` box and pins
+// it to that box's bottom, so this line needs a line box of the same height or the word sits
+// low against the text beside it. The rest of the heading keeps the tighter ratio.
 .heroTopLine {
     display: flex;
+    line-height: var(--text-lh-ratio-tight);
 }
 
 .galleryScroller {

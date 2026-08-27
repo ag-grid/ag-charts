@@ -1,9 +1,9 @@
-import { AgCartesianAxisCrossAtPlacement, AgCartesianChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
-import { LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { AgCartesianAxisCrossAtPlacement, AgCartesianChartOptions, AgCharts, LegendModule } from 'ag-charts-enterprise';
+import { CrosshairModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([LegendModule, LineSeriesModule, NumberAxisModule]);
+ModuleRegistry.registerModules([CrosshairModule, LegendModule, LineSeriesModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     theme: {
@@ -69,5 +69,11 @@ function setTitlePlacement(placement: AgCartesianAxisCrossAtPlacement) {
 function setLabelPlacement(placement: AgCartesianAxisCrossAtPlacement) {
     options.axes!.x!.crossAt!.labelPlacement = placement;
     options.axes!.y!.crossAt!.labelPlacement = placement;
+    chart.update(options);
+}
+
+function setCrosshairLabelPlacement(placement: AgCartesianAxisCrossAtPlacement) {
+    options.axes!.x!.crossAt!.crosshairLabelPlacement = placement;
+    options.axes!.y!.crossAt!.crosshairLabelPlacement = placement;
     chart.update(options);
 }

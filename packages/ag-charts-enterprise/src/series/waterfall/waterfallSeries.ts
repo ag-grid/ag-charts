@@ -721,7 +721,20 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             );
 
             // Label config is item-type specific, so the fit is resolved per datum rather than hoisted.
-            const labelFit = resolveLabelFit(label, !label.collision.alwaysShow);
+            const alwaysShow = label.collision.alwaysShow;
+            const labelFit = resolveLabelFit(label, !alwaysShow);
+            const routesThroughEngine = barLabelRoutesThroughEngine(
+                label.orientation,
+                label.placement,
+                alwaysShow,
+                labelFit
+            );
+            const usesPositionedCandidates = barLabelUsesPositionedCandidates(
+                label.orientation,
+                label.placement,
+                alwaysShow,
+                labelFit
+            );
             // Array placement is accepted, but only its first candidate is honoured here.
             const placement = toArray(label.placement)[0];
             const insidePlacement = placement == null || placement.startsWith('inside');
@@ -746,22 +759,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                       )
                     : undefined;
             // The engine refits per orientation since a rotated label measures against the bar's other axis (see barSeries).
-            const { text: fittedLabelText, fontSize: fittedFontSize } = barLabelRoutesThroughEngine(
-                label.orientation,
-                label.placement,
-                label.collision.alwaysShow,
-                labelFit
-            )
+            const { text: fittedLabelText, fontSize: fittedFontSize } = routesThroughEngine
                 ? { text: labelText, fontSize: undefined }
                 : fitLabelToContainerAutoSize(labelText, labelFit, label, bounds?.container);
-            if (
-                barLabelUsesPositionedCandidates(
-                    label.orientation,
-                    label.placement,
-                    label.collision.alwaysShow,
-                    labelFit
-                )
-            ) {
+            if (usesPositionedCandidates) {
                 // Pre-positions a candidate per placement x orientation for the engine to cascade through until one fits.
                 const measured = measureLabelText(fittedLabelText, label);
                 const placements = toArray(label.placement);

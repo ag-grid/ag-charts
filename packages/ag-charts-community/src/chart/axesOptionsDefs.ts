@@ -285,10 +285,11 @@ export const cartesianAxisOptionsDefs: OptionsDefs<
     ...commonAxisOptionsDefs,
     title: cartesianAxisCaptionOptionsDefs,
     crossAt: {
-        value: required(or(number, date, string, arrayOf(string))),
+        value: required(or(numericValue, date, string, arrayOf(string))),
         sticky: boolean,
         titlePlacement: union('crossing', 'edge'),
         labelPlacement: union('crossing', 'edge'),
+        crosshairLabelPlacement: union('crossing', 'edge'),
     },
     crossLines: arrayOfDefs(cartesianCrossLineOptionsDefs, 'a cross-line options array'),
     position: union('top', 'right', 'bottom', 'left'),

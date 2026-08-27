@@ -1,154 +1,310 @@
-import { describe, expect, it } from 'vitest';
+import { vi } from 'vitest';
 
 import type { LabelObstacle, PlacedLabel, PointLabelDatum } from 'ag-charts-core';
 
 import { BBox } from '../../scene/bbox';
-import { LabelManager, type PlacedLabelSource } from './labelManager';
+import type { ISeries, ISeriesProperties, SeriesNodeDatum } from '../series/seriesTypes';
+import { LabelManager } from './labelManager';
 
-const PADDING = { top: 0, right: 0, bottom: 0, left: 0 };
-const SERIES_RECT = new BBox(0, 0, 400, 300);
+type AnySeries = ISeries<SeriesNodeDatum, ISeriesProperties, unknown>;
 
-/** Zero-size point, so the datum contributes a label rect and no marker obstacle. */
-function labelAt(x: number, y: number, text: string): PointLabelDatum {
+const NO_PADDING = { top: 0, right: 0, bottom: 0, left: 0 };
+const RECT = new BBox(0, 0, 200, 200);
+
+function labelDatum(x: number, y: number, text: string, overrides?: Partial<PointLabelDatum>): PointLabelDatum {
     return {
         point: { x, y, size: 0 },
-        label: { text, width: 40, height: 12 },
+        label: { text, width: 40, height: 10 },
         anchor: undefined,
-        placement: 'top',
+        placement: undefined,
+        placements: ['top'],
         alwaysShow: false,
-        collideWith: { label: true },
+        ...overrides,
     };
 }
 
-interface Recorder {
-    placed: PlacedLabel<unknown>[][];
-    /** Reads of the label data, which only a real solve performs. */
-    solves: number;
+interface FakeSeriesOptions {
+    id: string;
+    datums?: PointLabelDatum[];
+    obstacles?: LabelObstacle[];
+    usesPlacedLabels?: boolean;
 }
 
-/** Mutable mirror of the source contract, so a test can bump a version or stop placing labels. */
-type MutableLabelSource = { -readonly [K in keyof PlacedLabelSource]: PlacedLabelSource[K] };
-
-function source(id: string, datums: PointLabelDatum[], obstacles?: LabelObstacle[]) {
-    const recorder: Recorder = { placed: [], solves: 0 };
-    const instance: MutableLabelSource = {
+function fakeSeries({ id, datums = [], obstacles, usesPlacedLabels = true }: FakeSeriesOptions) {
+    const series = {
         id,
-        usesPlacedLabels: true,
         nodeDataVersion: 1,
-        getLabelData: () => {
-            recorder.solves++;
-            return datums;
-        },
-        getLabelObstacles: () => obstacles,
-        updatePlacedLabelData: (labels) => recorder.placed.push(labels),
+        usesPlacedLabels,
+        getLabelData: vi.fn((): PointLabelDatum[] => datums),
+        getLabelObstacles: vi.fn((): LabelObstacle[] | undefined => obstacles),
+        updatePlacedLabelData: vi.fn((_labels: PlacedLabel[]) => {}),
     };
-    return { instance, recorder };
+    return series as typeof series & AnySeries;
 }
 
-/** A series is just an unregistered source as far as the manager is concerned. */
-const series = source;
-
-function texts(placed: PlacedLabel<unknown>[]) {
-    return placed.map((label) => label.text);
+function placedTexts(series: ReturnType<typeof fakeSeries>, call = -1): string[] {
+    const { calls } = series.updatePlacedLabelData.mock;
+    const labels = calls.at(call)?.[0] ?? [];
+    return labels.map((label) => label.text as string);
 }
 
 describe('LabelManager', () => {
-    it('places a registered source with no label-placing series present', () => {
-        const manager = new LabelManager();
-        const crossLines = source('crossLines:x', [labelAt(100, 100, 'A')]);
-        manager.registerSource(crossLines.instance);
+    describe('placement caching', () => {
+        it('reuses the cached solve while the placement inputs are unchanged', () => {
+            const manager = new LabelManager();
+            const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
 
-        manager.updateLabels([], PADDING, SERIES_RECT);
+            manager.updateLabels([series], NO_PADDING, RECT);
+            manager.updateLabels([series], NO_PADDING, RECT);
 
-        expect(texts(crossLines.recorder.placed.at(-1) ?? [])).toEqual(['A']);
+            // The solve runs once, but is re-applied on both updates: SERIES_UPDATE also fires on
+            // hover, where the labels still have to be rebuilt to pick up highlight styling.
+            expect(series.getLabelData).toHaveBeenCalledTimes(1);
+            expect(series.updatePlacedLabelData).toHaveBeenCalledTimes(2);
+            expect(placedTexts(series)).toEqual(['one']);
+        });
+
+        it('re-solves when a series bumps its node-data version', () => {
+            const manager = new LabelManager();
+            const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
+
+            manager.updateLabels([series], NO_PADDING, RECT);
+            series.nodeDataVersion += 1;
+            manager.updateLabels([series], NO_PADDING, RECT);
+
+            expect(series.getLabelData).toHaveBeenCalledTimes(2);
+        });
+
+        it('re-solves when the layout bounds change', () => {
+            const manager = new LabelManager();
+            const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
+
+            manager.updateLabels([series], NO_PADDING, RECT);
+            manager.updateLabels([series], NO_PADDING, new BBox(0, 0, 300, 200));
+
+            expect(series.getLabelData).toHaveBeenCalledTimes(2);
+        });
+
+        it('re-solves when the chart padding changes the bounds', () => {
+            const manager = new LabelManager();
+            const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
+
+            manager.updateLabels([series], NO_PADDING, RECT);
+            manager.updateLabels([series], { ...NO_PADDING, left: 10 }, RECT);
+
+            expect(series.getLabelData).toHaveBeenCalledTimes(2);
+        });
+
+        it('re-solves when the set of visible series changes', () => {
+            const manager = new LabelManager();
+            const first = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
+            const second = fakeSeries({ id: 'b', datums: [labelDatum(150, 50, 'two')] });
+
+            manager.updateLabels([first], NO_PADDING, RECT);
+            manager.updateLabels([first, second], NO_PADDING, RECT);
+
+            expect(first.getLabelData).toHaveBeenCalledTimes(2);
+            expect(second.getLabelData).toHaveBeenCalledTimes(1);
+        });
     });
 
-    it('drops a registered source from the solve once it is unregistered', () => {
-        const manager = new LabelManager();
-        const crossLines = source('crossLines:x', [labelAt(100, 100, 'crossLine')]);
-        const line = series('line', [labelAt(300, 200, 'series')]);
-        manager.registerSource(crossLines.instance);
-        manager.updateLabels([line.instance], PADDING, SERIES_RECT);
+    describe('no placed-label series', () => {
+        it('places nothing and clears the cached solve', () => {
+            const manager = new LabelManager();
+            const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
+            const plain = fakeSeries({ id: 'b', usesPlacedLabels: false });
 
-        expect(crossLines.recorder.solves).toBe(1);
+            manager.updateLabels([series], NO_PADDING, RECT);
+            manager.updateLabels([plain], NO_PADDING, RECT);
+            expect(plain.getLabelData).not.toHaveBeenCalled();
+            expect(plain.updatePlacedLabelData).not.toHaveBeenCalled();
 
-        manager.unregisterSource('crossLines:x');
-        line.instance.nodeDataVersion = 2;
-        manager.updateLabels([line.instance], PADDING, SERIES_RECT);
-
-        expect(crossLines.recorder.solves).toBe(1);
-        expect(texts(line.recorder.placed.at(-1) ?? [])).toEqual(['series']);
+            // The cache was cleared, so the identical inputs of the first update re-solve rather
+            // than replaying a solve taken while a different series set was visible.
+            manager.updateLabels([series], NO_PADDING, RECT);
+            expect(series.getLabelData).toHaveBeenCalledTimes(2);
+        });
     });
 
-    it('keeps a replacement registered under an id its predecessor then unregisters', () => {
-        const manager = new LabelManager();
-        const first = source('crossLines:x', [labelAt(100, 100, 'first')]);
-        const second = source('crossLines:x', [labelAt(100, 100, 'second')]);
+    describe('label data carry-forward', () => {
+        it('keeps the previous label data for a series that reports non-point data', () => {
+            const manager = new LabelManager();
+            const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
 
-        // A recreated axis registers its replacement before the old instance is destroyed.
-        manager.registerSource(first.instance);
-        manager.registerSource(second.instance);
-        manager.unregisterSource('crossLines:x', first.instance);
+            manager.updateLabels([series], NO_PADDING, RECT);
+            expect(placedTexts(series)).toEqual(['one']);
 
-        manager.updateLabels([], PADDING, SERIES_RECT);
+            // Bar-family series report baked label data between placement passes; the manager has to
+            // carry the last point-label solve forward rather than drop the series' labels.
+            series.getLabelData.mockReturnValue([{ notALabelDatum: true }] as unknown as PointLabelDatum[]);
+            series.nodeDataVersion += 1;
+            manager.updateLabels([series], NO_PADDING, RECT);
 
-        expect(texts(second.recorder.placed.at(-1) ?? [])).toEqual(['second']);
-        expect(first.recorder.placed).toEqual([]);
+            expect(placedTexts(series)).toEqual(['one']);
+        });
+
+        it('places nothing for a series that has never reported point data', () => {
+            const manager = new LabelManager();
+            const series = fakeSeries({ id: 'a' });
+            series.getLabelData.mockReturnValue([{ notALabelDatum: true }] as unknown as PointLabelDatum[]);
+
+            manager.updateLabels([series], NO_PADDING, RECT);
+
+            expect(placedTexts(series)).toEqual([]);
+        });
     });
 
-    it('re-solves when a registered source bumps its node-data version', () => {
-        const manager = new LabelManager();
-        const crossLines = source('crossLines:x', [labelAt(100, 100, 'crossLine')]);
-        const line = series('line', [labelAt(300, 200, 'series')]);
-        manager.registerSource(crossLines.instance);
-        manager.updateLabels([line.instance], PADDING, SERIES_RECT);
+    describe('obstacles', () => {
+        it('gathers obstacles from every visible series, including those placing no labels', () => {
+            const manager = new LabelManager();
+            const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
+            const blocker = fakeSeries({
+                id: 'b',
+                usesPlacedLabels: false,
+                obstacles: [{ kind: 'rect', category: 'seriesItem', box: new BBox(0, 0, 200, 200) }],
+            });
 
-        expect(crossLines.recorder.solves).toBe(1);
+            manager.updateLabels([series, blocker], NO_PADDING, RECT);
 
-        // Unchanged inputs must reuse the cached solve rather than re-reading the label data.
-        manager.updateLabels([line.instance], PADDING, SERIES_RECT);
-        expect(crossLines.recorder.solves).toBe(1);
-
-        crossLines.instance.nodeDataVersion = 2;
-        manager.updateLabels([line.instance], PADDING, SERIES_RECT);
-        expect(crossLines.recorder.solves).toBe(2);
+            expect(blocker.getLabelObstacles).toHaveBeenCalled();
+            // The blanket obstacle leaves the droppable label nowhere to go.
+            expect(placedTexts(series)).toEqual([]);
+        });
     });
 
-    it('stops reading a source that no longer places labels', () => {
-        const manager = new LabelManager();
-        const crossLines = source('crossLines:x', [labelAt(100, 100, 'crossLine')]);
-        const line = series('line', [labelAt(300, 200, 'series')]);
-        manager.registerSource(crossLines.instance);
-        manager.updateLabels([line.instance], PADDING, SERIES_RECT);
+    describe('resolution order', () => {
+        it('resolves series in declaration order, and restores it after a hide and show', () => {
+            const manager = new LabelManager();
+            // Both labels want the same spot; placement is greedy, so the first series declared wins.
+            const first = fakeSeries({ id: 'a', datums: [labelDatum(100, 100, 'first')] });
+            const second = fakeSeries({ id: 'b', datums: [labelDatum(100, 100, 'second')] });
 
-        expect(crossLines.recorder.solves).toBe(1);
+            manager.updateLabels([first, second], NO_PADDING, RECT);
+            expect(placedTexts(first)).toEqual(['first']);
+            expect(placedTexts(second)).toEqual([]);
 
-        crossLines.instance.usesPlacedLabels = false;
-        crossLines.instance.nodeDataVersion = 2;
-        manager.updateLabels([line.instance], PADDING, SERIES_RECT);
+            manager.updateLabels([first], NO_PADDING, RECT);
+            manager.updateLabels([first, second], NO_PADDING, RECT);
 
-        expect(crossLines.recorder.solves).toBe(1);
-        expect(texts(line.recorder.placed.at(-1) ?? [])).toEqual(['series']);
+            expect(placedTexts(first)).toEqual(['first']);
+            expect(placedTexts(second)).toEqual([]);
+        });
+
+        it('places both series when their labels do not compete', () => {
+            const manager = new LabelManager();
+            const first = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'first')] });
+            const second = fakeSeries({ id: 'b', datums: [labelDatum(150, 150, 'second')] });
+
+            manager.updateLabels([first, second], NO_PADDING, RECT);
+
+            expect(placedTexts(first)).toEqual(['first']);
+            expect(placedTexts(second)).toEqual(['second']);
+        });
     });
 
-    it('applies a registered source obstacle to series labels', () => {
-        const manager = new LabelManager();
-        const line = series('line', [labelAt(100, 100, 'series')]);
-        manager.updateLabels([line.instance], PADDING, SERIES_RECT);
+    describe('registered sources', () => {
+        function registered(id: string, datums: PointLabelDatum[] = [], obstacles?: LabelObstacle[]) {
+            return fakeSeries({ id, datums, obstacles });
+        }
 
-        // Guards the assertion below: the label must be placeable when nothing blocks it.
-        expect(texts(line.recorder.placed.at(-1) ?? [])).toEqual(['series']);
+        it('places a registered source with no label-placing series present', () => {
+            const manager = new LabelManager();
+            const crossLines = registered('crossLines:x', [labelDatum(100, 100, 'A')]);
+            manager.registerSource(crossLines);
 
-        const blocker = source(
-            'axisLabels:x',
-            [],
-            [{ kind: 'rect', category: 'label', box: { x: 0, y: 0, width: 400, height: 300 } }]
-        );
-        blocker.instance.usesPlacedLabels = false;
-        manager.registerSource(blocker.instance);
-        line.instance.nodeDataVersion = 2;
-        manager.updateLabels([line.instance], PADDING, SERIES_RECT);
+            manager.updateLabels([], NO_PADDING, RECT);
 
-        expect(texts(line.recorder.placed.at(-1) ?? [])).toEqual([]);
+            expect(placedTexts(crossLines)).toEqual(['A']);
+        });
+
+        it('drops a registered source from the solve once it is unregistered', () => {
+            const manager = new LabelManager();
+            const crossLines = registered('crossLines:x', [labelDatum(100, 100, 'crossLine')]);
+            const line = fakeSeries({ id: 'line', datums: [labelDatum(50, 50, 'series')] });
+            manager.registerSource(crossLines);
+            manager.updateLabels([line], NO_PADDING, RECT);
+
+            expect(crossLines.getLabelData).toHaveBeenCalledTimes(1);
+
+            manager.unregisterSource('crossLines:x');
+            line.nodeDataVersion += 1;
+            manager.updateLabels([line], NO_PADDING, RECT);
+
+            expect(crossLines.getLabelData).toHaveBeenCalledTimes(1);
+            expect(placedTexts(line)).toEqual(['series']);
+        });
+
+        it('keeps a replacement registered under an id its predecessor then unregisters', () => {
+            const manager = new LabelManager();
+            const first = registered('crossLines:x', [labelDatum(100, 100, 'first')]);
+            const second = registered('crossLines:x', [labelDatum(100, 100, 'second')]);
+
+            // A recreated axis registers its replacement before the old instance is destroyed.
+            manager.registerSource(first);
+            manager.registerSource(second);
+            manager.unregisterSource('crossLines:x', first);
+
+            manager.updateLabels([], NO_PADDING, RECT);
+
+            expect(placedTexts(second)).toEqual(['second']);
+            expect(first.updatePlacedLabelData).not.toHaveBeenCalled();
+        });
+
+        it('re-solves when a registered source bumps its node-data version', () => {
+            const manager = new LabelManager();
+            const crossLines = registered('crossLines:x', [labelDatum(100, 100, 'crossLine')]);
+            const line = fakeSeries({ id: 'line', datums: [labelDatum(50, 50, 'series')] });
+            manager.registerSource(crossLines);
+            manager.updateLabels([line], NO_PADDING, RECT);
+            manager.updateLabels([line], NO_PADDING, RECT);
+
+            expect(crossLines.getLabelData).toHaveBeenCalledTimes(1);
+
+            crossLines.nodeDataVersion += 1;
+            manager.updateLabels([line], NO_PADDING, RECT);
+
+            expect(crossLines.getLabelData).toHaveBeenCalledTimes(2);
+        });
+
+        it('stops reading a source that no longer places labels', () => {
+            const manager = new LabelManager();
+            const crossLines = registered('crossLines:x', [labelDatum(100, 100, 'crossLine')]);
+            const line = fakeSeries({ id: 'line', datums: [labelDatum(50, 50, 'series')] });
+            manager.registerSource(crossLines);
+            manager.updateLabels([line], NO_PADDING, RECT);
+
+            expect(crossLines.getLabelData).toHaveBeenCalledTimes(1);
+
+            crossLines.usesPlacedLabels = false;
+            crossLines.nodeDataVersion += 1;
+            manager.updateLabels([line], NO_PADDING, RECT);
+
+            expect(crossLines.getLabelData).toHaveBeenCalledTimes(1);
+            expect(placedTexts(line)).toEqual(['series']);
+        });
+
+        it('applies a registered source obstacle to series labels', () => {
+            const manager = new LabelManager();
+            const line = fakeSeries({
+                id: 'line',
+                datums: [labelDatum(50, 50, 'series', { collideWith: { label: true } })],
+            });
+            manager.updateLabels([line], NO_PADDING, RECT);
+
+            // Guards the assertion below: the label must be placeable when nothing blocks it.
+            expect(placedTexts(line)).toEqual(['series']);
+
+            const blocker = registered(
+                'axisLabels:x',
+                [],
+                [{ kind: 'rect', category: 'label', box: new BBox(0, 0, 200, 200) }]
+            );
+            blocker.usesPlacedLabels = false;
+            manager.registerSource(blocker);
+            line.nodeDataVersion += 1;
+            manager.updateLabels([line], NO_PADDING, RECT);
+
+            expect(placedTexts(line)).toEqual([]);
+        });
     });
 });

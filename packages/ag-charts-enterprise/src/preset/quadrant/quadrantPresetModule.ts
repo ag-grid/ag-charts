@@ -12,11 +12,6 @@ const sharedThemeTemplate: ExtensibleSeriesTheme<'bubble' | 'scatter'> = {
             label: { enabled: false },
             line: { enabled: true, width: 2, stroke: { $foregroundBackgroundMix: 0.5 } },
             tick: { enabled: false },
-            // TODO: ignore required `value`
-            // crossAt: {
-            //     titlePlacement: 'edge',
-            //     labelPlacement: 'crossing',
-            // },
         },
     },
     seriesArea: {
@@ -27,6 +22,7 @@ const sharedThemeTemplate: ExtensibleSeriesTheme<'bubble' | 'scatter'> = {
                     ...backgroundRegionsTheme.$apply[0],
                     fill: { $palette: 'fill' },
                     fillOpacity: 0.3,
+                    stroke: { $palette: 'stroke' },
                     label: {
                         ...backgroundRegionsTheme.$apply[0]!.label,
                         position: 'inside',
@@ -57,4 +53,9 @@ export const QuadrantPresetModule: PresetModuleDefinition<AgQuadrantChartOptions
         scatter: sharedThemeTemplate,
         bubble: sharedThemeTemplate,
     },
+
+    // These colours are derived from the region by default. A user-provided value can not be differentiated from the
+    // scatter/bubble theme default colours, so that theme default must be removed to allow it to be replaced by the
+    // region-derived colours.
+    removeThemeSeriesKeys: ['fill', 'stroke'],
 };

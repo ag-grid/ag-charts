@@ -484,7 +484,9 @@ export abstract class Axis<
         this.range = this.scale.range.slice() as [number, number];
         this.cleanup.register(
             this.moduleCtx.widgets.containerWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
-            this.moduleCtx.widgets.containerWidget.addListener('mouseleave', () => this.endHovering())
+            this.moduleCtx.widgets.containerWidget.addListener('mouseleave', () => this.endHovering()),
+            // The tick-layout cache key carries no font identity.
+            this.moduleCtx.eventsHub.on('font:load', () => this.invalidateLayoutCache())
         );
     }
 
@@ -1348,9 +1350,6 @@ export abstract class Axis<
 
         const picked = this.resolvePickDatum(position, crossPosition);
         const index = picked?.index ?? -1;
-        // On a continuous axis `value` is the pointer position; on a discrete one it must come from the
-        // tick so that `value` and `index` describe the same thing.
-        const value = this.continuous || picked == null ? scaleValue : picked.value;
 
         // The axis-only additions to the base context-menu params, plus `caller` for `callWithContext`.
         type Rules = Omit<AgContextMenuGetItemsParamsAxis, keyof AgContextMenuGetItemsParamsAlways> &
@@ -1358,7 +1357,7 @@ export abstract class Axis<
         const result: AxisValuePick = {
             caller: this,
             axisId: this.userKey,
-            value,
+            value: scaleValue,
             index,
             depth: picked?.depth,
             direction: this.direction,
