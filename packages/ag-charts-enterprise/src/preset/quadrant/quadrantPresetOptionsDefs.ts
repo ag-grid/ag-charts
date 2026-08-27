@@ -1,6 +1,12 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, array, boolean, defined, numericValue, string, without } from 'ag-charts-core';
+import { type OptionsDefs, array, boolean, defined, numericValue, string, union, without } from 'ag-charts-core';
 import type { AgQuadrantChartOptions } from 'ag-charts-types';
+
+const axisPlacementOptionsDefs: OptionsDefs<NonNullable<AgQuadrantChartOptions['axisPlacement']>> = {
+    crosshairLabel: union('crossing', 'edge'),
+    label: union('crossing', 'edge'),
+    title: union('crossing', 'edge'),
+};
 
 const pivotOptionsDefs: OptionsDefs<NonNullable<AgQuadrantChartOptions['pivot']>> = {
     x: numericValue,
@@ -24,6 +30,7 @@ const axisOptionsDefs: OptionsDefs<NonNullable<AgQuadrantChartOptions['xAxis']>>
 export const quadrantOptionsDefs: OptionsDefs<AgQuadrantChartOptions> = {
     // Quadrant
     alignAxesToPivot: boolean,
+    axisPlacement: axisPlacementOptionsDefs,
     pivot: pivotOptionsDefs,
     regions: {
         bottomLeft: regionOptionsDefs,
