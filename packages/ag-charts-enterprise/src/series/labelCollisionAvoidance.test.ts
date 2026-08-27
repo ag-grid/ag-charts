@@ -1170,6 +1170,20 @@ describe('label collision avoidance', () => {
                 expect(await visibleCount(spaced(0))).toBeGreaterThan(await visibleCount(spaced(200)));
             });
 
+            it('drops a hideable outside label overlapping the neighbouring stage', async () => {
+                // Taller than the gap between stages, with seriesArea off: only the stage above is left.
+                const overlapping = (seriesItems?: boolean) =>
+                    options({
+                        placement: 'outside-before',
+                        formatter: () => 'A',
+                        fontSize: 30,
+                        collision: { alwaysShow: false, collideWith: { seriesArea: false, seriesItems } },
+                    });
+
+                expect(await visibleCount(overlapping())).toBe(0);
+                expect(await visibleCount(overlapping(false))).toBeGreaterThan(0);
+            });
+
             it('cascades to the first placement that fits', async () => {
                 // `outside-before` on every stage collides with the neighbouring stage's bar, so the
                 // cascade falls through to the inside candidate rather than dropping the label.
