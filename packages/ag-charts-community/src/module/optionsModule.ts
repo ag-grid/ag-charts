@@ -260,10 +260,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     userOptions: Partial<T>;
     /**
      * The chart's lead series type when no module is registered to draw it — an explicit
-     * `series[0].type`, or the implicit `'line'` when `series` is absent. The theme keys a chart's
-     * whole default set off that entry, so `processedOptions` then carries no chart-level defaults.
-     * Read from `userOptions`, which still holds the type, and exempt for presets, which supply their
-     * own series.
+     * `series[0].type`, or the implicit `'line'` when `series` is absent. The theme keys a chart's whole
+     * default set off that entry, so `processedOptions` then carries no chart-level defaults.
      */
     readonly unusableLeadSeriesType: string | undefined;
     processedOverrides: Partial<T>;
@@ -406,8 +404,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 deltaOptions !== undefined &&
                 ChartOptions.isFastPathDelta(deltaOptions, presetDef?.fastUpdateKeys) &&
                 baseChartOptions != null &&
-                // The base's processed options lack the chart-level defaults its lead series type's
-                // theme entry carries, so the fast path would apply a set an update dereferences.
+                // The base carries no chart-level defaults, so the fast path would skip re-deriving them.
                 baseChartOptions.unusableLeadSeriesType == null &&
                 !dataChangedLength &&
                 // An armed `throwOn` must re-validate on every pass — the fast path carries `validationIssues`
@@ -1108,6 +1105,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private resolveUnusableLeadSeriesType(): string | undefined {
+        // Presets supply their own series, so the user options' lead type says nothing about them.
         if (this.optionMetadata.presetType != null) return undefined;
         const seriesType = this.optionsType(this.userOptions);
         return ModuleRegistry.getSeriesModule(seriesType) == null ? seriesType : undefined;

@@ -928,8 +928,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
     });
     public update(type = ChartUpdateType.FULL, opts?: UpdateOpts) {
         if (this.destroyed) return;
-        // Without the chart-level defaults the pruned lead series type's theme entry carries, an update
-        // dereferences absent ones. Read live: the constructor updates before `create()` can guard it.
+        // The theme prunes an unusable lead series type's entry, and with it the chart-level defaults an
+        // update dereferences. Guarded here too: the constructor updates before `create()` can skip it.
         if (this.chartOptions.unusableLeadSeriesType != null) return;
 
         const {

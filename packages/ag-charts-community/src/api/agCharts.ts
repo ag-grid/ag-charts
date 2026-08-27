@@ -438,8 +438,6 @@ class AgChartsInternal {
             AgChartsInternal.requestFactoryUpdate(chart, refreshedChartOptions);
         });
 
-        // The theme prunes an unusable lead series type's entry, and with it the chart-level defaults
-        // an update dereferences. The mismatch is already reported as an error.
         if (chartOptions.unusableLeadSeriesType != null) {
             AgChartsInternal.queueSkippedUpdate(chart, chartOptions);
             return proxy;
@@ -518,14 +516,9 @@ class AgChartsInternal {
         );
     }
 
-    /** Options of updates the `unusableLeadSeriesType` short-circuit skipped. */
     private static readonly skippedChartOptions = new WeakSet<ChartOptions>();
 
-    /**
-     * Queues without applying, so a later delta merges onto the caller's latest options rather than the
-     * last applied ones. Only an applied update splices its entry off the queue, so replace rather than
-     * stack.
-     */
+    // Only an applied update splices its entry off the queue, so replace the last skipped one.
     private static queueSkippedUpdate(chart: Chart, chartOptions: ChartOptions) {
         const queued = chart.queuedChartOptions.at(-1);
         if (queued != null && AgChartsInternal.skippedChartOptions.has(queued)) {
