@@ -8,6 +8,7 @@ import type {
     AgCartesianChartOptions,
     AgChartOptions,
     AgChartTheme,
+    AgGaugeOptions,
     AgLineSeriesOptions,
     AgNumberAxisOptions,
     AgSparklineOptions,
@@ -38,6 +39,24 @@ function prepareSparklineOptions(userOptions: AgSparklineOptions, logger?: Logge
         {},
         {},
         { presetType: 'sparkline', pool: true, domMode: 'minimal', withDragInterpretation: false },
+        undefined,
+        false,
+        false,
+        undefined,
+        logger
+    );
+    return chartOptions.processedOptions;
+}
+
+// Mirrors AgCharts.createGauge() -> createOrUpdate(): the gauge preset module ships in enterprise,
+// so under the community registry used by these tests it is never registered.
+function prepareGaugeOptions(userOptions: AgGaugeOptions, logger?: Logger): AgChartOptions {
+    const chartOptions = new ChartOptions(
+        undefined,
+        userOptions as AgChartOptions,
+        {},
+        {},
+        { presetType: 'gauge-preset' },
         undefined,
         false,
         false,
@@ -610,6 +629,36 @@ describe('ChartOptions', () => {
             } finally {
                 ModuleRegistry.clearRegistryModes();
             }
+        });
+
+        it('names the API entry point when an enterprise preset is not registered in UMD mode', () => {
+            ModuleRegistry.setRegistryMode(ModuleRegistry.RegistryMode.UMD);
+            try {
+                prepareGaugeOptions({ type: 'radial-gauge', value: 50, scale: { min: 0, max: 100 } });
+
+                const warnings = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+                expect(
+                    warnings.some((m) =>
+                        m.includes(
+                            "unable to use these enterprise features as 'ag-charts-enterprise' has not been loaded"
+                        )
+                    )
+                ).toBe(true);
+                expect(warnings.some((m) => m.includes('AgCharts.createGauge'))).toBe(true);
+                expect(warnings.every((m) => !m.includes('gauge-preset'))).toBe(true);
+                expect(warnings.every((m) => !m.includes('Unknown option'))).toBe(true);
+            } finally {
+                ModuleRegistry.clearRegistryModes();
+            }
+        });
+
+        it('reports the preset module when an enterprise preset is not registered', () => {
+            prepareGaugeOptions({ type: 'radial-gauge', value: 50, scale: { min: 0, max: 100 } });
+
+            const errors = (console.error as Mock).mock.calls.map(([m]) => String(m));
+            expect(errors.some((m) => m.includes('required modules are not registered'))).toBe(true);
+            expect(errors.some((m) => m.includes('GaugePresetModule'))).toBe(true);
+            expect((console.warn as Mock).mock.calls.every(([m]) => !String(m).includes('Unknown option'))).toBe(true);
         });
     });
 

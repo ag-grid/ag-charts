@@ -508,14 +508,21 @@ describe('AgCharts', () => {
             expect(AgCharts.__validateOptionsArgument(options, 'AgCharts `options` prop')).toBe(options);
         });
 
+        // The enterprise presets are unregistered in this community-only registry, so each also reports
+        // the module the caller needs before its entry point can do anything.
         it.each([
-            ['createFinancialChart', () => AgCharts.createFinancialChart(undefined as any)],
-            ['createGauge', () => AgCharts.createGauge(undefined as any)],
-            ['createQuadrantChart', () => AgCharts.createQuadrantChart(undefined as any)],
-            ['__createSparkline', () => AgCharts.__createSparkline(undefined as any)],
-        ])('names %s in the error it reports', (methodName, call) => {
+            [
+                'createFinancialChart',
+                () => AgCharts.createFinancialChart(undefined as any),
+                ['PriceVolumePresetModule'],
+            ],
+            ['createGauge', () => AgCharts.createGauge(undefined as any), ['GaugePresetModule']],
+            ['createQuadrantChart', () => AgCharts.createQuadrantChart(undefined as any), ['QuadrantChartModule']],
+            ['__createSparkline', () => AgCharts.__createSparkline(undefined as any), []],
+        ])('names %s in the error it reports', (methodName, call, missingModules) => {
             expect(() => (chart = call() as AgChartInstance)).not.toThrow();
             expectErrorCalls().toEqual([
+                ...missingModules.map((moduleId) => [expect.stringContaining(moduleId)]),
                 [
                     expect.stringMatching(
                         new RegExp(`^AG Charts - AgCharts\\.${methodName}\\(\\) requires a non-empty options object`)
