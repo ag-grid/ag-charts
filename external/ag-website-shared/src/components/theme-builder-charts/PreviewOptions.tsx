@@ -4,6 +4,8 @@ import styled from '@emotion/styled';
 import { PREVIEW_CHART_TYPES, type PreviewChartType, SERIES_COUNT_OPTIONS } from './chartTypes';
 
 interface Props {
+    /** Which of the two previews this set of controls drives, for screen readers. */
+    paneLabel: string;
     chartType: PreviewChartType;
     onChartTypeChange: (type: PreviewChartType) => void;
     seriesCount: number;
@@ -17,7 +19,13 @@ interface Props {
  * to be the last of these - category count is the obvious next one - and a group
  * has somewhere to put it.
  */
-export const PreviewOptions = ({ chartType, onChartTypeChange, seriesCount, onSeriesCountChange }: Props) => (
+export const PreviewOptions = ({
+    paneLabel,
+    chartType,
+    onChartTypeChange,
+    seriesCount,
+    onSeriesCountChange,
+}: Props) => (
     <Wrapper>
         <Field>
             <Label aria-hidden="true">Preview</Label>
@@ -27,7 +35,7 @@ export const PreviewOptions = ({ chartType, onChartTypeChange, seriesCount, onSe
                 onChange={onChartTypeChange}
                 getKey={getTypeId}
                 getLabel={getTypeLabel}
-                triggerAriaLabel="Preview chart type"
+                triggerAriaLabel={`${paneLabel} preview chart type`}
             />
         </Field>
         <Field>
@@ -38,7 +46,7 @@ export const PreviewOptions = ({ chartType, onChartTypeChange, seriesCount, onSe
                 onChange={onSeriesCountChange}
                 getKey={String}
                 getLabel={String}
-                triggerAriaLabel={`Number of ${chartType.countLabel.toLowerCase()}`}
+                triggerAriaLabel={`Number of ${chartType.countLabel.toLowerCase()} in the ${paneLabel.toLowerCase()} preview`}
             />
         </Field>
     </Wrapper>

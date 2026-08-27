@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { PREVIEW_CHART_TYPES, SERIES_COUNT_OPTIONS } from './chartTypes';
+import { DEFAULT_CHART_TYPE_IDS, PREVIEW_CHART_TYPES, PREVIEW_PANES, SERIES_COUNT_OPTIONS } from './chartTypes';
 import { MAX_SERIES_COUNT, MIN_SERIES_COUNT, PREVIEW_DATA, PREVIEW_SERIES } from './previewData';
 
 const seriesOf = (options: unknown) => (options as { series: unknown[] }).series;
@@ -43,5 +43,19 @@ describe('preview chart types', () => {
             const slots = type.id === 'donut' ? thumbnail.data.length : thumbnail.series.length;
             expect(slots, type.id).toBe(8);
         }
+    });
+
+    it('opens the two panes on two chart types that exist', () => {
+        // An id no longer in the list falls back to the first type without
+        // complaint, so a rename would silently open both panes on the same
+        // chart - losing the comparison the second pane is there to make.
+        const ids = PREVIEW_PANES.map((pane) => DEFAULT_CHART_TYPE_IDS[pane]);
+        for (const id of ids) {
+            expect(
+                PREVIEW_CHART_TYPES.map((type) => type.id),
+                id
+            ).toContain(id);
+        }
+        expect(new Set(ids).size, ids.join(' and ')).toBe(ids.length);
     });
 });
