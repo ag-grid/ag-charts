@@ -764,7 +764,7 @@ describe('CrossLine', () => {
             expect(click).not.toHaveBeenCalled();
         });
 
-        describe('overlapping crosslines allClickParams', async () => {
+        describe('overlapping crosslines allClickParams', () => {
             let chartClick: ViFn;
             let chartCrossLineClick: ViFn;
             let chartSeriesNodeClick: ViFn;
@@ -858,7 +858,7 @@ describe('CrossLine', () => {
             });
         });
 
-        describe('non-interactive cross-lines fire chart and series-node click', async () => {
+        describe('non-interactive cross-lines fire chart and series-node click', () => {
             let seriesSeriesNodeClick: ViFn;
             let chartSeriesNodeClick: ViFn;
             let chartClick: ViFn;
