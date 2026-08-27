@@ -842,6 +842,20 @@ describe('CrossLine', () => {
                 expect(chartSeriesNodeClick).toHaveBeenCalledTimes(0);
                 expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(0);
             });
+            test('clicking Jan bar fires series-node click listeners', async () => {
+                await clickAction(140, 255)(chart);
+                expect(chartClick).toHaveBeenCalledTimes(0);
+                expect(chartCrossLineClick).toHaveBeenCalledTimes(0);
+                expect(chartSeriesNodeClick).toHaveBeenCalledTimes(1);
+                expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(1);
+            });
+            test('clicking empty series-area point fire chart click listener', async () => {
+                await clickAction(140, 60)(chart);
+                expect(chartClick).toHaveBeenCalledTimes(1);
+                expect(chartCrossLineClick).toHaveBeenCalledTimes(0);
+                expect(chartSeriesNodeClick).toHaveBeenCalledTimes(0);
+                expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(0);
+            });
         });
 
         describe('non-interactive cross-lines fire chart and series-node click', async () => {

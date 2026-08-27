@@ -885,11 +885,12 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private checkCrossLineClick(event: ClickLikeEvent, pendingCallbacks: PendingCrossLineCallbacks): boolean {
+        const { allClickParams, axes, crossLines } = pendingCallbacks;
         const chartListener =
             event.type === 'click'
                 ? this.chart.ctx.chartService.listeners.crossLineClick
                 : this.chart.ctx.chartService.listeners.crossLineDoubleClick;
-        return pendingCallbacks.axes.size > 0 || pendingCallbacks.crossLines.size > 0 || chartListener != null;
+        return allClickParams.length > 0 && (axes.size > 0 || crossLines.size > 0 || chartListener != null);
     }
 
     private checkSeriesNodeClick(
