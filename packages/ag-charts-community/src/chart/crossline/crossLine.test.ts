@@ -821,6 +821,74 @@ describe('CrossLine', () => {
             );
             expect(crossLineClick).toHaveBeenCalledTimes(1);
         });
+
+        describe('non-interactive cross-lines fire chart and series-node click', async () => {
+            type ViFn = ReturnType<typeof vi.fn>;
+            let seriesSeriesNodeClick: ViFn;
+            let chartSeriesNodeClick: ViFn;
+            let chartClick: ViFn;
+
+            beforeEach(async () => {
+                seriesSeriesNodeClick = vi.fn();
+                chartSeriesNodeClick = vi.fn();
+                chartClick = vi.fn();
+
+                chart = await createChart({
+                    data: [
+                        { x: 'Jan', y: 8 },
+                        { x: 'Mar', y: 6 },
+                        { x: 'May', y: 3 },
+                        { x: 'Jul', y: 9 },
+                    ],
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y',
+                            listeners: { seriesNodeClick: seriesSeriesNodeClick },
+                        },
+                    ],
+                    axes: {
+                        myX: {
+                            type: 'category',
+                            crossAt: { value: 0 },
+                            crossLines: [
+                                { id: 'blue-line', type: 'line', value: 'May', stroke: 'blue', strokeWidth: 2 },
+                                { id: 'grey-range', type: 'range', range: ['Mar', 'Jul'], strokeWidth: 2 },
+                            ],
+                        },
+                        myY: {
+                            type: 'number',
+                            // No user-option `id`; Use auto-generated id.
+                            crossLines: [{ type: 'line', value: 8, stroke: 'lime', strokeWidth: 2 }],
+                        },
+                    },
+                    listeners: {
+                        click: chartClick,
+                        seriesNodeClick: chartSeriesNodeClick,
+                        // `crossLineClick` omitted
+                    },
+                });
+            });
+            test('click Jan bar', async () => {
+                await clickAction(140, 255)(chart);
+                expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(1);
+                expect(chartSeriesNodeClick).toHaveBeenCalledTimes(1);
+                expect(chartClick).toHaveBeenCalledTimes(0);
+            });
+            test('click chart on lime cross-line', async () => {
+                await clickAction(209, 127)(chart);
+                expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(0);
+                expect(chartSeriesNodeClick).toHaveBeenCalledTimes(0);
+                expect(chartClick).toHaveBeenCalledTimes(1);
+            });
+            test('click May bar on blue cross-line', async () => {
+                await clickAction(505, 470)(chart);
+                expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(1);
+                expect(chartSeriesNodeClick).toHaveBeenCalledTimes(1);
+                expect(chartClick).toHaveBeenCalledTimes(0);
+            });
+        });
     });
 
     describe('TC1: secondary axes', () => {
