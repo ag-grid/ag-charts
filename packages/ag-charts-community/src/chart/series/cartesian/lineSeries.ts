@@ -102,6 +102,7 @@ import {
     getMarkerStyles,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
+    maxMarkerStrokePickInflation,
     resetMarkerFn,
     resetMarkerPositionFn,
     resetMarkerSelectionsDirect,
@@ -180,6 +181,11 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
 
     private readonly aggregationManager = new AggregationManager<LineSeriesDataAggregationFilter>();
     private hideWithSize0 = false;
+    private markerNodesPickable = true;
+
+    protected override hasPickableNodeShapes(): boolean {
+        return this.markerNodesPickable;
+    }
 
     override get pickModeAxis() {
         return this.properties.sparklineMode ? 'main' : 'main-category';
@@ -814,6 +820,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             this.chart?.isMiniChart
         );
         this.hideWithSize0 = markerDrawMode.hideWithSize0;
+        this.markerNodesPickable = markerDrawMode.needsNodeData && !markerDrawMode.hideWithSize0;
         nodeData = markerDrawMode.needsNodeData ? nodeData : [];
 
         if (marker.isDirty()) {
@@ -949,6 +956,9 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         // other mode it returns the input unchanged. Hoist that constant out of the per-marker loop.
         const constantDrawingMode = drawingMode === 'cutout' ? undefined : drawingMode;
 
+        // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
+        const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
+
         const thisSeries = this;
         datumSelection.each(function datumSelectionUpdate(node, datum) {
             // updateDatumStyles populates datum.style for non-garbage nodes; the fallback below is rare.
@@ -959,6 +969,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 applyPosition,
                 crossFilterSelected: datum.crossFilterSelected,
                 hideWithSize0,
+                pickInflation,
             });
             const nextDrawingMode =
                 constantDrawingMode ?? thisSeries.resolveMarkerDrawingModeForState(drawingMode, style);

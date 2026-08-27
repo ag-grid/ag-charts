@@ -4488,6 +4488,32 @@ describe('ChartOptions', () => {
             expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
         });
 
+        it('does not claim the option was ignored in the thrown message, while the console record still does (TC2)', () => {
+            let thrown!: Error;
+            try {
+                new ChartOptions(
+                    invalidOptions({ validations: { throwOn: 'warning' } }),
+                    {} as AgChartOptions,
+                    {},
+                    {},
+                    {}
+                );
+            } catch (e) {
+                thrown = e as Error;
+            }
+
+            // Nothing was ignored under an armed threshold - the pass aborted instead of defaulting.
+            expect(thrown).toBeDefined();
+            expect(thrown.message).not.toMatch(/ignoring/i);
+            expect(thrown.message).toMatch(
+                /^AG Charts - validations\.throwOn: warning - `series\[0\]\.strokeWidth`: .*expecting a number greater than or equal to 0$/
+            );
+
+            // AC2: the console record is untouched by fail-fast, trailing clause included.
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => /notanumber/.test(m) && /, ignoring\.$/.test(m))).toBe(true);
+        });
+
         it('throws for the first qualifying issue rather than collecting the whole batch first (AC3)', () => {
             const options: AgChartOptions = {
                 series: [

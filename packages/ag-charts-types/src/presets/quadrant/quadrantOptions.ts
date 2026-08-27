@@ -1,5 +1,10 @@
 import type { RichFormatter, Styler } from '../../chart/callbackOptions';
-import type { AgNumberAxisOptions, AgSeriesAreaBackgroundRegion } from '../../chart/cartesianOptions';
+import type {
+    AgCartesianAxisCrossAtPlacement,
+    AgNumberAxisOptions,
+    AgSeriesAreaBackgroundRegion,
+    AgSeriesAreaBackgroundRegionLabel,
+} from '../../chart/cartesianOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgErrorBarOptions } from '../../chart/errorBarOptions';
 import type {
@@ -44,6 +49,8 @@ export interface AgQuadrantPreset<TDatum, TContext>
      * Default: `true`
      */
     alignAxesToPivot?: boolean;
+    /** Configuration for placement of axis titles and labels. */
+    axisPlacement?: AgQuadrantAxisPlacementOptions;
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarOptions<TDatum, TContext>;
     /** Function used to return formatting for individual markers, based on the supplied information.*/
@@ -72,6 +79,27 @@ export interface AgQuadrantPreset<TDatum, TContext>
     yAxis?: AgQuadrantAxisOptions<TContext>;
 }
 
+export interface AgQuadrantAxisPlacementOptions {
+    /**
+     * Whether the axis title is placed at the crossing point, or at the axis' `position` edge.
+     *
+     * Default: `'edge'`
+     */
+    title?: AgCartesianAxisCrossAtPlacement;
+    /**
+     * Whether the axis labels are placed at the crossing point, or at the axis' `position` edge.
+     *
+     * Default: `'crossing'`
+     */
+    label?: AgCartesianAxisCrossAtPlacement;
+    /**
+     * Whether the crosshair label is placed at the crossing point, or at the axis' `position` edge.
+     *
+     * Default: `'edge'`
+     */
+    crosshairLabel?: AgCartesianAxisCrossAtPlacement;
+}
+
 export interface AgQuadrantPivotOptions {
     /** The x-value at which the chart is divided into left and right regions.
      *
@@ -86,6 +114,8 @@ export interface AgQuadrantPivotOptions {
 }
 
 export interface AgQuadrantRegionsOptions {
+    /** Configuration for labels shared across every region. */
+    label?: AgQuadrantRegionLabelOptions;
     /** Configuration for the region containing values below the pivot on the x-axis and above it on the y-axis. */
     topLeft?: AgQuadrantRegionOptions;
     /** Configuration for the region containing values above the pivot on both axes. */
@@ -95,6 +125,8 @@ export interface AgQuadrantRegionsOptions {
     /** Configuration for the region containing values above the pivot on the x-axis and below it on the y-axis. */
     bottomRight?: AgQuadrantRegionOptions;
 }
+
+export interface AgQuadrantRegionLabelOptions extends Omit<AgSeriesAreaBackgroundRegionLabel, 'text'> {}
 
 export interface AgQuadrantRegionOptions extends Omit<AgSeriesAreaBackgroundRegion, 'xRange' | 'yRange'> {
     /** Styling for the markers of the data points that fall within this region. When `fill` is omitted, markers use
