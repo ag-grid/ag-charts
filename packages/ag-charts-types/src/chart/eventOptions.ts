@@ -45,9 +45,10 @@ export interface AgNodeClickEvent<
 /**
  * One element identified at a click point, discriminated by its `clickedOn` field. This is the element type of
  * `allClickParams`, letting one listener see everything under the cursor — for example a series node drawn over a
- * Cross Line. The winning element, whose params are flattened onto the event root, is listed first.
+ * Cross Line. Entries are grouped by kind, with the kind that won the event first; the winning element itself is
+ * included but not necessarily at index 0, so identify it by comparing ids against the event root.
  *
- * Keyed by array position rather than by kind, because one kind can match more than once at a single click point:
+ * A list rather than a map keyed by kind, because one kind can match more than once at a single click point:
  * overlapping markers each contribute their own `'series-node'` entry, and Cross Lines on different axes each
  * contribute their own `'cross-line'` entry.
  */
