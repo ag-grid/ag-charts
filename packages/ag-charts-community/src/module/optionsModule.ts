@@ -270,6 +270,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     activeTheme: ChartTheme;
     processedOptions: T;
     userOptions: Partial<T>;
+    /**
+     * The chart's lead series type when no module is registered to draw it — an explicit
+     * `series[0].type`, or the implicit `'line'` when `series` is absent. The theme keys a chart's whole
+     * default set off that entry, so `processedOptions` then carries no chart-level defaults.
+     */
+    readonly unusableLeadSeriesType: string | undefined;
     processedOverrides: Partial<T>;
     specialOverrides: ChartSpecialOverrides;
     optionMetadata: ChartInternalOptionMetadata;
@@ -412,6 +418,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (stripSymbols) {
                 this.removeLeftoverSymbols(this.userOptions);
             }
+            // After the sentinels, so the lead type is the one the update actually resolves to.
+            this.unusableLeadSeriesType = this.resolveUnusableLeadSeriesType();
 
             const dataChangedLength =
                 currentUserOptions instanceof ChartOptions &&
@@ -429,6 +437,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 deltaOptions !== undefined &&
                 ChartOptions.isFastPathDelta(deltaOptions, presetDef?.fastUpdateKeys) &&
                 baseChartOptions != null &&
+                // The base carries no chart-level defaults, so the fast path would skip re-deriving them.
+                baseChartOptions.unusableLeadSeriesType == null &&
                 !dataChangedLength &&
                 // An armed `throwOn` must re-validate on every pass — the fast path carries `validationIssues`
                 // forward without calling the `record*` methods that throw.
@@ -1197,6 +1207,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private optionsType(options: Partial<T>) {
         return options.series?.[0]?.type ?? 'line';
+    }
+
+    private resolveUnusableLeadSeriesType(): string | undefined {
+        // Presets supply their own series, so the user options' lead type says nothing about them.
+        if (this.optionMetadata.presetType != null) return undefined;
+        const seriesType = this.optionsType(this.userOptions);
+        return ModuleRegistry.getSeriesModule(seriesType) == null ? seriesType : undefined;
     }
 
     private processSeriesOptions(options: T) {
