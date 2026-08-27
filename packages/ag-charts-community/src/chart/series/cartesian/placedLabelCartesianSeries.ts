@@ -140,6 +140,10 @@ export abstract class PlacedLabelCartesianSeries<
     }
 
     protected updateLabelNodes(opts: { labelSelection: LabelSelectionOf<TTypes>; isHighlight?: boolean }) {
+        // OPTIMIZATION: the placement offsets below resolve the label over every decorated property,
+        // so a selection with no labels in it must not pay for them.
+        if (opts.labelSelection.length === 0) return;
+
         const isHighlight = opts.isHighlight ?? false;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const params = this.makeLabelFormatterParams();
