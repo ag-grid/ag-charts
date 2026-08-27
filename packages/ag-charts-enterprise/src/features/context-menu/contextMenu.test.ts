@@ -208,6 +208,21 @@ describe('Context Menu', () => {
             expect(params.datum).toBeUndefined();
         });
 
+        it('carries no region on a chart built without the quadrant preset', async () => {
+            const getItems = vi.fn((_params: any) => []);
+            await prepareChart({ enabled: true, getItems });
+
+            const { canvasX: x, canvasY: y } = nodeCanvasPoint(3);
+            await contextMenuAction(x, y)(chart);
+            await waitForChartStability(chart);
+
+            expect(getItems).toHaveBeenCalledTimes(1);
+            const params = getItems.mock.calls[0][0];
+            expect(params.showOn).toBe('series-node');
+            expect('region' in params).toBe(false);
+            expect(params.allShowOnParams.every((p: any) => !('region' in p))).toBe(true);
+        });
+
         it('leaves datums undefined for a 1:1 series node', async () => {
             const getItems = vi.fn((_params: any) => []);
             await prepareChart({ enabled: true, getItems });

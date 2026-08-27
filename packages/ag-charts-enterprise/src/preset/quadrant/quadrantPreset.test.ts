@@ -1,17 +1,20 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     type ChartTestCase,
     cartesianChartAssertions,
     compareImageSnapshot,
+    contextMenuAction,
+    deproxy,
     expectNonBlank,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import type { AgChartOptions, AgQuadrantChartOptions } from 'ag-charts-types';
+import type { AgChartOptions, AgQuadrantChartOptions, AgQuadrantRegion } from 'ag-charts-types';
 
+import { DEFAULT_CONTEXT_MENU_CLASS } from '../../features/context-menu/contextMenuStyles';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 const NUMERIC: AgQuadrantChartOptions = {
@@ -333,5 +336,219 @@ describe('Quadrant Preset theme isolation', () => {
     it('does not lose the preset template to a plain chart created beforehand', () => {
         expectPlainStyling(resolveAxes(plainOptions()));
         expectQuadrantStyling(resolveAxes(quadrantOptions(), 'quadrant'));
+    });
+});
+
+// `region` must reach the two plot-area scopes and no others. These are compile-time assertions; the
+// `@ts-expect-error` directives fail the build if the generic threading regresses.
+const CONTEXT_MENU_TYPE_CHECK: AgQuadrantChartOptions = {
+    xKey: 'x',
+    yKey: 'y',
+    contextMenu: {
+        getItems: (params) => {
+            if (params.showOn === 'series-node') {
+                const region: AgQuadrantRegion | undefined = params.region;
+                void region;
+            }
+            if (params.showOn === 'series-area') {
+                const region: AgQuadrantRegion | undefined = params.region;
+                void region;
+            }
+            if (params.showOn === 'axis') {
+                // @ts-expect-error an axis click does not fall in a region
+                void params.region;
+            }
+            for (const scope of params.allShowOnParams) {
+                if (scope.showOn === 'series-node') {
+                    const region: AgQuadrantRegion | undefined = scope.region;
+                    void region;
+                }
+                if (scope.showOn === 'legend-item') {
+                    // @ts-expect-error a legend item does not fall in a region
+                    void scope.region;
+                }
+            }
+            return undefined;
+        },
+    },
+};
+
+const PLAIN_CONTEXT_MENU_TYPE_CHECK: AgChartOptions = {
+    contextMenu: {
+        getItems: (params) => {
+            if (params.showOn === 'series-node') {
+                // @ts-expect-error region is a quadrant preset addition, not part of the shared API
+                void params.region;
+            }
+            return undefined;
+        },
+    },
+};
+
+describe('Quadrant Preset context menu region', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    // Away from the origin, so a pass proves the region comes from the pivot and not the sign of the value.
+    const PIVOT = { x: 25, y: -25 };
+
+    const CONTEXT_MENU_OPTIONS: AgQuadrantChartOptions = {
+        data: [
+            { label: 'bottom-left', x: -100, y: -100 },
+            { label: 'top-left', x: -75, y: 75 },
+            { label: 'top-right', x: 75, y: 75 },
+            { label: 'bottom-right', x: 75, y: -75 },
+        ],
+        xKey: 'x',
+        yKey: 'y',
+        labelKey: 'label',
+        pivot: PIVOT,
+    };
+
+    let chart: any;
+    let tmpPointerEvent: typeof globalThis.PointerEvent;
+
+    beforeEach(() => {
+        // Node.js has no PointerEvent constructor, which the synthetic 'contextmenu' events need.
+        tmpPointerEvent = globalThis.PointerEvent;
+        globalThis.PointerEvent = class extends MouseEvent {} as typeof globalThis.PointerEvent;
+    });
+
+    afterEach(async () => {
+        globalThis.PointerEvent = tmpPointerEvent;
+        if (chart) {
+            await waitForChartStability(chart);
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+    });
+
+    const prepareChart = async (
+        contextMenu: AgQuadrantChartOptions['contextMenu'],
+        overrides?: Partial<AgQuadrantChartOptions>
+    ) => {
+        const options: AgQuadrantChartOptions = { ...CONTEXT_MENU_OPTIONS, ...overrides, contextMenu };
+        prepareEnterpriseTestOptions(options as AgChartOptions);
+        chart = AgCharts.createQuadrantChart(options);
+        await waitForChartStability(chart);
+    };
+
+    /** Canvas point of the marker whose datum carries `label`. */
+    const markerPoint = (label: string) => {
+        const series = deproxy(chart).series[0] as any;
+        const node = series.getNodeData().find((n: any) => n.datum.label === label);
+        expect(node).toBeDefined();
+        return _ModuleSupport.Transformable.toCanvasPoint(series.contentGroup, node.point.x, node.point.y);
+    };
+
+    /**
+     * A point inside the series area in the named quadrant, clear of both the markers and the crossing axes.
+     * x increases rightwards and y increases upwards, so the plot rect corners map onto the quadrants.
+     */
+    const seriesAreaPoint = (quadrant: AgQuadrantRegion) => {
+        const { x, y, width, height } = deproxy(chart).seriesRect!;
+        const left = quadrant === 'top-left' || quadrant === 'bottom-left';
+        const top = quadrant === 'top-left' || quadrant === 'top-right';
+        return {
+            canvasX: x + width * (left ? 0.15 : 0.85),
+            canvasY: y + height * (top ? 0.15 : 0.85),
+        };
+    };
+
+    const rightClick = async (point: { canvasX: number; canvasY: number }) => {
+        await contextMenuAction(point.canvasX, point.canvasY)(chart);
+        await waitForChartStability(chart);
+    };
+
+    const QUADRANTS: AgQuadrantRegion[] = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+
+    it.each(QUADRANTS)('reports the %s region for a series-node click', async (quadrant) => {
+        const getItems = vi.fn((_params: any) => []);
+        await prepareChart({ enabled: true, getItems });
+
+        await rightClick(markerPoint(quadrant));
+
+        expect(getItems).toHaveBeenCalledTimes(1);
+        const params = getItems.mock.calls[0][0];
+        expect(params.showOn).toBe('series-node');
+        expect(params.region).toBe(quadrant);
+    });
+
+    it.each(QUADRANTS)('reports the %s region for a series-area click', async (quadrant) => {
+        const getItems = vi.fn((_params: any) => []);
+        await prepareChart({ enabled: true, getItems });
+
+        await rightClick(seriesAreaPoint(quadrant));
+
+        expect(getItems).toHaveBeenCalledTimes(1);
+        const params = getItems.mock.calls[0][0];
+        expect(params.showOn).toBe('series-area');
+        expect(params.region).toBe(quadrant);
+    });
+
+    it('derives the series-area region from the pivot rather than from zero', async () => {
+        const getItems = vi.fn((_params: any) => []);
+        await prepareChart({ enabled: true, getItems });
+
+        const { x, y } = deproxy(chart).seriesRect!;
+        const axes = deproxy(chart).axes as any[];
+        const xAxis = axes.find((a) => a.direction === 'x');
+        const yAxis = axes.find((a) => a.direction === 'y');
+        expect(xAxis).toBeDefined();
+        expect(yAxis).toBeDefined();
+
+        // Positive x and negative y: a zero-based split would call this 'bottom-right', the pivot puts it top-left.
+        await rightClick({ canvasX: x + xAxis.scale.convert(10), canvasY: y + yAxis.scale.convert(-10) });
+
+        const params = getItems.mock.calls[0][0];
+        expect(params.coordinates.x.value).toBeGreaterThan(0);
+        expect(params.coordinates.y.value).toBeLessThan(0);
+        expect(params.region).toBe('top-left');
+    });
+
+    it('enriches the series-node and series-area entries in allShowOnParams', async () => {
+        const getItems = vi.fn((_params: any) => []);
+        await prepareChart({ enabled: true, getItems });
+
+        await rightClick(markerPoint('top-right'));
+
+        const params = getItems.mock.calls[0][0];
+        const node = params.allShowOnParams.find((p: any) => p.showOn === 'series-node');
+        const area = params.allShowOnParams.find((p: any) => p.showOn === 'series-area');
+        expect(node).toBeDefined();
+        expect(area).toBeDefined();
+        expect(node.region).toBe('top-right');
+        expect(node.region).toBe(params.region);
+        expect(area.region).toBe('top-right');
+    });
+
+    it('leaves a click outside the plot area without a region', async () => {
+        const getItems = vi.fn((_params: any) => []);
+        await prepareChart({ enabled: true, getItems });
+
+        await rightClick({ canvasX: 1, canvasY: 1 });
+
+        expect(getItems).toHaveBeenCalledTimes(1);
+        const params = getItems.mock.calls[0][0];
+        expect(params.showOn).toBe('always');
+        expect('region' in params).toBe(false);
+    });
+
+    it('exposes region only on the plot-area scopes', () => {
+        expect(CONTEXT_MENU_TYPE_CHECK.contextMenu?.getItems).toBeDefined();
+        expect(PLAIN_CONTEXT_MENU_TYPE_CHECK.contextMenu?.getItems).toBeDefined();
+    });
+
+    it('falls back to items when the composed getItems returns undefined', async () => {
+        const getItems = vi.fn((_params: any) => undefined);
+        await prepareChart({ enabled: true, getItems, items: ['download'] });
+
+        await rightClick(seriesAreaPoint('top-right'));
+
+        expect(getItems).toHaveBeenCalledTimes(1);
+        expect(getItems.mock.results[0].value).toBeUndefined();
+        const menus = document.body.getElementsByClassName(DEFAULT_CONTEXT_MENU_CLASS);
+        expect(menus).toHaveLength(1);
+        expect(menus[0].textContent).toContain('Download');
     });
 });

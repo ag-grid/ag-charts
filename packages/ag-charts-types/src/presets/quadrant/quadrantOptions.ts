@@ -1,5 +1,6 @@
 import type { RichFormatter, Styler } from '../../chart/callbackOptions';
 import type { AgNumberAxisOptions, AgSeriesAreaBackgroundRegion } from '../../chart/cartesianOptions';
+import type { AgContextMenuOptions } from '../../chart/contextMenuOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgErrorBarOptions } from '../../chart/errorBarOptions';
 import type {
@@ -44,6 +45,8 @@ export interface AgQuadrantPreset<TDatum, TContext>
      * Default: `true`
      */
     alignAxesToPivot?: boolean;
+    /** Configuration for the context menu. */
+    contextMenu?: AgContextMenuOptions<TDatum, TContext, AgQuadrantContextMenuParams>;
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarOptions<TDatum, TContext>;
     /** Function used to return formatting for individual markers, based on the supplied information.*/
@@ -142,6 +145,15 @@ export interface AgQuadrantLabelOptions<TDatum, TContext> extends Omit<
 export interface AgQuadrantLabelFormatterParams<TDatum> extends AgScatterSeriesLabelFormatterParams<TDatum> {
     /** The region the marker falls in, determined by comparing its x- and y-values against the pivot. */
     region: AgQuadrantRegion;
+}
+
+export interface AgQuadrantContextMenuParams {
+    /**
+     * The region the clicked point falls in, determined by comparing its x- and y-values against the pivot. Only
+     * present for clicks over the series area, and undefined when the clicked point's data values could not be
+     * resolved.
+     */
+    region?: AgQuadrantRegion;
 }
 
 export type AgQuadrantRegion = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';

@@ -1,13 +1,17 @@
-import { type CartesianAxisDirection, Logger, pick } from 'ag-charts-core';
+import { type CartesianAxisDirection, Logger, isFiniteNumericValue, pick } from 'ag-charts-core';
 import type {
     AgBubbleSeriesOptions,
     AgCartesianChartOptions,
     AgChartCallbackParams,
     AgChartLabelFormatterParams,
     AgChartLabelStylerParams,
+    AgContextMenuGetItemsParams,
+    AgContextMenuShowOnParams,
+    AgCoordinates,
     AgNumberAxisOptions,
     AgNumericValue,
     AgQuadrantChartOptions,
+    AgQuadrantRegion,
     AgScatterSeriesItemStylerParams,
     AgScatterSeriesLabelFormatterParams,
     AgScatterSeriesOptions,
@@ -26,9 +30,15 @@ function getRegionMeta(
     pivotX: AgNumericValue,
     pivotY: AgNumericValue
 ) {
-    const xValue = params.datum[params.xKey];
-    const yValue = params.datum[params.yKey];
+    return getRegionMetaForValues(params.datum[params.xKey], params.datum[params.yKey], pivotX, pivotY);
+}
 
+function getRegionMetaForValues(
+    xValue: AgNumericValue,
+    yValue: AgNumericValue,
+    pivotX: AgNumericValue,
+    pivotY: AgNumericValue
+) {
     let regionName: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' = 'bottom-left';
     let index = 2;
     if (xValue > pivotX && yValue > pivotY) {
@@ -217,6 +227,44 @@ export function createQuadrant(
           }
         : undefined;
 
+    const userGetItems = options.contextMenu?.getItems;
+
+    const regionForValues = (xValue: unknown, yValue: unknown): AgQuadrantRegion | undefined => {
+        if (!isFiniteNumericValue(xValue) || !isFiniteNumericValue(yValue)) return;
+        return getRegionMetaForValues(xValue, yValue, pivotX, pivotY).regionName;
+    };
+
+    // Only clicks over the series area fall in a region. A `series-area` scope carries no datum, so its region comes
+    // from the click's domain-space coordinates, which live on the root params rather than on the scope entry.
+    const regionOfScope = (
+        scope: AgContextMenuShowOnParams,
+        coordinates: AgCoordinates | undefined
+    ): AgQuadrantRegion | undefined => {
+        if (scope.showOn === 'series-node') {
+            return regionForValues(scope.datum?.[options.xKey], scope.datum?.[options.yKey]);
+        }
+        if (scope.showOn === 'series-area') {
+            return regionForValues(coordinates?.x?.value, coordinates?.y?.value);
+        }
+    };
+
+    const composedGetItems = userGetItems
+        ? (params: AgContextMenuGetItemsParams) => {
+              const { coordinates } = params;
+              const allShowOnParams = params.allShowOnParams.map((scope) => {
+                  if (scope.showOn === 'series-node' || scope.showOn === 'series-area') {
+                      return { ...scope, region: regionOfScope(scope, coordinates) };
+                  }
+                  return scope;
+              });
+
+              if (params.showOn === 'series-node' || params.showOn === 'series-area') {
+                  return userGetItems({ ...params, allShowOnParams, region: regionOfScope(params, coordinates) });
+              }
+              return userGetItems({ ...params, allShowOnParams });
+          }
+        : undefined;
+
     const series: (AgScatterSeriesOptions | AgBubbleSeriesOptions)[] = [];
 
     if (options.sizeKey == null) {
@@ -282,6 +330,7 @@ export function createQuadrant(
 
     return {
         ...chartOptions,
+        ...(composedGetItems && { contextMenu: { ...options.contextMenu, getItems: composedGetItems } }),
         axes,
         context,
         series,

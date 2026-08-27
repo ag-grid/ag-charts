@@ -166,6 +166,9 @@ type GetItemsParamsOmissions = 'type' | 'event' | 'coordinates' | 'defaultPreven
 // change, because code that uses these generic types would need to be updated to shift generic TContext parameter by
 // one position to the right. A workaround could be to change <TContext> to <TContext, TDatum = DatumDefault>, but this
 // is inconsistent with the ordering of other generic types in our API.
+//
+// `TParams` is appended last for the same reason. Only the two plot-area scopes intersect it, since they alone
+// correspond to a point in the series area.
 
 export interface AgContextMenuShowOnParamsAlways<_TDatumReserved = never, TContext = ContextDefault> extends Omit<
     AgChartContextMenuEvent<TContext>,
@@ -237,16 +240,16 @@ export interface AgContextMenuShowOnParamsLegendItem<_TDatumReserved = never, TC
  * Keyed by array position rather than by scope, because one scope can match more than once at a single click
  * point — e.g. overlapping markers each contribute their own `series-node` entry.
  */
-export type AgContextMenuShowOnParams<TDatum = DatumDefault, TContext = ContextDefault> =
+export type AgContextMenuShowOnParams<TDatum = DatumDefault, TContext = ContextDefault, TParams = unknown> =
     | AgContextMenuShowOnParamsAlways<TDatum, TContext>
     | AgContextMenuShowOnParamsAxis<TDatum, TContext>
     | AgContextMenuShowOnParamsCaption<TDatum, TContext>
     | AgContextMenuShowOnParamsCrossLine<TDatum, TContext>
-    | AgContextMenuShowOnParamsSeriesArea<TDatum, TContext>
-    | AgContextMenuShowOnParamsSeriesNode<TDatum, TContext>
+    | (AgContextMenuShowOnParamsSeriesArea<TDatum, TContext> & TParams)
+    | (AgContextMenuShowOnParamsSeriesNode<TDatum, TContext> & TParams)
     | AgContextMenuShowOnParamsLegendItem<TDatum, TContext>;
 
-interface GetItemsParamsMixin<TDatum, TContext> {
+interface GetItemsParamsMixin<TDatum, TContext, TParams> {
     /** The default menu items that would be shown without customisation. */
     defaultItems: AgContextMenuItem<TDatum, TContext>[];
     /* Domain-space coordinates of this event. */
@@ -257,54 +260,80 @@ interface GetItemsParamsMixin<TDatum, TContext> {
      * over an axis positioned with `crossAt`. Scopes that did not match are absent from the array. A scope
      * appears more than once when several of its contexts match the same point, such as overlapping markers.
      */
-    allShowOnParams: AgContextMenuShowOnParams<TDatum, TContext>[];
+    allShowOnParams: AgContextMenuShowOnParams<TDatum, TContext, TParams>[];
 }
 
-export interface AgContextMenuGetItemsParamsAlways<_TDatumReserved = never, TContext = ContextDefault>
+export interface AgContextMenuGetItemsParamsAlways<
+    _TDatumReserved = never,
+    TContext = ContextDefault,
+    TParams = unknown,
+>
     extends
         AgContextMenuShowOnParamsAlways<_TDatumReserved, TContext>,
-        GetItemsParamsMixin<_TDatumReserved, TContext> {}
+        GetItemsParamsMixin<_TDatumReserved, TContext, TParams> {}
 
-export interface AgContextMenuGetItemsParamsAxis<_TDatumReserved = never, TContext = ContextDefault>
-    extends AgContextMenuShowOnParamsAxis<_TDatumReserved, TContext>, GetItemsParamsMixin<_TDatumReserved, TContext> {}
+export interface AgContextMenuGetItemsParamsAxis<_TDatumReserved = never, TContext = ContextDefault, TParams = unknown>
+    extends
+        AgContextMenuShowOnParamsAxis<_TDatumReserved, TContext>,
+        GetItemsParamsMixin<_TDatumReserved, TContext, TParams> {}
 
-export interface AgContextMenuGetItemsParamsCrossLine<_TDatumReserved = never, TContext = ContextDefault>
+export interface AgContextMenuGetItemsParamsCrossLine<
+    _TDatumReserved = never,
+    TContext = ContextDefault,
+    TParams = unknown,
+>
     extends
         AgContextMenuShowOnParamsCrossLine<_TDatumReserved, TContext>,
-        GetItemsParamsMixin<_TDatumReserved, TContext> {}
+        GetItemsParamsMixin<_TDatumReserved, TContext, TParams> {}
 
-export interface AgContextMenuGetItemsParamsCaption<_TDatumReserved = never, TContext = ContextDefault>
+export interface AgContextMenuGetItemsParamsCaption<
+    _TDatumReserved = never,
+    TContext = ContextDefault,
+    TParams = unknown,
+>
     extends
         AgContextMenuShowOnParamsCaption<_TDatumReserved, TContext>,
-        GetItemsParamsMixin<_TDatumReserved, TContext> {}
+        GetItemsParamsMixin<_TDatumReserved, TContext, TParams> {}
 
-export interface AgContextMenuGetItemsParamsSeriesArea<_TDatumReserved = never, TContext = ContextDefault>
+export interface AgContextMenuGetItemsParamsSeriesArea<
+    _TDatumReserved = never,
+    TContext = ContextDefault,
+    TParams = unknown,
+>
     extends
         AgContextMenuShowOnParamsSeriesArea<_TDatumReserved, TContext>,
-        GetItemsParamsMixin<_TDatumReserved, TContext> {}
+        GetItemsParamsMixin<_TDatumReserved, TContext, TParams> {}
 
-export interface AgContextMenuGetItemsParamsSeriesNode<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgContextMenuShowOnParamsSeriesNode<TDatum, TContext>, GetItemsParamsMixin<TDatum, TContext> {}
+export interface AgContextMenuGetItemsParamsSeriesNode<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+    TParams = unknown,
+>
+    extends AgContextMenuShowOnParamsSeriesNode<TDatum, TContext>, GetItemsParamsMixin<TDatum, TContext, TParams> {}
 
-export interface AgContextMenuGetItemsParamsLegendItem<_TDatumReserved = never, TContext = ContextDefault>
+export interface AgContextMenuGetItemsParamsLegendItem<
+    _TDatumReserved = never,
+    TContext = ContextDefault,
+    TParams = unknown,
+>
     extends
         AgContextMenuShowOnParamsLegendItem<_TDatumReserved, TContext>,
-        GetItemsParamsMixin<_TDatumReserved, TContext> {}
+        GetItemsParamsMixin<_TDatumReserved, TContext, TParams> {}
 
-export type AgContextMenuGetItemsParams<TDatum = DatumDefault, TContext = ContextDefault> =
-    | AgContextMenuGetItemsParamsAlways<TDatum, TContext>
-    | AgContextMenuGetItemsParamsAxis<TDatum, TContext>
-    | AgContextMenuGetItemsParamsCaption<TDatum, TContext>
-    | AgContextMenuGetItemsParamsCrossLine<TDatum, TContext>
-    | AgContextMenuGetItemsParamsSeriesArea<TDatum, TContext>
-    | AgContextMenuGetItemsParamsSeriesNode<TDatum, TContext>
-    | AgContextMenuGetItemsParamsLegendItem<TDatum, TContext>;
+export type AgContextMenuGetItemsParams<TDatum = DatumDefault, TContext = ContextDefault, TParams = unknown> =
+    | AgContextMenuGetItemsParamsAlways<TDatum, TContext, TParams>
+    | AgContextMenuGetItemsParamsAxis<TDatum, TContext, TParams>
+    | AgContextMenuGetItemsParamsCaption<TDatum, TContext, TParams>
+    | AgContextMenuGetItemsParamsCrossLine<TDatum, TContext, TParams>
+    | (AgContextMenuGetItemsParamsSeriesArea<TDatum, TContext, TParams> & TParams)
+    | (AgContextMenuGetItemsParamsSeriesNode<TDatum, TContext, TParams> & TParams)
+    | AgContextMenuGetItemsParamsLegendItem<TDatum, TContext, TParams>;
 
-export type AgContextMenuGetItemsCallback<TDatum = DatumDefault, TContext = ContextDefault> = (
-    params: AgContextMenuGetItemsParams<TDatum, TContext>
+export type AgContextMenuGetItemsCallback<TDatum = DatumDefault, TContext = ContextDefault, TParams = unknown> = (
+    params: AgContextMenuGetItemsParams<TDatum, TContext, TParams>
 ) => AgContextMenuItem<TDatum, TContext>[] | undefined;
 
-export interface AgContextMenuOptions<TDatum = DatumDefault, TContext = ContextDefault> {
+export interface AgContextMenuOptions<TDatum = DatumDefault, TContext = ContextDefault, TParams = unknown> {
     /**
      * Whether to show the context menu.
      *
@@ -322,5 +351,5 @@ export interface AgContextMenuOptions<TDatum = DatumDefault, TContext = ContextD
      *
      * Default: `undefined`
      */
-    getItems?: AgContextMenuGetItemsCallback<TDatum, TContext>;
+    getItems?: AgContextMenuGetItemsCallback<TDatum, TContext, TParams>;
 }
