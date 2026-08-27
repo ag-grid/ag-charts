@@ -891,6 +891,68 @@ describe('Chart highlighting', () => {
             expect(stateAt(chart, 1, 3)).toBe('unhighlighted-series');
         });
 
+        // The maintainer's two repros on the ticket (David Glickman, 2026-08-26) are both three stacked
+        // series on one category axis - a shape the two-series cases here do not cover, and the only one
+        // where the shared group spans more than one non-hovered series.
+        const stackedReproData = [
+            { quarter: 'Q1', apples: 5, oranges: 3, pears: 4 },
+            { quarter: 'Q2', apples: 8, oranges: 6, pears: 2 },
+            { quarter: 'Q3', apples: 4, oranges: 7, pears: 5 },
+            { quarter: 'Q4', apples: 9, oranges: 2, pears: 3 },
+        ];
+
+        const stackedReproOptions = (seriesType: 'bar' | 'line') =>
+            prepareTestOptions<AgCartesianChartOptions>({
+                data: stackedReproData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                legend: { enabled: false },
+                highlight: { mode: 'shared' },
+                series: ['apples', 'oranges', 'pears'].map((yKey) => ({
+                    type: seriesType,
+                    xKey: 'quarter',
+                    yKey,
+                    stacked: true,
+                })) as AgCartesianChartOptions['series'],
+            });
+
+        it.each(['bar', 'line'] as const)(
+            'applies the four rules across three stacked %s series, hovering Pears in Q2',
+            async (seriesType) => {
+                const options = stackedReproOptions(seriesType);
+                chart = await createChart(options);
+                await waitForChartStability(chart);
+
+                const hoveredDatum = defaultHighlightDatum(chart, {
+                    name: `q2-pears-${seriesType}`,
+                    options,
+                    seriesIndex: 2,
+                    datumIndex: 1,
+                });
+                expect(hoveredDatum).toBeDefined();
+
+                chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+                await waitForChartStability(chart);
+
+                expect(stateAt(chart, 2, 1, true)).toBe('highlighted-item');
+                expect(stateAt(chart, 2, 0)).toBe('unhighlighted-item');
+                expect(stateAt(chart, 2, 2)).toBe('unhighlighted-item');
+                expect(stateAt(chart, 2, 3)).toBe('unhighlighted-item');
+
+                // Both other stacked series hold a Q2 item, so the shared group lights both...
+                expect(stateAt(chart, 0, 1)).toBe('highlighted-item');
+                expect(stateAt(chart, 1, 1)).toBe('highlighted-item');
+                // ...and leaves the rest of each series dimmed.
+                for (const seriesIndex of [0, 1]) {
+                    for (const datumIndex of [0, 2, 3]) {
+                        expect(stateAt(chart, seriesIndex, datumIndex)).toBe('unhighlighted-series');
+                    }
+                }
+            }
+        );
+
         it('leaves a series wholly unhighlighted-series when it has no item at the hovered category', async () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({
                 data: categoryData,
@@ -1166,6 +1228,47 @@ describe('Chart highlighting', () => {
 
                 // The lit pair must move with the hover, leaving nothing lit at the previous category.
                 chart.ctx.highlightManager.updateHighlight(chart.id, datumQ3);
+                await waitForChartStability(chart);
+                await compare();
+            });
+
+            // The maintainer's repro shape, with its explicit highlight styles so each segment's resolved
+            // state is legible in the snapshot rather than a difference in opacity. Also the only case
+            // where a lit and a dimmed segment sit directly adjacent within one stack.
+            it('renders the whole shared group lit across three stacked series', async () => {
+                const options = prepareTestOptions<AgCartesianChartOptions>({
+                    data: stackedReproData,
+                    axes: {
+                        x: { position: 'bottom', type: 'category' },
+                        y: { position: 'left', type: 'number' },
+                    },
+                    legend: { enabled: false },
+                    highlight: { mode: 'shared' },
+                    series: ['apples', 'oranges', 'pears'].map((yKey) => ({
+                        type: 'bar',
+                        xKey: 'quarter',
+                        yKey,
+                        stacked: true,
+                        highlight: {
+                            highlightedItem: { fill: 'gold', stroke: 'gold', strokeWidth: 5 },
+                            unhighlightedItem: { stroke: 'red', strokeWidth: 5 },
+                            unhighlightedSeries: { stroke: 'grey', strokeWidth: 5 },
+                        },
+                    })) as AgCartesianChartOptions['series'],
+                });
+
+                chart = await createChart(options);
+                await waitForChartStability(chart);
+
+                const hoveredDatum = defaultHighlightDatum(chart, {
+                    name: 'q2-pears',
+                    options,
+                    seriesIndex: 2,
+                    datumIndex: 1,
+                });
+                expect(hoveredDatum).toBeDefined();
+
+                chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
                 await waitForChartStability(chart);
                 await compare();
             });
