@@ -1,7 +1,8 @@
 import { Select } from '@ag-website-shared/components/select/Select';
 import styled from '@emotion/styled';
 
-import { PREVIEW_CHART_TYPES, type PreviewChartType, SERIES_COUNT_OPTIONS } from './chartTypes';
+import { PREVIEW_CHART_TYPES, type PreviewChartType } from './chartTypes';
+import { SERIES_COUNT_OPTIONS } from './previewData';
 
 interface Props {
     /** Which of the two previews this set of controls drives, for screen readers. */

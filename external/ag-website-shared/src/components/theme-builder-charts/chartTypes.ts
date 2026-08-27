@@ -4,9 +4,8 @@ import { useAtom } from 'jotai';
 
 import {
     DEFAULT_SERIES_COUNT,
-    MAX_SERIES_COUNT,
-    MIN_SERIES_COUNT,
     PREVIEW_DATA,
+    SERIES_COUNT_OPTIONS,
     THUMBNAIL_DATA,
     THUMBNAIL_SERIES_KEYS,
     THUMBNAIL_SLICES,
@@ -211,15 +210,19 @@ const seriesCountAtoms: Record<PreviewPaneId, PersistentAtom<number>> = {
     right: atomWithJSONStorage<number>('charts-preview-series-count-right', DEFAULT_SERIES_COUNT),
 };
 
-export const SERIES_COUNT_OPTIONS = Array.from(
-    { length: MAX_SERIES_COUNT - MIN_SERIES_COUNT + 1 },
-    (_, index) => MIN_SERIES_COUNT + index
-);
+/**
+ * Snapped rather than clamped, because the offered counts are sparse: a stored
+ * value outlives the scale that produced it, and one landing between two options
+ * would leave the control displaying a count it has no way to select again.
+ */
+export const snapSeriesCount = (count: number) =>
+    Number.isFinite(count)
+        ? SERIES_COUNT_OPTIONS.reduce((best, option) =>
+              Math.abs(option - count) < Math.abs(best - count) ? option : best
+          )
+        : DEFAULT_SERIES_COUNT;
 
 export const usePreviewSeriesCount = (pane: PreviewPaneId) => {
     const [count, setCount] = useAtom(seriesCountAtoms[pane]);
-    // Clamped on read: the stored value outlives any change to the data, and a
-    // count past the end of it would render fewer series than the label claims.
-    const clamped = Math.min(Math.max(Math.round(count) || DEFAULT_SERIES_COUNT, MIN_SERIES_COUNT), MAX_SERIES_COUNT);
-    return [clamped, setCount] as const;
+    return [snapSeriesCount(count), setCount] as const;
 };
