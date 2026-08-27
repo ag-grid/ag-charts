@@ -5,6 +5,7 @@ import type {
     AgSeriesAreaBackgroundRegion,
     AgSeriesAreaBackgroundRegionLabel,
 } from '../../chart/cartesianOptions';
+import type { AgContextMenuOptions } from '../../chart/contextMenuOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgErrorBarOptions } from '../../chart/errorBarOptions';
 import type {
@@ -49,6 +50,8 @@ export interface AgQuadrantPreset<TDatum, TContext>
     alignAxesToPivot?: boolean;
     /** Configuration for placement of axis titles and labels. */
     axisPlacement?: AgQuadrantAxisPlacementOptions;
+    /** Configuration for the context menu. */
+    contextMenu?: AgContextMenuOptions<TDatum, TContext, AgQuadrantContextMenuParams>;
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarOptions<TDatum, TContext>;
     /** Function used to return formatting for individual markers, based on the supplied information.*/
@@ -215,6 +218,11 @@ export interface AgQuadrantLabelOptions<TDatum, TContext> extends Omit<
 export interface AgQuadrantLabelFormatterParams<TDatum> extends AgScatterSeriesLabelFormatterParams<TDatum> {
     /** The region the marker falls in, determined by comparing its x- and y-values against the pivot. */
     region: AgQuadrantRegion;
+}
+
+export interface AgQuadrantContextMenuParams {
+    /** The region in which the context menu was opened, undefined when not in a region. */
+    region?: AgQuadrantRegion;
 }
 
 export type AgQuadrantRegion = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
