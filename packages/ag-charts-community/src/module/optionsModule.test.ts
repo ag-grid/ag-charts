@@ -4638,14 +4638,14 @@ describe('ChartOptions', () => {
         });
     });
 
-    describe('validations.onErrorRaised', () => {
+    describe('validations.onDiagnosticRaised', () => {
         const badStrokeWidthOptions = (validations?: object) =>
             ({
                 series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 'notanumber' }],
                 validations,
             }) as unknown as AgChartOptions;
 
-        // `onErrorRaised` is wired up on the `Chart`, absent at this level, so assert on
+        // `onDiagnosticRaised` is wired up on the `Chart`, absent at this level, so assert on
         // `validationIssues`, the array the listener is fed from.
         it('records an issue whose message matches the console warning content', () => {
             const chartOptions = new ChartOptions(badStrokeWidthOptions(), {} as AgChartOptions, {}, {}, {});
@@ -4680,13 +4680,13 @@ describe('ChartOptions', () => {
             });
         });
 
-        it('rejects a non-function `onErrorRaised` without throwing', () => {
+        it('rejects a non-function `onDiagnosticRaised` without throwing', () => {
             let chartOptions: ChartOptions | undefined;
             expect(() => {
                 chartOptions = new ChartOptions(
                     {
                         series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                        validations: { onErrorRaised: 'not-a-function' as any },
+                        validations: { onDiagnosticRaised: 'not-a-function' as any },
                     } as AgChartOptions,
                     {} as AgChartOptions,
                     {},
@@ -4698,8 +4698,8 @@ describe('ChartOptions', () => {
             expect(chartOptions!.validationIssues).toContainEqual({
                 severity: 'warning',
                 message:
-                    'Option `validations.onErrorRaised` cannot be set to `"not-a-function"`; expecting a function, ignoring.',
-                code: 'validations.onErrorRaised',
+                    'Option `validations.onDiagnosticRaised` cannot be set to `"not-a-function"`; expecting a function, ignoring.',
+                code: 'validations.onDiagnosticRaised',
             });
         });
     });

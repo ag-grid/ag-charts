@@ -243,6 +243,26 @@ describe('ValidationIssueCollector', () => {
         expect(collector.hasVisibleIssues()).toBe(false);
     });
 
+    it('does not re-commit a committed callback error on a pass that buffered nothing new', () => {
+        const collector = new ValidationIssueCollector();
+        collector.setOverlayLevel('error');
+        const callbackError = { severity: 'error', message: 'Uncaught exception in user callback: boom' } as const;
+
+        collector.beginCallbackIssues();
+        collector.recordCallbackIssue(callbackError);
+        collector.commitCallbackIssues();
+
+        // `Chart.tryPerformUpdate()` commits whenever this reads true, on every update — so a committed
+        // buffer left in place turns a one-off callback error into per-update work forever.
+        expect(collector.hasPendingCallbackIssues()).toBe(false);
+        // The shown set, not the buffer, is what keeps the error live across the passes that skip.
+        expect(collector.getVisibleIssues().error).toEqual([callbackError]);
+
+        // A pass that throws again outside a begin/commit cycle still arms the gate.
+        collector.recordCallbackIssue(callbackError);
+        expect(collector.hasPendingCallbackIssues()).toBe(true);
+    });
+
     it('notifies listeners when the collection or threshold changes', () => {
         const collector = new ValidationIssueCollector();
         const listener = vi.fn();
@@ -385,7 +405,7 @@ describe('ValidationIssueCollector - issue listener', () => {
         collector.setIssues([errorIssue]);
 
         expect(loggerError).toHaveBeenCalledTimes(1);
-        expect(loggerError).toHaveBeenCalledWith('validations.onErrorRaised threw an error', expect.any(Error));
+        expect(loggerError).toHaveBeenCalledWith('validations.onDiagnosticRaised threw an error', expect.any(Error));
     });
 
     it('a re-entrant listener does not recurse, and its issues are delivered after it returns', () => {

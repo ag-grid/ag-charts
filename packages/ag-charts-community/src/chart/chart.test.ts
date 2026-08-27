@@ -2177,7 +2177,7 @@ describe('validations.throwOn — runtime errors', () => {
     });
 });
 
-describe('validations.onErrorRaised', () => {
+describe('validations.onDiagnosticRaised', () => {
     setupMockConsole();
     setupMockCanvas();
 
@@ -2187,7 +2187,7 @@ describe('validations.onErrorRaised', () => {
     });
 
     it('fires for a runtime error caught in tryPerformUpdate(), regardless of consoleLogLevel/overlayLevel', async () => {
-        const onErrorRaised = vi.fn();
+        const onDiagnosticRaised = vi.fn();
         const thrownError = new Error('processData boom');
 
         const proxy = AgCharts.create({
@@ -2200,7 +2200,7 @@ describe('validations.onErrorRaised', () => {
             validations: {
                 consoleLogLevel: 'none',
                 overlayLevel: 'none',
-                onErrorRaised,
+                onDiagnosticRaised,
             },
         }) as AgChartProxy;
         chart = deproxy(proxy);
@@ -2214,6 +2214,271 @@ describe('validations.onErrorRaised', () => {
         chart.update(ChartUpdateType.FULL);
         await waitForChartStability(chart);
 
-        expect(onErrorRaised).toHaveBeenCalledWith({ level: 'error', message: thrownError.message });
+        expect(onDiagnosticRaised).toHaveBeenCalledWith({ level: 'error', message: thrownError.message });
+    });
+});
+
+describe('AG-17830 QA — validations.onDiagnosticRaised', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Chart;
+    afterEach(() => {
+        chart?.destroy();
+        (chart as unknown) = undefined;
+    });
+
+    // AC 3: the listener is never gated by a severity threshold, and `throwOn` is one. The throw
+    // unwinds out of `new ChartOptions()`, so the chart never adopts the issues that caused it.
+    it('fires on create() for an issue that also trips throwOn', () => {
+        const onDiagnosticRaised = vi.fn();
+
+        expect(() =>
+            AgCharts.create({
+                container: document.body,
+                data: [{ x: 'A', y: 10 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+                validations: { throwOn: 'warning', onDiagnosticRaised },
+            })
+        ).toThrow(/validations.throwOn: warning/);
+
+        expect(onDiagnosticRaised).toHaveBeenCalledWith({
+            level: 'warning',
+            message: expect.stringContaining('series[0].strokeWidth'),
+        });
+        expectWarningsCalls().toHaveLength(1);
+    });
+
+    // The dropped-module issue is reported to the console by `processModuleOptions`, so it never
+    // enters `validationIssues` — the throw path has to dispatch the issue that tripped it.
+    it('fires for a dropped-module error that trips throwOn', () => {
+        const onDiagnosticRaised = vi.fn();
+
+        expect(() =>
+            AgCharts.create({
+                container: document.body,
+                data: [{ x: 'A', y: 10 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                zoom: { enabled: true },
+                validations: { throwOn: 'error', onDiagnosticRaised },
+            })
+        ).toThrow(/validations.throwOn: error/);
+
+        const errorMock = console.error as Mock;
+        expect(onDiagnosticRaised).toHaveBeenCalledWith({
+            level: 'error',
+            message: expect.stringContaining('required modules are not registered'),
+        });
+        expect(errorMock).toHaveBeenCalledTimes(1);
+        errorMock.mockClear();
+    });
+
+    it('fires on update() for an issue that also trips throwOn', async () => {
+        const onDiagnosticRaised = vi.fn();
+        const options: AgCartesianChartOptions = {
+            container: document.body,
+            data: [{ x: 'A', y: 10 }],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            validations: { throwOn: 'warning', onDiagnosticRaised },
+        };
+        const proxy = AgCharts.create(options) as AgChartProxy;
+        chart = deproxy(proxy);
+        await waitForChartStability(chart);
+        onDiagnosticRaised.mockClear();
+
+        await expect(
+            proxy.update({
+                ...options,
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+            })
+        ).rejects.toThrow(/validations.throwOn: warning/);
+
+        expect(onDiagnosticRaised).toHaveBeenCalledWith({
+            level: 'warning',
+            message: expect.stringContaining('series[0].strokeWidth'),
+        });
+        expectWarningsCalls().toHaveLength(1);
+    });
+
+    it('a throwing consumer callback does not displace the fail-fast error', () => {
+        const onDiagnosticRaised = vi.fn(() => {
+            throw new Error('consumer boom');
+        });
+
+        expect(() =>
+            AgCharts.create({
+                container: document.body,
+                data: [{ x: 'A', y: 10 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+                validations: { throwOn: 'warning', onDiagnosticRaised },
+            })
+        ).toThrow(/validations.throwOn: warning/);
+
+        expect(onDiagnosticRaised).toHaveBeenCalled();
+        expectWarningsCalls().toHaveLength(1);
+        const errorMock = console.error as Mock;
+        expect(errorMock).toHaveBeenCalledWith(
+            'AG Charts - validations.onDiagnosticRaised threw an error',
+            expect.any(Error)
+        );
+        errorMock.mockClear();
+    });
+
+    // A second chart is a separate listener registration, so it must still be told about its own
+    // issues while the first chart's listener is on the stack.
+    it('reports to a second chart listener from inside the first listener', () => {
+        const innerListener = vi.fn();
+        const outerListener = vi.fn(() => {
+            AgCharts.create({
+                container: document.body,
+                data: [{ x: 'A', y: 10 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+                validations: { throwOn: 'warning', onDiagnosticRaised: innerListener },
+            });
+        });
+
+        expect(() =>
+            AgCharts.create({
+                container: document.body,
+                data: [{ x: 'A', y: 10 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+                validations: { throwOn: 'warning', onDiagnosticRaised: outerListener },
+            })
+        ).toThrow(/validations.throwOn: warning/);
+
+        expect(outerListener).toHaveBeenCalledTimes(1);
+        expect(innerListener).toHaveBeenCalledWith({
+            level: 'warning',
+            message: expect.stringContaining('series[0].strokeWidth'),
+        });
+        expectWarningsCalls().toHaveLength(2);
+        // The inner chart's own fail-fast error unwinds through the outer listener.
+        const errorMock = console.error as Mock;
+        expect(errorMock).toHaveBeenCalledWith(
+            'AG Charts - validations.onDiagnosticRaised threw an error',
+            expect.any(Error)
+        );
+        errorMock.mockClear();
+    });
+
+    // The same listener re-entering is the runaway case the guard exists for: one dispatch only.
+    it('does not recurse when the listener re-applies the same failing options', () => {
+        const failingOptions = () => ({
+            container: document.body,
+            data: [{ x: 'A', y: 10 }],
+            series: [{ type: 'bar' as const, xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+            validations: { throwOn: 'warning' as const, onDiagnosticRaised },
+        });
+        const onDiagnosticRaised = vi.fn(() => {
+            AgCharts.create(failingOptions());
+        });
+
+        expect(() => AgCharts.create(failingOptions())).toThrow(/validations.throwOn: warning/);
+
+        expect(onDiagnosticRaised).toHaveBeenCalledTimes(1);
+        expectWarningsCalls().toHaveLength(2);
+        (console.error as Mock).mockClear();
+    });
+
+    // The Angular wrapper hands a freshly bound listener to every options pass, so listener identity
+    // alone cannot bound the recursion.
+    it('stops recursion from a listener whose identity changes on every pass', () => {
+        const calls: unknown[] = [];
+        const create = () =>
+            AgCharts.create({
+                container: document.body,
+                data: [{ x: 'A', y: 10 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+                validations: {
+                    throwOn: 'warning',
+                    onDiagnosticRaised: (event) => {
+                        calls.push(event);
+                        create();
+                    },
+                },
+            });
+
+        expect(create).toThrow(/validations.throwOn: warning/);
+
+        // A fresh closure per pass defeats the listener-identity guard, so this case falls to the depth
+        // backstop. Asserted as a bound rather than a count: the exact value is a safety limit, not a
+        // contract, and the point is that it terminates well short of the stack.
+        expect(calls.length).toBeGreaterThan(1);
+        expect(calls.length).toBeLessThanOrEqual(32);
+        expectWarningsCalls().toHaveLength(calls.length + 1);
+        (console.error as Mock).mockClear();
+    });
+
+    // The merge of AG-17831 added a second fail-fast exit — an error escaping option processing — that
+    // bypasses `Chart.tryPerformUpdate()`'s catch, so nothing else can tell the listener about it.
+    it('reports an error that escapes option processing under an armed throwOn', async () => {
+        const onDiagnosticRaised = vi.fn();
+        let boom = false;
+        const rows = [
+            { x: 'A', y: 10 },
+            {
+                x: 'B',
+                get y() {
+                    if (boom) throw new Error('datum exploded');
+                    return 20;
+                },
+            },
+        ];
+        const options = () => ({
+            container: document.body,
+            width: 400,
+            height: 300,
+            data: rows.slice(),
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            validations: { throwOn: 'error', onDiagnosticRaised },
+        });
+
+        const proxy = AgCharts.create(options() as any) as AgChartProxy;
+        await proxy.waitForUpdate();
+        onDiagnosticRaised.mockClear();
+        (console.error as Mock).mockClear();
+
+        boom = true;
+        await expect(proxy.updateDelta({ data: rows.slice() })).rejects.toThrow(
+            /validations\.throwOn: error - datum exploded/
+        );
+        boom = false;
+
+        expect(onDiagnosticRaised).toHaveBeenCalledWith({ level: 'error', message: 'datum exploded' });
+        (console.error as Mock).mockClear();
+    });
+
+    // The callbacks run in the render pass that a first-render update-type shortcut restarted, which
+    // no longer counts as re-evaluating them — so the buffered error was never committed.
+    it('reports a callback that throws on the first render to both the overlay and the listener', async () => {
+        const onDiagnosticRaised = vi.fn();
+
+        const proxy = AgCharts.create({
+            container: document.body,
+            data: [
+                { x: 'A', y: 10 },
+                { x: 'B', y: 20 },
+            ],
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: 'y',
+                    itemStyler: () => {
+                        throw new Error('itemStyler boom');
+                    },
+                },
+            ],
+            validations: { overlayLevel: 'error', onDiagnosticRaised },
+        }) as AgChartProxy;
+        chart = deproxy(proxy);
+        await waitForChartStability(chart);
+
+        expect(onDiagnosticRaised).toHaveBeenCalledWith({
+            level: 'error',
+            message: expect.stringContaining('itemStyler boom'),
+        });
+        expect(chart.validationCollector.hasVisibleIssues()).toBe(true);
+        expectWarningsCalls().toHaveLength(1);
     });
 });

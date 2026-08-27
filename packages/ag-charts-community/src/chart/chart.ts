@@ -604,7 +604,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             }),
             ctx.chartState.observe((get) => {
                 this.throwOnLevel = get('options', 'validations')?.throwOn ?? 'none';
-                this.setIssueListener(get('options', 'validations')?.onErrorRaised);
+                this.setIssueListener(get('options', 'validations')?.onDiagnosticRaised);
             }),
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
                 e.layoutBox.shrink(ctx.chartState.getValue('options', 'padding'));
@@ -1012,7 +1012,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
             await this.debug.group(`Chart.performUpdate() ${status}`, async () => {
                 await this.performUpdate(count);
             });
-            if (callbacksReEvaluated) this.validationCollector.commitCallbackIssues();
         } catch (error: any) {
             this.ctx.logger.error('update error', error, error.stack);
             this.validationCollector.recordRuntimeError({
@@ -1026,6 +1025,18 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 this.pendingFailFastError = new Error(
                     `AG Charts - validations.throwOn: error - ${String(error?.message ?? error)}`
                 );
+            }
+        } finally {
+            // `performUpdate()` consumes `clearCallbackCacheOnUpdate` before it renders, so when an
+            // update-type shortcut restarts the pass, the pass that actually invokes the callbacks sees
+            // `callbacksReEvaluated === false` — gating the commit on that flag alone stranded a
+            // first-render callback failure in the buffer until an unrelated redraw happened to
+            // re-evaluate the callbacks. The buffer check is what commits it. Both conditions are needed:
+            // dropping the flag would let a pass that shortcut out before the callbacks ran commit an
+            // empty buffer over a still-live callback error, and dropping the buffer check reinstates the
+            // bug. A pass that re-evaluated callbacks and legitimately found none must still clear.
+            if (callbacksReEvaluated || this.validationCollector.hasPendingCallbackIssues()) {
+                this.validationCollector.commitCallbackIssues();
             }
         }
     }
@@ -1774,9 +1785,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
      * previous tenant's listener in place would hand it this chart's issues. This can also run before
      * the option's validator has, hence the coercion rather than trusting the value.
      */
-    private setIssueListener(onErrorRaised: unknown) {
+    private setIssueListener(onDiagnosticRaised: unknown) {
         this.validationCollector.setIssueListener(
-            typeof onErrorRaised === 'function' ? (onErrorRaised as ValidationIssueListener) : undefined,
+            typeof onDiagnosticRaised === 'function' ? (onDiagnosticRaised as ValidationIssueListener) : undefined,
             this.ctx.logger
         );
     }
@@ -1784,7 +1795,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     applyOptions(newChartOptions: ChartOptions) {
         // Registered from the same options object in the same statement pair, so this pass's issues
         // reach the listener this pass declared without depending on when chartState observers flush.
-        this.setIssueListener(newChartOptions.processedOptions.validations?.onErrorRaised);
+        this.setIssueListener(newChartOptions.processedOptions.validations?.onDiagnosticRaised);
         this.validationCollector.setIssues(newChartOptions.validationIssues);
 
         if (newChartOptions.seriesWithUserVisibility) {

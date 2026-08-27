@@ -69,7 +69,11 @@ import {
 import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
 import { ChartTheme } from '../chart/themes/chartTheme';
-import { type ValidationIssue, severityAtOrAbove } from '../chart/validation/validationIssueCollector';
+import {
+    type ValidationIssue,
+    type ValidationIssueListener,
+    severityAtOrAbove,
+} from '../chart/validation/validationIssueCollector';
 import {
     type OptionsGraphAccessor,
     SHALLOW_OPTION_KEYS,
@@ -108,6 +112,14 @@ class FailFastError extends Error {}
 function withoutIgnoredClause(message: string): string {
     return message.replace(/[,;]? ignoring\.$/i, '');
 }
+
+/**
+ * Runaway backstop for {@link ChartOptions.dispatchIssuesBeforeThrow}. Deliberately far above any
+ * nesting a consumer could mean: no chain of callbacks each legitimately constructing a further chart
+ * gets near this, so crossing it is unbounded recursion rather than depth, and unwinding there beats
+ * overflowing the stack. It is not a cycle detector — listener identity is (see the call site).
+ */
+const MAX_DISPATCH_DEPTH = 32;
 
 /** The `validations` subtree of options that are not yet known to be valid: public keys, unknown values. */
 type UnvalidatedValidations = { [K in keyof AgChartValidationsOptions]?: unknown };
@@ -290,10 +302,24 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private throwOn: AgChartValidationLevel = 'none';
 
+    // `validations.onDiagnosticRaised`, resolved here rather than read off the chart because a fail-fast
+    // throw aborts this constructor: the chart never adopts these issues, so this is the only
+    // reference to the listener that survives to report them. See `dispatchIssuesBeforeThrow`.
+    private issueListener?: ValidationIssueListener;
+
     // CSS-refresh re-construction runs from a DOM `transitionend` handler with no caller to throw to.
     private readonly suppressFailFast: boolean;
 
     private static readonly debug = Debug.create(true, 'opts');
+
+    /**
+     * Re-entrancy guard for {@link ChartOptions.dispatchIssuesBeforeThrow}, keyed by listener rather
+     * than global; see its comment.
+     */
+    private static readonly dispatchingListeners = new Set<ValidationIssueListener>();
+
+    /** Runaway backstop only, not a cycle key; see {@link MAX_DISPATCH_DEPTH}. */
+    private static dispatchDepth = 0;
 
     constructor(
         currentUserOptions: T | ChartOptions<T> | undefined,
@@ -361,6 +387,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             isObjectWithProperty(userValidations, 'throwOn')
                 ? userValidations.throwOn
                 : getValidations(this.processedOverrides)?.throwOn
+        );
+        // Armed before the first validation pass for the same reason as `throwOn`: an issue raised
+        // during `slowSetup()` can abort it, and the listener must already be known to be told.
+        this.applyIssueListener(
+            isObjectWithProperty(userValidations, 'onDiagnosticRaised')
+                ? userValidations.onDiagnosticRaised
+                : getValidations(this.processedOverrides)?.onDiagnosticRaised
         );
 
         let activeTheme,
@@ -431,6 +464,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.applyConsoleLogLevel(getValidations(this.processedOptions)?.consoleLogLevel);
         // State consistency only: this runs after every `record*` call, so it arms nothing this pass.
         this.applyThrowOn(getValidations(this.processedOptions)?.throwOn);
+        // As above: re-applied from the merged result so a theme- or preset-supplied listener also counts.
+        this.applyIssueListener(getValidations(this.processedOptions)?.onDiagnosticRaised);
         this.fastDelta = fastDelta ?? undefined;
         this.themeParameters = themeParameters;
         this.annotationThemes = annotationThemes;
@@ -767,8 +802,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.logger = logger;
         // A pooled chart adopts a different Logger after validation, so the level must be re-applied.
         this.applyConsoleLogLevel(getValidations(this.processedOptions)?.consoleLogLevel);
-        // Likewise for the throw threshold.
+        // Likewise for the throw threshold and the issue listener.
         this.applyThrowOn(getValidations(this.processedOptions)?.throwOn);
+        this.applyIssueListener(getValidations(this.processedOptions)?.onDiagnosticRaised);
     }
 
     /** Point wrapped user callbacks at the owning chart's validation sink, so a swallowed throw surfaces. */
@@ -807,6 +843,69 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.throwOn = isLogLevel(level) ? level : DEFAULT_THROW_ON;
     }
 
+    /**
+     * Resolves `validations.onDiagnosticRaised`. This runs before the union validator has, hence the
+     * coercion rather than trusting the value.
+     */
+    private applyIssueListener(listener: unknown) {
+        this.issueListener = typeof listener === 'function' ? (listener as ValidationIssueListener) : undefined;
+    }
+
+    /**
+     * Reports every issue this pass produced — the accumulated ones plus the `trigger` that tripped
+     * the threshold — to `validations.onDiagnosticRaised` immediately before a fail-fast throw. AC 3: the
+     * listener is never gated by a severity threshold, and `throwOn` is a threshold — but the throw
+     * unwinds out of this constructor, so `Chart.applyOptions()` never runs
+     * and the collector that normally dispatches never receives these issues. Delivering here is what
+     * makes the two independent. Ordering is the listener first, then the throw.
+     */
+    private dispatchIssuesBeforeThrow(trigger: ValidationIssue) {
+        const listener = this.issueListener;
+        if (listener == null) return;
+        // Static, unlike the collector's instance-level guard: a consumer that re-applies options from
+        // its callback re-enters through a *new* `ChartOptions`, so nothing on `this` can see the
+        // recursion. Without this a handler that re-applies the same failing options recurses until the
+        // stack overflows, and the fail-fast error the caller is owed never surfaces.
+        //
+        // Listener identity is the whole cycle detector, and it is exact in both directions: a consumer
+        // re-applying failing options from its own callback re-enters through this same function and is
+        // stopped, while a callback that legitimately builds a *further* chart still gets that chart's
+        // own listener called, however deep the chain goes.
+        //
+        // Nothing weaker than identity can stand in for it. A consumer whose listener identity changes
+        // per pass — the Angular zone wrapper allocates a fresh closure every time — is indistinguishable
+        // here from a genuinely new chart, and every proxy for identity is worse than none: source text
+        // is shared by every closure a single factory produces, and the trigger issue is shared by two
+        // independent charts misconfigured the same way. Both would silence a listener that is owed its
+        // event, which is the failure this guard must not cause. So that case falls to the depth
+        // backstop below, set far enough out that only runaway recursion reaches it.
+        if (ChartOptions.dispatchingListeners.has(listener) || ChartOptions.dispatchDepth >= MAX_DISPATCH_DEPTH) {
+            return;
+        }
+        // Cleared first: `recordOptionsArgumentError` can throw from a second call site after this
+        // one, and a consumer must not be told the same issue twice for a single options pass.
+        // The dropped-module call site trips fail-fast with an issue it never adds to the collection —
+        // `processModuleOptions` is what writes that one to the console — so append it by identity.
+        const recorded = this.validationIssues;
+        const issues = recorded.includes(trigger) ? recorded : [...recorded, trigger];
+        this.validationIssues = [];
+        ChartOptions.dispatchingListeners.add(listener);
+        ChartOptions.dispatchDepth++;
+        try {
+            for (const issue of issues) {
+                try {
+                    listener({ level: issue.severity, message: issue.message });
+                } catch (error) {
+                    // A throwing consumer must not displace the fail-fast error the caller is about to get.
+                    this.logger.error('validations.onDiagnosticRaised threw an error', error);
+                }
+            }
+        } finally {
+            ChartOptions.dispatchingListeners.delete(listener);
+            ChartOptions.dispatchDepth--;
+        }
+    }
+
     private get validateParams(): ValidateParams {
         return {
             logger: this.logger,
@@ -839,7 +938,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     /**
      * Report an argument that could not be options at all (`create(undefined)`, `create(3)`, an empty
      * object) through the same feed as any option-validation error, so it reaches the console log, the
-     * `validations.overlayLevel` overlay, `validations.onErrorRaised` and `validations.throwOn`. Raised
+     * `validations.overlayLevel` overlay, `validations.onDiagnosticRaised` and `validations.throwOn`. Raised
      * at `error` severity - unlike a per-option problem, nothing of the caller's intent survives it.
      *
      * Pushed as a new array: the unchanged-options fast path aliases `validationIssues` to the base
@@ -861,12 +960,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     /**
      * Throws for the first issue whose severity meets the armed `validations.throwOn` threshold — never
-     * called before the console record and the overlay push above have already happened.
+     * called before the console record and the overlay push above have already happened, and never
+     * before this pass's issues have reached `validations.onDiagnosticRaised`.
      */
     private throwIfFailFast(issue: ValidationIssue): void {
         if (this.suppressFailFast || this.throwOn === 'none' || !severityAtOrAbove(this.throwOn, issue.severity)) {
             return;
         }
+        this.dispatchIssuesBeforeThrow(issue);
         const location = issue.code ? `\`${issue.code}\`: ` : '';
         throw new FailFastError(
             `AG Charts - validations.throwOn: ${issue.severity} - ${location}${withoutIgnoredClause(issue.message)}`
@@ -891,9 +992,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Console record first, and worded exactly as the unarmed update-loop catch words it, so the
         // two paths read identically in the console.
         this.logger.error('update error', error, error instanceof Error ? error.stack : undefined);
-        return new FailFastError(
-            `AG Charts - validations.throwOn: error - ${String(error instanceof Error ? error.message : error)}`
-        );
+        // Then `validations.onDiagnosticRaised`, for the same reason the `record*` path dispatches before its
+        // throw (AG-17830 AC 3): this escape bypasses the update loop's catch, so the collector that
+        // normally reports a caught runtime error never sees this one. The message is the raw error's,
+        // matching both the thrown copy and what the collector would have reported unarmed.
+        const message = String(error instanceof Error ? error.message : error);
+        this.dispatchIssuesBeforeThrow({ severity: 'error', message });
+        return new FailFastError(`AG Charts - validations.throwOn: error - ${message}`);
     }
 
     private removeIncompatibleSeriesAreaOptions(options: T) {
