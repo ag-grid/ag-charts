@@ -229,11 +229,16 @@ describe('RangeAreaSeries', () => {
             expect(seriesNodeClick.mock.calls[0][0].datum).toEqual(CATEGORY_DATA[1]);
         });
 
-        it.each([
-            ['low only', true, false],
-            ['high only', false, true],
-        ])('fires nodeClick with %s markers, as the other side has no shape to match', async (_, low, high) => {
-            await createRangeAreaChart(low, high);
+        it('fires nodeClick when only the low side renders markers', async () => {
+            await createRangeAreaChart(true, false);
+            await clickNode('Feb');
+
+            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+            expect(seriesNodeClick.mock.calls[0][0].datum).toEqual(CATEGORY_DATA[1]);
+        });
+
+        it('fires nodeClick when only the high side renders markers', async () => {
+            await createRangeAreaChart(false, true);
             await clickNode('Feb');
 
             expect(seriesNodeClick).toHaveBeenCalledTimes(1);

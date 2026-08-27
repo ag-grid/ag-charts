@@ -123,7 +123,6 @@ export abstract class RadarSeries<
 
     protected resetInvalidToZero: boolean = false;
     private hideWithSize0 = false;
-    // Defaults `true` so a markered series is not reported unpickable before its first update.
     private markerNodesPickable = true;
 
     protected override hasPickableNodeShapes(): boolean {

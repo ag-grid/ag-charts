@@ -334,8 +334,7 @@ describe('Chart', () => {
         });
     });
 
-    // AG-10226: a markerless line series' "node" is the point on the line where the marker would
-    // have been, and must remain clickable with `nodeClickRange` left at its `'exact'` default.
+    // A markerless series' node is the point on the line where the marker would have been.
     describe(`Markerless Line Series node interactions (AG-10226)`, () => {
         const createMarkerlessLineChart = async (listeners: any) =>
             createChart({

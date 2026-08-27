@@ -287,7 +287,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
     private readonly aggregationManager = new AggregationManager<RangeAreaSeriesDataAggregationFilter>();
     private hideWithSize0 = false;
-    // Defaults `true` so a markered series is not reported unpickable before its first update.
     private markerNodesPickable = true;
 
     protected override hasPickableNodeShapes(): boolean {
@@ -1114,7 +1113,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             this.chart?.isMiniChart
         );
         this.hideWithSize0 = markerDrawMode.hideWithSize0;
-        // Both sides must be drawn: a disabled side's datums are filtered out of `resolvedNodeData`.
+        // A disabled side's datums are filtered out of `resolvedNodeData`, so both must be drawn.
         this.markerNodesPickable =
             markerDrawMode.needsNodeData && !markerDrawMode.hideWithSize0 && low.marker.enabled && high.marker.enabled;
 

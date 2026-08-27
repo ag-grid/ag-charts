@@ -123,8 +123,7 @@ export enum SeriesNodePickMode {
 
 export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'highlight-tooltip' | 'context-menu' | 'event';
 
-/** Pick radius used when `nodeClickRange: 'exact'` falls through on a series with no pickable node
- * shapes. Matches the bounded radius the area series theme uses under `selection.enabled`. */
+/** Pick radius substituted for `nodeClickRange: 'exact'` when a series has no pickable node shapes. */
 const MARKERLESS_NODE_PICK_RANGE = 10;
 
 export type SeriesNodePickMatch = {
@@ -1039,7 +1038,6 @@ export abstract class Series<
             const { nodeClickRange } = this.properties;
             maxDistance = typeof nodeClickRange === 'number' ? nodeClickRange : Infinity;
             if (nodeClickRange === 'exact' && !hasPickableNodeShapes) {
-                // Exact-shape matching cannot resolve, so fall through to the geometric pick modes.
                 maxDistance = MARKERLESS_NODE_PICK_RANGE;
             } else {
                 exactMatchOnly ||= nodeClickRange === 'exact';

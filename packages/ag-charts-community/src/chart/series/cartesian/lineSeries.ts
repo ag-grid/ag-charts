@@ -180,7 +180,6 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
 
     private readonly aggregationManager = new AggregationManager<LineSeriesDataAggregationFilter>();
     private hideWithSize0 = false;
-    // Defaults `true` so a markered series is not reported unpickable before its first update.
     private markerNodesPickable = true;
 
     protected override hasPickableNodeShapes(): boolean {

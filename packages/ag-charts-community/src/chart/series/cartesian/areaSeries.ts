@@ -251,7 +251,6 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
 
     private readonly aggregationManager = new AggregationManager<AreaSeriesDataAggregationFilter>();
     private hideWithSize0 = false;
-    // Defaults `true` so a markered series is not reported unpickable before its first update.
     private markerNodesPickable = true;
 
     protected override hasPickableNodeShapes(): boolean {
