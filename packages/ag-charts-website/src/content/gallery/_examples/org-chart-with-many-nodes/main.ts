@@ -22,7 +22,7 @@ const options: AgChartOptions = {
             type: 'organization',
             idKey: 'id',
             parentIdKey: 'parentId',
-            layout: { type: 'stacked', stackAtDepth: 5 },
+            layout: { type: 'stacked', stackFromDepth: 5 },
             node: {
                 maxWidth: 180,
                 title: {

@@ -6,38 +6,38 @@
             id="linkIndentationInput"
             min="0"
             max="150"
-            value="50"
+            value="26"
             step="1"
             oninput="updateLinkIndentation(event)"
             onchange="updateLinkIndentation(event)"
         />
-        <span id="linkIndentationValue">50</span>
+        <span id="linkIndentationValue">26</span>
         <label for="nodeIndentationInput" class="gap-left">Node Indentation:</label>
         <input
             type="range"
             id="nodeIndentationInput"
             min="0"
             max="150"
-            value="30"
-            step="10"
+            value="26"
+            step="1"
             oninput="updateNodeIndentation(event)"
             onchange="updateNodeIndentation(event)"
         />
-        <span id="nodeIndentationValue">30</span>
+        <span id="nodeIndentationValue">26</span>
     </div>
     <div class="controls-row">
-        <label for="stackAtDepthIndentation">Stack At Depth:</label>
+        <label for="stackFromDepthIndentation">Stack At Depth:</label>
         <input
             type="range"
-            id="stackAtDepthIndentation"
+            id="stackFromDepthIndentation"
             min="2"
             max="4"
             value="4"
             step="1"
-            oninput="updateStackAtDepth(event)"
-            onchange="updateStackAtDepth(event)"
+            oninput="updatestackFromDepth(event)"
+            onchange="updatestackFromDepth(event)"
         />
-        <span id="stackAtDepthValue">4</span>
+        <span id="stackFromDepthValue">4</span>
     </div>
 </div>
 <div id="myChart"></div>
