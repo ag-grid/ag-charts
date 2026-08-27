@@ -634,7 +634,6 @@ export class ContextMenu extends AbstractModuleInstance {
                         type: 'crossLineContextMenuAction',
                         event: showEvent,
                         coordinates,
-                        clickedOn: 'cross-line',
                         crossLineId,
                         axisId,
                         direction,

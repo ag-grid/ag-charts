@@ -295,7 +295,10 @@ interface AgAllCrossLineClickParams {
 }
 
 export interface AgCrossLineContextMenuActionEvent<TContext = ContextDefault>
-    extends AgChartEvent<'crossLineContextMenuAction', TContext>, AgCrossLineClickParams, AgCoordinatedEvent {}
+    extends
+        AgChartEvent<'crossLineContextMenuAction', TContext>,
+        Omit<AgCrossLineClickParams, 'clickedOn'>,
+        AgCoordinatedEvent {}
 
 export interface AgCrossLineClickEvent<TContext = ContextDefault>
     extends AgChartEvent<'crossLineClick', TContext>, AgCrossLineClickParams, AgAllCrossLineClickParams {}
@@ -330,10 +333,10 @@ export interface AgCaptionListeners<TContext = ContextDefault> {
     doubleClick?: Listener<AgCaptionClickEvent<'doubleClick', TContext>>;
 }
 
-export interface AgNodeContextMenuActionEvent<
-    TDatum = DatumDefault,
-    TContext = ContextDefault,
-> extends AgNodeClickEvent<'nodeContextMenuAction', TDatum, TContext> {}
+export interface AgNodeContextMenuActionEvent<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
+    AgNodeClickEvent<'nodeContextMenuAction', TDatum, TContext>,
+    'clickedOn'
+> {}
 
 export interface AgBaseChartListeners<TDatum, TContext = ContextDefault> {
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in any series is clicked.

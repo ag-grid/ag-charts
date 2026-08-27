@@ -1256,7 +1256,10 @@ export abstract class Series<
     }
 
     createNodeContextMenuActionEvent(opts: FireNodeEventParams): AgNodeContextMenuActionEvent {
-        return this.createNodeEvent('nodeContextMenuAction', opts);
+        const event = this.createNodeEvent('nodeContextMenuAction', opts);
+        // `delete` rather than a rest-spread, which would freeze the live `defaultPrevented` getter.
+        delete (event as { clickedOn?: unknown }).clickedOn;
+        return event;
     }
 
     // Do not override. Override createNodeParams instead.
