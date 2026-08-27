@@ -13,6 +13,22 @@ const pivotOptionsDefs: OptionsDefs<NonNullable<AgQuadrantChartOptions['pivot']>
     y: numericValue,
 };
 
+const regionLabelOptionsDefs: OptionsDefs<NonNullable<NonNullable<AgQuadrantChartOptions['regions']>['label']>> = {
+    border: defined,
+    color: defined,
+    cornerRadius: defined,
+    enabled: defined,
+    fontFamily: defined,
+    fontSize: defined,
+    fontStyle: defined,
+    fontWeight: defined,
+    fill: defined,
+    fillOpacity: defined,
+    padding: defined,
+    position: defined,
+    rotation: defined,
+};
+
 const regionOptionsDefs: OptionsDefs<NonNullable<NonNullable<AgQuadrantChartOptions['regions']>['topLeft']>> = {
     fill: defined,
     fillOpacity: defined,
@@ -33,6 +49,7 @@ export const quadrantOptionsDefs: OptionsDefs<AgQuadrantChartOptions> = {
     axisPlacement: axisPlacementOptionsDefs,
     pivot: pivotOptionsDefs,
     regions: {
+        label: regionLabelOptionsDefs,
         bottomLeft: regionOptionsDefs,
         bottomRight: regionOptionsDefs,
         topLeft: regionOptionsDefs,
