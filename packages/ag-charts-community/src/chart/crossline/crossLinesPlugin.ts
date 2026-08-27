@@ -97,7 +97,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         for (const crossLine of matches) {
             const { type: crossLineType, range, value } = crossLine;
             const crossLineId = crossLine.id ?? crossLine.internalId;
-            result.push({ axisId, direction, crossLineId, crossLineType, range, value });
+            result.push({ clickedOn: 'cross-line', axisId, direction, crossLineId, crossLineType, range, value });
         }
         return result satisfies AgCrossLineClickEvent<unknown>['allClickParams'];
     }

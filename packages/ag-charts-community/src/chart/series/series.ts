@@ -42,6 +42,7 @@ import {
 import type {
     AgActiveItemState,
     AgChartLabelFormatterParams,
+    AgClickParams,
     AgDrawingMode,
     AgInitialStateLegendOptions,
     AgNodeClickEvent,
@@ -1260,12 +1261,15 @@ export abstract class Series<
 
     // Do not override. Override createNodeParams instead.
     createNodeEvent<T extends NodeEventType>(type: T, opts: FireNodeEventParams) {
-        const { event, datums, winner, coordinates } = opts;
-        const allClickParams: AgNodeClickParams<unknown>[] = datums.map((d) => d.series.createNodeParams(d));
+        const { event, datums, winner, coordinates, otherClickParams } = opts;
+        const nodeParams: AgNodeClickParams<unknown>[] = datums.map((d) => d.series.createNodeParams(d));
+        // Series nodes lead, so `winner` still indexes `allClickParams`.
+        const allClickParams: AgClickParams<unknown>[] =
+            otherClickParams != null && otherClickParams.length > 0 ? [...nodeParams, ...otherClickParams] : nodeParams;
 
         let defaultPrevented = false;
         return {
-            ...allClickParams[winner],
+            ...nodeParams[winner],
             type,
             event,
             coordinates,
@@ -1282,6 +1286,7 @@ export abstract class Series<
     createNodeParams(datum: TDatum): AgNodeClickParams<unknown> {
         const dataIdKey = this.data?.dataIdKey;
         return {
+            clickedOn: 'series-node',
             datum: datum.datum,
             datums: datum.datums,
             totalValue: datum.totalValue,

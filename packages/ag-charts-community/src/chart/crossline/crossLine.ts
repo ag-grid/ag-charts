@@ -2,6 +2,7 @@ import type { BoxBounds, CanvasPoint, ChartAxisDirection, Forbid, RequireOptiona
 import { callWithContext } from 'ag-charts-core';
 import type {
     AgBaseCrossLineLabelOptions,
+    AgClickParams,
     AgCrossLineClickEvent,
     AgCrossLineClickParams,
     AgCrossLineDoubleClickEvent,
@@ -66,13 +67,17 @@ export function validateCrossLineValue(crossLine: ICrossLine, scale: Scale<any, 
     }
 }
 
-function firePendingCrossLineCallback(allClickParams: AgCrossLineClickParams[], callback: PendingCallback): void {
+function firePendingCrossLineCallback(allClickParams: AgClickParams<unknown>[], callback: PendingCallback): void {
     const { callers, fn, params } = callback;
     callWithContext(callers, fn, { ...params, allClickParams });
 }
 
-export function fireAllPendingCrossLineCallbacks(pending: PendingCrossLineCallbacks): void {
-    const { allClickParams } = pending;
+export function fireAllPendingCrossLineCallbacks(
+    pending: PendingCrossLineCallbacks,
+    otherClickParams: AgClickParams<unknown>[]
+): void {
+    const allClickParams: AgClickParams<unknown>[] =
+        otherClickParams.length > 0 ? [...pending.allClickParams, ...otherClickParams] : pending.allClickParams;
     for (const crossLine of pending.crossLines.values()) {
         firePendingCrossLineCallback(allClickParams, crossLine);
     }

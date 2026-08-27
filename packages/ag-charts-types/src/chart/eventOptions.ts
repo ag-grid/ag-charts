@@ -38,15 +38,28 @@ export interface AgNodeClickEvent<
     TDatum,
     TContext = ContextDefault,
 > extends AgBaseNodeClickEvent<TEvent, TDatum, TContext> {
-    /** Every click event that matched at the click point, including the winning scope carred by these root params. */
-    allClickParams: AgNodeClickParams<TDatum>[];
+    /** Every element that matched at the click point, including the winning element carried by these root params. */
+    allClickParams: AgClickParams<TDatum>[];
 }
+
+/**
+ * One element identified at a click point, discriminated by its `clickedOn` field. This is the element type of
+ * `allClickParams`, letting one listener see everything under the cursor — for example a series node drawn over a
+ * Cross Line. The winning element, whose params are flattened onto the event root, is listed first.
+ *
+ * Keyed by array position rather than by kind, because one kind can match more than once at a single click point:
+ * overlapping markers each contribute their own `'series-node'` entry, and Cross Lines on different axes each
+ * contribute their own `'cross-line'` entry.
+ */
+export type AgClickParams<TDatum> = AgNodeClickParams<TDatum> | AgCrossLineClickParams;
 
 /**
  * Everything a node event reports about the picked datum itself, i.e. an {@link AgNodeClickEvent} minus the
  * event-delivery fields. Most fields are optional, because each series type only sets the properties applicable to it.
  */
 export interface AgNodeClickParams<TDatum> {
+    /** Which kind of element these params describe. */
+    clickedOn: 'series-node';
     /** Series ID, as specified in `series.id` (or generated if not specified) */
     seriesId: string;
     /** The unique identifier of the picked datum. */
@@ -260,6 +273,8 @@ export interface AgAxisListeners<TContext = ContextDefault> {
 
 /** Identifies the Cross Line an event refers to, along with the axis that owns it. */
 export interface AgCrossLineClickParams {
+    /** Which kind of element these params describe. */
+    clickedOn: 'cross-line';
     /** Cross Line ID (generated if not specified). */
     crossLineId: string;
     /** ID of the axis the Cross Line belongs to, as specified in `axes`. */
@@ -275,8 +290,8 @@ export interface AgCrossLineClickParams {
 }
 
 interface AgAllCrossLineClickParams {
-    /** Every click event that matched at the click point, including the winning scope carred by these root params. */
-    allClickParams: AgCrossLineClickParams[];
+    /** Every element that matched at the click point, including the winning element carried by these root params. */
+    allClickParams: AgClickParams<DatumDefault>[];
 }
 
 export interface AgCrossLineContextMenuActionEvent<TContext = ContextDefault>

@@ -4,6 +4,7 @@ import type {
     AgActiveItemState,
     AgChartClickEvent,
     AgChartDoubleClickEvent,
+    AgClickParams,
     AgContextMenuItemShowOn,
     AgCoordinates,
     AgInitialFocus,
@@ -658,12 +659,15 @@ export class SeriesAreaManager extends BaseManager {
         const pendingCrossLineCallbacks = this.emitSeriesAreaCanvasClickEvent(event, canvasPoint);
         const clickedCrossLine = this.checkCrossLineClick(event, pendingCrossLineCallbacks);
         if (clickedCrossLine) {
-            fireAllPendingCrossLineCallbacks(pendingCrossLineCallbacks);
+            // The cross line wins the event, but still reports the series nodes it covered.
+            const nodeParams = isSeriesWidget ? this.pickSeriesNodeClickParams(event) : [];
+            fireAllPendingCrossLineCallbacks(pendingCrossLineCallbacks, nodeParams);
             return; // dodge chart-level / series-level user callbacks.
         }
 
         if (isSeriesWidget) {
-            const clicked = this.checkSeriesNodeClick(event);
+            // Cross-line-only here, and populated whether or not any cross-line listener exists.
+            const clicked = this.checkSeriesNodeClick(event, pendingCrossLineCallbacks.allClickParams);
             if (clicked) {
                 this.emitSeriesAreaClickEvent(event, true, clicked.node, clicked.target);
                 this.update(ChartUpdateType.SERIES_UPDATE);
@@ -893,8 +897,19 @@ export class SeriesAreaManager extends BaseManager {
         return allClickParams.length > 0 && (axes.size > 0 || crossLines.size > 0 || chartListener != null);
     }
 
+    private pickSeriesNodeClickParams(event: ClickLikeEvent): AgClickParams<unknown>[] {
+        const pickedNodes = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
+        if (pickedNodes == null || pickedNodes.matches.length === 0) return [];
+        const { matches, target } = pickedNodes;
+        // A dedicated control (e.g. the org-chart expander) owns its clicks outright and never reaches the user's
+        // node click listeners, so it must not surface through a cross-line event either.
+        if (!matches[0].series.firesUserClickListeners(target)) return [];
+        return matches.map((d) => d.series.createNodeParams(d));
+    }
+
     private checkSeriesNodeClick(
-        event: ClickLikeEvent & { preventZoomDblClick?: boolean }
+        event: ClickLikeEvent & { preventZoomDblClick?: boolean },
+        crossLineParams: AgClickParams<unknown>[]
     ): { node: PickedNode; target: SceneNode<unknown> | undefined } | undefined {
         const pickedNodes = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
         const updated = this.pickManager.onPickedNodesTooltip(pickedNodes);
@@ -917,6 +932,7 @@ export class SeriesAreaManager extends BaseManager {
             datums: matches,
             winner: matches.indexOf(updated.active),
             coordinates,
+            otherClickParams: crossLineParams,
         };
 
         if (event.type === 'click') {

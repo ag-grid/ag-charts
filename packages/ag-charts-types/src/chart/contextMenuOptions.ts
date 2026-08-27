@@ -156,7 +156,7 @@ export type AgContextMenuItem<TDatum = DatumDefault, TContext = ContextDefault> 
     | AgContextMenuItemSeriesNode<TDatum, TContext>
     | AgContextMenuItemLegendItem<TDatum, TContext>;
 
-type GetItemsParamsOmissions = 'type' | 'event' | 'coordinates' | 'defaultPrevented' | 'preventDefault';
+type GetItemsParamsOmissions = 'type' | 'event' | 'coordinates' | 'defaultPrevented' | 'preventDefault' | 'clickedOn';
 
 // Note: The unused `_TDatumReserved = never` are reserved for future-proofing.
 //

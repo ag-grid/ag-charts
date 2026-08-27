@@ -13,6 +13,7 @@ import type {
 } from 'ag-charts-core';
 import type {
     AgActiveItemState,
+    AgClickParams,
     AgCoordinates,
     AgNodeClickParams,
     AgNodeContextMenuActionEvent,
@@ -109,6 +110,8 @@ export type FireNodeEventParams = {
      */
     winner: number;
     coordinates: AgCoordinates | undefined;
+    // Params for elements of other kinds picked at the same point (e.g. currently cross lines
+    otherClickParams?: AgClickParams<unknown>[];
 };
 
 export interface ISeriesProperties {
