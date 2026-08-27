@@ -1,0 +1,36 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Quadrant Preset context menu region > falls back to items when the composed getItems returns undefined 1`] = `
+HTMLCollection [
+  <div
+    class="ag-charts-context-menu"
+    style="display: block; left: 0px; top: calc(0px - 0.5em);"
+  >
+    <div
+      aria-orientation="vertical"
+      class="ag-charts-context-menu__menu"
+      role="menu"
+      tabindex="-1"
+    >
+      <div
+        aria-disabled="false"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="0"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          Download
+        </div>
+        <div
+          class="ag-charts-context-menu__cell"
+        />
+      </div>
+    </div>
+  </div>,
+]
+`;

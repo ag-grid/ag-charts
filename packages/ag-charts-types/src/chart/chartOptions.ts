@@ -296,7 +296,7 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
     /** Configuration for asynchronously loaded data. */
     dataSource?: AgDataSourceOptions<TDatum, TContext>;
     /** Configuration for the context menu. */
-    contextMenu?: AgContextMenuOptions<TDatum, TContext>;
+    contextMenu?: AgContextMenuOptions<TDatum, TContext, unknown>;
     /** Context object to use in callbacks. */
     context?: TContext;
     /** Configuration for localisation. */

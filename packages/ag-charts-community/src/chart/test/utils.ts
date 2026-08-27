@@ -849,6 +849,20 @@ export function contextMenuAction(canvasX: number, canvasY: number): (chart: Cha
     };
 }
 
+// jsdom has no PointerEvent constructor, which the synthetic 'contextmenu' events need.
+export function setupMockPointerEvent() {
+    let originalPointerEvent: typeof globalThis.PointerEvent;
+
+    beforeEach(() => {
+        originalPointerEvent = globalThis.PointerEvent;
+        globalThis.PointerEvent = class extends MouseEvent {} as typeof globalThis.PointerEvent;
+    });
+
+    afterEach(() => {
+        globalThis.PointerEvent = originalPointerEvent;
+    });
+}
+
 export function dragAction(
     from: { x: number; y: number },
     to: { x: number; y: number }

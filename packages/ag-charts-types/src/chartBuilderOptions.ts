@@ -158,7 +158,6 @@ export type AgBaseQuadrantChartOptions<TDatum = DatumDefault, TContext = Context
     AgCartesianChartOptions<TDatum, TContext>,
     | 'animation'
     | 'container'
-    | 'contextMenu'
     | 'data'
     | 'dataIdKey'
     | 'enableRtl'
