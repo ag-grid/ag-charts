@@ -1,8 +1,10 @@
 import styled from '@emotion/styled';
-import type { AgChartOptions, AgChartThemeName } from 'ag-charts-community';
+import type { AgChartOptions } from 'ag-charts-community';
 import { memo, useLayoutEffect, useMemo } from 'react';
 
 import type { PreviewChartType } from './chartTypes';
+import { toChartTheme } from './chartsThemeOutput';
+import type { ChartsPreset } from './presets';
 import { useChart } from './useChart';
 
 /**
@@ -19,23 +21,26 @@ import { useChart } from './useChart';
  * whole chart at card size. A cropped chart just loses its frame and reads as
  * disconnected blocks of colour.
  *
- * The theme is the stock theme by name, so a thumbnail is exactly what AG Charts
- * renders for that theme, with no translation through the builder's model.
+ * The theme is built from the preset through the same path as the main preview,
+ * so a card cannot show something the tool would not produce.
  */
 interface Props {
-    themeName: AgChartThemeName;
+    preset: ChartsPreset;
     chartType: PreviewChartType;
 }
 
-export const PresetPreview = memo(({ themeName, chartType }: Props) => {
-    const options = useMemo<AgChartOptions>(
-        // chartPadding is pinned because ag-financial sets it to 0: left alone,
-        // that one card is laid out differently from the other five and stops
-        // reading as a comparable swatch. The main preview keeps the theme's own
-        // value, which is the one the user is actually choosing.
-        () => ({ ...chartType.thumbnailOptions, theme: { baseTheme: themeName, params: { chartPadding: 6 } } }),
-        [chartType, themeName]
-    );
+export const PresetPreview = memo(({ preset, chartType }: Props) => {
+    const options = useMemo<AgChartOptions>(() => {
+        const theme = toChartTheme({ baseTheme: preset.baseTheme, params: preset.params, palette: preset.palette });
+        return {
+            ...chartType.thumbnailOptions,
+            // Padding is pinned because the presets choose their own, and a card
+            // laid out differently from its neighbours stops reading as a
+            // comparable swatch. The main preview keeps the preset's own value,
+            // which is the one the user is actually choosing.
+            theme: { ...theme, params: { ...theme.params, chartPadding: 6 } },
+        };
+    }, [chartType, preset]);
     const containerRef = useChart(options);
 
     useLayoutEffect(() => {

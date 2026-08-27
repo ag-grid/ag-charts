@@ -1,49 +1,85 @@
+import { _Theme } from 'ag-charts-community';
 import { describe, expect, it } from 'vitest';
 
-import { PRESETS, paletteFor, toSharedPreset } from './presets';
+import { PUBLIC_PARAM_NAMES } from './chartsTheme';
+import { CHARTS_FONT_FAMILY_OPTIONS } from './fonts';
+import { PRESETS } from './presets';
 
+/**
+ * The presets are hand-authored, so nothing about them is derived from the AG
+ * Charts runtime any more. These tests are what replaces that: they check the
+ * hand-written values still line up with the API, the font menu and the
+ * thumbnails, none of which would fail loudly on their own - a mistyped param
+ * name is silently ignored, and an unlisted font silently falls back.
+ */
 describe('charts theme builder presets', () => {
-    it('never changes the chart layout', () => {
-        // A preset proposes an appearance, not a shape. ag-financial sets
-        // chartPadding: 0, and letting that through made one card resize the
-        // preview when it was picked.
+    it('gives every preset a unique id and a real base theme', () => {
+        const themeNames = new Set(Object.keys(_Theme.themes));
+        expect(new Set(PRESETS.map((preset) => preset.id)).size).toBe(PRESETS.length);
         for (const preset of PRESETS) {
-            for (const isDark of [false, true]) {
-                const { params } = toSharedPreset(preset, isDark);
-                expect(Object.keys(params ?? {}), `${preset.id} (${isDark ? 'dark' : 'light'})`).not.toContain(
-                    'chartPadding'
-                );
-            }
+            expect(themeNames, preset.id).toContain(preset.baseTheme);
         }
     });
 
-    it('still carries the colour params that make a theme distinctive', () => {
-        // The counterweight to the filter above: ag-financial's other change is
-        // a lighter gridLineColor, and dropping that with chartPadding would
-        // make the preset a palette swap and nothing else.
-        const financial = PRESETS.find((preset) => preset.id === 'financial')!;
-        expect(Object.keys(toSharedPreset(financial, false).params ?? {})).toContain('gridLineColor');
-    });
-
-    it('gives every preset a palette in both modes', () => {
+    it('sets only params AG Charts actually has', () => {
+        // A mistyped key is applied to nothing and reported by nobody, so the
+        // preset just quietly loses one of its decisions.
         for (const preset of PRESETS) {
-            for (const isDark of [false, true]) {
-                const palette = paletteFor(preset, isDark);
-                expect(palette.fills.length, `${preset.id}`).toBeGreaterThan(0);
-                expect(palette.strokes).toHaveLength(palette.fills.length);
-            }
+            const unknown = Object.keys(preset.params).filter((key) => !PUBLIC_PARAM_NAMES.includes(key));
+            expect(unknown, preset.id).toEqual([]);
         }
     });
 
-    it('keeps lookalike themes apart in the row', () => {
-        // Default, Material and Vivid share a hue sequence and differ mainly in
-        // saturation, so the order interleaves them with the distinctive ones.
-        const lookalikes = ['default', 'material', 'vivid'];
-        const positions = PRESETS.map((preset, index) => ({ id: preset.id, index })).filter(({ id }) =>
-            lookalikes.includes(id)
+    it('uses only fonts the font menu offers', () => {
+        // The chart imports its own Google fonts, so an unlisted one would still
+        // render - but the Font Family control would show "Same as application"
+        // for a value it has no option for, and picking anything else would be a
+        // one-way door out of the preset's typeface.
+        const loaded = new Set(
+            CHARTS_FONT_FAMILY_OPTIONS.flatMap(({ value }) =>
+                (Array.isArray(value) ? value : [value]).flatMap((font) =>
+                    typeof font === 'object' && font != null && 'googleFont' in font ? [font.googleFont] : []
+                )
+            )
         );
-        for (let i = 1; i < positions.length; i++) {
-            expect(positions[i].index - positions[i - 1].index).toBeGreaterThan(1);
+        for (const preset of PRESETS) {
+            const font = preset.params.fontFamily;
+            if (typeof font === 'object' && font != null && 'googleFont' in font) {
+                expect(loaded, preset.id).toContain((font as { googleFont: string }).googleFont);
+            }
+        }
+    });
+
+    it('carries enough series colours for a thumbnail', () => {
+        // The cards render eight series, so a shorter palette wraps and two
+        // slots come out the same colour - which is exactly the sameness the
+        // hand-authored presets exist to avoid.
+        for (const preset of PRESETS) {
+            expect(preset.palette.fills.length, preset.id).toBeGreaterThanOrEqual(8);
+            expect(preset.palette.strokes, preset.id).toHaveLength(preset.palette.fills.length);
+            for (const accent of [preset.palette.up, preset.palette.down, preset.palette.neutral]) {
+                expect(accent?.fill, preset.id).toBeTruthy();
+                expect(accent?.stroke, preset.id).toBeTruthy();
+            }
+        }
+    });
+
+    it('alternates light and dark down the row', () => {
+        // Neighbouring cards are the comparison a user makes, and alternating is
+        // what stops any two of them reading as the same theme twice.
+        const isDark = PRESETS.map((preset) => preset.baseTheme.endsWith('-dark'));
+        for (let i = 1; i < isDark.length; i++) {
+            expect(isDark[i], `${PRESETS[i - 1].id} then ${PRESETS[i].id}`).not.toBe(isDark[i - 1]);
+        }
+    });
+
+    it('proposes a look, not only a palette', () => {
+        // The stock themes differed from one another by palette alone, which is
+        // what made the row read as one theme repeated. Default and Midnight are
+        // the deliberate exceptions - they are the untouched base themes.
+        for (const preset of PRESETS.filter(({ id }) => id !== 'default' && id !== 'midnight')) {
+            expect(Object.keys(preset.params), preset.id).toContain('fontFamily');
+            expect(Object.keys(preset.params), preset.id).toContain('backgroundColor');
         }
     });
 });

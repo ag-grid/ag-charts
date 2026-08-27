@@ -1,9 +1,8 @@
-import { EMPTY_PALETTE } from '@ag-website-shared/components/theme-builder/palette';
-import { applyPreset } from '@ag-website-shared/theming/preset';
+import { useApplicationConfigAtom } from '@ag-website-shared/theming/application-config';
 import { useRenderedTheme, useRenderedThemeInfo } from '@ag-website-shared/theming/rendered-theme';
 import styled from '@emotion/styled';
 import { useStore } from 'jotai';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { ChartPreview } from './ChartPreview';
 import { EditorPanel } from './EditorPanel';
@@ -11,23 +10,38 @@ import { PresetSelector } from './PresetSelector';
 import { PreviewOptions } from './PreviewOptions';
 import { ThemeCodePanel } from './ThemeCodePanel';
 import { usePreviewChartType, usePreviewSeriesCount } from './chartTypes';
-import { DEFAULT_THEME_NAME } from './chartsTheme';
 import { type ChartsThemeSelection, toChartTheme } from './chartsThemeOutput';
 import { setStoredPalette, useStoredPalette } from './paletteModel';
-import { type ChartsPreset, PRESETS, paletteFor, toSharedPreset } from './presets';
+import { getSelectedPresetId, setSelectedPresetId, useSelectedPresetId } from './presetModel';
+import { type ChartsPreset, findPreset } from './presets';
 
-export const RootContainer = ({ isDark }: { isDark: boolean }) => {
+export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }) => {
     const store = useStore();
     const renderedTheme = useRenderedTheme();
     const { overriddenParams } = useRenderedThemeInfo();
-    const palette = useStoredPalette();
+    const storedPalette = useStoredPalette();
     const [chartType, setChartType] = usePreviewChartType();
     const [seriesCount, setSeriesCount] = usePreviewSeriesCount();
-    const [selectedId, setSelectedId] = useState<string | null>(null);
+    const [pageBackgroundColor] = useApplicationConfigAtom('previewPaneBackgroundColor');
+
+    const preset = findPreset(useSelectedPresetId()) ?? initialPreset;
+
+    // A first visit: the provider has applied the starting preset's params, but
+    // the palette and the preset itself live outside the shared param model, so
+    // they are seeded here. Each is guarded on its own - a returning user who
+    // has since edited their palette must keep it.
+    useLayoutEffect(() => {
+        if (getSelectedPresetId(store) == null) setSelectedPresetId(store, initialPreset.id);
+        if (storedPalette == null) setStoredPalette(store, initialPreset.palette);
+    }, []);
 
     const selection: ChartsThemeSelection = useMemo(
-        () => ({ baseTheme: DEFAULT_THEME_NAME, params: overriddenParams, palette: palette ?? EMPTY_PALETTE }),
-        [overriddenParams, palette]
+        () => ({
+            baseTheme: preset.baseTheme,
+            params: overriddenParams,
+            palette: storedPalette ?? preset.palette,
+        }),
+        [preset, overriddenParams, storedPalette]
     );
     const previewTheme = useMemo(() => toChartTheme(selection), [selection]);
 
@@ -45,23 +59,6 @@ export const RootContainer = ({ isDark }: { isDark: boolean }) => {
         return () => window.removeEventListener('resize', update);
     }, []);
 
-    // When the site's dark mode toggles, keep the chosen preset selected but
-    // switch to its matching light/dark variant. Skipped on first render (no
-    // preset picked yet) so it never clobbers the initial preset.
-    const isFirstRender = useRef(true);
-    useEffect(() => {
-        if (isFirstRender.current) {
-            isFirstRender.current = false;
-            return;
-        }
-        if (!selectedId) return;
-        const preset = PRESETS.find((p) => p.id === selectedId);
-        if (preset) {
-            applyPreset(store, toSharedPreset(preset, isDark));
-            setStoredPalette(store, paletteFor(preset, isDark));
-        }
-    }, [isDark]);
-
     return (
         <Container ref={containerRef} style={height ? { height } : undefined}>
             <Menu className={renderedTheme._getParamsClassName()}>
@@ -71,22 +68,23 @@ export const RootContainer = ({ isDark }: { isDark: boolean }) => {
                 </EditorScroller>
             </Menu>
             <Main>
-                <PresetSelector
-                    isDark={isDark}
-                    chartType={chartType}
-                    selectedId={selectedId}
-                    onSelect={(preset: ChartsPreset) => setSelectedId(preset.id)}
-                />
+                <PresetSelector chartType={chartType} selectedId={preset.id} />
                 <Preview>
-                    <PreviewToolbar>
-                        <PreviewOptions
-                            chartType={chartType}
-                            onChartTypeChange={setChartType}
-                            seriesCount={seriesCount}
-                            onSeriesCountChange={setSeriesCount}
-                        />
-                    </PreviewToolbar>
-                    <ChartPreview theme={previewTheme} chartType={chartType} seriesCount={seriesCount} />
+                    {/* The page colour goes behind the chart and its toolbar, not
+                        behind the snippet: the code is highlighted in the site's
+                        own palette and would be unreadable on a dark theme's
+                        background while the docs are in light mode. */}
+                    <Stage style={{ background: pageBackgroundColor || preset.pageBackgroundColor }}>
+                        <PreviewToolbar>
+                            <PreviewOptions
+                                chartType={chartType}
+                                onChartTypeChange={setChartType}
+                                seriesCount={seriesCount}
+                                onSeriesCountChange={setSeriesCount}
+                            />
+                        </PreviewToolbar>
+                        <ChartPreview theme={previewTheme} chartType={chartType} seriesCount={seriesCount} />
+                    </Stage>
                     <ThemeCodePanel selection={selection} />
                 </Preview>
             </Main>
@@ -168,4 +166,11 @@ const Preview = styled('div')`
     border: 1px solid var(--color-border-primary);
     border-radius: var(--radius-md, 8px);
     background: var(--color-bg-primary);
+`;
+
+const Stage = styled('div')`
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
 `;

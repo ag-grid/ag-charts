@@ -8,26 +8,26 @@ import { useState } from 'react';
 import { PresetPreview } from './PresetPreview';
 import type { PreviewChartType } from './chartTypes';
 import { setStoredPalette } from './paletteModel';
-import { type ChartsPreset, PRESETS, paletteFor, themeNameFor, toSharedPreset } from './presets';
+import { setSelectedPresetId } from './presetModel';
+import { type ChartsPreset, PRESETS, toSharedPreset } from './presets';
 
 interface Props {
-    isDark: boolean;
     chartType: PreviewChartType;
-    selectedId: string | null;
-    onSelect: (preset: ChartsPreset) => void;
+    selectedId: string | undefined;
 }
 
-export const PresetSelector = ({ isDark, chartType, selectedId, onSelect }: Props) => {
+export const PresetSelector = ({ chartType, selectedId }: Props) => {
     const store = useStore();
     const [showDialog, setShowDialog] = useState(false);
     const [pendingPreset, setPendingPreset] = useState<ChartsPreset | null>(null);
 
     const apply = (preset: ChartsPreset) => {
-        applyPreset(store, toSharedPreset(preset, isDark));
-        // The palette is not part of the shared preset, so it is applied here -
-        // after applyPreset, which resets the change counter the guard below reads.
-        setStoredPalette(store, paletteFor(preset, isDark));
-        onSelect(preset);
+        applyPreset(store, toSharedPreset(preset));
+        // Neither the palette nor the base theme is part of the shared preset,
+        // so both are applied here - after applyPreset, which resets the change
+        // counter the guard below reads.
+        setStoredPalette(store, preset.palette);
+        setSelectedPresetId(store, preset.id);
     };
 
     const selectPreset = (preset: ChartsPreset) => {
@@ -54,7 +54,7 @@ export const PresetSelector = ({ isDark, chartType, selectedId, onSelect }: Prop
                         aria-label={preset.label}
                         aria-pressed={preset.id === selectedId}
                     >
-                        <PresetPreview themeName={themeNameFor(preset, isDark)} chartType={chartType} />
+                        <PresetPreview preset={preset} chartType={chartType} />
                     </PresetButton>
                 ))}
             </PresetScroller>
