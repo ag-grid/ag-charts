@@ -977,4 +977,71 @@ describe('Annotations', () => {
             expect(await axisLabelXWith(5, 45)).toBeCloseTo(await axisLabelXWith(5, 5), 5);
         });
     });
+
+    describe('axis label alignment with a boxed tick label (AG-18182)', () => {
+        // An axis offsets a boxed tick label - one with a `fill` or a bordered stroke - so its box,
+        // rather than its text, keeps the label spacing. The annotation label has to take that offset too.
+        const withAxisLabel = (position: 'left' | 'right', label: object): AgCartesianChartOptions => ({
+            ...EXAMPLE_OPTIONS,
+            axes: {
+                y: { type: 'number', position, label },
+                x: { type: 'time' },
+            },
+            initialState: {
+                annotations: [{ type: 'horizontal-line', value: 50, axisLabel: { enabled: true } }],
+            },
+        });
+
+        // Gap between the two labels' text edges facing the axis line - text, not box, is what the
+        // unboxed default aligns. A tick label's anchor is that edge; its bbox would cover the drawn box.
+        const textEdgeGap = (position: 'left' | 'right') => {
+            const annotationTexts: any[] = [];
+            const tickTexts: any[] = [];
+            const visit = (node: any, inAnnotation: boolean) => {
+                const annotation = inAnnotation || node.name === 'AnnotationAxisLabelGroup';
+                if (typeof node.text === 'string' && /^[0-9]+$/.test(node.text)) {
+                    (annotation ? annotationTexts : tickTexts).push(node);
+                }
+                if (typeof node.children === 'function') {
+                    for (const child of node.children()) visit(child, annotation);
+                }
+            };
+            const deproxied = deproxy(chart) as any;
+            visit(deproxied.ctx.scene.root, false);
+            expect(annotationTexts).toHaveLength(1);
+            expect(tickTexts.length).toBeGreaterThan(0);
+
+            const axisX = deproxied.axes.find((axis: any) => axis.direction === 'y').translation.x;
+            const annotationBox = annotationTexts[0].getBBox();
+            const annotationEdge = position === 'right' ? annotationBox.x : annotationBox.x + annotationBox.width;
+            return annotationEdge - (axisX + tickTexts[0].x);
+        };
+
+        const gapWith = async (position: 'left' | 'right', label: object) => {
+            await prepareChart(undefined, withAxisLabel(position, label));
+            const gap = textEdgeGap(position);
+            chart.destroy();
+            (chart as unknown) = undefined;
+            return gap;
+        };
+
+        for (const position of ['right', 'left'] as const) {
+            it(`aligns with an unboxed ${position} axis tick label`, async () => {
+                expect(await gapWith(position, {})).toBeCloseTo(0, 1);
+            });
+
+            it(`aligns with a filled ${position} axis tick label`, async () => {
+                expect(await gapWith(position, { fill: 'pink' })).toBeCloseTo(0, 1);
+            });
+
+            it(`aligns with a filled ${position} axis tick label carrying explicit padding`, async () => {
+                expect(await gapWith(position, { fill: 'pink', padding: 6 })).toBeCloseTo(0, 1);
+            });
+
+            it(`aligns with a bordered ${position} axis tick label`, async () => {
+                const label = { border: { enabled: true, stroke: 'red', strokeWidth: 1 }, padding: 7 };
+                expect(await gapWith(position, label)).toBeCloseTo(0, 1);
+            });
+        }
+    });
 });
