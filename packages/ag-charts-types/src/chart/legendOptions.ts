@@ -58,20 +58,20 @@ export type AgChartLegendPosition = AgChartLegendPlacement | AgChartLegendPositi
 export type AgChartLegendOrientation = 'horizontal' | 'vertical';
 
 export interface AgChartLegendMarkerDisabledStyle {
-    /** Opacity of the marker for legend items that have been toggled off. Setting any `disabledStyle` property moves the dimming from the item onto its sub-elements, at which point this is an absolute opacity rather than a multiplier, so `1` renders the marker fully opaque.
+    /** Opacity of the marker.
      *
      * Default: `0.5`
      */
     opacity?: Opacity;
-    /** The fill colour to use for the marker of legend items that have been toggled off. A colour string, or an object for a gradient, pattern, or image fill. If unset, the marker keeps its enabled fill. */
+    /** The fill colour of the marker. */
     fill?: AgColorType;
-    /** Opacity of the marker fill for legend items that have been toggled off. */
+    /** Opacity of the marker fill. */
     fillOpacity?: Opacity;
-    /** The colour to use for the marker stroke of legend items that have been toggled off. */
+    /** The colour of the marker stroke. */
     stroke?: AgCssColorOrRef;
-    /** Opacity of the marker stroke for legend items that have been toggled off. */
+    /** Opacity of the marker stroke. */
     strokeOpacity?: Opacity;
-    /** The width in pixels of the marker stroke for legend items that have been toggled off. */
+    /** The width in pixels of the marker stroke. */
     strokeWidth?: PixelSize;
 }
 
@@ -84,23 +84,23 @@ export interface AgChartLegendMarkerOptions {
     padding?: PixelSize;
     /** The width in pixels of the stroke for markers in the legend. */
     strokeWidth?: PixelSize;
-    /** Overrides for the marker style of legend items that have been toggled off by clicking the legend. Any property left unset falls back to the enabled marker style. */
+    /** Marker style overrides for legend items that have been toggled off. */
     disabledStyle?: AgChartLegendMarkerDisabledStyle;
 }
 
 export interface AgChartLegendLineDisabledStyle {
-    /** Opacity of the line for legend items that have been toggled off. Setting any `disabledStyle` property moves the dimming from the item onto its sub-elements, at which point this is an absolute opacity rather than a multiplier, so `1` renders the line fully opaque.
+    /** Opacity of the line.
      *
      * Default: `0.5`
      */
     opacity?: Opacity;
-    /** The colour to use for the line of legend items that have been toggled off. If unset, the line keeps its enabled stroke. */
+    /** The colour of the line. */
     stroke?: AgCssColorOrRef;
-    /** Opacity of the line stroke for legend items that have been toggled off. */
+    /** Opacity of the line stroke. */
     strokeOpacity?: Opacity;
-    /** Defines how the line stroke is rendered for legend items that have been toggled off. Every number in the array specifies the length in pixels of alternating dashes and gaps. */
+    /** Defines how the line stroke is rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. */
     lineDash?: PixelSize[];
-    /** The initial offset in pixels of the dash pattern for legend items that have been toggled off. */
+    /** The initial offset in pixels of the dash pattern. */
     lineDashOffset?: PixelSize;
 }
 
@@ -109,17 +109,17 @@ export interface AgChartLegendLineOptions {
     strokeWidth?: PixelSize;
     /** The length of the legend item line in pixels. This requires `showSeriesStroke` to be set to `true`. */
     length?: PixelSize;
-    /** Overrides for the line style of legend items that have been toggled off by clicking the legend. Any property left unset falls back to the enabled line style. */
+    /** Line style overrides for legend items that have been toggled off. */
     disabledStyle?: AgChartLegendLineDisabledStyle;
 }
 
 export interface AgChartLegendLabelDisabledStyle {
-    /** Opacity of the label for legend items that have been toggled off. Setting any `disabledStyle` property moves the dimming from the item onto its sub-elements, at which point this is an absolute opacity rather than a multiplier, so `1` renders the label fully opaque.
+    /** Opacity of the label.
      *
-     * Default: `0.5`
+     * Default: `0.25`
      */
     opacity?: Opacity;
-    /** The colour of the label text for legend items that have been toggled off. A colour string, or a theme-colour reference object. If unset, the label keeps its enabled colour. */
+    /** The colour of the label text. */
     color?: AgCssColorOrRef;
 }
 
@@ -151,7 +151,7 @@ export interface AgChartLegendLabelOptions<TContext = ContextDefault> {
     fontFamily?: FontFamilyFull;
     /** Function used to render legend labels. Where `id` is a series ID, `itemId` is component ID within a series, such as a field name or an item index. */
     formatter?: Formatter<AgChartLegendLabelFormatterParams<TContext>>;
-    /** Overrides for the label style of legend items that have been toggled off by clicking the legend. Any property left unset falls back to the enabled label style. */
+    /** Label style overrides for legend items that have been toggled off. */
     disabledStyle?: AgChartLegendLabelDisabledStyle;
 }
 
