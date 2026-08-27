@@ -967,20 +967,24 @@ export interface BarPositionedCandidate<
     readonly deferred?: BarCandidateDeferred<TPlacement>;
 }
 
-/** Per-label half of a deferred candidate's inputs, shared by every candidate in one label's list. */
+/**
+ * Per-label half of a candidate's inputs, shared by every candidate in one label's list. A subset of
+ * {@link buildBarLabelCandidates}'s own argument object, which stands in as the spec so that positioning a
+ * candidate costs no allocation of its own.
+ */
 interface BarCandidateSpec {
     readonly isUpward: boolean;
     readonly isVertical: boolean;
     readonly spacing: number;
-    readonly crossReversed: boolean;
+    readonly crossReversed?: boolean;
     readonly rect: Bounds;
     /** Text size under the configured font, used by a candidate no styler resizes. */
     readonly textWidth: number;
     readonly textHeight: number;
     /** Source text, re-measured under a candidate's styled font; unset leaves the candidate unstyled. */
-    readonly text: NormalisedTextOrSegments | undefined;
-    readonly fitted: boolean;
-    readonly shapeAt: ((anchor: OrientationAnchor) => FitRegion | undefined) | undefined;
+    readonly text?: NormalisedTextOrSegments;
+    readonly fitted?: boolean;
+    readonly shapeAt?: (anchor: OrientationAnchor) => FitRegion | undefined;
 }
 
 /**
@@ -992,7 +996,6 @@ export interface BarCandidateDeferred<TPlacement extends string = BarLabelPlacem
     readonly placement: BarLabelPlacement;
     readonly reportedPlacement: TPlacement;
     readonly orientation: AgChartLabelOrientation;
-    readonly isInside: boolean;
     readonly insideRegion: BoxBounds | undefined;
     readonly region: BoxBounds | undefined;
     /** Drawn-box extent of the configured style at this placement, used when nothing restyles it. */
@@ -1026,32 +1029,12 @@ function regionAlignOf(textBaseline: CanvasTextBaseline): RegionAlign {
  * With `fitted` set, each candidate also carries the glyph budget its region offers, so the placement
  * engine re-fits the text per candidate instead of every candidate inheriting one up-front truncation.
  *
- * Every candidate is built on the configured style and carries the inputs to rebuild itself under its
- * `itemStyler` geometry, which the placement engine resolves only as the cascade reaches that candidate
- * (see {@link createBarPositionedCandidateResolver}). A label the engine never sees must resolve its own
- * candidate through {@link resolveBarLabelCandidate}.
+ * Every candidate is built on the configured style, and a label with an `itemStyler` also carries the
+ * inputs to rebuild itself under the geometry that styler resolves, which the placement engine reaches for
+ * only as the cascade reaches that candidate (see {@link createBarPositionedCandidateResolver}). A label
+ * the engine never sees must resolve its own candidate through {@link resolveBarLabelCandidate}.
  */
-export function buildBarLabelCandidates<TParams, TPlacement extends string = BarLabelPlacement>({
-    isUpward,
-    isVertical,
-    placements: placementList,
-    reportedPlacements,
-    orientations,
-    spacing,
-    label,
-    textWidth,
-    textHeight,
-    rect,
-    insideCrossRegion,
-    crossReversed = false,
-    rejectOutsideStart = false,
-    rejectOutsideEnd = false,
-    hideable = false,
-    plotRegion,
-    fitted = false,
-    shapeAt,
-    text,
-}: {
+export function buildBarLabelCandidates<TParams, TPlacement extends string = BarLabelPlacement>(args: {
     isUpward: boolean;
     isVertical: boolean;
     placements: readonly BarLabelPlacement[];
@@ -1091,6 +1074,22 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
     /** Source text, re-measured under a candidate's styled font; unset leaves every candidate unstyled. */
     text?: NormalisedTextOrSegments;
 }): BarPositionedCandidate<TPlacement>[] {
+    const {
+        isUpward,
+        isVertical,
+        placements: placementList,
+        reportedPlacements,
+        orientations,
+        spacing,
+        label,
+        rect,
+        insideCrossRegion,
+        rejectOutsideStart = false,
+        rejectOutsideEnd = false,
+        hideable = false,
+        plotRegion,
+        text,
+    } = args;
     // Drop the outside placements that would point into an adjacent stacked segment on that side, so the
     // cascade falls through to a beside/inside candidate rather than mislabelling the neighbour.
     const rejectsOutside = rejectOutsideStart || rejectOutsideEnd;
@@ -1110,18 +1109,6 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
 
     // `plotRegion` is a collision-only boundary for outside/beside candidates: a label overflowing it fails
     // containment so the cascade falls through, rather than being clamped into it.
-    const spec: BarCandidateSpec = {
-        isUpward,
-        isVertical,
-        spacing,
-        crossReversed,
-        rect,
-        textWidth,
-        textHeight,
-        text,
-        fitted,
-        shapeAt,
-    };
     // Nothing restyles a label with no `itemStyler`, so its candidates are final as built.
     const restyleable = label.itemStyler != null && text != null;
     const candidates: BarPositionedCandidate<TPlacement>[] = [];
@@ -1146,11 +1133,22 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
         }
         const region = insideRegion ?? plotRegion;
         for (const orientation of orientations) {
+            // Node data outlives the render, so only a candidate something can still restyle carries the
+            // inputs to rebuild itself; every other label's are dead as its candidate is built.
+            const deferred = restyleable
+                ? { spec: args, placement, reportedPlacement, orientation, insideRegion, region, placementBox }
+                : undefined;
             candidates.push(
                 positionBarLabelCandidate(
-                    { spec, placement, reportedPlacement, orientation, isInside, insideRegion, region, placementBox },
+                    args,
+                    placement,
+                    reportedPlacement,
+                    orientation,
+                    insideRegion,
+                    region,
+                    placementBox,
                     undefined,
-                    restyleable
+                    deferred
                 )
             );
         }
@@ -1162,14 +1160,24 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
  * One candidate's geometry under `style`, or under the configured style when it is unset. A styler can
  * change the font and box per orientation as well as per placement, so the glyph, the box extent and the
  * anchor they position are all derived here.
+ *
+ * `deferred` is what the candidate carries for a later restyle, retained as passed. The inputs arrive
+ * positionally, and not as that one object, because this runs per candidate of every bar label of every
+ * datum, where a label with no `itemStyler` has nothing to retain.
  */
 function positionBarLabelCandidate<TPlacement extends string>(
-    deferred: BarCandidateDeferred<TPlacement>,
+    spec: BarCandidateSpec,
+    placement: BarLabelPlacement,
+    reportedPlacement: TPlacement,
+    orientation: AgChartLabelOrientation,
+    insideRegion: BoxBounds | undefined,
+    region: BoxBounds | undefined,
+    placementBox: Required<PaddingOptions>,
     style: CandidateLabelStyle | undefined,
-    retain: boolean
+    deferred: BarCandidateDeferred<TPlacement> | undefined
 ): BarPositionedCandidate<TPlacement> {
-    const { spec, placement, reportedPlacement, orientation, isInside, insideRegion, region, placementBox } = deferred;
     const { text, shapeAt } = spec;
+    const isInside = placement.startsWith('inside');
     const boxPadding = style?.boxPadding ?? placementBox;
     const glyph = style == null || text == null ? undefined : measureLabelText(text, style.font);
     const width = (glyph?.width ?? spec.textWidth) + boxPadding.left + boxPadding.right;
@@ -1181,7 +1189,7 @@ function positionBarLabelCandidate<TPlacement extends string>(
         spacing: spec.spacing,
         boxPadding,
         rect: spec.rect,
-        crossReversed: spec.crossReversed,
+        crossReversed: spec.crossReversed ?? false,
     });
     const centre = writeLabelBoxCentre({ x: 0, y: 0 }, anchor, width, height, boxPadding);
     const rotationDeg = orientationAngles[orientation];
@@ -1210,9 +1218,27 @@ function positionBarLabelCandidate<TPlacement extends string>(
                   font: style?.font,
               }
             : undefined,
-        // Node data outlives the render, so only a candidate something can still restyle keeps its inputs.
-        deferred: retain ? deferred : undefined,
+        deferred,
     };
+}
+
+/** {@link positionBarLabelCandidate} for a candidate rebuilt under `style` from its retained inputs. */
+function restyleBarLabelCandidate<TPlacement extends string>(
+    deferred: BarCandidateDeferred<TPlacement>,
+    style: CandidateLabelStyle | undefined
+): BarPositionedCandidate<TPlacement> {
+    const { spec, placement, reportedPlacement, orientation, insideRegion, region, placementBox } = deferred;
+    return positionBarLabelCandidate(
+        spec,
+        placement,
+        reportedPlacement,
+        orientation,
+        insideRegion,
+        region,
+        placementBox,
+        style,
+        undefined
+    );
 }
 
 /**
@@ -1227,11 +1253,7 @@ export function resolveBarLabelCandidate<TPlacement extends string>(
 ): BarPositionedCandidate<TPlacement> {
     const { deferred } = candidate;
     if (resolveStyle == null || deferred?.spec.text == null) return candidate;
-    return positionBarLabelCandidate(
-        deferred,
-        resolveStyle(styleDatum, deferred.placement, deferred.orientation),
-        false
-    );
+    return restyleBarLabelCandidate(deferred, resolveStyle(styleDatum, deferred.placement, deferred.orientation));
 }
 
 /**
@@ -1265,6 +1287,6 @@ export function createBarPositionedCandidateResolver<TParams>(
             },
             deferred.orientation
         );
-        return positionBarLabelCandidate(deferred, style, false);
+        return restyleBarLabelCandidate(deferred, style);
     };
 }
