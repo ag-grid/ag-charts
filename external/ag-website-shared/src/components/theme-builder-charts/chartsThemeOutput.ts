@@ -7,8 +7,8 @@ import type { AgChartTheme, AgChartThemeName, AgChartThemePalette, AgChartThemeP
  * preview chart - and the user's copied snippet - can actually consume.
  *
  * The two formats were designed to line up: colour references are `{ ref, mix,
- * onto }` on both sides, and borders are `{ width, color }`. Only three things
- * genuinely differ, all handled below.
+ * onto }` on both sides, borders are `{ width, color }`, and a font family is
+ * `{ googleFont }`. Only two things genuinely differ, both handled below.
  */
 
 /** `"4px"` -> `4`. AG Charts takes plain numbers for pixel lengths. */
@@ -20,10 +20,6 @@ const toPixelSize = (value: string): number | string => {
 const isPlainObject = (value: unknown): value is Record<string, any> =>
     typeof value === 'object' && value != null && !Array.isArray(value);
 
-/** The editors emit `{ googleFont }` for menu fonts; AG Charts wants the name. */
-const toFontFamily = (value: unknown): unknown =>
-    isPlainObject(value) && typeof value.googleFont === 'string' ? value.googleFont : value;
-
 const LENGTH_SUFFIXES = ['Radius', 'Width', 'Size', 'Padding', 'Spacing'];
 const isLengthParam = (property: string) => LENGTH_SUFFIXES.some((suffix) => property.endsWith(suffix));
 
@@ -31,7 +27,11 @@ const toChartParamValue = (property: string, value: unknown): unknown => {
     if (value == null) return value;
 
     if (property.toLowerCase().endsWith('fontfamily')) {
-        return toFontFamily(value);
+        // Untouched, `{ googleFont }` included: AG Charts reads that form itself
+        // and imports the family, so unwrapping it to the bare name would leave
+        // the pasted theme naming a font the user's page never loads. A stack,
+        // a plain name and a `{ ref }` are all valid here too.
+        return value;
     }
 
     if (typeof value === 'string' && isLengthParam(property)) {
