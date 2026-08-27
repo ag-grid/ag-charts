@@ -1726,7 +1726,7 @@ describe('SunburstSeries', () => {
         it('stays silent when an inner-radius option is set but carves no hole', async () => {
             const zeroRatio = await createChart({ innerRadiusRatio: 0, innerCircle: { fill: 'red' } });
             expect(zeroRatio.resolveCentreCircle()).toBeNull();
-            expect(zeroRatio.innerCircleSelection.nodes()).toHaveLength(0);
+            expect((zeroRatio as any).innerCircleSelection.nodes()).toHaveLength(0);
             expectWarningsCalls().toEqual([]);
 
             const oversizedOffset = await replaceChart({
@@ -1735,7 +1735,7 @@ describe('SunburstSeries', () => {
                 innerLabels: [{ text: 'Total' }],
             });
             expect(oversizedOffset.resolveCentreCircle()).toBeNull();
-            expect(oversizedOffset.innerCircleSelection.nodes()).toHaveLength(0);
+            expect((oversizedOffset as any).innerCircleSelection.nodes()).toHaveLength(0);
             expectWarningsCalls().toEqual([]);
         });
 
