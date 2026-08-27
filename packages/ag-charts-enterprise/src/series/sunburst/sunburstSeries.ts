@@ -573,9 +573,16 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         this.innerLabelsSelection.update(centre == null ? [] : innerLabels, (node) => {
             node.pointerEvents = PointerEvents.None;
         });
-        if ((innerCircle != null || innerLabels.length > 0) && centre == null) {
+        // Gate the warning on whether the inner-radius options are set, not on the hole they compute:
+        // a deliberate `innerRadiusRatio: 0` or an oversized offset is a configured series, not a
+        // misconfigured one, so it renders without a hole and says nothing.
+        if (
+            (innerCircle != null || innerLabels.length > 0) &&
+            innerRadiusRatio == null &&
+            innerRadiusOffset == null
+        ) {
             this.ctx.logger.warnOnce(
-                'Options [series.innerCircle] and [series.innerLabels] have no effect unless either [series.innerRadiusRatio] or [series.innerRadiusOffset] is set to carve out a centre.'
+                'Options [series.innerCircle] and [series.innerLabels] have no effect unless either [series.innerRadiusRatio] or [series.innerRadiusOffset] is set.'
             );
         } else if (innerCircle != null) {
             const { fill, fillOpacity = 1 } = innerCircle;
@@ -704,6 +711,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             text.y = 0;
             text.fill = color;
             text.textAlign = 'center';
+            // `textBottoms` below positions each line by the bottom of its box, so the node must
+            // measure and paint from that edge too - the default `alphabetic` baseline would drop
+            // every line by one text descent.
+            text.textBaseline = 'bottom';
             textBBoxes.push(text.getBBox());
             margins.push(datum.spacing);
         });
