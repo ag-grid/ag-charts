@@ -49,12 +49,22 @@ This is useful for centring the chart origin or aligning axes to highlight parti
         x: {
             type: 'number',
             // place the bottom axis at '0' on the left axis scale
-            crossAt: { value: 0 },
+            crossAt: {
+                value: 0,
+                titlePlacement: 'crossing',
+                labelPlacement: 'crossing',
+                crosshairLabelPlacement: 'edge',
+            },
         },
         y: {
             type: 'number',
             // place the left axis at '0' on the bottom axis scale
-            crossAt: { value: 0 },
+            crossAt: {
+                value: 0,
+                titlePlacement: 'crossing',
+                labelPlacement: 'crossing',
+                crosshairLabelPlacement: 'edge',
+            },
         },
     },
 }
@@ -65,7 +75,7 @@ In this example:
 - Both axes have a `crossAt.value` set. It is also possible to set it on a single axis only.
 - The `crossAt.value` must be of the same type as the perpendicular axis domain, such as `Number` or `Date`.
 - The `crossAt` target value should be within the domain of the perpendicular axis.
-- The `crossAt.titlePlacement` and `crossAt.labelPlacement` can be changed to `'crossing'` or `'edge'`, independently.
+- The `crossAt.titlePlacement`, `crossAt.labelPlacement` and `crossAt.crosshairLabelPlacement` can be changed to `'crossing'` or `'edge'`, independently.
 
 When the target value leaves the visible range, such as by [Zooming](./zoom/), the axis will stick to the edge of the chart and remain in view.
 
