@@ -999,7 +999,7 @@ describe('Annotations', () => {
             const tickTexts: any[] = [];
             const visit = (node: any, inAnnotation: boolean) => {
                 const annotation = inAnnotation || node.name === 'AnnotationAxisLabelGroup';
-                if (typeof node.text === 'string' && /^[0-9]+$/.test(node.text)) {
+                if (typeof node.text === 'string' && /^\d+$/.test(node.text)) {
                     (annotation ? annotationTexts : tickTexts).push(node);
                 }
                 if (typeof node.children === 'function') {
