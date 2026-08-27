@@ -96,6 +96,8 @@ In this example:
 - Positions suffixed with `above` or `below` clear the region's horizontal edge while staying aligned to its left or
   right edge.
 - `position` defaults to `'top'`.
+- `xOffset` and `yOffset` move the label from its position by a number of pixels, and are not clipped to the series
+  area.
 
 ## Multiple Axes
 
@@ -153,6 +155,7 @@ text, box and border options.
                 label: {
                     text: 'Adelie',
                     position: 'inside-top',
+                    yOffset: 8,
                     color: '#2b5c95',
                     fontSize: 13,
                     fontWeight: 'bold',
@@ -176,6 +179,7 @@ In this example:
 - Each species has a region covering the middle 80% of its measurements.
 - Each label is colour-matched to its region, with `fill`, `cornerRadius`, `padding` and `border` styling the box
   behind the text and `color` styling the text itself.
+- `yOffset` drops each label 8px below the top edge of its region.
 - Where `fill` is omitted, regions use the theme's default fill. A `stroke` is only drawn when one is specified.
 
 ## API Reference

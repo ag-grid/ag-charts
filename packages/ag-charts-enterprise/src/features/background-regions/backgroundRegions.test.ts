@@ -534,6 +534,70 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
         },
         assertions,
     },
+
+    LABEL_OFFSET_INSIDE: {
+        options: {
+            ...NUMERIC,
+            seriesArea: {
+                backgroundRegions: [
+                    {
+                        fill: 'lightsalmon',
+                        fillOpacity: 0.8,
+                        xRange: { start: 20, end: 80 },
+                        yRange: { start: 20, end: 80 },
+                        label: {
+                            position: 'inside-top-left',
+                            text: 'offset',
+                            fontSize: 20,
+                            xOffset: 30,
+                            yOffset: 60,
+                        },
+                    },
+                ],
+            },
+        },
+        assertions,
+    },
+
+    LABEL_OFFSET_NEGATIVE: {
+        options: {
+            ...NUMERIC,
+            seriesArea: {
+                backgroundRegions: [
+                    {
+                        fill: 'lightsalmon',
+                        fillOpacity: 0.8,
+                        xRange: { start: 20, end: 80 },
+                        yRange: { start: 20, end: 80 },
+                        label: {
+                            position: 'inside-bottom-right',
+                            text: 'offset',
+                            fontSize: 20,
+                            xOffset: -30,
+                            yOffset: -60,
+                        },
+                    },
+                ],
+            },
+        },
+        assertions,
+    },
+
+    LABEL_OFFSET_AT_SERIES_AREA_EDGE: {
+        options: {
+            ...NUMERIC,
+            seriesArea: {
+                backgroundRegions: [
+                    {
+                        fill: 'lightsalmon',
+                        fillOpacity: 0.8,
+                        label: { position: 'top', text: 'outside', fontSize: 20, xOffset: 40, yOffset: 20 },
+                    },
+                ],
+            },
+        },
+        assertions,
+    },
 };
 
 const labelPositions = [

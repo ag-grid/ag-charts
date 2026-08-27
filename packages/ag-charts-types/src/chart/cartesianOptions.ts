@@ -605,6 +605,16 @@ export interface AgSeriesAreaBackgroundRegionLabel extends Omit<AgChartLabelStyl
     rotation?: Degree;
     /** The text to show in the label. */
     text?: string;
+    /** The horizontal offset in pixels for the label.
+     *
+     * Default: `0`
+     */
+    xOffset?: PixelSize;
+    /** The vertical offset in pixels for the label.
+     *
+     * Default: `0`
+     */
+    yOffset?: PixelSize;
 }
 
 export type AgSeriesAreaBackgroundRegionLabelPosition =

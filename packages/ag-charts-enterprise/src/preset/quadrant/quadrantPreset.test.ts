@@ -15,6 +15,7 @@ import type {
     AgQuadrantChartOptions,
     AgQuadrantRegionLabelOptions,
     AgQuadrantRegionLabelPosition,
+    AgQuadrantRegionsLabelOptions,
 } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
@@ -217,13 +218,14 @@ const REGION_LABEL_POSITIONS: AgQuadrantRegionLabelPosition[] = [
 /** An off-centre pivot so that a mirrored placement is distinguishable from a centred one. */
 function regionLabelOptions(
     position: AgQuadrantRegionLabelPosition,
-    regions?: Partial<Record<'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight', AgQuadrantRegionLabelOptions>>
+    regions?: Partial<Record<'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight', AgQuadrantRegionLabelOptions>>,
+    shared?: AgQuadrantRegionsLabelOptions
 ): AgQuadrantChartOptions {
     return {
         ...NUMERIC,
         pivot: { x: 25, y: -25 },
         regions: {
-            label: { position },
+            label: { position, ...shared },
             topLeft: { label: { text: 'Top Left', ...regions?.topLeft } },
             topRight: { label: { text: 'Top Right', ...regions?.topRight } },
             bottomLeft: { label: { text: 'Bottom Left', ...regions?.bottomLeft } },
@@ -316,6 +318,31 @@ describe('Quadrant Preset', () => {
             }
         }
     );
+
+    describe('region label spacing', () => {
+        const SPACING_EXAMPLES: Record<string, AgQuadrantChartOptions> = {
+            AWAY_FROM_PIVOT: regionLabelOptions('inside-inner-inner', undefined, { spacing: 40 }),
+            TOWARDS_PIVOT: regionLabelOptions('inside-outer-outer', undefined, { spacing: 40 }),
+            CLEAR_OF_REGION: {
+                ...regionLabelOptions('outside-outer', undefined, { spacing: 20 }),
+                padding: { top: 50, right: 60, bottom: 50, left: 60 },
+            },
+            CENTRED_ON_ONE_AXIS: regionLabelOptions('inside-outer-center', undefined, { spacing: 40 }),
+            NONE: regionLabelOptions('inside-inner-inner', undefined, { spacing: 0 }),
+            PER_REGION: regionLabelOptions('inside-inner-inner', { bottomRight: { spacing: 40 } }),
+        };
+
+        it.each(Object.entries(SPACING_EXAMPLES))(
+            'for %s it should render to canvas as expected',
+            async (_exampleName, exampleOptions) => {
+                const options: AgQuadrantChartOptions = { ...exampleOptions };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgCharts.createQuadrantChart(options);
+                await compare();
+            }
+        );
+    });
 
     it.each([false, true])(
         'starting from alignAxesToPivot %s it should render identically after toggling twice',

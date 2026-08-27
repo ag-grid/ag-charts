@@ -24,7 +24,7 @@ const options: AgQuadrantChartOptions = {
     xAxis: { title: { text: 'Revenue growth (%)' } },
     yAxis: { title: { text: 'Margin change (% points)' } },
     regions: {
-        label: { position: 'inside-outer-outer' },
+        label: { position: 'inside-outer-outer', spacing: 10 },
         topLeft: { label: { text: 'Shrinking, Wider Margins' } },
         topRight: { label: { text: 'Growing, Wider Margins' } },
         bottomLeft: { label: { text: 'Shrinking, Thinner Margins' } },

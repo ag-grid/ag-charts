@@ -277,6 +277,8 @@ export const seriesAreaBackgroundRegionLabelDef: OptionsDefs<AgSeriesAreaBackgro
     ),
     rotation: number,
     text: string,
+    xOffset: number,
+    yOffset: number,
 };
 
 const cartesianChartOptionsDefs: OptionsDefs<Omit<AgBaseCartesianThemeOptions, 'axes' | 'navigator'>> = {

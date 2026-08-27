@@ -116,7 +116,7 @@ Each of the four regions is configured under its own key in `regions`.
 ```js format="snippet"
 {
     regions: {
-        label: { position: 'inside-outer-outer' },
+        label: { position: 'inside-outer-outer', spacing: 10 },
         topLeft: { label: { text: 'Shrinking, Wider Margins' } },
         topRight: { label: { text: 'Growing, Wider Margins' } },
         bottomLeft: { label: { text: 'Shrinking, Thinner Margins' } },
@@ -128,6 +128,8 @@ Each of the four regions is configured under its own key in `regions`.
 In this example:
 
 - Use `label.position` to move a region label to any corner or edge of the region, relative to the pivot.
+- Use `label.spacing` to set the gap in pixels between a label and the region edges its `position` places it against.
+  It defaults to `10`.
 
 ## Axes
 
