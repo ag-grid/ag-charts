@@ -126,6 +126,31 @@ interface LineSeriesTypes extends PlacedLabelSeriesTypes {
     readonly createNodeDataContext: LineSeriesDatumContext;
 }
 
+type LineLabelContext = Pick<
+    LineSeriesDatumContext,
+    | 'labelsEnabled'
+    | 'labelPadding'
+    | 'labelTextMeasurer'
+    | 'labelFit'
+    | 'labelFitOverflow'
+    | 'labelStyled'
+    | 'labelInsideOffset'
+    | 'labelInsideSize'
+    | 'labelAnchor'
+>;
+
+const DISABLED_LABEL_CONTEXT: LineLabelContext = {
+    labelsEnabled: false,
+    labelPadding: { top: 0, right: 0, bottom: 0, left: 0 },
+    labelTextMeasurer: { measureLines: () => ({ width: 0, height: 0 }) },
+    labelFit: undefined,
+    labelFitOverflow: undefined,
+    labelStyled: false,
+    labelInsideOffset: undefined,
+    labelInsideSize: undefined,
+    labelAnchor: undefined,
+};
+
 type LineAnimationData = CartesianAnimationDataOf<LineSeriesTypes>;
 
 /** Per-pass context for the no-itemStyler marker-style pass. */
@@ -482,22 +507,9 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         this.ensureBucketLookupFeature()?.setActiveFilter(processedData, dataAggregationFilter);
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
-        const { label, marker } = this.properties;
-        const { collision } = label;
-        const placements = toArray(label.placement);
-        const {
-            insideOnly,
-            offset: labelInsideOffset,
-            size: labelInsideSize,
-        } = resolveInsidePlacement(placements, marker.shape);
+        const { marker } = this.properties;
         const markerSize = marker.enabled ? marker.size : 0;
-        const insideFit = insideOnly ? resolveLabelFit(label, false, true) : undefined;
-        const labelFit = insideFit
-            ? boundLabelFit(insideFit, insideMarkerContainer(markerSize, marker.shape, collision.threshold ?? 0))
-            : resolveLabelFit(label, !collision.alwaysShow);
-        // Keeps the label on a marker too small to hold even an ellipsis.
-        const labelFitOverflow = collision.alwaysShow ? insideFit : undefined;
-        const labelAnchor = Marker.anchor(marker.shape);
+        const labelContext = this.createLabelContext(markerSize);
 
         return {
             xAxis,
@@ -520,15 +532,16 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             yOffset: (yScale.bandwidth ?? 0) / 2,
             size: markerSize,
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
-            labelsEnabled: this.properties.label.enabled,
-            labelPadding: expandPlacementLabelBoxExtent(this.properties.label),
-            labelTextMeasurer: cachedTextMeasurer(this.properties.label),
-            labelFit,
-            labelFitOverflow,
-            labelStyled: label.itemStyler != null,
-            labelInsideOffset,
-            labelInsideSize,
-            labelAnchor,
+            labelsEnabled: labelContext.labelsEnabled,
+            labelPadding: labelContext.labelPadding,
+            labelTextMeasurer: labelContext.labelTextMeasurer,
+            labelFit: labelContext.labelFit,
+            labelFitOverflow: labelContext.labelFitOverflow,
+            labelStyled: labelContext.labelStyled,
+            labelInsideOffset: labelContext.labelInsideOffset,
+            labelInsideSize: labelContext.labelInsideSize,
+            labelAnchor: labelContext.labelAnchor,
+            emptyLabel: { text: '', width: 0, height: 0 },
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             canIncrementallyUpdate,
             dataAggregationFilter,
@@ -546,6 +559,34 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             nodes: canIncrementallyUpdate ? this.contextNodeData!.nodeData : [],
             spanPoints: [],
             nodeIndex: 0,
+        };
+    }
+
+    /** OPTIMIZATION: a disabled label reaches no consumer, so none of its geometry is resolved. */
+    private createLabelContext(markerSize: number): LineLabelContext {
+        const { label, marker } = this.properties;
+        if (!label.enabled) return DISABLED_LABEL_CONTEXT;
+
+        const { collision } = label;
+        const {
+            insideOnly,
+            offset: labelInsideOffset,
+            size: labelInsideSize,
+        } = resolveInsidePlacement(toArray(label.placement), marker.shape);
+        const insideFit = insideOnly ? resolveLabelFit(label, false, true) : undefined;
+        return {
+            labelsEnabled: true,
+            labelPadding: expandPlacementLabelBoxExtent(label),
+            labelTextMeasurer: cachedTextMeasurer(label),
+            labelFit: insideFit
+                ? boundLabelFit(insideFit, insideMarkerContainer(markerSize, marker.shape, collision.threshold ?? 0))
+                : resolveLabelFit(label, !collision.alwaysShow),
+            // Keeps the label on a marker too small to hold even an ellipsis.
+            labelFitOverflow: collision.alwaysShow ? insideFit : undefined,
+            labelStyled: label.itemStyler != null,
+            labelInsideOffset,
+            labelInsideSize,
+            labelAnchor: Marker.anchor(marker.shape),
         };
     }
 
@@ -587,8 +628,8 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                   )
                 : undefined;
 
-            const label = this.measureLabel(ctx, labelText);
-            const fit = placedLabelFit(labelText, this.properties.label, ctx);
+            const label = ctx.labelsEnabled ? this.measureLabel(ctx, labelText) : ctx.emptyLabel;
+            const fit = ctx.labelsEnabled ? placedLabelFit(labelText, this.properties.label, ctx) : undefined;
             // Markerless vertices still nudge their label clear of the line with a small fixed gap.
             const gap = ctx.size > 0 ? ctx.size / 2 : DEFAULT_MARKERLESS_LABEL_GAP;
 
