@@ -457,6 +457,7 @@ export abstract class Axis<
             fractionDigits: 0,
             spacing: 5,
             format: undefined,
+            boxOffset: 0,
         },
         labelThickness: 0,
     };
@@ -685,6 +686,11 @@ export abstract class Axis<
         } satisfies Normalised<AgBaseAxisLabelStyleOptions, 'fontSize' | 'fontFamily' | 'spacing'>;
     }
 
+    /** See {@link AxisLayout.label.boxOffset}. Only axes that offset a boxed tick label report one. */
+    protected getLabelBoxOffset(): number {
+        return 0;
+    }
+
     protected getTickSize(tick: { enabled: boolean; size: number } = this.options.tick) {
         return tick.enabled ? tick.size : 0;
     }
@@ -867,6 +873,7 @@ export abstract class Axis<
             fractionDigits: fractionDigits,
             spacing: this.options.label.spacing,
             format: this.getLabelFormat(),
+            boxOffset: this.getLabelBoxOffset(),
         };
 
         this.notifyAxisPlugins('onAxisLayout');

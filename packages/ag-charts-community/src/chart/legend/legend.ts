@@ -57,8 +57,10 @@ import type { LegendSymbolOptions } from './legendSymbol';
 
 type SeriesType = ChartService['series'][number];
 
-/** Opacity applied to a legend item that has been toggled off, absent an explicit `disabledStyle.opacity`. */
+/** Opacity applied to a toggled-off legend item, and to its marker and line individually. */
 const DISABLED_ITEM_OPACITY = 0.5;
+/** A toggled-off label is dimmed again on top of the item, so it renders at 0.25 by default. */
+const DISABLED_LABEL_OPACITY = DISABLED_ITEM_OPACITY ** 2;
 
 function hasAnyStyle(style?: object) {
     return style != null && Object.values(style).some((value) => value !== undefined);
@@ -775,19 +777,13 @@ export class Legend {
 
     update() {
         const { color, disabledStyle } = this.opts.item.label;
-        // Group dimming leaves each sub-element undimmed and vice versa - see
-        // `hasDisabledStyleOverrides()` for which of the two applies.
-        const perElementDimming = this.hasDisabledStyleOverrides();
-        const disabledColor = perElementDimming ? (disabledStyle?.color ?? color) : color;
-        const disabledGroupOpacity = perElementDimming ? 1 : DISABLED_ITEM_OPACITY;
-        const disabledLabelOpacity = perElementDimming
-            ? (disabledStyle?.opacity ?? DISABLED_ITEM_OPACITY)
-            : DISABLED_ITEM_OPACITY;
+        const disabledOpacity = this.disabledOpacities();
 
         this.itemSelection.each((markerLabel, datum) => {
-            markerLabel.color = datum.enabled ? color : disabledColor;
-            markerLabel.opacity = datum.enabled ? 1 : disabledGroupOpacity;
-            markerLabel.labelOpacity = datum.enabled ? 1 : disabledLabelOpacity;
+            markerLabel.color = datum.enabled ? color : (disabledStyle?.color ?? color);
+            markerLabel.opacity = datum.enabled ? 1 : disabledOpacity.item;
+            markerLabel.symbolsOpacity = datum.enabled ? 1 : disabledOpacity.symbols;
+            markerLabel.labelOpacity = datum.enabled ? 1 : disabledOpacity.label;
         });
 
         this.updateContextMenu();
@@ -800,20 +796,28 @@ export class Legend {
     }
 
     /**
-     * Whether any `disabledStyle` property is set on any sub-element.
+     * Opacities to apply to a toggled-off item and its parts.
      *
-     * With none set, a toggled-off item is dimmed as a whole (`DISABLED_ITEM_OPACITY` on the item
-     * group), which is the long-standing appearance. As soon as one is set, the dimming moves onto
-     * each sub-element so that per-sub-element opacities and colours are absolute — under a group
-     * dim, `opacity: 1` on a sub-element could never reach full contrast.
+     * With no `disabledStyle` set anywhere, the item group carries the whole dim and the label
+     * dims itself again on top — the long-standing appearance. Setting a `disabledStyle` lifts
+     * the group dim so that a sub-element's `opacity` is absolute (under a group dim, `opacity: 1`
+     * could never reach full contrast), and hands every part left unstyled the exact alpha it
+     * rendered at before, so styling one part cannot change the look of the others.
      */
-    private hasDisabledStyleOverrides() {
+    private disabledOpacities() {
         const { marker, line, label } = this.opts.item;
-        return hasAnyStyle(marker.disabledStyle) || hasAnyStyle(line.disabledStyle) || hasAnyStyle(label.disabledStyle);
-    }
+        const symbolsStyled = hasAnyStyle(marker.disabledStyle) || hasAnyStyle(line.disabledStyle);
+        const styled = symbolsStyled || hasAnyStyle(label.disabledStyle);
 
-    private disabledElementOpacity(styleOpacity: number | undefined) {
-        return this.hasDisabledStyleOverrides() ? (styleOpacity ?? DISABLED_ITEM_OPACITY) : 1;
+        return {
+            item: styled ? 1 : DISABLED_ITEM_OPACITY,
+            // Marker and line composite together in an offscreen group, so they are dimmed as one
+            // until a style on either forces them apart.
+            symbols: styled && !symbolsStyled ? DISABLED_ITEM_OPACITY : 1,
+            marker: symbolsStyled ? (marker.disabledStyle?.opacity ?? DISABLED_ITEM_OPACITY) : 1,
+            line: symbolsStyled ? (line.disabledStyle?.opacity ?? DISABLED_ITEM_OPACITY) : 1,
+            label: styled ? (label.disabledStyle?.opacity ?? DISABLED_LABEL_OPACITY) : DISABLED_ITEM_OPACITY,
+        };
     }
 
     private getLineStyles(datum: LegendSymbolOptions, enabled: boolean) {
@@ -829,9 +833,10 @@ export class Legend {
             strokeWidth: this.opts.item.line.strokeWidth ?? defaultLineStrokeWidth,
             lineDash: overrides?.lineDash ?? lineDash,
             lineDashOffset: overrides?.lineDashOffset,
-            opacity: enabled ? 1 : this.disabledElementOpacity(disabledStyle?.opacity),
+            opacity: enabled ? 1 : this.disabledOpacities().line,
         };
     }
+
     private getMarkerStyles({ marker }: LegendSymbolOptions, enabled: boolean) {
         const { stroke, strokeOpacity = 1, fillOpacity = 1, strokeWidth, lineDash, lineDashOffset } = marker;
         const defaultLineStrokeWidth = Math.min(2, strokeWidth ?? 1);
@@ -870,7 +875,7 @@ export class Legend {
                 FILL_PATTERN_BLANK_DEFAULTS,
                 FILL_IMAGE_BLANK_DEFAULTS
             ),
-            opacity: enabled ? 1 : this.disabledElementOpacity(disabledStyle?.opacity),
+            opacity: enabled ? 1 : this.disabledOpacities().marker,
         };
     }
 
