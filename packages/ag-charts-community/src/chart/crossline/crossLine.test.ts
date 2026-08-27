@@ -1364,5 +1364,78 @@ describe('CrossLine', () => {
             expect(plugin.getLabelObstacles(BBox.zero)).toBeUndefined();
             expect(plugin.nodeDataVersion).toBeGreaterThan(version);
         });
+
+        // One chart per reservation state, each carrying an upright reserved label, a rotated one on a
+        // range cross line on the other axis, and an unreserved label the series labels may overlap.
+        function packedReservationChart(reserveSpace: boolean): AgCartesianChartOptions {
+            return {
+                data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: 50, y2: Math.sin(i / 2) * 15 + 80 })),
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'y', label: { enabled: true, placement: ['bottom', 'top'] } },
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y2',
+                        label: { enabled: true, placement: ['top', 'bottom'] },
+                    },
+                ],
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        crossLines: [
+                            {
+                                type: 'range',
+                                range: [3.5, 5.5],
+                                stroke: 'green',
+                                strokeWidth: 1,
+                                fill: 'green',
+                                fillOpacity: 0.1,
+                                label: {
+                                    text: 'ROTATED RESERVED',
+                                    fontSize: 40,
+                                    rotation: 90,
+                                    position: 'inside-top',
+                                    reserveSpace,
+                                },
+                            },
+                        ],
+                    },
+                    y: {
+                        // A fixed domain keeps the reserved cross line amid the series labels.
+                        type: 'number',
+                        position: 'left',
+                        min: 0,
+                        max: 100,
+                        crossLines: [
+                            {
+                                type: 'line',
+                                value: 50,
+                                stroke: 'red',
+                                strokeWidth: 1,
+                                label: { text: 'RESERVED', fontSize: 40, position: 'inside', reserveSpace },
+                            },
+                            {
+                                type: 'line',
+                                value: 80,
+                                stroke: 'blue',
+                                strokeWidth: 1,
+                                label: { text: 'NEVER RESERVED', fontSize: 24, position: 'inside' },
+                            },
+                        ],
+                    },
+                },
+            };
+        }
+
+        it('renders series labels clear of every cross line label that reserves its space', async () => {
+            chart = await createChart(packedReservationChart(true));
+            await compare();
+        });
+
+        it('renders series labels over cross line labels that reserve nothing', async () => {
+            chart = await createChart(packedReservationChart(false));
+            await compare();
+        });
     });
 });
