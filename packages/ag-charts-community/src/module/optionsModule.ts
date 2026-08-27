@@ -383,11 +383,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         try {
             this.findSeriesWithUserVisiblity(newUserOptions, deltaOptions);
-            this.unusableLeadSeriesType = this.resolveUnusableLeadSeriesType();
 
             if (stripSymbols) {
                 this.removeLeftoverSymbols(this.userOptions);
             }
+            // After the sentinels, so the lead type is the one the update actually resolves to.
+            this.unusableLeadSeriesType = this.resolveUnusableLeadSeriesType();
 
             const dataChangedLength =
                 currentUserOptions instanceof ChartOptions &&

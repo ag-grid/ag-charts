@@ -664,6 +664,31 @@ describe('AgCharts', () => {
             expect(deproxy(chart).series.map((s) => s.type)).toEqual(['line']);
         });
 
+        it('resolves the lead series type from the post-sentinel options on a full update()', async () => {
+            await withOnlyBarRegistered(async () => {
+                ModuleRegistry.registerModules([LineSeriesModule]);
+                chart = AgCharts.create({
+                    container,
+                    title: { text: 'Dropped by the next update' },
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                } as AgChartOptions);
+                await chart.waitForUpdate();
+
+                // Omitting `title` makes the diff carry removal sentinels, so the lead type has to be
+                // read from options the sentinels have already been cleaned out of.
+                await chart.update({
+                    container,
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                } as AgChartOptions);
+                await chart.waitForUpdate();
+            });
+
+            expect(console.error).not.toHaveBeenCalled();
+            expect(deproxy(chart).series.map((s) => s.type)).toEqual(['line']);
+        });
+
         it('skips a chart-driven update instead of crashing on the pruned chart-level defaults', async () => {
             // The constructor updates (via `parentResize`) before `AgCharts.create()` can short-circuit,
             // so the skip has to hold inside `Chart.update()` too.
