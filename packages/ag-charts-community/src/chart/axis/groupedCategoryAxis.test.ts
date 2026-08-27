@@ -25,6 +25,7 @@ import {
     compareImageSnapshot,
     createChart,
     createSceneGeometrySampler,
+    deproxy,
     prepareTestOptions,
     repeat,
     reverseAxes,
@@ -532,6 +533,46 @@ describe('Grouped Category Axis Examples', () => {
             });
             chart = AgCharts.create(options);
             await compare();
+        });
+    });
+
+    describe('AG-18182 boxed tick labels', () => {
+        // `CartesianAxis` reports a `label.boxOffset` so that anything placed in the label column
+        // from the axis layout - an annotation's axis label - lands on the same offset the axis gave
+        // its own boxed tick labels. A grouped-category axis lays its labels out in its own
+        // `computeLayout`, which never runs that code and corrects for a box geometrically instead
+        // (the label is centred, so a taller box moves its centre out). It must therefore keep
+        // reporting `0`, rather than an offset from the inherited `CartesianAxis` override that its
+        // labels never took.
+        const groupedCategoryLabelLayout = async (label: object) => {
+            chart = AgCharts.create(
+                prepareTestOptions({
+                    ...examples.GROUPED_CATEGORY_AXIS_EXAMPLE,
+                    axes: {
+                        x: { type: 'grouped-category', position: 'bottom', label },
+                        y: { type: 'number', position: 'left' },
+                    },
+                } as AgCartesianChartOptions)
+            );
+            await waitForChartStability(chart);
+            const axis = (deproxy(chart) as any).axes.find((a: any) => a.type === 'grouped-category');
+            const { label: layout } = axis.getLayoutState();
+            chart.destroy();
+            (chart as unknown) = undefined;
+            return layout;
+        };
+
+        it('reports no box offset for a filled or bordered label', async () => {
+            const unboxed = await groupedCategoryLabelLayout({});
+            const filled = await groupedCategoryLabelLayout({ fill: 'pink', padding: 6 });
+            const bordered = await groupedCategoryLabelLayout({
+                border: { enabled: true, stroke: 'red', strokeWidth: 1 },
+                padding: 7,
+            });
+
+            expect(unboxed.boxOffset).toBe(0);
+            expect(filled).toEqual(unboxed);
+            expect(bordered).toEqual(unboxed);
         });
     });
 });
