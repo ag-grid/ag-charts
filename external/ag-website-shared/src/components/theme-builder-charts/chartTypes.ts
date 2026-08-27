@@ -1,4 +1,4 @@
-import { atomWithJSONStorage } from '@ag-website-shared/theming/JSONStorage';
+import { type PersistentAtom, atomWithJSONStorage } from '@ag-website-shared/theming/JSONStorage';
 import type { AgCartesianChartOptions, AgCartesianSeriesOptions, AgChartOptions } from 'ag-charts-community';
 import { useAtom } from 'jotai';
 
@@ -161,23 +161,63 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
 
 const DEFAULT_CHART_TYPE = PREVIEW_CHART_TYPES[0];
 
-const chartTypeAtom = atomWithJSONStorage<string>('charts-preview-type', DEFAULT_CHART_TYPE.id);
+/**
+ * The preview is two charts, not one, and each pane chooses its own type.
+ *
+ * A theme is judged by comparison, and comparing two shapes of chart from memory
+ * - switch to donut, remember what the bars did - is exactly the comparison a
+ * user is worst at. Side by side, a param that decides nothing on bars and
+ * everything on a donut shows both facts at once.
+ */
+export const PREVIEW_PANES = ['left', 'right'] as const;
 
-export const usePreviewChartType = () => {
-    const [id, setId] = useAtom(chartTypeAtom);
+export type PreviewPaneId = (typeof PREVIEW_PANES)[number];
+
+/** Names the panes apart for screen readers, which otherwise hear one control twice. */
+export const PREVIEW_PANE_LABELS: Record<PreviewPaneId, string> = {
+    left: 'Left',
+    right: 'Right',
+};
+
+/** The pane the preset thumbnails follow, so the cards predict one of the two. */
+export const PRIMARY_PANE: PreviewPaneId = 'left';
+
+/**
+ * A cartesian and a polar chart: the furthest apart the tool can open, and the
+ * pairing that puts the most of a theme on screen at once. Guarded by a test,
+ * since an id that no longer exists would quietly collapse both panes onto the
+ * same default.
+ */
+export const DEFAULT_CHART_TYPE_IDS: Record<PreviewPaneId, string> = {
+    left: 'bar',
+    right: 'donut',
+};
+
+// Stored per pane, so a returning user finds the pairing they left, not just
+// the chart they last touched.
+const chartTypeAtoms: Record<PreviewPaneId, PersistentAtom<string>> = {
+    left: atomWithJSONStorage<string>('charts-preview-type-left', DEFAULT_CHART_TYPE_IDS.left),
+    right: atomWithJSONStorage<string>('charts-preview-type-right', DEFAULT_CHART_TYPE_IDS.right),
+};
+
+export const usePreviewChartType = (pane: PreviewPaneId) => {
+    const [id, setId] = useAtom(chartTypeAtoms[pane]);
     const selected = PREVIEW_CHART_TYPES.find((type) => type.id === id) ?? DEFAULT_CHART_TYPE;
     return [selected, (type: PreviewChartType) => setId(type.id)] as const;
 };
 
-const seriesCountAtom = atomWithJSONStorage<number>('charts-preview-series-count', DEFAULT_SERIES_COUNT);
+const seriesCountAtoms: Record<PreviewPaneId, PersistentAtom<number>> = {
+    left: atomWithJSONStorage<number>('charts-preview-series-count-left', DEFAULT_SERIES_COUNT),
+    right: atomWithJSONStorage<number>('charts-preview-series-count-right', DEFAULT_SERIES_COUNT),
+};
 
 export const SERIES_COUNT_OPTIONS = Array.from(
     { length: MAX_SERIES_COUNT - MIN_SERIES_COUNT + 1 },
     (_, index) => MIN_SERIES_COUNT + index
 );
 
-export const usePreviewSeriesCount = () => {
-    const [count, setCount] = useAtom(seriesCountAtom);
+export const usePreviewSeriesCount = (pane: PreviewPaneId) => {
+    const [count, setCount] = useAtom(seriesCountAtoms[pane]);
     // Clamped on read: the stored value outlives any change to the data, and a
     // count past the end of it would render fewer series than the label claims.
     const clamped = Math.min(Math.max(Math.round(count) || DEFAULT_SERIES_COUNT, MIN_SERIES_COUNT), MAX_SERIES_COUNT);

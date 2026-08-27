@@ -3,12 +3,11 @@ import styled from '@emotion/styled';
 import { useStore } from 'jotai';
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 
-import { ChartPreview } from './ChartPreview';
 import { EditorPanel } from './EditorPanel';
 import { GetThemeButton } from './GetTheme';
 import { PresetSelector } from './PresetSelector';
-import { PreviewOptions } from './PreviewOptions';
-import { usePreviewChartType, usePreviewSeriesCount } from './chartTypes';
+import { PreviewPane } from './PreviewPane';
+import { PREVIEW_PANES, PRIMARY_PANE, usePreviewChartType } from './chartTypes';
 import { type ChartsThemeSelection, toChartTheme } from './chartsThemeOutput';
 import { setStoredPalette, useStoredPalette } from './paletteModel';
 import { getSelectedPresetId, setSelectedPresetId, useSelectedPresetId } from './presetModel';
@@ -19,8 +18,9 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
     const renderedTheme = useRenderedTheme();
     const { overriddenParams } = useRenderedThemeInfo();
     const storedPalette = useStoredPalette();
-    const [chartType, setChartType] = usePreviewChartType();
-    const [seriesCount, setSeriesCount] = usePreviewSeriesCount();
+    // Only to keep the preset thumbnails showing a chart that is actually on
+    // screen; each pane owns the type it renders.
+    const [primaryChartType] = usePreviewChartType(PRIMARY_PANE);
 
     const preset = findPreset(useSelectedPresetId()) ?? initialPreset;
 
@@ -69,23 +69,12 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
                 </MenuBottom>
             </Menu>
             <Main>
-                <PresetSelector chartType={chartType} selectedId={preset.id} />
-                {/* Outside the preview, because these are the tool's controls
-                    rather than part of the theme. Inside, they sat on whatever
-                    background the preset chose while keeping the site's own
-                    chrome, so a light theme in dark mode put dark pills and
-                    near-invisible labels on a white surface. */}
-                <PreviewToolbar>
-                    <PreviewOptions
-                        chartType={chartType}
-                        onChartTypeChange={setChartType}
-                        seriesCount={seriesCount}
-                        onSeriesCountChange={setSeriesCount}
-                    />
-                </PreviewToolbar>
-                <Preview>
-                    <ChartPreview theme={previewTheme} chartType={chartType} seriesCount={seriesCount} />
-                </Preview>
+                <PresetSelector chartType={primaryChartType} selectedId={preset.id} />
+                <PreviewRow>
+                    {PREVIEW_PANES.map((pane) => (
+                        <PreviewPane key={pane} pane={pane} theme={previewTheme} />
+                    ))}
+                </PreviewRow>
             </Main>
         </Container>
     );
@@ -170,21 +159,13 @@ const Main = styled('div')`
     --preset-scroller-height: 152px;
 `;
 
-// Flush with the preview's right edge below it, so the two read as one column.
-const PreviewToolbar = styled('div')`
-    flex-shrink: 0;
-    display: flex;
-    justify-content: flex-end;
-`;
-
-const Preview = styled('div')`
+// Side by side rather than stacked: the panes share the height they would
+// otherwise halve, and the tool already refuses to render below 900px wide, so
+// neither pane is ever squeezed past a chart's useful width.
+const PreviewRow = styled('div')`
     flex: 1;
     min-width: 0;
     min-height: 0;
     display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    border: 1px solid var(--color-border-primary);
-    border-radius: var(--radius-md, 8px);
-    background: var(--color-bg-primary);
+    gap: 16px;
 `;
