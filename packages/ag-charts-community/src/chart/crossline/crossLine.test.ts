@@ -32,6 +32,8 @@ import type { CrossLineType } from './crossLine';
 import { getCrossLinesPlugin } from './getCrossLinesPlugin';
 import * as examples from './test/examples';
 
+type ViFn = ReturnType<typeof vi.fn>;
+
 const labelPositions: AgCrossLineLabelPosition[] = [
     'top',
     'left',
@@ -762,68 +764,87 @@ describe('CrossLine', () => {
             expect(click).not.toHaveBeenCalled();
         });
 
-        test('overlapping crosslines allClickParams', async () => {
-            const crossLineClick = vi.fn();
-            chart = await createChart({
-                data: [
-                    { x: 'Jan', y: 8 },
-                    { x: 'Mar', y: 6 },
-                    { x: 'May', y: 3 },
-                    { x: 'Jul', y: 9 },
-                ],
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-                axes: {
-                    myX: {
-                        type: 'category',
-                        crossAt: { value: 0 },
-                        crossLines: [
-                            { id: 'blue-line', type: 'line', value: 'May', stroke: 'blue', strokeWidth: 2 },
-                            { id: 'grey-range', type: 'range', range: ['Mar', 'Jul'], strokeWidth: 2 },
-                        ],
-                    },
-                    myY: {
-                        type: 'number',
-                        // No user-option `id`; Use auto-generated id.
-                        crossLines: [{ type: 'line', value: 8, stroke: 'lime', strokeWidth: 2 }],
-                    },
-                },
-                listeners: { crossLineClick },
-            });
-            await clickAction(505, 130)(chart);
-            expect(crossLineClick).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    crossLineId: 'blue-line',
-                    axisId: 'myX',
-                    direction: 'x',
-                    value: 'May',
-                    // TODO: add AG-17613 `coordinated`
-                    allClickParams: [
-                        expect.objectContaining({
-                            crossLineId: 'blue-line',
-                            axisId: 'myX',
-                            direction: 'x',
-                            value: 'May',
-                        }),
-                        expect.objectContaining({
-                            crossLineId: 'grey-range',
-                            axisId: 'myX',
-                            direction: 'x',
-                            range: ['Mar', 'Jul'],
-                        }),
-                        expect.objectContaining({
-                            crossLineId: 'CrossLine-3',
-                            axisId: 'myY',
-                            direction: 'y',
-                            value: 8,
-                        }),
+        describe('overlapping crosslines allClickParams', async () => {
+            let chartClick: ViFn;
+            let chartCrossLineClick: ViFn;
+            let chartSeriesNodeClick: ViFn;
+            let seriesSeriesNodeClick: ViFn;
+            beforeEach(async () => {
+                chartClick = vi.fn();
+                chartCrossLineClick = vi.fn();
+                chartSeriesNodeClick = vi.fn();
+                seriesSeriesNodeClick = vi.fn();
+                chart = await createChart({
+                    data: [
+                        { x: 'Jan', y: 8 },
+                        { x: 'Mar', y: 6 },
+                        { x: 'May', y: 3 },
+                        { x: 'Jul', y: 9 },
                     ],
-                })
-            );
-            expect(crossLineClick).toHaveBeenCalledTimes(1);
+                    series: [
+                        { type: 'bar', xKey: 'x', yKey: 'y', listeners: { seriesNodeClick: seriesSeriesNodeClick } },
+                    ],
+                    axes: {
+                        myX: {
+                            type: 'category',
+                            crossAt: { value: 0 },
+                            crossLines: [
+                                { id: 'blue-line', type: 'line', value: 'May', stroke: 'blue', strokeWidth: 2 },
+                                { id: 'grey-range', type: 'range', range: ['Mar', 'Jul'], strokeWidth: 2 },
+                            ],
+                        },
+                        myY: {
+                            type: 'number',
+                            // No user-option `id`; Use auto-generated id.
+                            crossLines: [{ type: 'line', value: 8, stroke: 'lime', strokeWidth: 2 }],
+                        },
+                    },
+                    listeners: {
+                        click: chartClick,
+                        crossLineClick: chartCrossLineClick,
+                        seriesNodeClick: chartSeriesNodeClick,
+                    },
+                });
+            });
+            test('click where all 3 cross-lines overlap', async () => {
+                await clickAction(505, 130)(chart);
+                expect(chartCrossLineClick).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        crossLineId: 'blue-line',
+                        axisId: 'myX',
+                        direction: 'x',
+                        value: 'May',
+                        // TODO: add AG-17613 `coordinated`
+                        allClickParams: [
+                            expect.objectContaining({
+                                crossLineId: 'blue-line',
+                                axisId: 'myX',
+                                direction: 'x',
+                                value: 'May',
+                            }),
+                            expect.objectContaining({
+                                crossLineId: 'grey-range',
+                                axisId: 'myX',
+                                direction: 'x',
+                                range: ['Mar', 'Jul'],
+                            }),
+                            expect.objectContaining({
+                                crossLineId: 'CrossLine-3',
+                                axisId: 'myY',
+                                direction: 'y',
+                                value: 8,
+                            }),
+                        ],
+                    })
+                );
+                expect(chartClick).toHaveBeenCalledTimes(0);
+                expect(chartCrossLineClick).toHaveBeenCalledTimes(1);
+                expect(chartSeriesNodeClick).toHaveBeenCalledTimes(0);
+                expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(0);
+            });
         });
 
         describe('non-interactive cross-lines fire chart and series-node click', async () => {
-            type ViFn = ReturnType<typeof vi.fn>;
             let seriesSeriesNodeClick: ViFn;
             let chartSeriesNodeClick: ViFn;
             let chartClick: ViFn;
