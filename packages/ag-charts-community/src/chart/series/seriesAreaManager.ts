@@ -15,6 +15,7 @@ import type {
     HighlightNodeDatum,
     HighlightSelectionUpdatedEvent,
     LayoutCompleteEvent,
+    SeriesAreaCanvasClickEvent,
     SeriesAreaClickEvent,
     SeriesAreaContextMenuEvent,
     SeriesAreaHoverEvent,
@@ -43,6 +44,7 @@ import type {
 } from '../../widget/widgetEvents';
 import type { ChartHighlight } from '../chartHighlight';
 import type { ChartType } from '../chartType';
+import { type PendingCrossLineCallbacks, fireAllPendingCrossLineCallbacks } from '../crossline/crossLine';
 import type { ContextMenuRegionContexts } from '../interaction/contextMenuTypes';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
@@ -649,6 +651,17 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
+        const canvasPoint: CanvasPoint = isSeriesWidget
+            ? this.toCanvasCoordinates(event)
+            : { canvasX: event.currentX, canvasY: event.currentY };
+
+        const pendingCrossLineCallbacks = this.emitSeriesAreaCanvasClickEvent(event, canvasPoint);
+        const clickedCrossLine = this.checkCrossLineClick(event, pendingCrossLineCallbacks);
+        if (clickedCrossLine) {
+            fireAllPendingCrossLineCallbacks(pendingCrossLineCallbacks);
+            return; // dodge chart-level / series-level user callbacks.
+        }
+
         if (isSeriesWidget) {
             const clicked = this.checkSeriesNodeClick(event);
             if (clicked) {
@@ -663,7 +676,7 @@ export class SeriesAreaManager extends BaseManager {
         // Fallback to Chart-level event dispatch.
         const type = event.type === 'click' ? 'click' : 'doubleClick';
         const coordinates: AgCoordinates | undefined = isSeriesWidget
-            ? this.chart.ctx.chartService.toAgCoordinates(this.toCanvasCoordinates(event))
+            ? this.chart.ctx.chartService.toAgCoordinates(canvasPoint)
             : undefined;
         const newEvent = { type, event: event.sourceEvent, coordinates } satisfies
             | CallbackParamRules<AgChartClickEvent>
@@ -675,6 +688,23 @@ export class SeriesAreaManager extends BaseManager {
         const { canvasX, canvasY } = this.toCanvasCoordinates(event);
         const payload: SeriesAreaHoverEvent = { canvasX, canvasY, consumed, sourceEvent: event.sourceEvent };
         this.chart.ctx.eventsHub.emit('series-area:hover', payload);
+    }
+
+    private emitSeriesAreaCanvasClickEvent(event: ClickLikeEvent, { canvasX, canvasY }: CanvasPoint) {
+        const { type, sourceEvent } = event;
+        const payload: SeriesAreaCanvasClickEvent = {
+            type,
+            canvasX,
+            canvasY,
+            sourceEvent,
+            pendingCrossLineCallbacks: {
+                allClickParams: [],
+                axes: new Map(),
+                crossLines: new Map(),
+            },
+        };
+        this.chart.ctx.eventsHub.emit('series-area:canvas-click', payload);
+        return payload.pendingCrossLineCallbacks;
     }
 
     private emitSeriesAreaClickEvent(
@@ -852,6 +882,15 @@ export class SeriesAreaManager extends BaseManager {
         if (nodeDatum) {
             this.chart.ctx.eventsHub.emit(type, { nodeDatum, widgetEvent });
         }
+    }
+
+    private checkCrossLineClick(event: ClickLikeEvent, pendingCallbacks: PendingCrossLineCallbacks): boolean {
+        const { allClickParams, axes, crossLines } = pendingCallbacks;
+        const chartListener =
+            event.type === 'click'
+                ? this.chart.ctx.chartService.listeners.crossLineClick
+                : this.chart.ctx.chartService.listeners.crossLineDoubleClick;
+        return allClickParams.length > 0 && (axes.size > 0 || crossLines.size > 0 || chartListener != null);
     }
 
     private checkSeriesNodeClick(

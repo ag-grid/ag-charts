@@ -1,6 +1,10 @@
-import type { BoxBounds, CanvasPoint, ChartAxisDirection, Scale } from 'ag-charts-core';
+import type { BoxBounds, CanvasPoint, ChartAxisDirection, Forbid, RequireOptional, Scale } from 'ag-charts-core';
+import { callWithContext } from 'ag-charts-core';
 import type {
     AgBaseCrossLineLabelOptions,
+    AgCrossLineClickEvent,
+    AgCrossLineClickParams,
+    AgCrossLineDoubleClickEvent,
     AgCrossLineLabelPosition,
     AgCrossLineListeners,
     AgTimeInterval,
@@ -11,12 +15,31 @@ import type { PolarAxisLayout } from '../../module/axisContext';
 import type { Group } from '../../scene/group';
 import { isValidScaleValue } from '../scaleValue';
 
+type Caller = { context?: unknown };
 export type CrossLineType = 'line' | 'range';
+export type CrossLineValuePick = RequireOptional<AgCrossLineClickParams>;
 
 interface ICrossLine {
     type: CrossLineType;
     range?: [unknown, unknown];
     value?: unknown;
+}
+
+interface PendingCallback {
+    callers: Caller[];
+    fn: (params: any) => void;
+    params: PendingCrossLineCallbackParam;
+}
+
+export type PendingCrossLineCallbackParam =
+    | Forbid<AgCrossLineClickEvent, 'allClickParams'>
+    | Forbid<AgCrossLineDoubleClickEvent, 'allClickParams'>;
+
+export interface PendingCrossLineCallbacks {
+    allClickParams: AgCrossLineClickParams[];
+    chart?: PendingCallback;
+    axes: Map<string, PendingCallback>;
+    crossLines: Map<string, PendingCallback>;
 }
 
 export function getCrossLineValue(crossLine: ICrossLine) {
@@ -43,18 +66,22 @@ export function validateCrossLineValue(crossLine: ICrossLine, scale: Scale<any, 
     }
 }
 
-/**
- * Identifies a cross line hit by a pointer interaction, assembled by the cross-lines plugin from the
- * hit {@link CrossLine} instance plus its owning axis. Mirrors {@link AxisValuePick}; consumed by the
- * context-menu `cross-line` scope.
- */
-export interface CrossLineValuePick {
-    readonly crossLineId: string;
-    readonly axisId: string;
-    readonly direction: ChartAxisDirection;
-    readonly type: CrossLineType;
-    readonly value?: unknown;
-    readonly range?: [unknown, unknown];
+function firePendingCrossLineCallback(allClickParams: AgCrossLineClickParams[], callback: PendingCallback): void {
+    const { callers, fn, params } = callback;
+    callWithContext(callers, fn, { ...params, allClickParams });
+}
+
+export function fireAllPendingCrossLineCallbacks(pending: PendingCrossLineCallbacks): void {
+    const { allClickParams } = pending;
+    for (const crossLine of pending.crossLines.values()) {
+        firePendingCrossLineCallback(allClickParams, crossLine);
+    }
+    for (const axis of pending.axes.values()) {
+        firePendingCrossLineCallback(allClickParams, axis);
+    }
+    if (pending.chart) {
+        firePendingCrossLineCallback(allClickParams, pending.chart);
+    }
 }
 
 export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
