@@ -27,7 +27,6 @@ import { predictCartesianNonPrimitiveAxis } from './util';
 
 const themeTemplate: ExtensibleSeriesTheme<'area'> = {
     series: {
-        nodeClickRange: { $if: [{ $path: '/selection/enabled' }, 10, 'nearest'] },
         fill: {
             $applySwitch: [
                 { $path: 'type' },

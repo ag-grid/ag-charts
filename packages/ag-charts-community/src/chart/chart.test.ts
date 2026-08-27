@@ -407,6 +407,53 @@ describe('Chart', () => {
         });
     });
 
+    describe(`Markerless Area Series node interactions (AG-10226)`, () => {
+        const createMarkerlessAreaChart = async (listeners: any) =>
+            createChart({
+                container: document.body,
+                data: datasets.economy.data,
+                series: [
+                    {
+                        type: 'area',
+                        xKey: datasets.economy.categoryKey,
+                        yKey: datasets.economy.valueKey,
+                        marker: { enabled: false },
+                        listeners,
+                    },
+                ],
+            } as AgCartesianChartOptions);
+
+        const nodeCanvasPoint = (chartInstance: Chart, datumIndex: number) => {
+            const series = chartInstance.series[0] as any;
+            const item = series.contextNodeData.nodeData[datumIndex];
+            expect(item).toBeDefined();
+            return Transformable.toCanvasPoint(series.contentGroup, item.point.x, item.point.y);
+        };
+
+        it(`should handle nodeClick event at a datum's notional marker position`, async () => {
+            const seriesNodeClick = vi.fn();
+            chart = await createMarkerlessAreaChart({ seriesNodeClick });
+
+            const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
+            await clickAction(canvasX, canvasY)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+            expect(seriesNodeClick.mock.calls[0][0].datum).toEqual(datasets.economy.data[1]);
+        });
+
+        it(`should not handle nodeClick event elsewhere in the series fill`, async () => {
+            const seriesNodeClick = vi.fn();
+            chart = await createMarkerlessAreaChart({ seriesNodeClick });
+
+            const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
+            await clickAction(canvasX, canvasY + 60)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeClick).not.toHaveBeenCalled();
+        });
+    });
+
     describe(`Area Series Pointer Events`, () => {
         testPointerEvents({
             ...cartesianTestParams,

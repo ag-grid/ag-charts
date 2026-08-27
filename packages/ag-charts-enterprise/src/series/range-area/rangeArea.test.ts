@@ -244,6 +244,23 @@ describe('RangeAreaSeries', () => {
             expect(seriesNodeClick).toHaveBeenCalledTimes(1);
             expect(seriesNodeClick.mock.calls[0][0].datum).toEqual(CATEGORY_DATA[1]);
         });
+
+        it('does not fire nodeClick elsewhere in the band between the two sides', async () => {
+            await createRangeAreaChart(false, false);
+
+            const series = deproxy(chart).series[0] as any;
+            const node = series.getNodeData().find((d: any) => d.datum.month === 'Feb');
+            expect(node).toBeDefined();
+            const { canvasX, canvasY } = _ModuleSupport.Transformable.toCanvasPoint(
+                series.contentGroup,
+                node.point.x,
+                node.point.y
+            );
+            await clickAction(canvasX, canvasY + 60)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeClick).not.toHaveBeenCalled();
+        });
     });
 
     it(`should render a range-area chart with inverted high and low values`, async () => {

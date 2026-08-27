@@ -140,7 +140,6 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
             size: 6,
             strokeWidth: 2,
         },
-        nodeClickRange: { $if: [{ $path: '/selection/enabled' }, 10, 'nearest'] },
         item: {
             low: RANGE_AREA_ITEM,
             high: RANGE_AREA_ITEM,
