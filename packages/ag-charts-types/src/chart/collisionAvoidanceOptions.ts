@@ -73,6 +73,9 @@ export type AgFunnelSeriesLabelPlacement =
  * `start` and `end` follow text-alignment semantics and are direction-aware: where the divider spans
  * the horizontal axis, `start` is its left end in a left-to-right chart and its right end in a
  * right-to-left one. Where the divider spans the vertical axis, `start` is always its top end.
+ *
+ * `before` and `after` are direction-aware in the same way: where the divider spans the vertical axis,
+ * `before` is its left side in a left-to-right chart and its right side in a right-to-left one.
  */
 export type AgConeFunnelSeriesLabelPlacement =
     | 'before-start'

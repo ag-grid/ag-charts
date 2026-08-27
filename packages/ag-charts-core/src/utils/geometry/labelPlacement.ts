@@ -343,12 +343,26 @@ export type CandidateStyleResolver = (
     orientation: AgChartLabelOrientation | undefined
 ) => CandidateLabelStyle | undefined;
 
+/**
+ * Resolves one pre-positioned candidate's styled geometry, the positioned-candidate counterpart of
+ * {@link CandidateStyleResolver}. Called as the cascade reaches each candidate and never ahead of it, so a
+ * label's `itemStyler` runs only for the fallbacks it actually needed. The series owns the placement
+ * maths, so this hands back a whole candidate rather than a style; one it cannot restyle comes back
+ * unchanged.
+ */
+export type PositionedCandidateResolver = (
+    datum: PointLabelDatum,
+    candidate: PositionedLabelCandidate
+) => PositionedLabelCandidate;
+
 /** Per-series label placement input: the datums plus the series-level collision defaults. */
 export interface SeriesLabels {
     readonly datums: readonly PointLabelDatum[];
     readonly defaults?: SeriesLabelDefaults;
     /** Set only when the series' labels are styled per datum; leaving it unset skips the styled path entirely. */
     readonly resolveCandidateStyle?: CandidateStyleResolver;
+    /** The {@link PointLabelDatum.positionedCandidates} counterpart of {@link resolveCandidateStyle}. */
+    readonly resolveCandidate?: PositionedCandidateResolver;
 }
 
 /** Structural source of a series' resolved collision config (community `LabelCollision`). */
@@ -1168,6 +1182,7 @@ export function placeLabels(
                 datums: entry.datums.toSorted((a, b) => markerSizeOf(b) - markerSizeOf(a)),
                 defaults: entry.defaults,
                 resolveCandidateStyle: entry.resolveCandidateStyle,
+                resolveCandidate: entry.resolveCandidate,
             },
         ])
     );
@@ -1180,7 +1195,9 @@ export function placeLabels(
     }
 
     let labelObstacleCount = 0;
-    for (const [seriesId, { datums, defaults, resolveCandidateStyle }] of orderKeepFirst(placementData)) {
+    for (const [seriesId, { datums, defaults, resolveCandidateStyle, resolveCandidate }] of orderKeepFirst(
+        placementData
+    )) {
         const labels: PlacedLabel[] = [];
         if (!datums[0]?.label) continue;
         for (let index = 0, ln = datums.length; index < ln; index++) {
@@ -1188,7 +1205,7 @@ export function placeLabels(
             // Series emit a datum per point; unlabelled points measure to an empty box. Skip them so
             // they neither occupy a placement nor act as obstacles against labels that do have text.
             if (d.label.text === '') continue;
-            const placed = tryPlaceLabel(d, defaults, index, padding, bounds, resolveCandidateStyle);
+            const placed = tryPlaceLabel(d, defaults, index, padding, bounds, resolveCandidateStyle, resolveCandidate);
             if (placed != null) {
                 labels.push(placed);
                 if (useIndex) {
@@ -1673,7 +1690,8 @@ function tryPlaceLabel(
     index: number,
     padding: number,
     bounds: BoxBounds,
-    resolveCandidateStyle: CandidateStyleResolver | undefined
+    resolveCandidateStyle: CandidateStyleResolver | undefined,
+    resolveCandidate: PositionedCandidateResolver | undefined
 ): PlacedLabel | undefined {
     // A datum's own field overrides the series default; when neither is set the label is kept.
     const alwaysShow = d.alwaysShow ?? defaults?.alwaysShow ?? true;
@@ -1720,7 +1738,8 @@ function tryPlaceLabel(
         gap,
         spacing,
         threshold,
-        resolveCandidateStyle
+        resolveCandidateStyle,
+        resolveCandidate
     );
 }
 
@@ -1998,12 +2017,13 @@ function placeAvoidingLabel(
     gap: number,
     spacing: number,
     threshold: number,
-    resolveCandidateStyle: CandidateStyleResolver | undefined
+    resolveCandidateStyle: CandidateStyleResolver | undefined,
+    resolveCandidate: PositionedCandidateResolver | undefined
 ): PlacedLabel | undefined {
     bestChoice.tier = Infinity;
     bestChoice.score = Infinity;
     if (d.positionedCandidates != null) {
-        return placeFromPositionedCandidates(d, collideWith, threshold, index, bounds);
+        return placeFromPositionedCandidates(d, collideWith, threshold, index, bounds, resolveCandidate);
     }
     const { fit } = d;
     // Measured once here rather than per candidate: every candidate refits the same source text. A styled
@@ -2063,7 +2083,8 @@ function placeFromPositionedCandidates(
     collideWith: CollideWith | undefined,
     threshold: number,
     index: number,
-    bounds: BoxBounds
+    bounds: BoxBounds,
+    resolveCandidate: PositionedCandidateResolver | undefined
 ): PlacedLabel | undefined {
     const candidates = d.positionedCandidates!;
     const inflate = Math.max(threshold, 0);
@@ -2085,7 +2106,9 @@ function placeFromPositionedCandidates(
     styledSourceFont = '';
     const containThreshold = containmentThreshold(threshold);
     for (let ci = 0, ln = candidates.length; ci < ln; ci++) {
-        const c = candidates[ci];
+        // Resolved here rather than when the list was built: the styler runs for the candidates the
+        // cascade reaches and no others, so a fallback the label never needed never invokes it.
+        const c = resolveCandidate == null ? candidates[ci] : resolveCandidate(d, candidates[ci]);
         // A candidate the styler disabled is skipped, so a label disabled at every candidate is dropped.
         if (c.hidden === true) continue;
         const rawRegion = c.region ?? bounds;

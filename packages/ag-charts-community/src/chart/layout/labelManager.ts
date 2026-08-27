@@ -5,6 +5,7 @@ import {
     type NormalisedPaddingOptions,
     type PlacedLabel,
     type PointLabelDatum,
+    type PositionedCandidateResolver,
     type SeriesLabelDefaults,
     type SeriesLabels,
     isPointLabelDatum,
@@ -38,6 +39,7 @@ export interface PlacedLabelSource<TLabel = unknown> extends LabelSource {
     getLabelData(seriesRect: BBox): PointLabelDatum[];
     getLabelDefaults?(): SeriesLabelDefaults | undefined;
     getLabelCandidateStyler?(): CandidateStyleResolver | undefined;
+    getLabelCandidateResolver?(): PositionedCandidateResolver | undefined;
     updatePlacedLabelData?(labels: PlacedLabel<TLabel>[], seriesRect: BBox): void;
 }
 
@@ -127,6 +129,7 @@ export class LabelManager {
                     datums: labelData,
                     defaults: source.getLabelDefaults?.(),
                     resolveCandidateStyle: source.getLabelCandidateStyler?.(),
+                    resolveCandidate: source.getLabelCandidateResolver?.(),
                 });
             } else {
                 const carried = previous.get(source.id);

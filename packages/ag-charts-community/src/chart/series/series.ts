@@ -15,6 +15,7 @@ import type {
     PlacedLabel,
     Point,
     PointLabelDatum,
+    PositionedCandidateResolver,
     RequireOptional,
     SeriesLabelDefaults,
     SeriesPluginModuleInstance,
@@ -79,6 +80,7 @@ import type { DataModel, ProcessedData } from '../data/dataModel';
 import { DataSet } from '../data/dataSet';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
+import { markerStrokePickInflation } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 import { getItemId } from './pickManager';
 import { mergeMarkerStyles, mergeMarkerStylesPair } from './seriesMarker';
@@ -122,6 +124,9 @@ export enum SeriesNodePickMode {
 }
 
 export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'highlight-tooltip' | 'context-menu' | 'event';
+
+/** Pick radius substituted for `nodeClickRange: 'exact'` when a series has no pickable node shapes. */
+const MARKERLESS_NODE_PICK_RANGE = 10;
 
 export type SeriesNodePickMatch = {
     datum: SeriesNodeDatum;
@@ -1012,11 +1017,19 @@ export abstract class Series<
         return undefined;
     }
 
+    /** Whether the series currently has drawn node shapes for `EXACT_SHAPE_MATCH` to resolve against. */
+    protected hasPickableNodeShapes(): boolean {
+        return true;
+    }
+
     protected _pickNodeCache = new LRUCache<PickResult | undefined>(5);
     pickNodes(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {
         const { pickModes, pickModeAxis, visible, contentGroup } = this;
 
         if (!visible || !contentGroup.visible) return;
+
+        // Mini-charts render markerless by construction, so they keep the plain 'exact' semantics.
+        const hasPickableNodeShapes = this.chart?.isMiniChart === true || this.hasPickableNodeShapes();
 
         let maxDistance = Infinity;
         if (intent === 'tooltip' || intent === 'highlight-tooltip') {
@@ -1026,7 +1039,11 @@ export abstract class Series<
         } else if (intent === 'event' || intent === 'context-menu') {
             const { nodeClickRange } = this.properties;
             maxDistance = typeof nodeClickRange === 'number' ? nodeClickRange : Infinity;
-            exactMatchOnly ||= nodeClickRange === 'exact';
+            if (nodeClickRange === 'exact' && !hasPickableNodeShapes) {
+                maxDistance = MARKERLESS_NODE_PICK_RANGE;
+            } else {
+                exactMatchOnly ||= nodeClickRange === 'exact';
+            }
         }
 
         const selectedPickModes = pickModes.filter(
@@ -1193,6 +1210,9 @@ export abstract class Series<
         return undefined;
     }
     public getLabelCandidateStyler(): CandidateStyleResolver | undefined {
+        return undefined;
+    }
+    public getLabelCandidateResolver(): PositionedCandidateResolver | undefined {
         return undefined;
     }
     public updatePlacedLabelData(_labels: PlacedLabel<TLabel>[]) {
@@ -1570,16 +1590,26 @@ export abstract class Series<
         markerNode: Marker,
         point: { x: number; y: number; size?: number; focusSize?: number } | undefined,
         fillBBox: ShapeFillBBox | undefined,
-        opts: { applyPosition?: boolean; crossFilterSelected?: boolean; hideWithSize0: boolean }
+        opts: {
+            applyPosition?: boolean;
+            crossFilterSelected?: boolean;
+            hideWithSize0: boolean;
+            /** Floor for `Marker.pickInflation`, from `maxMarkerStrokePickInflation` (AG-8173). */
+            pickInflation?: number;
+        }
     ) {
-        const { shape, size = 0 } = style;
-        const { applyPosition = true, crossFilterSelected = true, hideWithSize0 } = opts;
+        const { shape, size = 0, strokeWidth = 0 } = style;
+        const { applyPosition = true, crossFilterSelected = true, hideWithSize0, pickInflation = 0 } = opts;
         const visible =
             this.visible &&
             (hideWithSize0 || (this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y)));
 
         markerNode.setStyleProperties(style, fillBBox);
         markerNode.setVisibilityAndPosition(!!visible, shape!, size, applyPosition ? point : undefined);
+        // The floor covers the highlight states; `style` covers this datum's own stroke, including an
+        // `itemStyler`'s. The guard is exact, as `markerStrokePickInflation` never exceeds `sw / 2`.
+        markerNode.pickInflation =
+            strokeWidth > pickInflation * 2 ? Math.max(pickInflation, markerStrokePickInflation(style)) : pickInflation;
 
         if (!crossFilterSelected) {
             markerNode.fillOpacity *= CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR;

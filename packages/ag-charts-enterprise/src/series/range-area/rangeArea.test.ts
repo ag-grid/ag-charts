@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     type AgCartesianChartOptions,
@@ -9,6 +9,7 @@ import {
     type AgRangeAreaSeriesStylerParams,
     type AgSeriesMarkerStyle,
     type AgSeriesMarkerStylerParams,
+    _ModuleSupport,
 } from 'ag-charts-community';
 import {
     BIG,
@@ -20,6 +21,7 @@ import {
     STRIPPED_NUMBER_AXES,
     STRIPPED_UNIT_TIME_AXES,
     type SceneNodeExpectation,
+    clickAction,
     compareImageSnapshot,
     createSceneGeometrySampler,
     deproxy,
@@ -175,6 +177,73 @@ describe('RangeAreaSeries', () => {
 
         chart = AgCharts.create(options);
         await compare();
+    });
+
+    describe('node interactions with markers disabled (AG-10226)', () => {
+        const seriesNodeClick = vi.fn();
+
+        const createRangeAreaChart = async (low: boolean, high: boolean) => {
+            const options: AgCartesianChartOptions = {
+                ...RANGE_AREA_OPTIONS,
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'month',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        item: {
+                            low: { marker: { enabled: low } },
+                            high: { marker: { enabled: high } },
+                        },
+                        listeners: { seriesNodeClick },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+        };
+
+        const clickNode = async (month: string) => {
+            const series = deproxy(chart).series[0] as any;
+            const node = series.getNodeData().find((d: any) => d.datum.month === month);
+            expect(node).toBeDefined();
+            const { canvasX, canvasY } = _ModuleSupport.Transformable.toCanvasPoint(
+                series.contentGroup,
+                node.point.x,
+                node.point.y
+            );
+            await clickAction(canvasX, canvasY)(chart);
+            await waitForChartStability(chart);
+        };
+
+        beforeEach(() => {
+            seriesNodeClick.mockReset();
+        });
+
+        it('fires nodeClick when neither side renders markers', async () => {
+            await createRangeAreaChart(false, false);
+            await clickNode('Feb');
+
+            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+            expect(seriesNodeClick.mock.calls[0][0].datum).toEqual(CATEGORY_DATA[1]);
+        });
+
+        it('fires nodeClick when only the low side renders markers', async () => {
+            await createRangeAreaChart(true, false);
+            await clickNode('Feb');
+
+            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+            expect(seriesNodeClick.mock.calls[0][0].datum).toEqual(CATEGORY_DATA[1]);
+        });
+
+        it('fires nodeClick when only the high side renders markers', async () => {
+            await createRangeAreaChart(false, true);
+            await clickNode('Feb');
+
+            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+            expect(seriesNodeClick.mock.calls[0][0].datum).toEqual(CATEGORY_DATA[1]);
+        });
     });
 
     it(`should render a range-area chart with inverted high and low values`, async () => {
