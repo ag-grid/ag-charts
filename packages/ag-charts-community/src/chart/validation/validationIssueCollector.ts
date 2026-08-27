@@ -102,7 +102,7 @@ export class ValidationIssueCollector {
                 try {
                     listener({ level: pending.severity, message: pending.message });
                 } catch (error) {
-                    this.issueListenerLogger?.error('validations.onErrorRaised threw an error', error);
+                    this.issueListenerLogger?.error('validations.onDiagnosticRaised threw an error', error);
                 }
             }
         } finally {

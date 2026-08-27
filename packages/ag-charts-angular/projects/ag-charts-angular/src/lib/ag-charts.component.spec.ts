@@ -232,12 +232,12 @@ class ValidationsHostComponent {
         ],
         series: [{ type: 'bar', xKey: 'type', yKey: 'earnings' }],
         validations: {
-            onErrorRaised: recordedAction(this.issueRaised),
+            onDiagnosticRaised: recordedAction(this.issueRaised),
         },
     };
 }
 
-describe('validations.onErrorRaised zone patching', () => {
+describe('validations.onDiagnosticRaised zone patching', () => {
     let host: ValidationsHostComponent;
     let fixture: ComponentFixture<ValidationsHostComponent>;
     let ngZone: NgZone;
@@ -262,9 +262,9 @@ describe('validations.onErrorRaised zone patching', () => {
 
     it('runs the callback inside the Angular zone and leaves the consumer options untouched', () => {
         const created = createChartSpy.calls.argsFor(0)[0] as AgChartOptions;
-        const patched = (created as any).validations.onErrorRaised;
+        const patched = (created as any).validations.onDiagnosticRaised;
 
-        expect(patched).not.toBe((host.options as any).validations.onErrorRaised);
+        expect(patched).not.toBe((host.options as any).validations.onDiagnosticRaised);
 
         ngZone.runOutsideAngular(() => patched({ level: 'error', message: 'boom' }));
 
