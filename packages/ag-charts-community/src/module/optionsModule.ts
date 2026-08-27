@@ -535,10 +535,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         let presetDefName: string | undefined;
         let presetOptions: Partial<any> | undefined;
         let optionsTheme = options.theme;
+        let missingPresetModule: ModulePlaceholder | undefined;
         if (presetType != null) {
             presetDef = ModuleRegistry.getPresetModule(presetType);
             presetDefName = presetDef?.name;
             optionsTheme ??= presetDef?.baseTheme;
+            missingPresetModule = presetDef == null ? ExpectedModules.get(presetType) : undefined;
         }
 
         const activeTheme = sanitizeThemeModules(getChartTheme(optionsTheme, this.logger, presetDefName));
@@ -592,7 +594,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (!this.chartDef.placeholder) {
             const { validate: validateChart = validate } = this.chartDef;
             const { cleared, invalid } = validateChart(options, this.chartDef.options, '', this.validateParams);
-            this.recordValidationErrors(invalid);
+            // Without the preset's option defs every preset option reads as unknown; the
+            // missing-module report below is the accurate diagnostic.
+            if (missingPresetModule == null) {
+                this.recordValidationErrors(invalid);
+            }
             options = cleared as T;
         }
 
@@ -636,7 +642,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const reportedMissingModules = processModuleOptions(
             this.chartDef.name,
             processedOptions,
-            missingSeriesModules.concat(missingAxesModules),
+            missingSeriesModules.concat(missingAxesModules, missingPresetModule ?? []),
             this.logger
         );
         // A dropped series/axis/plugin option is error-severity under fail-fast, thrown only after

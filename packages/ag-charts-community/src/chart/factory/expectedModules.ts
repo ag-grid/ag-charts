@@ -9,6 +9,8 @@ export interface ModulePlaceholder {
     chartType?: ChartType;
     enterprise?: boolean;
     optionsKey?: string;
+    /** The public API this module is reached through, named in the missing-module warning in place of `name`. */
+    apiName?: string;
 }
 
 /**
@@ -507,6 +509,7 @@ export const ExpectedModules = new Map<string, ModulePlaceholder>(
                 chartType: 'standalone',
                 enterprise: true,
                 moduleId: 'GaugePresetModule',
+                apiName: 'AgCharts.createGauge',
             },
             {
                 type: 'preset',
@@ -514,6 +517,7 @@ export const ExpectedModules = new Map<string, ModulePlaceholder>(
                 chartType: 'cartesian',
                 enterprise: true,
                 moduleId: 'PriceVolumePresetModule',
+                apiName: 'AgCharts.createFinancialChart',
             },
             {
                 type: 'preset',
@@ -521,6 +525,7 @@ export const ExpectedModules = new Map<string, ModulePlaceholder>(
                 chartType: 'cartesian',
                 enterprise: true,
                 moduleId: 'QuadrantChartModule',
+                apiName: 'AgCharts.createQuadrantChart',
             },
             {
                 type: 'preset',
