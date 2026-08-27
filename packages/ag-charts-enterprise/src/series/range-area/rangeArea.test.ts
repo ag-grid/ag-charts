@@ -179,7 +179,7 @@ describe('RangeAreaSeries', () => {
         await compare();
     });
 
-    describe('node interactions with markers disabled (AG-10226)', () => {
+    describe('node interactions (AG-10226)', () => {
         const seriesNodeClick = vi.fn();
 
         const createRangeAreaChart = async (low: boolean, high: boolean) => {
@@ -243,6 +243,31 @@ describe('RangeAreaSeries', () => {
 
             expect(seriesNodeClick).toHaveBeenCalledTimes(1);
             expect(seriesNodeClick.mock.calls[0][0].datum).toEqual(CATEGORY_DATA[1]);
+        });
+
+        it('fires nodeClick on a marker when both sides render markers', async () => {
+            await createRangeAreaChart(true, true);
+            await clickNode('Feb');
+
+            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+            expect(seriesNodeClick.mock.calls[0][0].datum).toEqual(CATEGORY_DATA[1]);
+        });
+
+        it('does not fire nodeClick inside the band when both sides render markers', async () => {
+            await createRangeAreaChart(true, true);
+
+            const series = deproxy(chart).series[0] as any;
+            const node = series.getNodeData().find((d: any) => d.datum.month === 'Feb');
+            expect(node).toBeDefined();
+            const { canvasX, canvasY } = _ModuleSupport.Transformable.toCanvasPoint(
+                series.contentGroup,
+                node.point.x,
+                node.point.y
+            );
+            await clickAction(canvasX, canvasY + 60)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeClick).not.toHaveBeenCalled();
         });
 
         it('does not fire nodeClick elsewhere in the band between the two sides', async () => {
