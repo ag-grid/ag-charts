@@ -336,6 +336,77 @@ describe('Chart', () => {
         });
     });
 
+    // A markerless series' node is the point on the line where the marker would have been.
+    describe(`Markerless Line Series node interactions (AG-10226)`, () => {
+        const createMarkerlessLineChart = async (listeners: any) =>
+            createChart({
+                container: document.body,
+                data: datasets.economy.data,
+                series: [
+                    {
+                        type: 'line',
+                        xKey: datasets.economy.categoryKey,
+                        yKey: datasets.economy.valueKey,
+                        marker: { enabled: false },
+                        listeners,
+                    },
+                ],
+            } as AgCartesianChartOptions);
+
+        const nodeCanvasPoint = (chartInstance: Chart, datumIndex: number) => {
+            const series = chartInstance.series[0] as any;
+            const item = series.contextNodeData.nodeData[datumIndex];
+            expect(item).toBeDefined();
+            return Transformable.toCanvasPoint(series.contentGroup, item.point.x, item.point.y);
+        };
+
+        it(`should handle nodeClick event at a datum's notional marker position`, async () => {
+            const seriesNodeClick = vi.fn();
+            chart = await createMarkerlessLineChart({ seriesNodeClick });
+
+            const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
+            await clickAction(canvasX, canvasY)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+            expect(seriesNodeClick.mock.calls[0][0].datum).toEqual(datasets.economy.data[1]);
+        });
+
+        it(`should not handle nodeClick event well outside the markerless pick range`, async () => {
+            const seriesNodeClick = vi.fn();
+            chart = await createMarkerlessLineChart({ seriesNodeClick });
+
+            const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
+            await clickAction(canvasX, canvasY + 60)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeClick).not.toHaveBeenCalled();
+        });
+
+        it(`should handle nodeDoubleClick event at a datum's notional marker position`, async () => {
+            const seriesNodeDoubleClick = vi.fn();
+            chart = await createMarkerlessLineChart({ seriesNodeDoubleClick });
+
+            const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
+            await doubleClickAction(canvasX, canvasY)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeDoubleClick).toHaveBeenCalledTimes(1);
+            expect(seriesNodeDoubleClick.mock.calls[0][0].datum).toEqual(datasets.economy.data[1]);
+        });
+
+        it(`should not handle nodeDoubleClick event well outside the markerless pick range`, async () => {
+            const seriesNodeDoubleClick = vi.fn();
+            chart = await createMarkerlessLineChart({ seriesNodeDoubleClick });
+
+            const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
+            await doubleClickAction(canvasX, canvasY + 60)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeDoubleClick).not.toHaveBeenCalled();
+        });
+    });
+
     describe(`Area Series Pointer Events`, () => {
         testPointerEvents({
             ...cartesianTestParams,

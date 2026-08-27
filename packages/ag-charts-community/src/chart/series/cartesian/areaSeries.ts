@@ -252,6 +252,11 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
 
     private readonly aggregationManager = new AggregationManager<AreaSeriesDataAggregationFilter>();
     private hideWithSize0 = false;
+    private markerNodesPickable = true;
+
+    protected override hasPickableNodeShapes(): boolean {
+        return this.markerNodesPickable;
+    }
 
     readonly backgroundGroup = new Group({
         name: `${this.id}-background`,
@@ -1403,6 +1408,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             this.chart?.isMiniChart
         );
         this.hideWithSize0 = markerDrawMode.hideWithSize0;
+        this.markerNodesPickable = markerDrawMode.needsNodeData && !markerDrawMode.hideWithSize0;
 
         if (marker.isDirty()) {
             datumSelection.clear();

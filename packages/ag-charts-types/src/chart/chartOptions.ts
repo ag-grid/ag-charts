@@ -167,7 +167,7 @@ export interface AgChartHighlightOptions {
      * Default: `true`
      */
     enabled?: boolean;
-    /** By default, nodes will be highlighted when the cursor is within the `tooltip.range`. Set this to `'node'` to highlight nodes when within the `series[].nodeClickRange`. */
+    /** By default, nodes will be highlighted when the cursor is within the `tooltip.range`. Set this to `'node'` to highlight the nearest node irrespective of range. */
     range?: AgChartHighlightRange;
     /**
      * Determines which items are highlighted when hovering an item.

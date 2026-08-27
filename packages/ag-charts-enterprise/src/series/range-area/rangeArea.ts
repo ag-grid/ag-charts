@@ -288,6 +288,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
     private readonly aggregationManager = new AggregationManager<RangeAreaSeriesDataAggregationFilter>();
     private hideWithSize0 = false;
+    private markerNodesPickable = true;
+
+    protected override hasPickableNodeShapes(): boolean {
+        return this.markerNodesPickable;
+    }
     private placedLabelData: PlacedLabel<RangeAreaLabelDatum>[] = [];
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
@@ -1109,6 +1114,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             this.chart?.isMiniChart
         );
         this.hideWithSize0 = markerDrawMode.hideWithSize0;
+        // A disabled side's datums are filtered out of `resolvedNodeData`, so both must be drawn.
+        this.markerNodesPickable =
+            markerDrawMode.needsNodeData && !markerDrawMode.hideWithSize0 && low.marker.enabled && high.marker.enabled;
 
         if (properties.item.low.marker.isDirty() || properties.item.high.marker.isDirty()) {
             datumSelection.clear();

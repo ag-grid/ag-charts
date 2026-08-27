@@ -124,6 +124,9 @@ export enum SeriesNodePickMode {
 
 export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'highlight-tooltip' | 'context-menu' | 'event';
 
+/** Pick radius substituted for `nodeClickRange: 'exact'` when a series has no pickable node shapes. */
+const MARKERLESS_NODE_PICK_RANGE = 10;
+
 export type SeriesNodePickMatch = {
     datum: SeriesNodeDatum;
     distance: number;
@@ -1013,11 +1016,19 @@ export abstract class Series<
         return undefined;
     }
 
+    /** Whether the series currently has drawn node shapes for `EXACT_SHAPE_MATCH` to resolve against. */
+    protected hasPickableNodeShapes(): boolean {
+        return true;
+    }
+
     protected _pickNodeCache = new LRUCache<PickResult | undefined>(5);
     pickNodes(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {
         const { pickModes, pickModeAxis, visible, contentGroup } = this;
 
         if (!visible || !contentGroup.visible) return;
+
+        // Mini-charts render markerless by construction, so they keep the plain 'exact' semantics.
+        const hasPickableNodeShapes = this.chart?.isMiniChart === true || this.hasPickableNodeShapes();
 
         let maxDistance = Infinity;
         if (intent === 'tooltip' || intent === 'highlight-tooltip') {
@@ -1027,7 +1038,11 @@ export abstract class Series<
         } else if (intent === 'event' || intent === 'context-menu') {
             const { nodeClickRange } = this.properties;
             maxDistance = typeof nodeClickRange === 'number' ? nodeClickRange : Infinity;
-            exactMatchOnly ||= nodeClickRange === 'exact';
+            if (nodeClickRange === 'exact' && !hasPickableNodeShapes) {
+                maxDistance = MARKERLESS_NODE_PICK_RANGE;
+            } else {
+                exactMatchOnly ||= nodeClickRange === 'exact';
+            }
         }
 
         const selectedPickModes = pickModes.filter(
