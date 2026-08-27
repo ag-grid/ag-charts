@@ -1575,13 +1575,7 @@ export abstract class Series<
             applyPosition?: boolean;
             crossFilterSelected?: boolean;
             hideWithSize0: boolean;
-            /**
-             * Floor for the node's local-space pick-region widening (AG-8173) — the widest stroke the
-             * series can draw this marker with across every highlight state, resolved once per update
-             * by the caller via `maxMarkerStrokePickInflation`. The per-datum style resolved below is
-             * folded in on top of it, so an `itemStyler` that widens one datum's stroke widens that
-             * datum's hit region too.
-             */
+            /** Floor for `Marker.pickInflation`, from `maxMarkerStrokePickInflation` (AG-8173). */
             pickInflation?: number;
         }
     ) {
@@ -1593,10 +1587,8 @@ export abstract class Series<
 
         markerNode.setStyleProperties(style, fillBBox);
         markerNode.setVisibilityAndPosition(!!visible, shape!, size, applyPosition ? point : undefined);
-        // The caller's floor covers the highlight states, which are drawn by an unpickable node in
-        // `highlightGroup`; `style` covers this datum's own stroke, including an `itemStyler`'s.
-        // `markerStrokePickInflation` can never exceed `strokeWidth / 2`, so the comparison below
-        // keeps the common case (no styler widening) at one extra numeric test per marker.
+        // The floor covers the highlight states; `style` covers this datum's own stroke, including an
+        // `itemStyler`'s. The guard is exact, as `markerStrokePickInflation` never exceeds `sw / 2`.
         markerNode.pickInflation =
             strokeWidth > pickInflation * 2 ? Math.max(pickInflation, markerStrokePickInflation(style)) : pickInflation;
 

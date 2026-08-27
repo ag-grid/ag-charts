@@ -69,21 +69,14 @@ class InternalMarker<D = any> extends Path<D> {
     }
 
     /**
-     * Local-space widening of the pick region, in pixels, so that a node's drawn stroke counts as
-     * part of the node for `nodeClickRange`/`tooltip.range` `'exact'` hit testing (AG-8173).
-     *
-     * Half the widest stroke width the marker can be drawn with, resolved once per style update by
-     * the owning series (`Series.applyMarkerStyle`) — never derived per hit test. Deliberately a
-     * plain field rather than a change-detected one: the pick region is not rendered, so a change
-     * here must not dirty the scene.
+     * Half the widest stroke the marker is drawn with, so `'exact'` hit testing includes the stroke
+     * (AG-8173). Set by `Series.applyMarkerStyle`; not change-detected, as it is never rendered.
      */
     pickInflation: number = 0;
 
     override isPointInPath(x: number, y: number): boolean {
-        // `distanceSquaredLocal` returns `d² - r²` clamped at 0, so the stroke-inflated test
-        // `d² <= (r + pickInflation)²` becomes `d² - r² <= pickInflation² + 2·r·pickInflation`,
-        // and `2·r` is `size`. Keeps the un-inflated case at one extra comparison, and leaves the
-        // metric used by `distanceSquared` (nearest/numeric ranges) untouched.
+        // `distanceSquaredLocal` returns `d² - r²`, so `d² <= (r + i)²` is `d² - r² <= i² + 2·r·i`,
+        // with `2·r` being `size`. `distanceSquared` (nearest/numeric ranges) is left untouched.
         const { pickInflation } = this;
         const tolerance = pickInflation > 0 ? pickInflation * (pickInflation + this.size) : 0;
         return this.distanceSquaredLocal(x, y) <= tolerance;
