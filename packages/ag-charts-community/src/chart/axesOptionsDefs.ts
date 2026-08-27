@@ -149,6 +149,7 @@ export function crossLineOptionsDefs(
 
 export const cartesianCrossLineLabelOptionsDefs: OptionsDefs<AgCartesianCrossLineLabelOptions> = {
     ...commonCrossLineLabelOptionsDefs,
+    reserveSpace: boolean,
     position: union(
         'top',
         'left',

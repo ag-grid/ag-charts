@@ -3,6 +3,7 @@ import { afterEach, describe, it, vi } from 'vitest';
 import { mapValues } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
+    AgCartesianCrossLineLabelOptions,
     AgCartesianCrossLineOptions,
     AgCrossLineClickEvent,
     AgCrossLineLabelOverflow,
@@ -10,6 +11,7 @@ import type {
     AgCrossLineListeners,
 } from 'ag-charts-types';
 
+import { BBox } from '../../scene/bbox';
 import { Transformable } from '../../scene/transformable';
 import type { Chart } from '../chart';
 import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
@@ -1241,6 +1243,198 @@ describe('CrossLine', () => {
                     { overflow: 'realign-text' }
                 )
             );
+            await compare();
+        });
+    });
+
+    describe('AG-8901: label space reservation', () => {
+        // Every datum shares a y value, so the series labels form one row across the cross line's own
+        // position — the arrangement that puts them in the way whenever the label is not reserved.
+        function reservationChart(
+            label: Partial<AgCartesianCrossLineLabelOptions>,
+            reserveSpace: boolean
+        ): AgCartesianChartOptions {
+            return {
+                data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: 50 })),
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'y', label: { enabled: true, placement: ['bottom', 'top'] } },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: {
+                        type: 'number',
+                        position: 'left',
+                        crossLines: [
+                            { type: 'line', value: 50, label: { position: 'inside', ...label, reserveSpace } },
+                        ],
+                    },
+                },
+            };
+        }
+
+        function crossLineLabelBox(axisId: string) {
+            const axis = chart.axes.findById(axisId)!;
+            const [crossLine] = getCrossLinesPlugin(axis)?.getInstances() ?? [];
+            const [crossLineLabel] = crossLine.labelGroup.children() as any;
+            return Transformable.toCanvas(crossLineLabel);
+        }
+
+        function shownSeriesLabelBoxes() {
+            return ((chart as any).series[0].labelSelection.nodes() as any[])
+                .filter((node) => node.visible)
+                .map((node) => Transformable.toCanvas(node));
+        }
+
+        it('keeps series labels clear of a cross line label that reserves its space', async () => {
+            const build = (reserveSpace: boolean) =>
+                reservationChart({ text: 'CROSSLINE LABEL', fontSize: 40 }, reserveSpace);
+
+            const clearOfCrossLine = () => {
+                const crossLineBox = crossLineLabelBox('y');
+                const shown = shownSeriesLabelBoxes();
+                return {
+                    shown: shown.length,
+                    overlapping: shown.filter((box) => box.collidesBBox(crossLineBox)).length,
+                };
+            };
+
+            chart = await createChart(build(false));
+            const off = clearOfCrossLine();
+            await chart.publicApi!.update(build(true));
+            await waitForChartStability(chart);
+            const on = clearOfCrossLine();
+
+            // The reserved box is read back off the drawn node, so a relayout must reserve the same space.
+            await chart.publicApi!.update({ ...build(true), title: { text: 'relayout' } });
+            await waitForChartStability(chart);
+            const relaidOut = clearOfCrossLine();
+
+            // Guards the assertions below: without the opt-in the labels must genuinely be in the way.
+            expect(off.overlapping).toBeGreaterThan(0);
+            expect(on.overlapping).toBe(0);
+            expect(on.shown).toBeGreaterThan(0);
+            expect(relaidOut.overlapping).toBe(0);
+        });
+
+        it('reserves a rotated label the space it actually occupies', async () => {
+            const build = (reserveSpace: boolean) =>
+                reservationChart({ text: 'ROTATED CROSSLINE LABEL', fontSize: 30, rotation: 90 }, reserveSpace);
+
+            const geometry = () => {
+                const drawn = crossLineLabelBox('y');
+                // What the engine would reserve if the already-rotated footprint were handed to it with
+                // its rotation still attached: at 90 degrees the extent transposes about the same origin.
+                const transposed = new BBox(drawn.x, drawn.y, drawn.height, drawn.width);
+                const shown = shownSeriesLabelBoxes();
+                return {
+                    drawn,
+                    transposed,
+                    labelRowY: Math.min(...shown.map((box) => box.y)),
+                    overlappingDrawn: shown.filter((box) => box.collidesBBox(drawn)).length,
+                };
+            };
+
+            chart = await createChart(build(false));
+            const off = geometry();
+            await chart.publicApi!.update(build(true));
+            await waitForChartStability(chart);
+            const on = geometry();
+
+            // Guards the assertion below, and is what makes it discriminating: the series labels sit
+            // within the drawn footprint's vertical span but clear of the transposed one's, so reserving
+            // the transposed box would have left them free to stay where they overlap the real label.
+            expect(on.labelRowY).toBeGreaterThan(on.transposed.y + on.transposed.height);
+            expect(on.labelRowY).toBeLessThan(on.drawn.y + on.drawn.height);
+            expect(off.overlappingDrawn).toBeGreaterThan(0);
+
+            expect(on.overlappingDrawn).toBe(0);
+        });
+
+        it('reserves nothing while the cross line is hidden by an overflowing layout', async () => {
+            chart = await createChart(reservationChart({ text: 'CROSSLINE LABEL', fontSize: 40 }, true));
+
+            const axis = chart.axes.findById('y')!;
+            const plugin = getCrossLinesPlugin(axis)!;
+
+            expect(plugin.getLabelObstacles(BBox.zero)).toHaveLength(1);
+
+            const version = plugin.nodeDataVersion;
+            plugin.setVisible(false);
+
+            expect(plugin.getLabelObstacles(BBox.zero)).toBeUndefined();
+            expect(plugin.nodeDataVersion).toBeGreaterThan(version);
+        });
+
+        // One chart per reservation state, each carrying an upright reserved label, a rotated one on a
+        // range cross line on the other axis, and an unreserved label the series labels may overlap.
+        function packedReservationChart(reserveSpace: boolean): AgCartesianChartOptions {
+            return {
+                data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: 50, y2: Math.sin(i / 2) * 15 + 80 })),
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'y', label: { enabled: true, placement: ['bottom', 'top'] } },
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y2',
+                        label: { enabled: true, placement: ['top', 'bottom'] },
+                    },
+                ],
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        crossLines: [
+                            {
+                                type: 'range',
+                                range: [3.5, 5.5],
+                                stroke: 'green',
+                                strokeWidth: 1,
+                                fill: 'green',
+                                fillOpacity: 0.1,
+                                label: {
+                                    text: 'ROTATED RESERVED',
+                                    fontSize: 40,
+                                    rotation: 90,
+                                    position: 'inside-top',
+                                    reserveSpace,
+                                },
+                            },
+                        ],
+                    },
+                    y: {
+                        // A fixed domain keeps the reserved cross line amid the series labels.
+                        type: 'number',
+                        position: 'left',
+                        min: 0,
+                        max: 100,
+                        crossLines: [
+                            {
+                                type: 'line',
+                                value: 50,
+                                stroke: 'red',
+                                strokeWidth: 1,
+                                label: { text: 'RESERVED', fontSize: 40, position: 'inside', reserveSpace },
+                            },
+                            {
+                                type: 'line',
+                                value: 80,
+                                stroke: 'blue',
+                                strokeWidth: 1,
+                                label: { text: 'NEVER RESERVED', fontSize: 24, position: 'inside' },
+                            },
+                        ],
+                    },
+                },
+            };
+        }
+
+        it('renders series labels clear of every cross line label that reserves its space', async () => {
+            chart = await createChart(packedReservationChart(true));
+            await compare();
+        });
+
+        it('renders series labels over cross line labels that reserve nothing', async () => {
+            chart = await createChart(packedReservationChart(false));
             await compare();
         });
     });
