@@ -2279,10 +2279,12 @@ describe('AG-17830 QA — validations.onErrorRaised', () => {
 
         expect(create).toThrow(/validations.throwOn: warning/);
 
-        // One dispatch: a fresh closure per pass defeats the listener-identity key, so the guard falls
-        // through to the source-text-plus-trigger cycle key, which matches on the first re-entry.
-        expect(calls).toHaveLength(1);
-        expectWarningsCalls().toHaveLength(2);
+        // A fresh closure per pass defeats the listener-identity guard, so this case falls to the depth
+        // backstop. Asserted as a bound rather than a count: the exact value is a safety limit, not a
+        // contract, and the point is that it terminates well short of the stack.
+        expect(calls.length).toBeGreaterThan(1);
+        expect(calls.length).toBeLessThanOrEqual(32);
+        expectWarningsCalls().toHaveLength(calls.length + 1);
         (console.error as Mock).mockClear();
     });
 

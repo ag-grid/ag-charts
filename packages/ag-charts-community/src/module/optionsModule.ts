@@ -114,11 +114,12 @@ function withoutIgnoredClause(message: string): string {
 }
 
 /**
- * Runaway backstop for {@link ChartOptions.dispatchIssuesBeforeThrow}: no chain of consumer callbacks
- * each legitimately constructing a further chart gets near this, so crossing it means unbounded
- * recursion rather than nesting, and unwinding beats overflowing the stack.
+ * Runaway backstop for {@link ChartOptions.dispatchIssuesBeforeThrow}. Deliberately far above any
+ * nesting a consumer could mean: no chain of callbacks each legitimately constructing a further chart
+ * gets near this, so crossing it is unbounded recursion rather than depth, and unwinding there beats
+ * overflowing the stack. It is not a cycle detector — listener identity is (see the call site).
  */
-const MAX_DISPATCH_DEPTH = 64;
+const MAX_DISPATCH_DEPTH = 32;
 
 /** The `validations` subtree of options that are not yet known to be valid: public keys, unknown values. */
 type UnvalidatedValidations = { [K in keyof AgChartValidationsOptions]?: unknown };
@@ -317,14 +318,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      */
     private static readonly dispatchingListeners = new Set<ValidationIssueListener>();
 
-    /**
-     * Second re-entrancy key for {@link ChartOptions.dispatchIssuesBeforeThrow}: listener source text
-     * paired with the in-flight trigger issue, which catches a consumer whose listener identity
-     * changes per pass.
-     */
-    private static readonly dispatchingCycles = new Set<string>();
-
-    /** Runaway backstop only; see {@link MAX_DISPATCH_DEPTH}. */
+    /** Runaway backstop only, not a cycle key; see {@link MAX_DISPATCH_DEPTH}. */
     private static dispatchDepth = 0;
 
     constructor(
@@ -872,22 +866,21 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // recursion. Without this a handler that re-applies the same failing options recurses until the
         // stack overflows, and the fail-fast error the caller is owed never surfaces.
         //
-        // Two cycle signatures rather than a depth count, so a callback that legitimately builds a
-        // *further* chart still gets that chart's own listener called however deep the chain goes.
+        // Listener identity is the whole cycle detector, and it is exact in both directions: a consumer
+        // re-applying failing options from its own callback re-enters through this same function and is
+        // stopped, while a callback that legitimately builds a *further* chart still gets that chart's
+        // own listener called, however deep the chain goes.
         //
-        // First the listener itself, which is exact. Second, for a consumer whose listener identity
-        // changes per pass — the Angular zone wrapper allocates a fresh closure every time, so the
-        // first key never fires — its source text paired with the issue that tripped the throw: a
-        // re-entry through the same wrapper re-applying the same failing options matches both halves,
-        // while two independently-authored listeners differ in source and so neither silences the
-        // other even when they raise word-for-word the same issue.
-        const cycleKey = `${listener.toString()}\u0000${trigger.severity}:${trigger.code ?? ''}:${trigger.message}`;
-        if (ChartOptions.dispatchingListeners.has(listener) || ChartOptions.dispatchingCycles.has(cycleKey)) {
+        // Nothing weaker than identity can stand in for it. A consumer whose listener identity changes
+        // per pass — the Angular zone wrapper allocates a fresh closure every time — is indistinguishable
+        // here from a genuinely new chart, and every proxy for identity is worse than none: source text
+        // is shared by every closure a single factory produces, and the trigger issue is shared by two
+        // independent charts misconfigured the same way. Both would silence a listener that is owed its
+        // event, which is the failure this guard must not cause. So that case falls to the depth
+        // backstop below, set far enough out that only runaway recursion reaches it.
+        if (ChartOptions.dispatchingListeners.has(listener) || ChartOptions.dispatchDepth >= MAX_DISPATCH_DEPTH) {
             return;
         }
-        // Depth is only the runaway backstop now: a consumer that raises a *different* issue on every
-        // re-entry defeats both signatures and would otherwise recurse until the stack overflows.
-        if (ChartOptions.dispatchDepth >= MAX_DISPATCH_DEPTH) return;
         // Cleared first: `recordOptionsArgumentError` can throw from a second call site after this
         // one, and a consumer must not be told the same issue twice for a single options pass.
         // The dropped-module call site trips fail-fast with an issue it never adds to the collection —
@@ -896,7 +889,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const issues = recorded.includes(trigger) ? recorded : [...recorded, trigger];
         this.validationIssues = [];
         ChartOptions.dispatchingListeners.add(listener);
-        ChartOptions.dispatchingCycles.add(cycleKey);
         ChartOptions.dispatchDepth++;
         try {
             for (const issue of issues) {
@@ -909,7 +901,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
         } finally {
             ChartOptions.dispatchingListeners.delete(listener);
-            ChartOptions.dispatchingCycles.delete(cycleKey);
             ChartOptions.dispatchDepth--;
         }
     }
