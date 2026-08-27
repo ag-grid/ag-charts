@@ -110,6 +110,7 @@ import {
     getMarkerStyles,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
+    maxMarkerStrokePickInflation,
     resetMarkerFn,
     resetMarkerPositionFn,
     resetMarkerSelectionsDirect,
@@ -1525,12 +1526,16 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         // other mode it returns the input unchanged. Hoist that constant out of the per-marker loop.
         const constantDrawingMode = drawingMode === 'cutout' ? undefined : drawingMode;
 
+        // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
+        const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
+
         datumSelection.each((node, datum) => {
             const state = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
             const style = datum.style ?? contextNodeData.styles[state];
             this.applyMarkerStyle(style, node, datum.point, fillBBox, {
                 crossFilterSelected: datum.crossFilterSelected,
                 hideWithSize0,
+                pickInflation,
             });
             const nextDrawingMode = constantDrawingMode ?? this.resolveMarkerDrawingModeForState(drawingMode, style);
             if (node.__drawingMode !== nextDrawingMode) {

@@ -338,6 +338,7 @@ export {
     cartesianMarkerDrawMode,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
+    maxMarkerStrokePickInflation,
     resetMarkerFn,
     resetMarkerPositionFn,
     resetMarkerSelectionsDirect,

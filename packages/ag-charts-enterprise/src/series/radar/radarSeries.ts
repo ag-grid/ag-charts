@@ -38,6 +38,7 @@ const {
     fixNumericExtent,
     seriesLabelFadeInAnimation,
     markerFadeInAnimation,
+    maxMarkerStrokePickInflation,
     resetMarkerFn,
     resetLabelFn,
     animationValidation,
@@ -505,12 +506,15 @@ export abstract class RadarSeries<
 
         drawingMode = this.getDrawingMode(isHighlight, drawingMode);
 
+        // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
+        const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
+
         selection.each((node, datum) => {
             // datum.style is populated from resolved (ref-free) marker styles by the style passes.
             const style =
                 (datum.style as NormalisedSeriesMarkerStyle | undefined) ??
                 contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
-            this.applyMarkerStyle(style, node, datum.point, fillBBox, { hideWithSize0 });
+            this.applyMarkerStyle(style, node, datum.point, fillBBox, { hideWithSize0, pickInflation });
 
             node.drawingMode = drawingMode;
         });
