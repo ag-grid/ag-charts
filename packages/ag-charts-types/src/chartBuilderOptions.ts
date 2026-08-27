@@ -161,7 +161,6 @@ export type AgBaseQuadrantChartOptions<TDatum = DatumDefault, TContext = Context
     | 'contextMenu'
     | 'data'
     | 'dataIdKey'
-    | 'dataSource'
     | 'enableRtl'
     | 'footnote'
     | 'formatter'

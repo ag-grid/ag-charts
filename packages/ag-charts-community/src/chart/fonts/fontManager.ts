@@ -5,6 +5,8 @@ import type { ChartRegistry } from '../../module/moduleContext';
 export class FontManager {
     private observers: Array<ResizeObserver> = [];
     private destroyed = false;
+    private pendingFontLoad = false;
+    private readonly cleanup: Array<() => void> = [];
 
     // OPTIMIZATION: skips the native `check()` per streaming update. `check()` reports a spec as
     // available even with no matching `@font-face`, so a later declaration or load can make a
@@ -12,7 +14,26 @@ export class FontManager {
     private readonly confirmedFontSpecs = new Set<string>();
     private watchedFontSet?: FontFaceSet;
 
-    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {}
+    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
+        this.cleanup.push(
+            ctx.animationManager.addListener('animation-stop', this.flushFontLoad),
+            ctx.eventsHub.on('update:complete', this.flushFontLoad)
+        );
+    }
+
+    // A re-measure re-lays out the chart, and a layout mid-batch costs the chart its animation, so the
+    // notification waits for the animation to finish.
+    private readonly flushFontLoad = () => {
+        if (this.destroyed || !this.pendingFontLoad || this.ctx.animationManager.isActive()) return;
+        this.pendingFontLoad = false;
+        cachedTextMeasurer.clear();
+        this.ctx.eventsHub.emit('font:load', null);
+    };
+
+    private notifyFontLoad() {
+        this.pendingFontLoad = true;
+        this.flushFontLoad();
+    }
 
     private readonly onFontSetChange = () => {
         this.confirmedFontSpecs.clear();
@@ -53,8 +74,7 @@ export class FontManager {
 
         void Promise.allSettled(pending).then(() => {
             if (this.destroyed) return;
-            cachedTextMeasurer.clear();
-            this.ctx.eventsHub.emit('font:load', null);
+            this.notifyFontLoad();
         });
     }
 
@@ -80,6 +100,10 @@ export class FontManager {
             observer.disconnect();
         }
         this.observers = [];
+        for (const off of this.cleanup) {
+            off();
+        }
+        this.cleanup.length = 0;
         this.unwatchFontSet();
     }
 
@@ -119,9 +143,7 @@ export class FontManager {
         const fontCheckObserver = new ResizeObserverCtor((entries) => {
             const width = entries?.at(0)?.contentBoxSize.at(0)?.inlineSize;
             if (width != null && width > 0) {
-                // Clear the text measurer pool to ensure the font metrics are recalculated on update
-                cachedTextMeasurer.clear();
-                this.ctx.eventsHub.emit('font:load', null);
+                this.notifyFontLoad();
             }
         });
         fontCheckObserver.observe(fontCheckElement);
