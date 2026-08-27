@@ -1,7 +1,7 @@
 import {
     AgCharts,
     AgQuadrantChartOptions,
-    AgSeriesAreaBackgroundRegionLabelPosition,
+    AgQuadrantRegionLabelPosition,
     ModuleRegistry,
     QuadrantChartModule,
 } from 'ag-charts-enterprise';
@@ -24,6 +24,7 @@ const options: AgQuadrantChartOptions = {
     xAxis: { title: { text: 'Revenue growth (%)' } },
     yAxis: { title: { text: 'Margin change (% points)' } },
     regions: {
+        label: { position: 'inside-outer-outer' },
         topLeft: { label: { text: 'Shrinking, Wider Margins' } },
         topRight: { label: { text: 'Growing, Wider Margins' } },
         bottomLeft: { label: { text: 'Shrinking, Thinner Margins' } },
@@ -44,10 +45,7 @@ const options: AgQuadrantChartOptions = {
 
 const chart = AgCharts.createQuadrantChart(options);
 
-function updateLabelPosition(position: AgSeriesAreaBackgroundRegionLabelPosition) {
-    options.regions!.topLeft!.label!.position = position;
-    options.regions!.topRight!.label!.position = position;
-    options.regions!.bottomLeft!.label!.position = position;
-    options.regions!.bottomRight!.label!.position = position;
+function updateLabelPosition(position: AgQuadrantRegionLabelPosition) {
+    options.regions!.label = { position };
     chart.update(options);
 }

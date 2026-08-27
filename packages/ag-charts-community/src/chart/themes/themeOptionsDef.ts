@@ -269,7 +269,11 @@ export const seriesAreaBackgroundRegionLabelDef: OptionsDefs<AgSeriesAreaBackgro
         'inside-top-left',
         'inside-bottom-left',
         'inside-top-right',
-        'inside-bottom-right'
+        'inside-bottom-right',
+        'top-left-above',
+        'top-right-above',
+        'bottom-left-below',
+        'bottom-right-below'
     ),
     rotation: number,
     text: string,

@@ -554,6 +554,10 @@ const labelPositions = [
     'inside-bottom-left',
     'inside-top-right',
     'inside-bottom-right',
+    'top-left-above',
+    'top-right-above',
+    'bottom-left-below',
+    'bottom-right-below',
 ] as const;
 for (const position of labelPositions) {
     EXAMPLES[`LABEL_${position}`] = {
