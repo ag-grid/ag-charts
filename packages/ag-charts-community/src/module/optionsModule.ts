@@ -91,6 +91,12 @@ const DEFAULT_CONSOLE_LOG_LEVEL: AgChartValidationLevel = 'deprecation';
 /** The default `validations.throwOn` — fail-fast is opt-in, so nothing throws unless a consumer asks for it. */
 const DEFAULT_THROW_ON: AgChartValidationLevel = 'none';
 
+/**
+ * A `validations.throwOn` fail-fast throw. Marks the error as already prefixed and already written to
+ * the console, so a wrapper further out re-reports neither.
+ */
+class FailFastError extends Error {}
+
 /** The `validations` subtree of options that are not yet known to be valid: public keys, unknown values. */
 type UnvalidatedValidations = { [K in keyof AgChartValidationsOptions]?: unknown };
 
@@ -345,17 +351,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 : getValidations(this.processedOverrides)?.throwOn
         );
 
-        this.findSeriesWithUserVisiblity(newUserOptions, deltaOptions);
-
-        if (stripSymbols) {
-            this.removeLeftoverSymbols(this.userOptions);
-        }
-
-        const dataChangedLength =
-            currentUserOptions instanceof ChartOptions &&
-            deltaOptions?.data !== undefined &&
-            deltaOptions?.data?.length !== currentUserOptions.userOptions.data?.length;
-
         let activeTheme,
             processedOptions,
             fastDelta,
@@ -365,41 +360,57 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             fonts,
             optionsGraph,
             remappedAxisKeys;
-        const presetDef =
-            this.optionMetadata.presetType == null
-                ? undefined
-                : ModuleRegistry.getPresetModule(this.optionMetadata.presetType);
-        if (
-            !stripSymbols &&
-            !refreshCSSVariables &&
-            this.seriesWithUserVisibility == undefined &&
-            deltaOptions !== undefined &&
-            ChartOptions.isFastPathDelta(deltaOptions, presetDef?.fastUpdateKeys) &&
-            baseChartOptions != null &&
-            !dataChangedLength &&
-            // An armed `throwOn` must re-validate on every pass — the fast path carries `validationIssues`
-            // forward without calling the `record*` methods that throw.
-            this.throwOn === 'none'
-        ) {
-            ({ activeTheme, processedOptions, fastDelta } = this.fastSetup(deltaOptions, baseChartOptions));
-            themeParameters = baseChartOptions.themeParameters;
-            annotationThemes = baseChartOptions.annotationThemes;
-            // The fast path doesn't re-extract fonts, so carry them forward to keep waiting for them.
-            fonts = baseChartOptions.fonts;
-            // The fast path doesn't re-validate, so carry forward the issues from the previous options.
-            this.validationIssues = baseChartOptions.validationIssues;
-        } else {
-            ChartOptions.perfDebug(`ChartOptions.slowSetup()`);
-            ({
-                activeTheme,
-                processedOptions,
-                themeParameters,
-                annotationThemes,
-                googleFonts,
-                fonts,
-                optionsGraph,
-                remappedAxisKeys,
-            } = this.slowSetup(processedOverrides, deltaOptions, stripSymbols));
+
+        try {
+            this.findSeriesWithUserVisiblity(newUserOptions, deltaOptions);
+
+            if (stripSymbols) {
+                this.removeLeftoverSymbols(this.userOptions);
+            }
+
+            const dataChangedLength =
+                currentUserOptions instanceof ChartOptions &&
+                deltaOptions?.data !== undefined &&
+                deltaOptions?.data?.length !== currentUserOptions.userOptions.data?.length;
+
+            const presetDef =
+                this.optionMetadata.presetType == null
+                    ? undefined
+                    : ModuleRegistry.getPresetModule(this.optionMetadata.presetType);
+            if (
+                !stripSymbols &&
+                !refreshCSSVariables &&
+                this.seriesWithUserVisibility == undefined &&
+                deltaOptions !== undefined &&
+                ChartOptions.isFastPathDelta(deltaOptions, presetDef?.fastUpdateKeys) &&
+                baseChartOptions != null &&
+                !dataChangedLength &&
+                // An armed `throwOn` must re-validate on every pass — the fast path carries `validationIssues`
+                // forward without calling the `record*` methods that throw.
+                this.throwOn === 'none'
+            ) {
+                ({ activeTheme, processedOptions, fastDelta } = this.fastSetup(deltaOptions, baseChartOptions));
+                themeParameters = baseChartOptions.themeParameters;
+                annotationThemes = baseChartOptions.annotationThemes;
+                // The fast path doesn't re-extract fonts, so carry them forward to keep waiting for them.
+                fonts = baseChartOptions.fonts;
+                // The fast path doesn't re-validate, so carry forward the issues from the previous options.
+                this.validationIssues = baseChartOptions.validationIssues;
+            } else {
+                ChartOptions.perfDebug(`ChartOptions.slowSetup()`);
+                ({
+                    activeTheme,
+                    processedOptions,
+                    themeParameters,
+                    annotationThemes,
+                    googleFonts,
+                    fonts,
+                    optionsGraph,
+                    remappedAxisKeys,
+                } = this.slowSetup(processedOverrides, deltaOptions, stripSymbols));
+            }
+        } catch (error) {
+            throw this.decorateOptionsProcessingFailure(error);
         }
 
         this.activeTheme = activeTheme;
@@ -845,7 +856,30 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return;
         }
         const location = issue.code ? `\`${issue.code}\`: ` : '';
-        throw new Error(`AG Charts - validations.throwOn: ${issue.severity} - ${location}${issue.message}`);
+        throw new FailFastError(`AG Charts - validations.throwOn: ${issue.severity} - ${location}${issue.message}`);
+    }
+
+    /**
+     * An error raised *while* options are processed — a throwing datum getter, a user callback invoked
+     * during validation — escapes this constructor synchronously, ahead of the update loop's own catch
+     * in `Chart.tryPerformUpdate()`. Arming `throwOn` is what makes that reachable on a warm update: it
+     * forces the slow path, so the read happens during option processing rather than during the update.
+     *
+     * With the threshold armed at `error` that escape *is* the fail-fast delivery, so it must carry the
+     * same console record and the same prefix as every other one (AG-17831 TC1). A `record*` fail-fast
+     * throw already has both, and the CSS-refresh re-construction has no caller to throw to, so both
+     * pass through untouched.
+     */
+    private decorateOptionsProcessingFailure(error: unknown): unknown {
+        if (error instanceof FailFastError) return error;
+        if (this.suppressFailFast || !severityAtOrAbove(this.throwOn, 'error')) return error;
+
+        // Console record first, and worded exactly as the unarmed update-loop catch words it, so the
+        // two paths read identically in the console.
+        this.logger.error('update error', error, error instanceof Error ? error.stack : undefined);
+        return new FailFastError(
+            `AG Charts - validations.throwOn: error - ${String(error instanceof Error ? error.message : error)}`
+        );
     }
 
     private removeIncompatibleSeriesAreaOptions(options: T) {

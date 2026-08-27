@@ -1838,6 +1838,38 @@ describe('validations.throwOn — runtime errors', () => {
         await expect(chart.applyTransaction({ update: [{ x: 'A', y: 99 }] })).resolves.toBeUndefined();
         await expect(proxy.setState(proxy.getState())).resolves.toBeUndefined();
     });
+
+    // AG-17831 TC1 (QA repro T17d): arming `throwOn` forces the slow option-processing path, so a
+    // datum that throws while being read escapes `new ChartOptions()` synchronously — before the
+    // update loop's catch. That escape must still write the console record and carry the prefix.
+    it('prefixes and logs an error that escapes option processing on a warm updateDelta', async () => {
+        let boom = false;
+        const rows = [
+            { x: 'A', y: 10 },
+            {
+                x: 'B',
+                get y() {
+                    if (boom) throw new Error(RUNTIME_ERROR_MESSAGE);
+                    return 20;
+                },
+            },
+        ];
+
+        const proxy = AgCharts.create(throwOnOptions({ throwOn: 'error' }, rows)) as AgChartProxy;
+        chart = deproxy(proxy);
+        await proxy.waitForUpdate();
+        drainErrorLog();
+
+        boom = true;
+        await expect(proxy.updateDelta({ data: rows.slice() })).rejects.toThrow(
+            /^AG Charts - validations\.throwOn: error - /
+        );
+        boom = false;
+
+        const errorCalls = drainErrorLog();
+        expect(errorCalls.length).toBeGreaterThan(0);
+        expect(errorCalls.some((call) => call.some((arg) => String(arg).includes(RUNTIME_ERROR_MESSAGE)))).toBe(true);
+    });
 });
 
 describe('validations.onErrorRaised', () => {
