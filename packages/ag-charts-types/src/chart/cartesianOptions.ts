@@ -568,13 +568,7 @@ export interface AgCartesianCrossLineLabelOptions extends AgBaseCrossLineLabelOp
     position?: AgCrossLineLabelPosition;
     /** The rotation of the Cross Line label in degrees. */
     rotation?: Degree;
-    /**
-     * Whether the label reserves the space it occupies, so that other labels are placed clear of it
-     * rather than overlapping it. The Cross Line label itself never moves, so two Cross Line labels
-     * that overlap each other are not separated by this option.
-     *
-     * Default: `false`
-     */
+    /** Whether other labels are placed clear of this label rather than overlapping it. */
     reserveSpace?: boolean;
 }
 
