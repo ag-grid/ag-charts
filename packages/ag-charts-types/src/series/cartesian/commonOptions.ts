@@ -296,6 +296,13 @@ export interface TextSegment extends TextOptions {
      * height of its tallest segment.
      */
     lineHeight?: PixelSize;
+    /**
+     * Smallest font size this segment may be reduced to when the text does not fit the space available to it.
+     * Every segment shrinks together, each staying at the same fraction of the way between its own
+     * `minimumFontSize` and its own `fontSize`. Defaults to the `minimumFontSize` of the text this segment
+     * belongs to, which is what allows a single option to shrink a whole segmented label.
+     */
+    minimumFontSize?: FontSize;
 }
 
 /**
