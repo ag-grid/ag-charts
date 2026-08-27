@@ -97,6 +97,18 @@ const DEFAULT_THROW_ON: AgChartValidationLevel = 'none';
  */
 class FailFastError extends Error {}
 
+/**
+ * Drops the trailing `, ignoring.` clause a shared validation message ends with. Accurate for the
+ * warn-and-default path that message was written for, and false under an armed `validations.throwOn`
+ * — nothing was ignored there, the pass aborted (AG-17831 TC2). Applied to the *thrown* copy only:
+ * the console record is written for armed and unarmed charts alike and must stay byte-identical.
+ *
+ * A message with no such tail is returned unchanged, so an unrecognised wording is a no-op.
+ */
+function withoutIgnoredClause(message: string): string {
+    return message.replace(/[,;]? ignoring\.$/i, '');
+}
+
 /** The `validations` subtree of options that are not yet known to be valid: public keys, unknown values. */
 type UnvalidatedValidations = { [K in keyof AgChartValidationsOptions]?: unknown };
 
@@ -856,7 +868,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return;
         }
         const location = issue.code ? `\`${issue.code}\`: ` : '';
-        throw new FailFastError(`AG Charts - validations.throwOn: ${issue.severity} - ${location}${issue.message}`);
+        throw new FailFastError(
+            `AG Charts - validations.throwOn: ${issue.severity} - ${location}${withoutIgnoredClause(issue.message)}`
+        );
     }
 
     /**
