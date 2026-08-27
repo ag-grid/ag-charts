@@ -855,7 +855,11 @@ describe('Chart highlighting', () => {
                 ],
             });
 
-        it('lifts the non-hovered series item at the hovered category to unhighlighted-item', async () => {
+        // The four rules the maintainer fixed on the ticket (David Glickman, 2026-08-26): the hovered item is
+        // `highlighted-item`; the hovered series' own other items are `unhighlighted-item`; every other item in
+        // the shared group is `highlighted-item`; every remaining item of a contributing series and every item
+        // of a non-contributing series is `unhighlighted-series`.
+        it('lights every item in the shared group exactly like the hovered one', async () => {
             const options = twoBarSeriesOptions('shared');
             chart = await createChart(options);
             await waitForChartStability(chart);
@@ -879,8 +883,8 @@ describe('Chart highlighting', () => {
             expect(stateAt(chart, 0, 2)).toBe('unhighlighted-item');
             expect(stateAt(chart, 0, 3)).toBe('unhighlighted-item');
 
-            // The non-hovered series' item at the same category (Q2) is lifted out of series dimming.
-            expect(stateAt(chart, 1, 1)).toBe('unhighlighted-item');
+            // The non-hovered series' item at the same category (Q2) is lit exactly like the hovered one.
+            expect(stateAt(chart, 1, 1)).toBe('highlighted-item');
             // Its other items remain series-dimmed.
             expect(stateAt(chart, 1, 0)).toBe('unhighlighted-series');
             expect(stateAt(chart, 1, 2)).toBe('unhighlighted-series');
@@ -962,7 +966,7 @@ describe('Chart highlighting', () => {
             chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
             await waitForChartStability(chart);
 
-            expect(stateAt(chart, 1, 1)).toBe('unhighlighted-item');
+            expect(stateAt(chart, 1, 1)).toBe('highlighted-item');
             expect(stateAt(chart, 1, 0)).toBe('unhighlighted-series');
             expect(stateAt(chart, 1, 2)).toBe('unhighlighted-series');
         });
@@ -1099,7 +1103,7 @@ describe('Chart highlighting', () => {
             const nodeStates = await statesForRange('node');
             expect(nodeStates[1]).toEqual([
                 'unhighlighted-series',
-                'unhighlighted-item',
+                'highlighted-item',
                 'unhighlighted-series',
                 'unhighlighted-series',
             ]);
