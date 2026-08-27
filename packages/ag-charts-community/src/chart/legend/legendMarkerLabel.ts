@@ -60,6 +60,9 @@ export class LegendMarkerLabel<D = CategoryLegendDatum> extends TranslatableGrou
     @ProxyPropertyOnWrite('label', 'opacity')
     labelOpacity: number = 1;
 
+    @ProxyPropertyOnWrite('symbolsGroup', 'opacity')
+    symbolsOpacity: number = 1;
+
     @ObserveChanges<LegendMarkerLabel>((target) => target.layoutLabel())
     spacing: number = 0;
 
