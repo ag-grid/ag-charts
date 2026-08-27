@@ -1,12 +1,17 @@
-import { type AgSunburstSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgSunburstInnerLabel, type AgSunburstSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
+    arrayOfDefs,
     colorUnion,
     commonSeriesOptionsDefs,
     constant,
+    fontOptionsDef,
+    labelBoxOptionsDef,
+    positiveNumber,
     ratio,
     required,
     string,
+    textOrSegments,
     without,
 } from 'ag-charts-core';
 
@@ -21,6 +26,15 @@ export const sunburstSeriesOptionsDef: OptionsDefs<AgSunburstSeriesOptions> = {
         fill: required(colorUnion),
         fillOpacity: ratio,
     },
+    innerLabels: arrayOfDefs<AgSunburstInnerLabel>(
+        {
+            text: required(textOrSegments),
+            spacing: positiveNumber,
+            ...fontOptionsDef,
+            ...labelBoxOptionsDef,
+        },
+        'inner label options array'
+    ),
     labelKey: string,
     secondaryLabelKey: string,
     childrenKey: string,
