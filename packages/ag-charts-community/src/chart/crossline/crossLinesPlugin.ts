@@ -4,6 +4,7 @@ import type {
     CanvasPoint,
     DynamicContext,
     Forbid,
+    LabelObstacle,
     NormalisedAxisCrossLineOptions,
 } from 'ag-charts-core';
 import { AbstractModuleInstance, jsonDiff } from 'ag-charts-core';
