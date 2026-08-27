@@ -126,13 +126,22 @@ export interface AgQuadrantRegionsOptions {
     bottomRight?: AgQuadrantRegionOptions;
 }
 
-export interface AgQuadrantRegionsLabelOptions extends Omit<AgSeriesAreaBackgroundRegionLabel, 'position' | 'text'> {
+export interface AgQuadrantRegionsLabelOptions extends Omit<
+    AgSeriesAreaBackgroundRegionLabel,
+    'position' | 'text' | 'xOffset' | 'yOffset'
+> {
     /** The placement of the label within its region, resolved relative to the pivot so that one value places all
      * four region labels symmetrically.
      *
      * Default: `'inside-outer-outer'`
      */
     position?: AgQuadrantRegionLabelPosition;
+    /** The distance in pixels between the label and the region edges its `position` places it against, moving it
+     * away from those edges.
+     *
+     * Default: `10`
+     */
+    spacing?: PixelSize;
 }
 
 export interface AgQuadrantRegionLabelOptions extends AgQuadrantRegionsLabelOptions {

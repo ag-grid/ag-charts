@@ -1,5 +1,15 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, array, boolean, defined, numericValue, string, union, without } from 'ag-charts-core';
+import {
+    type OptionsDefs,
+    array,
+    boolean,
+    defined,
+    number,
+    numericValue,
+    string,
+    union,
+    without,
+} from 'ag-charts-core';
 import type { AgQuadrantChartOptions } from 'ag-charts-types';
 
 const axisPlacementOptionsDefs: OptionsDefs<NonNullable<AgQuadrantChartOptions['axisPlacement']>> = {
@@ -40,6 +50,7 @@ const regionLabelOptionsDefs: OptionsDefs<NonNullable<NonNullable<AgQuadrantChar
         'inside-inner-inner'
     ),
     rotation: defined,
+    spacing: number,
 };
 
 const regionOptionsDefs: OptionsDefs<NonNullable<NonNullable<AgQuadrantChartOptions['regions']>['topLeft']>> = {

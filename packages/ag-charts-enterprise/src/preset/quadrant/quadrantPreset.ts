@@ -27,6 +27,36 @@ import type {
 type Region = keyof Omit<NonNullable<AgQuadrantChartOptions['regions']>, 'label'>;
 
 const DEFAULT_LABEL_POSITION: AgQuadrantRegionLabelPosition = 'inside-outer-outer';
+const DEFAULT_LABEL_SPACING = 10;
+
+interface LabelDirection {
+    x: -1 | 0 | 1;
+    y: -1 | 0 | 1;
+}
+
+const REGION_DIRECTIONS: Record<Region, { x: -1 | 1; y: -1 | 1 }> = {
+    topLeft: { x: -1, y: -1 },
+    topRight: { x: 1, y: -1 },
+    bottomLeft: { x: -1, y: 1 },
+    bottomRight: { x: 1, y: 1 },
+};
+
+// Multipliers of the region's outward direction, so that spacing moves a label away from the edges its
+// position aligns it to.
+const LABEL_SPACING_DIRECTIONS: Record<AgQuadrantRegionLabelPosition, LabelDirection> = {
+    'outside-outer': { x: -1, y: 1 },
+    'outside-center': { x: 0, y: 1 },
+    'outside-inner': { x: 1, y: 1 },
+    'inside-outer-outer': { x: -1, y: -1 },
+    'inside-outer-center': { x: 0, y: -1 },
+    'inside-outer-inner': { x: 1, y: -1 },
+    'inside-center-outer': { x: -1, y: 0 },
+    'inside-center': { x: 0, y: 0 },
+    'inside-center-inner': { x: 1, y: 0 },
+    'inside-inner-outer': { x: -1, y: 1 },
+    'inside-inner-center': { x: 0, y: 1 },
+    'inside-inner-inner': { x: 1, y: 1 },
+};
 
 const LABEL_POSITIONS: Record<
     AgQuadrantRegionLabelPosition,
@@ -96,13 +126,26 @@ const LABEL_POSITIONS: Record<
     },
 };
 
+function labelOffset(spacing: number, direction: -1 | 0 | 1, outward: -1 | 1) {
+    return direction === 0 ? 0 : spacing * direction * outward;
+}
+
 function createRegionLabel(
     region: Region,
     shared: AgQuadrantRegionsLabelOptions | undefined,
     label: AgQuadrantRegionLabelOptions | undefined
 ): AgSeriesAreaBackgroundRegionLabel {
     const position = label?.position ?? shared?.position ?? DEFAULT_LABEL_POSITION;
-    return { ...mergeDefaults(label, shared), position: LABEL_POSITIONS[position][region] };
+    const { spacing = DEFAULT_LABEL_SPACING, ...style } = mergeDefaults(label, shared) ?? {};
+    const outward = REGION_DIRECTIONS[region];
+    const direction = LABEL_SPACING_DIRECTIONS[position];
+
+    return {
+        ...style,
+        position: LABEL_POSITIONS[position][region],
+        xOffset: labelOffset(spacing, direction.x, outward.x),
+        yOffset: labelOffset(spacing, direction.y, outward.y),
+    };
 }
 
 function getRegionMeta(
