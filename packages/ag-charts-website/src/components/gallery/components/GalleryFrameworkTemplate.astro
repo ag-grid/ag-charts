@@ -25,6 +25,10 @@ interface Props {
      */
     addExternalExampleStyles?: boolean;
     /**
+     * Ignore dark mode (always use light mode)
+     */
+    ignoreDarkMode?: boolean;
+    /**
      * Override to be used for generated contents
      */
     generatedContents?: GeneratedContents;
@@ -36,6 +40,7 @@ const {
     addInitMessageScript,
     addE2ECheckScript,
     addExternalExampleStyles,
+    ignoreDarkMode,
     generatedContents: generatedContentsOverride,
 } = Astro.props as Props;
 
@@ -72,4 +77,5 @@ const displayExampleName = getExampleName({
     addInitMessageScript={addInitMessageScript}
     addE2ECheckScript={addE2ECheckScript}
     addExternalExampleStyles={addExternalExampleStyles}
+    ignoreDarkMode={ignoreDarkMode}
 />

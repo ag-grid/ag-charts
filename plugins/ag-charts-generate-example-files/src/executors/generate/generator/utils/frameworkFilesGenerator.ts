@@ -127,6 +127,12 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         // Strip ModuleRegistry calls (including multi-line) - vanilla uses UMD bundle with pre-registered modules
         let mainJs = readAsJsFile(entryFile).replace(/ModuleRegistry\.registerModules\([\s\S]*?\);/m, '');
 
+        // Before the UMD globals are unpacked below, so that the injected snippets - which a plain
+        // script cannot hoist over - end up beneath the declarations they reference.
+        if (transformEntryFile) {
+            mainJs = transformEntryFile({ entryFile: mainJs, chartAPI: 'AgCharts' });
+        }
+
         const localeImports = typedBindings.imports
             .filter((i: any) => i.module.includes('ag-charts-locale'))
             .flatMap((imp) => imp.imports);
@@ -146,10 +152,6 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
 
         if (localeImports.length > 0 || chartImports.length > 0) {
             mainJs = '\n' + mainJs;
-        }
-
-        if (transformEntryFile) {
-            mainJs = transformEntryFile({ entryFile: mainJs, chartAPI: 'AgCharts' });
         }
 
         if (!isDev) {

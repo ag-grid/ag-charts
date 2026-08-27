@@ -19,4 +19,9 @@ export const partial = !getHmrEnabled();
 const { exampleName } = Astro.params;
 ---
 
-<GalleryFrameworkTemplate exampleName={exampleName!} relativePath={true} addExternalExampleStyles={true} />
+<GalleryFrameworkTemplate
+    exampleName={exampleName!}
+    relativePath={true}
+    addExternalExampleStyles={true}
+    ignoreDarkMode={true}
+/>

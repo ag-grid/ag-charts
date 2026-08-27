@@ -11,6 +11,7 @@ import AngularTemplate from '../framework-templates/AngularTemplate.astro';
 import PostInitMessageScript from '@components/example-runner/components/PostInitMessageScript.astro';
 import { toTitle } from '@utils/toTitle';
 import { E2E_STYLE_START, E2E_STYLE_END } from '@components/example-runner/constants';
+import { getExampleDarkModeInitFragment } from '@components/example-runner/getExampleDarkModeInitScript';
 import { EXAMPLE_STYLE_FILE_NAME } from '@constants';
 
 interface Props {
@@ -84,7 +85,12 @@ const externalExampleStyles = `
     }
 </style>
 `;
-const headFragment = (addExternalExampleStyles ? externalExampleStyles : '') + (files?.['head.html'] ?? '');
+// Ahead of the example's own head, so it stays render-blocking even for an example that pins its
+// own CSP, and `data-dark-mode` is settled before the chart is created.
+const headFragment =
+    (addExternalExampleStyles ? externalExampleStyles : '') +
+    getExampleDarkModeInitFragment({ ignoreDarkMode }) +
+    (files?.['head.html'] ?? '');
 const appLocation = relativePath ? '' : exampleUrl;
 
 const timeNow = Date.now();
@@ -176,14 +182,6 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
         />
     )
 }
-
-<script define:vars={{
-    ignoreDarkMode
-}} nonce="123123">
-    if (ignoreDarkMode) {
-        document.documentElement.dataset.ignoreDarkMode = 'true';
-    }
-</script>
 
 {
     addE2ECheckScript && (
