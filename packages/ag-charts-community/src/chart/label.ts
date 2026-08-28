@@ -308,6 +308,9 @@ export function expandLabelBoxExtent(label: LabelBoxingMixin | undefined): Requi
 export function expandPlacementLabelBoxExtent<TParams>(
     label: Label<TParams> & { insideStyle: LabelPlacementStyle; outsideStyle: LabelPlacementStyle }
 ): Required<PaddingOptions> {
+    // OPTIMIZATION: a disabled label draws no box, so there is nothing to reserve and nothing to merge.
+    if (!label.enabled) return { bottom: 0, left: 0, right: 0, top: 0 };
+
     const inside = expandLabelBoxExtent(resolvePlacementLabelStyle(label, label.insideStyle));
     const outside = expandLabelBoxExtent(resolvePlacementLabelStyle(label, label.outsideStyle));
     return {
@@ -351,6 +354,8 @@ export function placedLabelTextOffset<TParams>(
     label: Label<TParams> & { insideStyle: LabelPlacementStyle; outsideStyle: LabelPlacementStyle },
     placementStyle: LabelPlacementStyle | undefined
 ): { x: number; y: number } {
+    if (!label.enabled) return { x: 0, y: 0 };
+
     const reserved = expandPlacementLabelBoxExtent(label);
     const drawn = resolvePlacementLabelPadding(label, placementStyle);
     return {
