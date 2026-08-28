@@ -63,7 +63,7 @@ const OPTIONS_ARGUMENT_ISSUE = Symbol('agChartsOptionsArgumentIssue');
  * so the fields named in the message are guidance for the caller, not a stricter requirement.
  *
  * Reported, never thrown: the chart reports it as an `error`-severity validation issue, so it reaches
- * the console, the `validations.overlayLevel` overlay and `validations.onErrorRaised` like any other
+ * the console, the `validations.overlayLevel` overlay and `validations.onDiagnosticRaised` like any other
  * validation error, and a wrapper does not have to translate an exception into its own error channel.
  */
 function optionsArgumentIssue(options: unknown, methodName: string): string | undefined {
@@ -419,6 +419,7 @@ class AgChartsInternal {
 
         chart.ctx.domManager.updateCSSVariableWatchers(chartOptions.processedCSSVariables);
 
+        // Must precede the short-circuit below: each listener closes over its own update's options.
         chart.setRequestRefreshListener(() => {
             const refreshedChartOptions = new ChartOptions(
                 baseOptions,
@@ -432,8 +433,15 @@ class AgChartsInternal {
                 Debug.check('scene:stats', 'scene:stats:verbose') ? performance.now() : undefined,
                 chart.ctx.logger
             );
+            // Re-derived per refresh, so registering the module later recovers.
+            if (refreshedChartOptions.unusableLeadSeriesType != null) return;
             AgChartsInternal.requestFactoryUpdate(chart, refreshedChartOptions);
         });
+
+        if (chartOptions.unusableLeadSeriesType != null) {
+            AgChartsInternal.queueSkippedUpdate(chart, chartOptions);
+            return proxy;
+        }
 
         AgChartsInternal.requestFactoryUpdate(chart, chartOptions);
 
@@ -506,6 +514,20 @@ class AgChartsInternal {
             this.destroy,
             Infinity // Unbounded, so Grid sorting cannot exhaust the pool.
         );
+    }
+
+    private static readonly skippedChartOptions = new WeakSet<ChartOptions>();
+
+    // Only an applied update splices its entry off the queue, so replace the last skipped one.
+    private static queueSkippedUpdate(chart: Chart, chartOptions: ChartOptions) {
+        const queued = chart.queuedChartOptions.at(-1);
+        if (queued != null && AgChartsInternal.skippedChartOptions.has(queued)) {
+            chart.queuedChartOptions.pop();
+            chart.queuedUserOptions.pop();
+        }
+        AgChartsInternal.skippedChartOptions.add(chartOptions);
+        chart.queuedUserOptions.push(chartOptions.userOptions);
+        chart.queuedChartOptions.push(chartOptions);
     }
 
     private static requestFactoryUpdate(chart: Chart, chartOptions: ChartOptions) {

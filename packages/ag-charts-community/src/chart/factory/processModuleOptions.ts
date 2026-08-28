@@ -210,7 +210,7 @@ function umdMissingModulesMessage(enterpriseModules: ModulePlaceholder[]): strin
     const installationUrl = ModuleRegistry.isIntegrated()
         ? 'https://www.ag-grid.com/data-grid/integrated-charts-installation/'
         : 'https://www.ag-grid.com/charts/javascript/installation/';
-    const enterpriseOptions = enterpriseModules.map((module) => module.name).join('\n');
+    const enterpriseOptions = enterpriseModules.map((module) => module.apiName ?? module.name).join('\n');
     return [
         `unable to use these enterprise features as 'ag-charts-enterprise' has not been loaded:`,
         '',

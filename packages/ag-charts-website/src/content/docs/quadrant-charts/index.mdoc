@@ -116,6 +116,7 @@ Each of the four regions is configured under its own key in `regions`.
 ```js format="snippet"
 {
     regions: {
+        label: { position: 'inside-outer-outer', spacing: 10 },
         topLeft: { label: { text: 'Shrinking, Wider Margins' } },
         topRight: { label: { text: 'Growing, Wider Margins' } },
         bottomLeft: { label: { text: 'Shrinking, Thinner Margins' } },
@@ -124,8 +125,11 @@ Each of the four regions is configured under its own key in `regions`.
 }
 ```
 
-Use `label.position` to move a region label away from its default centred position, to any corner or edge of the
-region.
+In this example:
+
+- Use `label.position` to move a region label to any corner or edge of the region, relative to the pivot.
+- Use `label.spacing` to set the gap in pixels between a label and the region edges its `position` places it against.
+  It defaults to `10`.
 
 ## Axes
 
@@ -216,7 +220,6 @@ See [Tooltips](./tooltips/) for more details.
             marker: { fill: '#38bdf8', strokeWidth: 0 },
             label: {
                 text: 'Slower Warming, Wetter',
-                position: 'inside-top-left',
                 color: '#0284c7',
                 fontSize: 14,
                 fontWeight: 'bold',
@@ -233,9 +236,9 @@ In this configuration:
 - `stroke`, `strokeOpacity` and `strokeWidth` outline the region.
 - `marker` styles the points falling inside that region. Without it, points take the region's `fill` at full
   opacity, which is why an explicit `marker.fill` is needed alongside a gradient.
-- `label` sets the region text and its font styling.
+- `label` sets the region text and its font styling. Styling shared by every region goes on `regions.label`.
 
-The remaining three regions follow the same shape, each with its own colour and label position.
+The remaining three regions follow the same shape, each with its own colour.
 
 ### Markers
 

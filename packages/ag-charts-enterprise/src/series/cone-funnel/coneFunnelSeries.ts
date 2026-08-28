@@ -101,14 +101,11 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
             reportedPlacements,
             // A divider spans the value axis, so `before`/`after` is the cross axis: the bar convention.
             isVertical: !barAlongX,
-            isUpward: true,
+            // `start`/`end` run along the divider in reading order: left to right, or top to bottom.
+            isUpward: barAlongX,
             // The divider has no thickness, so a `middle-*` region takes its cross extent from the plot.
             insideCrossRegion: this.getSeriesPlotRegion(),
         };
-    }
-
-    protected override toBarPlacement(placement: AgConeFunnelSeriesLabelPlacement | undefined) {
-        return CONE_FUNNEL_TO_BAR_PLACEMENT[placement ?? this.defaultLabelPlacement()];
     }
 
     protected override updateDatumNodes(opts: {

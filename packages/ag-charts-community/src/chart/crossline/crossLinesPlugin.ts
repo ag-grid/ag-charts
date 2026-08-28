@@ -1,22 +1,24 @@
-import {
-    AbstractModuleInstance,
-    type AxisPluginModuleInstance,
-    type CallbackParamRules,
-    type DynamicContext,
-    type NormalisedAxisCrossLineOptions,
-    callWithContext,
-    jsonDiff,
+import type {
+    AxisPluginModuleInstance,
+    CallbackParamRules,
+    CanvasPoint,
+    DynamicContext,
+    Forbid,
+    LabelObstacle,
+    NormalisedAxisCrossLineOptions,
 } from 'ag-charts-core';
-import type { AgCrossLineClickEvent, AgCrossLineDoubleClickEvent } from 'ag-charts-types';
+import { AbstractModuleInstance, jsonDiff } from 'ag-charts-core';
+import type { AgCrossLineClickEvent } from 'ag-charts-types';
 
-import type { SeriesAreaContextMenuEvent } from '../../core/eventsHub';
+import type { SeriesAreaCanvasClickEvent, SeriesAreaContextMenuEvent } from '../../core/eventsHub';
 import type { AxisContext } from '../../module/axisContext';
 import type { ChartAxisRegistry } from '../../module/moduleContext';
+import type { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
-import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import { getAxisLabelSideFlag } from '../axis/axisLabelUtil';
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
-import type { CrossLine, PolarCrossLine } from './crossLine';
+import type { LabelSource } from '../layout/labelManager';
+import type { CrossLine, CrossLineValuePick, PendingCrossLineCallbackParam, PolarCrossLine } from './crossLine';
 
 /**
  * Axis plugin that owns a per-axis runtime list of {@link CrossLine} instances along with the
@@ -43,8 +45,14 @@ import type { CrossLine, PolarCrossLine } from './crossLine';
  * scene-graph detach/recreate churn on no-op updates. Per invariant I1 the options array is
  * read-only — the plugin stores its own runtime state on the per-instance `CrossLine`s.
  */
-export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPluginModuleInstance {
+export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPluginModuleInstance, LabelSource {
     static readonly className = 'CrossLines';
+
+    readonly id: string;
+    /** A reserved label never moves, so the plugin only ever contributes obstacles. */
+    readonly usesPlacedLabels = false;
+    /** Bumped whenever the label inputs change, so placement can skip an unchanged solve. */
+    nodeDataVersion = 0;
 
     private readonly ctx: DynamicContext<ChartAxisRegistry<AxisContext>>;
     private readonly axisCtx: AxisContext;
@@ -52,6 +60,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     private readonly lineGroup = new Group({ name: 'CrossLines-Line' });
     private readonly labelGroup = new Group({ name: 'CrossLines-Label' });
     private instances: CrossLine[] = [];
+    private visible = true;
     private lastOptions: NormalisedAxisCrossLineOptions[] | undefined;
     private readonly removePointerListeners: (() => void)[];
 
@@ -59,6 +68,8 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         super();
         this.ctx = ctx;
         this.axisCtx = ctx.parent;
+        this.id = `crossLines:${this.axisCtx.axisId}`;
+        this.ctx.labelManager.registerSource(this);
         this.axisCtx.attachAxisOverlay(this.rangeGroup, 'low');
         this.axisCtx.attachAxisOverlay(this.lineGroup, 'mid');
         this.axisCtx.attachAxisOverlay(this.labelGroup, 'high');
@@ -67,54 +78,78 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         // series-area handoff, the pointer-click one runs the cross-line listeners directly.
         this.removePointerListeners = [
             this.ctx.eventsHub.on('series-area:contextmenu', (event) => this.onSeriesAreaContextMenu(event)),
-            this.ctx.widgets.containerWidget.addListener('click', (event) => this.onCanvasClick(event)),
-            this.ctx.widgets.containerWidget.addListener('dblclick', (event) => this.onCanvasClick(event)),
+            this.ctx.eventsHub.on('series-area:canvas-click', (event) => this.onSeriesAreaCanvasClick(event)),
         ];
     }
 
-    private onSeriesAreaContextMenu(event: SeriesAreaContextMenuEvent): void {
+    private pickCrosslines(point: CanvasPoint): CrossLine[] {
+        const result: CrossLine[] = [];
         for (const crossLine of this.instances) {
-            if (crossLine.containsPoint?.(event) !== true) continue;
-
-            event.crossLine.push({
-                crossLineId: crossLine.id ?? crossLine.internalId,
-                axisId: this.axisCtx.userAxisId,
-                direction: this.axisCtx.direction,
-                type: crossLine.type,
-                value: crossLine.value,
-                range: crossLine.range,
-            });
+            if (crossLine.containsPoint?.(point)) {
+                result.push(crossLine);
+            }
         }
+        return result;
     }
 
-    private onCanvasClick(event: MouseWidgetEvent<'click' | 'dblclick'>): void {
-        if (event.device === 'keyboard') return;
+    private toParamsArray(matches: CrossLine[], result: CrossLineValuePick[]): CrossLineValuePick[] {
+        const { userAxisId: axisId, direction } = this.axisCtx;
+        for (const crossLine of matches) {
+            const { type: crossLineType, range, value } = crossLine;
+            const crossLineId = crossLine.id ?? crossLine.internalId;
+            result.push({ clickedOn: 'cross-line', axisId, direction, crossLineId, crossLineType, range, value });
+        }
+        return result satisfies AgCrossLineClickEvent<unknown>['allClickParams'];
+    }
 
-        for (const crossLine of this.instances) {
-            const { currentX: canvasX, currentY: canvasY } = event;
-            if (crossLine.containsPoint?.({ canvasX, canvasY }) !== true) continue;
+    private onSeriesAreaContextMenu(event: SeriesAreaContextMenuEvent): void {
+        const picks = this.pickCrosslines(event);
+        this.toParamsArray(picks, event.crossLine);
+    }
 
+    private onSeriesAreaCanvasClick(event: SeriesAreaCanvasClickEvent): void {
+        const picks = this.pickCrosslines(event);
+        if (picks.length > 0) {
+            const callbacks = event.pendingCrossLineCallbacks;
             const isClick = event.type === 'click';
-            const apiEvent: CallbackParamRules<AgCrossLineClickEvent | AgCrossLineDoubleClickEvent> = {
-                type: isClick ? 'crossLineClick' : 'crossLineDoubleClick',
-                event: event.sourceEvent,
-                crossLineId: crossLine.id ?? crossLine.internalId,
-                axisId: this.axisCtx.userAxisId,
-                direction: this.axisCtx.direction,
-                crossLineType: crossLine.type,
-                value: crossLine.value,
-                range: crossLine.range,
-            };
 
-            // Cross line, then axis, then chart, all sharing one params object so `callWithContext`
-            // resolves the context axis-first for every listener, including the chart's.
-            const { listeners } = this.axisCtx;
+            const allParamsOnThisAxis = this.toParamsArray(picks, []);
+            callbacks.allClickParams.push(...allParamsOnThisAxis);
+
+            // Use `Forbid` to ensure that allClickParams and rootLevelParams do have conflicting keys,
+            // otherwise the `...` spreading could silently and unintentionally override something.
+            type ParamType = (typeof allParamsOnThisAxis)[number];
+            type EventType = PendingCrossLineCallbackParam;
+            const rootLevelParams: Forbid<EventType, keyof ParamType> = {
+                event: event.sourceEvent,
+                type: isClick ? 'crossLineClick' : 'crossLineDoubleClick',
+            };
+            const params: CallbackParamRules<EventType> = {
+                allClickParams: undefined,
+                ...allParamsOnThisAxis[0],
+                ...rootLevelParams,
+            };
             const callers = [this.axisCtx.caller, this.ctx.chartService];
-            const crossLineListener = isClick ? crossLine.listeners?.click : crossLine.listeners?.doubleClick;
+
+            // `chart.axes[].crossLines[].listeners` level:
+            const { listeners } = this.axisCtx;
+            for (const crossLine of picks) {
+                const { internalId } = crossLine;
+                const crossLineListener = isClick ? crossLine.listeners?.click : crossLine.listeners?.doubleClick;
+                if (crossLineListener) {
+                    callbacks.crossLines.set(internalId, { callers, fn: crossLineListener, params });
+                }
+            }
+
+            // `chart.axes[].listeners` level:
+            const axisId = this.axisCtx.userAxisId;
             const axisListener = isClick ? listeners?.crossLineClick : listeners?.crossLineDoubleClick;
-            if (crossLineListener) callWithContext(callers, crossLineListener, apiEvent);
-            if (axisListener) callWithContext(callers, axisListener, apiEvent);
-            callWithContext(callers, (params: typeof apiEvent) => this.ctx.chartService.callListener(params), apiEvent);
+            if (axisListener && !callbacks.axes.has(axisId)) {
+                callbacks.axes.set(axisId, { callers, fn: axisListener, params });
+            }
+
+            // `chart.listeners` level:
+            callbacks.chart ??= { callers, fn: (p: any) => this.ctx.chartService.callListener(p), params };
         }
     }
 
@@ -123,6 +158,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
             return;
         }
         this.lastOptions = options;
+        this.nodeDataVersion++;
 
         for (const crossLine of this.instances) {
             this.detachInstance(crossLine);
@@ -145,15 +181,19 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     onAxisUpdate(): void {
         const visible = this.axisCtx.hasDefinedDomain() || this.axisCtx.hasVisibleSeries();
         const { gridPadding } = this.axisCtx;
+        const { width, height } = this.ctx.scene;
+        const containerBox = { x: 0, y: 0, width, height };
         const polar = this.axisCtx.getPolarLayout?.();
         for (const crossLine of this.instances) {
             crossLine.gridPadding = gridPadding;
+            crossLine.containerBox = containerBox;
             if (polar) (crossLine as PolarCrossLine).applyPolarLayout(polar);
             crossLine.update(visible);
         }
     }
 
     onAxisLayout(): void {
+        this.nodeDataVersion++;
         const polar = this.axisCtx.getPolarLayout?.();
         const visible = this.axisCtx.hasDefinedDomain() || this.axisCtx.hasVisibleSeries();
         const { reverse } = this.axisCtx;
@@ -188,6 +228,9 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     }
 
     setVisible(visible: boolean): void {
+        // Layout has already bumped the version by now, so a flip has to invalidate the solve itself.
+        if (visible !== this.visible) this.nodeDataVersion++;
+        this.visible = visible;
         this.rangeGroup.visible = visible;
         this.lineGroup.visible = visible;
         this.labelGroup.visible = visible;
@@ -197,7 +240,37 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         return this.instances;
     }
 
+    /**
+     * Reserved cross-line labels, as obstacles in placement space. Seeded before any label resolves, so
+     * every other label routes around them whatever order the sources are solved in.
+     */
+    getLabelObstacles(seriesRect: BBox): LabelObstacle[] | undefined {
+        if (!this.visible) return;
+
+        const obstacles: LabelObstacle[] = [];
+        for (const crossLine of this.instances) {
+            if (crossLine.reservesLabelSpace !== true) continue;
+            const box = crossLine.getLabelBox?.();
+            if (box == null) continue;
+
+            obstacles.push({
+                kind: 'rect',
+                category: 'label',
+                // Already the rotated footprint, so it is inserted unrotated: a rotation here would have
+                // the engine inflate the footprint a second time.
+                box: {
+                    x: box.x - seriesRect.x,
+                    y: box.y - seriesRect.y,
+                    width: box.width,
+                    height: box.height,
+                },
+            });
+        }
+        return obstacles.length > 0 ? obstacles : undefined;
+    }
+
     override destroy(): void {
+        this.ctx.labelManager.unregisterSource(this.id, this);
         for (const removeListener of this.removePointerListeners) {
             removeListener();
         }

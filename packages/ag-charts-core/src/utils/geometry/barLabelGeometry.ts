@@ -204,8 +204,14 @@ export function rotatedGlyphDrift(rotation: number, padding: Required<PaddingOpt
  * A bar-family label routed through {@link placeLabels} to resolve an ordered `orientation` array.
  * `target` back-references the baked label datum the chosen rotation is written onto.
  */
-export interface BarPlacedLabelDatum extends PointLabelDatum {
+export interface BarPlacedLabelDatum<TStyleDatum = object> extends PointLabelDatum {
     readonly target: BarLabelTarget;
+    /**
+     * The label's node datum, handed back to the series when the engine resolves a deferred candidate
+     * through its positioned-candidate resolver. Opaque here: only the series that produced it knows
+     * its shape.
+     */
+    readonly styleDatum?: TStyleDatum;
 }
 
 /** The baked label datum an orientation resolution writes its chosen rotation and flush offset back onto. */
@@ -325,7 +331,8 @@ export function buildBarPositionedLabelDatum(
     collideWith: CollideWith,
     threshold: number,
     ownBoxLabelsCollide = false,
-    fit?: LabelFitDescriptor
+    fit?: LabelFitDescriptor,
+    styleDatum?: object
 ): BarPlacedLabelDatum {
     return {
         point: { x: 0, y: 0, size: 0 },
@@ -343,6 +350,7 @@ export function buildBarPositionedLabelDatum(
         ownBox,
         ownBoxLabelsCollide,
         target,
+        styleDatum,
     };
 }
 

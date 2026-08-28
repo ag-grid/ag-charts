@@ -24,9 +24,9 @@ const options: AgStandaloneChartOptions = {
             parentIdKey: 'parentId',
             layout: {
                 type: 'stacked',
-                linkIndentation: 50,
-                nodeIndentation: 30,
-                stackAtDepth: 4,
+                linkIndentation: 26,
+                nodeIndentation: 26,
+                stackFromDepth: 4,
             },
             node: {
                 // clickToExpand: false,
@@ -68,9 +68,9 @@ function updateNodeIndentation(event: any) {
     chart.update(options);
 }
 
-function updateStackAtDepth(event: any) {
+function updatestackFromDepth(event: any) {
     const value = Number(event.target?.value);
-    (options.series![0] as AgOrganizationSeriesOptions).layout!.stackAtDepth = value;
-    document.getElementById('stackAtDepthValue')!.innerHTML = String(value);
+    (options.series![0] as AgOrganizationSeriesOptions).layout!.stackFromDepth = value;
+    document.getElementById('stackFromDepthValue')!.innerHTML = String(value);
     chart.update(options);
 }

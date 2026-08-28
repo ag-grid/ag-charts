@@ -27,7 +27,7 @@ import type {
     AgZoomEventSource,
 } from 'ag-charts-types';
 
-import type { CrossLineValuePick } from '../chart/crossline/crossLine';
+import type { CrossLineValuePick, PendingCrossLineCallbacks } from '../chart/crossline/crossLine';
 import { DataSet } from '../chart/data/dataSet';
 import type { ContextMenuRegionContexts, ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
 import type { ChartLegendType } from '../chart/legend/legendDatum';
@@ -86,15 +86,13 @@ export interface SeriesAreaClickEvent {
     readonly target: Node<unknown> | undefined;
 }
 
-/**
- * A pointer click (or double-click) inside the series area, carrying canvas coordinates so that
- * modules owning content drawn over the series area can hit-test it and run their own listeners.
- * Mirrors the `series-area:contextmenu` handoff; keyboard-synthesised clicks are excluded because
- * they carry no pointer position.
- */
-export interface SeriesAreaPointerClickEvent extends Readonly<CanvasPoint> {
+export interface SeriesAreaCanvasClickEvent extends Readonly<CanvasPoint> {
     readonly type: 'click' | 'dblclick';
     readonly sourceEvent: Event;
+    // Left-click listeners are not neatly consolidated into a single option like right-click (contextmenu)
+    // listeners. Therefore left-click listeners can added deferred `callWithContext` entries into
+    // `pendingCrossLineCallbacks` if-and-when needed:
+    readonly pendingCrossLineCallbacks: PendingCrossLineCallbacks;
 }
 
 export interface SeriesAreaContextMenuEvent extends Readonly<CanvasPoint> {
@@ -173,6 +171,7 @@ export interface EventsHubMap {
     'series:keynav-collapse': SeriesKeyNavCollapseEvent;
     'series-area:hover': SeriesAreaHoverEvent;
     'series-area:click': SeriesAreaClickEvent;
+    'series-area:canvas-click': SeriesAreaCanvasClickEvent;
     'series-area:contextmenu': SeriesAreaContextMenuEvent;
     'series:redo': null;
     'series:undo': null;
@@ -511,6 +510,13 @@ export interface AxisLayout {
         fractionDigits: number;
         spacing: number;
         format?: string | Record<string, string>;
+        /**
+         * Signed adjustment the axis applies to its own tick labels' distance from the axis line when
+         * the label draws a box, so anything else placed in the label column (annotation axis labels,
+         * axis buttons) lands on the same offset. `0` for a boxless label, which is every label that
+         * does not set `fill` or an enabled bordered stroke.
+         */
+        boxOffset: number;
     };
     direction: ChartAxisDirection;
     domain: any[];

@@ -10,7 +10,8 @@ import type { Node } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import { Transformable } from '../../../scene/transformable';
 import type { AnimationManager } from '../../interaction/animationManager';
-import { Marker } from '../../marker/marker';
+import type { MarkerStrokePickStyle } from '../../marker/marker';
+import { Marker, markerStrokePickInflation } from '../../marker/marker';
 import type { PickFocusInputs } from '../series';
 import type { SeriesMarker } from '../seriesMarker';
 import { highlightStates } from '../seriesProperties';
@@ -256,4 +257,21 @@ export function getMarkerStyles<TStylerParams, TStylerResult, TItemStylerParams>
         },
         {} as Record<HighlightState, NormalisedSeriesMarkerStyle>
     );
+}
+
+/**
+ * The widest {@link markerStrokePickInflation} across every highlight state the marker can be drawn
+ * in. Highlight styles are drawn by a node in `highlightGroup`, which picking never traverses, so
+ * the *base* node has to carry the widest region the user can ever see — which also keeps the pick
+ * region invariant to the current highlight state (nothing to invalidate in `Series._pickNodeCache`).
+ */
+export function maxMarkerStrokePickInflation(
+    styles: Record<HighlightState, MarkerStrokePickStyle> | undefined
+): number {
+    if (styles == null) return 0;
+    let inflation = 0;
+    for (const state of highlightStates) {
+        inflation = Math.max(inflation, markerStrokePickInflation(styles[state]));
+    }
+    return inflation;
 }

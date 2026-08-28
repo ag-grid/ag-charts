@@ -78,7 +78,7 @@ export interface AgOrganizationSeriesStackedLayoutOptions {
     /** The number of pixels to indent the child node from the link. */
     nodeIndentation?: number;
     /** The depth at which to switch to the stacked layout. */
-    stackAtDepth?: number;
+    stackFromDepth?: number;
 }
 
 export interface AgOrganizationSeriesOptionsExpander<

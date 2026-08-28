@@ -160,7 +160,7 @@ const stackedLayout: OptionsDefs<AgOrganizationSeriesStackedLayoutOptions> = {
     type: constant('stacked'),
     linkIndentation: positiveNumber,
     nodeIndentation: positiveNumber,
-    stackAtDepth: positiveNumberNonZero,
+    stackFromDepth: positiveNumberNonZero,
 };
 
 export const organizationSeriesOptionsDef: OptionsDefs<AgOrganizationSeriesOptions> = {

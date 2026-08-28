@@ -742,10 +742,15 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
     cornerRadius: positiveNumber,
     padding: positiveNumber,
     innerRadiusRatio: ratio,
-    innerRadiusOffset: number,
+    innerRadiusSize: positiveNumberNonZero,
     innerCircle: {
         fill: colorUnion,
         fillOpacity: ratio,
+    },
+    innerLabels: {
+        spacing: positiveNumber,
+        ...fontOptionsDef,
+        ...labelBoxOptionsDef,
     },
     itemStyler: callbackDefs<AgSunburstSeriesStyle>({
         ...fillOptionsDef,

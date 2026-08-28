@@ -427,8 +427,8 @@ export class ChartTheme {
     }
 
     private getDefaults(presetName?: string): AgChartThemeOverrides {
-        const presetTemplate =
-            presetName == null ? undefined : ModuleRegistry.getPresetModule(presetName)?.themeTemplate;
+        const presetModule = presetName == null ? undefined : ModuleRegistry.getPresetModule(presetName);
+        const presetTemplate = presetModule?.themeTemplate;
 
         const getOverridesByType = (chartType: ChartType, seriesTypes: string[]) => {
             const result: Record<string, { series?: object; axes?: object }> = {};
@@ -448,6 +448,16 @@ export class ChartTheme {
                     getSeriesThemeTemplate(seriesType),
                     result[seriesType] ?? chartTypeDefaults
                 );
+
+                // Remove these keys from the compiled theme to treat them as `undefined` in the preset theme with
+                // priority over the series theme.
+                if (presetModule?.removeThemeSeriesKeys && result[seriesType].series) {
+                    for (const key of presetModule.removeThemeSeriesKeys) {
+                        if (key in result[seriesType].series) {
+                            delete (result as any)[seriesType].series[key];
+                        }
+                    }
+                }
 
                 const { axes } = result[seriesType] as { axes: Record<string, object> };
 

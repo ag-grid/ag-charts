@@ -1221,6 +1221,52 @@ describe('OptionsGraph', () => {
                     axes: expect.any(Object),
                 });
             });
+
+            it('should apply an index-less theme-override to every element of an array option', () => {
+                const themeConfig = {
+                    line: {
+                        regions: {
+                            $apply: [{ label: { padding: { $applyPadding: 5 } } }, undefined, ['line', 'regions']],
+                        },
+                    },
+                };
+                const userOptions = prepareOptions({
+                    regions: [{ label: { text: 'one' } }, { label: { text: 'two' } }],
+                });
+                const overrides = { line: { regions: { label: { padding: { left: 20 } } } } };
+                const options = new OptionsGraph(themeConfig, userOptions, undefined, {}, {}, overrides).resolve(
+                    testLogger
+                );
+                expect(options.regions[0]).toStrictEqual({
+                    label: { text: 'one', padding: { top: 5, right: 5, bottom: 5, left: 20 } },
+                });
+                expect(options.regions[1]).toStrictEqual({
+                    label: { text: 'two', padding: { top: 5, right: 5, bottom: 5, left: 20 } },
+                });
+            });
+
+            it('should prefer a per-element user option over an index-less theme-override', () => {
+                const themeConfig = {
+                    line: {
+                        regions: {
+                            $apply: [{ label: { padding: { $applyPadding: 5 } } }, undefined, ['line', 'regions']],
+                        },
+                    },
+                };
+                const userOptions = prepareOptions({
+                    regions: [{ label: { text: 'one', padding: { left: 30 } } }, { label: { text: 'two' } }],
+                });
+                const overrides = { line: { regions: { label: { padding: { left: 20 } } } } };
+                const options = new OptionsGraph(themeConfig, userOptions, undefined, {}, {}, overrides).resolve(
+                    testLogger
+                );
+                expect(options.regions[0]).toStrictEqual({
+                    label: { text: 'one', padding: { top: 5, right: 5, bottom: 5, left: 30 } },
+                });
+                expect(options.regions[1]).toStrictEqual({
+                    label: { text: 'two', padding: { top: 5, right: 5, bottom: 5, left: 20 } },
+                });
+            });
         });
 
         describe('$applySwitch', () => {

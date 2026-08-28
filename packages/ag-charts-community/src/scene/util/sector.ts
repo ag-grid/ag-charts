@@ -3,7 +3,7 @@ import { type BoxBounds, angleBetween, isBetweenAngles, normalizeAngle180, norma
 import { BBox } from '../bbox';
 import { segmentIntersection } from '../intersection';
 
-interface SectorBoundaries {
+export interface SectorBoundaries {
     startAngle: number;
     endAngle: number;
     innerRadius: number;

@@ -3,6 +3,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import {
     BaseProperties,
     ChartAxisDirection,
+    type CrossLineLabelOverflow,
     Property,
     type Scale,
     clamp,
@@ -36,6 +37,10 @@ export class PolarCrossLineLabel extends LabelStyle implements AgBaseCrossLineLa
 
     @Property
     parallel?: boolean;
+
+    /** Polar axes reserve no padding, so `'pad-chart'` leaves the label at its configured position. */
+    @Property
+    overflow?: CrossLineLabelOverflow;
 
     /** Used by radius cross-lines only; ignored on angle cross-lines. */
     @Property

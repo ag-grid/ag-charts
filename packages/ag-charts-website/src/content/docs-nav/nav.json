@@ -491,6 +491,7 @@
                     "type": "item",
                     "title": "Quadrant Charts",
                     "path": "quadrant-charts",
+                    "icon": "chartsQuadrant",
                     "isEnterprise": true
                 }
             ]

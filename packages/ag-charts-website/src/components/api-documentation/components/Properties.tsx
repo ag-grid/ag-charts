@@ -1,7 +1,6 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { LinkIcon } from '@ag-website-shared/components/link-icon/LinkIcon';
 import styles from '@ag-website-shared/components/reference-documentation/ApiReference.module.scss';
-import { useScrollToAnchor } from '@ag-website-shared/utils/navigation';
 import classnames from 'classnames';
 import type { AllHTMLAttributes, FunctionComponent, ReactNode } from 'react';
 
@@ -30,8 +29,6 @@ export function PropertyTitle({
     isExpandable,
     childPropsOnClick,
 }: PropertyTitleOptions) {
-    const scrollToAnchor = useScrollToAnchor();
-
     const propName =
         hasChildProps || isExpandable ? (
             <span className={styles.propNameExpander} onClick={childPropsOnClick}>
@@ -52,12 +49,7 @@ export function PropertyTitle({
 
             {required && <span className={styles.required}>required</span>}
 
-            <LinkIcon
-                href={`#${anchorId}`}
-                onClick={scrollToAnchor}
-                className={styles.linkIcon}
-                aria-label={`Link to ${name} property`}
-            />
+            <LinkIcon href={`#${anchorId}`} className={styles.linkIcon} aria-label={`Link to ${name} property`} />
         </div>
     );
 }

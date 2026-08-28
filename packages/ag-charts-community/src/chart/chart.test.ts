@@ -1,11 +1,12 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 
 import { ChartAxisDirection, ChartUpdateType, ambientLogger } from 'ag-charts-core';
-import { testLogger } from 'ag-charts-test';
+import { Caster, classCast, testLogger } from 'ag-charts-test';
 import type {
     AgCartesianChartOptions,
     AgChartValidationsOptions,
+    AgLineSeriesOptions,
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-types';
@@ -21,6 +22,7 @@ import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
 import { DataSet } from './data/dataSet';
 import { Marker } from './marker/marker';
+import { LineSeries } from './series/cartesian/lineSeries';
 import {
     MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
@@ -331,6 +333,77 @@ describe('Chart', () => {
                 const yValue = item.datum[series.properties['yKey']];
                 return [xValue, yValue];
             },
+        });
+    });
+
+    // A markerless series' node is the point on the line where the marker would have been.
+    describe(`Markerless Line Series node interactions (AG-10226)`, () => {
+        const createMarkerlessLineChart = async (listeners: any) =>
+            createChart({
+                container: document.body,
+                data: datasets.economy.data,
+                series: [
+                    {
+                        type: 'line',
+                        xKey: datasets.economy.categoryKey,
+                        yKey: datasets.economy.valueKey,
+                        marker: { enabled: false },
+                        listeners,
+                    },
+                ],
+            } as AgCartesianChartOptions);
+
+        const nodeCanvasPoint = (chartInstance: Chart, datumIndex: number) => {
+            const series = chartInstance.series[0] as any;
+            const item = series.contextNodeData.nodeData[datumIndex];
+            expect(item).toBeDefined();
+            return Transformable.toCanvasPoint(series.contentGroup, item.point.x, item.point.y);
+        };
+
+        it(`should handle nodeClick event at a datum's notional marker position`, async () => {
+            const seriesNodeClick = vi.fn();
+            chart = await createMarkerlessLineChart({ seriesNodeClick });
+
+            const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
+            await clickAction(canvasX, canvasY)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+            expect(seriesNodeClick.mock.calls[0][0].datum).toEqual(datasets.economy.data[1]);
+        });
+
+        it(`should not handle nodeClick event well outside the markerless pick range`, async () => {
+            const seriesNodeClick = vi.fn();
+            chart = await createMarkerlessLineChart({ seriesNodeClick });
+
+            const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
+            await clickAction(canvasX, canvasY + 60)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeClick).not.toHaveBeenCalled();
+        });
+
+        it(`should handle nodeDoubleClick event at a datum's notional marker position`, async () => {
+            const seriesNodeDoubleClick = vi.fn();
+            chart = await createMarkerlessLineChart({ seriesNodeDoubleClick });
+
+            const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
+            await doubleClickAction(canvasX, canvasY)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeDoubleClick).toHaveBeenCalledTimes(1);
+            expect(seriesNodeDoubleClick.mock.calls[0][0].datum).toEqual(datasets.economy.data[1]);
+        });
+
+        it(`should not handle nodeDoubleClick event well outside the markerless pick range`, async () => {
+            const seriesNodeDoubleClick = vi.fn();
+            chart = await createMarkerlessLineChart({ seriesNodeDoubleClick });
+
+            const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
+            await doubleClickAction(canvasX, canvasY + 60)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeDoubleClick).not.toHaveBeenCalled();
         });
     });
 
@@ -1016,6 +1089,238 @@ describe('Chart', () => {
             expect(seriesNodeDoubleClick).toHaveBeenCalledWith(
                 expect.objectContaining({ type: 'seriesNodeDoubleClick' })
             );
+        });
+    });
+
+    // AG-8173 — clicking a node's stroke must fire seriesNodeClick. Replicates the reporter's repro:
+    // a line marker of size 20 (pick radius 10) whose highlighted state draws a 10px stroke, so the
+    // drawn outer radius is 15 and a point 12px from the centre lies in the stroke band.
+    describe('AG-8173 node stroke click detection', () => {
+        const highlightedStroke: Partial<AgLineSeriesOptions> = {
+            highlight: { highlightedItem: { fill: 'orange', stroke: 'blue', strokeWidth: 10 } },
+        };
+
+        const createOptions = (
+            seriesNodeClick: () => void,
+            overrides: Partial<AgLineSeriesOptions> = highlightedStroke
+        ): AgCartesianChartOptions => ({
+            data: [
+                { year: '2015', spending: 35 },
+                { year: '2016', spending: 40 },
+                { year: '2017', spending: 43 },
+                { year: '2018', spending: 44 },
+            ],
+            series: [
+                {
+                    type: 'line',
+                    xKey: 'year',
+                    yKey: 'spending',
+                    marker: { size: 20 },
+                    listeners: { seriesNodeClick },
+                    ...overrides,
+                },
+            ],
+        });
+
+        const createMarkerChart = async (options: AgCartesianChartOptions) => {
+            chart = deproxy(AgCharts.create(prepareTestOptions(options)));
+            await waitForChartStability(chart);
+
+            const [node] = classCast(chart.series[0], LineSeries).contextNodeData?.nodeData ?? [];
+            expect(node).toBeDefined();
+
+            const seriesRect = new Caster(chart.seriesRect).cast(BBox).value;
+            return { cx: seriesRect.x + node.point.x, cy: seriesRect.y + node.point.y };
+        };
+
+        it('fires seriesNodeClick when clicking within the highlighted stroke of a marker', async () => {
+            const seriesNodeClick = vi.fn();
+            const { cx, cy } = await createMarkerChart(createOptions(seriesNodeClick));
+
+            // Hover the marker centre so it highlights and draws the 10px blue stroke.
+            await hoverAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+
+            // 12px from the centre is outside the size / 2 = 10 pick radius, inside the drawn 15.
+            await hoverAction(cx + 12, cy)(chart);
+            await waitForChartStability(chart);
+            await clickAction(cx + 12, cy)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+        });
+
+        // Control: proves the harness reaches the real click path in jsdom, so a failure above is the
+        // missing stroke hit region and not a broken fixture.
+        it('control — fires seriesNodeClick when clicking the marker centre', async () => {
+            const seriesNodeClick = vi.fn();
+            const { cx, cy } = await createMarkerChart(createOptions(seriesNodeClick));
+
+            await hoverAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+            await clickAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not widen the hit region when no stroke is drawn', async () => {
+            const seriesNodeClick = vi.fn();
+            // A strokeWidth without a stroke colour draws nothing, so nothing may be inflated.
+            const { cx, cy } = await createMarkerChart(
+                createOptions(seriesNodeClick, {
+                    marker: { size: 20, stroke: 'none', strokeWidth: 0 },
+                    highlight: { highlightedItem: { fill: 'orange', strokeWidth: 10 } },
+                })
+            );
+
+            await hoverAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+            await hoverAction(cx + 12, cy)(chart);
+            await waitForChartStability(chart);
+            await clickAction(cx + 12, cy)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeClick).not.toHaveBeenCalled();
+        });
+
+        // An `itemStyler` can widen a single datum's stroke, and that width is not visible in
+        // `contextNodeData.styles`. No highlight override here, so the styler is the only source.
+        it('fires seriesNodeClick when clicking a stroke widened only by marker.itemStyler', async () => {
+            const seriesNodeClick = vi.fn();
+            const { cx, cy } = await createMarkerChart(
+                createOptions(seriesNodeClick, {
+                    marker: { size: 20, itemStyler: () => ({ stroke: 'blue', strokeWidth: 10 }) },
+                })
+            );
+
+            await hoverAction(cx + 12, cy)(chart);
+            await waitForChartStability(chart);
+            await clickAction(cx + 12, cy)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('click event coordinates', () => {
+        const CATEGORY_DATA = [
+            { category: 'A', value: 1 },
+            { category: 'B', value: 2 },
+            { category: 'C', value: 3 },
+        ];
+        const NUMERIC_DATA = [
+            { x: 1, y: 10 },
+            { x: 2, y: 100 },
+            { x: 3, y: 1000 },
+        ];
+        const TIME_DATA = [
+            { date: new Date('2024-01-01T00:00:00Z'), value: 1 },
+            { date: new Date('2024-01-02T00:00:00Z'), value: 2 },
+        ];
+
+        let click: Mock;
+        let chartInstance: AgChartProxy;
+
+        async function createChartWithClickListener(options: AgCartesianChartOptions) {
+            click = vi.fn();
+            chartInstance = AgCharts.create(
+                prepareTestOptions<AgCartesianChartOptions>({ ...options, listeners: { click } })
+            ) as AgChartProxy;
+            chart = deproxy(chartInstance);
+            await waitForChartStability(chart);
+        }
+
+        /**
+         * Clicks the point an annotation placed at `{ value, groupPercentage: fraction }` would occupy,
+         * offsetting from the band the same way the annotation options do, so that what the listener
+         * reports back can be compared against the fraction that was aimed at.
+         */
+        async function clickAtBandFraction(value: string, fraction: number) {
+            const xAxis = (chart as any).axes.find((axis: any) => axis.direction === ChartAxisDirection.X);
+            const { scale } = xAxis;
+            const bandWidth = scale.bandwidth === 0 ? scale.step : scale.bandwidth;
+            const canvasX = xAxis.getLayoutTranslation().x + scale.convert(value) + bandWidth * fraction;
+            await clickAtEmptyPlot(canvasX);
+        }
+
+        /** Clicks clear of every mark, so the click reaches the chart listener rather than a series node. */
+        async function clickAtEmptyPlot(canvasX?: number) {
+            const { x, y, width } = (chart as any).seriesRect;
+            await clickAction(canvasX ?? x + width / 2, y + 5)(chartInstance);
+        }
+
+        function popClickEvents() {
+            const events = click.mock.calls.map(([event]) => event);
+            click.mockClear();
+            return events;
+        }
+
+        // A click placed a known fraction into a category band must report that fraction back, so a
+        // consumer can hand `{ value, groupPercentage }` to an annotation and land under the pointer.
+        describe.each([false, true])('category axis (reverse: %s)', (reverse) => {
+            beforeEach(async () => {
+                await createChartWithClickListener({
+                    data: CATEGORY_DATA,
+                    axes: {
+                        x: { type: 'category', position: 'bottom', reverse },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+                });
+            });
+
+            it.each([0, 0.25, 0.5, 0.75])('reports a click %s of the way into the band', async (fraction) => {
+                await clickAtBandFraction('B', fraction);
+
+                expect(popClickEvents()).toMatchObject([
+                    { coordinates: { x: { value: 'B', groupPercentage: expect.closeTo(fraction, 3) } } },
+                ]);
+            });
+
+            it('reports no groupPercentage for the continuous y axis', async () => {
+                await clickAtBandFraction('B', 0.5);
+
+                const [{ coordinates }] = popClickEvents();
+                expect(coordinates.y.value).toBeDefined();
+                expect(coordinates.y.groupPercentage).toBeUndefined();
+            });
+        });
+
+        const continuousAxes: [string, AgCartesianChartOptions][] = [
+            [
+                'number',
+                {
+                    data: NUMERIC_DATA,
+                    axes: { x: { type: 'number', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                },
+            ],
+            [
+                'log',
+                {
+                    data: NUMERIC_DATA,
+                    axes: { x: { type: 'log', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                    series: [{ type: 'line', xKey: 'y', yKey: 'x' }],
+                },
+            ],
+            [
+                'time',
+                {
+                    data: TIME_DATA,
+                    axes: { x: { type: 'time', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                    series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
+                },
+            ],
+        ];
+
+        it.each(continuousAxes)('reports no groupPercentage on a %s axis', async (_name, options) => {
+            await createChartWithClickListener(options);
+            await clickAtEmptyPlot();
+
+            const [{ coordinates }] = popClickEvents();
+            expect(coordinates.x.value).toBeDefined();
+            expect(coordinates.x.groupPercentage).toBeUndefined();
         });
     });
 
@@ -1838,9 +2143,41 @@ describe('validations.throwOn — runtime errors', () => {
         await expect(chart.applyTransaction({ update: [{ x: 'A', y: 99 }] })).resolves.toBeUndefined();
         await expect(proxy.setState(proxy.getState())).resolves.toBeUndefined();
     });
+
+    // AG-17831 TC1 (QA repro T17d): arming `throwOn` forces the slow option-processing path, so a
+    // datum that throws while being read escapes `new ChartOptions()` synchronously — before the
+    // update loop's catch. That escape must still write the console record and carry the prefix.
+    it('prefixes and logs an error that escapes option processing on a warm updateDelta', async () => {
+        let boom = false;
+        const rows = [
+            { x: 'A', y: 10 },
+            {
+                x: 'B',
+                get y() {
+                    if (boom) throw new Error(RUNTIME_ERROR_MESSAGE);
+                    return 20;
+                },
+            },
+        ];
+
+        const proxy = AgCharts.create(throwOnOptions({ throwOn: 'error' }, rows)) as AgChartProxy;
+        chart = deproxy(proxy);
+        await proxy.waitForUpdate();
+        drainErrorLog();
+
+        boom = true;
+        await expect(proxy.updateDelta({ data: rows.slice() })).rejects.toThrow(
+            /^AG Charts - validations\.throwOn: error - /
+        );
+        boom = false;
+
+        const errorCalls = drainErrorLog();
+        expect(errorCalls.length).toBeGreaterThan(0);
+        expect(errorCalls.some((call) => call.some((arg) => String(arg).includes(RUNTIME_ERROR_MESSAGE)))).toBe(true);
+    });
 });
 
-describe('validations.onErrorRaised', () => {
+describe('validations.onDiagnosticRaised', () => {
     setupMockConsole();
     setupMockCanvas();
 
@@ -1850,7 +2187,7 @@ describe('validations.onErrorRaised', () => {
     });
 
     it('fires for a runtime error caught in tryPerformUpdate(), regardless of consoleLogLevel/overlayLevel', async () => {
-        const onErrorRaised = vi.fn();
+        const onDiagnosticRaised = vi.fn();
         const thrownError = new Error('processData boom');
 
         const proxy = AgCharts.create({
@@ -1863,7 +2200,7 @@ describe('validations.onErrorRaised', () => {
             validations: {
                 consoleLogLevel: 'none',
                 overlayLevel: 'none',
-                onErrorRaised,
+                onDiagnosticRaised,
             },
         }) as AgChartProxy;
         chart = deproxy(proxy);
@@ -1877,6 +2214,271 @@ describe('validations.onErrorRaised', () => {
         chart.update(ChartUpdateType.FULL);
         await waitForChartStability(chart);
 
-        expect(onErrorRaised).toHaveBeenCalledWith({ level: 'error', message: thrownError.message });
+        expect(onDiagnosticRaised).toHaveBeenCalledWith({ level: 'error', message: thrownError.message });
+    });
+});
+
+describe('AG-17830 QA — validations.onDiagnosticRaised', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Chart;
+    afterEach(() => {
+        chart?.destroy();
+        (chart as unknown) = undefined;
+    });
+
+    // AC 3: the listener is never gated by a severity threshold, and `throwOn` is one. The throw
+    // unwinds out of `new ChartOptions()`, so the chart never adopts the issues that caused it.
+    it('fires on create() for an issue that also trips throwOn', () => {
+        const onDiagnosticRaised = vi.fn();
+
+        expect(() =>
+            AgCharts.create({
+                container: document.body,
+                data: [{ x: 'A', y: 10 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+                validations: { throwOn: 'warning', onDiagnosticRaised },
+            })
+        ).toThrow(/validations.throwOn: warning/);
+
+        expect(onDiagnosticRaised).toHaveBeenCalledWith({
+            level: 'warning',
+            message: expect.stringContaining('series[0].strokeWidth'),
+        });
+        expectWarningsCalls().toHaveLength(1);
+    });
+
+    // The dropped-module issue is reported to the console by `processModuleOptions`, so it never
+    // enters `validationIssues` — the throw path has to dispatch the issue that tripped it.
+    it('fires for a dropped-module error that trips throwOn', () => {
+        const onDiagnosticRaised = vi.fn();
+
+        expect(() =>
+            AgCharts.create({
+                container: document.body,
+                data: [{ x: 'A', y: 10 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                zoom: { enabled: true },
+                validations: { throwOn: 'error', onDiagnosticRaised },
+            })
+        ).toThrow(/validations.throwOn: error/);
+
+        const errorMock = console.error as Mock;
+        expect(onDiagnosticRaised).toHaveBeenCalledWith({
+            level: 'error',
+            message: expect.stringContaining('required modules are not registered'),
+        });
+        expect(errorMock).toHaveBeenCalledTimes(1);
+        errorMock.mockClear();
+    });
+
+    it('fires on update() for an issue that also trips throwOn', async () => {
+        const onDiagnosticRaised = vi.fn();
+        const options: AgCartesianChartOptions = {
+            container: document.body,
+            data: [{ x: 'A', y: 10 }],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            validations: { throwOn: 'warning', onDiagnosticRaised },
+        };
+        const proxy = AgCharts.create(options) as AgChartProxy;
+        chart = deproxy(proxy);
+        await waitForChartStability(chart);
+        onDiagnosticRaised.mockClear();
+
+        await expect(
+            proxy.update({
+                ...options,
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+            })
+        ).rejects.toThrow(/validations.throwOn: warning/);
+
+        expect(onDiagnosticRaised).toHaveBeenCalledWith({
+            level: 'warning',
+            message: expect.stringContaining('series[0].strokeWidth'),
+        });
+        expectWarningsCalls().toHaveLength(1);
+    });
+
+    it('a throwing consumer callback does not displace the fail-fast error', () => {
+        const onDiagnosticRaised = vi.fn(() => {
+            throw new Error('consumer boom');
+        });
+
+        expect(() =>
+            AgCharts.create({
+                container: document.body,
+                data: [{ x: 'A', y: 10 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+                validations: { throwOn: 'warning', onDiagnosticRaised },
+            })
+        ).toThrow(/validations.throwOn: warning/);
+
+        expect(onDiagnosticRaised).toHaveBeenCalled();
+        expectWarningsCalls().toHaveLength(1);
+        const errorMock = console.error as Mock;
+        expect(errorMock).toHaveBeenCalledWith(
+            'AG Charts - validations.onDiagnosticRaised threw an error',
+            expect.any(Error)
+        );
+        errorMock.mockClear();
+    });
+
+    // A second chart is a separate listener registration, so it must still be told about its own
+    // issues while the first chart's listener is on the stack.
+    it('reports to a second chart listener from inside the first listener', () => {
+        const innerListener = vi.fn();
+        const outerListener = vi.fn(() => {
+            AgCharts.create({
+                container: document.body,
+                data: [{ x: 'A', y: 10 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+                validations: { throwOn: 'warning', onDiagnosticRaised: innerListener },
+            });
+        });
+
+        expect(() =>
+            AgCharts.create({
+                container: document.body,
+                data: [{ x: 'A', y: 10 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+                validations: { throwOn: 'warning', onDiagnosticRaised: outerListener },
+            })
+        ).toThrow(/validations.throwOn: warning/);
+
+        expect(outerListener).toHaveBeenCalledTimes(1);
+        expect(innerListener).toHaveBeenCalledWith({
+            level: 'warning',
+            message: expect.stringContaining('series[0].strokeWidth'),
+        });
+        expectWarningsCalls().toHaveLength(2);
+        // The inner chart's own fail-fast error unwinds through the outer listener.
+        const errorMock = console.error as Mock;
+        expect(errorMock).toHaveBeenCalledWith(
+            'AG Charts - validations.onDiagnosticRaised threw an error',
+            expect.any(Error)
+        );
+        errorMock.mockClear();
+    });
+
+    // The same listener re-entering is the runaway case the guard exists for: one dispatch only.
+    it('does not recurse when the listener re-applies the same failing options', () => {
+        const failingOptions = () => ({
+            container: document.body,
+            data: [{ x: 'A', y: 10 }],
+            series: [{ type: 'bar' as const, xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+            validations: { throwOn: 'warning' as const, onDiagnosticRaised },
+        });
+        const onDiagnosticRaised = vi.fn(() => {
+            AgCharts.create(failingOptions());
+        });
+
+        expect(() => AgCharts.create(failingOptions())).toThrow(/validations.throwOn: warning/);
+
+        expect(onDiagnosticRaised).toHaveBeenCalledTimes(1);
+        expectWarningsCalls().toHaveLength(2);
+        (console.error as Mock).mockClear();
+    });
+
+    // The Angular wrapper hands a freshly bound listener to every options pass, so listener identity
+    // alone cannot bound the recursion.
+    it('stops recursion from a listener whose identity changes on every pass', () => {
+        const calls: unknown[] = [];
+        const create = () =>
+            AgCharts.create({
+                container: document.body,
+                data: [{ x: 'A', y: 10 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+                validations: {
+                    throwOn: 'warning',
+                    onDiagnosticRaised: (event) => {
+                        calls.push(event);
+                        create();
+                    },
+                },
+            });
+
+        expect(create).toThrow(/validations.throwOn: warning/);
+
+        // A fresh closure per pass defeats the listener-identity guard, so this case falls to the depth
+        // backstop. Asserted as a bound rather than a count: the exact value is a safety limit, not a
+        // contract, and the point is that it terminates well short of the stack.
+        expect(calls.length).toBeGreaterThan(1);
+        expect(calls.length).toBeLessThanOrEqual(32);
+        expectWarningsCalls().toHaveLength(calls.length + 1);
+        (console.error as Mock).mockClear();
+    });
+
+    // The merge of AG-17831 added a second fail-fast exit — an error escaping option processing — that
+    // bypasses `Chart.tryPerformUpdate()`'s catch, so nothing else can tell the listener about it.
+    it('reports an error that escapes option processing under an armed throwOn', async () => {
+        const onDiagnosticRaised = vi.fn();
+        let boom = false;
+        const rows = [
+            { x: 'A', y: 10 },
+            {
+                x: 'B',
+                get y() {
+                    if (boom) throw new Error('datum exploded');
+                    return 20;
+                },
+            },
+        ];
+        const options = () => ({
+            container: document.body,
+            width: 400,
+            height: 300,
+            data: rows.slice(),
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            validations: { throwOn: 'error', onDiagnosticRaised },
+        });
+
+        const proxy = AgCharts.create(options() as any) as AgChartProxy;
+        await proxy.waitForUpdate();
+        onDiagnosticRaised.mockClear();
+        (console.error as Mock).mockClear();
+
+        boom = true;
+        await expect(proxy.updateDelta({ data: rows.slice() })).rejects.toThrow(
+            /validations\.throwOn: error - datum exploded/
+        );
+        boom = false;
+
+        expect(onDiagnosticRaised).toHaveBeenCalledWith({ level: 'error', message: 'datum exploded' });
+        (console.error as Mock).mockClear();
+    });
+
+    // The callbacks run in the render pass that a first-render update-type shortcut restarted, which
+    // no longer counts as re-evaluating them — so the buffered error was never committed.
+    it('reports a callback that throws on the first render to both the overlay and the listener', async () => {
+        const onDiagnosticRaised = vi.fn();
+
+        const proxy = AgCharts.create({
+            container: document.body,
+            data: [
+                { x: 'A', y: 10 },
+                { x: 'B', y: 20 },
+            ],
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: 'y',
+                    itemStyler: () => {
+                        throw new Error('itemStyler boom');
+                    },
+                },
+            ],
+            validations: { overlayLevel: 'error', onDiagnosticRaised },
+        }) as AgChartProxy;
+        chart = deproxy(proxy);
+        await waitForChartStability(chart);
+
+        expect(onDiagnosticRaised).toHaveBeenCalledWith({
+            level: 'error',
+            message: expect.stringContaining('itemStyler boom'),
+        });
+        expect(chart.validationCollector.hasVisibleIssues()).toBe(true);
+        expectWarningsCalls().toHaveLength(1);
     });
 });

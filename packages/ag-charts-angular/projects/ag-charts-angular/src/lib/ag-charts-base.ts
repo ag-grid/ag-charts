@@ -95,10 +95,10 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
         if (propsOptions.contextMenu) {
             patched.contextMenu = this.patchContextMenu(propsOptions.contextMenu);
         }
-        if (typeof propsOptions.validations?.onErrorRaised === 'function') {
+        if (typeof propsOptions.validations?.onDiagnosticRaised === 'function') {
             patched.validations = {
                 ...propsOptions.validations,
-                onErrorRaised: this.wrapZoneAction(propsOptions.validations.onErrorRaised),
+                onDiagnosticRaised: this.wrapZoneAction(propsOptions.validations.onDiagnosticRaised),
             };
         }
         patched.container ??= this._nativeElement;

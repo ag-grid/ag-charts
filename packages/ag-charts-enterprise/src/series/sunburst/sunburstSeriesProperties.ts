@@ -7,11 +7,17 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { BaseProperties, type InternalAgColorType, Property } from 'ag-charts-core';
+import {
+    BaseProperties,
+    type InternalAgColorType,
+    type NormalisedTextOrSegments,
+    PropertiesArray,
+    Property,
+} from 'ag-charts-core';
 
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
-const { HierarchySeriesProperties, makeSeriesTooltip, HighlightProperties } = _ModuleSupport;
+const { HierarchySeriesProperties, makeSeriesTooltip, HighlightProperties, Label } = _ModuleSupport;
 
 class SunburstSeriesHighlightStyle extends BaseProperties {
     @Property
@@ -39,6 +45,18 @@ class SunburstSeriesHighlight extends HighlightProperties<AgSunburstSeriesOption
 
     @Property
     readonly unhighlightedBranch = new SunburstSeriesHighlightStyle();
+}
+
+export class SunburstInnerLabel<T extends object = any> extends Label<AgSunburstSeriesLabelFormatterParams> {
+    @Property
+    text!: NormalisedTextOrSegments;
+
+    @Property
+    spacing: number = 2;
+
+    override set(properties: T, _reset?: boolean) {
+        return super.set(properties);
+    }
 }
 
 /**
@@ -82,13 +100,16 @@ export class SunburstSeriesProperties extends HierarchySeriesProperties<AgSunbur
     innerRadiusRatio?: number;
 
     @Property
-    innerRadiusOffset?: number;
+    innerRadiusSize?: number;
 
     // An OPTIONAL plain-object property, deliberately not a `BaseProperties` subclass: it must stay
     // `undefined` until the user supplies one, so `innerCircle != null` is an exact "user set it"
     // predicate for the warning below and for leaving unconfigured sunbursts untouched.
     @Property
     innerCircle?: SunburstInnerCircle;
+
+    @Property
+    readonly innerLabels = new PropertiesArray(SunburstInnerLabel);
 
     @Property
     itemStyler?: Styler<AgSunburstSeriesItemStylerParams<unknown>, AgSunburstSeriesStyle>;

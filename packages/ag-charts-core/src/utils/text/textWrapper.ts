@@ -11,6 +11,7 @@ import {
 import type {
     NormalisedContentSegment,
     NormalisedTextOrSegments,
+    NormalisedTextSegment,
 } from '../../types/normalised-options/normalisedCommonOptions';
 import type { ITextMeasurer, MeasuredImageSegment, MeasuredSegment, MeasuredTextSegment } from '../../types/text';
 import { findMaxValue } from '../data/binarySearch';
@@ -471,12 +472,81 @@ export function findLargestFontSizeDescending<T>(
     return undefined;
 }
 
-/** The size the search bottoms out at, or `undefined` when the label cannot shrink. */
-function autoSizeFloor(fit: LabelFit, font: FontOptions): number | undefined {
-    const { minimumFontSize, maxWidth, maxHeight } = fit;
-    if (minimumFontSize == null || (maxWidth == null && maxHeight == null)) return undefined;
-    const resolved = resolveMinimumFontSize(minimumFontSize, font.fontSize);
-    return resolved < font.fontSize ? resolved : undefined;
+/** The sizes a label's text can be drawn between: its configured size, down to the size it may shrink to. */
+interface FontSizeRange {
+    readonly min: number;
+    readonly max: number;
+}
+
+function fontSizeRange(fontSize: number, minimumFontSize: number | undefined): FontSizeRange {
+    return { min: resolveMinimumFontSize(minimumFontSize, fontSize), max: fontSize };
+}
+
+function sizeAtRatio(range: FontSizeRange, ratio: number): number {
+    return ratio === 1 ? range.max : range.min + (range.max - range.min) * ratio;
+}
+
+/** A segment's own range, falling back to the label's size and minimum as any other font option does. */
+function segmentFontSizeRange(
+    segment: NormalisedTextSegment,
+    minimumFontSize: number | undefined,
+    font: FontOptions
+): FontSizeRange {
+    return fontSizeRange(segment.fontSize ?? font.fontSize, segment.minimumFontSize ?? minimumFontSize);
+}
+
+function hasOwnMinimumFontSize(segment: NormalisedContentSegment): boolean {
+    return segment.type !== 'image' && segment.minimumFontSize != null;
+}
+
+/**
+ * The range the auto-size search steps through, or `undefined` when nothing in the label can shrink. The
+ * search steps in whole sizes, so the widest-shrinking range drives it and gives it the most steps to fit on.
+ */
+function autoSizeDriver(text: NormalisedTextOrSegments, fit: LabelFit, font: FontOptions): FontSizeRange | undefined {
+    const { minimumFontSize, maxWidth, maxHeight, region } = fit;
+    if (maxWidth == null && maxHeight == null && region == null) return undefined;
+    if (minimumFontSize == null && !(isArray(text) && text.some(hasOwnMinimumFontSize))) return undefined;
+
+    let driver = fontSizeRange(font.fontSize, minimumFontSize);
+    if (isArray(text)) {
+        for (const segment of text) {
+            if (segment.type === 'image') continue;
+            const range = segmentFontSizeRange(segment, minimumFontSize, font);
+            if (range.max - range.min > driver.max - driver.min) driver = range;
+        }
+    }
+    return driver.max > driver.min ? driver : undefined;
+}
+
+/**
+ * `text` and its base font size at `ratio` of the way from every minimum font size to every configured one, so
+ * a segment holds its place in the label's hierarchy at every step of a shrink. Image boxes keep their pixel
+ * size — an overflowing image is dropped by its own overflow strategy, not shrunk.
+ */
+export function labelTextAtShrinkRatio(
+    text: NormalisedTextOrSegments,
+    minimumFontSize: number | undefined,
+    font: FontOptions,
+    ratio: number
+): { text: NormalisedTextOrSegments; fontSize: number } {
+    const fontSize = sizeAtRatio(fontSizeRange(font.fontSize, minimumFontSize), ratio);
+    if (!isArray(text)) return { text, fontSize };
+
+    const sized = text.map((segment) => {
+        // A segment that overrides neither bound is drawn at the base size, which is already at `ratio`.
+        if (segment.type === 'image' || (segment.fontSize == null && segment.minimumFontSize == null)) {
+            return segment;
+        }
+        const range = segmentFontSizeRange(segment, minimumFontSize, font);
+        const segmentSize = sizeAtRatio(range, ratio);
+        return {
+            ...segment,
+            fontSize: segmentSize,
+            lineHeight: segment.lineHeight == null ? undefined : (segment.lineHeight * segmentSize) / range.max,
+        };
+    });
+    return { text: sized, fontSize };
 }
 
 /**
@@ -489,21 +559,22 @@ export function fitLabelTextAutoSize(
     fit: LabelFit | undefined,
     font: FontOptions
 ): AutoSizedLabelText {
-    const minimumFontSize = fit == null ? undefined : autoSizeFloor(fit, font);
-    if (fit == null || minimumFontSize == null) return { text: fitLabelText(text, fit, font) };
+    const driver = fit == null ? undefined : autoSizeDriver(text, fit, font);
+    if (fit == null || driver == null) return { text: fitLabelText(text, fit, font) };
+    const { minimumFontSize } = fit;
     // Above the floor the text must fit whole; 'hide' erases it otherwise so the search steps down.
     const wholeTextFit: LabelFit = { ...fit, overflowStrategy: 'hide' };
-    const found = findLargestFittingFontSize<AutoSizedLabelText>(
-        minimumFontSize,
-        font.fontSize,
-        (fontSize, atFloor) => {
-            const fitted = fitLabelText(text, atFloor ? fit : wholeTextFit, fontWithSize(font, fontSize));
-            if (isErased(fitted)) return undefined;
-            return { text: fitted, fontSize: fontSize === font.fontSize ? undefined : fontSize };
-        }
-    );
+    const found = findLargestFittingFontSize<AutoSizedLabelText>(driver.min, driver.max, (driverSize, atFloor) => {
+        const ratio = (driverSize - driver.min) / (driver.max - driver.min);
+        const sized = labelTextAtShrinkRatio(text, minimumFontSize, font, ratio);
+        const fitted = fitLabelText(sized.text, atFloor ? fit : wholeTextFit, fontWithSize(font, sized.fontSize));
+        if (isErased(fitted)) return undefined;
+        return { text: fitted, fontSize: sized.fontSize === font.fontSize ? undefined : sized.fontSize };
+    });
     // Not even the floor holds anything, so the label is whatever its overflow strategy leaves: nothing.
-    return found ?? { text: fitLabelText(text, fit, fontWithSize(font, minimumFontSize)) };
+    if (found) return found;
+    const floor = labelTextAtShrinkRatio(text, minimumFontSize, font, 0);
+    return { text: fitLabelText(floor.text, fit, fontWithSize(font, floor.fontSize)) };
 }
 
 /** {@link fitLabelTextAutoSize} with the never-erase fallback of {@link fitLabelTextOrOverflow}. */
@@ -812,7 +883,8 @@ export function wrapTextSegments(textSegments: NormalisedContentSegment[], optio
         groups[0].blockImages.length === 0 &&
         !groups[0].segments.some((s) => s.type === 'image')
     ) {
-        return fitMeasuredSegments(groups[0].segments, options);
+        const fitted = fitMeasuredSegments(groups[0].segments, options);
+        return hidesOverflow(groups[0].segments, fitted, options) ? [] : fitted;
     }
 
     let remainingMaxHeight = options.maxHeight ?? Infinity;
@@ -833,7 +905,28 @@ export function wrapTextSegments(textSegments: NormalisedContentSegment[], optio
         }
     }
 
-    return result;
+    return hidesOverflow(textSegments, result, options) ? [] : result;
+}
+
+/**
+ * Whether a `'hide'` fit lost content, which erases the whole label as it does for a plain string: an
+ * ellipsis left behind would tell an auto-size search the text fits, and it would never shrink.
+ */
+function hidesOverflow(input: NormalisedContentSegment[], output: MeasuredSegment[], options: WrapOptions): boolean {
+    if (options.overflow !== 'hide') return false;
+    if (hasTruncatedText(output)) return true;
+    // Wrapping only adds line breaks, so output at least as long as the input dropped nothing.
+    if (rawLength(output) >= rawLength(input)) return false;
+    return contentLength(output) < contentLength(input);
+}
+
+function rawLength(segments: NormalisedContentSegment[]): number {
+    return segments.reduce((n, s) => (s.type === 'image' ? n : n + toTextString(s.text).length), 0);
+}
+
+/** Characters of a segment list that carry content, ignoring layout whitespace and any ellipsis. */
+function contentLength(segments: NormalisedContentSegment[]): number {
+    return segments.reduce((n, s) => (s.type === 'image' ? n : n + survivingCharacters(toTextString(s.text))), 0);
 }
 
 function wrapGroup(group: SegmentGroup, options: WrapOptions): MeasuredSegment[] {

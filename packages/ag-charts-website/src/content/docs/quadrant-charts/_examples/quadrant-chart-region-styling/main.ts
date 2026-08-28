@@ -19,6 +19,10 @@ const options: AgQuadrantChartOptions = {
     yAxis: { title: { text: 'Precipitation anomaly (%)' }, label: { formatter: (params) => `${params.value}%` } },
     pivot: { x: 1.35, y: 0 },
     regions: {
+        label: {
+            fontSize: 14,
+            fontWeight: 'bold',
+        },
         topLeft: {
             fill: {
                 type: 'gradient',
@@ -35,10 +39,7 @@ const options: AgQuadrantChartOptions = {
             marker: { fill: '#38bdf8', strokeWidth: 0 },
             label: {
                 text: 'Slower Warming, Wetter',
-                position: 'inside-top-left',
                 color: '#0284c7',
-                fontSize: 14,
-                fontWeight: 'bold',
             },
         },
         topRight: {
@@ -57,10 +58,7 @@ const options: AgQuadrantChartOptions = {
             marker: { fill: '#a855f7', strokeWidth: 0 },
             label: {
                 text: 'Faster Warming, Wetter',
-                position: 'inside-top-right',
                 color: '#9333ea',
-                fontSize: 14,
-                fontWeight: 'bold',
             },
         },
         bottomLeft: {
@@ -79,10 +77,7 @@ const options: AgQuadrantChartOptions = {
             marker: { fill: '#14b8a6', strokeWidth: 0 },
             label: {
                 text: 'Slower Warming, Drier',
-                position: 'inside-bottom-left',
                 color: '#0d9488',
-                fontSize: 14,
-                fontWeight: 'bold',
             },
         },
         bottomRight: {
@@ -101,10 +96,7 @@ const options: AgQuadrantChartOptions = {
             marker: { fill: '#f97316', strokeWidth: 0 },
             label: {
                 text: 'Faster Warming, Drier',
-                position: 'inside-bottom-right',
                 color: '#ea580c',
-                fontSize: 14,
-                fontWeight: 'bold',
             },
         },
     },

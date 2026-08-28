@@ -366,6 +366,21 @@ describe('Grouped Category', () => {
                 ]);
             });
 
+            // Each row reports the leaf nearest the pointer, so a group row lands between leaves.
+            test('label click reports where in the band the click landed', async () => {
+                await clickPoint({ x: 100, y: 493 }); // 'Fish', on its own label
+                await clickPoint({ x: 257, y: 572 }); // 'Food', between the leaves of its group
+                await waitForChartStability(chart);
+                expect(click.mock.calls).toMatchObject([
+                    params({ depth: 0, value: ['Food', 'Meat', 'Fish'], groupPercentage: expect.closeTo(0.5397, 3) }),
+                    params({
+                        depth: 2,
+                        value: ['Food', 'Fruit', 'Banana'],
+                        groupPercentage: expect.closeTo(-0.3016, 3),
+                    }),
+                ]);
+            });
+
             test('label contextMenu - getItems', async () => {
                 await contextMenuPoint({ x: 100, y: 493 }); // 'Fish'
                 await waitForChartStability(chart);

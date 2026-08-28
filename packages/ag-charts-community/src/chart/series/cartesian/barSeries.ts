@@ -10,6 +10,7 @@ import type {
     PlacedLabel,
     Point,
     PointLabelDatum,
+    PositionedCandidateResolver,
     RequireOptional,
     Scale,
 } from 'ag-charts-core';
@@ -86,13 +87,14 @@ import {
     valueProperty,
 } from '../../data/processors';
 import { expandPlacementLabelBoxExtent, resolvePlacementLabelBoxExtent } from '../../label';
-import type { BarCandidateStyleResolver, BarLabelPlacement, BarPositionedCandidate } from '../../labelUtil';
+import type { BarLabelPlacement, BarPositionedCandidate } from '../../labelUtil';
 import {
     adjustLabelPlacement,
     barLabelDataContext,
     barLabelObstaclesFor,
     buildBarLabelCandidates,
     createBarCandidateStyleResolver,
+    createBarPositionedCandidateResolver,
     fitLabelToContainerAutoSize,
     insideBarLabelBounds,
     pickPlacementStyle,
@@ -247,8 +249,6 @@ interface BarSeriesNodeDatumContext {
     readonly labelRotation: number;
     readonly labelResolvesOrientation: boolean;
     readonly labelFit: LabelFit | undefined;
-    /** Resolves each candidate's styled geometry; unset when no `itemStyler` can change it. */
-    readonly labelCandidateStyle: BarCandidateStyleResolver | undefined;
     readonly yDomain: any[];
 }
 
@@ -781,9 +781,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             labelRotation: barLabelRotation(toArray(label.orientation)[0]),
             labelResolvesOrientation: barLabelResolvesOrientation(label.orientation),
             labelFit,
-            labelCandidateStyle: labelsEnabled
-                ? createBarCandidateStyleResolver(this, label, this.makeLabelFormatterParams())
-                : undefined,
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
         };
     }
@@ -1069,9 +1066,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 plotRegion: ctx.plotRegion,
                 fitted: ctx.labelFit != null,
                 text: nodeLabelText,
-                // `datum`/`datumIndex` are already written above, so the styler sees this datum's values.
-                styleDatum: node,
-                resolveStyle: ctx.labelCandidateStyle,
             });
             if (candidates.length === 0) {
                 // Every placement points into a stacked neighbour, so there is nowhere left to put a
@@ -1882,7 +1876,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                         collideWith,
                         threshold,
                         false,
-                        fitFor(nodeLabel.text)
+                        fitFor(nodeLabel.text),
+                        // `datum`/`datumIndex` are written at node-data time, so a candidate resolved
+                        // from here shows the styler this datum's values.
+                        node
                     )
                 );
             }
@@ -1916,6 +1913,11 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 fit: fit == null || styled == null ? fit : { ...fit, font: styled.font, boxPadding: styled.boxPadding },
             };
         });
+    }
+
+    override getLabelCandidateResolver(): PositionedCandidateResolver | undefined {
+        const params = this.makeLabelFormatterParams();
+        return createBarPositionedCandidateResolver(this, this.properties.label, () => params);
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<BarNodeDatum>[]) {

@@ -38,15 +38,29 @@ export interface AgNodeClickEvent<
     TDatum,
     TContext = ContextDefault,
 > extends AgBaseNodeClickEvent<TEvent, TDatum, TContext> {
-    /** Every click event that matched at the click point, including the winning scope carred by these root params. */
-    allClickParams: AgNodeClickParams<TDatum>[];
+    /** Every element that matched at the click point, including the winning element carried by these root params. */
+    allClickParams: AgClickParams<TDatum>[];
 }
+
+/**
+ * One element identified at a click point, discriminated by its `clickedOn` field. This is the element type of
+ * `allClickParams`, letting one listener see everything under the cursor — for example a series node drawn over a
+ * Cross Line. Entries are grouped by kind, with the kind that won the event first; the winning element itself is
+ * included but not necessarily at index 0, so identify it by comparing ids against the event root.
+ *
+ * A list rather than a map keyed by kind, because one kind can match more than once at a single click point:
+ * overlapping markers each contribute their own `'series-node'` entry, and Cross Lines on different axes each
+ * contribute their own `'cross-line'` entry.
+ */
+export type AgClickParams<TDatum> = AgNodeClickParams<TDatum> | AgCrossLineClickParams;
 
 /**
  * Everything a node event reports about the picked datum itself, i.e. an {@link AgNodeClickEvent} minus the
  * event-delivery fields. Most fields are optional, because each series type only sets the properties applicable to it.
  */
 export interface AgNodeClickParams<TDatum> {
+    /** Which kind of element these params describe. */
+    clickedOn: 'series-node';
     /** Series ID, as specified in `series.id` (or generated if not specified) */
     seriesId: string;
     /** The unique identifier of the picked datum. */
@@ -259,10 +273,9 @@ export interface AgAxisListeners<TContext = ContextDefault> {
 }
 
 /** Identifies the Cross Line an event refers to, along with the axis that owns it. */
-export interface AgCrossLineEvent<TEvent extends string, TContext = ContextDefault> extends AgChartEvent<
-    TEvent,
-    TContext
-> {
+export interface AgCrossLineClickParams {
+    /** Which kind of element these params describe. */
+    clickedOn: 'cross-line';
     /** Cross Line ID (generated if not specified). */
     crossLineId: string;
     /** ID of the axis the Cross Line belongs to, as specified in `axes`. */
@@ -277,18 +290,22 @@ export interface AgCrossLineEvent<TEvent extends string, TContext = ContextDefau
     range?: [AgAxisValue, AgAxisValue];
 }
 
+interface AgAllCrossLineClickParams {
+    /** Every element that matched at the click point, including the winning element carried by these root params. */
+    allClickParams: AgClickParams<DatumDefault>[];
+}
+
 export interface AgCrossLineContextMenuActionEvent<TContext = ContextDefault>
-    extends AgCrossLineEvent<'crossLineContextMenuAction', TContext>, AgCoordinatedEvent {}
+    extends
+        AgChartEvent<'crossLineContextMenuAction', TContext>,
+        Omit<AgCrossLineClickParams, 'clickedOn'>,
+        AgCoordinatedEvent {}
 
-export interface AgCrossLineClickEvent<TContext = ContextDefault> extends AgCrossLineEvent<
-    'crossLineClick',
-    TContext
-> {}
+export interface AgCrossLineClickEvent<TContext = ContextDefault>
+    extends AgChartEvent<'crossLineClick', TContext>, AgCrossLineClickParams, AgAllCrossLineClickParams {}
 
-export interface AgCrossLineDoubleClickEvent<TContext = ContextDefault> extends AgCrossLineEvent<
-    'crossLineDoubleClick',
-    TContext
-> {}
+export interface AgCrossLineDoubleClickEvent<TContext = ContextDefault>
+    extends AgChartEvent<'crossLineDoubleClick', TContext>, AgCrossLineClickParams, AgAllCrossLineClickParams {}
 
 export interface AgCaptionContextMenuActionEvent<TContext = ContextDefault> extends AgChartEvent<
     'captionContextMenuAction',
@@ -317,10 +334,10 @@ export interface AgCaptionListeners<TContext = ContextDefault> {
     doubleClick?: Listener<AgCaptionClickEvent<'doubleClick', TContext>>;
 }
 
-export interface AgNodeContextMenuActionEvent<
-    TDatum = DatumDefault,
-    TContext = ContextDefault,
-> extends AgNodeClickEvent<'nodeContextMenuAction', TDatum, TContext> {}
+export interface AgNodeContextMenuActionEvent<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
+    AgNodeClickEvent<'nodeContextMenuAction', TDatum, TContext>,
+    'clickedOn'
+> {}
 
 export interface AgBaseChartListeners<TDatum, TContext = ContextDefault> {
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in any series is clicked.

@@ -16,7 +16,7 @@ import type { Chart } from '../chart';
 import { InteractionState } from '../interaction/interactionManager';
 import * as examples from '../test/examples';
 import { seedRandom } from '../test/random';
-import type { AgChartProxy } from '../test/utils';
+import type { AgChartProxy, LegendTestItemNode } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
@@ -480,16 +480,27 @@ describe('Legend', () => {
             );
         });
 
+        // The item group, the marker/line group and the nodes themselves each carry part of the
+        // dimming, so only their product says what the user sees.
+        const effectiveAlpha = (node: LegendTestItemNode) => ({
+            marker: (node.opacity ?? 1) * (node.symbolsOpacity ?? 1) * (node.marker?.fillOpacity ?? 1),
+            line: (node.opacity ?? 1) * (node.symbolsOpacity ?? 1) * (node.line?.strokeOpacity ?? 1),
+            label: (node.opacity ?? 1) * (node.labelOpacity ?? 1),
+        });
+
         it('should dim a toggled-off item as a whole when no disabledStyle is set', async () => {
             const [disabled, enabled] = await disabledItem({});
 
             // The item group carries the dim and the label keeps its own 0.5 on top.
             expect(disabled.opacity).toBe(0.5);
+            expect(disabled.symbolsOpacity).toBe(1);
             expect(disabled.marker?.fillOpacity).toBe(1);
             expect(disabled.line?.strokeOpacity).toBe(1);
             expect(disabled.labelOpacity).toBe(0.5);
+            expect(effectiveAlpha(disabled)).toEqual({ marker: 0.5, line: 0.5, label: 0.25 });
 
             expect(enabled.opacity).toBe(1);
+            expect(enabled.symbolsOpacity).toBe(1);
             expect(enabled.marker?.fillOpacity).toBe(1);
             expect(enabled.line?.strokeOpacity).toBe(1);
             expect(enabled.labelOpacity).toBe(1);
@@ -500,9 +511,7 @@ describe('Legend', () => {
 
             // The group dim is lifted so a sub-element opacity is absolute rather than a multiplier.
             expect(disabled.opacity).toBe(1);
-            expect(disabled.marker?.fillOpacity).toBe(1);
-            expect(disabled.line?.strokeOpacity).toBe(0.5);
-            expect(disabled.labelOpacity).toBe(0.5);
+            expect(effectiveAlpha(disabled)).toEqual({ marker: 1, line: 0.5, label: 0.25 });
         });
 
         it('should fall back per property when disabledStyle is partial', async () => {
@@ -510,8 +519,40 @@ describe('Legend', () => {
 
             expect(disabled.opacity).toBe(1);
             expect(disabled.marker?.fill).toBe('#767676');
-            expect(disabled.marker?.fillOpacity).toBe(0.5);
-            expect(disabled.labelOpacity).toBe(0.5);
+            expect(effectiveAlpha(disabled)).toEqual({ marker: 0.5, line: 0.5, label: 0.25 });
+        });
+
+        // Each case needs its own chart, so read what is being asserted and tear it down before
+        // the next one - the shared `chart` afterEach only disposes of the last.
+        const disabledAlphas = async (item: AgChartLegendItemOptions) => {
+            const [disabled] = await disabledItem(item);
+            const alphas = { ...effectiveAlpha(disabled), symbolsOpacity: disabled.symbolsOpacity };
+            await waitForChartStability(chart);
+            chart.destroy();
+            (chart as unknown) = undefined;
+            return alphas;
+        };
+
+        it('should leave the other sub-elements at their default alpha when one is styled', async () => {
+            const defaults = await disabledAlphas({});
+
+            const markerStyled = await disabledAlphas({ marker: { disabledStyle: { fill: '#767676' } } });
+            expect(markerStyled.label).toBe(defaults.label);
+            expect(markerStyled.line).toBe(defaults.line);
+
+            const labelStyled = await disabledAlphas({ label: { disabledStyle: { color: '#767676' } } });
+            // Marker and line keep compositing as one offscreen group, as nothing styles them.
+            expect(labelStyled).toEqual({ ...defaults, symbolsOpacity: 0.5 });
+
+            const lineStyled = await disabledAlphas({ line: { disabledStyle: { stroke: '#767676' } } });
+            expect(lineStyled.marker).toBe(defaults.marker);
+            expect(lineStyled.label).toBe(defaults.label);
+        });
+
+        it('should let an explicit label opacity reach full contrast', async () => {
+            const [disabled] = await disabledItem({ label: { disabledStyle: { color: '#595959', opacity: 1 } } });
+
+            expect(effectiveAlpha(disabled).label).toBe(1);
         });
 
         it('should restore the enabled appearance when the item is toggled back on', async () => {

@@ -590,13 +590,13 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
             linkIndentation: layout.linkIndentation,
             nodeIndentation: layout.nodeIndentation,
-            stackAtDepth: layout.stackAtDepth,
+            stackFromDepth: layout.stackFromDepth,
 
             getLayout:
                 layout.type === 'stacked'
                     ? (vertex) => {
                           const depth = this.graph.findNeighbourValue(vertex, 'depth') as number | undefined;
-                          if (depth == null || depth < layout.stackAtDepth - 1) return;
+                          if (depth == null || depth < layout.stackFromDepth - 1) return;
 
                           this.stackedLayout ??= new NetworkStackedLayout();
                           return this.stackedLayout;

@@ -7,11 +7,13 @@ import type {
     PlacedLabel,
     Point,
     PointLabelDatum,
+    PositionedCandidateResolver,
     SeriesLabelDefaults,
     SizedPoint,
 } from 'ag-charts-core';
 import type {
     AgActiveItemState,
+    AgClickParams,
     AgCoordinates,
     AgNodeClickParams,
     AgNodeContextMenuActionEvent,
@@ -108,6 +110,8 @@ export type FireNodeEventParams = {
      */
     winner: number;
     coordinates: AgCoordinates | undefined;
+    // Params for elements of other kinds picked at the same point (e.g. currently cross lines
+    otherClickParams?: AgClickParams<unknown>[];
 };
 
 export interface ISeriesProperties {
@@ -156,6 +160,11 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
      * tests the styled box. `undefined` when no styler can change it.
      */
     getLabelCandidateStyler?(): CandidateStyleResolver | undefined;
+    /**
+     * Resolves one pre-positioned candidate's `itemStyler` geometry, called as the cascade reaches it so a
+     * styler never runs for a fallback the label did not need. `undefined` when no styler can change it.
+     */
+    getLabelCandidateResolver?(): PositionedCandidateResolver | undefined;
     getLabelObstacles?(): LabelObstacle[] | undefined;
     getTooltipContent(datumIndex: DatumIndex, removeThisDatum: TDatum | undefined): TooltipContent | undefined;
     getDatumAriaMeta(seriesDatum: TDatum, description: string): ISeriesAriaMeta | undefined;

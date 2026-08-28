@@ -42,6 +42,14 @@ export interface AgAxisCoordinate {
     index: number;
     /** The depth of the resolved label on a `grouped-category` axis, counted outwards from the leaf labels, which are depth `0`. Undefined on every other axis type. */
     depth?: number;
+    /**
+     * The position of this point within the band of `value` on a category-like axis, as a fraction of the band's
+     * width: `0` is the start of the band, `0.5` its centre and `1` its end, with the padding either side of the
+     * band falling outside that range. This is the same measure as the `groupPercentage` accepted by annotation
+     * and initial-state values, so `{ value, groupPercentage }` can be passed straight back to those options to
+     * refer to this point. Undefined on continuous axes, which have no bands.
+     */
+    groupPercentage?: number;
     /** Metadata about series bound to the axis the title belongs to. */
     boundSeries: AgAxisBoundSeries[];
     /** Computed domain of the axis */
