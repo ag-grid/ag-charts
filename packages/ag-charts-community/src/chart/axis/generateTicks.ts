@@ -282,6 +282,7 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
     if (
         tickGenerationType === TickGenerationType.CREATE_SECONDARY &&
         primaryTickCount != null &&
+        domain.length > 0 &&
         ContinuousScale.is(scale)
     ) {
         secondaryAxisTicks = calculateNiceSecondaryAxis(scale, domain, primaryTickCount, reverse, visibleRange);

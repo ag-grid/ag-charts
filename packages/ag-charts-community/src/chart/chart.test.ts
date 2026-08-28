@@ -1322,6 +1322,46 @@ describe('Chart', () => {
             expect(coordinates.x.value).toBeDefined();
             expect(coordinates.x.groupPercentage).toBeUndefined();
         });
+
+        describe('axis with no visible series', () => {
+            const DUAL_AXIS_DATA = [
+                { month: 'Jan', unitsSold: 120, revenue: 18000 },
+                { month: 'Feb', unitsSold: 145, revenue: 21500 },
+                { month: 'Mar', unitsSold: 132, revenue: 19800 },
+            ];
+
+            const dualAxisOptions = (hidden?: 'y' | 'y2'): AgCartesianChartOptions => ({
+                data: DUAL_AXIS_DATA,
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    y2: { type: 'number', position: 'right' },
+                },
+                series: [
+                    { type: 'bar', xKey: 'month', yKey: 'unitsSold', visible: hidden !== 'y' },
+                    { type: 'line', xKey: 'month', yKey: 'revenue', yKeyAxis: 'y2', visible: hidden !== 'y2' },
+                ],
+            });
+
+            it('reports every axis while both series are visible', async () => {
+                await createChartWithClickListener(dualAxisOptions());
+                await clickAtEmptyPlot();
+
+                const [{ coordinates }] = popClickEvents();
+                expect(Object.keys(coordinates).sort((a, b) => a.localeCompare(b))).toEqual(['x', 'y', 'y2']);
+            });
+
+            it.each(['y', 'y2'] as const)('omits the %s axis when its only series is hidden', async (hidden) => {
+                await createChartWithClickListener(dualAxisOptions(hidden));
+                await clickAtEmptyPlot();
+
+                const [{ coordinates }] = popClickEvents();
+                // Absent, not present-and-undefined: consumers branch on `axisId in coordinates`.
+                expect(hidden in coordinates).toBe(false);
+                const stillVisible = hidden === 'y' ? 'y2' : 'y';
+                expect(coordinates[stillVisible].value).toEqual(expect.any(Number));
+            });
+        });
     });
 
     describe('AG-16337 listeners undefined update', () => {
