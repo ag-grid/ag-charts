@@ -173,38 +173,6 @@ In this configuration:
 - `padding` adds space between the edge of a sector and its contents.
 - `formatter` allows customising the value of a label using a function.
 
-## Inner Circle
-
-An inner circle carves a hole at the centre of the series, which can be filled and labelled independently of the data.
-
-{% chartExampleRunner title="Inner Circle" name="inner-circle" type="generated" /%}
-
-The hole is only carved when `innerRadiusRatio` or `innerRadiusSize` is set. `innerRadiusRatio` is a fraction of the series radius, while `innerRadiusSize` is a size in pixels measured outwards from the centre; setting both adds them together.
-
-Once a hole exists, `innerCircle` fills it and `innerLabels` stacks one or more styled lines of text in its centre. Neither shows a tooltip, and the series `itemStyler` does not apply to them, as the centre is not a data node.
-
-```js format="snippet"
-{
-    series: [
-        {
-            type: 'sunburst',
-            labelKey: 'name',
-            sizeKey: 'budget',
-            innerRadiusRatio: 0.4,
-            innerCircle: {
-                fill: 'white',
-            },
-            innerLabels: [
-                { text: 'Total Budget', fontSize: 12, color: 'gray' },
-                { text: '$1.3M', fontSize: 24, fontWeight: 'bold', spacing: 6 },
-            ],
-        },
-    ],
-}
-```
-
-Supplying `innerCircle` or `innerLabels` without either radius option has no effect, and the series warns. `innerRadiusSize` must be greater than zero and is not capped: a value that reaches the series radius leaves the sectors no room, so nothing is rendered.
-
 ## Highlighting
 
 {% chartExampleRunner title="Highlighting" name="highlight" type="generated" /%}
