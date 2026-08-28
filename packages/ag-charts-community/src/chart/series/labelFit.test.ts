@@ -279,14 +279,6 @@ describe('series label fit', () => {
         return series.getNodeData()?.[0]?.outerRadius ?? 0;
     };
 
-    // Callout labels are fitted once per datum, so the fitted text lives on the node datum.
-    const calloutTexts = (seriesIndex = 0): unknown[] => {
-        const series = deproxy(chart as any).series[seriesIndex] as unknown as {
-            getNodeData: () => { calloutLabel?: { text?: unknown } }[] | undefined;
-        };
-        return (series.getNodeData() ?? []).map((d) => d.calloutLabel?.text ?? '');
-    };
-
     // Enough sectors that their callout labels crowd each other, so collision avoidance has to hide some.
     const crowdedCalloutData = Array.from({ length: 14 }, (_, i) => ({
         value: 10,
@@ -450,6 +442,34 @@ describe('series label fit', () => {
             expect(shrunkRadius).toBeGreaterThan(sectorRadius());
         });
 
+        it(`fits ${type} callout labels to the font an itemStyler resolves`, async () => {
+            const calloutLabel = {
+                enabled: true,
+                avoidCollisions: false,
+                fontSize: 20,
+                maxWidth: 70,
+                wrapping: 'never' as const,
+                truncate: true,
+                minimumFontSize: 6,
+            };
+            const chartOf = (label: object) => ({
+                data: sectorLabelData,
+                legend: { enabled: false },
+                series: [{ type, angleKey: 'value', calloutLabelKey: 'label', calloutLabel: label }],
+            });
+            const drawn = () => calloutNodes().map((node) => [node.fontSize, node.text]);
+
+            // A styler resolving a font is equivalent to configuring the same font on the series, so a fit that
+            // measured the series font instead would wrap and truncate against metrics the label is not drawn in.
+            await render(chartOf({ ...calloutLabel, fontFamily: 'monospace' }));
+            const configured = drawn();
+            expect(configured.length).toBeGreaterThan(0);
+
+            chart.destroy();
+            await render(chartOf({ ...calloutLabel, itemStyler: () => ({ fontFamily: 'monospace' }) }));
+            expect(drawn()).toEqual(configured);
+        });
+
         it(`bounds ${type} callout labels by an explicit maxWidth`, async () => {
             await renderAndSnapshot({
                 data: sectorLabelData,
@@ -463,7 +483,7 @@ describe('series label fit', () => {
                     },
                 ],
             });
-            const texts = calloutTexts();
+            const texts = calloutNodes().map((node) => node.text);
             expect(someWrapped(texts)).toBe(true);
             expect(someTruncated(texts)).toBe(true);
         });

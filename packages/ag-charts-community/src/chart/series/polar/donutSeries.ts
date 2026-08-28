@@ -152,8 +152,6 @@ function fitSectorLabelToWedge(
 
 interface PieDonutLabelDatum {
     readonly text: NormalisedTextOrSegments;
-    /** Reduced font size the text was fitted at, overriding the styled `fontSize` when the label shrank. */
-    readonly fittedFontSize?: number;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
     hidden: boolean;
@@ -557,8 +555,6 @@ export class DonutSeries extends PolarSeries<
         const phantomNodes: PieDonutNodeDatum[] | undefined = angleFilterRawValues == null ? undefined : [];
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         const invalidData = processedData.invalidData?.get(this.id);
-        const { calloutLabel } = this.properties;
-        const calloutLabelFit = resolveLabelFit(calloutLabel, false);
         for (const [datumIndex, datum] of rawData.entries()) {
             if (invalidData?.[datumIndex] === true) continue;
             const currentValue = useFilterAngles ? angleFilterValues![datumIndex] : angleValues[datumIndex];
@@ -581,7 +577,7 @@ export class DonutSeries extends PolarSeries<
             const radiusValue = radiusRawValues?.[datumIndex];
             const legendItemValue = legendItemValues?.[datumIndex];
 
-            const nodeLabels = this.getLabels(datumIndex, datum, midAngle, span, processedDataValues, calloutLabelFit);
+            const nodeLabels = this.getLabels(datumIndex, datum, midAngle, span, processedDataValues);
             const sectorFormat = this.getItemStyle({ datum, datumIndex }, false, false);
 
             const node = {
@@ -632,8 +628,7 @@ export class DonutSeries extends PolarSeries<
     private getLabelContent(
         datumIndex: number,
         datum: any,
-        values: Pick<ProcessedDataValues, 'calloutLabelValues' | 'sectorLabelValues' | 'legendItemValues'>,
-        calloutLabelFit: LabelFit | undefined
+        values: Pick<ProcessedDataValues, 'calloutLabelValues' | 'sectorLabelValues' | 'legendItemValues'>
     ) {
         const { id: seriesId, ctx, properties } = this;
         const { formatManager } = ctx;
@@ -659,33 +654,25 @@ export class DonutSeries extends PolarSeries<
 
         const result: {
             callout: NormalisedTextOrSegments | undefined;
-            calloutFontSize: number | undefined;
             sector: NormalisedTextOrSegments | undefined;
             legendItem: string | undefined;
         } = {
             callout: undefined,
-            calloutFontSize: undefined,
             sector: undefined,
             legendItem: undefined,
         };
 
         if (calloutLabelKey) {
-            const fitted = fitLabelTextAutoSize(
-                this.getLabelText<PieDonutSeriesLabelFormatterParams>(
-                    calloutLabelValue,
-                    datum,
-                    calloutLabelKey,
-                    'calloutLabel',
-                    [],
-                    calloutLabel,
-                    { ...labelFormatterParams, value: calloutLabelValue },
-                    allowNullKeys
-                ),
-                calloutLabelFit,
-                calloutLabel
+            result.callout = this.getLabelText<PieDonutSeriesLabelFormatterParams>(
+                calloutLabelValue,
+                datum,
+                calloutLabelKey,
+                'calloutLabel',
+                [],
+                calloutLabel,
+                { ...labelFormatterParams, value: calloutLabelValue },
+                allowNullKeys
             );
-            result.callout = fitted.text;
-            result.calloutFontSize = fitted.fontSize;
         }
 
         if (sectorLabelKey) {
@@ -721,18 +708,11 @@ export class DonutSeries extends PolarSeries<
         return result;
     }
 
-    private getLabels(
-        datumIndex: number,
-        datum: any,
-        midAngle: number,
-        span: number,
-        values: ProcessedDataValues,
-        calloutLabelFit: LabelFit | undefined
-    ) {
+    private getLabels(datumIndex: number, datum: any, midAngle: number, span: number, values: ProcessedDataValues) {
         const { properties } = this;
         const { calloutLabel, sectorLabel, legendItemKey } = properties;
 
-        const formats = this.getLabelContent(datumIndex, datum, values, calloutLabelFit);
+        const formats = this.getLabelContent(datumIndex, datum, values);
         const result: {
             calloutLabel?: PieDonutLabelDatum;
             sectorLabel?: { text: NormalisedTextOrSegments };
@@ -743,7 +723,6 @@ export class DonutSeries extends PolarSeries<
             result.calloutLabel = {
                 ...this.getTextAlignment(midAngle),
                 text: formats.callout,
-                fittedFontSize: formats.calloutFontSize,
                 hidden: false,
                 collisionTextAlign: undefined,
                 collisionOffsetY: 0,
@@ -1416,8 +1395,9 @@ export class DonutSeries extends PolarSeries<
 
         const textAlign = label.collisionTextAlign ?? label.textAlign;
         const textBaseline = label.textBaseline;
-        return Text.measureBBox(label.text, x, y, {
-            font: fontWithSize(calloutLabel, label.fittedFontSize),
+        const fitted = this.fitCalloutLabel(label.text, style);
+        return Text.measureBBox(fitted.text, x, y, {
+            font: fontWithSize(style, fitted.fontSize),
             textAlign,
             textBaseline,
         }).grow(padding);
@@ -1538,6 +1518,10 @@ export class DonutSeries extends PolarSeries<
         avoidXCollisions(bottomLabels);
     }
 
+    private fitCalloutLabel(text: NormalisedTextOrSegments, style: FontOptions) {
+        return fitLabelTextAutoSize(text, resolveLabelFit(this.properties.calloutLabel, false), style);
+    }
+
     private getLabelStyle(
         datum: PieDonutNodeDatum,
         label: Label<AgDonutSeriesLabelFormatterParams>,
@@ -1586,27 +1570,28 @@ export class DonutSeries extends PolarSeries<
                 textAlign: label.collisionTextAlign ?? label.textAlign,
                 textBaseline: label.textBaseline,
             };
-            tempTextNode.text = label.text;
+            const fitted = this.fitCalloutLabel(label.text, style);
+            const fittedFont = fontWithSize(style, fitted.fontSize);
+            tempTextNode.text = fitted.text;
             tempTextNode.x = x;
             tempTextNode.y = y;
-            tempTextNode.setFont(style);
-            tempTextNode.fontSize = label.fittedFontSize ?? style.fontSize;
+            tempTextNode.setFont(fittedFont);
             tempTextNode.setAlign(align);
             tempTextNode.setBoxing(style);
             const box = tempTextNode.getBBox();
 
-            let displayText = label.text;
+            let displayText = fitted.text;
             let visible = true;
             if (calloutLabel.avoidCollisions) {
                 const { maxWidth, hasVerticalOverflow } = this.getLabelOverflow(box, seriesRect);
                 if (box.width > maxWidth) {
                     const options: WrapOptions = {
-                        font: fontWithSize(this.properties.calloutLabel, label.fittedFontSize),
+                        font: fittedFont,
                         textWrap: 'on-space',
                         overflow: 'hide',
                         maxWidth,
                     };
-                    displayText = wrapTextOrSegments(label.text, options);
+                    displayText = wrapTextOrSegments(fitted.text, options);
                 }
                 visible = !hasVerticalOverflow;
             }
@@ -1614,8 +1599,7 @@ export class DonutSeries extends PolarSeries<
             text.text = displayText;
             text.x = x;
             text.y = y;
-            text.setFont(style);
-            text.fontSize = label.fittedFontSize ?? style.fontSize;
+            text.setFont(fittedFont);
             text.setAlign(align);
             text.setBoxing(style);
             text.fill = style.color;
@@ -1669,11 +1653,11 @@ export class DonutSeries extends PolarSeries<
             const labelRadius = datum.outerRadius + calloutLength + offset;
             const x = datum.midCos * labelRadius;
             const y = datum.midSin * labelRadius + label.collisionOffsetY;
-            text.text = label.text;
+            const fitted = this.fitCalloutLabel(label.text, style);
+            text.text = fitted.text;
             text.x = x;
             text.y = y;
-            text.setFont(style);
-            text.fontSize = label.fittedFontSize ?? style.fontSize;
+            text.setFont(fontWithSize(style, fitted.fontSize));
             text.setAlign({
                 textAlign: label.collisionTextAlign ?? label.textAlign,
                 textBaseline: label.textBaseline,
@@ -1790,8 +1774,7 @@ export class DonutSeries extends PolarSeries<
                         text.y = fitted.y;
                         fittedFontSize = fitted.fontSize;
                     }
-                    text.setFont(style);
-                    text.fontSize = fittedFontSize ?? style.fontSize;
+                    text.setFont(fontWithSize(style, fittedFontSize));
                     text.setAlign(align);
                     text.setBoxing(style);
 
@@ -1903,8 +1886,7 @@ export class DonutSeries extends PolarSeries<
         const { angleRawValues } = processedDataValues;
         const angleRawValue = angleRawValues[datumIndex];
 
-        // The callout fit bounds the drawn label only, so a tooltip shows the text whole.
-        const labelValues = this.getLabelContent(datumIndex, datum, processedDataValues, undefined);
+        const labelValues = this.getLabelContent(datumIndex, datum, processedDataValues);
         const label = labelValues.legendItem ?? labelValues.callout ?? labelValues.sector ?? angleName;
 
         const domain = extractDomain(dataModel.getDomain(this, `angleRaw`, 'value', processedData));
@@ -2017,8 +1999,7 @@ export class DonutSeries extends PolarSeries<
             if (titleText) {
                 labelParts.push(titleText);
             }
-            // As with the tooltip, a legend item is not the surface the callout fit bounds.
-            const labels = this.getLabelContent(datumIndex, datum, processedDataValues, undefined);
+            const labels = this.getLabelContent(datumIndex, datum, processedDataValues);
 
             if (legendItemKey && labels.legendItem !== undefined) {
                 labelParts.push(labels.legendItem);
