@@ -16,7 +16,6 @@ import {
     DebugMetrics,
     SeriesContentZIndexMap,
     SeriesZIndexMap,
-    cachedTextMeasurer,
     extent,
     isContinuous,
     isDefined,
@@ -24,8 +23,6 @@ import {
     mergeDefaults,
     minValue,
     placedLabelFit,
-    resolveLabelFit,
-    toArray,
     toNumber,
 } from 'ag-charts-core';
 import {
@@ -65,8 +62,6 @@ import {
     processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
-import { expandPlacementLabelBoxExtent } from '../../label';
-import { boundLabelFit, insideMarkerContainer, resolveInsidePlacement } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -984,7 +979,6 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             yName,
             legendItemName,
             marker,
-            label,
             fill: seriesFill,
             stroke: seriesStroke,
             normalizedTo,
@@ -1009,20 +1003,8 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         const canIncrementallyUpdate =
             existingNodeData != null && this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
-        const placements = toArray(label.placement);
-        const {
-            insideOnly,
-            offset: labelInsideOffset,
-            size: labelInsideSize,
-        } = resolveInsidePlacement(placements, marker.shape);
         const markerSize = marker.enabled ? marker.size : 0;
-        const insideFit = insideOnly ? resolveLabelFit(label, false, true) : undefined;
-        const labelFit = insideFit
-            ? boundLabelFit(insideFit, insideMarkerContainer(markerSize, marker.shape, label.collision.threshold ?? 0))
-            : resolveLabelFit(label, !label.collision.alwaysShow);
-        // Keeps the label on a marker too small to hold even an ellipsis.
-        const labelFitOverflow = label.collision.alwaysShow ? insideFit : undefined;
-        const labelAnchor = Marker.anchor(marker.shape);
+        const labelContext = this.resolveLabelContext(marker.shape, markerSize);
 
         return {
             // Axes (from template method parameters)
@@ -1053,15 +1035,15 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
 
             // Pre-computed flags
             isContinuousY,
-            labelsEnabled: label.enabled,
-            labelPadding: expandPlacementLabelBoxExtent(label),
-            labelTextMeasurer: cachedTextMeasurer(label),
-            labelFit,
-            labelFitOverflow,
-            labelStyled: label.itemStyler != null,
-            labelInsideOffset,
-            labelInsideSize,
-            labelAnchor,
+            labelsEnabled: labelContext.labelsEnabled,
+            labelPadding: labelContext.labelPadding,
+            labelTextMeasurer: labelContext.labelTextMeasurer,
+            labelFit: labelContext.labelFit,
+            labelFitOverflow: labelContext.labelFitOverflow,
+            labelStyled: labelContext.labelStyled,
+            labelInsideOffset: labelContext.labelInsideOffset,
+            labelInsideSize: labelContext.labelInsideSize,
+            labelAnchor: labelContext.labelAnchor,
             normalizedTo,
             canIncrementallyUpdate,
             animationEnabled: !this.ctx.animationManager.isSkipped(),

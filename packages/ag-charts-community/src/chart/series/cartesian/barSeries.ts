@@ -682,16 +682,21 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         // A legend-hidden neighbour contributes no segment, so it must not block a label's outside placement.
         const stackNeighbours = this.ctx.seriesStateManager.getVisibleStackNeighbours(this);
         const { label } = this.properties;
-        const plotRegion = this.resolveLabelPlotRegion(label.collision);
+        // OPTIMIZATION: every consumer of the geometry below sits behind a `label.enabled` check on the
+        // per-datum path, so a disabled label must not resolve any of it.
+        const labelsEnabled = label.enabled;
         const labelPlacements = toArray(label.placement);
         if (labelPlacements.length === 0) labelPlacements.push('inside-center');
         const labelPlacement = labelPlacements[0];
         const placementStyle = labelPlacement?.startsWith('inside') ? label.insideStyle : label.outsideStyle;
+        const plotRegion = labelsEnabled ? this.resolveLabelPlotRegion(label.collision) : undefined;
         // Full drawn-box extent (padding + border half-stroke) facing the bar, so the anchor keeps the
         // box's outer edge — not just its padding boundary — `spacing` from the bar.
-        const boxPadding = resolvePlacementLabelBoxExtent(label, placementStyle);
+        const boxPadding = labelsEnabled
+            ? resolvePlacementLabelBoxExtent(label, placementStyle)
+            : { bottom: 0, left: 0, right: 0, top: 0 };
         const alwaysShow = label.collision.alwaysShow;
-        const labelFit = resolveLabelFit(label, !alwaysShow);
+        const labelFit = labelsEnabled ? resolveLabelFit(label, !alwaysShow) : undefined;
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
         const { groupOffset, barOffset, barWidth } = this.getBarDimensions();

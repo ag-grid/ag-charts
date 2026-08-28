@@ -15,13 +15,10 @@ import {
     DEFAULT_MARKERLESS_LABEL_GAP,
     DebugMetrics,
     applyStyledMarkerSize,
-    cachedTextMeasurer,
     extent,
     isDefined,
     mergeDefaults,
     placedLabelFit,
-    resolveLabelFit,
-    toArray,
     toNumber,
 } from 'ag-charts-core';
 import {
@@ -58,8 +55,6 @@ import {
     processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
-import { expandPlacementLabelBoxExtent } from '../../label';
-import { boundLabelFit, insideMarkerContainer, resolveInsidePlacement } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import { type LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -488,22 +483,9 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         this.ensureBucketLookupFeature()?.setActiveFilter(processedData, dataAggregationFilter);
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
-        const { label, marker } = this.properties;
-        const { collision } = label;
-        const placements = toArray(label.placement);
-        const {
-            insideOnly,
-            offset: labelInsideOffset,
-            size: labelInsideSize,
-        } = resolveInsidePlacement(placements, marker.shape);
+        const { marker } = this.properties;
         const markerSize = marker.enabled ? marker.size : 0;
-        const insideFit = insideOnly ? resolveLabelFit(label, false, true) : undefined;
-        const labelFit = insideFit
-            ? boundLabelFit(insideFit, insideMarkerContainer(markerSize, marker.shape, collision.threshold ?? 0))
-            : resolveLabelFit(label, !collision.alwaysShow);
-        // Keeps the label on a marker too small to hold even an ellipsis.
-        const labelFitOverflow = collision.alwaysShow ? insideFit : undefined;
-        const labelAnchor = Marker.anchor(marker.shape);
+        const labelContext = this.resolveLabelContext(marker.shape, markerSize);
 
         return {
             xAxis,
@@ -526,15 +508,16 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             yOffset: (yScale.bandwidth ?? 0) / 2,
             size: markerSize,
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
-            labelsEnabled: this.properties.label.enabled,
-            labelPadding: expandPlacementLabelBoxExtent(this.properties.label),
-            labelTextMeasurer: cachedTextMeasurer(this.properties.label),
-            labelFit,
-            labelFitOverflow,
-            labelStyled: label.itemStyler != null,
-            labelInsideOffset,
-            labelInsideSize,
-            labelAnchor,
+            labelsEnabled: labelContext.labelsEnabled,
+            labelPadding: labelContext.labelPadding,
+            labelTextMeasurer: labelContext.labelTextMeasurer,
+            labelFit: labelContext.labelFit,
+            labelFitOverflow: labelContext.labelFitOverflow,
+            labelStyled: labelContext.labelStyled,
+            labelInsideOffset: labelContext.labelInsideOffset,
+            labelInsideSize: labelContext.labelInsideSize,
+            labelAnchor: labelContext.labelAnchor,
+            emptyLabel: { text: '', width: 0, height: 0 },
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             canIncrementallyUpdate,
             dataAggregationFilter,
@@ -593,8 +576,8 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                   )
                 : undefined;
 
-            const label = this.measureLabel(ctx, labelText);
-            const fit = placedLabelFit(labelText, this.properties.label, ctx);
+            const label = ctx.labelsEnabled ? this.measureLabel(ctx, labelText) : ctx.emptyLabel;
+            const fit = ctx.labelsEnabled ? placedLabelFit(labelText, this.properties.label, ctx) : undefined;
             // Markerless vertices still nudge their label clear of the line with a small fixed gap.
             const gap = ctx.size > 0 ? ctx.size / 2 : DEFAULT_MARKERLESS_LABEL_GAP;
 

@@ -12,20 +12,21 @@ import { random } from './randomHelpers';
 
 // No `theme` block: theme overrides resolve differently across the versions this benchmark compares,
 // so head-vs-base numbers would not line up. Grid styles sparklines through top-level options anyway.
-const options: AgSparklineOptions = {
+const baseOptions = {
     container: document.getElementById('myChart'),
     background: {
         visible: false,
     },
     minHeight: 0,
     minWidth: 0,
-    type: 'line',
     data: getData(),
     xKey: 'x',
     yKey: 'y',
     width: 708,
     height: 47,
 };
+
+const options: AgSparklineOptions = { ...baseOptions, type: 'line' };
 /* @ag-options-end */
 
 // A function anywhere in the options tree (itemStyler, tooltip.renderer, formatter) disables the
@@ -38,6 +39,13 @@ const optionsWithStyler: AgSparklineOptions = {
         itemStyler: (params) => (params.highlightState === 'highlighted-item' ? { size: 7 } : undefined),
     },
 };
+
+// Grid renders bar and area sparklines from the same cell pipeline as line, and each series type
+// resolves its own label geometry, so all three need measuring. Each derives from the series-agnostic
+// base rather than from `options`, whose type carries line-only properties.
+const barOptions: AgSparklineOptions = { ...baseOptions, type: 'bar' };
+
+const areaOptions: AgSparklineOptions = { ...baseOptions, type: 'area' };
 
 const chart = AgCharts.__createSparkline(options);
 
@@ -108,6 +116,8 @@ interface ChartBatch {
     charts: AgChartInstance<AgSparklineOptions>[];
 }
 
+const barBatch: ChartBatch = { options: barOptions, charts: [] };
+const areaBatch: ChartBatch = { options: areaOptions, charts: [] };
 const plainBatch: ChartBatch = { options, charts: [] };
 const stylerBatch: ChartBatch = { options: optionsWithStyler, charts: [] };
 
@@ -141,6 +151,12 @@ function setupBatches(): void {
 function teardownBatches(): void {
     clearBatch(plainBatch);
     clearBatch(stylerBatch);
+}
+
+/** inScope */
+function setupBatch(batch: ChartBatch): void {
+    clearBatch(batch);
+    fillBatch(batch);
 }
 
 /** inScope */
@@ -340,6 +356,74 @@ function getBenchmarkConfig(): BenchmarkConfig {
                     {
                         params: { Operation: `Recycle ${GRID_BATCH_SIZE} Sparklines`, Options: 'itemStyler' },
                         run: () => performGridScrollChurn(stylerBatch),
+                    },
+                ],
+            },
+            {
+                id: 'grid-batch-creation-bar',
+                label: `Cold Creation (batch of ${GRID_BATCH_SIZE}, bar)`,
+                variants: [
+                    {
+                        params: { Operation: `Create ${GRID_BATCH_SIZE} Sparklines`, Series: 'bar' },
+                        run: () => performGridBatchCreation(barOptions),
+                    },
+                ],
+            },
+            {
+                id: 'grid-batch-update-bar',
+                label: `Data Update (batch of ${GRID_BATCH_SIZE}, bar)`,
+                setup: () => setupBatch(barBatch),
+                teardown: () => clearBatch(barBatch),
+                variants: [
+                    {
+                        params: { Operation: `Update ${GRID_BATCH_SIZE} Sparklines`, Series: 'bar' },
+                        run: () => performGridBatchUpdate(barBatch),
+                    },
+                ],
+            },
+            {
+                id: 'grid-scroll-churn-bar',
+                label: `Scroll Churn (batch of ${GRID_BATCH_SIZE}, bar)`,
+                setup: () => setupBatch(barBatch),
+                teardown: () => clearBatch(barBatch),
+                variants: [
+                    {
+                        params: { Operation: `Recycle ${GRID_BATCH_SIZE} Sparklines`, Series: 'bar' },
+                        run: () => performGridScrollChurn(barBatch),
+                    },
+                ],
+            },
+            {
+                id: 'grid-batch-creation-area',
+                label: `Cold Creation (batch of ${GRID_BATCH_SIZE}, area)`,
+                variants: [
+                    {
+                        params: { Operation: `Create ${GRID_BATCH_SIZE} Sparklines`, Series: 'area' },
+                        run: () => performGridBatchCreation(areaOptions),
+                    },
+                ],
+            },
+            {
+                id: 'grid-batch-update-area',
+                label: `Data Update (batch of ${GRID_BATCH_SIZE}, area)`,
+                setup: () => setupBatch(areaBatch),
+                teardown: () => clearBatch(areaBatch),
+                variants: [
+                    {
+                        params: { Operation: `Update ${GRID_BATCH_SIZE} Sparklines`, Series: 'area' },
+                        run: () => performGridBatchUpdate(areaBatch),
+                    },
+                ],
+            },
+            {
+                id: 'grid-scroll-churn-area',
+                label: `Scroll Churn (batch of ${GRID_BATCH_SIZE}, area)`,
+                setup: () => setupBatch(areaBatch),
+                teardown: () => clearBatch(areaBatch),
+                variants: [
+                    {
+                        params: { Operation: `Recycle ${GRID_BATCH_SIZE} Sparklines`, Series: 'area' },
+                        run: () => performGridScrollChurn(areaBatch),
                     },
                 ],
             },
