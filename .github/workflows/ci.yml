@@ -921,6 +921,11 @@ jobs:
             - name: Start Astro Dev Server
               env:
                   AG_ASTRO_LOG: ${{ github.workspace }}/reports/ag-charts-astro-dev.log
+                  # INVESTIGATION, NOT FOR MERGE: the shard dies with the dev server hitting
+                  # node's default ~4GB heap ceiling. The runner has 12GB spare, so raise it -
+                  # either the server survives and its request log names what grew, or it dies
+                  # again and the growth is unbounded rather than merely large.
+                  NODE_OPTIONS: --max-old-space-size=8192
               run: |
                   mkdir -p reports
                   packages/ag-charts-website/playwright.sh --start-dev-server
@@ -1100,6 +1105,11 @@ jobs:
             - name: Start Astro Dev Server
               env:
                   AG_ASTRO_LOG: ${{ github.workspace }}/reports/ag-charts-astro-dev.log
+                  # INVESTIGATION, NOT FOR MERGE: the shard dies with the dev server hitting
+                  # node's default ~4GB heap ceiling. The runner has 12GB spare, so raise it -
+                  # either the server survives and its request log names what grew, or it dies
+                  # again and the growth is unbounded rather than merely large.
+                  NODE_OPTIONS: --max-old-space-size=8192
               run: |
                   mkdir -p reports
                   packages/ag-charts-website/playwright.sh --start-dev-server
