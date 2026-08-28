@@ -5,6 +5,7 @@ import type {
     AgCartesianChartOptions,
     AgCartesianCrossLineOptions,
     AgChartInstance,
+    AgContextMenuItem,
     AgSelectionItem,
 } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-react';
@@ -14,6 +15,7 @@ import type { DailyPoint } from '../data';
 import { fmtDate } from '../format';
 import { METRIC_BY_KEY, type MetricKey } from '../metrics';
 import type { Annotation } from '../types';
+import type { FormAnchor } from './EventForm';
 import { sameDaySet, startOfDay } from './dateFilter';
 
 /** The datum shape plotted by both area series. */
@@ -21,6 +23,8 @@ interface TrafficDatum {
     date: Date;
     id: string;
 }
+
+const HALF_DAY_MS = 12 * 60 * 60 * 1000;
 
 // Must be a string: the selection API treats a numeric itemId as a raw datum index.
 const dayId = (d: Date) => String(d.getTime());
@@ -39,6 +43,28 @@ interface TrafficChartProps {
     selectedDays: Date[];
     /** Called when the user changes the selection on the chart. */
     onSelectionChange: (days: Date[]) => void;
+    /** The annotation the user has clicked, if any — drawn emphasised. */
+    selectedAnnotationId: string | null;
+    /** Called with the clicked annotation's id, or null when the click lands elsewhere. */
+    onAnnotationSelect: (annotationId: string | null) => void;
+    onAnnotationRemove: (annotationId: string) => void;
+    /** Called from the context menu to open the add-event form on a given day. */
+    onAddEventAt: (date: Date, anchor?: FormAnchor) => void;
+}
+
+/** Viewport position of the right-click, so the form can open where the user clicked. */
+function anchorOf(event: Event): FormAnchor | undefined {
+    return event instanceof MouseEvent ? { x: event.clientX, y: event.clientY } : undefined;
+}
+
+/** Resolves an axis or datum value to the calendar day it falls on. */
+function toDay(value: unknown): Date | undefined {
+    if (value instanceof Date) return startOfDay(value);
+    if (typeof value === 'number' || typeof value === 'string') {
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? undefined : startOfDay(date);
+    }
+    return undefined;
 }
 
 // Distinct calendar days across the selected items (both series share a date).
@@ -51,20 +77,26 @@ const selectionToDays = (items: Iterable<AgSelectionItem<unknown>>): Date[] => {
     return [...byDay.values()];
 };
 
-function crossLinesFor(annotations: Annotation[]): AgCartesianCrossLineOptions<Date>[] {
-    return annotations.map((annotation) => ({
-        type: 'line',
-        value: annotation.date,
-        stroke: ANNOTATION_COLOR[annotation.type],
-        strokeWidth: 1,
-        label: {
-            text: annotation.label,
-            position: annotation.type === 'deploy' ? 'bottom' : 'top',
-            fontSize: 11,
-            fontStyle: 'italic',
-            color: ANNOTATION_COLOR[annotation.type],
-        },
-    }));
+function crossLinesFor(annotations: Annotation[], selectedId: string | null): AgCartesianCrossLineOptions<Date>[] {
+    return annotations.map((annotation) => {
+        const selected = annotation.annotationId === selectedId;
+        return {
+            type: 'line',
+            // Identifies the annotation in click and context-menu events.
+            id: annotation.annotationId,
+            value: annotation.date,
+            stroke: ANNOTATION_COLOR[annotation.type],
+            strokeWidth: selected ? 2 : 1,
+            label: {
+                text: annotation.label,
+                position: annotation.type === 'product' ? 'bottom' : 'top',
+                fontSize: 11,
+                fontStyle: 'italic',
+                fontWeight: selected ? 'bold' : 'normal',
+                color: ANNOTATION_COLOR[annotation.type],
+            },
+        };
+    });
 }
 
 export function TrafficChart({
@@ -74,8 +106,15 @@ export function TrafficChart({
     annotations,
     selectedDays,
     onSelectionChange,
+    selectedAnnotationId,
+    onAnnotationSelect,
+    onAnnotationRemove,
+    onAddEventAt,
 }: TrafficChartProps) {
     const chartRef = useRef<AgChartInstance | null>(null);
+    // A click on an annotation also reaches the chart-level `click` listener; holding the
+    // native event lets that listener tell the two apart instead of relying on their order.
+    const annotationClickEvent = useRef<Event | null>(null);
 
     const options = useMemo<AgCartesianChartOptions>(() => {
         const def = METRIC_BY_KEY[metric];
@@ -174,7 +213,7 @@ export function TrafficChart({
                     type: 'time',
                     position: 'bottom',
                     label: { format: '%b %d' },
-                    crossLines: crossLinesFor(annotations),
+                    crossLines: crossLinesFor(annotations, selectedAnnotationId),
                     nice: false,
                     crosshair: { enabled: true, lineDash: [4, 4] },
                 },
@@ -199,15 +238,63 @@ export function TrafficChart({
                 enabled: true,
                 enableDrag: true,
             },
+            contextMenu: {
+                getItems: ({ allShowOnParams, coordinates }) => {
+                    const crossLine = allShowOnParams.find((p) => p.showOn === 'cross-line');
+                    if (crossLine) {
+                        const annotation = annotations.find((a) => a.annotationId === crossLine.crossLineId);
+                        if (!annotation) return undefined;
+                        const items: AgContextMenuItem[] = [
+                            {
+                                showOn: 'cross-line',
+                                label: `Remove "${annotation.label}"`,
+                                action: () => onAnnotationRemove(annotation.annotationId),
+                            },
+                            'separator',
+                            'defaults',
+                        ];
+                        return items;
+                    }
+
+                    // A datum node names its own day; anywhere else in the series area the
+                    // crosshair's x-coordinate does.
+                    const node = allShowOnParams.find((p) => p.showOn === 'series-node');
+                    const day = node ? toDay((node.datum as TrafficDatum).date) : toDay(coordinates?.x?.value);
+                    if (!day) return undefined;
+                    const label = `Add event on ${fmtDate(day)}`;
+                    const addItem: AgContextMenuItem = node
+                        ? { showOn: 'series-node', label, action: (ev) => onAddEventAt(day, anchorOf(ev.event)) }
+                        : { showOn: 'series-area', label, action: (ev) => onAddEventAt(day, anchorOf(ev.event)) };
+                    return [addItem, 'separator', 'defaults'];
+                },
+            },
             listeners: {
                 selectionChange: ({ source }) => {
                     // Ignore our own api-call echoes; only user interaction should push a new selection upward.
                     if (source === 'api-call') return;
                     onSelectionChange(selectionToDays(chartRef.current?.getSelection() ?? []));
                 },
+                crossLineClick: ({ crossLineId, event }) => {
+                    annotationClickEvent.current = event;
+                    onAnnotationSelect(crossLineId);
+                },
+                click: ({ event }) => {
+                    if (event === annotationClickEvent.current) return;
+                    onAnnotationSelect(null);
+                },
             },
         };
-    }, [metric, daily, dailyPrevious, annotations, onSelectionChange]);
+    }, [
+        metric,
+        daily,
+        dailyPrevious,
+        annotations,
+        selectedAnnotationId,
+        onSelectionChange,
+        onAnnotationSelect,
+        onAnnotationRemove,
+        onAddEventAt,
+    ]);
 
     // Driven from the shared source of truth; skips when already in sync, breaking the chart->state->chart loop.
     useEffect(() => {

@@ -2,9 +2,10 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { type DailyPoint, dailyFromSessions } from '../data';
 import { fmtInt } from '../format';
-import { METRIC_BY_KEY, type MetricKey } from '../metrics';
-import type { Annotation, Session } from '../types';
+import type { MetricKey } from '../metrics';
+import type { Annotation, AnnotationType, Session } from '../types';
 import { EmptyState } from './EmptyState';
+import { EventForm, type FormAnchor } from './EventForm';
 import { type KpiDef, KpiTiles, kpiTabId } from './KpiTiles';
 import { SessionsGrid, type SessionsGridHandle } from './SessionsGrid';
 import { TrafficChart } from './TrafficChart';
@@ -24,6 +25,8 @@ interface OverviewViewProps {
     metric: MetricKey;
     hasData: boolean;
     onMetricSelect: (key: MetricKey) => void;
+    onAnnotationAdd: (date: Date, label: string, type: AnnotationType) => void;
+    onAnnotationRemove: (annotationId: string) => void;
 }
 
 export function OverviewView({
@@ -36,6 +39,8 @@ export function OverviewView({
     metric,
     hasData,
     onMetricSelect,
+    onAnnotationAdd,
+    onAnnotationRemove,
 }: OverviewViewProps) {
     // Days selected on the traffic chart narrow the sessions grid; empty = whole range.
     const [selectedDays, setSelectedDays] = useState<Date[]>([]);
@@ -43,7 +48,46 @@ export function OverviewView({
     // over the sessions passing it, excluding the When column.
     const [filterModel, setFilterModel] = useState<Record<string, unknown>>({});
     const gridRef = useRef<SessionsGridHandle>(null);
-    const metricLabel = METRIC_BY_KEY[metric].axisTitle;
+    // The annotation the user clicked on the chart, and the day the add-event form is
+    // open on (null = closed).
+    const [selectedAnnotationId, setSelectedAnnotationId] = useState<string | null>(null);
+    const [formDay, setFormDay] = useState<Date | null>(null);
+    // Where the form opens: the right-clicked point, or under the toolbar button.
+    const [formAnchor, setFormAnchor] = useState<FormAnchor | undefined>();
+
+    // Only annotations still on the chart can be selected, so a removed one drops out here.
+    const selectedAnnotation = annotations.find((a) => a.annotationId === selectedAnnotationId);
+    // The plotted day domain, which also bounds the form's date field.
+    const firstDay = daily[0]?.date;
+    const lastDay = daily.at(-1)?.date;
+
+    // Clicking the selected annotation again deselects it.
+    const selectAnnotation = useCallback(
+        (annotationId: string | null) =>
+            setSelectedAnnotationId((prev) => (annotationId != null && annotationId === prev ? null : annotationId)),
+        []
+    );
+
+    const removeAnnotation = useCallback(
+        (annotationId: string) => {
+            setSelectedAnnotationId((prev) => (prev === annotationId ? null : prev));
+            onAnnotationRemove(annotationId);
+        },
+        [onAnnotationRemove]
+    );
+
+    const openEventForm = useCallback((day: Date, anchor?: FormAnchor) => {
+        setFormDay(day);
+        setFormAnchor(anchor);
+    }, []);
+
+    const addEvent = useCallback(
+        (date: Date, label: string, type: AnnotationType) => {
+            setFormDay(null);
+            onAnnotationAdd(date, label, type);
+        },
+        [onAnnotationAdd]
+    );
 
     // The day selection is represented by `selectedDays`, and the grid mirrors it onto
     // the When column, so exclude that column here or it counts twice.
@@ -101,8 +145,39 @@ export function OverviewView({
                 <div className="wa-card-head">
                     <div>
                         <span className="wa-card-sub">
-                            Click or drag across points to filter the sessions below · click empty space to clear
+                            Right-click for event action · click or drag across points to filter the sessions below ·
+                            click empty space to clear
                         </span>
+                    </div>
+                    <div className="wa-card-actions">
+                        {selectedAnnotation && (
+                            <button
+                                className="wa-btn"
+                                onClick={() => removeAnnotation(selectedAnnotation.annotationId)}
+                            >
+                                Remove &ldquo;{selectedAnnotation.label}&rdquo;
+                            </button>
+                        )}
+                        <button
+                            className="wa-btn wa-btn--secondary"
+                            disabled={!lastDay}
+                            aria-expanded={formDay != null}
+                            onClick={() => (formDay == null && lastDay ? openEventForm(lastDay) : setFormDay(null))}
+                        >
+                            Add event
+                        </button>
+                        {formDay != null && firstDay && lastDay && (
+                            <EventForm
+                                // Reopening on another day starts the form afresh.
+                                key={formDay.getTime()}
+                                date={formDay}
+                                minDate={firstDay}
+                                maxDate={lastDay}
+                                anchor={formAnchor}
+                                onSubmit={addEvent}
+                                onCancel={() => setFormDay(null)}
+                            />
+                        )}
                     </div>
                 </div>
                 <div className="wa-chart-box-lg" role="tabpanel" aria-labelledby={kpiTabId(metric)}>
@@ -114,6 +189,10 @@ export function OverviewView({
                             annotations={annotations}
                             selectedDays={selectedDays}
                             onSelectionChange={setDays}
+                            selectedAnnotationId={selectedAnnotation?.annotationId ?? null}
+                            onAnnotationSelect={selectAnnotation}
+                            onAnnotationRemove={removeAnnotation}
+                            onAddEventAt={openEventForm}
                         />
                     ) : (
                         <EmptyState message="No sessions in this date range" hint="Try widening the range." />

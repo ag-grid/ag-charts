@@ -1,5 +1,5 @@
 import * as RTabs from '@radix-ui/react-tabs';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { AudienceView } from './components/AudienceView';
 import { BehaviorView } from './components/BehaviorView';
@@ -24,7 +24,7 @@ import {
     visitorBreakdown,
 } from './data';
 import type { MetricKey } from './metrics';
-import type { DateRange } from './types';
+import type { Annotation, AnnotationType, DateRange } from './types';
 import { Select } from './ui';
 
 const RANGE_OPTIONS = [
@@ -45,6 +45,9 @@ function buildRange(days: number): DateRange {
     return { start, end };
 }
 
+// Ids only need to be unique within a session; the seeded annotations carry their own.
+let nextEventId = 1;
+
 function previousRange(range: DateRange, days: number): DateRange {
     const end = new Date(range.start.getTime() - 1);
     const start = startOfDay(new Date(end.getTime() - (days - 1) * DAY_MS));
@@ -56,6 +59,29 @@ export function WebAnalyticsApp() {
     const [rangeKey, setRangeKey] = useState('30');
     // The KPI tile currently driving the traffic chart.
     const [metric, setMetric] = useState<MetricKey>('sessions');
+    // Seeded events plus any the user adds from the traffic chart.
+    const [annotations, setAnnotations] = useState<Annotation[]>(SEED_ANNOTATIONS);
+
+    const addAnnotation = useCallback(
+        (date: Date, label: string, type: AnnotationType) =>
+            setAnnotations((prev) => [
+                ...prev,
+                {
+                    annotationId: `event-${nextEventId++}`,
+                    date,
+                    label,
+                    description: '',
+                    type,
+                    createdBy: 'you',
+                },
+            ]),
+        []
+    );
+
+    const removeAnnotation = useCallback(
+        (annotationId: string) => setAnnotations((prev) => prev.filter((a) => a.annotationId !== annotationId)),
+        []
+    );
 
     const days = Number(rangeKey);
     const range = useMemo(() => buildRange(days), [days]);
@@ -83,10 +109,10 @@ export function WebAnalyticsApp() {
     // Annotations that fall within the range overlay the traffic chart.
     const visibleAnnotations = useMemo(
         () =>
-            SEED_ANNOTATIONS.filter(
+            annotations.filter(
                 (a) => a.date.getTime() >= range.start.getTime() && a.date.getTime() <= range.end.getTime()
             ),
-        [range]
+        [annotations, range]
     );
 
     const hasData = currentSummary.sessions > 0;
@@ -134,6 +160,8 @@ export function WebAnalyticsApp() {
                         metric={metric}
                         hasData={hasData}
                         onMetricSelect={setMetric}
+                        onAnnotationAdd={addAnnotation}
+                        onAnnotationRemove={removeAnnotation}
                     />
                 </RTabs.Content>
                 <RTabs.Content className="wa-tab-content" value="audience">

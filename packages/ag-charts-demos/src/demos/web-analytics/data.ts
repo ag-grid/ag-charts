@@ -327,7 +327,7 @@ export const SEED_ANNOTATIONS: Annotation[] = [
         date: dayDate(EVENT_OFFSET.outage),
         label: 'API outage',
         description: 'Checkout degraded for ~3h after a bad deploy.',
-        type: 'deploy',
+        type: 'product',
         createdBy: 'ops',
     },
     {
@@ -335,7 +335,7 @@ export const SEED_ANNOTATIONS: Annotation[] = [
         date: dayDate(EVENT_OFFSET.springLaunch),
         label: 'Spring launch',
         description: 'Spring product launch campaign went live across paid + social.',
-        type: 'campaign_launch',
+        type: 'marketing',
         createdBy: 'growth',
     },
     {
@@ -343,7 +343,7 @@ export const SEED_ANNOTATIONS: Annotation[] = [
         date: dayDate(EVENT_OFFSET.creatorCollab),
         label: 'Creator collab',
         description: 'Influencer collaboration drove a social traffic spike.',
-        type: 'campaign_launch',
+        type: 'marketing',
         createdBy: 'growth',
     },
     {
@@ -351,7 +351,7 @@ export const SEED_ANNOTATIONS: Annotation[] = [
         date: dayDate(EVENT_OFFSET.release),
         label: 'v4.2 release',
         description: 'Shipped the redesigned onboarding flow.',
-        type: 'deploy',
+        type: 'product',
         createdBy: 'eng',
     },
 ];

@@ -383,6 +383,113 @@
 .wa-btn[data-state='open'] {
     border-color: var(--wa-accent);
 }
+.wa-btn--primary {
+    background: var(--wa-accent);
+    border-color: var(--wa-accent);
+    color: #ffffff;
+}
+.wa-btn--primary:hover,
+.wa-btn--primary:disabled:hover {
+    background: var(--wa-accent-strong);
+    border-color: var(--wa-accent-strong);
+}
+/* Outlined counterpart to the primary button: accent ink, panel ground. */
+.wa-btn--secondary {
+    border-color: var(--wa-accent);
+    color: var(--wa-accent);
+}
+.wa-btn--secondary:hover {
+    border-color: var(--wa-accent-strong);
+    background: var(--wa-accent-soft);
+    color: var(--wa-accent-strong);
+}
+.wa-btn--secondary:disabled:hover {
+    border-color: var(--wa-accent);
+    background: var(--wa-panel);
+}
+
+/* ---- event annotations: card toolbar and its add-event popover ---- */
+.wa-card-actions {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.wa-event-form {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 40;
+    width: 260px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    background: var(--wa-panel);
+    border: 1px solid var(--wa-border-strong);
+    border-radius: var(--wa-radius);
+    box-shadow: var(--wa-shadow-popover);
+}
+/* Opened from the context menu: placed at the click point in viewport space. */
+.wa-event-form--anchored {
+    position: fixed;
+    right: auto;
+    bottom: auto;
+}
+.wa-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.wa-field-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--wa-muted);
+}
+.wa-input {
+    box-sizing: border-box;
+    width: 100%;
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid var(--wa-border);
+    border-radius: var(--wa-radius-sm);
+    background: var(--wa-panel);
+    color: var(--wa-text);
+    font: inherit;
+}
+.wa-input:focus-visible {
+    border-color: var(--wa-accent);
+    outline: 2px solid var(--wa-accent);
+    outline-offset: -1px;
+}
+.wa-fieldset {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+.wa-fieldset > .wa-field-label {
+    padding: 0;
+    margin-bottom: 5px;
+}
+.wa-radio-row {
+    display: flex;
+    gap: 14px;
+}
+.wa-radio {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+.wa-radio input {
+    accent-color: var(--wa-accent);
+    margin: 0;
+}
+.wa-event-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
 
 /* ---- Radix Select ---- */
 .wa-labeled-select {

@@ -29,8 +29,8 @@ export const SEQUENTIAL_BLUE = ['#cde2fb', '#9ec5f4', '#3987e5', '#184f95', '#0d
 
 /** Annotations are reference marks, not data, so they stay in chrome ink. */
 export const ANNOTATION_COLOR: Record<AnnotationType, string> = {
-    deploy: 'var(--wa-muted)',
-    campaign_launch: 'var(--wa-text)',
+    product: 'var(--wa-muted)',
+    marketing: 'var(--wa-text)',
 };
 
 export const THEME: AgChartTheme = {
