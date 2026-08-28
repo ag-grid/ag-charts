@@ -10,8 +10,9 @@ export const DARK_MODE_END = '/** DARK MODE END **/';
  *
  * Only the parameters `ag-default-dark` retunes are listed; the rest are `$ref`s onto these and
  * follow. What no parameter can carry is the palette, and `ag-default-dark` retunes that too - so
- * the series listed in `PALETTE_SENSITIVE_TYPES`, and every non-default theme and preset, keep
- * resolving the `-dark` theme name and still need an explicit re-render.
+ * the series listed in `PALETTE_SENSITIVE_TYPES`, every non-default theme and preset, and any
+ * container the variables cannot reach, keep resolving the `-dark` theme name and still need an
+ * explicit re-render.
  */
 const THEME_MUTATION = `
 /**
@@ -53,6 +54,12 @@ const DEFAULT_THEME_PARAMS = {
 
 const isDarkmode = () => document.documentElement.dataset.darkMode === 'true';
 
+// A container that is detached, or out of the stylesheet's reach, has no value to read - such an
+// example keeps the theme-name swap and its re-render on toggle.
+const canResolveVars = (container) =>
+    container != null &&
+    getComputedStyle(container).getPropertyValue('--ag-example-chart-background-color').trim() !== '';
+
 const getDarkmodeTheme = (theme = 'ag-default', preset) => {
     const baseTheme = preset === 'price-volume' ? 'ag-financial' : theme.replace(/-dark$/, '');
     return isDarkmode() ? baseTheme + '-dark' : baseTheme;
@@ -73,7 +80,14 @@ __chartAPI.optionsMutationFn = function update(options, preset) {
     const setsOwnScheme = params?.backgroundColor != null || params?.foregroundColor != null;
     const isDefaultTheme = baseTheme == null || baseTheme.replace(/-dark$/, '') === 'ag-default';
 
-    if (preset == null && isDefaultTheme && !setsOwnScheme && !isPaletteSensitive(options)) {
+    const useCSSVariables =
+        preset == null &&
+        isDefaultTheme &&
+        !setsOwnScheme &&
+        !isPaletteSensitive(options) &&
+        canResolveVars(options.container);
+
+    if (useCSSVariables) {
         return {
             ...options,
             theme: {
