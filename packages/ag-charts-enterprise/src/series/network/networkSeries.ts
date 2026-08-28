@@ -97,22 +97,24 @@ function toRatio(bounds: PaddedBounds, x: number, y: number) {
 }
 
 /**
- * Positions a window of `size` to contain `span`, moving `mid` as little as possible and leaving it
- * where it is once the span already fits inside. A span wider than the window cannot be contained at
- * all, so it is centred instead — the closest thing to fully visible available.
+ * The midpoint of a window of `size` that contains `span`, moving `mid` as little as possible and
+ * leaving it where it is once the span already fits inside. A span wider than the window cannot be
+ * contained at all, so it is centred instead — the closest thing to fully visible available.
  */
-function revealingZoomWindow(span: Span, mid: number, size: number, limit: number) {
-    let target = mid;
+function revealingMid(span: Span, mid: number, size: number) {
+    if (span.max - span.min > size) return (span.min + span.max) / 2;
+    if (span.min < mid - size / 2) return span.min + size / 2;
+    if (span.max > mid + size / 2) return span.max - size / 2;
 
-    if (span.max - span.min > size) {
-        target = (span.min + span.max) / 2;
-    } else if (span.min < mid - size / 2) {
-        target = span.min + size / 2;
-    } else if (span.max > mid + size / 2) {
-        target = span.max - size / 2;
-    }
+    return mid;
+}
 
-    return centredZoomWindow(target, size, limit);
+/**
+ * Whether a window still addresses the midpoint it was built around. `clampMid` silently pulls a
+ * midpoint back inside the pan limits, and a window that moved no longer shows what it was asked to.
+ */
+function holdsMid(range: Span, mid: number) {
+    return Math.abs((range.min + range.max) / 2 - mid) <= ZOOM_EPSILON;
 }
 
 /**
@@ -432,7 +434,8 @@ export abstract class AbstractNetworkSeries<
 
     /**
      * Called before the layout that a toggle triggers, so the item's current place in the viewport can
-     * be recorded. Holding that place across the reflow is what stops an already-visible item moving.
+     * be recorded. Holding that place across the reflow is what stops an already-visible item moving —
+     * where the reflowed content still allows it; see `getUpdatedZoom` for what happens when it does not.
      */
     private revealItem(itemId: NetworkSeriesVertexID | undefined) {
         if (itemId == null) return;
@@ -547,16 +550,25 @@ export abstract class AbstractNetworkSeries<
      * The view the next update settles on: a requested item brought into view, or failing that the
      * point the current window already addresses, held in place. Expanding or collapsing changes the
      * content bounds, and so what a given ratio points at, so every case re-derives the ratios rather
-     * than letting the view silently rescale and drift.
+     * than letting the view silently rescale and drift. A collapse can shrink the content so far that
+     * the view being held is no longer reachable — the scale is below the content-fits floor, or the
+     * midpoint is outside the pan limits — and the whole chart is then fitted and centred instead.
      */
     private getUpdatedZoom(): DefinedZoomState | undefined {
         const padded = this.getPaddedContentBounds();
         if (!padded) return;
 
+        const scale = this.getHeldScale();
+        if (!scale) return;
+
         // Sized here rather than left to `constrainZoomWindow`, which would re-derive the window from
         // its midpoint and so discard the pan.
-        const sizes = this.getHeldScaleWindowSizes();
-        if (!sizes) return;
+        const sizes = this.getWindowSizesForScale(scale.fit, scale.constrained);
+
+        // Only a content change can move the floor out from under the current scale, so there has to
+        // be a previous set of bounds for the comparison to mean anything.
+        const rescaled =
+            this.zoomedPaddedBounds != null && Math.abs(scale.constrained - scale.requested) > ZOOM_EPSILON;
 
         const held = this.getHeldViewCentre(padded);
 
@@ -564,20 +576,55 @@ export abstract class AbstractNetworkSeries<
         if (reveal) {
             // Anchoring the item where it already sat holds a visible one still against the reflow;
             // only an already-clipped item is panned, and only far enough to show it.
-            const from = this.getAnchoredCentre(reveal, sizes) ?? held ?? this.getWindowCentre();
+            const anchored = this.getAnchoredCentre(reveal, sizes);
+            const from = anchored ?? held ?? this.getWindowCentre();
 
-            return {
-                x: revealingZoomWindow(reveal.x, from.x, sizes.x, padded.limitX),
-                y: revealingZoomWindow(reveal.y, from.y, sizes.y, padded.limitY),
+            const midX = revealingMid(reveal.x, from.x, sizes.x);
+            const midY = revealingMid(reveal.y, from.y, sizes.y);
+
+            const zoom = {
+                x: centredZoomWindow(midX, sizes.x, padded.limitX),
+                y: centredZoomWindow(midY, sizes.y, padded.limitY),
             };
+
+            // A reveal without an anchor is a deliberate pan into view, so it has no place it was
+            // asked to hold and nothing to fall back from.
+            if (anchored && (rescaled || !holdsMid(zoom.x, midX) || !holdsMid(zoom.y, midY))) {
+                return this.getFittedZoom(padded);
+            }
+
+            return zoom;
         }
 
-        const centre = this.getPendingViewCentre(padded) ?? held;
+        // A centring request names where the item must end up, so it outranks the fallback.
+        const pending = this.getPendingViewCentre(padded);
+        const centre = pending ?? held;
         if (!centre) return;
 
-        return {
+        const zoom = {
             x: centredZoomWindow(centre.x, sizes.x, padded.limitX),
             y: centredZoomWindow(centre.y, sizes.y, padded.limitY),
+        };
+
+        if (!pending && (rescaled || !holdsMid(zoom.x, centre.x) || !holdsMid(zoom.y, centre.y))) {
+            return this.getFittedZoom(padded);
+        }
+
+        return zoom;
+    }
+
+    /** The whole chart, fitted to the viewport — never past native pixel size — and centred in it. */
+    private getFittedZoom(padded: PaddedBounds): DefinedZoomState | undefined {
+        const fit = this.getContentFit();
+        const minScale = this.getMinScale();
+        if (!fit || minScale == null) return;
+
+        const sizes = this.getWindowSizesForScale(fit, minScale);
+
+        // The content sits at the middle of the padded bounds, so its centre is `0.5` on both axes.
+        return {
+            x: centredZoomWindow(0.5, sizes.x, padded.limitX),
+            y: centredZoomWindow(0.5, sizes.y, padded.limitY),
         };
     }
 
@@ -646,10 +693,11 @@ export abstract class AbstractNetworkSeries<
     }
 
     /**
-     * Window sizes holding the current scale. The scale is read against the bounds the current ratios
-     * were derived from, which a content change leaves behind.
+     * The scale the current ratios stand for, read against the bounds they were derived from — which a
+     * content change leaves behind. `constrained` is the scale actually available: a collapse shrinks
+     * the content and so raises the content-fits floor, which can push the held scale up.
      */
-    private getHeldScaleWindowSizes() {
+    private getHeldScale() {
         const fit = this.getContentFit();
         if (!fit) return;
 
@@ -660,9 +708,9 @@ export abstract class AbstractNetworkSeries<
 
         const previous = this.zoomedPaddedBounds;
         const scaleFit = (previous ? this.getBoundsFit(previous) : undefined) ?? fit;
-        const scale = this.constrainScale(Math.min(scaleFit.x / xSize, scaleFit.y / ySize));
+        const requested = Math.min(scaleFit.x / xSize, scaleFit.y / ySize);
 
-        return this.getWindowSizesForScale(fit, scale);
+        return { fit, requested, constrained: this.constrainScale(requested) };
     }
 
     private getPendingViewBounds() {
