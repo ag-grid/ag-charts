@@ -27,10 +27,7 @@ const options: AgQuadrantChartOptions = {
             fill: {
                 type: 'gradient',
                 rotation: 315,
-                colorStops: [
-                    { color: '#38bdf8', stop: 0 },
-                    { color: 'rgba(56, 189, 248, 0)', stop: 1 },
-                ],
+                colorStops: [{ color: 'rgba(56, 189, 248, 0)' }, { color: '#38bdf8' }],
             },
             fillOpacity: 0.45,
             stroke: '#0284c7',
@@ -46,10 +43,7 @@ const options: AgQuadrantChartOptions = {
             fill: {
                 type: 'gradient',
                 rotation: 45,
-                colorStops: [
-                    { color: '#a855f7', stop: 0 },
-                    { color: 'rgba(168, 85, 247, 0)', stop: 1 },
-                ],
+                colorStops: [{ color: 'rgba(168, 85, 247, 0)' }, { color: '#a855f7' }],
             },
             fillOpacity: 0.45,
             stroke: '#9333ea',
@@ -65,10 +59,7 @@ const options: AgQuadrantChartOptions = {
             fill: {
                 type: 'gradient',
                 rotation: 225,
-                colorStops: [
-                    { color: '#14b8a6', stop: 0 },
-                    { color: 'rgba(20, 184, 166, 0)', stop: 1 },
-                ],
+                colorStops: [{ color: 'rgba(20, 184, 166, 0)' }, { color: '#14b8a6' }],
             },
             fillOpacity: 0.45,
             stroke: '#0d9488',
@@ -84,10 +75,7 @@ const options: AgQuadrantChartOptions = {
             fill: {
                 type: 'gradient',
                 rotation: 135,
-                colorStops: [
-                    { color: '#f97316', stop: 0 },
-                    { color: 'rgba(249, 115, 22, 0)', stop: 1 },
-                ],
+                colorStops: [{ color: 'rgba(249, 115, 22, 0)' }, { color: '#f97316' }],
             },
             fillOpacity: 0.45,
             stroke: '#ea580c',
