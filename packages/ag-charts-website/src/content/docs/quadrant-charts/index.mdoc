@@ -105,7 +105,7 @@ In this configuration:
 - `pivot.x` and `pivot.y` divide the chart into regions at an effort of `4` and an impact of `6`.
 - The pivot is a data value rather than a proportion of the chart, so the four regions are not equally sized.
 
-By default the axis lines move to cross at the pivot, while the axis titles stay at the edge of the chart.
+By default the axis lines move to cross at the pivot, while the axis titles and labels stay at the edge of the chart.
 
 ## Regions
 
@@ -133,7 +133,7 @@ In this example:
 
 ## Axes
 
-`xAxis` and `yAxis` accept number axis options. Axis labels and ticks are hidden by default.
+`xAxis` and `yAxis` accept number axis options. Axis ticks are hidden by default.
 
 {% chartExampleRunner title="Axes" name="quadrant-chart-axes" type="generated" /%}
 
@@ -142,12 +142,10 @@ In this example:
     alignAxesToPivot: false,
     xAxis: {
         title: { text: 'Effort' },
-        label: { enabled: true },
         tick: { enabled: true },
     },
     yAxis: {
         title: { text: 'Impact' },
-        label: { enabled: true },
         tick: { enabled: true },
     },
 }
@@ -155,12 +153,12 @@ In this example:
 
 In this configuration:
 
-- `label.enabled` and `tick.enabled` show the axis labels and ticks, both of which are off by default.
+- `tick.enabled` shows the axis ticks, which are hidden by default.
 - `alignAxesToPivot: false` holds the axes at their usual bottom and left positions rather than moving them to cross
   at the pivot. The regions are still divided at the pivot.
 
-The axis line is drawn more heavily and in a stronger colour than a standard axis, so it reads as a divider between
-regions rather than as a chart edge. Override `xAxis.line` or `yAxis.line` to change its width or `stroke`.
+The axis line is drawn in a stronger colour than a standard axis, so it reads as a divider between regions rather
+than as a chart edge. Override `xAxis.line` or `yAxis.line` to change its width or `stroke`.
 
 See [Number Axis](./axes-types/#number) for the full range of axis options.
 
@@ -233,7 +231,8 @@ In this configuration:
 - `stroke`, `strokeOpacity` and `strokeWidth` outline the region.
 - `marker` styles the points falling inside that region. Without it, points take the region's `fill` at full
   opacity, which is why an explicit `marker.fill` is needed alongside a gradient.
-- `label` sets the region text and its font styling. Styling shared by every region goes on `regions.label`.
+- `label` sets the region text and its font styling, which defaults to bold. Styling shared by every region goes on
+  `regions.label`.
 
 The remaining three regions follow the same shape, each with its own colour.
 

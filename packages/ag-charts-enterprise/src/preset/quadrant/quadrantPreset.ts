@@ -404,7 +404,7 @@ export function createQuadrant(
     if (alignAxesToPivot) {
         const placement = {
             titlePlacement: options.axisPlacement?.title ?? 'edge',
-            labelPlacement: options.axisPlacement?.label ?? 'crossing',
+            labelPlacement: options.axisPlacement?.label ?? 'edge',
             crosshairLabelPlacement: options.axisPlacement?.crosshairLabel ?? 'edge',
         } as const;
         axes.x.crossAt = { value: pivotY, ...placement };

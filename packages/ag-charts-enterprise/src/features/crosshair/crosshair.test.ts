@@ -733,6 +733,22 @@ describe('Crosshair', () => {
             `);
         });
 
+        it('should hold a label at the axis line when label spacing is smaller than its own padding', async () => {
+            const { x, y } = axesAt();
+            await hoverWithAxes({ x: { ...x, label: { spacing: 6 } }, y: { ...y, label: { spacing: 6 } } });
+
+            expect(labelPlacement('x')).toMatchInlineSnapshot(`
+              [
+                "480px 562px (-50% 0)",
+              ]
+            `);
+            expect(labelPlacement('y')).toMatchInlineSnapshot(`
+              [
+                "44px 250px (-100% -50%)",
+              ]
+            `);
+        });
+
         it('should keep labels at the position edges when crossAt moves the axis lines', async () => {
             await hoverWithAxes(axesAt({ value: 0 }));
 
