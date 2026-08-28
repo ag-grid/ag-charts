@@ -100,7 +100,7 @@ export class SunburstSeriesProperties extends HierarchySeriesProperties<AgSunbur
     innerRadiusRatio?: number;
 
     @Property
-    innerRadiusOffset?: number;
+    innerRadiusSize?: number;
 
     // An OPTIONAL plain-object property, deliberately not a `BaseProperties` subclass: it must stay
     // `undefined` until the user supplies one, so `innerCircle != null` is an exact "user set it"
