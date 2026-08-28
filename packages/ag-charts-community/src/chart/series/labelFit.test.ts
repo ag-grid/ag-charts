@@ -11,11 +11,12 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
+import { DonutNodeTag } from './polar/donutSeries';
 
 const ELLIPSIS = '…';
 
-// The label-fit options are undocumented, so the label objects below are built untyped and cast at the
-// AgCharts.create boundary; `setupMockConsole` fails the test on any "property is unknown" warning.
+// Several series here still keep their label-fit options undocumented, so the label objects below are built
+// untyped and cast at the AgCharts.create boundary; `setupMockConsole` fails on any "property is unknown".
 describe('series label fit', () => {
     setupMockConsole();
 
@@ -25,6 +26,12 @@ describe('series label fit', () => {
     afterEach(() => {
         chart?.destroy();
     });
+
+    const render = async (options: object) => {
+        prepareTestOptions(options as any);
+        chart = AgCharts.create(options as any);
+        await waitForChartStability(chart);
+    };
 
     const renderAndSnapshot = async (options: object) => {
         prepareTestOptions(options as any);
@@ -247,6 +254,37 @@ describe('series label fit', () => {
         return (series.labelSelection?.nodes() ?? []).filter((node) => node.visible).map((node) => node.text);
     };
 
+    type SectorLabelNode = { visible: boolean; text: string; fontSize: number };
+    const sectorNodes = (seriesIndex = 0): SectorLabelNode[] => {
+        const series = deproxy(chart as any).series[seriesIndex] as unknown as {
+            labelSelection?: { nodes: () => SectorLabelNode[] };
+        };
+        return (series.labelSelection?.nodes() ?? []).filter((node) => node.visible && node.text !== '');
+    };
+
+    const calloutNodes = (seriesIndex = 0): SectorLabelNode[] => {
+        const series = deproxy(chart as any).series[seriesIndex] as unknown as {
+            calloutLabelSelection: { selectByTag: (tag: number) => SectorLabelNode[] };
+        };
+        return series.calloutLabelSelection
+            .selectByTag(DonutNodeTag.CalloutLabel)
+            .filter((node) => node.visible && node.text !== '');
+    };
+
+    // Collision avoidance shrinks the pie to fit the callout labels it measured, so a smaller label leaves a larger pie.
+    const sectorRadius = (seriesIndex = 0): number => {
+        const series = deproxy(chart as any).series[seriesIndex] as unknown as {
+            getNodeData: () => { outerRadius: number }[] | undefined;
+        };
+        return series.getNodeData()?.[0]?.outerRadius ?? 0;
+    };
+
+    // Enough sectors that their callout labels crowd each other, so collision avoidance has to hide some.
+    const crowdedCalloutData = Array.from({ length: 14 }, (_, i) => ({
+        value: 10,
+        label: `Region ${i} of the survey`,
+    }));
+
     for (const type of ['pie', 'donut'] as const) {
         it(`auto-fits ${type} sector labels to the wedge with wrapping and truncation`, async () => {
             await renderAndSnapshot({
@@ -289,6 +327,165 @@ describe('series label fit', () => {
             // Only the smallest wedge ends in an ellipsis: see the known limitation in textWrapper.test.ts,
             // where a band narrowed to nothing drops the rest of the text without marking it.
             expect(someTruncated(sectorTexts())).toBe(true);
+        });
+
+        it(`bounds ${type} sector labels by an explicit maxWidth`, async () => {
+            await renderAndSnapshot({
+                data: sectorLabelData,
+                legend: { enabled: false },
+                series: [
+                    {
+                        type,
+                        angleKey: 'value',
+                        sectorLabelKey: 'label',
+                        ...(type === 'donut' ? { innerRadiusRatio: 0.3 } : {}),
+                        sectorLabel: { enabled: true, maxWidth: 40 },
+                    },
+                ],
+            });
+            const texts = sectorTexts();
+            expect(someWrapped(texts)).toBe(true);
+            expect(someTruncated(texts)).toBe(true);
+        });
+
+        it(`shrinks ${type} sector labels toward minimumFontSize before truncating`, async () => {
+            const sectorLabel = { enabled: true, fontSize: 16, wrapping: 'never' as const, truncate: true };
+            await render({
+                data: sectorLabelData,
+                legend: { enabled: false },
+                series: [
+                    {
+                        type,
+                        angleKey: 'value',
+                        sectorLabelKey: 'label',
+                        ...(type === 'donut' ? { innerRadiusRatio: 0.3 } : {}),
+                        sectorLabel: { ...sectorLabel, minimumFontSize: 5 },
+                    },
+                ],
+            });
+            const shrunk = sectorNodes();
+            expect(shrunk.length).toBeGreaterThan(0);
+            expect(shrunk.some((node) => node.fontSize < 16)).toBe(true);
+            expect(shrunk.every((node) => node.fontSize >= 5)).toBe(true);
+
+            chart.destroy();
+            await render({
+                data: sectorLabelData,
+                legend: { enabled: false },
+                series: [
+                    {
+                        type,
+                        angleKey: 'value',
+                        sectorLabelKey: 'label',
+                        ...(type === 'donut' ? { innerRadiusRatio: 0.3 } : {}),
+                        sectorLabel,
+                    },
+                ],
+            });
+            const unshrunk = sectorNodes();
+            expect(unshrunk.every((node) => node.fontSize === 16)).toBe(true);
+            // Shrinking buys text back: what truncates at the configured size survives at a smaller one.
+            expect(someTruncated(shrunk.map((node) => node.text))).toBe(false);
+            expect(someTruncated(unshrunk.map((node) => node.text))).toBe(true);
+        });
+
+        it(`shrinks ${type} callout labels toward minimumFontSize before truncating`, async () => {
+            await render({
+                data: sectorLabelData,
+                legend: { enabled: false },
+                series: [
+                    {
+                        type,
+                        angleKey: 'value',
+                        calloutLabelKey: 'label',
+                        calloutLabel: {
+                            enabled: true,
+                            avoidCollisions: false,
+                            maxWidth: 80,
+                            wrapping: 'never',
+                            truncate: true,
+                            minimumFontSize: 5,
+                        },
+                    },
+                ],
+            });
+            const rendered = calloutNodes();
+            expect(rendered.length).toBeGreaterThan(0);
+            expect(rendered.some((node) => node.fontSize < 12)).toBe(true);
+            expect(rendered.every((node) => node.fontSize >= 5)).toBe(true);
+        });
+
+        it(`composes ${type} callout label fitting with avoidCollisions`, async () => {
+            // Collision avoidance reserves the fitted text's box, so a shrunk label frees radius for the pie.
+            const calloutLabel = {
+                enabled: true,
+                avoidCollisions: true,
+                fontSize: 16,
+                maxWidth: 90,
+                wrapping: 'never' as const,
+                truncate: true,
+            };
+            const chartOf = (label: object) => ({
+                data: crowdedCalloutData,
+                legend: { enabled: false },
+                series: [{ type, angleKey: 'value', calloutLabelKey: 'label', calloutLabel: label }],
+            });
+
+            await render(chartOf({ ...calloutLabel, minimumFontSize: 5 }));
+            const shrunk = calloutNodes();
+            const shrunkRadius = sectorRadius();
+            expect(shrunk.some((node) => node.fontSize < 16)).toBe(true);
+
+            chart.destroy();
+            await render(chartOf(calloutLabel));
+            expect(calloutNodes().every((node) => node.fontSize === 16)).toBe(true);
+            expect(shrunkRadius).toBeGreaterThan(sectorRadius());
+        });
+
+        it(`fits ${type} callout labels to the font an itemStyler resolves`, async () => {
+            const calloutLabel = {
+                enabled: true,
+                avoidCollisions: false,
+                fontSize: 20,
+                maxWidth: 70,
+                wrapping: 'never' as const,
+                truncate: true,
+                minimumFontSize: 6,
+            };
+            const chartOf = (label: object) => ({
+                data: sectorLabelData,
+                legend: { enabled: false },
+                series: [{ type, angleKey: 'value', calloutLabelKey: 'label', calloutLabel: label }],
+            });
+            const drawn = () => calloutNodes().map((node) => [node.fontSize, node.text]);
+
+            // A styler resolving a font is equivalent to configuring the same font on the series, so a fit that
+            // measured the series font instead would wrap and truncate against metrics the label is not drawn in.
+            await render(chartOf({ ...calloutLabel, fontFamily: 'monospace' }));
+            const configured = drawn();
+            expect(configured.length).toBeGreaterThan(0);
+
+            chart.destroy();
+            await render(chartOf({ ...calloutLabel, itemStyler: () => ({ fontFamily: 'monospace' }) }));
+            expect(drawn()).toEqual(configured);
+        });
+
+        it(`bounds ${type} callout labels by an explicit maxWidth`, async () => {
+            await renderAndSnapshot({
+                data: sectorLabelData,
+                legend: { enabled: false },
+                series: [
+                    {
+                        type,
+                        angleKey: 'value',
+                        calloutLabelKey: 'label',
+                        calloutLabel: { enabled: true, maxWidth: 30, wrapping: 'on-space', truncate: true },
+                    },
+                ],
+            });
+            const texts = calloutNodes().map((node) => node.text);
+            expect(someWrapped(texts)).toBe(true);
+            expect(someTruncated(texts)).toBe(true);
         });
     }
 

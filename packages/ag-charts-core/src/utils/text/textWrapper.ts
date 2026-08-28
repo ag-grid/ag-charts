@@ -504,8 +504,8 @@ function hasOwnMinimumFontSize(segment: NormalisedContentSegment): boolean {
  * search steps in whole sizes, so the widest-shrinking range drives it and gives it the most steps to fit on.
  */
 function autoSizeDriver(text: NormalisedTextOrSegments, fit: LabelFit, font: FontOptions): FontSizeRange | undefined {
-    const { minimumFontSize, maxWidth, maxHeight } = fit;
-    if (maxWidth == null && maxHeight == null) return undefined;
+    const { minimumFontSize, maxWidth, maxHeight, region } = fit;
+    if (maxWidth == null && maxHeight == null && region == null) return undefined;
     if (minimumFontSize == null && !(isArray(text) && text.some(hasOwnMinimumFontSize))) return undefined;
 
     let driver = fontSizeRange(font.fontSize, minimumFontSize);

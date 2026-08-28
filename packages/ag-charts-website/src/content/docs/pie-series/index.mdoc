@@ -60,6 +60,44 @@ These functions receive a single object as a parameter containing the options an
 
 Please see the [API reference](#api-reference) for options to customise `calloutLabel`, `calloutLine` and `sectorLabel`, as well as other series customisations.
 
+### Label Fitting
+
+Both label types can be constrained to the space available rather than overflowing or being dropped. Sector labels are fitted to the wedge they sit in, and callout labels to the bounds given by `maxWidth` and `maxHeight`.
+
+{% chartExampleRunner title="Pie Chart with Fitted Labels" name="label-fitting" type="generated" /%}
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'pie',
+            angleKey: 'terawattHours',
+            calloutLabelKey: 'source',
+            sectorLabelKey: 'share',
+            calloutLabel: {
+                maxWidth: 70,
+                wrapping: 'on-space',
+                truncate: true,
+            },
+            sectorLabel: {
+                wrapping: 'on-space',
+                truncate: true,
+                minimumFontSize: 8,
+            },
+        },
+    ],
+}
+```
+
+In this example:
+
+- `maxWidth` and `maxHeight` cap the label size in pixels. A sector label is capped by its wedge as well, and whichever bound is tighter applies.
+- `wrapping` (`'on-space'`, `'always'`, `'hyphenate'`, `'never'`) controls how overflowing text wraps within those bounds.
+- `truncate` appends an ellipsis to whatever still does not fit. With it disabled the label is hidden instead.
+- `minimumFontSize` lets the label shrink to fit before it is truncated or hidden. Switch it on to see cut-short labels render in full at a smaller size.
+
+The Donut Series supports the same options, as shown by the Series control in the example above. See [Series Labels](./series-labels/#collision-avoidance) for how these options behave across other series types.
+
 ## Variable Sector Radius
 
 It is possible to visualise a second variable in the Pie Series by using the `radiusKey` to vary the radius of a sector based on the values. This is also known as a **Rose Chart**.

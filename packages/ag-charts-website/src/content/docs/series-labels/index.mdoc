@@ -128,11 +128,13 @@ In this example:
 - `wrapping` (`'on-space'`, `'always'`, `'hyphenate'`, `'never'`) controls how overflowing text wraps within the provided size or bar boundary.
 - `truncate` truncates whatever still doesn't fit, appending an ellipsis.
 
+Pie and Donut Series configure these options on `calloutLabel` and `sectorLabel` rather than on `label`. See [Pie Series Label Fitting](./pie-series/#label-fitting) for an example.
+
 Series label collision avoidance is separate from [axis label collision avoidance](./axes-labels/#collision-avoidance), which is configured independently on each axis.
 
 ### Reducing the Font Size
 
-Bar, histogram, waterfall, range bar, line, area, scatter and bubble labels can shrink to fit instead of wrapping, truncating or being hidden. Set `minimumFontSize` to the smallest size the label may use:
+Bar, histogram, waterfall, range bar, line, area, scatter, bubble, pie and donut labels can shrink to fit instead of wrapping, truncating or being hidden. Set `minimumFontSize` to the smallest size the label may use:
 
 ```js format="snippet"
 {
