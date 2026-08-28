@@ -1,6 +1,7 @@
 import { toAbsoluteUrl } from '@ag-website-shared/markdoc/toAbsoluteUrl';
 import { getGeneratedContents } from '@components/example-generator';
 import { stripOutExampleGeneratorCode } from '@components/example-runner/components/stripOutExampleGeneratorCode';
+import { resolveGallerySeo } from '@components/gallery/utils/gallerySeo';
 import { getExampleFileUrl, getExampleUrl, getPageUrl } from '@components/gallery/utils/urlPaths';
 import { toTitle } from '@utils/toTitle';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
@@ -11,6 +12,8 @@ export interface GalleryExamplePage {
     title: string;
     name: string;
     seriesTitle: string;
+    /** Chart family key, used to resolve the page's copy. */
+    chartSeriesName: string;
     /** Docs page for the chart type. Absent for series whose docs page follows the default slug. */
     seriesLink?: string;
     enterprise?: boolean;
@@ -28,14 +31,6 @@ export interface BuildGalleryExampleMarkdownOptions {
     /** The three neighbours the page links to, in page order. */
     neighbours: GalleryExampleNeighbour[];
     siteRoot?: string;
-}
-
-/**
- * The page's meta description, shared with `gallery/[pageName].astro` so the twin's frontmatter
- * matches the page's own metadata.
- */
-export function galleryExampleDescription(page: GalleryExamplePage): string {
-    return `Example of a ${page.title} Chart built with AG Charts JavaScript Charting Library. Edit source code with CodeSandbox & Plunker. View JavaScript ${toTitle(page.seriesTitle)} Charts documentation for more info.`;
 }
 
 /** Matches GallerySeriesLink: an explicit `seriesLink`, else the chart type's default docs slug. */
@@ -61,15 +56,14 @@ export async function buildGalleryExampleMarkdown({
     siteRoot,
 }: BuildGalleryExampleMarkdownOptions): Promise<string> {
     const contents = await getGeneratedContents({ type: 'gallery', exampleName });
+    const seo = resolveGallerySeo(page);
 
     const document: string[] = [
-        [
-            '---',
-            `title: ${JSON.stringify(`AG Charts Gallery: ${page.title}`)}`,
-            `description: ${JSON.stringify(galleryExampleDescription(page))}`,
-            '---',
-        ].join('\n'),
-        `# ${page.title}`,
+        ['---', `title: ${JSON.stringify(seo.title)}`, `description: ${JSON.stringify(seo.description)}`, '---'].join(
+            '\n'
+        ),
+        `# ${seo.h1}`,
+        seo.intro,
     ];
 
     const chartType = page.enterprise ? `${page.seriesTitle} (Enterprise)` : page.seriesTitle;
