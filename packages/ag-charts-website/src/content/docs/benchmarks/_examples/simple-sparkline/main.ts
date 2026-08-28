@@ -39,6 +39,12 @@ const optionsWithStyler: AgSparklineOptions = {
     },
 };
 
+// Grid renders bar and area sparklines from the same cell pipeline as line, and each series type
+// resolves its own label geometry, so all three need measuring.
+const barOptions: AgSparklineOptions = { ...options, type: 'bar' };
+
+const areaOptions: AgSparklineOptions = { ...options, type: 'area' };
+
 const chart = AgCharts.__createSparkline(options);
 
 const charts: AgChartInstance<AgSparklineOptions>[] = [];
@@ -108,6 +114,8 @@ interface ChartBatch {
     charts: AgChartInstance<AgSparklineOptions>[];
 }
 
+const barBatch: ChartBatch = { options: barOptions, charts: [] };
+const areaBatch: ChartBatch = { options: areaOptions, charts: [] };
 const plainBatch: ChartBatch = { options, charts: [] };
 const stylerBatch: ChartBatch = { options: optionsWithStyler, charts: [] };
 
@@ -141,6 +149,12 @@ function setupBatches(): void {
 function teardownBatches(): void {
     clearBatch(plainBatch);
     clearBatch(stylerBatch);
+}
+
+/** inScope */
+function setupBatch(batch: ChartBatch): void {
+    clearBatch(batch);
+    fillBatch(batch);
 }
 
 /** inScope */
@@ -340,6 +354,74 @@ function getBenchmarkConfig(): BenchmarkConfig {
                     {
                         params: { Operation: `Recycle ${GRID_BATCH_SIZE} Sparklines`, Options: 'itemStyler' },
                         run: () => performGridScrollChurn(stylerBatch),
+                    },
+                ],
+            },
+            {
+                id: 'grid-batch-creation-bar',
+                label: `Cold Creation (batch of ${GRID_BATCH_SIZE}, bar)`,
+                variants: [
+                    {
+                        params: { Operation: `Create ${GRID_BATCH_SIZE} Sparklines`, Series: 'bar' },
+                        run: () => performGridBatchCreation(barOptions),
+                    },
+                ],
+            },
+            {
+                id: 'grid-batch-update-bar',
+                label: `Data Update (batch of ${GRID_BATCH_SIZE}, bar)`,
+                setup: () => setupBatch(barBatch),
+                teardown: () => clearBatch(barBatch),
+                variants: [
+                    {
+                        params: { Operation: `Update ${GRID_BATCH_SIZE} Sparklines`, Series: 'bar' },
+                        run: () => performGridBatchUpdate(barBatch),
+                    },
+                ],
+            },
+            {
+                id: 'grid-scroll-churn-bar',
+                label: `Scroll Churn (batch of ${GRID_BATCH_SIZE}, bar)`,
+                setup: () => setupBatch(barBatch),
+                teardown: () => clearBatch(barBatch),
+                variants: [
+                    {
+                        params: { Operation: `Recycle ${GRID_BATCH_SIZE} Sparklines`, Series: 'bar' },
+                        run: () => performGridScrollChurn(barBatch),
+                    },
+                ],
+            },
+            {
+                id: 'grid-batch-creation-area',
+                label: `Cold Creation (batch of ${GRID_BATCH_SIZE}, area)`,
+                variants: [
+                    {
+                        params: { Operation: `Create ${GRID_BATCH_SIZE} Sparklines`, Series: 'area' },
+                        run: () => performGridBatchCreation(areaOptions),
+                    },
+                ],
+            },
+            {
+                id: 'grid-batch-update-area',
+                label: `Data Update (batch of ${GRID_BATCH_SIZE}, area)`,
+                setup: () => setupBatch(areaBatch),
+                teardown: () => clearBatch(areaBatch),
+                variants: [
+                    {
+                        params: { Operation: `Update ${GRID_BATCH_SIZE} Sparklines`, Series: 'area' },
+                        run: () => performGridBatchUpdate(areaBatch),
+                    },
+                ],
+            },
+            {
+                id: 'grid-scroll-churn-area',
+                label: `Scroll Churn (batch of ${GRID_BATCH_SIZE}, area)`,
+                setup: () => setupBatch(areaBatch),
+                teardown: () => clearBatch(areaBatch),
+                variants: [
+                    {
+                        params: { Operation: `Recycle ${GRID_BATCH_SIZE} Sparklines`, Series: 'area' },
+                        run: () => performGridScrollChurn(areaBatch),
                     },
                 ],
             },
