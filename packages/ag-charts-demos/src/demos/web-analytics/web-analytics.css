@@ -205,19 +205,27 @@
     min-width: 0;
 }
 
-/* ---- KPI tiles ---- */
-.wa-kpis {
+/* ---- KPI tabs ---- */
+/* Card whose head is the KPI tab strip, which spans the full card width. */
+.wa-card--tabbed {
+    padding-top: 0;
+}
+.wa-kpi-tabs {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 14px;
+    margin: 0 -20px 16px;
+    border-bottom: 1px solid var(--wa-border);
+    background: var(--wa-panel-2);
+    border-radius: calc(var(--wa-radius) - 1px) calc(var(--wa-radius) - 1px) 0 0;
 }
 .wa-kpi {
     position: relative;
     /* A button does not inherit the app font by default. */
     font: inherit;
-    background: var(--wa-panel);
-    border: 1px solid var(--wa-border);
-    border-radius: var(--wa-radius);
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-left: 1px solid var(--wa-border);
     padding: 14px 16px;
     display: flex;
     flex-direction: column;
@@ -226,20 +234,27 @@
     overflow: hidden;
     transition:
         background 0.12s ease,
-        border-color 0.12s ease;
+        color 0.12s ease;
+}
+.wa-kpi:first-child {
+    border-left: 0;
+    border-top-left-radius: inherit;
+}
+.wa-kpi:last-child {
+    border-top-right-radius: inherit;
 }
 .wa-kpi:focus-visible {
     outline: 2px solid var(--wa-accent);
-    outline-offset: 1px;
+    outline-offset: -2px;
 }
-.wa-kpi:hover {
-    border-color: var(--wa-border-strong);
-    background: var(--wa-panel-2);
+.wa-kpi:hover:not(.is-active) {
+    background: var(--wa-panel);
 }
-/* The tile driving the traffic chart, marked by a top rule in the metric's own
-   colour (set inline per metric). */
+/* The selected tab joins the chart panel below it, covering the strip's bottom rule. */
 .wa-kpi.is-active {
-    border-color: var(--wa-border-strong);
+    background: var(--wa-panel);
+    margin-bottom: -1px;
+    padding-bottom: 15px;
 }
 .wa-kpi.is-active::before {
     content: '';
@@ -256,7 +271,7 @@
     letter-spacing: 0.05em;
 }
 .wa-kpi-value {
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 700;
     letter-spacing: -0.02em;
     /* Text ink, not the metric colour — the sparkline already carries that. */
@@ -267,11 +282,13 @@
     font-weight: 600;
     font-variant-numeric: tabular-nums;
 }
-/* Sparkline sits at the foot of the tile, spanning its full width. */
 .wa-kpi-spark-box {
     display: block;
-    height: 34px;
-    margin: 4px -4px -4px;
+    height: 30px;
+    margin: 2px -4px -8px;
+}
+.wa-kpi.is-active .wa-kpi-spark-box {
+    margin-bottom: -15px;
 }
 .wa-kpi-spark {
     width: 100%;
@@ -486,7 +503,7 @@
     .wa-grid-4 {
         grid-template-columns: repeat(2, 1fr);
     }
-    .wa-kpis {
+    .wa-kpi-tabs {
         grid-template-columns: repeat(3, 1fr);
     }
 }
@@ -494,7 +511,7 @@
     .wa-grid-4 {
         grid-template-columns: 1fr;
     }
-    .wa-kpis {
+    .wa-kpi-tabs {
         grid-template-columns: repeat(2, 1fr);
     }
     .wa-body {
@@ -504,6 +521,6 @@
         padding: 12px 14px;
     }
     .wa-kpi-value {
-        font-size: 24px;
+        font-size: 22px;
     }
 }

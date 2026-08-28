@@ -5,7 +5,7 @@ import { fmtInt } from '../format';
 import { METRIC_BY_KEY, type MetricKey } from '../metrics';
 import type { Annotation, Session } from '../types';
 import { EmptyState } from './EmptyState';
-import { type KpiDef, KpiTiles } from './KpiTiles';
+import { type KpiDef, KpiTiles, kpiTabId } from './KpiTiles';
 import { SessionsGrid, type SessionsGridHandle } from './SessionsGrid';
 import { TrafficChart } from './TrafficChart';
 import { dayKey, sameDaySet } from './dateFilter';
@@ -96,19 +96,16 @@ export function OverviewView({
 
     return (
         <div className="wa-view">
-            <KpiTiles kpis={kpis} activeKey={metric} onSelect={onMetricSelect} />
-
-            <section className="wa-card">
+            <section className="wa-card wa-card--tabbed">
+                <KpiTiles kpis={kpis} activeKey={metric} onSelect={onMetricSelect} />
                 <div className="wa-card-head">
                     <div>
-                        <h2 className="wa-card-title">{metricLabel} over time</h2>
                         <span className="wa-card-sub">
-                            Pick a KPI above to change this chart · click or drag across points to filter the sessions
-                            below · click empty space to clear
+                            Click or drag across points to filter the sessions below · click empty space to clear
                         </span>
                     </div>
                 </div>
-                <div className="wa-chart-box">
+                <div className="wa-chart-box-lg" role="tabpanel" aria-labelledby={kpiTabId(metric)}>
                     {hasData ? (
                         <TrafficChart
                             metric={metric}
