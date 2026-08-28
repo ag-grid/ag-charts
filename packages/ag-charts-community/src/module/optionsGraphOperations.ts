@@ -543,7 +543,9 @@ function ifOperation(graph: OptionsGraphInterface, vertex: VertexInterface, valu
     return resolveConditionalBranch(graph, vertex, branchVertex);
 }
 
-// Re-parent the branch's children onto the vertex so that an object branch expands as a sub-tree.
+// Re-parent the branch's children onto the vertex so that an object branch expands as a sub-tree. A key the vertex
+// already has a child for keeps that child: two children of one key both resolve onto the same path in an order
+// neither controls, and the existing one comes from a source of at least equal priority.
 function resolveConditionalBranch(
     graph: OptionsGraphInterface,
     vertex: VertexInterface,
@@ -552,6 +554,8 @@ function resolveConditionalBranch(
     const neighbours = graph.neighboursWithEdgeValue(branchVertex, PATH_EDGE);
     if (neighbours) {
         for (const neighbour of neighbours) {
+            const key = graph.getVertexValue(neighbour);
+            if (graph.findNeighbourWithValue(vertex, key, PATH_EDGE)) continue;
             graph.addEdge(vertex, neighbour, PATH_EDGE);
         }
     }
