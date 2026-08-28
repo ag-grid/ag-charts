@@ -285,7 +285,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             sizeKey,
             sizeName,
             innerRadiusRatio,
-            innerRadiusOffset,
+            innerRadiusSize,
             innerCircle,
         } = this.properties;
 
@@ -297,13 +297,14 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         // No hole unless one of the inner-radius options is explicitly set - the short-circuit keeps an
         // unconfigured sunburst identical to before.
         const requestedHole =
-            innerRadiusRatio == null && innerRadiusOffset == null
+            innerRadiusRatio == null && innerRadiusSize == null
                 ? 0
-                : radius * (innerRadiusRatio ?? 0) + (innerRadiusOffset ?? 0);
-        // A hole that is negative, or that would consume the whole radius and leave the data no room,
-        // degrades to no hole rather than to degenerate geometry - as `DonutSeries.getInnerRadius()` does.
-        const hole = requestedHole > 0 && requestedHole < radius ? requestedHole : 0;
-        const radiusScale = (radius - hole) / (maxDepth + 1);
+                : radius * (innerRadiusRatio ?? 0) + (innerRadiusSize ?? 0);
+        // The hole is measured outwards from the centre and is deliberately NOT capped at the series
+        // radius: a hole larger than the radius leaves the sectors no room, which renders an empty
+        // chart rather than silently snapping back to a full sunburst.
+        const hole = Math.max(requestedHole, 0);
+        const radiusScale = Math.max(radius - hole, 0) / (maxDepth + 1);
         const angleOffset = -Math.PI / 2;
 
         const seriesFillBBox: _ModuleSupport.ShapeFillBBox = {
@@ -315,7 +316,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         // The centre region is the carved hole and nothing else. Without an inner-radius option the
         // series renders exactly as it did before the inner circle existed - including a sole 100%
         // root node, whose depth-0 disc keeps its own centre label rather than becoming a container.
-        if (hole > 0) {
+        // A hole that swallows the whole radius leaves no chart at all, centre included.
+        if (hole > 0 && hole < radius) {
             this.centreCircle = { radius: hole };
         }
 
@@ -393,6 +395,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             }
 
             if (depth == null) return;
+            // An oversized hole collapses every sector to zero thickness, and fitting a label to a
+            // zero-height annulus only yields non-finite geometry.
+            if (radiusScale <= 0) return;
 
             const innerRadius = hole + depth * radiusScale + baseInset;
             const outerRadius = hole + (depth + 1) * radiusScale - baseInset;
@@ -574,11 +579,11 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             node.pointerEvents = PointerEvents.None;
         });
         // Gate the warning on whether the inner-radius options are set, not on the hole they compute:
-        // a deliberate `innerRadiusRatio: 0` or an oversized offset is a configured series, not a
-        // misconfigured one, so it renders without a hole and says nothing.
-        if ((innerCircle != null || innerLabels.length > 0) && innerRadiusRatio == null && innerRadiusOffset == null) {
+        // a deliberate `innerRadiusRatio: 0` is a configured series, not a misconfigured one, so it
+        // renders without a hole and says nothing.
+        if ((innerCircle != null || innerLabels.length > 0) && innerRadiusRatio == null && innerRadiusSize == null) {
             this.ctx.logger.warnOnce(
-                'Options [series.innerCircle] and [series.innerLabels] have no effect unless either [series.innerRadiusRatio] or [series.innerRadiusOffset] is set.'
+                'Options [series.innerCircle] and [series.innerLabels] have no effect unless either [series.innerRadiusRatio] or [series.innerRadiusSize] is set.'
             );
         } else if (innerCircle != null) {
             const { fill, fillOpacity = 1 } = innerCircle;
@@ -853,7 +858,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     /**
      * The centre region of the series, resolved by the last layout pass: the hole carved by
-     * `innerRadiusRatio`/`innerRadiusOffset`, or `null` when neither carves one.
+     * `innerRadiusRatio`/`innerRadiusSize`, or `null` when neither carves one.
      */
     resolveCentreCircle(): { radius: number } | null {
         return this.centreCircle;

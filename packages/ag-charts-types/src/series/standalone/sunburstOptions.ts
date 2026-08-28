@@ -83,11 +83,11 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContex
     cornerRadius?: PixelSize;
     /** The ratio of the inner radius of the series. Carves a hole at the centre of the series. */
     innerRadiusRatio?: Ratio;
-    /** The offset in pixels of the inner radius of the series. Carves a hole at the centre of the series. */
-    innerRadiusOffset?: PixelSize;
-    /** Configuration for the area at the centre of the series. Has no effect unless `innerRadiusRatio` or `innerRadiusOffset` is set. */
+    /** The size in pixels of the hole carved at the centre of the series, measured outwards from the centre. Must be greater than zero, and is added to any hole `innerRadiusRatio` carves. It is not capped: a value that reaches the series radius leaves the sectors no room, so nothing is rendered. */
+    innerRadiusSize?: PixelSize;
+    /** Configuration for the area at the centre of the series. Has no effect unless `innerRadiusRatio` or `innerRadiusSize` is set. */
     innerCircle?: AgSunburstInnerCircle;
-    /** Configuration for the labels at the centre of the series. Has no effect unless `innerRadiusRatio` or `innerRadiusOffset` is set. */
+    /** Configuration for the labels at the centre of the series. Has no effect unless `innerRadiusRatio` or `innerRadiusSize` is set. */
     innerLabels?: AgSunburstInnerLabelThemeOptions;
     /** Spacing between the sectors. */
     sectorSpacing?: PixelSize;
@@ -121,7 +121,7 @@ export interface AgSunburstSeriesOptions<TDatum = DatumDefault, TContext = Conte
         Omit<AgSunburstSeriesThemeableOptions<TDatum, TContext>, 'innerLabels'> {
     /** Configuration for the Sunburst Series. */
     type: 'sunburst';
-    /** Configuration for the labels at the centre of the series. Has no effect unless `innerRadiusRatio` or `innerRadiusOffset` is set. */
+    /** Configuration for the labels at the centre of the series. Has no effect unless `innerRadiusRatio` or `innerRadiusSize` is set. */
     innerLabels?: AgSunburstInnerLabel[];
 }
 

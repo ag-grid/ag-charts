@@ -1396,7 +1396,7 @@ describe('SunburstSeries', () => {
         });
     });
 
-    // AG-18282: innerRadiusRatio / innerRadiusOffset carve a hole, innerCircle paints the centre.
+    // AG-18282: innerRadiusRatio / innerRadiusSize carve a hole, innerCircle paints the centre.
     describe('inner circle', () => {
         const MULTI_ROOT_DATA = [
             {
@@ -1435,7 +1435,7 @@ describe('SunburstSeries', () => {
         ];
 
         const UNSUITABLE_WARNING =
-            'AG Charts - Options [series.innerCircle] and [series.innerLabels] have no effect unless either [series.innerRadiusRatio] or [series.innerRadiusOffset] is set.';
+            'AG Charts - Options [series.innerCircle] and [series.innerLabels] have no effect unless either [series.innerRadiusRatio] or [series.innerRadiusSize] is set.';
 
         let proxy: any;
         let lastOptions: AgChartOptions;
@@ -1541,10 +1541,10 @@ describe('SunburstSeries', () => {
         });
 
         it.each([
-            { label: 'offset alone', options: { innerRadiusOffset: 40 }, hole: (_radius: number): number => 40 },
+            { label: 'size alone', options: { innerRadiusSize: 40 }, hole: (_radius: number): number => 40 },
             {
-                label: 'ratio and offset combined',
-                options: { innerRadiusRatio: 0.2, innerRadiusOffset: 30 },
+                label: 'ratio and size combined',
+                options: { innerRadiusRatio: 0.2, innerRadiusSize: 30 },
                 hole: (radius: number): number => radius * 0.2 + 30,
             },
         ])('carves the hole from $label', async ({ options, hole }) => {
@@ -1728,15 +1728,38 @@ describe('SunburstSeries', () => {
             expect(zeroRatio.resolveCentreCircle()).toBeNull();
             expect((zeroRatio as any).innerCircleSelection.nodes()).toHaveLength(0);
             expectWarningsCalls().toEqual([]);
+        });
 
-            const oversizedOffset = await replaceChart({
-                innerRadiusOffset: seriesRadius() * 2,
+        // AG-9835: innerRadiusSize is uncapped, unlike Donut's innerRadiusOffset - a size that
+        // reaches the series radius leaves the sectors no room, so the chart renders empty rather
+        // than snapping back to a full sunburst.
+        it('renders nothing when innerRadiusSize exceeds the series radius', async () => {
+            await createChart();
+            const oversized = await replaceChart({
+                innerRadiusSize: seriesRadius() * 2,
                 innerCircle: { fill: 'red' },
                 innerLabels: [{ text: 'Total' }],
             });
-            expect(oversizedOffset.resolveCentreCircle()).toBeNull();
-            expect((oversizedOffset as any).innerCircleSelection.nodes()).toHaveLength(0);
+
+            expect(oversized.resolveCentreCircle()).toBeNull();
+            expect((oversized as any).innerCircleSelection.nodes()).toHaveLength(0);
+            const maxDepth = maxDepthOf(oversized);
+            for (let depth = 0; depth <= maxDepth; depth += 1) {
+                const ring = atDepth(oversized, depth);
+                expect(ring.length).toBeGreaterThan(0);
+                for (const sector of ring) {
+                    expect(sector.outerRadius).toBeLessThanOrEqual(sector.innerRadius);
+                }
+            }
             expectWarningsCalls().toEqual([]);
+        });
+
+        it('rejects an innerRadiusSize of zero or less', async () => {
+            await createChart({ innerRadiusSize: 0, innerCircle: { fill: 'red' } });
+
+            expectWarningsCalls().toContainEqual([
+                'AG Charts - Option `series[0].innerRadiusSize` cannot be set to `0`; expecting a number greater than 0, ignoring.',
+            ]);
         });
 
         it('lays a sole root label inside its annulus once a hole is carved', async () => {
@@ -1757,8 +1780,8 @@ describe('SunburstSeries', () => {
             const holed = await createChart({ innerRadiusRatio: 0.3 });
             expect(holed.resolveCentreCircle()?.radius).toBeCloseTo(seriesRadius() * 0.3, 5);
 
-            const offset = await replaceChart({ innerRadiusOffset: 20 });
-            expect(offset.resolveCentreCircle()?.radius).toBeCloseTo(20, 5);
+            const sized = await replaceChart({ innerRadiusSize: 20 });
+            expect(sized.resolveCentreCircle()?.radius).toBeCloseTo(20, 5);
 
             // A ratio of zero is "supplied" but carves nothing, so it resolves no centre either.
             const zeroRatio = await replaceChart({ innerRadiusRatio: 0 });
