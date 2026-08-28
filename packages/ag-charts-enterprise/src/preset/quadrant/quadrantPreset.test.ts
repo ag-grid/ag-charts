@@ -16,6 +16,7 @@ import type {
     AgQuadrantRegionLabelOptions,
     AgQuadrantRegionLabelPosition,
     AgQuadrantRegionsLabelOptions,
+    AgSeriesAreaBackgroundRegionLabel,
 } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
@@ -370,6 +371,56 @@ describe('Quadrant Preset', () => {
             expect(ctx.snapshot()).toMatchImage(initialImage);
         }
     );
+
+    describe('region label padding', () => {
+        const paddingOptions = (padding: AgSeriesAreaBackgroundRegionLabel['padding']): AgQuadrantChartOptions => ({
+            ...regionLabelOptions('inside-inner-inner'),
+            theme: {
+                overrides: {
+                    scatter: {
+                        seriesArea: {
+                            backgroundRegions: {
+                                label: {
+                                    border: { enabled: true, stroke: 'indigo', strokeWidth: 2 },
+                                    fill: 'thistle',
+                                    padding,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        const preparedPaddingOptions = (padding: AgSeriesAreaBackgroundRegionLabel['padding']) => {
+            const options = paddingOptions(padding);
+            prepareEnterpriseTestOptions(options);
+            return options;
+        };
+
+        it.each([
+            ['NONE', 0],
+            ['WIDE', 20],
+        ])('for %s it should render to canvas as expected', async (_exampleName, padding) => {
+            chart = AgCharts.createQuadrantChart(preparedPaddingOptions(padding));
+            await compare();
+        });
+
+        // A label border switches the default to the conditional branch of `$applyPadding`, whose sides are vertices
+        // of their own that a themed value must still outrank.
+        it('should render a themed single number identically to the equivalent padding object', async () => {
+            // The mock canvas only backs the first chart created in a test, so reuse one chart.
+            chart = AgCharts.createQuadrantChart(preparedPaddingOptions(20));
+            await waitForChartStability(chart);
+            const shorthandImage = ctx.snapshot();
+            expectNonBlank(shorthandImage);
+
+            await chart.update(preparedPaddingOptions({ top: 20, right: 20, bottom: 20, left: 20 }));
+            await waitForChartStability(chart);
+
+            expect(ctx.snapshot()).toMatchImage(shorthandImage);
+        });
+    });
 });
 
 // The preset `themeTemplate` is baked into the resolved `ChartTheme`, so charts sharing a theme
