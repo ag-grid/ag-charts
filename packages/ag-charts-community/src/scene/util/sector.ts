@@ -1,7 +1,7 @@
 import { type BoxBounds, angleBetween, isBetweenAngles, normalizeAngle180, normalizeAngle360 } from 'ag-charts-core';
 
 import { BBox } from '../bbox';
-import { segmentIntersection } from '../intersection';
+import { boxCrossesSegment, segmentIntersection } from '../intersection';
 
 export interface SectorBoundaries {
     startAngle: number;
@@ -74,16 +74,7 @@ export function isBoxInSector(box: BoxBounds, sector: SectorBoundaries) {
 
 /** True when the sector edge at `angle`, from the centre out to `radius`, crosses `box`. */
 function edgeCrossesBox(box: BoxBounds, angle: number, radius: number) {
-    const x1 = box.x + box.width;
-    const y1 = box.y + box.height;
-    const ex = radius * Math.cos(angle);
-    const ey = radius * Math.sin(angle);
-    return (
-        segmentIntersection(0, 0, ex, ey, box.x, box.y, x1, box.y) === 1 ||
-        segmentIntersection(0, 0, ex, ey, x1, box.y, x1, y1) === 1 ||
-        segmentIntersection(0, 0, ex, ey, x1, y1, box.x, y1) === 1 ||
-        segmentIntersection(0, 0, ex, ey, box.x, y1, box.x, box.y) === 1
-    );
+    return boxCrossesSegment(box, 0, 0, radius * Math.cos(angle), radius * Math.sin(angle));
 }
 
 export function isPointInSector(x: number, y: number, sector: SectorBoundaries) {

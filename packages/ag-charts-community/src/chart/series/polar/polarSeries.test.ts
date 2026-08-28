@@ -101,6 +101,10 @@ const EXAMPLES: Record<string, PolarTestCase> = {
         options: examples.PIE_CALLOUT_LABELS_COLLISIONS,
         assertions: polarChartAssertions({ seriesTypes: ['pie'] }),
     },
+    DONUT_VARIABLE_RADIUS_CALLOUT_COLLISIONS: {
+        options: examples.DONUT_VARIABLE_RADIUS_CALLOUT_COLLISIONS,
+        assertions: polarChartAssertions({ seriesTypes: ['donut'] }),
+    },
 };
 
 describe('PolarSeries', () => {
