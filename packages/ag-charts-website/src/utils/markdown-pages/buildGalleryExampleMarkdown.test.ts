@@ -1,10 +1,11 @@
 import { getGalleryExamples } from '@components/gallery/utils/filesData';
+import { resolveGallerySeo } from '@components/gallery/utils/gallerySeo';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import galleryData from '../../content/gallery/data.json';
-import { buildGalleryExampleMarkdown, galleryExampleDescription } from './buildGalleryExampleMarkdown';
+import { buildGalleryExampleMarkdown } from './buildGalleryExampleMarkdown';
 
 const SITE_ROOT = 'https://www.ag-grid.com/';
 const DIST = join(__dirname, '../../../../../dist/packages/ag-charts-website');
@@ -31,20 +32,16 @@ describe('buildGalleryExampleMarkdown', () => {
         expect(new Set(EXAMPLES.map((example) => example.exampleName)).size).toBe(EXAMPLES.length);
     });
 
-    it("emits frontmatter matching the page's title and description", async () => {
+    it("emits frontmatter, heading and intro matching the page's own copy", async () => {
+        const { page } = EXAMPLES.find((example) => example.exampleName === 'simple-bar')!;
+        const seo = resolveGallerySeo(page);
         const output = await buildFor('simple-bar');
+
         expect(output.startsWith('---\n')).toBe(true);
-        expect(output).toContain('title: "AG Charts Gallery: Bar Chart"');
-        expect(output).toContain(
-            `description: ${JSON.stringify(
-                galleryExampleDescription({
-                    title: 'Bar Chart',
-                    name: 'simple-bar',
-                    seriesTitle: 'Bar',
-                })
-            )}`
-        );
-        expect(output).toContain('\n# Bar Chart');
+        expect(output).toContain(`title: ${JSON.stringify(seo.title)}`);
+        expect(output).toContain(`description: ${JSON.stringify(seo.description)}`);
+        expect(output).toContain(`\n# ${seo.h1}`);
+        expect(output).toContain(seo.intro);
     });
 
     it('names the chart type and links its documentation page', async () => {

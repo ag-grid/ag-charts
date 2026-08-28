@@ -6,7 +6,8 @@ import GalleryExampleRunner from '@components/gallery/components/GalleryExampleR
 import { getGalleryPages } from '@components/gallery/utils/pageData';
 import { GalleryExampleLink } from '@components/gallery/components/GalleryExampleLink';
 import { GallerySeriesLink } from '@components/gallery/components/GallerySeriesLink';
-import { galleryExampleDescription } from '@utils/markdown-pages/buildGalleryExampleMarkdown';
+import { resolveGallerySeo } from '@components/gallery/utils/gallerySeo';
+import { GALLERY_FRAMEWORK_LINKS } from '@components/gallery/galleryFrameworkLinks';
 
 export async function getStaticPaths() {
     const galleryEntry = (await getEntry('gallery', 'data')) as CollectionEntry<'gallery'>;
@@ -19,13 +20,13 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
 const exampleName = Astro.params.pageName;
 
 // Shared with the page's `.md` twin so the two describe the example identically.
-const metaDescription = galleryExampleDescription(page);
+const seo = resolveGallerySeo(page);
 ---
 
-<Layout title={`AG Charts Gallery: ${page.title}`} description={metaDescription} showSearchBar={true}>
+<Layout title={seo.title} description={seo.description} showSearchBar={true}>
     <div class="gallery-page-container layout-max-width-small text-base">
         <div class="title-container">
-            <h1>{page.title}</h1>
+            <h1>{seo.h1}</h1>
             <div class="chart-link-item">
                 <span>
                     {
@@ -39,6 +40,22 @@ const metaDescription = galleryExampleDescription(page);
                 <GallerySeriesLink client:only="react" series={page.seriesTitle} link={page.seriesLink} />
             </div>
         </div>
+
+        <p class="intro">{seo.intro}</p>
+
+        <p class="frameworkLinks text-secondary">
+            {/* Array children are concatenated verbatim, so indentation cannot add stray spaces. */}
+            {
+                [
+                    'Get started with ',
+                    ...GALLERY_FRAMEWORK_LINKS.flatMap(({ label, url }, i) => [
+                        i === 0 ? '' : i === GALLERY_FRAMEWORK_LINKS.length - 1 ? ' or ' : ', ',
+                        <a href={url}>{label}</a>,
+                    ]),
+                    '.',
+                ]
+            }
+        </p>
 
         <GalleryExampleRunner exampleName={exampleName} />
 
@@ -77,6 +94,17 @@ const metaDescription = galleryExampleDescription(page);
     .chart-link-item {
         display: flex;
         align-items: center;
+    }
+
+    .intro {
+        max-width: 70ch;
+        margin-bottom: $spacing-size-2;
+    }
+
+    .frameworkLinks {
+        max-width: 70ch;
+        margin-bottom: $spacing-size-6;
+        font-size: var(--text-fs-sm);
     }
 
     h1 {
