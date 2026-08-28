@@ -919,7 +919,11 @@ jobs:
             # index overlap the image wait below and the test step's container start-up.
             # playwright.sh adopts the running server instead of spawning its own.
             - name: Start Astro Dev Server
-              run: packages/ag-charts-website/playwright.sh --start-dev-server
+              env:
+                  AG_ASTRO_LOG: ${{ github.workspace }}/reports/ag-charts-astro-dev.log
+              run: |
+                  mkdir -p reports
+                  packages/ag-charts-website/playwright.sh --start-dev-server
 
             - name: Await Playwright Image
               id: await_image
@@ -988,23 +992,23 @@ jobs:
                   ./playwright.sh --host test -u changed ${{ matrix.args }}
               timeout-minutes: 15
 
-            # playwright.sh writes the dev server's output to ${RUNNER_TEMP} and nothing else
-            # surfaces it, so a server that wedges or is OOM-killed mid-shard - every remaining
-            # test then failing with ERR_CONNECTION_REFUSED - leaves no trace in the job.
+            # The dev server's output is written to reports/ above, so the artifact carries it.
+            # Print it here too when the shard failed: a server that wedges or dies mid-run -
+            # every remaining test then failing with ERR_CONNECTION_REFUSED - is otherwise
+            # invisible in the job.
             - name: Capture Astro Dev Server Log
               if: always()
               run: |
-                  mkdir -p reports
-                  cp "${RUNNER_TEMP}/ag-charts-astro-dev.log" reports/astro-dev.log 2>/dev/null \
-                    || echo "No Astro dev server log at ${RUNNER_TEMP}/ag-charts-astro-dev.log."
+                  log=reports/ag-charts-astro-dev.log
                   if [ "${{ steps.test.outcome }}" != "success" ] ; then
                     echo "::group::Astro dev server log (last 200 lines)"
-                    tail -n 200 reports/astro-dev.log 2>/dev/null || true
+                    tail -n 200 "${log}" 2>/dev/null || echo "No Astro dev server log at ${log}."
                     echo "::endgroup::"
-                    # A dev server reaped by the kernel is the one death its own log cannot record.
-                    echo "::group::Kernel OOM reports and free memory"
+                    # A kill by the kernel is the one death the log itself cannot record.
+                    echo "::group::Kernel OOM reports, free memory and disk"
                     sudo dmesg 2>/dev/null | grep -iE 'out of memory|oom-kill|killed process' | tail -n 20 || true
                     free -m || true
+                    df -h / || true
                     echo "::endgroup::"
                   fi
 
@@ -1094,7 +1098,11 @@ jobs:
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: Start Astro Dev Server
-              run: packages/ag-charts-website/playwright.sh --start-dev-server
+              env:
+                  AG_ASTRO_LOG: ${{ github.workspace }}/reports/ag-charts-astro-dev.log
+              run: |
+                  mkdir -p reports
+                  packages/ag-charts-website/playwright.sh --start-dev-server
 
             - name: Await Playwright Image
               id: await_image
@@ -1154,23 +1162,23 @@ jobs:
                   ./playwright.sh --host test -u changed --config playwright.cross-browser.config.ts
               timeout-minutes: 15
 
-            # playwright.sh writes the dev server's output to ${RUNNER_TEMP} and nothing else
-            # surfaces it, so a server that wedges or is OOM-killed mid-shard - every remaining
-            # test then failing with ERR_CONNECTION_REFUSED - leaves no trace in the job.
+            # The dev server's output is written to reports/ above, so the artifact carries it.
+            # Print it here too when the shard failed: a server that wedges or dies mid-run -
+            # every remaining test then failing with ERR_CONNECTION_REFUSED - is otherwise
+            # invisible in the job.
             - name: Capture Astro Dev Server Log
               if: always()
               run: |
-                  mkdir -p reports
-                  cp "${RUNNER_TEMP}/ag-charts-astro-dev.log" reports/astro-dev.log 2>/dev/null \
-                    || echo "No Astro dev server log at ${RUNNER_TEMP}/ag-charts-astro-dev.log."
+                  log=reports/ag-charts-astro-dev.log
                   if [ "${{ steps.test.outcome }}" != "success" ] ; then
                     echo "::group::Astro dev server log (last 200 lines)"
-                    tail -n 200 reports/astro-dev.log 2>/dev/null || true
+                    tail -n 200 "${log}" 2>/dev/null || echo "No Astro dev server log at ${log}."
                     echo "::endgroup::"
-                    # A dev server reaped by the kernel is the one death its own log cannot record.
-                    echo "::group::Kernel OOM reports and free memory"
+                    # A kill by the kernel is the one death the log itself cannot record.
+                    echo "::group::Kernel OOM reports, free memory and disk"
                     sudo dmesg 2>/dev/null | grep -iE 'out of memory|oom-kill|killed process' | tail -n 20 || true
                     free -m || true
+                    df -h / || true
                     echo "::endgroup::"
                   fi
 
