@@ -75,12 +75,17 @@ jobs:
               if: ${{ github.event_name != 'schedule' || steps.release_guard.outputs.can_bump == 'true' }}
               run: ./tools/bump-versions.sh ${NEW_VERSION}
 
+            # Plain git rather than EndBug/add-and-commit: the action's git wrapper rejects the
+            # GIT_CONFIG_COUNT set above unless it is opted into, which the action exposes no way
+            # to do, and the variable cannot be unset for a single step.
             - name: Commit Changes
-              uses: EndBug/add-and-commit@v11
               if: ${{ success() && (github.event_name != 'schedule' || steps.release_guard.outputs.can_bump == 'true') }}
-              with:
-                  default_author: github_actions
-                  message: Automated package version bump to ${{ steps.next_version.outputs.version }}.
+              run: |
+                  git config user.name 'github-actions[bot]'
+                  git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+                  git add .
+                  git commit -m "Automated package version bump to ${NEW_VERSION}."
+                  git push
 
             - name: Tag Latest Successful Commit
               uses: EndBug/latest-tag@latest
