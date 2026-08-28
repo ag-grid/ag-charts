@@ -83,6 +83,12 @@ enum PickedFocusStatus {
     PENDING_VIEWPORT_FOCUS,
 }
 
+type SeriesNodeClickCheck = {
+    node: PickedNode;
+    target: SceneNode<unknown> | undefined;
+    defaultPrevented: boolean;
+};
+
 type FocusIndices = {
     datumIndex: number;
     otherIndex: number;
@@ -669,6 +675,7 @@ export class SeriesAreaManager extends BaseManager {
             // Cross-line-only here, and populated whether or not any cross-line listener exists.
             const clicked = this.checkSeriesNodeClick(event, pendingCrossLineCallbacks.allClickParams);
             if (clicked) {
+                if (clicked.defaultPrevented) return;
                 this.emitSeriesAreaClickEvent(event, true, clicked.node, clicked.target);
                 this.update(ChartUpdateType.SERIES_UPDATE);
                 event.sourceEvent.preventDefault();
@@ -910,7 +917,7 @@ export class SeriesAreaManager extends BaseManager {
     private checkSeriesNodeClick(
         event: ClickLikeEvent & { preventZoomDblClick?: boolean },
         crossLineParams: AgClickParams<unknown>[]
-    ): { node: PickedNode; target: SceneNode<unknown> | undefined } | undefined {
+    ): SeriesNodeClickCheck | undefined {
         const pickedNodes = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
         const updated = this.pickManager.onPickedNodesTooltip(pickedNodes);
         if (pickedNodes === undefined || updated.active === undefined) return undefined;
@@ -936,10 +943,9 @@ export class SeriesAreaManager extends BaseManager {
         };
 
         if (event.type === 'click') {
-            const defaultBehavior = firesUserClickListeners
-                ? updated.active.series.fireNodeClickEvent(nodeEventOpts)
-                : true;
-            if (defaultBehavior) {
+            const defaultPrevented: boolean =
+                firesUserClickListeners && updated.active.series.fireNodeClickEvent(nodeEventOpts);
+            if (!defaultPrevented) {
                 const next = this.pickManager.nextCandidate();
                 if (next.active !== undefined) {
                     const { active } = next;
@@ -956,16 +962,15 @@ export class SeriesAreaManager extends BaseManager {
                     });
                 }
             }
-            return { node: updated.active, target: pickedNodes.target };
+            return { node: updated.active, target: pickedNodes.target, defaultPrevented };
         } else if (event.type === 'dblclick') {
             // The Zoom module has no way to listen for non-exact series-rect double-clicks, so flag
             // exact node hits here and let its reset-zoom handler skip them.
             event.preventZoomDblClick = distance === 0;
 
-            if (firesUserClickListeners) {
-                updated.active.series.fireNodeDoubleClickEvent(nodeEventOpts);
-            }
-            return { node: updated.active, target: pickedNodes.target };
+            const defaultPrevented: boolean =
+                firesUserClickListeners && updated.active.series.fireNodeDoubleClickEvent(nodeEventOpts);
+            return { node: updated.active, target: pickedNodes.target, defaultPrevented };
         } else {
             return event.type satisfies never;
         }

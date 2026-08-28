@@ -147,7 +147,7 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     update(opts: { seriesRect?: BBox }): Promise<void> | void;
     updatePlacedLabelData?(labels: PlacedLabel<TLabel>[]): void;
     fireNodeClickEvent(opts: FireNodeEventParams): boolean;
-    fireNodeDoubleClickEvent(opts: FireNodeEventParams): void;
+    fireNodeDoubleClickEvent(opts: FireNodeEventParams): boolean;
     createNodeContextMenuActionEvent(opts: FireNodeEventParams): AgNodeContextMenuActionEvent;
     createNodeParams(datum: TDatum): AgNodeClickParams<unknown>;
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];

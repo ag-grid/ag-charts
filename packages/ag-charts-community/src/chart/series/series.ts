@@ -1248,11 +1248,11 @@ export abstract class Series<
     }
 
     fireNodeClickEvent(opts: FireNodeEventParams): boolean {
-        return !this.callListeners(this.createNodeEvent('seriesNodeClick', opts));
+        return this.callListeners(this.createNodeEvent('seriesNodeClick', opts));
     }
 
     fireNodeDoubleClickEvent(opts: FireNodeEventParams): boolean {
-        return !this.callListeners(this.createNodeEvent('seriesNodeDoubleClick', opts));
+        return this.callListeners(this.createNodeEvent('seriesNodeDoubleClick', opts));
     }
 
     createNodeContextMenuActionEvent(opts: FireNodeEventParams): AgNodeContextMenuActionEvent {
