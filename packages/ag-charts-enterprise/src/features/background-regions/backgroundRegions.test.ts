@@ -358,7 +358,7 @@ const THEMED: AgCartesianChartOptions = {
                             },
                             fontSize: 14,
                             fontWeight: 'bold' as const,
-                            padding: { top: 12, right: 20, bottom: 12, left: 20 },
+                            padding: { top: 4, right: 40, bottom: 4, left: 8 },
                             position: 'inside' as const,
                         },
                     },

@@ -1070,10 +1070,9 @@ function applyPaddingOperation(graph: OptionsGraphInterface, vertex: VertexInter
     const expandedOverrideOption = expandPaddingValue(overrideOption);
     const expandedUserOption = expandPaddingValue(userOption);
 
-    if (expandedOverrideOption == null && expandedUserOption == null) {
-        return expandedDefaultValue;
-    }
-
+    // Graft rather than return a value even when nothing overrides the default, so that each side resolves as its
+    // own vertex. An index-less theme override of an array option is grafted per side, and only reaches the
+    // resolved options through those vertices.
     graph.graftObject(vertex, { ...expandedDefaultValue, ...expandedOverrideOption, ...expandedUserOption });
 
     return RESOLVED_TO_BRANCH;
