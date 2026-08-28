@@ -15,13 +15,10 @@ import {
     DEFAULT_MARKERLESS_LABEL_GAP,
     DebugMetrics,
     applyStyledMarkerSize,
-    cachedTextMeasurer,
     extent,
     isDefined,
     mergeDefaults,
     placedLabelFit,
-    resolveLabelFit,
-    toArray,
     toNumber,
 } from 'ag-charts-core';
 import {
@@ -58,8 +55,6 @@ import {
     processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
-import { expandPlacementLabelBoxExtent } from '../../label';
-import { boundLabelFit, insideMarkerContainer, resolveInsidePlacement } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import { type LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -126,31 +121,6 @@ interface LineSeriesTypes extends PlacedLabelSeriesTypes {
     readonly stackContext: never;
     readonly createNodeDataContext: LineSeriesDatumContext;
 }
-
-type LineLabelContext = Pick<
-    LineSeriesDatumContext,
-    | 'labelsEnabled'
-    | 'labelPadding'
-    | 'labelTextMeasurer'
-    | 'labelFit'
-    | 'labelFitOverflow'
-    | 'labelStyled'
-    | 'labelInsideOffset'
-    | 'labelInsideSize'
-    | 'labelAnchor'
->;
-
-const DISABLED_LABEL_CONTEXT: LineLabelContext = {
-    labelsEnabled: false,
-    labelPadding: { top: 0, right: 0, bottom: 0, left: 0 },
-    labelTextMeasurer: { measureLines: () => ({ width: 0, height: 0 }) },
-    labelFit: undefined,
-    labelFitOverflow: undefined,
-    labelStyled: false,
-    labelInsideOffset: undefined,
-    labelInsideSize: undefined,
-    labelAnchor: undefined,
-};
 
 type LineAnimationData = CartesianAnimationDataOf<LineSeriesTypes>;
 
@@ -515,7 +485,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
 
         const { marker } = this.properties;
         const markerSize = marker.enabled ? marker.size : 0;
-        const labelContext = this.createLabelContext(markerSize);
+        const labelContext = this.resolveLabelContext(marker.shape, markerSize);
 
         return {
             xAxis,
@@ -565,34 +535,6 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             nodes: canIncrementallyUpdate ? this.contextNodeData!.nodeData : [],
             spanPoints: [],
             nodeIndex: 0,
-        };
-    }
-
-    /** OPTIMIZATION: a disabled label reaches no consumer, so none of its geometry is resolved. */
-    private createLabelContext(markerSize: number): LineLabelContext {
-        const { label, marker } = this.properties;
-        if (!label.enabled) return DISABLED_LABEL_CONTEXT;
-
-        const { collision } = label;
-        const {
-            insideOnly,
-            offset: labelInsideOffset,
-            size: labelInsideSize,
-        } = resolveInsidePlacement(toArray(label.placement), marker.shape);
-        const insideFit = insideOnly ? resolveLabelFit(label, false, true) : undefined;
-        return {
-            labelsEnabled: true,
-            labelPadding: expandPlacementLabelBoxExtent(label),
-            labelTextMeasurer: cachedTextMeasurer(label),
-            labelFit: insideFit
-                ? boundLabelFit(insideFit, insideMarkerContainer(markerSize, marker.shape, collision.threshold ?? 0))
-                : resolveLabelFit(label, !collision.alwaysShow),
-            // Keeps the label on a marker too small to hold even an ellipsis.
-            labelFitOverflow: collision.alwaysShow ? insideFit : undefined,
-            labelStyled: label.itemStyler != null,
-            labelInsideOffset,
-            labelInsideSize,
-            labelAnchor: Marker.anchor(marker.shape),
         };
     }
 

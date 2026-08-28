@@ -12,20 +12,21 @@ import { random } from './randomHelpers';
 
 // No `theme` block: theme overrides resolve differently across the versions this benchmark compares,
 // so head-vs-base numbers would not line up. Grid styles sparklines through top-level options anyway.
-const options: AgSparklineOptions = {
+const baseOptions = {
     container: document.getElementById('myChart'),
     background: {
         visible: false,
     },
     minHeight: 0,
     minWidth: 0,
-    type: 'line',
     data: getData(),
     xKey: 'x',
     yKey: 'y',
     width: 708,
     height: 47,
 };
+
+const options: AgSparklineOptions = { ...baseOptions, type: 'line' };
 /* @ag-options-end */
 
 // A function anywhere in the options tree (itemStyler, tooltip.renderer, formatter) disables the
@@ -40,10 +41,11 @@ const optionsWithStyler: AgSparklineOptions = {
 };
 
 // Grid renders bar and area sparklines from the same cell pipeline as line, and each series type
-// resolves its own label geometry, so all three need measuring.
-const barOptions: AgSparklineOptions = { ...options, type: 'bar' };
+// resolves its own label geometry, so all three need measuring. Each derives from the series-agnostic
+// base rather than from `options`, whose type carries line-only properties.
+const barOptions: AgSparklineOptions = { ...baseOptions, type: 'bar' };
 
-const areaOptions: AgSparklineOptions = { ...options, type: 'area' };
+const areaOptions: AgSparklineOptions = { ...baseOptions, type: 'area' };
 
 const chart = AgCharts.__createSparkline(options);
 
