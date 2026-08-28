@@ -59,6 +59,19 @@ function withoutSimplePrefix(title: string): string {
 }
 
 /**
+ * The H1 an example page serves, which is also its anchor text on the hub and in the `.md` twin, so
+ * that a link and its destination name the example identically.
+ */
+export function resolveGalleryH1(page: Pick<GallerySeoPage, 'title' | 'name'>): string {
+    return GALLERY_PAGE_COPY[page.name]?.seoH1 ?? `${withoutSimplePrefix(page.title)} Example`;
+}
+
+/** Heading for a chart family, from its `title` in `data.json`: `Bar` reads as `Bar Charts`. */
+export function galleryFamilyHeading(title: string): string {
+    return title.endsWith('Chart') ? `${title}s` : `${title} Charts`;
+}
+
+/**
  * Lowercase a title for use mid-sentence, leaving initialisms (`OHLC`, `SVG`) and numeric tokens
  * (`100%`) as they are.
  */
@@ -126,7 +139,7 @@ export function resolveGallerySeo(page: GallerySeoPage): GallerySeo {
     const { hook, visualises, configures, adjusts } = familyCopy(page);
 
     const displayTitle = withoutSimplePrefix(page.title);
-    const h1 = overrides.seoH1 ?? `${displayTitle} Example`;
+    const h1 = resolveGalleryH1(page);
     const prose = toProse(displayTitle);
     const article = indefiniteArticle(prose);
 

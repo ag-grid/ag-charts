@@ -1,7 +1,17 @@
 /**
- * On-page copy for the gallery example pages. `resolveGallerySeo` composes a title, H1, meta
- * description and intro from a chart family's row here; `GALLERY_PAGE_COPY` overrides it per page.
+ * On-page copy for the gallery hub and its example pages. `resolveGallerySeo` composes an example
+ * page's title, H1, meta description and intro from a chart family's row here; `GALLERY_PAGE_COPY`
+ * overrides it per page. The hub is a single page, so its copy is written out in full.
  */
+
+/** Copy for the `/gallery/` hub, shared with its `.md` twin. */
+export const GALLERY_HUB_COPY = {
+    title: 'AG Charts Gallery - 100+ JavaScript Chart Examples | AG Charts',
+    h1: 'AG Charts Gallery - JavaScript Chart Examples',
+    description:
+        'Browse 100+ interactive chart examples built with AG Charts: bar, line, pie, area, financial, hierarchical and more. View the live demos and copy the code.',
+    intro: 'The AG Charts gallery contains over 100 live, interactive chart examples - from bar, line, pie and area charts to financial, statistical, hierarchical and specialised types. Every example runs in the browser and comes with copy-ready code for JavaScript, React, Angular and Vue.',
+} as const;
 
 /**
  * Copy shared by every example in a chart family, keyed by the family's `seriesName` in
