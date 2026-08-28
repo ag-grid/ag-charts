@@ -393,13 +393,13 @@ describe('Quadrant Preset theme isolation', () => {
         ({ data: DATA, series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }] }) as unknown as AgChartOptions;
 
     const expectQuadrantStyling = (axes: Record<'x' | 'y', Record<string, any>>) => {
-        expect(axes.x.label.enabled).toBe(false);
-        expect(axes.x.line.width).toBe(2);
+        expect(axes.x.line.enabled).toBe(true);
+        expect(axes.x.line.stroke).toBe('#8c8e8f');
     };
 
     const expectPlainStyling = (axes: Record<'x' | 'y', Record<string, any>>) => {
-        expect(axes.x.label.enabled).toBe(true);
-        expect(axes.x.line.width).toBe(1);
+        expect(axes.x.line.enabled).toBe(false);
+        expect(axes.x.line.stroke).toBe('#dcdddd');
     };
 
     it('does not leak the preset template to a plain chart created afterwards', () => {

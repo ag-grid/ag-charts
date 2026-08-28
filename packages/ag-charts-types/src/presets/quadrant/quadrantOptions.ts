@@ -69,13 +69,9 @@ export interface AgQuadrantPreset<TDatum, TContext>
     maxSize?: PixelSize;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgQuadrantTooltipRendererParams<TDatum, TContext>>;
-    /** Configuration for the horizontal axis, which is always a number axis. Its labels and ticks are hidden by
-     * default, and its line is drawn more heavily than a standard axis line.
-     */
+    /** Configuration for the horizontal axis, which is always a number axis. Its ticks are hidden by default. */
     xAxis?: AgQuadrantAxisOptions<TContext>;
-    /** Configuration for the vertical axis, which is always a number axis. Its labels and ticks are hidden by
-     * default, and its line is drawn more heavily than a standard axis line.
-     */
+    /** Configuration for the vertical axis, which is always a number axis. Its ticks are hidden by default. */
     yAxis?: AgQuadrantAxisOptions<TContext>;
 }
 
@@ -89,7 +85,7 @@ export interface AgQuadrantAxisPlacementOptions {
     /**
      * Whether the axis labels are placed at the crossing point, or at the axis' `position` edge.
      *
-     * Default: `'crossing'`
+     * Default: `'edge'`
      */
     label?: AgCartesianAxisCrossAtPlacement;
     /**

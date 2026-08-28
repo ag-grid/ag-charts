@@ -2,15 +2,17 @@ import { VERSION } from 'ag-charts-community';
 import type { PresetModuleDefinition } from 'ag-charts-core';
 import type { AgQuadrantChartOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
-import { backgroundRegionsTheme } from '../../features/background-regions/backgroundRegionsTheme';
+import {
+    backgroundRegionStyle,
+    backgroundRegionsTheme,
+} from '../../features/background-regions/backgroundRegionsTheme';
 import { createQuadrant } from './quadrantPreset';
 import { quadrantOptionsDefs } from './quadrantPresetOptionsDefs';
 
 const sharedThemeTemplate: ExtensibleSeriesTheme<'bubble' | 'scatter'> = {
     axes: {
         number: {
-            label: { enabled: false },
-            line: { enabled: true, width: 2, stroke: { $foregroundBackgroundMix: 0.5 } },
+            line: { enabled: true, width: 1, stroke: { $foregroundBackgroundMix: 0.5 } },
             tick: { enabled: false },
         },
     },
@@ -19,10 +21,11 @@ const sharedThemeTemplate: ExtensibleSeriesTheme<'bubble' | 'scatter'> = {
             // Manually compose the background regions theme since `$apply` does not compose on top of itself well.
             $apply: [
                 {
-                    ...backgroundRegionsTheme.$apply[0],
+                    ...backgroundRegionStyle,
                     fill: { $palette: 'fill' },
                     fillOpacity: 0.3,
                     stroke: { $palette: 'stroke' },
+                    label: { ...backgroundRegionStyle.label, fontWeight: 'bold' },
                 },
                 backgroundRegionsTheme.$apply[1],
                 backgroundRegionsTheme.$apply[2],

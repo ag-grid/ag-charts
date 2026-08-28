@@ -22,14 +22,12 @@ const options: AgQuadrantChartOptions = {
         min: 0,
         max: 10,
         title: { text: 'Effort' },
-        label: { enabled: true },
         tick: { enabled: true },
     },
     yAxis: {
         min: 0,
         max: 10,
         title: { text: 'Impact' },
-        label: { enabled: true },
         tick: { enabled: true },
     },
 };
