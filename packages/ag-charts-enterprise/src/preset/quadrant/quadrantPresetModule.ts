@@ -12,6 +12,7 @@ import { quadrantOptionsDefs } from './quadrantPresetOptionsDefs';
 const sharedThemeTemplate: ExtensibleSeriesTheme<'bubble' | 'scatter'> = {
     axes: {
         number: {
+            label: { spacing: 6 },
             line: { enabled: true, width: 1, stroke: { $foregroundBackgroundMix: 0.5 } },
             tick: { enabled: false },
         },

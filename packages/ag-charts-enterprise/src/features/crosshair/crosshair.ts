@@ -481,7 +481,9 @@ export class Crosshair
 
         // CSS translate percentages avoid synchronous dimension reads.
         if (this.axisCtx.direction === ChartAxisDirection.X) {
-            padding -= 4;
+            // Cancels the label's own padding so its text, not its box, sits `spacing` from the line; the
+            // clamp keeps a small `spacing` from pulling the box over the line.
+            padding = Math.max(padding - 4, 0);
             const isBottom = axisPosition === 'bottom';
             const lineY = (isBottom ? bounds.y + bounds.height : bounds.y) + crossOffset.y;
             label.show({
@@ -491,7 +493,7 @@ export class Crosshair
                 translateY: isBottom ? '0' : '-100%',
             });
         } else {
-            padding -= 8;
+            padding = Math.max(padding - 8, 0);
             const isRight = axisPosition === 'right';
             const lineX = (isRight ? bounds.x + bounds.width : bounds.x) + crossOffset.x;
             label.show({
