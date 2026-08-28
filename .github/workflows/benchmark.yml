@@ -310,6 +310,10 @@ jobs:
               with:
                   pattern: site-*
                   path: ${{ runner.temp }}/sites
+                  # The action only nests each artifact in its own subdirectory when
+                  # more than one matches, and an npm base builds head alone. Flatten
+                  # instead — the two tarball names are already distinct.
+                  merge-multiple: true
 
             # A published-npm base (npm:<version>) reuses the head site with the
             # published UMD bundles swapped in. Its pages bake absolute library
@@ -320,13 +324,13 @@ jobs:
                   BASE_REF: ${{ needs.resolve.outputs.base }}
               run: |
                   mkdir -p "${RUNNER_TEMP}/site-head" "${RUNNER_TEMP}/site-base"
-                  tar -xzf "${RUNNER_TEMP}/sites/site-head/site-head.tar.gz" -C "${RUNNER_TEMP}/site-head"
+                  tar -xzf "${RUNNER_TEMP}/sites/site-head.tar.gz" -C "${RUNNER_TEMP}/site-head"
                   if [[ "${BASE_REF}" == npm:* ]] ; then
-                    tar -xzf "${RUNNER_TEMP}/sites/site-head/site-head.tar.gz" -C "${RUNNER_TEMP}/site-base"
+                    tar -xzf "${RUNNER_TEMP}/sites/site-head.tar.gz" -C "${RUNNER_TEMP}/site-base"
                     ./tools/benchmark/swap-published-lib.sh "${BASE_REF#npm:}" "${RUNNER_TEMP}/site-base"
                     echo "BASE_PORT=4601" >> $GITHUB_ENV
                   else
-                    tar -xzf "${RUNNER_TEMP}/sites/site-base/site-base.tar.gz" -C "${RUNNER_TEMP}/site-base"
+                    tar -xzf "${RUNNER_TEMP}/sites/site-base.tar.gz" -C "${RUNNER_TEMP}/site-base"
                     echo "BASE_PORT=4602" >> $GITHUB_ENV
                   fi
 
