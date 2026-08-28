@@ -1,4 +1,4 @@
-import type { AxisPluginModuleDefinition } from 'ag-charts-core';
+import { type AxisPluginModuleDefinition, undocumentedThemeOptions } from 'ag-charts-core';
 import type { AgBaseCrossLineOptions } from 'ag-charts-types';
 
 import { VERSION } from '../../version';
@@ -23,7 +23,7 @@ export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions
                 stroke: { $ref: 'foregroundColor' },
                 strokeWidth: 1,
                 label: {
-                    overflow: 'pad-chart',
+                    ...undocumentedThemeOptions({ overflow: 'pad-chart' }),
                     fontSize: { $ref: 'fontSize' },
                     fontFamily: { $ref: 'fontFamily' },
                     fontWeight: { $ref: 'fontWeight' },

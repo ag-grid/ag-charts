@@ -1,12 +1,11 @@
 import { afterEach, describe, it, vi } from 'vitest';
 
-import { mapValues } from 'ag-charts-core';
+import { type CrossLineLabelOverflow, mapValues } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgCartesianCrossLineLabelOptions,
     AgCartesianCrossLineOptions,
     AgCrossLineClickEvent,
-    AgCrossLineLabelOverflow,
     AgCrossLineLabelPosition,
     AgCrossLineListeners,
 } from 'ag-charts-types';
@@ -35,6 +34,11 @@ import { getCrossLinesPlugin } from './getCrossLinesPlugin';
 import * as examples from './test/examples';
 
 type ViFn = ReturnType<typeof vi.fn>;
+
+// `overflow` and `reserveSpace` are undocumented, so they are cast in rather than typed on the options.
+const undocumentedLabel = (
+    label: AgCartesianCrossLineLabelOptions & { overflow?: CrossLineLabelOverflow; reserveSpace?: boolean }
+) => label as AgCartesianCrossLineLabelOptions;
 
 const labelPositions: AgCrossLineLabelPosition[] = [
     'top',
@@ -1193,7 +1197,7 @@ describe('CrossLine', () => {
         const outsidePositions: AgCrossLineLabelPosition[] = labelPositions.filter((p) => !p.startsWith('inside'));
 
         function crossLineWith(
-            overflow: AgCrossLineLabelOverflow,
+            overflow: CrossLineLabelOverflow,
             position: AgCrossLineLabelPosition,
             type: CrossLineType
         ) {
@@ -1204,11 +1208,7 @@ describe('CrossLine', () => {
             return crossLine;
         }
 
-        function paddingFor(
-            overflow: AgCrossLineLabelOverflow,
-            position: AgCrossLineLabelPosition,
-            type: CrossLineType
-        ) {
+        function paddingFor(overflow: CrossLineLabelOverflow, position: AgCrossLineLabelPosition, type: CrossLineType) {
             const into: Partial<Record<AgCrossLineLabelPosition, number>> = {};
             crossLineWith(overflow, position, type).calculatePadding(into);
             return into;
@@ -1254,7 +1254,7 @@ describe('CrossLine', () => {
         });
 
         it('realign-text leaves the series area larger than pad-chart', async () => {
-            const build = (overflow: AgCrossLineLabelOverflow): AgCartesianChartOptions => ({
+            const build = (overflow: CrossLineLabelOverflow): AgCartesianChartOptions => ({
                 ...examples.LINE_CROSSLINES,
                 axes: mapValues(examples.LINE_CROSSLINES.axes ?? {}, (axis: any) =>
                     axis.crossLines
@@ -1306,14 +1306,18 @@ describe('CrossLine', () => {
         it('clip-text truncates a label that would run past the container edge', async () => {
             const veryLongLabel = 'A cross line label far too long to fit the chart it is drawn on';
             const { x, y } = examples.LINE_CROSSLINES.axes as any;
-            const build = (overflow: AgCrossLineLabelOverflow): AgCartesianChartOptions => ({
+            const build = (overflow: CrossLineLabelOverflow): AgCartesianChartOptions => ({
                 ...examples.LINE_CROSSLINES,
                 axes: {
                     x,
                     y: {
                         ...y,
                         crossLines: [
-                            { type: 'line', value: 0.87, label: { text: veryLongLabel, position: 'left', overflow } },
+                            {
+                                type: 'line',
+                                value: 0.87,
+                                label: undocumentedLabel({ text: veryLongLabel, position: 'left', overflow }),
+                            },
                         ],
                     },
                 },
@@ -1347,13 +1351,13 @@ describe('CrossLine', () => {
                             {
                                 type: 'line',
                                 value: 5,
-                                label: {
+                                label: undocumentedLabel({
                                     text: 'A cross line label',
                                     position: 'top',
                                     overflow: 'clip-text',
                                     rotation: 90,
                                     padding,
-                                },
+                                }),
                             },
                         ],
                     },
@@ -1378,7 +1382,7 @@ describe('CrossLine', () => {
 
         // Only `left`/`right` on a vertical axis and `top`/`bottom` on a horizontal one sit outside the
         // cross line, so these four cover every padding branch and all four anchor tables at once.
-        type OverflowCase = { overflow: AgCrossLineLabelOverflow; label?: string };
+        type OverflowCase = { overflow: CrossLineLabelOverflow; label?: string };
 
         function overflowChart(
             xLine: OverflowCase,
@@ -1399,12 +1403,12 @@ describe('CrossLine', () => {
                                 value: 3,
                                 stroke: 'red',
                                 strokeWidth: 1,
-                                label: {
+                                label: undocumentedLabel({
                                     text: xLine.label ?? 'x line top',
                                     position: 'top',
                                     fontSize: 24,
                                     overflow: xLine.overflow,
-                                },
+                                }),
                             },
                             {
                                 type: 'range',
@@ -1413,12 +1417,12 @@ describe('CrossLine', () => {
                                 strokeWidth: 1,
                                 fill: 'green',
                                 fillOpacity: 0.2,
-                                label: {
+                                label: undocumentedLabel({
                                     text: xRange.label ?? 'x range bottom',
                                     position: 'bottom',
                                     fontSize: 24,
                                     overflow: xRange.overflow,
-                                },
+                                }),
                             },
                         ],
                     },
@@ -1431,11 +1435,11 @@ describe('CrossLine', () => {
                                 value: 20,
                                 stroke: 'blue',
                                 strokeWidth: 1,
-                                label: {
+                                label: undocumentedLabel({
                                     text: yLine.label ?? 'y-axis line cross line',
                                     position: 'left',
                                     overflow: yLine.overflow,
-                                },
+                                }),
                             },
                             {
                                 type: 'range',
@@ -1444,11 +1448,11 @@ describe('CrossLine', () => {
                                 strokeWidth: 1,
                                 fill: 'orange',
                                 fillOpacity: 0.2,
-                                label: {
+                                label: undocumentedLabel({
                                     text: yRange.label ?? 'y-axis range cross line',
                                     position: 'right',
                                     overflow: yRange.overflow,
-                                },
+                                }),
                             },
                         ],
                     },
@@ -1499,7 +1503,11 @@ describe('CrossLine', () => {
                         type: 'number',
                         position: 'left',
                         crossLines: [
-                            { type: 'line', value: 50, label: { position: 'inside', ...label, reserveSpace } },
+                            {
+                                type: 'line',
+                                value: 50,
+                                label: undocumentedLabel({ position: 'inside', ...label, reserveSpace }),
+                            },
                         ],
                     },
                 },
@@ -1625,13 +1633,13 @@ describe('CrossLine', () => {
                                 strokeWidth: 1,
                                 fill: 'green',
                                 fillOpacity: 0.1,
-                                label: {
+                                label: undocumentedLabel({
                                     text: 'ROTATED RESERVED',
                                     fontSize: 40,
                                     rotation: 90,
                                     position: 'inside-top',
                                     reserveSpace,
-                                },
+                                }),
                             },
                         ],
                     },
@@ -1647,7 +1655,12 @@ describe('CrossLine', () => {
                                 value: 50,
                                 stroke: 'red',
                                 strokeWidth: 1,
-                                label: { text: 'RESERVED', fontSize: 40, position: 'inside', reserveSpace },
+                                label: undocumentedLabel({
+                                    text: 'RESERVED',
+                                    fontSize: 40,
+                                    position: 'inside',
+                                    reserveSpace,
+                                }),
                             },
                             {
                                 type: 'line',

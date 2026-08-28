@@ -80,23 +80,7 @@ export interface AgBaseCrossLineLabelOptions extends Omit<AgChartLabelStyleOptio
     text?: string;
     /** The font family to use for the label. A single family name, or an array of names used as fallbacks. */
     fontFamily?: FontFamilyFull;
-    /**
-     * How the label behaves when it does not fit the space available.
-     *
-     * - `'pad-chart'` reserves space outside the series area for the label, shrinking the series area to suit.
-     * - `'realign-text'` mirrors the label back across the cross line, so it draws inside the series area.
-     * - `'clip-text'` keeps the label where it is and truncates the text with an ellipsis to fit the chart.
-     *
-     * Polar axes have no padding to reserve, so `'pad-chart'` behaves as a no-op there and the label is
-     * drawn at its configured position.
-     *
-     * Default: `pad-chart`
-     */
-    overflow?: AgCrossLineLabelOverflow;
 }
-
-/** How a Cross Line label behaves when it does not fit the space available. */
-export type AgCrossLineLabelOverflow = 'pad-chart' | 'realign-text' | 'clip-text';
 
 export type AgCrossLineLabelPosition =
     | 'top'

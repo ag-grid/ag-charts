@@ -90,10 +90,13 @@ export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOp
     padding: signedPadding,
     border: borderOptionsDef,
     cornerRadius: number,
-    overflow: union('pad-chart', 'realign-text', 'clip-text'),
     ...fontOptionsDef,
     ...fillOptionsDef,
 };
+
+// Assigned before the defs below spread this object, so every cross-line variant picks it up.
+// @ts-expect-error undocumented option
+commonCrossLineLabelOptionsDefs.overflow = undocumented(union('pad-chart', 'realign-text', 'clip-text'));
 
 // `fill`/`fillOpacity` belong to the `range` variant only, and `id` identifies rather than styles a cross line.
 const crossLineCommonStyleOptionsDefs: OptionsDefs<
@@ -149,7 +152,6 @@ export function crossLineOptionsDefs(
 
 export const cartesianCrossLineLabelOptionsDefs: OptionsDefs<AgCartesianCrossLineLabelOptions> = {
     ...commonCrossLineLabelOptionsDefs,
-    reserveSpace: boolean,
     position: union(
         'top',
         'left',
@@ -171,6 +173,9 @@ export const cartesianCrossLineLabelOptionsDefs: OptionsDefs<AgCartesianCrossLin
     ),
     rotation: number,
 };
+
+// @ts-expect-error undocumented option
+cartesianCrossLineLabelOptionsDefs.reserveSpace = undocumented(boolean);
 
 export const cartesianCrossLineOptionsDefs = crossLineOptionsDefs(defined, cartesianCrossLineLabelOptionsDefs);
 
