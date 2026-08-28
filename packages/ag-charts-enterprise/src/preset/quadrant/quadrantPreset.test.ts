@@ -370,6 +370,54 @@ describe('Quadrant Preset', () => {
             expect(ctx.snapshot()).toMatchImage(initialImage);
         }
     );
+
+    describe('region label padding', () => {
+        const resolvePadding = (padding: unknown, border?: { enabled: boolean }) => {
+            const options = {
+                ...NUMERIC,
+                regions: {
+                    topLeft: { label: { text: 'Top Left' } },
+                    topRight: { label: { text: 'Top Right' } },
+                    bottomLeft: { label: { text: 'Bottom Left' } },
+                    bottomRight: { label: { text: 'Bottom Right' } },
+                },
+                theme: {
+                    overrides: { scatter: { seriesArea: { backgroundRegions: { label: { border, padding } } } } },
+                },
+            } as unknown as AgChartOptions;
+            const { processedOptions } = new _ModuleSupport.ChartOptions(
+                options,
+                {} as AgChartOptions,
+                {},
+                {},
+                {
+                    presetType: 'quadrant',
+                }
+            ) as unknown as {
+                processedOptions: { seriesArea: { backgroundRegions: Array<{ label: { padding: unknown } }> } };
+            };
+            return processedOptions.seriesArea.backgroundRegions.map((region) => region.label.padding);
+        };
+
+        it('applies a themed single number to every region label', () => {
+            expect(resolvePadding(0)).toEqual(Array(4).fill({ top: 0, right: 0, bottom: 0, left: 0 }));
+        });
+
+        it('resolves a themed single number as the equivalent padding object', () => {
+            expect(resolvePadding(3)).toEqual(resolvePadding({ top: 3, right: 3, bottom: 3, left: 3 }));
+        });
+
+        // A label border switches the default to the conditional branch of `$applyPadding`, whose sides are vertices
+        // of their own that a themed value must still outrank.
+        it('applies a themed single number over the wider default of a bordered label', () => {
+            expect(resolvePadding(3, { enabled: true })).toEqual(
+                resolvePadding({ top: 3, right: 3, bottom: 3, left: 3 }, { enabled: true })
+            );
+            expect(resolvePadding(3, { enabled: true })).toEqual(
+                Array(4).fill({ top: 3, right: 3, bottom: 3, left: 3 })
+            );
+        });
+    });
 });
 
 // The preset `themeTemplate` is baked into the resolved `ChartTheme`, so charts sharing a theme
