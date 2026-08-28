@@ -1,6 +1,7 @@
 import type {
     AutoSizedLabelText,
     BakedLabelSource,
+    BarPlacedLabelDatum,
     BarValueAnchor,
     BoxBounds,
     Callback,
@@ -20,6 +21,7 @@ import type {
     OrientationAnchor,
     Point,
     PointLabelDatum,
+    PositionedCandidateResolver,
     PositionedLabelCandidate,
     RectObstacleSource,
     RegionAlign,
@@ -958,6 +960,46 @@ export interface BarPositionedCandidate<
 > extends PositionedLabelCandidate {
     readonly anchor: OrientationAnchor;
     readonly placement: TPlacement;
+    /**
+     * Inputs {@link createBarPositionedCandidateResolver} rebuilds this candidate from under the style its
+     * `itemStyler` resolves there, once the cascade reaches it.
+     */
+    readonly deferred?: BarCandidateDeferred<TPlacement>;
+}
+
+/**
+ * Per-label half of a candidate's inputs, shared by every candidate in one label's list. A subset of
+ * {@link buildBarLabelCandidates}'s own argument object, which stands in as the spec so that positioning a
+ * candidate costs no allocation of its own.
+ */
+interface BarCandidateSpec {
+    readonly isUpward: boolean;
+    readonly isVertical: boolean;
+    readonly spacing: number;
+    readonly crossReversed?: boolean;
+    readonly rect: Bounds;
+    /** Text size under the configured font, used by a candidate no styler resizes. */
+    readonly textWidth: number;
+    readonly textHeight: number;
+    /** Source text, re-measured under a candidate's styled font; unset leaves the candidate unstyled. */
+    readonly text?: NormalisedTextOrSegments;
+    readonly fitted?: boolean;
+    readonly shapeAt?: (anchor: OrientationAnchor) => FitRegion | undefined;
+}
+
+/**
+ * What distinguishes one candidate within its label's {@link BarCandidateSpec}: enough to rebuild its
+ * box under whatever style the `itemStyler` resolves at this placement and orientation.
+ */
+export interface BarCandidateDeferred<TPlacement extends string = BarLabelPlacement> {
+    readonly spec: BarCandidateSpec;
+    readonly placement: BarLabelPlacement;
+    readonly reportedPlacement: TPlacement;
+    readonly orientation: AgChartLabelOrientation;
+    readonly insideRegion: BoxBounds | undefined;
+    readonly region: BoxBounds | undefined;
+    /** Drawn-box extent of the configured style at this placement, used when nothing restyles it. */
+    readonly placementBox: Required<PaddingOptions>;
 }
 
 /**
@@ -987,32 +1029,12 @@ function regionAlignOf(textBaseline: CanvasTextBaseline): RegionAlign {
  * With `fitted` set, each candidate also carries the glyph budget its region offers, so the placement
  * engine re-fits the text per candidate instead of every candidate inheriting one up-front truncation.
  *
- * `resolveStyle` makes each candidate's geometry the one its `itemStyler` resolves there, so the engine
- * reserves and tests the box that will actually be drawn and cascades on when the styled box does not fit.
+ * Every candidate is built on the configured style, and a label with an `itemStyler` also carries the
+ * inputs to rebuild itself under the geometry that styler resolves, which the placement engine reaches for
+ * only as the cascade reaches that candidate (see {@link createBarPositionedCandidateResolver}). A label
+ * the engine never sees must resolve its own candidate through {@link resolveBarLabelCandidate}.
  */
-export function buildBarLabelCandidates<TParams, TPlacement extends string = BarLabelPlacement>({
-    isUpward,
-    isVertical,
-    placements: placementList,
-    reportedPlacements,
-    orientations,
-    spacing,
-    label,
-    textWidth,
-    textHeight,
-    rect,
-    insideCrossRegion,
-    crossReversed = false,
-    rejectOutsideStart = false,
-    rejectOutsideEnd = false,
-    hideable = false,
-    plotRegion,
-    fitted = false,
-    shapeAt,
-    text,
-    styleDatum,
-    resolveStyle,
-}: {
+export function buildBarLabelCandidates<TParams, TPlacement extends string = BarLabelPlacement>(args: {
     isUpward: boolean;
     isVertical: boolean;
     placements: readonly BarLabelPlacement[];
@@ -1049,13 +1071,25 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
      * of a non-rectangular mark. Each line is then wrapped to the width the shape offers where it lands.
      */
     shapeAt?: (anchor: OrientationAnchor) => FitRegion | undefined;
-    /** Source text, re-measured under each candidate's styled font; required alongside `resolveStyle`. */
+    /** Source text, re-measured under a candidate's styled font; unset leaves every candidate unstyled. */
     text?: NormalisedTextOrSegments;
-    /** The label's node datum, passed to `resolveStyle` as the styler's subject. */
-    styleDatum?: SeriesNodeDatum;
-    /** The `itemStyler` geometry at one candidate; unset leaves every candidate on the configured style. */
-    resolveStyle?: BarCandidateStyleResolver;
 }): BarPositionedCandidate<TPlacement>[] {
+    const {
+        isUpward,
+        isVertical,
+        placements: placementList,
+        reportedPlacements,
+        orientations,
+        spacing,
+        label,
+        rect,
+        insideCrossRegion,
+        rejectOutsideStart = false,
+        rejectOutsideEnd = false,
+        hideable = false,
+        plotRegion,
+        text,
+    } = args;
     // Drop the outside placements that would point into an adjacent stacked segment on that side, so the
     // cascade falls through to a beside/inside candidate rather than mislabelling the neighbour.
     const rejectsOutside = rejectOutsideStart || rejectOutsideEnd;
@@ -1075,6 +1109,8 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
 
     // `plotRegion` is a collision-only boundary for outside/beside candidates: a label overflowing it fails
     // containment so the cascade falls through, rather than being clamped into it.
+    // Nothing restyles a label with no `itemStyler`, so its candidates are final as built.
+    const restyleable = label.itemStyler != null && text != null;
     const candidates: BarPositionedCandidate<TPlacement>[] = [];
     for (const placementIndex of effectiveIndices) {
         const placement = placementList[placementIndex];
@@ -1097,53 +1133,160 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
         }
         const region = insideRegion ?? plotRegion;
         for (const orientation of orientations) {
-            // A styler can change the font and box per orientation as well as per placement, so the
-            // glyph, the box extent and the anchor they position are all resolved here.
-            const style =
-                styleDatum == null || text == null ? undefined : resolveStyle?.(styleDatum, placement, orientation);
-            const boxPadding = style?.boxPadding ?? placementBox;
-            const glyph = style == null || text == null ? undefined : measureLabelText(text, style.font);
-            const width = (glyph?.width ?? textWidth) + boxPadding.left + boxPadding.right;
-            const height = (glyph?.height ?? textHeight) + boxPadding.top + boxPadding.bottom;
-            const anchor = adjustLabelPlacement({
-                isUpward,
-                isVertical,
-                placement,
-                spacing,
-                boxPadding,
-                rect,
-                crossReversed,
-            });
-            const centre = writeLabelBoxCentre({ x: 0, y: 0 }, anchor, width, height, boxPadding);
-            const rotationDeg = orientationAngles[orientation];
-            const { width: fw, height: fh } = getMinOuterRectSize(rotationDeg, width, height);
-            const box = { x: centre.x - fw / 2, y: centre.y - fh / 2, width: fw, height: fh };
-            candidates.push({
-                box,
-                region,
-                flushToRegion: isInside ? undefined : false,
-                rotation: rotationDeg || undefined,
-                anchor,
-                placement: reportedPlacement,
-                size: style == null ? undefined : { width, height },
-                hidden: style?.hidden,
-                // An outside candidate floats, so it offers no container and only the label's own
-                // maxWidth/maxHeight can truncate it.
-                fitTo: fitted
-                    ? {
-                          container: insideRegion && orientedBarContainer(insideRegion, rotationDeg, boxPadding),
-                          // The container is deflated by the box drawn around the glyph, and the shape has
-                          // to be held clear of its edge by the same amount, or a line wrapped to the full
-                          // width of a taper draws its padding and border outside the mark.
-                          shape: isInside ? insetShapeRegion(shapeAt?.(anchor), boxPadding) : undefined,
-                          shapeAlign: regionAlignOf(anchor.textBaseline),
-                          anchor,
-                          padding: boxPadding,
-                          font: style?.font,
-                      }
-                    : undefined,
-            });
+            // Node data outlives the render, so only a candidate something can still restyle carries the
+            // inputs to rebuild itself; every other label's are dead as its candidate is built.
+            const deferred = restyleable
+                ? { spec: args, placement, reportedPlacement, orientation, insideRegion, region, placementBox }
+                : undefined;
+            candidates.push(
+                positionBarLabelCandidate(
+                    args,
+                    placement,
+                    reportedPlacement,
+                    orientation,
+                    insideRegion,
+                    region,
+                    placementBox,
+                    undefined,
+                    deferred
+                )
+            );
         }
     }
     return candidates;
+}
+
+/**
+ * One candidate's geometry under `style`, or under the configured style when it is unset. A styler can
+ * change the font and box per orientation as well as per placement, so the glyph, the box extent and the
+ * anchor they position are all derived here.
+ *
+ * `deferred` is what the candidate carries for a later restyle, retained as passed. The inputs arrive
+ * positionally, and not as that one object, because this runs per candidate of every bar label of every
+ * datum, where a label with no `itemStyler` has nothing to retain.
+ */
+function positionBarLabelCandidate<TPlacement extends string>(
+    spec: BarCandidateSpec,
+    placement: BarLabelPlacement,
+    reportedPlacement: TPlacement,
+    orientation: AgChartLabelOrientation,
+    insideRegion: BoxBounds | undefined,
+    region: BoxBounds | undefined,
+    placementBox: Required<PaddingOptions>,
+    style: CandidateLabelStyle | undefined,
+    deferred: BarCandidateDeferred<TPlacement> | undefined
+): BarPositionedCandidate<TPlacement> {
+    const { text, shapeAt } = spec;
+    const isInside = placement.startsWith('inside');
+    const boxPadding = style?.boxPadding ?? placementBox;
+    const glyph = style == null || text == null ? undefined : measureLabelText(text, style.font);
+    const width = (glyph?.width ?? spec.textWidth) + boxPadding.left + boxPadding.right;
+    const height = (glyph?.height ?? spec.textHeight) + boxPadding.top + boxPadding.bottom;
+    const anchor = adjustLabelPlacement({
+        isUpward: spec.isUpward,
+        isVertical: spec.isVertical,
+        placement,
+        spacing: spec.spacing,
+        boxPadding,
+        rect: spec.rect,
+        crossReversed: spec.crossReversed ?? false,
+    });
+    const centre = writeLabelBoxCentre({ x: 0, y: 0 }, anchor, width, height, boxPadding);
+    const rotationDeg = orientationAngles[orientation];
+    const { width: fw, height: fh } = getMinOuterRectSize(rotationDeg, width, height);
+    return {
+        box: { x: centre.x - fw / 2, y: centre.y - fh / 2, width: fw, height: fh },
+        region,
+        flushToRegion: isInside ? undefined : false,
+        rotation: rotationDeg || undefined,
+        anchor,
+        placement: reportedPlacement,
+        size: style == null ? undefined : { width, height },
+        hidden: style?.hidden,
+        // An outside candidate floats, so it offers no container and only the label's own
+        // maxWidth/maxHeight can truncate it.
+        fitTo: spec.fitted
+            ? {
+                  container: insideRegion && orientedBarContainer(insideRegion, rotationDeg, boxPadding),
+                  // The container is deflated by the box drawn around the glyph, and the shape has
+                  // to be held clear of its edge by the same amount, or a line wrapped to the full
+                  // width of a taper draws its padding and border outside the mark.
+                  shape: isInside ? insetShapeRegion(shapeAt?.(anchor), boxPadding) : undefined,
+                  shapeAlign: regionAlignOf(anchor.textBaseline),
+                  anchor,
+                  padding: boxPadding,
+                  font: style?.font,
+              }
+            : undefined,
+        deferred,
+    };
+}
+
+/** {@link positionBarLabelCandidate} for a candidate rebuilt under `style` from its retained inputs. */
+function restyleBarLabelCandidate<TPlacement extends string>(
+    deferred: BarCandidateDeferred<TPlacement>,
+    style: CandidateLabelStyle | undefined
+): BarPositionedCandidate<TPlacement> {
+    const { spec, placement, reportedPlacement, orientation, insideRegion, region, placementBox } = deferred;
+    return positionBarLabelCandidate(
+        spec,
+        placement,
+        reportedPlacement,
+        orientation,
+        insideRegion,
+        region,
+        placementBox,
+        style,
+        undefined
+    );
+}
+
+/**
+ * One candidate rebuilt under the style its `itemStyler` resolves there, for a label that never reaches
+ * the placement engine: its caller holds the only candidate, so nothing else would run its styler.
+ * Unchanged when nothing can restyle it.
+ */
+export function resolveBarLabelCandidate<TPlacement extends string>(
+    candidate: BarPositionedCandidate<TPlacement>,
+    styleDatum: SeriesNodeDatum,
+    resolveStyle: BarCandidateStyleResolver | undefined
+): BarPositionedCandidate<TPlacement> {
+    const { deferred } = candidate;
+    if (resolveStyle == null || deferred?.spec.text == null) return candidate;
+    return restyleBarLabelCandidate(deferred, resolveStyle(styleDatum, deferred.placement, deferred.orientation));
+}
+
+/**
+ * The hook the placement engine resolves a bar label's candidates through — the positioned-candidate
+ * counterpart of {@link createCandidateStyleResolver}, and the only route by which a cascading bar label's
+ * `itemStyler` runs. `paramsFor` takes the label's own node, for the series whose styler params carry that
+ * node's values.
+ */
+export function createBarPositionedCandidateResolver<TParams>(
+    series: SeriesLike,
+    label: PlacementStyledLabel<TParams>,
+    paramsFor: (styleDatum: SeriesNodeDatum) => TParams,
+    labelPath?: string[]
+): PositionedCandidateResolver | undefined {
+    if (label.itemStyler == null) return undefined;
+    return function resolveCandidate(datum, candidate) {
+        const { styleDatum } = datum as BarPlacedLabelDatum<SeriesNodeDatum>;
+        const { deferred } = candidate as BarPositionedCandidate<string>;
+        if (styleDatum == null || deferred?.spec.text == null) return candidate;
+        const style = resolveCandidateLabelStyle(
+            series,
+            label,
+            paramsFor(styleDatum),
+            labelPath,
+            styleDatum,
+            // The candidate carries the placement its series promised the styler, which is not always the
+            // bar placement its geometry runs on: the funnel family reports its own vocabulary.
+            {
+                style: toResolvedPlacement(deferred.placement),
+                reported: deferred.reportedPlacement as ResolvedPlacement['placement'],
+            },
+            deferred.orientation
+        );
+        return restyleBarLabelCandidate(deferred, style);
+    };
 }

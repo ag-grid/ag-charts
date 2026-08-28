@@ -1,0 +1,50 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <div class="gap-right">
+            <label for="seriesSelect">Series:</label>
+            <select id="seriesSelect" onchange="setSeriesType(event.target.value)">
+                <option value="pie">Pie</option>
+                <option value="donut">Donut</option>
+            </select>
+        </div>
+        <div>
+            <label for="maxWidthSlider">Max Width:</label>
+            <input
+                type="range"
+                id="maxWidthSlider"
+                min="30"
+                max="180"
+                value="70"
+                oninput="setMaxWidth(event)"
+                onchange="setMaxWidth(event)"
+            />
+            <span id="maxWidthValue" style="display: inline-block; min-width: 4ch; text-align: right">70</span>
+        </div>
+    </div>
+    <div class="controls-row">
+        <div class="gap-right">
+            <label for="wrapSelect">Wrapping:</label>
+            <select id="wrapSelect" onchange="setWrapping(event.target.value)">
+                <option value="on-space">on-space</option>
+                <option value="always">always</option>
+                <option value="hyphenate">hyphenate</option>
+                <option value="never">never</option>
+            </select>
+        </div>
+        <div class="gap-right">
+            <label for="minFontSelect">Minimum Font Size:</label>
+            <select id="minFontSelect" onchange="setMinimumFontSize(event.target.value)">
+                <option value="off">Off</option>
+                <option value="8">8</option>
+                <option value="6">6</option>
+            </select>
+        </div>
+        <div>
+            <button onclick="setTruncate(true)">Truncate</button>
+            <button onclick="setTruncate(false)">Hide</button>
+        </div>
+    </div>
+</div>
+<div class="resizable-container">
+    <div id="myChart" class="resizable"></div>
+</div>

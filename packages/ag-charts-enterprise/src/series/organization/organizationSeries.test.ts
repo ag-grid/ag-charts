@@ -3049,7 +3049,9 @@ describe('OrganizationSeries', () => {
             await waitForChartStability(chart);
         }
 
-        it('should hold a node in place when collapsing would carry it off-screen', async () => {
+        it('should fit and centre the chart when a collapse leaves the held view unreachable', async () => {
+            // Collapsing the CTO shrinks the content past the view it was being held at, so the node
+            // cannot stay where it was; the whole chart is shown rather than a clipped part of it.
             await createChart();
 
             await clickItem('Joseph Howe', OrganizationNodeTag.Expander);
@@ -3071,14 +3073,29 @@ describe('OrganizationSeries', () => {
             await compare();
         });
 
-        it('should not move an interacted node that is already fully visible', async () => {
-            // The reflow moves the node in content space regardless, so holding its screen position is a
-            // stronger requirement than not panning; the card is redrawn larger as the fits-floor rises.
+        it('should fit and centre the chart when a collapse raises the content-fits floor', async () => {
+            // The node's centre could still be held here, but only by rescaling the chart around it and
+            // leaving the rest of the tree hanging off the edge of the series area; showing all of it wins.
             await createChart();
 
             await clickItem('Gary Garcia', OrganizationNodeTag.Expander);
             // Guards the snapshot against a click that missed the expander entirely.
             expect(deproxy(chart).ctx.collapsedManager.isCollapsed('Gary Garcia')).toBe(true);
+
+            await compare();
+        });
+
+        it('should not move an interacted node whose view survives the reflow', async () => {
+            // Expanding then collapsing the same node returns the content to the bounds it started at,
+            // so nothing forces the view to move: the baseline here is the chart's opening view,
+            // unchanged. A fallback that fired when it was not needed would re-centre and show up.
+            await createChart();
+
+            await clickItem('Jeffrey Brown', OrganizationNodeTag.Expander);
+            expect(deproxy(chart).ctx.collapsedManager.isCollapsed('Jeffrey Brown')).toBe(false);
+
+            await clickItem('Jeffrey Brown', OrganizationNodeTag.Expander);
+            expect(deproxy(chart).ctx.collapsedManager.isCollapsed('Jeffrey Brown')).toBe(true);
 
             await compare();
         });

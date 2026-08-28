@@ -12,7 +12,9 @@ import {
     constant,
     fillOptionsDef,
     fontOptionsDef,
+    labelAutoFontSizeOptionsDefs,
     labelBoxOptionsDef,
+    labelFitOptionsDefs,
     lineDashOptionsDef,
     multiSeriesHighlightOptionsDef,
     number,
@@ -27,7 +29,6 @@ import {
     textOrSegments,
     tooltipOptionsDefs,
     undocumented,
-    undocumentedLabelFitOptionsDefs,
     without,
 } from 'ag-charts-core';
 import type {
@@ -75,6 +76,8 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
         offset: number,
         minAngle: positiveNumber,
         avoidCollisions: boolean,
+        ...labelFitOptionsDefs,
+        ...labelAutoFontSizeOptionsDefs,
         formatter: callbackOf(textOrSegments),
         format: string,
         itemStyler: callbackDefs<AgChartLabelStyleOptions>({
@@ -89,6 +92,8 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
         enabled: boolean,
         positionOffset: number,
         positionRatio: ratio,
+        ...labelFitOptionsDefs,
+        ...labelAutoFontSizeOptionsDefs,
         formatter: callbackOf(textOrSegments),
         format: string,
         itemStyler: callbackDefs<AgChartLabelStyleOptions>({
@@ -153,6 +158,3 @@ pieSeriesOptionsDef.sectorLabel._enabledFromTheme = undocumented(boolean);
 pieSeriesOptionsDef.angleKeyAxis = undocumented(string);
 // @ts-expect-error undocumented option
 pieSeriesOptionsDef.radiusKeyAxis = undocumented(string);
-
-Object.assign(pieSeriesThemeableOptionsDef.calloutLabel, undocumentedLabelFitOptionsDefs);
-Object.assign(pieSeriesThemeableOptionsDef.sectorLabel, undocumentedLabelFitOptionsDefs);

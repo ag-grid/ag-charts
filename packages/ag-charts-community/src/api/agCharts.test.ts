@@ -1,9 +1,11 @@
 import { type Mock, afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { getDocument } from 'ag-charts-core';
+import { ModuleRegistry, getDocument } from 'ag-charts-core';
 import type { AgChartInstance, AgChartOptions, AgLineSeriesOptions, AgSparklineOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
+import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
+import { LineSeriesModule } from '../chart/series/cartesian/lineSeriesModule';
 import {
     deproxy,
     expectWarningsCalls,
@@ -12,6 +14,8 @@ import {
     setupMockCanvas,
     setupMockConsole,
 } from '../chart/test/utils';
+import { CategoryAxisModule } from '../module/axis-modules/categoryAxisModule';
+import { NumberAxisModule } from '../module/axis-modules/numberAxisModule';
 
 describe('AgCharts', () => {
     setupMockConsole({ includeAllLevels: true });
@@ -504,14 +508,21 @@ describe('AgCharts', () => {
             expect(AgCharts.__validateOptionsArgument(options, 'AgCharts `options` prop')).toBe(options);
         });
 
+        // The enterprise presets are unregistered in this community-only registry, so each also reports
+        // the module the caller needs before its entry point can do anything.
         it.each([
-            ['createFinancialChart', () => AgCharts.createFinancialChart(undefined as any)],
-            ['createGauge', () => AgCharts.createGauge(undefined as any)],
-            ['createQuadrantChart', () => AgCharts.createQuadrantChart(undefined as any)],
-            ['__createSparkline', () => AgCharts.__createSparkline(undefined as any)],
-        ])('names %s in the error it reports', (methodName, call) => {
+            [
+                'createFinancialChart',
+                () => AgCharts.createFinancialChart(undefined as any),
+                ['PriceVolumePresetModule'],
+            ],
+            ['createGauge', () => AgCharts.createGauge(undefined as any), ['GaugePresetModule']],
+            ['createQuadrantChart', () => AgCharts.createQuadrantChart(undefined as any), ['QuadrantChartModule']],
+            ['__createSparkline', () => AgCharts.__createSparkline(undefined as any), []],
+        ])('names %s in the error it reports', (methodName, call, missingModules) => {
             expect(() => (chart = call() as AgChartInstance)).not.toThrow();
             expectErrorCalls().toEqual([
+                ...missingModules.map((moduleId) => [expect.stringContaining(moduleId)]),
                 [
                     expect.stringMatching(
                         new RegExp(`^AG Charts - AgCharts\\.${methodName}\\(\\) requires a non-empty options object`)
@@ -554,6 +565,163 @@ describe('AgCharts', () => {
             await chart.waitForUpdate();
 
             expect(deproxy(chart).series).toHaveLength(1);
+        });
+    });
+    describe('no registered series module for the lead series type', () => {
+        // Restore by value: re-registering a bundle drops anything registered at collection time.
+        async function withOnlyBarRegistered(run: () => void | Promise<void>) {
+            const registeredModules = [...ModuleRegistry.listModules()];
+            ModuleRegistry.reset();
+            ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
+            try {
+                await run();
+            } finally {
+                ModuleRegistry.reset();
+                ModuleRegistry.registerModules(registeredModules);
+            }
+        }
+
+        function takeErrorMessages() {
+            const errorMock = console.error as Mock;
+            const messages = errorMock.mock.calls.map(([message]) => String(message));
+            errorMock.mockClear();
+            return messages;
+        }
+
+        it('reports the implicit `line` default and renders nothing instead of crashing', async () => {
+            await withOnlyBarRegistered(() => {
+                expect(() => (chart = AgCharts.create({ container } as AgChartOptions))).not.toThrow();
+            });
+
+            const messages = takeErrorMessages();
+            expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+            expect(messages.some((m) => m.includes('LineSeriesModule'))).toBe(true);
+            expect(messages.some((m) => m.includes("reading 'dragAction'"))).toBe(false);
+            expect(deproxy(chart).series).toHaveLength(0);
+        });
+
+        it('reports an explicit series type with no module and renders nothing instead of crashing', async () => {
+            await withOnlyBarRegistered(() => {
+                expect(
+                    () =>
+                        (chart = AgCharts.create({
+                            container,
+                            data: [{ x: 'a', y: 1 }],
+                            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                        } as AgChartOptions))
+                ).not.toThrow();
+            });
+
+            const messages = takeErrorMessages();
+            expect(messages.some((m) => m.includes('LineSeriesModule'))).toBe(true);
+            expect(messages.some((m) => m.includes("reading 'dragAction'"))).toBe(false);
+            expect(deproxy(chart).series).toHaveLength(0);
+        });
+
+        it('replaces the refresh listener, so a refresh after the module is registered applies the latest options', async () => {
+            let created: AgChartInstance | undefined;
+            await withOnlyBarRegistered(async () => {
+                created = AgCharts.create({
+                    container,
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                } as AgChartOptions);
+                chart = created!;
+                await chart.waitForUpdate();
+
+                // Skipped — no line module yet — but it must still own the refresh listener.
+                await chart.update({
+                    container,
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                } as AgChartOptions);
+                takeErrorMessages();
+                expect(deproxy(chart).series.map((s) => s.type)).toEqual(['bar']);
+
+                ModuleRegistry.registerModules([LineSeriesModule]);
+                deproxy(chart).ctx.eventsHub.emit('chart:request-refresh', null);
+                await chart.waitForUpdate();
+            });
+
+            expect(deproxy(chart).series.map((s) => s.type)).toEqual(['line']);
+        });
+
+        it('keeps the skipped options as the base, so a later delta update recovers them', async () => {
+            await withOnlyBarRegistered(async () => {
+                chart = AgCharts.create({
+                    container,
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                } as AgChartOptions);
+                await chart.waitForUpdate();
+
+                await chart.update({
+                    container,
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                } as AgChartOptions);
+                takeErrorMessages();
+
+                ModuleRegistry.registerModules([LineSeriesModule]);
+                // A delta cannot restate the series, so it must merge onto the skipped options.
+                await chart.updateDelta({ data: [{ x: 'a', y: 2 }] });
+                await chart.waitForUpdate();
+            });
+
+            expect(deproxy(chart).series.map((s) => s.type)).toEqual(['line']);
+        });
+
+        it('resolves the lead series type from the post-sentinel options on a full update()', async () => {
+            await withOnlyBarRegistered(async () => {
+                ModuleRegistry.registerModules([LineSeriesModule]);
+                chart = AgCharts.create({
+                    container,
+                    title: { text: 'Dropped by the next update' },
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                } as AgChartOptions);
+                await chart.waitForUpdate();
+
+                // Omitting `title` makes the diff carry removal sentinels, so the lead type has to be
+                // read from options the sentinels have already been cleaned out of.
+                await chart.update({
+                    container,
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                } as AgChartOptions);
+                await chart.waitForUpdate();
+            });
+
+            expect(console.error).not.toHaveBeenCalled();
+            expect(deproxy(chart).series.map((s) => s.type)).toEqual(['line']);
+        });
+
+        it('skips a chart-driven update instead of crashing on the pruned chart-level defaults', async () => {
+            // The constructor updates (via `parentResize`) before `AgCharts.create()` can short-circuit,
+            // so the skip has to hold inside `Chart.update()` too.
+            await withOnlyBarRegistered(() => {
+                chart = AgCharts.create({ container } as AgChartOptions);
+                expect(() => deproxy(chart).update()).not.toThrow();
+            });
+
+            takeErrorMessages();
+            expect(deproxy(chart).series).toHaveLength(0);
+        });
+
+        it('still renders a series type that is registered', async () => {
+            let created: AgChartInstance | undefined;
+            await withOnlyBarRegistered(() => {
+                created = AgCharts.create({
+                    container,
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                } as AgChartOptions);
+            });
+            chart = created!;
+            await chart.waitForUpdate();
+
+            expect(deproxy(chart).series).toHaveLength(1);
+            expect(console.error).not.toHaveBeenCalled();
         });
     });
 });

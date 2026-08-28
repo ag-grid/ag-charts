@@ -10,6 +10,7 @@ import type {
     PlacedLabel,
     Point,
     PointLabelDatum,
+    PositionedCandidateResolver,
     RequireOptional,
     Scale,
 } from 'ag-charts-core';
@@ -86,13 +87,14 @@ import {
     valueProperty,
 } from '../../data/processors';
 import { expandPlacementLabelBoxExtent, resolvePlacementLabelBoxExtent } from '../../label';
-import type { BarCandidateStyleResolver, BarLabelPlacement, BarPositionedCandidate } from '../../labelUtil';
+import type { BarLabelPlacement, BarPositionedCandidate } from '../../labelUtil';
 import {
     adjustLabelPlacement,
     barLabelDataContext,
     barLabelObstaclesFor,
     buildBarLabelCandidates,
     createBarCandidateStyleResolver,
+    createBarPositionedCandidateResolver,
     fitLabelToContainerAutoSize,
     insideBarLabelBounds,
     pickPlacementStyle,
@@ -247,8 +249,6 @@ interface BarSeriesNodeDatumContext {
     readonly labelRotation: number;
     readonly labelResolvesOrientation: boolean;
     readonly labelFit: LabelFit | undefined;
-    /** Resolves each candidate's styled geometry; unset when no `itemStyler` can change it. */
-    readonly labelCandidateStyle: BarCandidateStyleResolver | undefined;
     readonly yDomain: any[];
 }
 
@@ -682,16 +682,21 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         // A legend-hidden neighbour contributes no segment, so it must not block a label's outside placement.
         const stackNeighbours = this.ctx.seriesStateManager.getVisibleStackNeighbours(this);
         const { label } = this.properties;
-        const plotRegion = this.resolveLabelPlotRegion(label.collision);
+        // OPTIMIZATION: every consumer of the geometry below sits behind a `label.enabled` check on the
+        // per-datum path, so a disabled label must not resolve any of it.
+        const labelsEnabled = label.enabled;
         const labelPlacements = toArray(label.placement);
         if (labelPlacements.length === 0) labelPlacements.push('inside-center');
         const labelPlacement = labelPlacements[0];
         const placementStyle = labelPlacement?.startsWith('inside') ? label.insideStyle : label.outsideStyle;
+        const plotRegion = labelsEnabled ? this.resolveLabelPlotRegion(label.collision) : undefined;
         // Full drawn-box extent (padding + border half-stroke) facing the bar, so the anchor keeps the
         // box's outer edge — not just its padding boundary — `spacing` from the bar.
-        const boxPadding = resolvePlacementLabelBoxExtent(label, placementStyle);
+        const boxPadding = labelsEnabled
+            ? resolvePlacementLabelBoxExtent(label, placementStyle)
+            : { bottom: 0, left: 0, right: 0, top: 0 };
         const alwaysShow = label.collision.alwaysShow;
-        const labelFit = resolveLabelFit(label, !alwaysShow);
+        const labelFit = labelsEnabled ? resolveLabelFit(label, !alwaysShow) : undefined;
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
         const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
@@ -776,7 +781,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             labelRotation: barLabelRotation(toArray(label.orientation)[0]),
             labelResolvesOrientation: barLabelResolvesOrientation(label.orientation),
             labelFit,
-            labelCandidateStyle: createBarCandidateStyleResolver(this, label, this.makeLabelFormatterParams()),
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
         };
     }
@@ -1062,9 +1066,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 plotRegion: ctx.plotRegion,
                 fitted: ctx.labelFit != null,
                 text: nodeLabelText,
-                // `datum`/`datumIndex` are already written above, so the styler sees this datum's values.
-                styleDatum: node,
-                resolveStyle: ctx.labelCandidateStyle,
             });
             if (candidates.length === 0) {
                 // Every placement points into a stacked neighbour, so there is nowhere left to put a
@@ -1875,7 +1876,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                         collideWith,
                         threshold,
                         false,
-                        fitFor(nodeLabel.text)
+                        fitFor(nodeLabel.text),
+                        // `datum`/`datumIndex` are written at node-data time, so a candidate resolved
+                        // from here shows the styler this datum's values.
+                        node
                     )
                 );
             }
@@ -1909,6 +1913,11 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 fit: fit == null || styled == null ? fit : { ...fit, font: styled.font, boxPadding: styled.boxPadding },
             };
         });
+    }
+
+    override getLabelCandidateResolver(): PositionedCandidateResolver | undefined {
+        const params = this.makeLabelFormatterParams();
+        return createBarPositionedCandidateResolver(this, this.properties.label, () => params);
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<BarNodeDatum>[]) {

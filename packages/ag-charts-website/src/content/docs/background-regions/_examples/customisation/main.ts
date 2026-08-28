@@ -43,6 +43,7 @@ const options: AgCartesianChartOptions = {
                 label: {
                     text: 'Adelie',
                     position: 'inside-top',
+                    yOffset: 8,
                     color: '#2b5c95',
                     fontSize: 13,
                     fontWeight: 'bold',
@@ -66,6 +67,7 @@ const options: AgCartesianChartOptions = {
                 label: {
                     text: 'Chinstrap',
                     position: 'inside-top',
+                    yOffset: 8,
                     color: '#cc6f10',
                     fontSize: 13,
                     fontWeight: 'bold',
@@ -89,6 +91,7 @@ const options: AgCartesianChartOptions = {
                 label: {
                     text: 'Gentoo',
                     position: 'inside-top',
+                    yOffset: 8,
                     color: '#1e652e',
                     fontSize: 13,
                     fontWeight: 'bold',

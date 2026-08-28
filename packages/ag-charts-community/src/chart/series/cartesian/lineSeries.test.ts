@@ -53,6 +53,7 @@ import {
     expectMonotonic,
     expectNoAnimation,
     expectSceneTrajectory,
+    getVisibleLabelNodes,
     hoverAction,
     mixinReversedAxesCases,
     prepareTestOptions,
@@ -1957,6 +1958,43 @@ describe('LineSeries', () => {
             // Hover over a non-null category data point
             await hoverAction(400, 300)(chart);
             await compare();
+        });
+    });
+
+    describe('label enablement', () => {
+        const labelOptions = (enabled: boolean) =>
+            prepareTestOptions({
+                data: [
+                    { x: 'A', y: 10 },
+                    { x: 'B', y: 20 },
+                    { x: 'C', y: 15 },
+                ],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', label: { enabled } }],
+            } as AgChartOptions);
+
+        test('draws no labels while the label is disabled', async () => {
+            chart = AgCharts.create(labelOptions(false));
+            await waitForChartStability(chart);
+            expect(getVisibleLabelNodes(chart)).toHaveLength(0);
+        });
+
+        test('removes the drawn labels once an update disables them', async () => {
+            chart = AgCharts.create(labelOptions(true));
+            await waitForChartStability(chart);
+            expect(getVisibleLabelNodes(chart).length).toBeGreaterThan(0);
+
+            await chart.update(labelOptions(false));
+            await waitForChartStability(chart);
+            expect(getVisibleLabelNodes(chart)).toHaveLength(0);
+        });
+
+        test('draws labels once an update enables them', async () => {
+            chart = AgCharts.create(labelOptions(false));
+            await waitForChartStability(chart);
+
+            await chart.update(labelOptions(true));
+            await waitForChartStability(chart);
+            expect(getVisibleLabelNodes(chart).length).toBeGreaterThan(0);
         });
     });
 

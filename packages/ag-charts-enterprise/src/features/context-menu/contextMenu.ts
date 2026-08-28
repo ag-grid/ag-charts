@@ -180,23 +180,15 @@ export class ContextMenu extends AbstractModuleInstance {
     }
 
     private axisRegion(pick: _ModuleSupport.AxisValuePick): CallbackParamRules<AxisParams> {
-        const { axisId, boundSeries, direction, domain, value, index, depth } = pick;
-        return { showOn: 'axis', axisId, boundSeries, direction, domain, value, index, depth };
+        const { axisId, boundSeries, direction, domain, value, index, depth, groupPercentage } = pick;
+        return { showOn: 'axis', axisId, boundSeries, direction, domain, value, index, depth, groupPercentage };
     }
 
     private crossLineRegions(picks: ContextShowOnMap['cross-line']['context']): CrossLineParams[] {
         const result: CrossLineParams[] = [];
         for (const pick of picks) {
-            const { crossLineId, axisId, direction, type, value, range } = pick;
-            result.push({
-                showOn: 'cross-line',
-                crossLineId,
-                axisId,
-                direction,
-                crossLineType: type,
-                value: value as CrossLineParams['value'],
-                range: range as CrossLineParams['range'],
-            });
+            const { crossLineId, axisId, direction, crossLineType, value, range } = pick;
+            result.push({ showOn: 'cross-line', crossLineId, axisId, direction, crossLineType, value, range });
         }
         return result;
     }
@@ -611,7 +603,8 @@ export class ContextMenu extends AbstractModuleInstance {
         } else if (ContextMenuRegistry.checkCallback('axis', showOn, callback)) {
             return () => {
                 if (this.pickedAxisCtx) {
-                    const { axisId, direction, boundSeries, domain, value, index, depth } = this.pickedAxisCtx;
+                    const { axisId, direction, boundSeries, domain, value, index, depth, groupPercentage } =
+                        this.pickedAxisCtx;
                     const callers: Caller[] = [this.pickedAxisCtx.caller, this.ctx.chartService];
                     const apiEvent: CallbackParamRules<AgAxisContextMenuActionEvent<never>> = {
                         type: 'axisContextMenuAction',
@@ -623,6 +616,7 @@ export class ContextMenu extends AbstractModuleInstance {
                         value,
                         index,
                         depth,
+                        groupPercentage,
                     };
                     callWithContext(callers, callback, apiEvent);
                 } else {
@@ -633,7 +627,7 @@ export class ContextMenu extends AbstractModuleInstance {
         } else if (ContextMenuRegistry.checkCallback('cross-line', showOn, callback)) {
             return () => {
                 if (this.pickedCrossLine && this.pickedCrossLine.length > 0) {
-                    const { crossLineId, axisId, direction, type, value, range } = this.pickedCrossLine[0];
+                    const { crossLineId, axisId, direction, crossLineType, value, range } = this.pickedCrossLine[0];
                     const coordinates: AgCoordinates | undefined = this.ctx.chartService.toAgCoordinates(event);
                     const callers: Caller = this.ctx.chartService;
                     const apiEvent: CallbackParamRules<AgCrossLineContextMenuActionEvent<never>> = {
@@ -643,9 +637,9 @@ export class ContextMenu extends AbstractModuleInstance {
                         crossLineId,
                         axisId,
                         direction,
-                        crossLineType: type,
-                        value: value as AgCrossLineContextMenuActionEvent<never>['value'],
-                        range: range as AgCrossLineContextMenuActionEvent<never>['range'],
+                        crossLineType,
+                        value,
+                        range,
                     };
                     callWithContext(callers, callback, apiEvent);
                 } else {

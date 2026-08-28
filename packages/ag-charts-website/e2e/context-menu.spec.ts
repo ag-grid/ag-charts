@@ -396,9 +396,10 @@ test.describe('context-menu', () => {
 
         type AxisParams = Omit<
             AgContextMenuGetItemsParamsAxis,
-            'showOn' | 'defaultItems' | 'value' | 'index' | 'allShowOnParams'
+            'showOn' | 'defaultItems' | 'value' | 'index' | 'allShowOnParams' | 'groupPercentage'
         >;
-        type PointParams = { index: number; value: AgAxisValue };
+        // `groupPercentage` is left out for the continuous axes, which have no bands to report a position in.
+        type PointParams = { index: number; value: AgAxisValue; groupPercentage?: number };
 
         const PARAMS_x: AxisParams = {
             axisId: 'x',
@@ -458,11 +459,15 @@ test.describe('context-menu', () => {
                     await contextMenu(page, POINT_x_a);
                 });
                 test('getItems', async ({ page }) => {
-                    expect(await popGetItems(page)).toEqual([itemsEvent(PARAMS_x, { index: 0, value: 'Jun' })]);
+                    expect(await popGetItems(page)).toEqual([
+                        itemsEvent(PARAMS_x, { index: 0, value: 'Jun', groupPercentage: closeTo(0.5307) }),
+                    ]);
                 });
                 test('actions', async ({ page }) => {
                     await runAction(page);
-                    expect(await popActions(page)).toEqual([actionEvent(PARAMS_x, { index: 0, value: 'Jun' })]);
+                    expect(await popActions(page)).toEqual([
+                        actionEvent(PARAMS_x, { index: 0, value: 'Jun', groupPercentage: closeTo(0.5307) }),
+                    ]);
                 });
             });
 
@@ -471,11 +476,15 @@ test.describe('context-menu', () => {
                     await contextMenu(page, POINT_x_b);
                 });
                 test('getItems', async ({ page }) => {
-                    expect(await popGetItems(page)).toEqual([itemsEvent(PARAMS_x, { index: 2, value: 'Aug' })]);
+                    expect(await popGetItems(page)).toEqual([
+                        itemsEvent(PARAMS_x, { index: 2, value: 'Aug', groupPercentage: closeTo(0.9224) }),
+                    ]);
                 });
                 test('actions', async ({ page }) => {
                     await runAction(page);
-                    expect(await popActions(page)).toEqual([actionEvent(PARAMS_x, { index: 2, value: 'Aug' })]);
+                    expect(await popActions(page)).toEqual([
+                        actionEvent(PARAMS_x, { index: 2, value: 'Aug', groupPercentage: closeTo(0.9224) }),
+                    ]);
                 });
             });
         });
@@ -573,9 +582,10 @@ test.describe('context-menu', () => {
     test.describe('AG-18053 showOn axis for undeclared axes', () => {
         type AxisParams = Omit<
             AgContextMenuGetItemsParamsAxis,
-            'showOn' | 'defaultItems' | 'value' | 'index' | 'allShowOnParams' | 'coordinates'
+            'showOn' | 'defaultItems' | 'value' | 'index' | 'allShowOnParams' | 'coordinates' | 'groupPercentage'
         >;
-        type PointParams = { index: number; value: AgAxisValue };
+        // `groupPercentage` is left out for the continuous axes, which have no bands to report a position in.
+        type PointParams = { index: number; value: AgAxisValue; groupPercentage?: number };
 
         function itemsEvent(commonArg: AxisParams, pointArgs: PointParams): AgContextMenuGetItemsParamsAxis {
             return {
@@ -645,7 +655,7 @@ test.describe('context-menu', () => {
                     direction: 'x',
                     domain: ['Jun', 'Jul', 'Aug'],
                 },
-                { index: 1, value: 'Jul' }
+                { index: 1, value: 'Jul', groupPercentage: closeTo(0.3287) }
             );
 
             testAxis(
@@ -723,7 +733,10 @@ test.describe('context-menu', () => {
         function point(params: {
             clientX: number;
             clientY: number;
-            coordinates: { [K in 'x' | 'y']: { index: number; value: any } };
+            coordinates: {
+                x: { index: number; value: any; groupPercentage: number };
+                y: { index: number; value: any };
+            };
         }) {
             const result = {
                 clientX: params.clientX,
@@ -735,6 +748,7 @@ test.describe('context-menu', () => {
                         domain: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
                         index: params.coordinates.x.index,
                         value: params.coordinates.x.value,
+                        groupPercentage: params.coordinates.x.groupPercentage,
                     },
                     y: {
                         boundSeries: [{ key: 'value', seriesId: 'BarSeries-1' }],
@@ -742,6 +756,8 @@ test.describe('context-menu', () => {
                         domain: [0, 20],
                         index: params.coordinates.y.index,
                         value: params.coordinates.y.value,
+                        // A continuous axis has no bands to report a position in.
+                        groupPercentage: undefined,
                     },
                 },
 
@@ -772,7 +788,7 @@ test.describe('context-menu', () => {
             clientX: 332,
             clientY: 73,
             coordinates: {
-                x: { index: 3, value: 'Apr' },
+                x: { index: 3, value: 'Apr', groupPercentage: closeTo(-0.0944) },
                 y: { index: 4, value: closeTo(18.5288) },
             },
         });
@@ -781,7 +797,7 @@ test.describe('context-menu', () => {
             clientX: 147,
             clientY: 338,
             coordinates: {
-                x: { index: 0, value: 'Jan' },
+                x: { index: 0, value: 'Jan', groupPercentage: closeTo(1.1838) },
                 y: { index: 2, value: closeTo(7.992) },
             },
         });
@@ -790,7 +806,7 @@ test.describe('context-menu', () => {
             clientX: 458,
             clientY: 79,
             coordinates: {
-                x: { index: 4, value: 'May' },
+                x: { index: 4, value: 'May', groupPercentage: closeTo(0.5254) },
                 y: { index: 4, value: closeTo(18.2903) },
             },
         });
@@ -799,7 +815,7 @@ test.describe('context-menu', () => {
             clientX: 458,
             clientY: 338,
             coordinates: {
-                x: { index: 4, value: 'May' },
+                x: { index: 4, value: 'May', groupPercentage: closeTo(0.5254) },
                 y: { index: 2, value: closeTo(7.992) },
             },
         });

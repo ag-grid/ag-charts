@@ -1051,3 +1051,158 @@ describe('Caption', () => {
         });
     });
 });
+
+// The captions above are all fitted through an explicit `maxWidth`/`maxHeight`. These cover the
+// layout-driven path instead, where the only pressure on a caption is the space the chart has left.
+describe('AG-13301 layout-driven caption shrinking', () => {
+    setupMockConsole();
+
+    const baseOptions: AgCartesianChartOptions = {
+        data: [
+            { month: 'Jan', value: 10 },
+            { month: 'Feb', value: 15 },
+            { month: 'Mar', value: 8 },
+            { month: 'Apr', value: 20 },
+        ],
+        series: [{ type: 'bar', xKey: 'month', yKey: 'value' }],
+        legend: { enabled: false },
+    };
+
+    const normaliseSpace = (text: string) => text.replace(/\s+/g, ' ').trim();
+
+    async function createSizedChart(width: number, height: number, options: AgCartesianChartOptions) {
+        const proxy = AgCharts.create(
+            Object.assign(prepareTestOptions({ ...baseOptions, ...options }), { width, height })
+        ) as AgChartProxy;
+        const chartInstance = deproxy(proxy);
+        await waitForChartStability(chartInstance);
+        return { proxy, chart: chartInstance };
+    }
+
+    describe('captions competing for layout height', () => {
+        const canvasCtx = setupMockCanvas({ width: 600, height: 220 });
+
+        const captions = {
+            title: { text: 'Quarterly Revenue by Region and Product Category', fontSize: 22, minimumFontSize: 12 },
+            subtitle: {
+                text: 'Figures shown are provisional and subject to end-of-quarter reconciliation',
+                fontSize: 16,
+                minimumFontSize: 9,
+            },
+            footnote: {
+                text: 'Source: internal finance reporting system, exported nightly at 02:00 UTC',
+                fontSize: 12,
+                minimumFontSize: 8,
+            },
+        };
+
+        test('every caption shrinks toward its minimumFontSize to free up the plot area', async () => {
+            const { proxy, chart } = await createSizedChart(600, 220, captions);
+
+            // Each caption keeps its text whole, at a size no smaller than its own floor.
+            for (const key of ['title', 'subtitle', 'footnote'] as const) {
+                const { node } = chart[key];
+                expect(node.fontSize).toBeLessThanOrEqual(captions[key].fontSize);
+                expect(node.fontSize).toBeGreaterThanOrEqual(captions[key].minimumFontSize);
+                expect(String(node.text)).toBe(captions[key].text);
+            }
+            // The two captions the layout cannot afford at their configured size are the ones that give way.
+            expect(chart.title.node.fontSize).toBeLessThan(captions.title.fontSize);
+            expect(chart.subtitle.node.fontSize).toBeLessThan(captions.subtitle.fontSize);
+            expect(chart.seriesRect?.height ?? 0).toBeGreaterThan(0);
+
+            await compareImageSnapshot(chart, canvasCtx, { ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
+            proxy.destroy();
+        });
+
+        test('captions with room to spare keep their configured font size', async () => {
+            const { proxy, chart } = await createSizedChart(600, 600, captions);
+
+            for (const key of ['title', 'subtitle', 'footnote'] as const) {
+                expect(chart[key].node.fontSize).toBe(captions[key].fontSize);
+                expect(String(chart[key].node.text)).toBe(captions[key].text);
+            }
+            proxy.destroy();
+        });
+    });
+
+    describe('rich text segments', () => {
+        const canvasCtx = setupMockCanvas({ width: 420, height: 320 });
+
+        // A headline built the way a caption with mixed emphasis is: a small kicker that must stay legible,
+        // a headline that must stay dominant, and a note that may give up as much room as it takes.
+        const captionFontSize = 18;
+        const captionMinimumFontSize = 9;
+        const kicker = { text: 'Q4 2025  ', fontSize: 13, minimumFontSize: 11, color: '#0e4491' };
+        const headline = { text: 'Revenue', fontSize: 32, minimumFontSize: 20, fontWeight: 'bold' as const };
+        const note = { text: '  vs. prior year', fontStyle: 'italic' as const, color: '#667085' };
+        const segments = [kicker, headline, note];
+
+        // `note` sets neither bound, so it runs the caption's own 18 down to the caption's own 9.
+        const ranges = [
+            { min: kicker.minimumFontSize, max: kicker.fontSize },
+            { min: headline.minimumFontSize, max: headline.fontSize },
+            { min: captionMinimumFontSize, max: captionFontSize },
+        ];
+
+        const titleOptions = {
+            text: segments,
+            fontSize: captionFontSize,
+            minimumFontSize: captionMinimumFontSize,
+        };
+
+        // Wrapping splits a segment into one measured segment per line, so segments are found by their text.
+        const sizeOf = (fitted: Array<{ text: string; fontSize: number }>, needle: string) =>
+            fitted.find((s) => s.text.includes(needle))!.fontSize;
+
+        test('every segment shrinks to the same fraction of its own range', async () => {
+            const { proxy, chart } = await createSizedChart(420, 320, { title: titleOptions });
+
+            const { node } = chart.title;
+            const fitted = node.text as Array<{ text: string; fontSize: number }>;
+            expect(node.fontSize).toBeLessThan(captionFontSize);
+            expect(node.fontSize).toBeGreaterThan(captionMinimumFontSize);
+
+            const joined = fitted.map((s) => s.text).join(' ');
+            expect(normaliseSpace(joined)).toBe(normaliseSpace(segments.map((s) => s.text).join('')));
+            const ratio = (node.fontSize - captionMinimumFontSize) / (captionFontSize - captionMinimumFontSize);
+            expect(['Q4', 'Revenue', 'prior year'].map((needle) => sizeOf(fitted, needle))).toEqual(
+                ranges.map(({ min, max }) => expect.closeTo(min + (max - min) * ratio, 5))
+            );
+            // The headline stays the largest text and the kicker the smallest, as configured.
+            expect(sizeOf(fitted, 'Revenue')).toBeGreaterThan(sizeOf(fitted, 'prior year'));
+            expect(sizeOf(fitted, 'prior year')).toBeGreaterThan(sizeOf(fitted, 'Q4'));
+
+            await compareImageSnapshot(chart, canvasCtx, { ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
+            proxy.destroy();
+        });
+
+        test('a segment with a minimum of its own keeps its emphasis at the narrowest fit', async () => {
+            const { proxy, chart } = await createSizedChart(180, 320, { title: titleOptions });
+
+            const fitted = chart.title.node.text as Array<{ text: string; fontSize: number }>;
+            // The note runs down to the caption floor so that the headline, on a floor of its own, need
+            // give up only enough to still read as the headline.
+            expect(chart.title.node.fontSize).toBeLessThan(captionMinimumFontSize + 1);
+            expect(sizeOf(fitted, 'prior year')).toBeLessThan(captionMinimumFontSize + 1);
+            expect(sizeOf(fitted, 'Revenue')).toBeGreaterThanOrEqual(headline.minimumFontSize);
+            expect(sizeOf(fitted, 'Q4')).toBeGreaterThanOrEqual(kicker.minimumFontSize);
+            proxy.destroy();
+        });
+
+        test('a segmented title that fits keeps every configured segment size', async () => {
+            const shortSegments = [
+                { text: '2025 ', color: 'dodgerblue' },
+                { text: 'Growth', fontSize: 34, fontStyle: 'italic' as const },
+            ];
+            const { proxy, chart } = await createSizedChart(800, 600, {
+                title: { text: shortSegments, fontSize: 22, minimumFontSize: 10 },
+            });
+
+            const fitted = chart.title.node.text as Array<{ text: string; fontSize: number }>;
+            expect(chart.title.node.fontSize).toBe(22);
+            expect(fitted.map((s) => s.fontSize)).toEqual([22, 34]);
+            proxy.destroy();
+        });
+    });
+});

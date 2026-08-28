@@ -94,6 +94,10 @@ export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOp
     ...fillOptionsDef,
 };
 
+// Assigned before the defs below spread this object, so every cross-line variant picks it up.
+// @ts-expect-error undocumented option
+commonCrossLineLabelOptionsDefs.overflow = undocumented(union('pad-chart', 'realign-text', 'clip-text'));
+
 // `fill`/`fillOpacity` belong to the `range` variant only, and `id` identifies rather than styles a cross line.
 const crossLineCommonStyleOptionsDefs: OptionsDefs<
     Omit<AgCommonCrossLineOptions<AgBaseCrossLineLabelOptions, unknown>, 'label' | 'id' | 'listeners'>
@@ -169,6 +173,9 @@ export const cartesianCrossLineLabelOptionsDefs: OptionsDefs<AgCartesianCrossLin
     ),
     rotation: number,
 };
+
+// @ts-expect-error undocumented option
+cartesianCrossLineLabelOptionsDefs.reserveSpace = undocumented(boolean);
 
 export const cartesianCrossLineOptionsDefs = crossLineOptionsDefs(defined, cartesianCrossLineLabelOptionsDefs);
 

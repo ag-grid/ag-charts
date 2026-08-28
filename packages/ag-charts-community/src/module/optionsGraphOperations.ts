@@ -1048,11 +1048,15 @@ function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     return RESOLVED_TO_BRANCH;
 }
 
-function expandPaddingValue(value: unknown) {
+function withoutIndices(pathArray: Array<string>) {
+    return pathArray.filter((segment) => !/^\d+$/.test(segment));
+}
+
+function expandPaddingValue(value: unknown): PlainObject | undefined {
     if (typeof value === 'number') {
         return { top: value, right: value, bottom: value, left: value };
     }
-    return typeof value === 'object' ? value : undefined;
+    return isPlainObject(value) ? value : undefined;
 }
 
 function applyPaddingOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
@@ -1060,21 +1064,30 @@ function applyPaddingOperation(graph: OptionsGraphInterface, vertex: VertexInter
 
     const pathArray = graph.getPathArray(vertex);
     const userOption = graph.dangerouslyGetUserOption(pathArray);
-    const overrideOption = graph.dangerouslyGetThemeOverride(pathArray);
+    // An override of an array option is authored index-less, so an element that finds nothing at its own path falls
+    // back to the shared path. Sides of an object override reach the element as vertices of their own, but a single
+    // number is a leaf that only this lookup can see.
+    const overrideOption =
+        graph.dangerouslyGetThemeOverride(pathArray) ?? graph.dangerouslyGetThemeOverride(withoutIndices(pathArray));
 
     const defaultValue = graph.resolveVertexValue(vertex, defaultValueVertex);
     const expandedDefaultValue = expandPaddingValue(defaultValue);
 
-    if (typeof expandedDefaultValue !== 'object') return;
+    if (expandedDefaultValue == null) return;
 
     const expandedOverrideOption = expandPaddingValue(overrideOption);
     const expandedUserOption = expandPaddingValue(userOption);
 
-    if (expandedOverrideOption == null && expandedUserOption == null) {
-        return expandedDefaultValue;
+    // Graft each source on its own edge rather than returning a merged value, so that every side resolves as its own
+    // vertex under normal edge priority. A conditional default re-parents its own side vertices onto this one, which
+    // a side grafted from a higher-priority source must still outrank.
+    graph.graftObject(vertex, expandedDefaultValue, undefined, DEFAULTS_EDGE);
+    if (expandedOverrideOption) {
+        graph.graftObject(vertex, expandedOverrideOption, undefined, OVERRIDES_EDGE);
     }
-
-    graph.graftObject(vertex, { ...expandedDefaultValue, ...expandedOverrideOption, ...expandedUserOption });
+    if (expandedUserOption) {
+        graph.graftObject(vertex, expandedUserOption, undefined, USER_OPTIONS_EDGE);
+    }
 
     return RESOLVED_TO_BRANCH;
 }

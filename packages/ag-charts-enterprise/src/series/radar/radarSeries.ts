@@ -38,6 +38,7 @@ const {
     fixNumericExtent,
     seriesLabelFadeInAnimation,
     markerFadeInAnimation,
+    maxMarkerStrokePickInflation,
     resetMarkerFn,
     resetLabelFn,
     animationValidation,
@@ -123,6 +124,11 @@ export abstract class RadarSeries<
 
     protected resetInvalidToZero: boolean = false;
     private hideWithSize0 = false;
+    private markerNodesPickable = true;
+
+    protected override hasPickableNodeShapes(): boolean {
+        return this.markerNodesPickable;
+    }
 
     public contextNodeData?: RadarSeriesNodeDataContext;
 
@@ -379,6 +385,7 @@ export abstract class RadarSeries<
 
         const markerDrawMode = radarMarkerDrawMode(this);
         this.hideWithSize0 = markerDrawMode.hideWithSize0;
+        this.markerNodesPickable = markerDrawMode.needsNodeData && !markerDrawMode.hideWithSize0;
 
         const data = markerDrawMode.needsNodeData ? this.nodeData : [];
         this.itemSelection.update(data);
@@ -505,12 +512,15 @@ export abstract class RadarSeries<
 
         drawingMode = this.getDrawingMode(isHighlight, drawingMode);
 
+        // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
+        const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
+
         selection.each((node, datum) => {
             // datum.style is populated from resolved (ref-free) marker styles by the style passes.
             const style =
                 (datum.style as NormalisedSeriesMarkerStyle | undefined) ??
                 contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
-            this.applyMarkerStyle(style, node, datum.point, fillBBox, { hideWithSize0 });
+            this.applyMarkerStyle(style, node, datum.point, fillBBox, { hideWithSize0, pickInflation });
 
             node.drawingMode = drawingMode;
         });

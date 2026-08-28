@@ -15,13 +15,10 @@ import {
     DEFAULT_MARKERLESS_LABEL_GAP,
     DebugMetrics,
     applyStyledMarkerSize,
-    cachedTextMeasurer,
     extent,
     isDefined,
     mergeDefaults,
     placedLabelFit,
-    resolveLabelFit,
-    toArray,
     toNumber,
 } from 'ag-charts-core';
 import {
@@ -58,8 +55,6 @@ import {
     processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
-import { expandPlacementLabelBoxExtent } from '../../label';
-import { boundLabelFit, insideMarkerContainer, resolveInsidePlacement } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import { type LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -102,6 +97,7 @@ import {
     getMarkerStyles,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
+    maxMarkerStrokePickInflation,
     resetMarkerFn,
     resetMarkerPositionFn,
     resetMarkerSelectionsDirect,
@@ -180,6 +176,11 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
 
     private readonly aggregationManager = new AggregationManager<LineSeriesDataAggregationFilter>();
     private hideWithSize0 = false;
+    private markerNodesPickable = true;
+
+    protected override hasPickableNodeShapes(): boolean {
+        return this.markerNodesPickable;
+    }
 
     override get pickModeAxis() {
         return this.properties.sparklineMode ? 'main' : 'main-category';
@@ -482,22 +483,9 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         this.ensureBucketLookupFeature()?.setActiveFilter(processedData, dataAggregationFilter);
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
-        const { label, marker } = this.properties;
-        const { collision } = label;
-        const placements = toArray(label.placement);
-        const {
-            insideOnly,
-            offset: labelInsideOffset,
-            size: labelInsideSize,
-        } = resolveInsidePlacement(placements, marker.shape);
+        const { marker } = this.properties;
         const markerSize = marker.enabled ? marker.size : 0;
-        const insideFit = insideOnly ? resolveLabelFit(label, false, true) : undefined;
-        const labelFit = insideFit
-            ? boundLabelFit(insideFit, insideMarkerContainer(markerSize, marker.shape, collision.threshold ?? 0))
-            : resolveLabelFit(label, !collision.alwaysShow);
-        // Keeps the label on a marker too small to hold even an ellipsis.
-        const labelFitOverflow = collision.alwaysShow ? insideFit : undefined;
-        const labelAnchor = Marker.anchor(marker.shape);
+        const labelContext = this.resolveLabelContext(marker.shape, markerSize);
 
         return {
             xAxis,
@@ -520,15 +508,16 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             yOffset: (yScale.bandwidth ?? 0) / 2,
             size: markerSize,
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
-            labelsEnabled: this.properties.label.enabled,
-            labelPadding: expandPlacementLabelBoxExtent(this.properties.label),
-            labelTextMeasurer: cachedTextMeasurer(this.properties.label),
-            labelFit,
-            labelFitOverflow,
-            labelStyled: label.itemStyler != null,
-            labelInsideOffset,
-            labelInsideSize,
-            labelAnchor,
+            labelsEnabled: labelContext.labelsEnabled,
+            labelPadding: labelContext.labelPadding,
+            labelTextMeasurer: labelContext.labelTextMeasurer,
+            labelFit: labelContext.labelFit,
+            labelFitOverflow: labelContext.labelFitOverflow,
+            labelStyled: labelContext.labelStyled,
+            labelInsideOffset: labelContext.labelInsideOffset,
+            labelInsideSize: labelContext.labelInsideSize,
+            labelAnchor: labelContext.labelAnchor,
+            emptyLabel: { text: '', width: 0, height: 0 },
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             canIncrementallyUpdate,
             dataAggregationFilter,
@@ -587,8 +576,8 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                   )
                 : undefined;
 
-            const label = this.measureLabel(ctx, labelText);
-            const fit = placedLabelFit(labelText, this.properties.label, ctx);
+            const label = ctx.labelsEnabled ? this.measureLabel(ctx, labelText) : ctx.emptyLabel;
+            const fit = ctx.labelsEnabled ? placedLabelFit(labelText, this.properties.label, ctx) : undefined;
             // Markerless vertices still nudge their label clear of the line with a small fixed gap.
             const gap = ctx.size > 0 ? ctx.size / 2 : DEFAULT_MARKERLESS_LABEL_GAP;
 
@@ -814,6 +803,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             this.chart?.isMiniChart
         );
         this.hideWithSize0 = markerDrawMode.hideWithSize0;
+        this.markerNodesPickable = markerDrawMode.needsNodeData && !markerDrawMode.hideWithSize0;
         nodeData = markerDrawMode.needsNodeData ? nodeData : [];
 
         if (marker.isDirty()) {
@@ -949,6 +939,9 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         // other mode it returns the input unchanged. Hoist that constant out of the per-marker loop.
         const constantDrawingMode = drawingMode === 'cutout' ? undefined : drawingMode;
 
+        // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
+        const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
+
         const thisSeries = this;
         datumSelection.each(function datumSelectionUpdate(node, datum) {
             // updateDatumStyles populates datum.style for non-garbage nodes; the fallback below is rare.
@@ -959,6 +952,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 applyPosition,
                 crossFilterSelected: datum.crossFilterSelected,
                 hideWithSize0,
+                pickInflation,
             });
             const nextDrawingMode =
                 constantDrawingMode ?? thisSeries.resolveMarkerDrawingModeForState(drawingMode, style);

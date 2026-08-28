@@ -23,10 +23,6 @@ const sharedThemeTemplate: ExtensibleSeriesTheme<'bubble' | 'scatter'> = {
                     fill: { $palette: 'fill' },
                     fillOpacity: 0.3,
                     stroke: { $palette: 'stroke' },
-                    label: {
-                        ...backgroundRegionsTheme.$apply[0]!.label,
-                        position: 'inside',
-                    },
                 },
                 backgroundRegionsTheme.$apply[1],
                 backgroundRegionsTheme.$apply[2],

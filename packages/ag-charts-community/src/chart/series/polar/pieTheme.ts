@@ -5,6 +5,7 @@ import {
     FILL_PATTERN_DEFAULTS,
     FONT_SIZE_RATIO,
     LABEL_BOXING_DEFAULTS,
+    LABEL_OVERFLOW_DEFAULTS,
     PART_WHOLE_HIGHLIGHT_STYLE,
     SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
@@ -22,6 +23,7 @@ export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
         },
         calloutLabel: {
             ...LABEL_BOXING_DEFAULTS,
+            ...LABEL_OVERFLOW_DEFAULTS,
             enabled: true,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
@@ -32,6 +34,7 @@ export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
         },
         sectorLabel: {
             ...LABEL_BOXING_DEFAULTS,
+            ...LABEL_OVERFLOW_DEFAULTS,
             enabled: true,
             fontWeight: { $ref: 'fontWeight' },
             fontSize: { $ref: 'fontSize' },

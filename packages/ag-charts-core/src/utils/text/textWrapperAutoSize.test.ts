@@ -1,10 +1,17 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import type {
+    NormalisedContentSegment,
+    NormalisedTextSegment,
+} from '../../types/normalised-options/normalisedCommonOptions';
+import type { MeasuredSegment } from '../../types/text';
 import {
+    type AutoSizedLabelText,
     findLargestFittingFontSize,
     findLargestFontSizeDescending,
     fitLabelTextAutoSize,
     fontWithSize,
+    labelTextAtShrinkRatio,
 } from './textWrapper';
 
 // Metrics scale with the font so the font-size search has something to search over; kept out of the
@@ -107,6 +114,74 @@ describe('fitLabelTextAutoSize', () => {
 
     it('does not shrink without a bound to shrink into', () => {
         expect(fitLabelTextAutoSize('abcd', { minimumFontSize: 4 }, font).fontSize).toBeUndefined();
+    });
+});
+
+describe('fitLabelTextAutoSize with segments', () => {
+    // 'ab' is 2 graphemes wide at whatever size it is drawn, so each segment's width is its own font size
+    // times 2 — enough to tell a proportional shrink from a uniform one by the widths alone.
+    const segments = [
+        { text: 'ab', fontSize: 20, minimumFontSize: 10 },
+        { text: 'cd', fontSize: 10, minimumFontSize: 5 },
+        { text: 'ef', fontSize: 40, minimumFontSize: 20 },
+    ] as const;
+    const sizesOf = (fitted: AutoSizedLabelText) =>
+        (fitted.text as MeasuredSegment[]).map((s) => (s.type === 'image' ? undefined : s.fontSize));
+
+    const fitTo = (maxWidth: number, minimumFontSize?: number, text: readonly object[] = segments) =>
+        fitLabelTextAutoSize(text as NormalisedContentSegment[], { maxWidth, wrapping: 'never', minimumFontSize }, {
+            ...font,
+            fontSize: 20,
+        } as const);
+
+    it('keeps every configured size when the text already fits', () => {
+        expect(sizesOf(fitTo(1000))).toEqual([20, 10, 40]);
+    });
+
+    it('shrinks every segment to the same fraction of its own range', () => {
+        // Two graphemes each: the line measures 140px whole, 70px at the floor, so 105px is half way down.
+        expect(sizesOf(fitTo(105))).toEqual([15, 7.5, 30]);
+    });
+
+    it('bottoms out with every segment at its own minimum', () => {
+        expect(sizesOf(fitTo(140))).toEqual([20, 10, 40]);
+        expect(sizesOf(fitTo(70))).toEqual([10, 5, 20]);
+        expect(sizesOf(fitTo(4))).toEqual([10, 5, 20]);
+    });
+
+    it('takes the label minimum for a segment that sets none', () => {
+        // The inherited minimum is the label's own value, as an inherited fontSize or fontFamily would be,
+        // so the second segment bottoms out at 8 rather than at a size scaled to its own.
+        const inheriting = [
+            { text: 'ab', fontSize: 20, minimumFontSize: 16 },
+            { text: 'cd', fontSize: 40 },
+        ];
+        expect(sizesOf(fitTo(4, 8, inheriting))).toEqual([16, 8]);
+    });
+
+    it('shrinks a segment that only sets a minimum of its own', () => {
+        const [oversized] = fitTo(4, undefined, [{ text: 'ab', fontSize: 40, minimumFontSize: 10 }]).text as [
+            MeasuredSegment,
+        ];
+        expect(oversized.type !== 'image' && oversized.fontSize).toBe(10);
+    });
+
+    it('does not shrink when no segment and no label sets a minimum', () => {
+        const fitted = fitTo(4, undefined, [{ text: 'ab', fontSize: 40 }, { text: 'cd' }]);
+        expect(fitted.fontSize).toBeUndefined();
+    });
+});
+
+describe('labelTextAtShrinkRatio', () => {
+    const at = (ratio: number, segment: object) =>
+        labelTextAtShrinkRatio([segment] as NormalisedContentSegment[], 10, { ...font, fontSize: 20 }, ratio)
+            .text as NormalisedTextSegment[];
+
+    it('scales a lineHeight against the size its own segment is drawn at', () => {
+        // The segment takes its 40 from itself and its floor from the label, halving at the mid-point.
+        expect(at(0.5, { text: 'ab', fontSize: 40, lineHeight: 30 })[0].lineHeight).toBe(18.75);
+        // With no size of its own the segment runs the label's own 20 down to the label's own 10.
+        expect(at(0.5, { text: 'ab', minimumFontSize: 10, lineHeight: 30 })[0].lineHeight).toBe(22.5);
     });
 });
 

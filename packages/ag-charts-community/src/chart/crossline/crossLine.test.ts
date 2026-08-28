@@ -1,14 +1,16 @@
 import { afterEach, describe, it, vi } from 'vitest';
 
-import { mapValues } from 'ag-charts-core';
+import { type CrossLineLabelOverflow, mapValues } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
+    AgCartesianCrossLineLabelOptions,
     AgCartesianCrossLineOptions,
     AgCrossLineClickEvent,
     AgCrossLineLabelPosition,
     AgCrossLineListeners,
 } from 'ag-charts-types';
 
+import { BBox } from '../../scene/bbox';
 import { Transformable } from '../../scene/transformable';
 import type { Chart } from '../chart';
 import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
@@ -26,8 +28,17 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
+import { CartesianCrossLine } from './cartesianCrossLine';
+import type { CrossLineType } from './crossLine';
 import { getCrossLinesPlugin } from './getCrossLinesPlugin';
 import * as examples from './test/examples';
+
+type ViFn = ReturnType<typeof vi.fn>;
+
+// `overflow` and `reserveSpace` are undocumented, so they are cast in rather than typed on the options.
+const undocumentedLabel = (
+    label: AgCartesianCrossLineLabelOptions & { overflow?: CrossLineLabelOverflow; reserveSpace?: boolean }
+) => label as AgCartesianCrossLineLabelOptions;
 
 const labelPositions: AgCrossLineLabelPosition[] = [
     'top',
@@ -399,6 +410,15 @@ function crossLineLabelCentre(chart: Chart, axisId: string): { x: number; y: num
     return { x: bbox.x + bbox.width / 2, y: bbox.y + bbox.height / 2 };
 }
 
+/** The text the cross line actually rendered, which `'clip-text'` may have truncated. */
+function crossLineLabelText(chart: Chart, axisId: string): string {
+    const axis = chart.axes.findById(axisId);
+    const plugin = axis ? getCrossLinesPlugin(axis) : undefined;
+    const [crossLine] = plugin?.getInstances() ?? [];
+    const [label] = crossLine.labelGroup.children() as any;
+    return label?.text ?? '';
+}
+
 describe('CrossLine', () => {
     setupMockConsole();
 
@@ -749,6 +769,238 @@ describe('CrossLine', () => {
 
             expect(click).not.toHaveBeenCalled();
         });
+
+        describe('overlapping crosslines allClickParams', () => {
+            let chartClick: ViFn;
+            let chartCrossLineClick: ViFn;
+            let chartSeriesNodeClick: ViFn;
+            let seriesSeriesNodeClick: ViFn;
+            beforeEach(async () => {
+                chartClick = vi.fn();
+                chartCrossLineClick = vi.fn();
+                chartSeriesNodeClick = vi.fn();
+                seriesSeriesNodeClick = vi.fn();
+                chart = await createChart({
+                    data: [
+                        { x: 'Jan', y: 8 },
+                        { x: 'Mar', y: 6 },
+                        { x: 'May', y: 3 },
+                        { x: 'Jul', y: 9 },
+                    ],
+                    series: [
+                        { type: 'bar', xKey: 'x', yKey: 'y', listeners: { seriesNodeClick: seriesSeriesNodeClick } },
+                    ],
+                    axes: {
+                        myX: {
+                            type: 'category',
+                            crossAt: { value: 0 },
+                            crossLines: [
+                                { id: 'blue-line', type: 'line', value: 'May', stroke: 'blue', strokeWidth: 2 },
+                                { id: 'grey-range', type: 'range', range: ['Mar', 'Jul'], strokeWidth: 2 },
+                            ],
+                        },
+                        myY: {
+                            type: 'number',
+                            // No user-option `id`; Use auto-generated id.
+                            crossLines: [{ type: 'line', value: 8, stroke: 'lime', strokeWidth: 2 }],
+                        },
+                    },
+                    listeners: {
+                        click: chartClick,
+                        crossLineClick: chartCrossLineClick,
+                        seriesNodeClick: chartSeriesNodeClick,
+                    },
+                });
+            });
+            test('click where all 3 cross-lines overlap', async () => {
+                await clickAction(505, 130)(chart);
+                expect(chartCrossLineClick).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        crossLineId: 'blue-line',
+                        axisId: 'myX',
+                        direction: 'x',
+                        value: 'May',
+                        // TODO: add AG-17613 `coordinated`
+                        allClickParams: [
+                            expect.objectContaining({
+                                clickedOn: 'cross-line',
+                                crossLineId: 'blue-line',
+                                axisId: 'myX',
+                                direction: 'x',
+                                value: 'May',
+                            }),
+                            expect.objectContaining({
+                                clickedOn: 'cross-line',
+                                crossLineId: 'grey-range',
+                                axisId: 'myX',
+                                direction: 'x',
+                                range: ['Mar', 'Jul'],
+                            }),
+                            expect.objectContaining({
+                                clickedOn: 'cross-line',
+                                crossLineId: 'CrossLine-3',
+                                axisId: 'myY',
+                                direction: 'y',
+                                value: 8,
+                            }),
+                        ],
+                    })
+                );
+                expect(chartClick).toHaveBeenCalledTimes(0);
+                expect(chartCrossLineClick).toHaveBeenCalledTimes(1);
+                expect(chartSeriesNodeClick).toHaveBeenCalledTimes(0);
+                expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(0);
+            });
+            test('AC4i: a cross-line win reports the series node it covers', async () => {
+                // The May bar sits under the blue line and inside the grey range band.
+                await clickAction(505, 470)(chart);
+                expect(chartCrossLineClick).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        // The cross line still wins the event, so it carries the root params.
+                        clickedOn: 'cross-line',
+                        crossLineId: 'blue-line',
+                        allClickParams: [
+                            expect.objectContaining({
+                                clickedOn: 'cross-line',
+                                crossLineId: 'blue-line',
+                                value: 'May',
+                            }),
+                            expect.objectContaining({
+                                clickedOn: 'cross-line',
+                                crossLineId: 'grey-range',
+                                range: ['Mar', 'Jul'],
+                            }),
+                            expect.objectContaining({
+                                clickedOn: 'series-node',
+                                datum: { x: 'May', y: 3 },
+                            }),
+                        ],
+                    })
+                );
+                // One event, not two: the series-node listeners stay silent as before.
+                expect(chartCrossLineClick).toHaveBeenCalledTimes(1);
+                expect(chartClick).toHaveBeenCalledTimes(0);
+                expect(chartSeriesNodeClick).toHaveBeenCalledTimes(0);
+                expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(0);
+            });
+            test('clicking Jan bar fires series-node click listeners', async () => {
+                await clickAction(140, 255)(chart);
+                expect(chartClick).toHaveBeenCalledTimes(0);
+                expect(chartCrossLineClick).toHaveBeenCalledTimes(0);
+                expect(chartSeriesNodeClick).toHaveBeenCalledTimes(1);
+                expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(1);
+            });
+            test('clicking empty series-area point fire chart click listener', async () => {
+                await clickAction(140, 60)(chart);
+                expect(chartClick).toHaveBeenCalledTimes(1);
+                expect(chartCrossLineClick).toHaveBeenCalledTimes(0);
+                expect(chartSeriesNodeClick).toHaveBeenCalledTimes(0);
+                expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(0);
+            });
+        });
+
+        describe('non-interactive cross-lines fire chart and series-node click', () => {
+            let seriesSeriesNodeClick: ViFn;
+            let chartSeriesNodeClick: ViFn;
+            let chartClick: ViFn;
+
+            beforeEach(async () => {
+                seriesSeriesNodeClick = vi.fn();
+                chartSeriesNodeClick = vi.fn();
+                chartClick = vi.fn();
+
+                chart = await createChart({
+                    data: [
+                        { x: 'Jan', y: 8 },
+                        { x: 'Mar', y: 6 },
+                        { x: 'May', y: 3 },
+                        { x: 'Jul', y: 9 },
+                    ],
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y',
+                            listeners: { seriesNodeClick: seriesSeriesNodeClick },
+                        },
+                    ],
+                    axes: {
+                        myX: {
+                            type: 'category',
+                            crossAt: { value: 0 },
+                            crossLines: [
+                                { id: 'blue-line', type: 'line', value: 'May', stroke: 'blue', strokeWidth: 2 },
+                                { id: 'grey-range', type: 'range', range: ['Mar', 'Jul'], strokeWidth: 2 },
+                            ],
+                        },
+                        myY: {
+                            type: 'number',
+                            // No user-option `id`; Use auto-generated id.
+                            crossLines: [{ type: 'line', value: 8, stroke: 'lime', strokeWidth: 2 }],
+                        },
+                    },
+                    listeners: {
+                        click: chartClick,
+                        seriesNodeClick: chartSeriesNodeClick,
+                        // `crossLineClick` omitted
+                    },
+                });
+            });
+            test('click Jan bar', async () => {
+                await clickAction(140, 255)(chart);
+                expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(1);
+                expect(chartSeriesNodeClick).toHaveBeenCalledTimes(1);
+                expect(chartClick).toHaveBeenCalledTimes(0);
+            });
+            test('click chart on lime cross-line', async () => {
+                await clickAction(209, 127)(chart);
+                expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(0);
+                expect(chartSeriesNodeClick).toHaveBeenCalledTimes(0);
+                expect(chartClick).toHaveBeenCalledTimes(1);
+            });
+            test('click May bar on blue cross-line', async () => {
+                await clickAction(505, 470)(chart);
+                expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(1);
+                expect(chartSeriesNodeClick).toHaveBeenCalledTimes(1);
+                expect(chartClick).toHaveBeenCalledTimes(0);
+            });
+            test('AC4i: a series-node win reports the cross lines it overlaps', async () => {
+                await clickAction(505, 470)(chart);
+                const expected = expect.objectContaining({
+                    // The series node still wins the event, so it carries the root params.
+                    clickedOn: 'series-node',
+                    datum: { x: 'May', y: 3 },
+                    allClickParams: [
+                        expect.objectContaining({
+                            clickedOn: 'series-node',
+                            datum: { x: 'May', y: 3 },
+                        }),
+                        expect.objectContaining({
+                            clickedOn: 'cross-line',
+                            crossLineId: 'blue-line',
+                            value: 'May',
+                        }),
+                        expect.objectContaining({
+                            clickedOn: 'cross-line',
+                            crossLineId: 'grey-range',
+                            range: ['Mar', 'Jul'],
+                        }),
+                    ],
+                });
+                expect(seriesSeriesNodeClick).toHaveBeenCalledWith(expected);
+                expect(chartSeriesNodeClick).toHaveBeenCalledWith(expected);
+            });
+            test('AC4ii: a series-node click clear of any cross line reports only itself', async () => {
+                await clickAction(140, 255)(chart);
+                const expected = expect.objectContaining({
+                    clickedOn: 'series-node',
+                    datum: { x: 'Jan', y: 8 },
+                    allClickParams: [expect.objectContaining({ clickedOn: 'series-node', datum: { x: 'Jan', y: 8 } })],
+                });
+                expect(seriesSeriesNodeClick).toHaveBeenCalledWith(expected);
+                expect(chartSeriesNodeClick).toHaveBeenCalledWith(expected);
+            });
+        });
     });
 
     describe('TC1: secondary axes', () => {
@@ -938,6 +1190,499 @@ describe('CrossLine', () => {
 
             expect(first).not.toHaveBeenCalled();
             expect(second).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('AG-7486: label overflow', () => {
+        const outsidePositions: AgCrossLineLabelPosition[] = labelPositions.filter((p) => !p.startsWith('inside'));
+
+        function crossLineWith(
+            overflow: CrossLineLabelOverflow,
+            position: AgCrossLineLabelPosition,
+            type: CrossLineType
+        ) {
+            const crossLine = new CartesianCrossLine();
+            crossLine.type = type;
+            crossLine.position = 'bottom';
+            crossLine.label.set({ enabled: true, text: 'A long enough label', overflow, position });
+            return crossLine;
+        }
+
+        function paddingFor(overflow: CrossLineLabelOverflow, position: AgCrossLineLabelPosition, type: CrossLineType) {
+            const into: Partial<Record<AgCrossLineLabelPosition, number>> = {};
+            crossLineWith(overflow, position, type).calculatePadding(into);
+            return into;
+        }
+
+        it.each(['line', 'range'] as const)(
+            'pad-chart reserves space for an outside label on a %s cross line',
+            (type) => {
+                const reserved = outsidePositions.filter((position) => {
+                    const into = paddingFor('pad-chart', position, type);
+                    return Object.values(into).some((v) => (v ?? 0) > 0);
+                });
+
+                // Guards against a vacuous realign/clip assertion below: pad-chart must actually pad somewhere.
+                expect(reserved.length).toBeGreaterThan(0);
+            }
+        );
+
+        it('an unset overflow pads as pad-chart does', () => {
+            const crossLine = new CartesianCrossLine();
+            crossLine.type = 'line';
+            crossLine.position = 'bottom';
+            crossLine.label.set({ enabled: true, text: 'A long enough label', position: 'top' });
+
+            const into: Partial<Record<AgCrossLineLabelPosition, number>> = {};
+            crossLine.calculatePadding(into);
+
+            expect(into).toEqual(paddingFor('pad-chart', 'top', 'line'));
+            expect(Object.values(into).some((v) => (v ?? 0) > 0)).toBe(true);
+        });
+
+        it.each(['realign-text', 'clip-text'] as const)('%s reserves no space at any label position', (overflow) => {
+            for (const type of ['line', 'range'] as const) {
+                for (const position of labelPositions) {
+                    expect({ overflow, type, position, padding: paddingFor(overflow, position, type) }).toEqual({
+                        overflow,
+                        type,
+                        position,
+                        padding: {},
+                    });
+                }
+            }
+        });
+
+        it('realign-text leaves the series area larger than pad-chart', async () => {
+            const build = (overflow: CrossLineLabelOverflow): AgCartesianChartOptions => ({
+                ...examples.LINE_CROSSLINES,
+                axes: mapValues(examples.LINE_CROSSLINES.axes ?? {}, (axis: any) =>
+                    axis.crossLines
+                        ? {
+                              ...axis,
+                              crossLines: axis.crossLines.map((c: any) => ({
+                                  ...c,
+                                  label: { ...c.label, text: 'A long enough label', position: 'top', overflow },
+                              })),
+                          }
+                        : axis
+                ),
+            });
+
+            chart = await createChart(build('pad-chart'));
+            const padded = (chart as any).seriesRect.clone();
+
+            await chart.publicApi!.update(build('realign-text'));
+            await waitForChartStability(chart);
+            const realigned = (chart as any).seriesRect;
+
+            expect(realigned.height).toBeGreaterThan(padded.height);
+        });
+
+        it('renders the chart when a label demands more room than is spare', async () => {
+            // `position: 'left'` on the left-hand axis pads horizontally, so a very wide label is what
+            // outgrows the space available.
+            const veryLongLabel = 'A'.repeat(400);
+            const { x, y } = examples.LINE_CROSSLINES.axes as any;
+
+            chart = await createChart({
+                ...examples.LINE_CROSSLINES,
+                axes: {
+                    x,
+                    y: {
+                        ...y,
+                        crossLines: [{ type: 'line', value: 0.87, label: { text: veryLongLabel, position: 'left' } }],
+                    },
+                },
+            });
+
+            const seriesRect = (chart as any).seriesRect;
+
+            expect((chart as any).seriesRoot.visible).toBe(true);
+            expect(seriesRect.width).toBeGreaterThan(0);
+            expect(seriesRect.height).toBeGreaterThan(0);
+        });
+
+        it('clip-text truncates a label that would run past the container edge', async () => {
+            const veryLongLabel = 'A cross line label far too long to fit the chart it is drawn on';
+            const { x, y } = examples.LINE_CROSSLINES.axes as any;
+            const build = (overflow: CrossLineLabelOverflow): AgCartesianChartOptions => ({
+                ...examples.LINE_CROSSLINES,
+                axes: {
+                    x,
+                    y: {
+                        ...y,
+                        crossLines: [
+                            {
+                                type: 'line',
+                                value: 0.87,
+                                label: undocumentedLabel({ text: veryLongLabel, position: 'left', overflow }),
+                            },
+                        ],
+                    },
+                },
+            });
+
+            chart = await createChart(build('clip-text'));
+            const clipped = crossLineLabelText(chart, 'y');
+
+            expect(clipped).not.toEqual(veryLongLabel);
+            expect(clipped.endsWith('\u2026')).toBe(true);
+            expect(veryLongLabel.startsWith(clipped.slice(0, -1))).toBe(true);
+
+            // Guards against the assertion above passing because the label never fits under any mode.
+            await chart.publicApi!.update(build('realign-text'));
+            await waitForChartStability(chart);
+
+            expect(crossLineLabelText(chart, 'y')).toEqual(veryLongLabel);
+        });
+
+        it('clip-text shortens monotonically as the room runs out, ending at an ellipsis', async () => {
+            // A rotated label extends along the axis's short side, which is the only direction whose room
+            // a label padding can exhaust; upright text is bounded by the far wider horizontal extent.
+            const { x, y } = examples.LINE_CROSSLINES.axes as any;
+            const build = (padding: number): AgCartesianChartOptions => ({
+                ...examples.LINE_CROSSLINES,
+                axes: {
+                    y,
+                    x: {
+                        ...x,
+                        crossLines: [
+                            {
+                                type: 'line',
+                                value: 5,
+                                label: undocumentedLabel({
+                                    text: 'A cross line label',
+                                    position: 'top',
+                                    overflow: 'clip-text',
+                                    rotation: 90,
+                                    padding,
+                                }),
+                            },
+                        ],
+                    },
+                },
+            });
+
+            chart = await createChart(build(0));
+            const rendered = [crossLineLabelText(chart, 'x')];
+            for (const padding of [20, 40, 60, 200]) {
+                await chart.publicApi!.update(build(padding));
+                await waitForChartStability(chart);
+                rendered.push(crossLineLabelText(chart, 'x'));
+            }
+
+            // Room only ever shrinks, so neither may the text — a bound that stopped applying once the
+            // room went negative would show up here as a jump back to the full label.
+            const lengths = rendered.map((text) => text.length);
+            expect(lengths).toEqual([...lengths].sort((a, b) => b - a));
+            expect(rendered[0]).not.toEqual('\u2026');
+            expect(rendered.at(-1)).toEqual('\u2026');
+        });
+
+        // Only `left`/`right` on a vertical axis and `top`/`bottom` on a horizontal one sit outside the
+        // cross line, so these four cover every padding branch and all four anchor tables at once.
+        type OverflowCase = { overflow: CrossLineLabelOverflow; label?: string };
+
+        function overflowChart(
+            xLine: OverflowCase,
+            xRange: OverflowCase,
+            yLine: OverflowCase,
+            yRange: OverflowCase
+        ): AgCartesianChartOptions {
+            return {
+                data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: Math.sin(i / 2) * 40 + 50 })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        crossLines: [
+                            {
+                                type: 'line',
+                                value: 3,
+                                stroke: 'red',
+                                strokeWidth: 1,
+                                label: undocumentedLabel({
+                                    text: xLine.label ?? 'x line top',
+                                    position: 'top',
+                                    fontSize: 24,
+                                    overflow: xLine.overflow,
+                                }),
+                            },
+                            {
+                                type: 'range',
+                                range: [6, 8],
+                                stroke: 'green',
+                                strokeWidth: 1,
+                                fill: 'green',
+                                fillOpacity: 0.2,
+                                label: undocumentedLabel({
+                                    text: xRange.label ?? 'x range bottom',
+                                    position: 'bottom',
+                                    fontSize: 24,
+                                    overflow: xRange.overflow,
+                                }),
+                            },
+                        ],
+                    },
+                    y: {
+                        type: 'number',
+                        position: 'left',
+                        crossLines: [
+                            {
+                                type: 'line',
+                                value: 20,
+                                stroke: 'blue',
+                                strokeWidth: 1,
+                                label: undocumentedLabel({
+                                    text: yLine.label ?? 'y-axis line cross line',
+                                    position: 'left',
+                                    overflow: yLine.overflow,
+                                }),
+                            },
+                            {
+                                type: 'range',
+                                range: [70, 85],
+                                stroke: 'orange',
+                                strokeWidth: 1,
+                                fill: 'orange',
+                                fillOpacity: 0.2,
+                                label: undocumentedLabel({
+                                    text: yRange.label ?? 'y-axis range cross line',
+                                    position: 'right',
+                                    overflow: yRange.overflow,
+                                }),
+                            },
+                        ],
+                    },
+                },
+            };
+        }
+
+        it('renders every padding branch under pad-chart', async () => {
+            const padChart: OverflowCase = { overflow: 'pad-chart' };
+            chart = await createChart(overflowChart(padChart, padChart, padChart, padChart));
+            await compare();
+        });
+
+        it('renders every padding branch under realign-text', async () => {
+            const realign: OverflowCase = { overflow: 'realign-text' };
+            chart = await createChart(overflowChart(realign, realign, realign, realign));
+            await compare();
+        });
+
+        it('renders mixed overflow modes alongside a label larger than the space available', async () => {
+            chart = await createChart(
+                overflowChart(
+                    { overflow: 'pad-chart' },
+                    { overflow: 'realign-text' },
+                    { overflow: 'pad-chart', label: 'A'.repeat(400) },
+                    { overflow: 'realign-text' }
+                )
+            );
+            await compare();
+        });
+    });
+
+    describe('AG-8901: label space reservation', () => {
+        // Every datum shares a y value, so the series labels form one row across the cross line's own
+        // position — the arrangement that puts them in the way whenever the label is not reserved.
+        function reservationChart(
+            label: Partial<AgCartesianCrossLineLabelOptions>,
+            reserveSpace: boolean
+        ): AgCartesianChartOptions {
+            return {
+                data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: 50 })),
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'y', label: { enabled: true, placement: ['bottom', 'top'] } },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: {
+                        type: 'number',
+                        position: 'left',
+                        crossLines: [
+                            {
+                                type: 'line',
+                                value: 50,
+                                label: undocumentedLabel({ position: 'inside', ...label, reserveSpace }),
+                            },
+                        ],
+                    },
+                },
+            };
+        }
+
+        function crossLineLabelBox(axisId: string) {
+            const axis = chart.axes.findById(axisId)!;
+            const [crossLine] = getCrossLinesPlugin(axis)?.getInstances() ?? [];
+            const [crossLineLabel] = crossLine.labelGroup.children() as any;
+            return Transformable.toCanvas(crossLineLabel);
+        }
+
+        function shownSeriesLabelBoxes() {
+            return ((chart as any).series[0].labelSelection.nodes() as any[])
+                .filter((node) => node.visible)
+                .map((node) => Transformable.toCanvas(node));
+        }
+
+        it('keeps series labels clear of a cross line label that reserves its space', async () => {
+            const build = (reserveSpace: boolean) =>
+                reservationChart({ text: 'CROSSLINE LABEL', fontSize: 40 }, reserveSpace);
+
+            const clearOfCrossLine = () => {
+                const crossLineBox = crossLineLabelBox('y');
+                const shown = shownSeriesLabelBoxes();
+                return {
+                    shown: shown.length,
+                    overlapping: shown.filter((box) => box.collidesBBox(crossLineBox)).length,
+                };
+            };
+
+            chart = await createChart(build(false));
+            const off = clearOfCrossLine();
+            await chart.publicApi!.update(build(true));
+            await waitForChartStability(chart);
+            const on = clearOfCrossLine();
+
+            // The reserved box is read back off the drawn node, so a relayout must reserve the same space.
+            await chart.publicApi!.update({ ...build(true), title: { text: 'relayout' } });
+            await waitForChartStability(chart);
+            const relaidOut = clearOfCrossLine();
+
+            // Guards the assertions below: without the opt-in the labels must genuinely be in the way.
+            expect(off.overlapping).toBeGreaterThan(0);
+            expect(on.overlapping).toBe(0);
+            expect(on.shown).toBeGreaterThan(0);
+            expect(relaidOut.overlapping).toBe(0);
+        });
+
+        it('reserves a rotated label the space it actually occupies', async () => {
+            const build = (reserveSpace: boolean) =>
+                reservationChart({ text: 'ROTATED CROSSLINE LABEL', fontSize: 30, rotation: 90 }, reserveSpace);
+
+            const geometry = () => {
+                const drawn = crossLineLabelBox('y');
+                // What the engine would reserve if the already-rotated footprint were handed to it with
+                // its rotation still attached: at 90 degrees the extent transposes about the same origin.
+                const transposed = new BBox(drawn.x, drawn.y, drawn.height, drawn.width);
+                const shown = shownSeriesLabelBoxes();
+                return {
+                    drawn,
+                    transposed,
+                    labelRowY: Math.min(...shown.map((box) => box.y)),
+                    overlappingDrawn: shown.filter((box) => box.collidesBBox(drawn)).length,
+                };
+            };
+
+            chart = await createChart(build(false));
+            const off = geometry();
+            await chart.publicApi!.update(build(true));
+            await waitForChartStability(chart);
+            const on = geometry();
+
+            // Guards the assertion below, and is what makes it discriminating: the series labels sit
+            // within the drawn footprint's vertical span but clear of the transposed one's, so reserving
+            // the transposed box would have left them free to stay where they overlap the real label.
+            expect(on.labelRowY).toBeGreaterThan(on.transposed.y + on.transposed.height);
+            expect(on.labelRowY).toBeLessThan(on.drawn.y + on.drawn.height);
+            expect(off.overlappingDrawn).toBeGreaterThan(0);
+
+            expect(on.overlappingDrawn).toBe(0);
+        });
+
+        it('reserves nothing while the cross line is hidden by an overflowing layout', async () => {
+            chart = await createChart(reservationChart({ text: 'CROSSLINE LABEL', fontSize: 40 }, true));
+
+            const axis = chart.axes.findById('y')!;
+            const plugin = getCrossLinesPlugin(axis)!;
+
+            expect(plugin.getLabelObstacles(BBox.zero)).toHaveLength(1);
+
+            const version = plugin.nodeDataVersion;
+            plugin.setVisible(false);
+
+            expect(plugin.getLabelObstacles(BBox.zero)).toBeUndefined();
+            expect(plugin.nodeDataVersion).toBeGreaterThan(version);
+        });
+
+        // One chart per reservation state, each carrying an upright reserved label, a rotated one on a
+        // range cross line on the other axis, and an unreserved label the series labels may overlap.
+        function packedReservationChart(reserveSpace: boolean): AgCartesianChartOptions {
+            return {
+                data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: 50, y2: Math.sin(i / 2) * 15 + 80 })),
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'y', label: { enabled: true, placement: ['bottom', 'top'] } },
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y2',
+                        label: { enabled: true, placement: ['top', 'bottom'] },
+                    },
+                ],
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        crossLines: [
+                            {
+                                type: 'range',
+                                range: [3.5, 5.5],
+                                stroke: 'green',
+                                strokeWidth: 1,
+                                fill: 'green',
+                                fillOpacity: 0.1,
+                                label: undocumentedLabel({
+                                    text: 'ROTATED RESERVED',
+                                    fontSize: 40,
+                                    rotation: 90,
+                                    position: 'inside-top',
+                                    reserveSpace,
+                                }),
+                            },
+                        ],
+                    },
+                    y: {
+                        // A fixed domain keeps the reserved cross line amid the series labels.
+                        type: 'number',
+                        position: 'left',
+                        min: 0,
+                        max: 100,
+                        crossLines: [
+                            {
+                                type: 'line',
+                                value: 50,
+                                stroke: 'red',
+                                strokeWidth: 1,
+                                label: undocumentedLabel({
+                                    text: 'RESERVED',
+                                    fontSize: 40,
+                                    position: 'inside',
+                                    reserveSpace,
+                                }),
+                            },
+                            {
+                                type: 'line',
+                                value: 80,
+                                stroke: 'blue',
+                                strokeWidth: 1,
+                                label: { text: 'NEVER RESERVED', fontSize: 24, position: 'inside' },
+                            },
+                        ],
+                    },
+                },
+            };
+        }
+
+        it('renders series labels clear of every cross line label that reserves its space', async () => {
+            chart = await createChart(packedReservationChart(true));
+            await compare();
+        });
+
+        it('renders series labels over cross line labels that reserve nothing', async () => {
+            chart = await createChart(packedReservationChart(false));
+            await compare();
         });
     });
 });

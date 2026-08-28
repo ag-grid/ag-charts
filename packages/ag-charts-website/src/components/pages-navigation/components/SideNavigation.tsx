@@ -34,7 +34,11 @@ export function SideNavigation({ headings, delayedScrollSpy }: Props) {
                                     onClick={(event) => {
                                         event.preventDefault();
                                         scrollIntoViewById(slug);
-                                        navigate({ search: window.location.search, hash: slug });
+                                        navigate({
+                                            pathname: window.location.pathname,
+                                            search: window.location.search,
+                                            hash: slug,
+                                        });
                                     }}
                                 >
                                     {addNonBreakingSpaceBetweenLastWords(displayText)}
@@ -51,7 +55,11 @@ export function SideNavigation({ headings, delayedScrollSpy }: Props) {
                         onClick={(event) => {
                             event.preventDefault();
                             scrollIntoViewById('top');
-                            navigate({ search: window.location.search, hash: 'top' });
+                            navigate({
+                                pathname: window.location.pathname,
+                                search: window.location.search,
+                                hash: 'top',
+                            });
                         }}
                     >
                         <Icon name="backToTop" svgClasses={styles.backToTopIcon} />

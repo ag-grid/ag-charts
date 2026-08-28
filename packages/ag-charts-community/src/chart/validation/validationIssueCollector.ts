@@ -102,7 +102,7 @@ export class ValidationIssueCollector {
                 try {
                     listener({ level: pending.severity, message: pending.message });
                 } catch (error) {
-                    this.issueListenerLogger?.error('validations.onErrorRaised threw an error', error);
+                    this.issueListenerLogger?.error('validations.onDiagnosticRaised threw an error', error);
                 }
             }
         } finally {
@@ -169,6 +169,14 @@ export class ValidationIssueCollector {
         this.pendingCallbackIssues = [];
     }
 
+    /**
+     * Whether anything has been buffered since the last {@link beginCallbackIssues} or
+     * {@link commitCallbackIssues} — see `Chart.tryPerformUpdate()`.
+     */
+    hasPendingCallbackIssues(): boolean {
+        return this.pendingCallbackIssues.length > 0;
+    }
+
     /** Buffer a caught callback error for the current render cycle, de-duplicated by severity + message. */
     recordCallbackIssue(issue: ValidationIssue) {
         const duplicate = this.pendingCallbackIssues.some(
@@ -187,6 +195,9 @@ export class ValidationIssueCollector {
         // Copy, not alias: a callback that throws outside a render cycle (e.g. a tooltip formatter on
         // hover) still calls recordCallbackIssue, which must not mutate the shown set in place.
         this.callbackIssues = [...this.pendingCallbackIssues];
+        // Emptied here too, not only in `beginCallbackIssues`: a retained buffer keeps
+        // `hasPendingCallbackIssues()` true, and `Chart.tryPerformUpdate()` recommits on every update.
+        this.pendingCallbackIssues = [];
         this.issuesChanged();
         this.listeners.dispatch('change');
     }

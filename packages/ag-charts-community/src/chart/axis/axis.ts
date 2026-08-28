@@ -457,6 +457,7 @@ export abstract class Axis<
             fractionDigits: 0,
             spacing: 5,
             format: undefined,
+            boxOffset: 0,
         },
         labelThickness: 0,
     };
@@ -669,6 +670,8 @@ export abstract class Axis<
                 ...defaultStyle,
             });
         }
+        // OPTIMIZATION: with nothing to merge over it, `defaultStyle` is already the resolved style.
+        if (stylerOutput == null && additionalStyles == null) return defaultStyle;
         const merged = mergeDefaults(stylerOutput, additionalStyles, defaultStyle);
         return {
             border: merged.border,
@@ -683,6 +686,11 @@ export abstract class Axis<
             padding: merged.padding,
             spacing: merged.spacing,
         } satisfies Normalised<AgBaseAxisLabelStyleOptions, 'fontSize' | 'fontFamily' | 'spacing'>;
+    }
+
+    /** See {@link AxisLayout.label.boxOffset}. Only axes that offset a boxed tick label report one. */
+    protected getLabelBoxOffset(): number {
+        return 0;
     }
 
     protected getTickSize(tick: { enabled: boolean; size: number } = this.options.tick) {
@@ -867,6 +875,7 @@ export abstract class Axis<
             fractionDigits: fractionDigits,
             spacing: this.options.label.spacing,
             format: this.getLabelFormat(),
+            boxOffset: this.getLabelBoxOffset(),
         };
 
         this.notifyAxisPlugins('onAxisLayout');
@@ -1360,12 +1369,29 @@ export abstract class Axis<
             value: scaleValue,
             index,
             depth: picked?.depth,
+            groupPercentage: this.pickGroupPercentage(scaleValue, position),
             direction: this.direction,
             boundSeries: this.formatterBoundSeries.get(),
             domain,
         } satisfies Rules;
 
         return result;
+    }
+
+    /**
+     * Where `position` falls within the band of `value`, as a fraction of the band width — the measure
+     * annotations and initial state accept, anchored on the band of `value` so the pair describes one point.
+     */
+    private pickGroupPercentage(value: AgAxisValue, position: number): number | undefined {
+        const { scale } = this;
+        if (!BandScale.is(scale)) return undefined;
+
+        const bandStart = scale.convert(value);
+        if (!Number.isFinite(bandStart)) return undefined;
+
+        // Bands collapse to lines at `paddingInner: 1`, leaving the step as the only width.
+        const width = scale.bandwidth === 0 ? scale.step : scale.bandwidth;
+        return width === 0 ? 0 : (position - bandStart) / width;
     }
 
     protected setPickTickData(ticks: readonly Readonly<TickDatum>[], firstTickIndex = 0): void {

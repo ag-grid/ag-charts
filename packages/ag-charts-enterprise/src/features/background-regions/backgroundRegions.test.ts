@@ -358,7 +358,7 @@ const THEMED: AgCartesianChartOptions = {
                             },
                             fontSize: 14,
                             fontWeight: 'bold' as const,
-                            padding: { top: 12, right: 20, bottom: 12, left: 20 },
+                            padding: { top: 4, right: 40, bottom: 4, left: 8 },
                             position: 'inside' as const,
                         },
                     },
@@ -534,6 +534,70 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
         },
         assertions,
     },
+
+    LABEL_OFFSET_INSIDE: {
+        options: {
+            ...NUMERIC,
+            seriesArea: {
+                backgroundRegions: [
+                    {
+                        fill: 'lightsalmon',
+                        fillOpacity: 0.8,
+                        xRange: { start: 20, end: 80 },
+                        yRange: { start: 20, end: 80 },
+                        label: {
+                            position: 'inside-top-left',
+                            text: 'offset',
+                            fontSize: 20,
+                            xOffset: 30,
+                            yOffset: 60,
+                        },
+                    },
+                ],
+            },
+        },
+        assertions,
+    },
+
+    LABEL_OFFSET_NEGATIVE: {
+        options: {
+            ...NUMERIC,
+            seriesArea: {
+                backgroundRegions: [
+                    {
+                        fill: 'lightsalmon',
+                        fillOpacity: 0.8,
+                        xRange: { start: 20, end: 80 },
+                        yRange: { start: 20, end: 80 },
+                        label: {
+                            position: 'inside-bottom-right',
+                            text: 'offset',
+                            fontSize: 20,
+                            xOffset: -30,
+                            yOffset: -60,
+                        },
+                    },
+                ],
+            },
+        },
+        assertions,
+    },
+
+    LABEL_OFFSET_AT_SERIES_AREA_EDGE: {
+        options: {
+            ...NUMERIC,
+            seriesArea: {
+                backgroundRegions: [
+                    {
+                        fill: 'lightsalmon',
+                        fillOpacity: 0.8,
+                        label: { position: 'top', text: 'outside', fontSize: 20, xOffset: 40, yOffset: 20 },
+                    },
+                ],
+            },
+        },
+        assertions,
+    },
 };
 
 const labelPositions = [
@@ -554,6 +618,10 @@ const labelPositions = [
     'inside-bottom-left',
     'inside-top-right',
     'inside-bottom-right',
+    'top-left-above',
+    'top-right-above',
+    'bottom-left-below',
+    'bottom-right-below',
 ] as const;
 for (const position of labelPositions) {
     EXAMPLES[`LABEL_${position}`] = {

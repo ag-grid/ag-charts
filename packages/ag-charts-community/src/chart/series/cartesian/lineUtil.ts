@@ -1,5 +1,6 @@
 import type {
     InterpolationProperties,
+    MeasuredLabel,
     NormalisedSeriesMarkerStyle,
     NormalisedTextOrSegments,
     Point,
@@ -96,6 +97,8 @@ export interface LineSeriesDatumContext extends CartesianMarkerLikeContext<LineN
     readonly size: number;
     readonly yDomain: any[];
     readonly labelsEnabled: boolean;
+    /** Shared placeholder for a datum whose label is disabled, so the geometry is not measured per datum. */
+    readonly emptyLabel: MeasuredLabel;
     readonly dataAggregationFilter: { indices: Uint32Array } | undefined;
     readonly range: number;
 

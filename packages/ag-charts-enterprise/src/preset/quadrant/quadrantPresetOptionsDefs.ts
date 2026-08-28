@@ -1,5 +1,15 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, array, boolean, defined, numericValue, string, union, without } from 'ag-charts-core';
+import {
+    type OptionsDefs,
+    array,
+    boolean,
+    defined,
+    number,
+    numericValue,
+    string,
+    union,
+    without,
+} from 'ag-charts-core';
 import type { AgQuadrantChartOptions } from 'ag-charts-types';
 
 const axisPlacementOptionsDefs: OptionsDefs<NonNullable<AgQuadrantChartOptions['axisPlacement']>> = {
@@ -13,10 +23,40 @@ const pivotOptionsDefs: OptionsDefs<NonNullable<AgQuadrantChartOptions['pivot']>
     y: numericValue,
 };
 
+const regionLabelOptionsDefs: OptionsDefs<NonNullable<NonNullable<AgQuadrantChartOptions['regions']>['label']>> = {
+    border: defined,
+    color: defined,
+    cornerRadius: defined,
+    enabled: defined,
+    fontFamily: defined,
+    fontSize: defined,
+    fontStyle: defined,
+    fontWeight: defined,
+    fill: defined,
+    fillOpacity: defined,
+    padding: defined,
+    position: union(
+        'outside-outer',
+        'outside-center',
+        'outside-inner',
+        'inside-outer-outer',
+        'inside-outer-center',
+        'inside-outer-inner',
+        'inside-center-outer',
+        'inside-center',
+        'inside-center-inner',
+        'inside-inner-outer',
+        'inside-inner-center',
+        'inside-inner-inner'
+    ),
+    rotation: defined,
+    spacing: number,
+};
+
 const regionOptionsDefs: OptionsDefs<NonNullable<NonNullable<AgQuadrantChartOptions['regions']>['topLeft']>> = {
     fill: defined,
     fillOpacity: defined,
-    label: defined,
+    label: { ...regionLabelOptionsDefs, text: string },
     marker: defined,
     stroke: defined,
     strokeOpacity: defined,
@@ -33,6 +73,7 @@ export const quadrantOptionsDefs: OptionsDefs<AgQuadrantChartOptions> = {
     axisPlacement: axisPlacementOptionsDefs,
     pivot: pivotOptionsDefs,
     regions: {
+        label: regionLabelOptionsDefs,
         bottomLeft: regionOptionsDefs,
         bottomRight: regionOptionsDefs,
         topLeft: regionOptionsDefs,

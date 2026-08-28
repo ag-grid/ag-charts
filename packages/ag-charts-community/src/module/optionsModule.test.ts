@@ -8,6 +8,7 @@ import type {
     AgCartesianChartOptions,
     AgChartOptions,
     AgChartTheme,
+    AgGaugeOptions,
     AgLineSeriesOptions,
     AgNumberAxisOptions,
     AgSparklineOptions,
@@ -38,6 +39,24 @@ function prepareSparklineOptions(userOptions: AgSparklineOptions, logger?: Logge
         {},
         {},
         { presetType: 'sparkline', pool: true, domMode: 'minimal', withDragInterpretation: false },
+        undefined,
+        false,
+        false,
+        undefined,
+        logger
+    );
+    return chartOptions.processedOptions;
+}
+
+// Mirrors AgCharts.createGauge() -> createOrUpdate(): the gauge preset module ships in enterprise,
+// so under the community registry used by these tests it is never registered.
+function prepareGaugeOptions(userOptions: AgGaugeOptions, logger?: Logger): AgChartOptions {
+    const chartOptions = new ChartOptions(
+        undefined,
+        userOptions as AgChartOptions,
+        {},
+        {},
+        { presetType: 'gauge-preset' },
         undefined,
         false,
         false,
@@ -610,6 +629,36 @@ describe('ChartOptions', () => {
             } finally {
                 ModuleRegistry.clearRegistryModes();
             }
+        });
+
+        it('names the API entry point when an enterprise preset is not registered in UMD mode', () => {
+            ModuleRegistry.setRegistryMode(ModuleRegistry.RegistryMode.UMD);
+            try {
+                prepareGaugeOptions({ type: 'radial-gauge', value: 50, scale: { min: 0, max: 100 } });
+
+                const warnings = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+                expect(
+                    warnings.some((m) =>
+                        m.includes(
+                            "unable to use these enterprise features as 'ag-charts-enterprise' has not been loaded"
+                        )
+                    )
+                ).toBe(true);
+                expect(warnings.some((m) => m.includes('AgCharts.createGauge'))).toBe(true);
+                expect(warnings.every((m) => !m.includes('gauge-preset'))).toBe(true);
+                expect(warnings.every((m) => !m.includes('Unknown option'))).toBe(true);
+            } finally {
+                ModuleRegistry.clearRegistryModes();
+            }
+        });
+
+        it('reports the preset module when an enterprise preset is not registered', () => {
+            prepareGaugeOptions({ type: 'radial-gauge', value: 50, scale: { min: 0, max: 100 } });
+
+            const errors = (console.error as Mock).mock.calls.map(([m]) => String(m));
+            expect(errors.some((m) => m.includes('required modules are not registered'))).toBe(true);
+            expect(errors.some((m) => m.includes('GaugePresetModule'))).toBe(true);
+            expect((console.warn as Mock).mock.calls.every(([m]) => !String(m).includes('Unknown option'))).toBe(true);
         });
     });
 
@@ -4488,6 +4537,32 @@ describe('ChartOptions', () => {
             expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
         });
 
+        it('does not claim the option was ignored in the thrown message, while the console record still does (TC2)', () => {
+            let thrown!: Error;
+            try {
+                new ChartOptions(
+                    invalidOptions({ validations: { throwOn: 'warning' } }),
+                    {} as AgChartOptions,
+                    {},
+                    {},
+                    {}
+                );
+            } catch (e) {
+                thrown = e as Error;
+            }
+
+            // Nothing was ignored under an armed threshold - the pass aborted instead of defaulting.
+            expect(thrown).toBeDefined();
+            expect(thrown.message).not.toMatch(/ignoring/i);
+            expect(thrown.message).toMatch(
+                /^AG Charts - validations\.throwOn: warning - `series\[0\]\.strokeWidth`: .*expecting a number greater than or equal to 0$/
+            );
+
+            // AC2: the console record is untouched by fail-fast, trailing clause included.
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => /notanumber/.test(m) && /, ignoring\.$/.test(m))).toBe(true);
+        });
+
         it('throws for the first qualifying issue rather than collecting the whole batch first (AC3)', () => {
             const options: AgChartOptions = {
                 series: [
@@ -4612,14 +4687,14 @@ describe('ChartOptions', () => {
         });
     });
 
-    describe('validations.onErrorRaised', () => {
+    describe('validations.onDiagnosticRaised', () => {
         const badStrokeWidthOptions = (validations?: object) =>
             ({
                 series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 'notanumber' }],
                 validations,
             }) as unknown as AgChartOptions;
 
-        // `onErrorRaised` is wired up on the `Chart`, absent at this level, so assert on
+        // `onDiagnosticRaised` is wired up on the `Chart`, absent at this level, so assert on
         // `validationIssues`, the array the listener is fed from.
         it('records an issue whose message matches the console warning content', () => {
             const chartOptions = new ChartOptions(badStrokeWidthOptions(), {} as AgChartOptions, {}, {}, {});
@@ -4654,13 +4729,13 @@ describe('ChartOptions', () => {
             });
         });
 
-        it('rejects a non-function `onErrorRaised` without throwing', () => {
+        it('rejects a non-function `onDiagnosticRaised` without throwing', () => {
             let chartOptions: ChartOptions | undefined;
             expect(() => {
                 chartOptions = new ChartOptions(
                     {
                         series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                        validations: { onErrorRaised: 'not-a-function' as any },
+                        validations: { onDiagnosticRaised: 'not-a-function' as any },
                     } as AgChartOptions,
                     {} as AgChartOptions,
                     {},
@@ -4672,8 +4747,8 @@ describe('ChartOptions', () => {
             expect(chartOptions!.validationIssues).toContainEqual({
                 severity: 'warning',
                 message:
-                    'Option `validations.onErrorRaised` cannot be set to `"not-a-function"`; expecting a function, ignoring.',
-                code: 'validations.onErrorRaised',
+                    'Option `validations.onDiagnosticRaised` cannot be set to `"not-a-function"`; expecting a function, ignoring.',
+                code: 'validations.onDiagnosticRaised',
             });
         });
     });

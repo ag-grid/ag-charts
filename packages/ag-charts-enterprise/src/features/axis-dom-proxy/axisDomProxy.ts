@@ -327,7 +327,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         if (!axisCtx || !pick) return;
 
         const isDoubleClick = widgetEvent.type === 'dblclick';
-        const { direction, boundSeries, domain, value, index, depth } = pick;
+        const { direction, boundSeries, domain, value, index, depth, groupPercentage } = pick;
         const params = {
             event: widgetEvent.sourceEvent,
             axisId: pick.axisId,
@@ -337,6 +337,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
             value,
             index,
             depth,
+            groupPercentage,
         };
 
         const listener = isDoubleClick ? axisCtx.listeners?.doubleClick : axisCtx.listeners?.click;

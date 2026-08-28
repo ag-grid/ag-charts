@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
     AgBubbleSeriesOptions,
@@ -10,6 +10,7 @@ import {
     type AgErrorBarItemStylerParams,
     AgHierarchyChartOptions,
     AgInitialStateZoomOptions,
+    type AgNodeClickEvent,
     type AgPolarChartOptions,
     AgSelectionChangeEvent,
     AgSelectionItem,
@@ -817,6 +818,10 @@ describe('DataSelection', () => {
     }
     async function pressEscape(point: Readonly<CanvasPoint>) {
         await keyDownAction(point.canvasX, point.canvasY, { key: 'Escape', code: 'Escape' })(chart);
+        await waitForChartStability(chart);
+    }
+    async function pressKey(point: Readonly<CanvasPoint>, key: string) {
+        await keyDownAction(point.canvasX, point.canvasY, { key, code: key })(chart);
         await waitForChartStability(chart);
     }
 
@@ -1918,6 +1923,106 @@ describe('DataSelection', () => {
                                 await mouseClick(POINT_S2A, { metaKey });
                                 expect(selectionChange.popEvents()).toEqual([REMOVED_S2A]);
                             });
+                        });
+                    });
+                });
+            });
+
+            // Data-selection is part of the default click behaviour a listener can prevent.
+            describe('AG-14332 preventDefault on node click', () => {
+                type NodeClickListener = (params: AgNodeClickEvent<'seriesNodeClick', D, C>) => void;
+                let seriesNodeClick: ReturnType<typeof vi.fn<NodeClickListener>>;
+
+                async function createChartWithNodeClickListener(preventDefault: boolean) {
+                    const { data, series, axes, theme, legend } = createBarStackMixOptions();
+                    selectionChange = createSelectionChangeRecorder();
+                    seriesNodeClick = vi.fn<NodeClickListener>((params) => {
+                        if (preventDefault) params.preventDefault();
+                    });
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        axes,
+                        theme,
+                        legend,
+                        selection: {
+                            enabled: true,
+                            clickMode: 'single',
+                        },
+                        listeners: { selectionChange, seriesNodeClick },
+                    });
+                }
+
+                // Keyboard focus starts on the first datum; one ArrowRight moves it to a neighbouring datum
+                // and Enter activates it, which is the keyboard equivalent of a node click.
+                async function keyboardActivateNode() {
+                    await pressKey(POINT_S2A, 'ArrowRight');
+                    await pressKey(POINT_S2A, 'Enter');
+                }
+
+                describe('listener calls preventDefault', () => {
+                    beforeEach(async () => {
+                        await createChartWithNodeClickListener(true);
+                    });
+
+                    describe('click', () => {
+                        test('getSelection', async () => {
+                            await mouseClick(POINT_S2A);
+                            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+                            expect(getChartSelectionArray()).toEqual([]);
+                        });
+                        test('selectionChange', async () => {
+                            await mouseClick(POINT_S2A);
+                            expect(selectionChange.popEvents()).toEqual([]);
+                        });
+                        test('leaves an existing selection untouched', async () => {
+                            await setChartSelectionArray(SELECTION_S3C);
+                            selectionChange.popEvents(); // pop & ignore the api-call event.
+                            await mouseClick(POINT_S2A);
+                            expect(getChartSelectionArray()).toEqual(SELECTION_S3C);
+                            expect(selectionChange.popEvents()).toEqual([]);
+                        });
+                    });
+
+                    describe('keyboard', () => {
+                        test('getSelection', async () => {
+                            await keyboardActivateNode();
+                            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+                            expect(getChartSelectionArray()).toEqual([]);
+                        });
+                        test('selectionChange', async () => {
+                            await keyboardActivateNode();
+                            expect(selectionChange.popEvents()).toEqual([]);
+                        });
+                    });
+                });
+
+                describe('listener does not call preventDefault', () => {
+                    beforeEach(async () => {
+                        await createChartWithNodeClickListener(false);
+                    });
+
+                    describe('click', () => {
+                        test('getSelection', async () => {
+                            await mouseClick(POINT_S2A);
+                            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+                            expect(getChartSelectionArray()).toEqual(SELECTION_S2A);
+                        });
+                        test('selectionChange', async () => {
+                            await mouseClick(POINT_S2A);
+                            expect(selectionChange.popEvents()).toEqual([ADDED_S2A]);
+                        });
+                    });
+
+                    describe('keyboard', () => {
+                        test('getSelection', async () => {
+                            await keyboardActivateNode();
+                            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+                            expect(getChartSelectionArray()).toHaveLength(1);
+                        });
+                        test('selectionChange', async () => {
+                            await keyboardActivateNode();
+                            expect(selectionChange.popEvents()).toHaveLength(1);
                         });
                     });
                 });

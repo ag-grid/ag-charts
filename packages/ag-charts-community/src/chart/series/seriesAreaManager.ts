@@ -4,6 +4,7 @@ import type {
     AgActiveItemState,
     AgChartClickEvent,
     AgChartDoubleClickEvent,
+    AgClickParams,
     AgContextMenuItemShowOn,
     AgCoordinates,
     AgInitialFocus,
@@ -15,6 +16,7 @@ import type {
     HighlightNodeDatum,
     HighlightSelectionUpdatedEvent,
     LayoutCompleteEvent,
+    SeriesAreaCanvasClickEvent,
     SeriesAreaClickEvent,
     SeriesAreaContextMenuEvent,
     SeriesAreaHoverEvent,
@@ -43,6 +45,7 @@ import type {
 } from '../../widget/widgetEvents';
 import type { ChartHighlight } from '../chartHighlight';
 import type { ChartType } from '../chartType';
+import { type PendingCrossLineCallbacks, fireAllPendingCrossLineCallbacks } from '../crossline/crossLine';
 import type { ContextMenuRegionContexts } from '../interaction/contextMenuTypes';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
@@ -79,6 +82,12 @@ enum PickedFocusStatus {
     PAN_REQUIRED,
     PENDING_VIEWPORT_FOCUS,
 }
+
+type SeriesNodeClickCheck = {
+    node: PickedNode;
+    target: SceneNode<unknown> | undefined;
+    defaultPrevented: boolean;
+};
 
 type FocusIndices = {
     datumIndex: number;
@@ -649,9 +658,24 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
+        const canvasPoint: CanvasPoint = isSeriesWidget
+            ? this.toCanvasCoordinates(event)
+            : { canvasX: event.currentX, canvasY: event.currentY };
+
+        const pendingCrossLineCallbacks = this.emitSeriesAreaCanvasClickEvent(event, canvasPoint);
+        const clickedCrossLine = this.checkCrossLineClick(event, pendingCrossLineCallbacks);
+        if (clickedCrossLine) {
+            // The cross line wins the event, but still reports the series nodes it covered.
+            const nodeParams = isSeriesWidget ? this.pickSeriesNodeClickParams(event) : [];
+            fireAllPendingCrossLineCallbacks(pendingCrossLineCallbacks, nodeParams);
+            return; // dodge chart-level / series-level user callbacks.
+        }
+
         if (isSeriesWidget) {
-            const clicked = this.checkSeriesNodeClick(event);
+            // Cross-line-only here, and populated whether or not any cross-line listener exists.
+            const clicked = this.checkSeriesNodeClick(event, pendingCrossLineCallbacks.allClickParams);
             if (clicked) {
+                if (clicked.defaultPrevented) return;
                 this.emitSeriesAreaClickEvent(event, true, clicked.node, clicked.target);
                 this.update(ChartUpdateType.SERIES_UPDATE);
                 event.sourceEvent.preventDefault();
@@ -663,7 +687,7 @@ export class SeriesAreaManager extends BaseManager {
         // Fallback to Chart-level event dispatch.
         const type = event.type === 'click' ? 'click' : 'doubleClick';
         const coordinates: AgCoordinates | undefined = isSeriesWidget
-            ? this.chart.ctx.chartService.toAgCoordinates(this.toCanvasCoordinates(event))
+            ? this.chart.ctx.chartService.toAgCoordinates(canvasPoint)
             : undefined;
         const newEvent = { type, event: event.sourceEvent, coordinates } satisfies
             | CallbackParamRules<AgChartClickEvent>
@@ -675,6 +699,23 @@ export class SeriesAreaManager extends BaseManager {
         const { canvasX, canvasY } = this.toCanvasCoordinates(event);
         const payload: SeriesAreaHoverEvent = { canvasX, canvasY, consumed, sourceEvent: event.sourceEvent };
         this.chart.ctx.eventsHub.emit('series-area:hover', payload);
+    }
+
+    private emitSeriesAreaCanvasClickEvent(event: ClickLikeEvent, { canvasX, canvasY }: CanvasPoint) {
+        const { type, sourceEvent } = event;
+        const payload: SeriesAreaCanvasClickEvent = {
+            type,
+            canvasX,
+            canvasY,
+            sourceEvent,
+            pendingCrossLineCallbacks: {
+                allClickParams: [],
+                axes: new Map(),
+                crossLines: new Map(),
+            },
+        };
+        this.chart.ctx.eventsHub.emit('series-area:canvas-click', payload);
+        return payload.pendingCrossLineCallbacks;
     }
 
     private emitSeriesAreaClickEvent(
@@ -824,13 +865,13 @@ export class SeriesAreaManager extends BaseManager {
                 datum
             );
             // Keyboard nav activates exactly one datum: single-entry list, winner is index 0.
-            const defaultBehavior = series.fireNodeClickEvent({
+            const defaultPrevented = series.fireNodeClickEvent({
                 event: sourceEvent,
                 datums: [datum],
                 winner: 0,
                 coordinates,
             });
-            if (defaultBehavior) {
+            if (!defaultPrevented) {
                 const syntheticEvent: KeyboardSyntheticMouseWidgetEvent = {
                     type: 'click',
                     device: 'keyboard',
@@ -854,9 +895,29 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
+    private checkCrossLineClick(event: ClickLikeEvent, pendingCallbacks: PendingCrossLineCallbacks): boolean {
+        const { allClickParams, axes, crossLines } = pendingCallbacks;
+        const chartListener =
+            event.type === 'click'
+                ? this.chart.ctx.chartService.listeners.crossLineClick
+                : this.chart.ctx.chartService.listeners.crossLineDoubleClick;
+        return allClickParams.length > 0 && (axes.size > 0 || crossLines.size > 0 || chartListener != null);
+    }
+
+    private pickSeriesNodeClickParams(event: ClickLikeEvent): AgClickParams<unknown>[] {
+        const pickedNodes = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
+        if (pickedNodes == null || pickedNodes.matches.length === 0) return [];
+        const { matches, target } = pickedNodes;
+        // A dedicated control (e.g. the org-chart expander) owns its clicks outright and never reaches the user's
+        // node click listeners, so it must not surface through a cross-line event either.
+        if (!matches[0].series.firesUserClickListeners(target)) return [];
+        return matches.map((d) => d.series.createNodeParams(d));
+    }
+
     private checkSeriesNodeClick(
-        event: ClickLikeEvent & { preventZoomDblClick?: boolean }
-    ): { node: PickedNode; target: SceneNode<unknown> | undefined } | undefined {
+        event: ClickLikeEvent & { preventZoomDblClick?: boolean },
+        crossLineParams: AgClickParams<unknown>[]
+    ): SeriesNodeClickCheck | undefined {
         const pickedNodes = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
         const updated = this.pickManager.onPickedNodesTooltip(pickedNodes);
         if (pickedNodes === undefined || updated.active === undefined) return undefined;
@@ -878,13 +939,13 @@ export class SeriesAreaManager extends BaseManager {
             datums: matches,
             winner: matches.indexOf(updated.active),
             coordinates,
+            otherClickParams: crossLineParams,
         };
 
         if (event.type === 'click') {
-            const defaultBehavior = firesUserClickListeners
-                ? updated.active.series.fireNodeClickEvent(nodeEventOpts)
-                : true;
-            if (defaultBehavior) {
+            const defaultPrevented: boolean =
+                firesUserClickListeners && updated.active.series.fireNodeClickEvent(nodeEventOpts);
+            if (!defaultPrevented) {
                 const next = this.pickManager.nextCandidate();
                 if (next.active !== undefined) {
                     const { active } = next;
@@ -901,16 +962,15 @@ export class SeriesAreaManager extends BaseManager {
                     });
                 }
             }
-            return { node: updated.active, target: pickedNodes.target };
+            return { node: updated.active, target: pickedNodes.target, defaultPrevented };
         } else if (event.type === 'dblclick') {
             // The Zoom module has no way to listen for non-exact series-rect double-clicks, so flag
             // exact node hits here and let its reset-zoom handler skip them.
             event.preventZoomDblClick = distance === 0;
 
-            if (firesUserClickListeners) {
-                updated.active.series.fireNodeDoubleClickEvent(nodeEventOpts);
-            }
-            return { node: updated.active, target: pickedNodes.target };
+            const defaultPrevented: boolean =
+                firesUserClickListeners && updated.active.series.fireNodeDoubleClickEvent(nodeEventOpts);
+            return { node: updated.active, target: pickedNodes.target, defaultPrevented };
         } else {
             return event.type satisfies never;
         }

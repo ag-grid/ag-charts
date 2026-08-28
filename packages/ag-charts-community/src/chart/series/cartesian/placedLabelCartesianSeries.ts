@@ -9,18 +9,29 @@ import type {
     SeriesLabelDefaults,
     Writeable,
 } from 'ag-charts-core';
-import { measurePlacedLabel, resolveSeriesLabelDefaults, toArray } from 'ag-charts-core';
+import {
+    cachedTextMeasurer,
+    measurePlacedLabel,
+    resolveLabelFit,
+    resolveSeriesLabelDefaults,
+    toArray,
+} from 'ag-charts-core';
+import type { AgMarkerShape } from 'ag-charts-types';
 
 import { PointerEvents } from '../../../scene/node';
 import type { Text } from '../../../scene/shape/text';
 import type { PlacedSeriesLabel } from '../../label';
-import { placedLabelTextOffset, styledLabelTextOffset } from '../../label';
+import { expandPlacementLabelBoxExtent, placedLabelTextOffset, styledLabelTextOffset } from '../../label';
 import {
+    boundLabelFit,
     compassCandidatePlacement,
     createCandidateStyleResolver,
     getLabelStyles,
+    insideMarkerContainer,
     pickPlacementStyle,
+    resolveInsidePlacement,
 } from '../../labelUtil';
+import { Marker } from '../../marker/marker';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import { CartesianSeries } from './cartesianSeries';
 import type { CartesianSeriesTypes, DatumOf, LabelOf, LabelSelectionOf } from './cartesianSeriesTypes';
@@ -37,6 +48,21 @@ export interface PlacedLabelContext extends LabelMeasureContext {
     /** Marker anchor, so a label placed on an anchored/off-centre shape (e.g. pin) tracks its drawn centre. */
     readonly labelAnchor: Point | undefined;
 }
+
+/** A marker-anchored placed label's series-constant geometry, plus whether it is drawn at all. */
+export type MarkerLabelContext = PlacedLabelContext & { readonly labelsEnabled: boolean };
+
+const DISABLED_LABEL_CONTEXT: MarkerLabelContext = {
+    labelsEnabled: false,
+    labelPadding: { top: 0, right: 0, bottom: 0, left: 0 },
+    labelTextMeasurer: { measureLines: () => ({ width: 0, height: 0 }) },
+    labelFit: undefined,
+    labelFitOverflow: undefined,
+    labelStyled: false,
+    labelInsideOffset: undefined,
+    labelInsideSize: undefined,
+    labelAnchor: undefined,
+};
 
 /**
  * Type parameters for a series that renders collision-placed labels. Narrows the base label datum to
@@ -86,6 +112,37 @@ export abstract class PlacedLabelCartesianSeries<
     protected abstract makeLabelFormatterParams(): TTypes['labelParams'];
     /** The series' typed label property; bridges `properties.label` to the shared base generic. */
     protected abstract get labelProperty(): PlacedSeriesLabel<TTypes['labelParams']>;
+
+    /**
+     * Series-constant geometry for a marker-anchored placed label.
+     * OPTIMIZATION: a disabled label reaches no consumer, so none of its geometry is resolved.
+     */
+    protected resolveLabelContext(shape: AgMarkerShape | undefined, markerSize: number): MarkerLabelContext {
+        const label = this.labelProperty;
+        if (!label.enabled) return DISABLED_LABEL_CONTEXT;
+
+        const { collision } = label;
+        const {
+            insideOnly,
+            offset: labelInsideOffset,
+            size: labelInsideSize,
+        } = resolveInsidePlacement(toArray(label.placement), shape);
+        const insideFit = insideOnly ? resolveLabelFit(label, false, true) : undefined;
+        return {
+            labelsEnabled: true,
+            labelPadding: expandPlacementLabelBoxExtent(label),
+            labelTextMeasurer: cachedTextMeasurer(label),
+            labelFit: insideFit
+                ? boundLabelFit(insideFit, insideMarkerContainer(markerSize, shape, collision.threshold ?? 0))
+                : resolveLabelFit(label, !collision.alwaysShow),
+            // Keeps the label on a marker too small to hold even an ellipsis.
+            labelFitOverflow: collision.alwaysShow ? insideFit : undefined,
+            labelStyled: label.itemStyler != null,
+            labelInsideOffset,
+            labelInsideSize,
+            labelAnchor: Marker.anchor(shape),
+        };
+    }
 
     protected measureLabel(ctx: PlacedLabelContext, labelText: NormalisedTextOrSegments | undefined): MeasuredLabel {
         return measurePlacedLabel(labelText, this.labelProperty, ctx);
@@ -140,6 +197,10 @@ export abstract class PlacedLabelCartesianSeries<
     }
 
     protected updateLabelNodes(opts: { labelSelection: LabelSelectionOf<TTypes>; isHighlight?: boolean }) {
+        // OPTIMIZATION: the placement offsets below resolve the label over every decorated property,
+        // so a selection with no labels in it must not pay for them.
+        if (opts.labelSelection.length === 0) return;
+
         const isHighlight = opts.isHighlight ?? false;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const params = this.makeLabelFormatterParams();
