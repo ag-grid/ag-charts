@@ -1,5 +1,13 @@
 import type { DynamicContext, ResolvedTextAlign } from 'ag-charts-core';
-import { cachedTextMeasurer, isArray, measureTextSegments, resolveTextAlign, toTextString } from 'ag-charts-core';
+import {
+    cachedTextMeasurer,
+    fontWithSize,
+    isArray,
+    labelTextAtShrinkRatio,
+    measureTextSegments,
+    resolveTextAlign,
+    toTextString,
+} from 'ag-charts-core';
 
 import type { LayoutCompleteEvent } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
@@ -91,9 +99,13 @@ export class ChartCaptions {
         caption.node.y = layoutBox.y + (vAlign === 'top' ? top : layoutBox.height - bottom);
         caption.node.textBaseline = vAlign;
         if (!text) return;
-        const { lineMetrics } = isArray(text)
-            ? measureTextSegments(text, font)
-            : cachedTextMeasurer(font).measureLines(toTextString(text));
+        // One line of text is the floor, measured at the size the caption can shrink to: at its configured
+        // size the floor is a budget the text already fits, so nothing would ever shrink.
+        const floor = labelTextAtShrinkRatio(text, opts.minimumFontSize, font, 0);
+        const floorFont = fontWithSize(font, floor.fontSize);
+        const { lineMetrics } = isArray(floor.text)
+            ? measureTextSegments(floor.text, floorFont)
+            : cachedTextMeasurer(floorFont).measureLines(toTextString(floor.text));
         const containerHeight = Math.max(lineMetrics[0].height, maxHeight);
         caption.computeTextWrap(layoutBox.width, containerHeight);
     }

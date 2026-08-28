@@ -176,6 +176,7 @@ const textSegmentValidator = optionsDefs<TextSegment>({
     text: required(string),
     verticalAlign: verticalAlignValidator,
     lineHeight: positiveNumber,
+    minimumFontSize: and(positiveNumberNonZero, lessThanOrEqual('fontSize')),
     ...fontOptionsDef,
 });
 
