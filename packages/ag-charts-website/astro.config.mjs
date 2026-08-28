@@ -22,6 +22,7 @@ import agAutoRedirect from './plugins/agAutoRedirect';
 import agCssAsString from './plugins/agCssAsString';
 import agDemosStatic from './plugins/agDemosStatic';
 import agDevCsp from './plugins/agDevCsp';
+import agDevImportMapOrder from './plugins/agDevImportMapOrder';
 import agDevMarkdownNegotiation from './plugins/agDevMarkdownNegotiation';
 import agGallerySeoChecker from './plugins/agGallerySeoChecker';
 import agHotModuleReload from './plugins/agHotModuleReload';
@@ -94,6 +95,7 @@ const plugins = [
     agHotModuleReload(),
     agAutoRedirect(['/javascript', '/react', '/vue', '/angular', '/gallery']),
     agDevCsp(),
+    agDevImportMapOrder(),
     agDemosStatic(),
     agDevMarkdownNegotiation(),
 ];
