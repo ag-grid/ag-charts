@@ -8,11 +8,10 @@ import {
     fitLabelText,
     toRadians,
 } from 'ag-charts-core';
-import type { BoxBounds, CanvasPoint, Scale } from 'ag-charts-core';
+import type { BoxBounds, CanvasPoint, CrossLineLabelOverflow, Scale } from 'ag-charts-core';
 import type {
     AgCartesianAxisPosition,
     AgCartesianCrossLineLabelOptions,
-    AgCrossLineLabelOverflow,
     AgCrossLineLabelPosition,
     AgCrossLineListeners,
     Padding,
@@ -158,7 +157,7 @@ class CartesianCrossLineLabel extends LabelStyle implements AgCartesianCrossLine
     position?: CrossLineLabelPosition;
 
     @Property
-    overflow?: AgCrossLineLabelOverflow;
+    overflow?: CrossLineLabelOverflow;
 
     @Property
     reserveSpace: boolean = false;

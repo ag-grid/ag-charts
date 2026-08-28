@@ -365,11 +365,19 @@ export type NormalisedBandHighlightOptions = Normalised<
 >;
 
 // --- Cross-lines normalised shapes ---
+/** How a cross-line label behaves when it does not fit the space available. Undocumented. */
+export type CrossLineLabelOverflow = 'pad-chart' | 'realign-text' | 'clip-text';
+
+// `overflow` and `reserveSpace` are undocumented extensions, validated in `axesOptionsDefs.ts` and
+// themed in `crossLinesModule.ts`, so they are absent from the public label options.
 export type NormalisedAxisCrossLineLabelOptions = Normalised<
     AgBaseCrossLineLabelOptions,
     'fontSize' | 'fontFamily' | 'fontWeight' | 'padding' | 'color' | 'cornerRadius',
     { fontFamily: string }
->;
+> & {
+    overflow?: CrossLineLabelOverflow;
+    reserveSpace?: boolean;
+};
 
 // The cross-lines theme template applies `fill`/`fillOpacity` to every cross-line, so the
 // normalised shape carries them on both variants — via the morph, as they are not common keys.
