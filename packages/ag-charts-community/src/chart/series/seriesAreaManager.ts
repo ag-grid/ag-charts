@@ -865,13 +865,13 @@ export class SeriesAreaManager extends BaseManager {
                 datum
             );
             // Keyboard nav activates exactly one datum: single-entry list, winner is index 0.
-            const defaultBehavior = series.fireNodeClickEvent({
+            const defaultPrevented = series.fireNodeClickEvent({
                 event: sourceEvent,
                 datums: [datum],
                 winner: 0,
                 coordinates,
             });
-            if (defaultBehavior) {
+            if (!defaultPrevented) {
                 const syntheticEvent: KeyboardSyntheticMouseWidgetEvent = {
                     type: 'click',
                     device: 'keyboard',
