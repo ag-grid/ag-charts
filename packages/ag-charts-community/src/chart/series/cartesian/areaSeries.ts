@@ -202,6 +202,31 @@ interface AreaSeriesCreateNodeDatumContext
     labelData: LabelSelectionDatum[];
 }
 
+type AreaLabelContext = Pick<
+    AreaSeriesCreateNodeDatumContext,
+    | 'labelsEnabled'
+    | 'labelPadding'
+    | 'labelTextMeasurer'
+    | 'labelFit'
+    | 'labelFitOverflow'
+    | 'labelStyled'
+    | 'labelInsideOffset'
+    | 'labelInsideSize'
+    | 'labelAnchor'
+>;
+
+const DISABLED_LABEL_CONTEXT: AreaLabelContext = {
+    labelsEnabled: false,
+    labelPadding: { top: 0, right: 0, bottom: 0, left: 0 },
+    labelTextMeasurer: { measureLines: () => ({ width: 0, height: 0 }) },
+    labelFit: undefined,
+    labelFitOverflow: undefined,
+    labelStyled: false,
+    labelInsideOffset: undefined,
+    labelInsideSize: undefined,
+    labelAnchor: undefined,
+};
+
 /**
  * Scratch object for marker/label datum creation.
  * Pre-allocated once and mutated in loops to avoid GC pressure.
@@ -978,7 +1003,6 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             yName,
             legendItemName,
             marker,
-            label,
             fill: seriesFill,
             stroke: seriesStroke,
             normalizedTo,
@@ -1003,20 +1027,8 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         const canIncrementallyUpdate =
             existingNodeData != null && this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
-        const placements = toArray(label.placement);
-        const {
-            insideOnly,
-            offset: labelInsideOffset,
-            size: labelInsideSize,
-        } = resolveInsidePlacement(placements, marker.shape);
         const markerSize = marker.enabled ? marker.size : 0;
-        const insideFit = insideOnly ? resolveLabelFit(label, false, true) : undefined;
-        const labelFit = insideFit
-            ? boundLabelFit(insideFit, insideMarkerContainer(markerSize, marker.shape, label.collision.threshold ?? 0))
-            : resolveLabelFit(label, !label.collision.alwaysShow);
-        // Keeps the label on a marker too small to hold even an ellipsis.
-        const labelFitOverflow = label.collision.alwaysShow ? insideFit : undefined;
-        const labelAnchor = Marker.anchor(marker.shape);
+        const labelContext = this.createLabelContext(markerSize);
 
         return {
             // Axes (from template method parameters)
@@ -1047,15 +1059,15 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
 
             // Pre-computed flags
             isContinuousY,
-            labelsEnabled: label.enabled,
-            labelPadding: expandPlacementLabelBoxExtent(label),
-            labelTextMeasurer: cachedTextMeasurer(label),
-            labelFit,
-            labelFitOverflow,
-            labelStyled: label.itemStyler != null,
-            labelInsideOffset,
-            labelInsideSize,
-            labelAnchor,
+            labelsEnabled: labelContext.labelsEnabled,
+            labelPadding: labelContext.labelPadding,
+            labelTextMeasurer: labelContext.labelTextMeasurer,
+            labelFit: labelContext.labelFit,
+            labelFitOverflow: labelContext.labelFitOverflow,
+            labelStyled: labelContext.labelStyled,
+            labelInsideOffset: labelContext.labelInsideOffset,
+            labelInsideSize: labelContext.labelInsideSize,
+            labelAnchor: labelContext.labelAnchor,
             normalizedTo,
             canIncrementallyUpdate,
             animationEnabled: !this.ctx.animationManager.isSkipped(),
@@ -1076,6 +1088,34 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             nodes: canIncrementallyUpdate ? existingNodeData : [],
             labelData: [],
             nodeIndex: 0,
+        };
+    }
+
+    /** OPTIMIZATION: a disabled label reaches no consumer, so none of its geometry is resolved. */
+    private createLabelContext(markerSize: number): AreaLabelContext {
+        const { label, marker } = this.properties;
+        if (!label.enabled) return DISABLED_LABEL_CONTEXT;
+
+        const { collision } = label;
+        const {
+            insideOnly,
+            offset: labelInsideOffset,
+            size: labelInsideSize,
+        } = resolveInsidePlacement(toArray(label.placement), marker.shape);
+        const insideFit = insideOnly ? resolveLabelFit(label, false, true) : undefined;
+        return {
+            labelsEnabled: true,
+            labelPadding: expandPlacementLabelBoxExtent(label),
+            labelTextMeasurer: cachedTextMeasurer(label),
+            labelFit: insideFit
+                ? boundLabelFit(insideFit, insideMarkerContainer(markerSize, marker.shape, collision.threshold ?? 0))
+                : resolveLabelFit(label, !collision.alwaysShow),
+            // Keeps the label on a marker too small to hold even an ellipsis.
+            labelFitOverflow: collision.alwaysShow ? insideFit : undefined,
+            labelStyled: label.itemStyler != null,
+            labelInsideOffset,
+            labelInsideSize,
+            labelAnchor: Marker.anchor(marker.shape),
         };
     }
 
