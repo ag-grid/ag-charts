@@ -54,6 +54,28 @@ function warm_astro_index {
   ) >/dev/null 2>&1 </dev/null &
 }
 
+# A generated test's title embeds the exact page URL it will load (see `should load ${url}`
+# in examples-util.ts), and `--list` recovers those titles without a browser. Hitting each
+# one serially before the real (parallel) run means the first-ever compile of a heavy shared
+# dependency graph - e.g. the zoom examples all pulling in a wide slice of ag-charts-enterprise
+# - happens once, not once per worker at the same time. Left to the parallel run, that pile-up
+# has been enough to exhaust the Astro dev server's heap and crash it outright.
+#
+# The page itself is cheap: Astro serves its shell without touching the example's chart code,
+# which only loads once a browser requests the entry script the shell references. So fetch the
+# page, then also fetch the `index.js`/`main.js` it points at - that's what actually pulls in
+# ag-charts-enterprise and pays the compile cost this warm-up exists to de-duplicate.
+function warm_test_urls {
+  local urls
+  urls=$(npx playwright test --list "$@" 2>/dev/null | grep -oE 'should load https?://[^[:space:]]+' | sed 's/^should load //' | sort -u)
+  for url in ${urls} ; do
+    local html script
+    html=$(curl -fs --max-time 30 "${url%%#*}") || continue
+    script=$(echo "${html}" | grep -oE 'src="[^"]+/(index|main)\.js"' | head -1 | sed 's/^src="//;s/"$//')
+    [ -n "${script}" ] && curl -fs -o /dev/null --max-time 30 "${script}" || true
+  done
+}
+
 # Spawns the Astro dev server, recording it in ${astro_pid}. Pass --detached to send
 # its output to ${astro_log_file} so the calling shell (a CI step) can exit at once.
 #
@@ -252,4 +274,5 @@ for attempt in $(seq 1 600) ; do
   sleep 0.25
 done
 echo "Connected to ${PUBLIC_SITE_URL}!"
+warm_test_urls $@
 npx playwright $@
