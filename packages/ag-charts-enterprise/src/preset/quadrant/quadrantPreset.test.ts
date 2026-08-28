@@ -16,6 +16,7 @@ import type {
     AgQuadrantRegionLabelOptions,
     AgQuadrantRegionLabelPosition,
     AgQuadrantRegionsLabelOptions,
+    AgSeriesAreaBackgroundRegionLabel,
 } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
@@ -372,50 +373,52 @@ describe('Quadrant Preset', () => {
     );
 
     describe('region label padding', () => {
-        const resolvePadding = (padding: unknown, border?: { enabled: boolean }) => {
-            const options = {
-                ...NUMERIC,
-                regions: {
-                    topLeft: { label: { text: 'Top Left' } },
-                    topRight: { label: { text: 'Top Right' } },
-                    bottomLeft: { label: { text: 'Bottom Left' } },
-                    bottomRight: { label: { text: 'Bottom Right' } },
+        const paddingOptions = (padding: AgSeriesAreaBackgroundRegionLabel['padding']): AgQuadrantChartOptions => ({
+            ...regionLabelOptions('inside-inner-inner'),
+            theme: {
+                overrides: {
+                    scatter: {
+                        seriesArea: {
+                            backgroundRegions: {
+                                label: {
+                                    border: { enabled: true, stroke: 'indigo', strokeWidth: 2 },
+                                    fill: 'thistle',
+                                    padding,
+                                },
+                            },
+                        },
+                    },
                 },
-                theme: {
-                    overrides: { scatter: { seriesArea: { backgroundRegions: { label: { border, padding } } } } },
-                },
-            } as unknown as AgChartOptions;
-            const { processedOptions } = new _ModuleSupport.ChartOptions(
-                options,
-                {} as AgChartOptions,
-                {},
-                {},
-                {
-                    presetType: 'quadrant',
-                }
-            ) as unknown as {
-                processedOptions: { seriesArea: { backgroundRegions: Array<{ label: { padding: unknown } }> } };
-            };
-            return processedOptions.seriesArea.backgroundRegions.map((region) => region.label.padding);
-        };
-
-        it('applies a themed single number to every region label', () => {
-            expect(resolvePadding(0)).toEqual(Array(4).fill({ top: 0, right: 0, bottom: 0, left: 0 }));
+            },
         });
 
-        it('resolves a themed single number as the equivalent padding object', () => {
-            expect(resolvePadding(3)).toEqual(resolvePadding({ top: 3, right: 3, bottom: 3, left: 3 }));
+        const preparedPaddingOptions = (padding: AgSeriesAreaBackgroundRegionLabel['padding']) => {
+            const options = paddingOptions(padding);
+            prepareEnterpriseTestOptions(options);
+            return options;
+        };
+
+        it.each([
+            ['NONE', 0],
+            ['WIDE', 20],
+        ])('for %s it should render to canvas as expected', async (_exampleName, padding) => {
+            chart = AgCharts.createQuadrantChart(preparedPaddingOptions(padding));
+            await compare();
         });
 
         // A label border switches the default to the conditional branch of `$applyPadding`, whose sides are vertices
         // of their own that a themed value must still outrank.
-        it('applies a themed single number over the wider default of a bordered label', () => {
-            expect(resolvePadding(3, { enabled: true })).toEqual(
-                resolvePadding({ top: 3, right: 3, bottom: 3, left: 3 }, { enabled: true })
-            );
-            expect(resolvePadding(3, { enabled: true })).toEqual(
-                Array(4).fill({ top: 3, right: 3, bottom: 3, left: 3 })
-            );
+        it('should render a themed single number identically to the equivalent padding object', async () => {
+            // The mock canvas only backs the first chart created in a test, so reuse one chart.
+            chart = AgCharts.createQuadrantChart(preparedPaddingOptions(20));
+            await waitForChartStability(chart);
+            const shorthandImage = ctx.snapshot();
+            expectNonBlank(shorthandImage);
+
+            await chart.update(preparedPaddingOptions({ top: 20, right: 20, bottom: 20, left: 20 }));
+            await waitForChartStability(chart);
+
+            expect(ctx.snapshot()).toMatchImage(shorthandImage);
         });
     });
 });
