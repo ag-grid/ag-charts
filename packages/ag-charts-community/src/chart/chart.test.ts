@@ -1343,21 +1343,26 @@ describe('Chart', () => {
                 ],
             });
 
-            it('reports every axis while both series are visible', async () => {
-                await createChartWithClickListener(dualAxisOptions());
+            it.each([
+                ['neither series', undefined],
+                ['the primary y series', 'y'],
+                ['the secondary y series', 'y2'],
+            ] as const)('reports the same axis keys with %s hidden', async (_label, hidden) => {
+                await createChartWithClickListener(dualAxisOptions(hidden));
                 await clickAtEmptyPlot();
 
                 const [{ coordinates }] = popClickEvents();
                 expect(Object.keys(coordinates).sort((a, b) => a.localeCompare(b))).toEqual(['x', 'y', 'y2']);
             });
 
-            it.each(['y', 'y2'] as const)('omits the %s axis when its only series is hidden', async (hidden) => {
+            it.each(['y', 'y2'] as const)('reports the hidden %s axis as undefined', async (hidden) => {
                 await createChartWithClickListener(dualAxisOptions(hidden));
                 await clickAtEmptyPlot();
 
                 const [{ coordinates }] = popClickEvents();
-                // Absent, not present-and-undefined: consumers branch on `axisId in coordinates`.
-                expect(hidden in coordinates).toBe(false);
+                // Present-and-undefined, not absent: `toEqual` treats those two shapes as equal.
+                expect(hidden in coordinates).toBe(true);
+                expect(coordinates[hidden]).toBeUndefined();
                 const stillVisible = hidden === 'y' ? 'y2' : 'y';
                 expect(coordinates[stillVisible].value).toEqual(expect.any(Number));
             });

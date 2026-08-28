@@ -109,6 +109,9 @@ export class CartesianChart extends Chart {
                 const { boundSeries, depth, direction, domain, groupPercentage, index, value } = pick;
                 const axisResult: Rules = { boundSeries, depth, direction, domain, groupPercentage, index, value };
                 result[pick.axisId] = axisResult;
+            } else {
+                // Key present regardless, so the shape tracks `axes` and not series visibility.
+                result[axis.userKey] = undefined;
             }
         }
         return result;
