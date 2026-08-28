@@ -1,7 +1,9 @@
-// NOTE: The homepage gallery keeps its own copy of this plumbing in
+// The markers the code viewer and the Plunker/CodeSandbox exports strip this snippet by, via
+// `DARK_MODE_REGEX` in `external/ag-website-shared/src/utils/extraCodeSnippets.ts` - the values have
+// to match that file. The homepage gallery keeps its own copy of this plumbing in
 // `packages/ag-charts-website/src/utils/getDarkModeSnippet.ts`.
-export const DARK_MODE_START = '/** DARK MODE START **/';
-export const DARK_MODE_END = '/** DARK MODE END **/';
+const DARK_MODE_START = '/** DARK MODE START **/';
+const DARK_MODE_END = '/** DARK MODE END **/';
 
 /**
  * Points the default theme at the colour variables `example-chart-theme.css` flips with
@@ -65,7 +67,9 @@ const getDarkmodeTheme = (theme = 'ag-default', preset) => {
     return isDarkmode() ? baseTheme + '-dark' : baseTheme;
 };
 
-let hasSwappedTheme = false;
+// Per container, not per document: a chart on the CSS path must not be re-rendered because a
+// sibling in the same example needed the swap.
+const swappedContainers = new WeakSet();
 
 __chartAPI.optionsMutationFn = function update(options, preset) {
     const theme = options.theme;
@@ -98,7 +102,8 @@ __chartAPI.optionsMutationFn = function update(options, preset) {
         };
     }
 
-    hasSwappedTheme = true;
+    if (options.container != null) swappedContainers.add(options.container);
+
     return {
         ...options,
         theme: isThemeObject
@@ -110,9 +115,10 @@ __chartAPI.optionsMutationFn = function update(options, preset) {
 // The page shell owns the example document's \`data-dark-mode\`, setting it before this runs and
 // keeping it in step with the site's toggle.
 new MutationObserver(() => {
-    if (!hasSwappedTheme) return;
     document.querySelectorAll('[data-ag-charts]').forEach((element) => {
-        const chart = __chartAPI.getInstance(element.parentElement);
+        const container = element.parentElement;
+        if (!swappedContainers.has(container)) return;
+        const chart = __chartAPI.getInstance(container);
         if (chart == null) return;
         chart.update(chart.getOptions());
     });
