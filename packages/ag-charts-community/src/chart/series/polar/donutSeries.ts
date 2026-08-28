@@ -10,6 +10,7 @@ import {
     ChartAxisDirection,
     ChartUpdateType,
     DebugMetrics,
+    type FontOptions,
     type Has,
     type InternalAgColorType,
     type Point,
@@ -20,10 +21,13 @@ import {
     cachedTextMeasurer,
     canRenderTextOffscreen,
     extractDomain,
-    fitLabelText,
+    findLargestFittingFontSize,
+    fitLabelTextAutoSize,
     fitLabelTextToRegion,
+    fontWithSize,
     formatValue,
     insetFitRegion,
+    isErased,
     isGradientFill,
     isStringFillArray,
     jsonDiff,
@@ -32,6 +36,7 @@ import {
     normalizeAngle180,
     probedFitRegion,
     resolveLabelFit,
+    resolveMinimumFontSize,
     toNumber,
     toPlainText,
     toRadians,
@@ -50,6 +55,7 @@ import type {
     AgPieSeriesItemStylerParams,
     AgPieSeriesLabelFormatterParams,
     NormalisedCallbackParams,
+    PaddingOptions,
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
@@ -64,6 +70,7 @@ import { Line } from '../../../scene/shape/line';
 import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
 import {
+    type SectorBoundaries,
     boxOverlapsSector,
     clockwiseAngles,
     isBoxInSector,
@@ -83,7 +90,7 @@ import {
     valueProperty,
 } from '../../data/processors';
 import { Label, expandLabelBoxExtent, expandLabelPadding } from '../../label';
-import { fitLabelToContainer, fitSectorLabelRect, getLabelStyles } from '../../labelUtil';
+import { fitLabelToContainer, fitLabelToContainerAutoSize, fitSectorLabelRect, getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -108,8 +115,45 @@ import {
     PolarSeries,
 } from './polarSeries';
 
+/** The wedge's usable region depends on the line height, so every candidate size is placed and probed afresh. */
+function fitSectorLabelToWedge(
+    text: NormalisedTextOrSegments,
+    fit: LabelFit,
+    font: FontOptions,
+    anchor: Point,
+    sector: SectorBoundaries,
+    padding: Required<PaddingOptions>
+): { text: NormalisedTextOrSegments; x: number; y: number; fontSize?: number } {
+    const place = (sized: FontOptions, atFloor: boolean) => {
+        const rect = fitSectorLabelRect(anchor, sector, cachedTextMeasurer(sized).lineHeight());
+        const region = insetFitRegion(
+            probedFitRegion(
+                { x: rect.centerX, y: rect.centerY },
+                (x, y) => isPointInSector(x, y, sector),
+                Math.abs(sector.outerRadius) * 2
+            ),
+            Math.max(padding.left, padding.right),
+            Math.max(padding.top, padding.bottom)
+        );
+        // Above the floor the text must fit whole, so a truncating size is rejected and the search steps down.
+        const policy = atFloor ? fit : { ...fit, overflowStrategy: 'hide' as const };
+        const fitted = fitLabelTextToRegion(text, withFitRegion(policy, region), sized);
+        return { text: fitted.text, x: rect.centerX + fitted.offsetX, y: rect.centerY };
+    };
+    const floor = resolveMinimumFontSize(fit.minimumFontSize, font.fontSize);
+    if (floor >= font.fontSize) return place(font, true);
+    const found = findLargestFittingFontSize(floor, font.fontSize, (fontSize, atFloor) => {
+        const placed = place(fontWithSize(font, fontSize), atFloor);
+        if (isErased(placed.text)) return undefined;
+        return { ...placed, fontSize: fontSize === font.fontSize ? undefined : fontSize };
+    });
+    return found ?? place(fontWithSize(font, floor), true);
+}
+
 interface PieDonutLabelDatum {
     readonly text: NormalisedTextOrSegments;
+    /** Reduced font size the text was fitted at, overriding the styled `fontSize` when the label shrank. */
+    readonly fittedFontSize?: number;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
     hidden: boolean;
@@ -156,7 +200,7 @@ interface ProcessedDataValues {
     legendItemValues: string[] | undefined;
 }
 
-enum DonutNodeTag {
+export enum DonutNodeTag {
     CalloutLine,
     CalloutLabel,
 }
@@ -615,16 +659,18 @@ export class DonutSeries extends PolarSeries<
 
         const result: {
             callout: NormalisedTextOrSegments | undefined;
+            calloutFontSize: number | undefined;
             sector: NormalisedTextOrSegments | undefined;
             legendItem: string | undefined;
         } = {
             callout: undefined,
+            calloutFontSize: undefined,
             sector: undefined,
             legendItem: undefined,
         };
 
         if (calloutLabelKey) {
-            result.callout = fitLabelText(
+            const fitted = fitLabelTextAutoSize(
                 this.getLabelText<PieDonutSeriesLabelFormatterParams>(
                     calloutLabelValue,
                     datum,
@@ -638,6 +684,8 @@ export class DonutSeries extends PolarSeries<
                 calloutLabelFit,
                 calloutLabel
             );
+            result.callout = fitted.text;
+            result.calloutFontSize = fitted.fontSize;
         }
 
         if (sectorLabelKey) {
@@ -695,6 +743,7 @@ export class DonutSeries extends PolarSeries<
             result.calloutLabel = {
                 ...this.getTextAlignment(midAngle),
                 text: formats.callout,
+                fittedFontSize: formats.calloutFontSize,
                 hidden: false,
                 collisionTextAlign: undefined,
                 collisionOffsetY: 0,
@@ -1368,7 +1417,7 @@ export class DonutSeries extends PolarSeries<
         const textAlign = label.collisionTextAlign ?? label.textAlign;
         const textBaseline = label.textBaseline;
         return Text.measureBBox(label.text, x, y, {
-            font: calloutLabel,
+            font: fontWithSize(calloutLabel, label.fittedFontSize),
             textAlign,
             textBaseline,
         }).grow(padding);
@@ -1541,6 +1590,7 @@ export class DonutSeries extends PolarSeries<
             tempTextNode.x = x;
             tempTextNode.y = y;
             tempTextNode.setFont(style);
+            tempTextNode.fontSize = label.fittedFontSize ?? style.fontSize;
             tempTextNode.setAlign(align);
             tempTextNode.setBoxing(style);
             const box = tempTextNode.getBBox();
@@ -1551,7 +1601,7 @@ export class DonutSeries extends PolarSeries<
                 const { maxWidth, hasVerticalOverflow } = this.getLabelOverflow(box, seriesRect);
                 if (box.width > maxWidth) {
                     const options: WrapOptions = {
-                        font: this.properties.calloutLabel,
+                        font: fontWithSize(this.properties.calloutLabel, label.fittedFontSize),
                         textWrap: 'on-space',
                         overflow: 'hide',
                         maxWidth,
@@ -1565,6 +1615,7 @@ export class DonutSeries extends PolarSeries<
             text.x = x;
             text.y = y;
             text.setFont(style);
+            text.fontSize = label.fittedFontSize ?? style.fontSize;
             text.setAlign(align);
             text.setBoxing(style);
             text.fill = style.color;
@@ -1622,6 +1673,7 @@ export class DonutSeries extends PolarSeries<
             text.x = x;
             text.y = y;
             text.setFont(style);
+            text.fontSize = label.fittedFontSize ?? style.fontSize;
             text.setAlign({
                 textAlign: label.collisionTextAlign ?? label.textAlign,
                 textBaseline: label.textBaseline,
@@ -1699,6 +1751,7 @@ export class DonutSeries extends PolarSeries<
                     seriesHighlighted && this.isItemHighlighted(highlightedDatum, datum.datumIndex) === true;
 
                 let isTextVisible = false;
+                let fittedFontSize: number | undefined;
                 if (datum.sectorLabel && outerRadius !== 0) {
                     const style = this.getLabelStyle(datum, properties.sectorLabel, 'sectorLabel', isDatumHighlighted);
                     const labelRadius =
@@ -1717,38 +1770,28 @@ export class DonutSeries extends PolarSeries<
                         text.y = 0;
                         const holeExtent = outerRadius * Math.SQRT2;
                         const container = { width: holeExtent, height: holeExtent };
-                        text.text = fitLabelToContainer(datum.sectorLabel.text, sectorFit, style, container);
+                        const fitted = fitLabelToContainerAutoSize(datum.sectorLabel.text, sectorFit, style, container);
+                        text.text = fitted.text;
+                        fittedFontSize = fitted.fontSize;
                     } else {
+                        // The wedge bounds the text rather than capping the inscribed rect, and is lopsided
+                        // about the anchor, so the fit also reports where to draw.
                         const anchor = { x: datum.midCos * labelRadius, y: datum.midSin * labelRadius };
-                        const rect = fitSectorLabelRect(anchor, sectorBounds, cachedTextMeasurer(style).lineHeight());
-                        text.y = rect.centerY;
-                        // The wedge itself bounds the text, so it replaces the inscribed rect's container
-                        // rather than being capped by it; the rect still anchors the label.
-                        // Probing the wedge bisects a containment test per sector, so it is only worth
-                        // doing once the user has opted into fitting; without it the region goes unused.
-                        const region =
-                            sectorFit == null
-                                ? undefined
-                                : insetFitRegion(
-                                      probedFitRegion(
-                                          { x: rect.centerX, y: rect.centerY },
-                                          (x, y) => isPointInSector(x, y, sectorBounds),
-                                          Math.abs(outerRadius) * 2
-                                      ),
-                                      Math.max(labelPadding.left, labelPadding.right),
-                                      Math.max(labelPadding.top, labelPadding.bottom)
-                                  );
-                        // The wedge's own extent bounds the block, and it holds more room to one side of
-                        // the anchor than the other, so the fit also says where to draw the text.
-                        const fitted = fitLabelTextToRegion(
+                        const fitted = fitSectorLabelToWedge(
                             datum.sectorLabel.text,
-                            withFitRegion(sectorFit, region),
-                            style
+                            sectorFit,
+                            style,
+                            anchor,
+                            sectorBounds,
+                            labelPadding
                         );
                         text.text = fitted.text;
-                        text.x = rect.centerX + fitted.offsetX;
+                        text.x = fitted.x;
+                        text.y = fitted.y;
+                        fittedFontSize = fitted.fontSize;
                     }
                     text.setFont(style);
+                    text.fontSize = fittedFontSize ?? style.fontSize;
                     text.setAlign(align);
                     text.setBoxing(style);
 
@@ -1860,9 +1903,8 @@ export class DonutSeries extends PolarSeries<
         const { angleRawValues } = processedDataValues;
         const angleRawValue = angleRawValues[datumIndex];
 
-        const { calloutLabel } = this.properties;
-        const calloutLabelFit = resolveLabelFit(calloutLabel, false);
-        const labelValues = this.getLabelContent(datumIndex, datum, processedDataValues, calloutLabelFit);
+        // The callout fit bounds the drawn label only, so a tooltip shows the text whole.
+        const labelValues = this.getLabelContent(datumIndex, datum, processedDataValues, undefined);
         const label = labelValues.legendItem ?? labelValues.callout ?? labelValues.sector ?? angleName;
 
         const domain = extractDomain(dataModel.getDomain(this, `angleRaw`, 'value', processedData));
@@ -1963,8 +2005,6 @@ export class DonutSeries extends PolarSeries<
         const hideZeros = this.properties.hideZeroValueSectorsInLegend;
         const rawData = processedData.dataSources.get(this.id)?.data;
         const invalidData = processedData.invalidData?.get(this.id);
-        const { calloutLabel } = this.properties;
-        const calloutLabelFit = resolveLabelFit(calloutLabel, false);
         for (let datumIndex = 0; datumIndex < processedData.input.count; datumIndex++) {
             const datum = rawData?.[datumIndex] as any;
             const angleRawValue = angleRawValues[datumIndex];
@@ -1977,7 +2017,8 @@ export class DonutSeries extends PolarSeries<
             if (titleText) {
                 labelParts.push(titleText);
             }
-            const labels = this.getLabelContent(datumIndex, datum, processedDataValues, calloutLabelFit);
+            // As with the tooltip, a legend item is not the surface the callout fit bounds.
+            const labels = this.getLabelContent(datumIndex, datum, processedDataValues, undefined);
 
             if (legendItemKey && labels.legendItem !== undefined) {
                 labelParts.push(labels.legendItem);

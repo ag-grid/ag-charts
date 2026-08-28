@@ -473,8 +473,8 @@ export function findLargestFontSizeDescending<T>(
 
 /** The size the search bottoms out at, or `undefined` when the label cannot shrink. */
 function autoSizeFloor(fit: LabelFit, font: FontOptions): number | undefined {
-    const { minimumFontSize, maxWidth, maxHeight } = fit;
-    if (minimumFontSize == null || (maxWidth == null && maxHeight == null)) return undefined;
+    const { minimumFontSize, maxWidth, maxHeight, region } = fit;
+    if (minimumFontSize == null || (maxWidth == null && maxHeight == null && region == null)) return undefined;
     const resolved = resolveMinimumFontSize(minimumFontSize, font.fontSize);
     return resolved < font.fontSize ? resolved : undefined;
 }
