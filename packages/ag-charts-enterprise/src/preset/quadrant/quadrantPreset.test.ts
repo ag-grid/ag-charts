@@ -163,6 +163,12 @@ const STYLED: AgQuadrantChartOptions = {
 
 const THEMED: AgQuadrantChartOptions = {
     ...NUMERIC,
+    regions: {
+        topLeft: { label: { text: 'Top Left' } },
+        topRight: { label: { text: 'Top Right' } },
+        bottomLeft: { label: { text: 'Bottom Left' } },
+        bottomRight: { label: { text: 'Bottom Right' } },
+    },
     theme: {
         overrides: {
             scatter: {
