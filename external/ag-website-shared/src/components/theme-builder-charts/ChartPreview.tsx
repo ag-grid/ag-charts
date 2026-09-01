@@ -18,7 +18,7 @@ export const ChartPreview = ({ theme, chartType, seriesCount, features }: Props)
         () => ({ ...chartType.buildOptions(seriesCount, features), theme }),
         [chartType, seriesCount, features, theme]
     );
-    return <Container ref={useChart(options, chartType.preset === 'financial')} />;
+    return <Container ref={useChart(options, chartType.preset)} />;
 };
 
 const Container = styled('div')`
