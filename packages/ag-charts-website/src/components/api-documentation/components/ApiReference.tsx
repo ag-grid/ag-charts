@@ -154,11 +154,15 @@ export function ChildPropertiesButton({
 }) {
     return (
         <button
+            type="button"
+            // Safari omits buttons from the tab order without an explicit tabindex.
+            tabIndex={0}
             className={classnames(styles.childButton, 'button-as-link', {
                 [styles.isExpanded]: isExpanded,
             })}
             onClick={onClick}
-            aria-label={`See child properties of ${name}`}
+            aria-expanded={Boolean(isExpanded)}
+            aria-label={`${isExpanded ? 'Hide' : 'See'} child properties of ${name}`}
         >
             <Icon svgClasses={styles.childChevron} name="chevronRight" />
             <span>{isExpanded ? 'Hide' : 'See'} child properties</span>
@@ -169,11 +173,15 @@ export function ChildPropertiesButton({
 function UnionTypesButton({ name, isExpanded, onClick }: { name: string; isExpanded?: boolean; onClick?: () => void }) {
     return (
         <button
+            type="button"
+            // Safari omits buttons from the tab order without an explicit tabindex.
+            tabIndex={0}
             className={classnames(styles.unionTypesButton, 'button-as-link', {
                 [styles.isExpanded]: isExpanded,
             })}
             onClick={onClick}
-            aria-label={`See available interfaces of ${name}`}
+            aria-expanded={Boolean(isExpanded)}
+            aria-label={`${isExpanded ? 'Hide' : 'See'} available interfaces of ${name}`}
         >
             <Icon svgClasses={styles.childChevron} name="chevronRight" />
             <span>{isExpanded ? 'Hide' : 'See'} available interfaces</span>
@@ -469,7 +477,12 @@ function ApiReferenceRow({
                                     (child) => isValidElement(child) && child.type === 'code'
                                 );
                                 return (
-                                    <a href={href} className={hasCode ? 'meta-link' : undefined} {...props}>
+                                    <a
+                                        tabIndex={0}
+                                        href={href}
+                                        className={hasCode ? 'meta-link' : undefined}
+                                        {...props}
+                                    >
                                         {children}
                                     </a>
                                 );
@@ -488,6 +501,7 @@ function ApiReferenceRow({
                 {nestedPath && (
                     <div className={styles.actions}>
                         <a
+                            tabIndex={0}
                             href={nestedPath}
                             onClick={(event) => {
                                 event.preventDefault();
