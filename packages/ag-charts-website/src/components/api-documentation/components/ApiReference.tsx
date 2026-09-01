@@ -23,7 +23,7 @@ import {
     useEffect,
     useMemo,
 } from 'react';
-import Markdown from 'react-markdown';
+import Markdown, { type Components } from 'react-markdown';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 import remarkBreaks from 'remark-breaks';
 
@@ -142,6 +142,18 @@ export function ApiReferenceWithReferenceContext(props: ApiReferenceOptions & Ap
     );
 }
 
+const docsMarkdownComponents: Components = {
+    a({ children, href, ...props }) {
+        const hasCode = Children.toArray(children).some((child) => isValidElement(child) && child.type === 'code');
+        return (
+            // Safari omits links from the tab order without an explicit tabindex.
+            <a tabIndex={0} href={href} className={hasCode ? 'meta-link' : undefined} {...props}>
+                {children}
+            </a>
+        );
+    },
+};
+
 export function ChildPropertiesButton({
     name,
     isExpanded,
@@ -249,6 +261,7 @@ function UnionVariantNode({
                             <Markdown
                                 remarkPlugins={[remarkBreaks]}
                                 urlTransform={(url: string) => urlWithBaseUrl(url)}
+                                components={docsMarkdownComponents}
                             >
                                 {docs}
                             </Markdown>
@@ -471,23 +484,7 @@ function ApiReferenceRow({
                     <Markdown
                         remarkPlugins={[remarkBreaks]}
                         urlTransform={(url: string) => urlWithBaseUrl(url)}
-                        components={{
-                            a({ children, href, ...props }) {
-                                const hasCode = Children.toArray(children).some(
-                                    (child) => isValidElement(child) && child.type === 'code'
-                                );
-                                return (
-                                    <a
-                                        tabIndex={0}
-                                        href={href}
-                                        className={hasCode ? 'meta-link' : undefined}
-                                        {...props}
-                                    >
-                                        {children}
-                                    </a>
-                                );
-                            },
-                        }}
+                        components={docsMarkdownComponents}
                     >
                         {parseJsDocs(member.docs)}
                     </Markdown>
