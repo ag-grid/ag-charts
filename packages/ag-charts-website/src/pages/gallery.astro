@@ -6,7 +6,9 @@ import { getPageHashUrl } from '@components/gallery/utils/urlPaths';
 import type { GalleryData, GalleryExample, GalleryExampleChartType } from '@ag-grid-types';
 import { GalleryExampleLink } from '@components/gallery/components/GalleryExampleLink';
 import { GalleryExampleThemeDropdown } from '@components/gallery/components/GalleryExampleThemeDropdown';
+import { GALLERY_HUB_COPY } from '@components/gallery/galleryCopy';
 import { GALLERY_CTAS } from '@components/gallery/galleryCtas';
+import { galleryFamilyHeading, resolveGalleryH1 } from '@components/gallery/utils/gallerySeo';
 import { DISABLE_MARKDOWN_DOCS, GALLERY_IMAGE_DPR_ENHANCEMENT } from '@constants';
 import { getModifiedGalleryExamples } from '@components/gallery/utils/modifiedExamples';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
@@ -22,15 +24,15 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
 ---
 
 <Layout
-    title="Gallery | AG Charts"
-    description="Gallery of JavaScript Charts and JavaScript Graphs created with AG Charts. View source code and interact with Charts; live edit examples with CodeSandbox and Plunker."
+    title={GALLERY_HUB_COPY.title}
+    description={GALLERY_HUB_COPY.description}
     showSearchBar={true}
     markdownUrl={markdownUrl}
 >
     <div class={styles.toolbar} data-gallery-toolbar>
         <div class:list={[styles.toolbarInner, 'layout-page-max-width']}>
             <div class={styles.toolbarTitleGroup}>
-                <h1>AG Charts Gallery</h1>
+                <span class={styles.toolbarTitle}>AG Charts Gallery</span>
                 <div class={styles.toolbarCtas}>
                     {
                         GALLERY_CTAS.map((cta) => (
@@ -70,21 +72,28 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
         </div>
 
         <div class="content">
-            <div>
+            <div class="intro text-base">
+                <h1>{GALLERY_HUB_COPY.h1}</h1>
+                <p>{GALLERY_HUB_COPY.intro}</p>
+            </div>
+
+            <div class="gallery-grid">
                 {
                     series.map((series: GalleryExampleChartType[]) => (
                         <div class="chart-type">
                             <div class="gallery-list">
-                                {series.map(({ title, seriesName, examples }) => (
+                                {series.map(({ title: familyTitle, seriesName, examples }) => (
                                     <>
+                                        <h2 id={seriesName} class="gallery-list-title">
+                                            {galleryFamilyHeading(familyTitle)}
+                                        </h2>
                                         {examples
                                             .filter(({ hidden }) => !hidden)
-                                            .map(({ title, name }: GalleryExample, i) => (
+                                            .map(({ title, name }: GalleryExample) => (
                                                 <GalleryExampleLink
                                                     client:visible
-                                                    label={title}
+                                                    label={resolveGalleryH1({ title, name })}
                                                     exampleName={name}
-                                                    id={i === 0 ? seriesName : null}
                                                     enableDprScaling={enableDprScaling}
                                                     isModified={modifiedExamples.has(name)}
                                                 />
@@ -282,15 +291,20 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
         padding-top: $spacing-size-6;
         padding-bottom: $spacing-size-24;
 
-        > div {
-            display: flex;
-            flex-wrap: wrap;
-            gap: var(--gallery-list-gap);
-        }
-
         @media screen and (min-width: $breakpoint-gallery-small) {
             padding-bottom: $spacing-size-56;
         }
+    }
+
+    .intro {
+        max-width: 70ch;
+        margin-bottom: $spacing-size-4;
+    }
+
+    .gallery-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--gallery-list-gap);
     }
 
     .chart-type,
@@ -298,9 +312,11 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
         display: contents;
     }
 
+    // Breaks the card row it sits in, so each chart family starts on a line of its own.
     .gallery-list-title {
-        position: absolute;
-        visibility: hidden;
+        flex: 0 0 100%;
+        margin-top: $spacing-size-4;
+        margin-bottom: 0;
     }
 </style>
 

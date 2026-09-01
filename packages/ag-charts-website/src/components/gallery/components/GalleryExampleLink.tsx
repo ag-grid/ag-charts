@@ -8,25 +8,17 @@ import styles from './GalleryExampleLink.module.scss';
 interface Props {
     label: string;
     exampleName: string;
-    id?: string;
     enableDprScaling: boolean;
     isModified?: boolean;
 }
 
-export const GalleryExampleLink: FunctionComponent<Props> = ({
-    label,
-    exampleName,
-    id,
-    enableDprScaling,
-    isModified,
-}) => {
+export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleName, enableDprScaling, isModified }) => {
     return (
         <a
             className={classnames(styles.link, 'galleryExample', styles[`layout-3-col`], 'text-sm', 'text-secondary', {
                 [styles.modified]: isModified,
             })}
             href={getPageUrl(exampleName)}
-            id={id}
         >
             <div className={styles.image}>
                 <GalleryExampleImage label={label} exampleName={exampleName} enableDprScaling={enableDprScaling} />
