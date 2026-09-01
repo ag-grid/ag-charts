@@ -1,3 +1,4 @@
+import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { Select } from '@ag-website-shared/components/select/Select';
 import styled from '@emotion/styled';
 
@@ -19,6 +20,11 @@ interface Props {
  * Grouped rather than left as two loose controls because the count is unlikely
  * to be the last of these - category count is the obvious next one - and a group
  * has somewhere to put it.
+ *
+ * Sized and shaped like the framework selector in the docs - `isLarge` and
+ * `isPopper`, an icon beside each option - because this is chrome on a docs
+ * page, and a control that dresses differently reads as part of the preview it
+ * sits above rather than as part of the site.
  */
 export const PreviewOptions = ({
     paneLabel,
@@ -28,20 +34,24 @@ export const PreviewOptions = ({
     onSeriesCountChange,
 }: Props) => (
     <Wrapper>
-        <Field>
+        <TypeField>
             <Label aria-hidden="true">Preview</Label>
             <Select
+                isLarge
+                isPopper
                 options={PREVIEW_CHART_TYPES}
                 value={chartType}
                 onChange={onChartTypeChange}
                 getKey={getTypeId}
-                getLabel={getTypeLabel}
+                renderItem={renderTypeItem}
                 triggerAriaLabel={`${paneLabel} preview chart type`}
             />
-        </Field>
+        </TypeField>
         <Field>
             <Label aria-hidden="true">{chartType.countLabel}</Label>
             <Select
+                isLarge
+                isPopper
                 options={SERIES_COUNT_OPTIONS}
                 value={seriesCount}
                 onChange={onSeriesCountChange}
@@ -54,7 +64,13 @@ export const PreviewOptions = ({
 );
 
 const getTypeId = ({ id }: PreviewChartType) => id;
-const getTypeLabel = ({ label }: PreviewChartType) => label;
+
+const renderTypeItem = (type: PreviewChartType) => (
+    <TypeItem>
+        <Icon name={type.icon} />
+        {type.label}
+    </TypeItem>
+);
 
 const Wrapper = styled('div')`
     display: flex;
@@ -69,8 +85,30 @@ const Field = styled('div')`
     gap: 8px;
 `;
 
+// A fixed trigger width, so choosing the longest name does not widen the
+// control and shove the count select along the row.
+const TypeField = styled(Field)`
+    button {
+        width: 180px;
+    }
+`;
+
+const TypeItem = styled('span')`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    // Icon takes its size from this variable and has no default of its own, so
+    // without it the svg falls back to the 32px it declares as an attribute.
+    --icon-size: 16px;
+
+    .icon {
+        fill: var(--color-fg-secondary);
+    }
+`;
+
 const Label = styled('span')`
     color: var(--color-fg-secondary);
-    font-size: 12px;
+    font-size: var(--text-fs-xs);
     white-space: nowrap;
 `;
