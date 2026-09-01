@@ -169,6 +169,36 @@ function arcIntersections(
     return intersections;
 }
 
+/** The sector's two straight edges, as endpoint coordinates. Invariant while only the box moves. */
+export interface SectorEdges {
+    startX0: number;
+    startY0: number;
+    startX1: number;
+    startY1: number;
+    endX0: number;
+    endY0: number;
+    endX1: number;
+    endY1: number;
+}
+
+export function sectorEdges({ startAngle, endAngle, innerRadius, outerRadius }: SectorBoundaries): SectorEdges {
+    const sinStartAngle = Math.sin(startAngle);
+    const cosStartAngle = Math.cos(startAngle);
+    const sinEndAngle = Math.sin(endAngle);
+    const cosEndAngle = Math.cos(endAngle);
+
+    return {
+        startX0: innerRadius * cosStartAngle,
+        startY0: innerRadius * sinStartAngle,
+        startX1: outerRadius * cosStartAngle,
+        startY1: outerRadius * sinStartAngle,
+        endX0: innerRadius * cosEndAngle,
+        endY0: innerRadius * sinEndAngle,
+        endX1: outerRadius * cosEndAngle,
+        endY1: outerRadius * sinEndAngle,
+    };
+}
+
 /**
  * Tests whether an axis-aligned `box` overlaps the filled area of a `sector` (annular wedge).
  *
@@ -179,26 +209,13 @@ function arcIntersections(
  *
  * @returns `true` when `box` and the sector overlap; a shared edge or single touching point counts.
  */
-export function boxOverlapsSector(box: BoxBounds, sector: SectorBoundaries): boolean {
-    const { startAngle, endAngle, innerRadius, outerRadius } = sector;
+export function boxOverlapsSector(box: BoxBounds, sector: SectorBoundaries, edges = sectorEdges(sector)): boolean {
+    const { startAngle, endAngle, outerRadius, innerRadius } = sector;
+    const { startX0, startY0, startX1, startY1, endX0, endY0, endX1, endY1 } = edges;
     const top = box.y;
     const bottom = box.y + box.height;
     const left = box.x;
     const right = box.x + box.width;
-
-    const sinStartAngle = Math.sin(startAngle);
-    const cosStartAngle = Math.cos(startAngle);
-    const sinEndAngle = Math.sin(endAngle);
-    const cosEndAngle = Math.cos(endAngle);
-
-    const startX0 = innerRadius * cosStartAngle;
-    const startY0 = innerRadius * sinStartAngle;
-    const startX1 = outerRadius * cosStartAngle;
-    const startY1 = outerRadius * sinStartAngle;
-    const endX0 = innerRadius * cosEndAngle;
-    const endY0 = innerRadius * sinEndAngle;
-    const endX1 = outerRadius * cosEndAngle;
-    const endY1 = outerRadius * sinEndAngle;
 
     // Check if any corner of `sector` is in `box`:
     const pointInBox = (x: number, y: number): boolean => x >= left && x <= right && y >= top && y <= bottom;

@@ -78,6 +78,7 @@ import {
     isBoxInSector,
     isPointInSector,
     sectorBox,
+    sectorEdges,
 } from '../../../scene/util/sector';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, getMissCount } from '../../data/dataModel';
@@ -1470,6 +1471,17 @@ export class DonutSeries extends PolarSeries<
             const y1 = midSin * outerRadius;
             const x2 = midCos * lineEndRadius;
             const y2 = midSin * lineEndRadius;
+
+            // This runs for every pair of labels, so reject on the segment's extent before the exact test.
+            if (
+                Math.max(x1, x2) < box.x ||
+                Math.min(x1, x2) > box.x + box.width ||
+                Math.max(y1, y2) < box.y ||
+                Math.min(y1, y2) > box.y + box.height
+            ) {
+                return false;
+            }
+
             // A line wholly inside the box crosses none of its edges, so containment is a separate question.
             return box.containsPoint(x1, y1) || boxCrossesSegment(box, x1, y1, x2, y2);
         };
@@ -1525,7 +1537,8 @@ export class DonutSeries extends PolarSeries<
             const sector = { startAngle, endAngle, innerRadius, outerRadius };
             const box = sectorBox(sector);
             extentSum += box.width + box.height;
-            return { box, sector };
+            // Probes move the label, never the sector, so the sector's edge geometry is resolved once.
+            return { box, sector, edges: sectorEdges(sector) };
         });
 
         // The bisection probes this far more often than anything else in the pass, so prune before the exact test.
@@ -1541,22 +1554,57 @@ export class DonutSeries extends PolarSeries<
         const collidesSectors = (box: BBox) =>
             sectorIndex.query(
                 box,
-                (obstacle) => box.collidesBBox(obstacle.box) && boxOverlapsSector(box, obstacle.sector)
+                (obstacle) => box.collidesBBox(obstacle.box) && boxOverlapsSector(box, obstacle.sector, obstacle.edges)
             );
 
         const avoidSectorCollisions = () => {
+            // A push moves the label along its mid-angle without resizing it, so each side is measured once and
+            // every probe of that side is the same box translated. Re-measuring per probe dominated this pass.
+            const baseBoxes = new Map<(typeof data)[number], Map<CanvasTextAlign | undefined, BBox>>();
+            const probeBox = (d: (typeof data)[number], side: CanvasTextAlign | undefined, offset: number) => {
+                let bySide = baseBoxes.get(d);
+                if (bySide == null) {
+                    bySide = new Map();
+                    baseBoxes.set(d, bySide);
+                }
+
+                let base = bySide.get(side);
+                if (base == null) {
+                    const label = d.calloutLabel;
+                    const { collisionTextAlign, collisionRadiusOffset } = label;
+                    label.collisionTextAlign = side;
+                    label.collisionRadiusOffset = 0;
+                    base = labelBox(d);
+                    label.collisionTextAlign = collisionTextAlign;
+                    label.collisionRadiusOffset = collisionRadiusOffset;
+                    bySide.set(side, base);
+                }
+
+                return base.clone().translate(d.midCos * offset, d.midSin * offset);
+            };
+
             // A sector is cleared by the margin labels keep from each other, so a remedy never stops flush to an arc.
-            const encroachesSector = (d: (typeof data)[number]) => collidesSectors(labelBox(d).grow(minSpacing / 2));
+            // Every caller hands over a fresh box from `probeBox`, so the padding is applied in place.
+            const encroachesSector = (probe: BBox) => collidesSectors(probe.grow(minSpacing / 2));
 
             // Sector overlaps must go; crossing a neighbour's callout line is lesser, so it only ranks candidates.
-            const overlaps = (d: (typeof data)[number]) => {
-                const box = labelBox(d).grow(minSpacing / 2);
+            // Line crossings rank a candidate only against an incumbent it ties with on sectors, so one that
+            // already loses needs no count at all and a tying one can stop as soon as it cannot win.
+            const overlaps = (d: (typeof data)[number], probe: BBox, best?: { sectors: number; lines: number }) => {
+                const box = probe.grow(minSpacing / 2);
+                const sectors = collidesSectors(box) ? 1 : 0;
+                if (best != null && sectors > best.sectors) return { sectors, lines: 0 };
+
+                const lineBudget = sectors === best?.sectors ? best.lines + 1 : Infinity;
                 let lines = 0;
                 for (const other of data) {
                     // A label always sits at the end of its own line, so only the other lines are obstacles.
-                    if (other !== d && crossesCalloutLine(box, other)) lines++;
+                    if (other !== d && crossesCalloutLine(box, other)) {
+                        lines++;
+                        if (lines >= lineBudget) break;
+                    }
                 }
-                return { sectors: collidesSectors(box) ? 1 : 0, lines };
+                return { sectors, lines };
             };
 
             // Setting the text beside its line keeps the label at its own radius, so it outranks a longer callout.
@@ -1566,19 +1614,21 @@ export class DonutSeries extends PolarSeries<
                     : [undefined];
 
             // No sector reaches past the largest radius, which bounds the search: `limit` is the upper bracket.
-            const smallestClearingPush = (d: (typeof data)[number], limit: number) => {
-                const label = d.calloutLabel;
-                label.collisionRadiusOffset = limit;
-                if (encroachesSector(d)) return;
+            const smallestClearingPush = (
+                d: (typeof data)[number],
+                side: CanvasTextAlign | undefined,
+                limit: number
+            ) => {
+                if (encroachesSector(probeBox(d, side, limit))) return;
 
                 let colliding = 0;
                 let clear = limit;
                 for (let i = 0; i < 8; i++) {
-                    label.collisionRadiusOffset = (colliding + clear) / 2;
-                    if (encroachesSector(d)) {
-                        colliding = label.collisionRadiusOffset;
+                    const offset = (colliding + clear) / 2;
+                    if (encroachesSector(probeBox(d, side, offset))) {
+                        colliding = offset;
                     } else {
-                        clear = label.collisionRadiusOffset;
+                        clear = offset;
                     }
                 }
                 return clear;
@@ -1592,16 +1642,20 @@ export class DonutSeries extends PolarSeries<
                 };
 
                 place(undefined, 0);
-                let best = { side: undefined as CanvasTextAlign | undefined, offset: 0, ...overlaps(d) };
+                let best = {
+                    side: undefined as CanvasTextAlign | undefined,
+                    offset: 0,
+                    ...overlaps(d, probeBox(d, undefined, 0)),
+                };
                 if (best.sectors === 0 && best.lines === 0) return;
 
                 const consider = (side: CanvasTextAlign | undefined, offset: number) => {
-                    place(side, offset);
+                    const box = probeBox(d, side, offset);
                     // A remedy that costs the label its visibility is worse than the overlap it was avoiding.
-                    if (isBoxHidden(labelBox(d))) return;
+                    if (isBoxHidden(box)) return;
 
                     // Ranked on sector overlaps first, then line crossings, and only then on how far it moved.
-                    const candidate = { side, offset, ...overlaps(d) };
+                    const candidate = { side, offset, ...overlaps(d, box, best) };
                     if (candidate.sectors !== best.sectors) {
                         if (candidate.sectors < best.sectors) best = candidate;
                     } else if (candidate.lines !== best.lines) {
@@ -1620,8 +1674,7 @@ export class DonutSeries extends PolarSeries<
                 const limit = maxOuterRadius - d.outerRadius;
                 if (limit > 0) {
                     for (const side of sides) {
-                        label.collisionTextAlign = side;
-                        const offset = smallestClearingPush(d, limit);
+                        const offset = smallestClearingPush(d, side, limit);
                         if (offset != null) consider(side, offset);
                     }
                 }
