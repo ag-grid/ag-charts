@@ -1459,7 +1459,6 @@ export class DonutSeries extends PolarSeries<
             label.collisionRadiusOffset = 0;
         }
 
-        // Resolved once per pass: probing re-measures a label many times, but its style never changes.
         const metrics = new Map(data.map((d) => [d, this.getCalloutLabelMetrics(d)] as const));
         const metricsOf = (d: (typeof data)[number]) => metrics.get(d)!;
         const labelBox = (d: (typeof data)[number]) => this.getCalloutLabelBBox(d, metricsOf(d));
@@ -1520,25 +1519,21 @@ export class DonutSeries extends PolarSeries<
 
         let maxOuterRadius = 0;
         let extentSum = 0;
-        const bounds = new BBox(Infinity, Infinity, -Infinity, -Infinity);
         const sectorObstacles = fullData.map((datum) => {
             const { startAngle, endAngle, outerRadius } = datum;
             maxOuterRadius = Math.max(maxOuterRadius, outerRadius);
             const sector = { startAngle, endAngle, innerRadius, outerRadius };
             const box = sectorBox(sector);
-            bounds.x = Math.min(bounds.x, box.x);
-            bounds.y = Math.min(bounds.y, box.y);
-            bounds.width = Math.max(bounds.width, box.x + box.width);
-            bounds.height = Math.max(bounds.height, box.y + box.height);
             extentSum += box.width + box.height;
             return { box, sector };
         });
-        bounds.width -= bounds.x;
-        bounds.height -= bounds.y;
 
         // The bisection probes this far more often than anything else in the pass, so prune before the exact test.
         const sectorIndex = new SpatialIndex<(typeof sectorObstacles)[number]>();
-        sectorIndex.reset(bounds, gridCellSize(extentSum, 2 * sectorObstacles.length));
+        sectorIndex.reset(
+            BBox.merge(sectorObstacles.map(({ box }) => box)),
+            gridCellSize(extentSum, 2 * sectorObstacles.length)
+        );
         for (const obstacle of sectorObstacles) {
             sectorIndex.insert(obstacle.box, obstacle);
         }
@@ -1640,10 +1635,15 @@ export class DonutSeries extends PolarSeries<
             };
 
             // A push lengthens a callout line, so labels settled earlier may end up crossing it: sweep twice.
+            // A sweep that moved nothing leaves the next one nothing to react to, so it can stop there.
             for (let pass = 0; pass < 2; pass++) {
+                let moved = false;
                 for (const d of data) {
                     resolve(d);
+                    const { collisionTextAlign, collisionRadiusOffset } = d.calloutLabel;
+                    moved ||= collisionTextAlign != null || collisionRadiusOffset !== 0;
                 }
+                if (!moved) break;
             }
         };
 
@@ -1669,7 +1669,7 @@ export class DonutSeries extends PolarSeries<
             for (const d of labels) {
                 const label = d.calloutLabel;
                 // Sector overlaps have already picked a side; overriding it here would undo their remedy.
-                if (d.calloutLabel.textAlign !== 'center' || label.collisionTextAlign != null) continue;
+                if (label.textAlign !== 'center' || label.collisionTextAlign != null) continue;
                 if (d.midCos < 0) {
                     label.collisionTextAlign = 'right';
                 } else if (d.midCos > 0) {
@@ -1873,28 +1873,9 @@ export class DonutSeries extends PolarSeries<
             label.box = box;
 
             // Hide labels that where pushed too far by the collision avoidance algorithm
-            if (Math.abs(label.collisionOffsetY) > maxCollisionOffset) {
+            if (Math.abs(label.collisionOffsetY) > maxCollisionOffset || isBoxHidden(box)) {
                 label.hidden = true;
                 continue;
-            }
-
-            // Hide labels intersecting or above the title
-            if (titleCleanArea != null && box.collidesBBox(titleCleanArea)) {
-                label.hidden = true;
-                continue;
-            }
-
-            if (options.hideWhenNecessary) {
-                const { maxWidth, hasVerticalOverflow, hasSurroundingSeriesOverflow } = this.getLabelOverflow(
-                    box,
-                    seriesRect
-                );
-                const isTooShort = box.width > maxWidth;
-
-                if (hasVerticalOverflow || isTooShort || hasSurroundingSeriesOverflow) {
-                    label.hidden = true;
-                    continue;
-                }
             }
 
             label.hidden = false;
