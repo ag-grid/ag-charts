@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
+import {
+    CHART_FEATURES,
+    CHART_FEATURE_IDS,
+    type ChartFeatures,
+    DEFAULT_CHART_FEATURES,
+    isFeatureActive,
+    isFeatureEnabled,
+} from './chartFeatures';
 import { DEFAULT_CHART_TYPE_IDS, PREVIEW_CHART_TYPES, PREVIEW_PANES, snapSeriesCount } from './chartTypes';
 import {
+    CANDLESTICK_DATA,
     DEFAULT_SERIES_COUNT,
     MAX_SERIES_COUNT,
     MIN_SERIES_COUNT,
@@ -12,11 +21,16 @@ import {
 
 const seriesOf = (options: unknown) => (options as { series: unknown[] }).series;
 
+/** Everything the count control can drive; the preset types build their own. */
+const COUNTED_TYPES = PREVIEW_CHART_TYPES.filter((type) => type.countLabel != null);
+
+const ALL_ON: ChartFeatures = Object.fromEntries(CHART_FEATURE_IDS.map((id) => [id, true]));
+
 describe('preview chart types', () => {
     it('builds the requested number of series at every offered count', () => {
-        for (const type of PREVIEW_CHART_TYPES) {
+        for (const type of COUNTED_TYPES) {
             for (const count of SERIES_COUNT_OPTIONS) {
-                const options = type.buildOptions(count);
+                const options = type.buildOptions(count, ALL_ON);
                 // A donut carries one series whose slices come from the data, so
                 // the count lands on the data rather than the series list.
                 const actual =
@@ -70,10 +84,89 @@ describe('preview chart types', () => {
     it('keeps the thumbnails at a fixed eight, independent of the count', () => {
         // Deliberate: the cards separate themes from each other, and at a
         // user-chosen count of two the lookalike palettes would converge again.
-        for (const type of PREVIEW_CHART_TYPES) {
+        for (const type of COUNTED_TYPES) {
             const thumbnail = type.thumbnailOptions as { series: unknown[]; data: unknown[] };
             const slots = type.id === 'donut' ? thumbnail.data.length : thumbnail.series.length;
             expect(slots, type.id).toBe(8);
+        }
+    });
+
+    it('offers only the features its chart type can show', () => {
+        const known = new Set<string>(CHART_FEATURE_IDS);
+        for (const type of PREVIEW_CHART_TYPES) {
+            // A feature the popup lists but nothing knows about would render a
+            // checkbox that silently changes nothing.
+            for (const id of type.features) {
+                expect(known.has(id), `${type.id}: ${id}`).toBe(true);
+            }
+            expect(new Set(type.features).size, type.id).toBe(type.features.length);
+            expect(type.features.length, type.id).toBeGreaterThan(0);
+        }
+    });
+
+    it('describes every feature exactly once', () => {
+        // The popup renders from CHART_FEATURES but the types name ids, so a
+        // feature missing a description would vanish from the popup entirely.
+        expect(CHART_FEATURES.map(({ id }) => id).toSorted()).toEqual([...CHART_FEATURE_IDS].toSorted());
+        for (const id of CHART_FEATURE_IDS) {
+            expect(DEFAULT_CHART_FEATURES[id], id).toBeTypeOf('boolean');
+        }
+    });
+
+    it('falls back to the default for a feature a stored record predates', () => {
+        expect(isFeatureEnabled({}, 'navigator')).toBe(DEFAULT_CHART_FEATURES.navigator);
+        expect(isFeatureEnabled({ navigator: false }, 'navigator')).toBe(false);
+        expect(isFeatureEnabled({ navigator: false }, 'legend')).toBe(DEFAULT_CHART_FEATURES.legend);
+    });
+
+    it('holds a feature off while what it needs is off, without forgetting it', () => {
+        for (const { id, requires } of CHART_FEATURES) {
+            if (!requires) continue;
+            // Range buttons are a zoom, so the chart drops the row without one.
+            // The checkbox has to say so rather than sit ticked over nothing.
+            expect(isFeatureActive({ ...ALL_ON, [requires]: false }, id), id).toBe(false);
+            expect(isFeatureEnabled({ ...ALL_ON, [requires]: false }, id), id).toBe(true);
+            expect(isFeatureActive(ALL_ON, id), id).toBe(true);
+        }
+        // Otherwise a requirement could name a feature its own type cannot show.
+        for (const type of PREVIEW_CHART_TYPES) {
+            for (const { id, requires } of CHART_FEATURES) {
+                if (!requires || !type.features.includes(id)) continue;
+                expect(type.features, `${type.id}: ${id}`).toContain(requires);
+            }
+        }
+    });
+
+    it('turns every feature it offers into an option change', () => {
+        // Each id has to reach the options object under some name, or the
+        // checkbox is decoration. Compared as JSON because the difference can be
+        // nested (an axis crosshair) or top-level (a preset flag).
+        for (const type of PREVIEW_CHART_TYPES) {
+            for (const id of type.features) {
+                const on = JSON.stringify(type.buildOptions(DEFAULT_SERIES_COUNT, { ...ALL_ON, [id]: true }));
+                const off = JSON.stringify(type.buildOptions(DEFAULT_SERIES_COUNT, { ...ALL_ON, [id]: false }));
+                expect(on, `${type.id}: ${id}`).not.toBe(off);
+            }
+        }
+    });
+
+    it('gives the candlestick preview enough history for the range buttons', () => {
+        // The buttons offer 1M through 1Y; anything shorter than a year leaves
+        // most of them disabled, which is a row of dead chrome.
+        const first = CANDLESTICK_DATA.at(0)!.date;
+        const last = CANDLESTICK_DATA.at(-1)!.date;
+        const years = (last.getTime() - first.getTime()) / (365 * 24 * 60 * 60 * 1000);
+        expect(years).toBeGreaterThan(1.5);
+
+        for (const candle of CANDLESTICK_DATA) {
+            // A high below its own body, or a low above it, draws a candle
+            // inside out - the kind of thing a walk can produce and nobody
+            // notices among five hundred bars.
+            expect(candle.high).toBeGreaterThanOrEqual(Math.max(candle.open, candle.close));
+            expect(candle.low).toBeLessThanOrEqual(Math.min(candle.open, candle.close));
+            expect(candle.low).toBeGreaterThan(0);
+            // Weekends are skipped so the ordinal-time axis has no gaps to draw.
+            expect([1, 2, 3, 4, 5]).toContain(candle.date.getDay());
         }
     });
 

@@ -209,3 +209,90 @@ export const THUMBNAIL_SLICES = THUMBNAIL_SERIES_KEYS.map((key) => ({
         0
     ),
 }));
+
+/**
+ * Two years of weekday bars for the candlestick preview.
+ *
+ * Two years rather than a few months because the range buttons are the point:
+ * they offer 1M through 1Y and All, and a shorter history would leave half of
+ * them disabled. Weekdays only, so the ordinal-time axis has no weekend gaps to
+ * either draw or collapse.
+ */
+const TRADING_DAYS = 2 * 261;
+
+export interface PreviewCandle {
+    date: Date;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
+}
+
+/**
+ * Ending today rather than on a fixed date, so the chart never reads as stale
+ * and "year to date" - which the range buttons measure from the end of the data,
+ * not from the clock - covers the year the user is actually in.
+ */
+const tradingDaysEndingToday = (count: number) => {
+    const today = new Date();
+    const cursor = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const days: Date[] = [];
+    while (days.length < count) {
+        const weekday = cursor.getDay();
+        if (weekday !== 0 && weekday !== 6) {
+            days.push(new Date(cursor));
+        }
+        cursor.setDate(cursor.getDate() - 1);
+    }
+    return days.reverse();
+};
+
+/**
+ * A seeded generator rather than `Math.random`, so every visit and every test
+ * run sees the same chart: a preview that redrew itself differently on each
+ * reload would make it impossible to tell a theme change from a data change.
+ */
+const seededRandom = (seed: number) => {
+    let state = seed >>> 0;
+    return () => {
+        state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+        return state / 0x1_0000_0000;
+    };
+};
+
+const to2dp = (value: number) => Math.round(value * 100) / 100;
+
+/**
+ * A random walk with a slight upward bias, rather than hand-written prices:
+ * five hundred bars is past the point where anyone reads an individual value,
+ * and a walk is the only thing that produces the runs and reversals that make a
+ * candlestick chart look like one.
+ */
+const buildCandles = (dates: Date[]): PreviewCandle[] => {
+    const random = seededRandom(20260901);
+    let close = 118;
+    return dates.map((date) => {
+        const open = close;
+        close = Math.max(20, open * (1 + (random() - 0.485) * 0.035));
+        // Wicks scaled to the bar's own body, so a quiet day is quiet in both.
+        const wick = (random() * 0.012 + 0.002) * open;
+        return {
+            date,
+            open: to2dp(open),
+            high: to2dp(Math.max(open, close) + wick),
+            low: to2dp(Math.min(open, close) - wick),
+            close: to2dp(close),
+            volume: Math.round(400_000 + random() * 2_600_000),
+        };
+    });
+};
+
+export const CANDLESTICK_DATA = buildCandles(tradingDaysEndingToday(TRADING_DAYS));
+
+/**
+ * A handful of bars for the preset thumbnails. Taken from the end of the series
+ * rather than generated separately, so a card shows the same instrument the
+ * preview does.
+ */
+export const THUMBNAIL_CANDLES = CANDLESTICK_DATA.slice(-16);

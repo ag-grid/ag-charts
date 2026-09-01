@@ -1,9 +1,15 @@
 import styled from '@emotion/styled';
-import type { AgChartTheme } from 'ag-charts-community';
 
 import { ChartPreview } from './ChartPreview';
 import { PreviewOptions } from './PreviewOptions';
-import { PREVIEW_PANE_LABELS, type PreviewPaneId, usePreviewChartType, usePreviewSeriesCount } from './chartTypes';
+import {
+    PREVIEW_PANE_LABELS,
+    type PreviewPaneId,
+    usePreviewChartType,
+    usePreviewFeatures,
+    usePreviewSeriesCount,
+} from './chartTypes';
+import type { ChartsTheme } from './chartsThemeOutput';
 
 /**
  * One of the two preview charts, with the controls deciding what it shows.
@@ -13,9 +19,10 @@ import { PREVIEW_PANE_LABELS, type PreviewPaneId, usePreviewChartType, usePrevie
  * colours while standing on whatever background the preset chose, so a light
  * theme in dark mode put dark pills on a white surface.
  */
-export const PreviewPane = ({ pane, theme }: { pane: PreviewPaneId; theme: AgChartTheme }) => {
+export const PreviewPane = ({ pane, theme }: { pane: PreviewPaneId; theme: ChartsTheme }) => {
     const [chartType, setChartType] = usePreviewChartType(pane);
     const [seriesCount, setSeriesCount] = usePreviewSeriesCount(pane);
+    const [features, setFeatures] = usePreviewFeatures(pane);
 
     return (
         <Pane>
@@ -26,10 +33,24 @@ export const PreviewPane = ({ pane, theme }: { pane: PreviewPaneId; theme: AgCha
                     onChartTypeChange={setChartType}
                     seriesCount={seriesCount}
                     onSeriesCountChange={setSeriesCount}
+                    features={features}
+                    onFeaturesChange={setFeatures}
                 />
             </Toolbar>
             <Chart>
-                <ChartPreview theme={theme} chartType={chartType} seriesCount={seriesCount} />
+                {/*
+                 * Keyed on the factory rather than the type: a chart's preset is
+                 * fixed at creation, so moving in or out of the financial one has
+                 * to remount. Switching between the plain types still updates in
+                 * place and keeps its animation.
+                 */}
+                <ChartPreview
+                    key={chartType.preset ?? 'plain'}
+                    theme={theme}
+                    chartType={chartType}
+                    seriesCount={seriesCount}
+                    features={features}
+                />
             </Chart>
         </Pane>
     );
