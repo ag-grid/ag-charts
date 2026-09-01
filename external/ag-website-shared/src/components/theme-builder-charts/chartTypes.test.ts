@@ -27,6 +27,14 @@ const COUNTED_TYPES = PREVIEW_CHART_TYPES.filter((type) => type.countLabel != nu
 
 const ALL_ON: ChartFeatures = Object.fromEntries(CHART_FEATURE_IDS.map((id) => [id, true]));
 
+const ALL_OFF: ChartFeatures = Object.fromEntries(CHART_FEATURE_IDS.map((id) => [id, false]));
+
+/** Wherever a series' outline width can be set - on the shape, or on its markers. */
+const strokeWidthOf = (series: unknown) => {
+    const { strokeWidth, marker } = series as { strokeWidth?: number; marker?: { strokeWidth?: number } };
+    return strokeWidth ?? marker?.strokeWidth;
+};
+
 describe('preview chart types', () => {
     it('builds the requested number of series at every offered count', () => {
         for (const type of COUNTED_TYPES) {
@@ -182,6 +190,31 @@ describe('preview chart types', () => {
         for (const { id, preset } of PREVIEW_CHART_TYPES) {
             if (preset == null) continue;
             expect([...registered], `${id}: ${preset}`).toContain(preset);
+        }
+    });
+
+    it('draws a series outline for the palette strokes to appear in', () => {
+        // A chart resolves `strokeWidth` to zero unless it is asked for a
+        // stroke, so a palette can carry a stroke for every slot and draw none
+        // of them - which leaves the strokes column of the palette editor
+        // changing colours nothing on screen ever uses.
+        for (const type of PREVIEW_CHART_TYPES) {
+            if (!type.features.includes('seriesStrokes')) continue;
+            for (const series of seriesOf(type.buildOptions(DEFAULT_SERIES_COUNT, ALL_ON))) {
+                expect(strokeWidthOf(series), type.id).toBeGreaterThan(0);
+            }
+        }
+    });
+
+    it('leaves the outline to the chart once the feature is off', () => {
+        // The switch has to be a switch: setting a width unconditionally would
+        // make every preview an outlined chart, which is not what the theme
+        // being built produces.
+        for (const type of PREVIEW_CHART_TYPES) {
+            if (!type.features.includes('seriesStrokes')) continue;
+            for (const series of seriesOf(type.buildOptions(DEFAULT_SERIES_COUNT, ALL_OFF))) {
+                expect(strokeWidthOf(series), type.id).toBeUndefined();
+            }
         }
     });
 

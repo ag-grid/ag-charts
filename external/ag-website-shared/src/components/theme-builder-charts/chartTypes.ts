@@ -107,9 +107,36 @@ const CARTESIAN_AXES = {
 };
 
 /** The features every chart here can show, whatever shape it is. */
-const COMMON_FEATURES: ChartFeatureId[] = ['legend', 'contextMenu'];
+const COMMON_FEATURES: ChartFeatureId[] = ['seriesStrokes', 'legend', 'contextMenu'];
 
-const CARTESIAN_FEATURES: ChartFeatureId[] = ['legend', 'crosshairs', 'contextMenu'];
+const CARTESIAN_FEATURES: ChartFeatureId[] = ['seriesStrokes', 'legend', 'crosshairs', 'contextMenu'];
+
+/**
+ * A width for the series outline, so the palette's strokes are drawn at all.
+ *
+ * They are not, otherwise: AG Charts resolves a series' `strokeWidth` to zero
+ * unless the chart sets a stroke of its own, so a palette can carry a stroke for
+ * every slot and show none of them. That leaves half the palette editor changing
+ * colours the user cannot see, which is what this answers.
+ *
+ * The widths are AG Charts' own - what it picks the moment a chart does set a
+ * stroke - so the preview shows the colour as a real chart would draw it rather
+ * than an outline thickened to make a point.
+ */
+const SHAPE_STROKE_WIDTH = 2;
+
+/** Markers are 7px across, so AG Charts rings them at one rather than two. */
+const MARKER_STROKE_WIDTH = 1;
+
+const shapeStroke = (features: ChartFeatures) =>
+    isFeatureActive(features, 'seriesStrokes') ? { strokeWidth: SHAPE_STROKE_WIDTH } : {};
+
+/**
+ * A line series draws its line in the palette *fill*, so its stroke has nowhere
+ * to go but the markers - which is also the only place a user would look for it.
+ */
+const markerStroke = (features: ChartFeatures) =>
+    isFeatureActive(features, 'seriesStrokes') ? { marker: { strokeWidth: MARKER_STROKE_WIDTH } } : {};
 
 /**
  * Crosshairs default on for continuous axes only, so a category x-axis has to
@@ -158,7 +185,13 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
         countLabel: 'Series',
         features: CARTESIAN_FEATURES,
         buildOptions: (count, features) =>
-            cartesian(count, features, (key, name) => ({ type: 'bar', xKey: 'quarter', yKey: key, yName: name })),
+            cartesian(count, features, (key, name) => ({
+                type: 'bar',
+                xKey: 'quarter',
+                yKey: key,
+                yName: name,
+                ...shapeStroke(features),
+            })),
         thumbnailOptions: {
             // Fewer columns than the stacked variants: eight grouped bars across
             // six columns would be hair-thin at card size.
@@ -181,6 +214,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
                 yKey: key,
                 yName: name,
                 stacked: true,
+                ...shapeStroke(features),
             })),
         thumbnailOptions: {
             data: THUMBNAIL_DATA,
@@ -196,7 +230,13 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
         countLabel: 'Series',
         features: CARTESIAN_FEATURES,
         buildOptions: (count, features) =>
-            cartesian(count, features, (key, name) => ({ type: 'line', xKey: 'quarter', yKey: key, yName: name })),
+            cartesian(count, features, (key, name) => ({
+                type: 'line',
+                xKey: 'quarter',
+                yKey: key,
+                yName: name,
+                ...markerStroke(features),
+            })),
         thumbnailOptions: {
             data: THUMBNAIL_DATA,
             series: THUMBNAIL_SERIES_KEYS.map((key) => ({ type: 'line', xKey: 'period', yKey: key })),
@@ -217,6 +257,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
                 yKey: key,
                 yName: name,
                 stacked: true,
+                ...shapeStroke(features),
             })),
         thumbnailOptions: {
             data: THUMBNAIL_DATA,
@@ -236,7 +277,15 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
             data: totalsFor(count),
             title: { text: 'Revenue by Country' },
             subtitle: { text: 'Full year, figures in millions (USD)' },
-            series: [{ type: 'donut', angleKey: 'revenue', calloutLabelKey: 'country', innerRadiusRatio: 0.6 }],
+            series: [
+                {
+                    type: 'donut',
+                    angleKey: 'revenue',
+                    calloutLabelKey: 'country',
+                    innerRadiusRatio: 0.6,
+                    ...shapeStroke(features),
+                },
+            ],
             ...commonOptions(features),
         }),
         thumbnailOptions: {
