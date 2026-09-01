@@ -513,12 +513,8 @@ describe('series label fit', () => {
         // A fit that overruns the wedge leaves the label hidden whole, so text fitted at any size has to
         // stay inside the wedge it was fitted to.
         it(`keeps ${type} sector labels inside their wedge at every chart size`, async () => {
-            const sizes: number[] = [];
-            for (let size = 380; size <= 620; size += 20) {
-                sizes.push(size);
-            }
             const dropped: string[] = [];
-            for (const size of sizes) {
+            for (let size = 380; size <= 620; size += 20) {
                 const options: any = {
                     data: sectorLabelData,
                     legend: { enabled: false },

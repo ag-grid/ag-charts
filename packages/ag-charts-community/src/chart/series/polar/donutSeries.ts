@@ -244,19 +244,17 @@ function fitSectorLabelToWedge(
         // A wedge too narrow for one character leaves a bare ellipsis, which reads as an artefact rather
         // than a label, so it is dropped outright instead of appearing and vanishing as the chart resizes.
         const chosen = best ?? placed;
-        return hasRealChars(chosen.text) ? chosen : { ...chosen, text: '' };
+        const kept = hasRealChars(chosen.text) ? chosen.text : '';
+        return { placed: { ...chosen, text: kept }, inWedge: best != null };
     };
-    const fitsWedge = (placed: PlacedSectorLabel, sized: FontOptions) =>
-        layout(placed, sized).every((box) => isBoxInSector(box, sector));
     const floor = resolveMinimumFontSize(fit.minimumFontSize, font.fontSize);
-    if (floor >= font.fontSize) return placeInWedge(font, true);
+    if (floor >= font.fontSize) return placeInWedge(font, true).placed;
     const found = findLargestFittingFontSize(floor, font.fontSize, (fontSize, atFloor) => {
-        const sized = fontWithSize(font, fontSize);
-        const placed = placeInWedge(sized, atFloor);
-        if (isErased(placed.text) || !fitsWedge(placed, sized)) return undefined;
+        const { placed, inWedge } = placeInWedge(fontWithSize(font, fontSize), atFloor);
+        if (!inWedge || isErased(placed.text)) return undefined;
         return { ...placed, fontSize: fontSize === font.fontSize ? undefined : fontSize };
     });
-    return found ?? placeInWedge(fontWithSize(font, floor), true);
+    return found ?? placeInWedge(fontWithSize(font, floor), true).placed;
 }
 
 interface PieDonutLabelDatum {
