@@ -8,7 +8,7 @@ fi
 
 TARGET_DIRECTORY=$1
 
-cd dist/packages/ag-charts-website
+cd dist/packages/
 
-aws s3 cp dist s3://testing.ag-grid.com/$TARGET_DIRECTORY --recursive
+aws s3 cp ag-charts-website s3://testing.ag-grid.com/$TARGET_DIRECTORY --recursive
 
