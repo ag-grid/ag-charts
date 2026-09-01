@@ -7,21 +7,17 @@ import { getGalleryExamples } from './filesData';
 
 export function getGalleryPages({ galleryData }: { galleryData: GalleryData }) {
     const galleryExamples = getGalleryExamples({ galleryData });
-    const galleryExamplePages = galleryExamples.map(
-        ({ exampleName, page, prevExample, nextExampleOne, nextExampleTwo }) => {
-            return {
-                params: {
-                    pageName: exampleName,
-                },
-                props: {
-                    page,
-                    prevExample,
-                    nextExampleOne,
-                    nextExampleTwo,
-                },
-            };
-        }
-    );
+    const galleryExamplePages = galleryExamples.map(({ exampleName, page, relatedExamples }) => {
+        return {
+            params: {
+                pageName: exampleName,
+            },
+            props: {
+                page,
+                relatedExamples,
+            },
+        };
+    });
 
     return galleryExamplePages;
 }

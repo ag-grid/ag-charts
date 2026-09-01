@@ -66,7 +66,8 @@ export const getPageUrl = (pageName: string) => {
 
 export const getPageHashUrl = ({ chartSeriesName, isRelative }: { chartSeriesName: string; isRelative?: boolean }) => {
     const hash = `#${chartSeriesName}`;
-    return isRelative ? hash : pathJoin(SITE_BASE_URL, 'gallery', hash) + '/';
+    // The slash belongs to the gallery URL, not the fragment: `#bar/` matches no element.
+    return isRelative ? hash : pathJoin(SITE_BASE_URL, 'gallery') + '/' + hash;
 };
 
 export const getExampleContentsUrl = ({ exampleName }: { exampleName: string }) => {

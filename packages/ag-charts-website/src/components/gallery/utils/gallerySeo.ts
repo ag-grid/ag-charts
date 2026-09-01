@@ -66,9 +66,14 @@ export function resolveGalleryH1(page: Pick<GallerySeoPage, 'title' | 'name'>): 
     return GALLERY_PAGE_COPY[page.name]?.seoH1 ?? `${withoutSimplePrefix(page.title)} Example`;
 }
 
+/** A chart family named in the singular, from its `title` in `data.json`: `Bar` reads as `Bar Chart`. */
+export function galleryFamilyName(title: string): string {
+    return title.endsWith('Chart') ? title : `${title} Chart`;
+}
+
 /** Heading for a chart family, from its `title` in `data.json`: `Bar` reads as `Bar Charts`. */
 export function galleryFamilyHeading(title: string): string {
-    return title.endsWith('Chart') ? `${title}s` : `${title} Charts`;
+    return `${galleryFamilyName(title)}s`;
 }
 
 /**

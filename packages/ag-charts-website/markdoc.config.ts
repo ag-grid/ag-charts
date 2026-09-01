@@ -88,6 +88,12 @@ export default defineMarkdocConfig({
                 options: { type: Object },
             },
         },
+        galleryExamples: {
+            render: component('./src/components/gallery/components/GalleryFamilyExamples.astro'),
+            attributes: {
+                series: { type: String, required: true },
+            },
+        },
         flex: {
             render: component('./src/components/flex/Flex.astro'),
             attributes: {

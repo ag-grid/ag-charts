@@ -5,6 +5,7 @@ import { pathJoin } from '@utils/pathJoin';
 import { readFileSync } from 'fs';
 import GithubSlugger from 'github-slugger';
 
+import { getRelatedExamples } from './relatedExamples';
 import { getPageHashUrl } from './urlPaths';
 
 export const getGalleryData = (): GalleryData => {
@@ -96,15 +97,11 @@ export const getGalleryExamples = ({ galleryData }: { galleryData: GalleryData }
     if (getIsBenchmarkOnlyBuild()) return [];
     const series = galleryData.series.flat();
 
-    const allExamples = series.flatMap((s) => s.examples).filter((e) => e.hidden !== true);
-
     const galleryExamples = series.flatMap((s) => {
         const { examples } = s;
         return examples
             .filter((e) => e.hidden !== true)
             .map((example) => {
-                const exampleIndex = allExamples.findIndex((item) => item.name === example.name);
-
                 return {
                     exampleName: example.name,
                     page: {
@@ -112,15 +109,11 @@ export const getGalleryExamples = ({ galleryData }: { galleryData: GalleryData }
                         seriesTitle: s.title,
                         chartSeriesName: s.seriesName,
                         seriesLink: s.seriesLink,
-                        docsUrl: getPageHashUrl({ chartSeriesName: s.seriesName }),
+                        galleryHubUrl: getPageHashUrl({ chartSeriesName: s.seriesName }),
                         icon: s.icon,
                         enterprise: s.enterprise,
                     },
-                    prevExample: exampleIndex > 0 ? allExamples[exampleIndex - 1] : allExamples[allExamples.length - 1],
-                    nextExampleOne:
-                        allExamples.length > exampleIndex + 1 ? allExamples[exampleIndex + 1] : allExamples[0],
-                    nextExampleTwo:
-                        allExamples.length > exampleIndex + 2 ? allExamples[exampleIndex + 2] : allExamples[1],
+                    relatedExamples: getRelatedExamples({ galleryData, exampleName: example.name }),
                 };
             });
     });
