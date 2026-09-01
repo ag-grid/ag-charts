@@ -16,11 +16,11 @@ const EXAMPLES = getGalleryExamples({ galleryData });
 const buildFor = (exampleName: string) => {
     const entry = EXAMPLES.find((example) => example.exampleName === exampleName);
     expect(entry, `${exampleName} should be in the gallery data`).toBeDefined();
-    const { page, prevExample, nextExampleOne, nextExampleTwo } = entry!;
+    const { page, relatedExamples } = entry!;
     return buildGalleryExampleMarkdown({
         page,
         exampleName,
-        neighbours: [prevExample, nextExampleOne, nextExampleTwo],
+        relatedExamples,
         siteRoot: SITE_ROOT,
     });
 };
@@ -59,12 +59,29 @@ describe('buildGalleryExampleMarkdown', () => {
         expect(output).toContain('[Run this example](https://www.ag-grid.com/gallery/examples/simple-bar/)');
     });
 
-    it('links the three neighbouring examples the page links to', async () => {
+    it('anchors each related example on the H1 its page serves', async () => {
         const entry = EXAMPLES.find((example) => example.exampleName === 'simple-bar')!;
         const output = await buildFor('simple-bar');
-        for (const neighbour of [entry.prevExample, entry.nextExampleOne, entry.nextExampleTwo]) {
-            expect(output).toContain(`- [${neighbour.title}](https://www.ag-grid.com/gallery/${neighbour.name}/)`);
+        expect(entry.relatedExamples.length).toBeGreaterThan(0);
+        for (const related of entry.relatedExamples) {
+            expect(output).toContain(`- [${related.label}](https://www.ag-grid.com/gallery/${related.name}/)`);
         }
+        expect(output).toContain('- [Stacked Bar Chart Example](https://www.ag-grid.com/gallery/stacked-bar/)');
+    });
+
+    it('names the chart family when every related example is a sibling', async () => {
+        const output = await buildFor('simple-bar');
+        expect(output).toContain('## More Bar Chart Examples');
+    });
+
+    it('falls back to a generic heading where the family is too small to fill the strip', async () => {
+        const output = await buildFor('ohlc');
+        expect(output).toContain('## More Chart Examples');
+    });
+
+    it("links the family's section on the gallery hub", async () => {
+        const output = await buildFor('simple-bar');
+        expect(output).toContain('[View all Bar Charts](https://www.ag-grid.com/gallery/#bar)');
     });
 
     it('ends with a single trailing newline', async () => {

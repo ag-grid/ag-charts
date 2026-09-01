@@ -3,7 +3,13 @@ import { describe, expect, it } from 'vitest';
 import galleryData from '../../../content/gallery/data.json';
 import { GALLERY_FAMILY_COPY, GALLERY_HUB_COPY, GALLERY_PAGE_COPY } from '../galleryCopy';
 import { getGalleryExamples } from './filesData';
-import { MAX_TITLE_LENGTH, galleryFamilyHeading, resolveGalleryH1, resolveGallerySeo } from './gallerySeo';
+import {
+    MAX_TITLE_LENGTH,
+    galleryFamilyHeading,
+    galleryFamilyName,
+    resolveGalleryH1,
+    resolveGallerySeo,
+} from './gallerySeo';
 
 const EXAMPLES = getGalleryExamples({ galleryData });
 const RESOLVED = EXAMPLES.map(({ exampleName, page }) => ({ exampleName, seo: resolveGallerySeo(page) }));
@@ -111,6 +117,19 @@ describe('the gallery hub copy', () => {
             .flatMap((series) => series.examples)
             .filter((example) => !example.hidden);
         expect(visible.length).toBeGreaterThan(100);
+    });
+});
+
+describe('galleryFamilyName', () => {
+    it('names a family in the singular', () => {
+        expect(galleryFamilyName('Bar')).toBe('Bar Chart');
+        expect(galleryFamilyName('OHLC')).toBe('OHLC Chart');
+    });
+
+    it('does not repeat a family name that already says Chart', () => {
+        expect(galleryFamilyName('Org Chart')).toBe('Org Chart');
+        const families = galleryData.series.flat().map((series) => galleryFamilyName(series.title));
+        expect(families.filter((name) => /Chart Chart/.test(name))).toEqual([]);
     });
 });
 
