@@ -1839,7 +1839,8 @@ export class DonutSeries extends PolarSeries<
         const avoidXCollisions = (labels: typeof data) => {
             const labelsCollideLabelsByY = data.some((datum) => datum.calloutLabel.collisionOffsetY !== 0);
 
-            const paddedBoxes = labels.map((label) => labelBox(label).grow(minSpacing / 2));
+            const boxes = labels.map((label) => labelBox(label));
+            const paddedBoxes = boxes.map((box) => box.clone().grow(minSpacing / 2));
 
             let labelsCollideLabelsByX = false;
             for (let i = 0; i < paddedBoxes.length && !labelsCollideLabelsByX; i++) {
@@ -1853,8 +1854,16 @@ export class DonutSeries extends PolarSeries<
                 }
             }
 
-            if (!labelsCollideLabelsByX && !labelsCollideLabelsByY) return;
+            // Where a series has one radius, siding the whole group is its only remedy for a sector overlap.
+            if (
+                !labelsCollideLabelsByX &&
+                !labelsCollideLabelsByY &&
+                !boxes.some((box) => collidesSectors(box, boxArc(box)))
+            ) {
+                return false;
+            }
 
+            let sided = false;
             for (const d of labels) {
                 const label = d.calloutLabel;
                 // Sector overlaps have already picked a side; overriding it here would undo their remedy.
@@ -1866,16 +1875,28 @@ export class DonutSeries extends PolarSeries<
                 } else {
                     label.collisionTextAlign = 'center';
                 }
+                sided = true;
             }
+            return sided;
         };
 
         avoidSectorCollisions();
         // The remaining passes resolve labels against each other, so a lone label has nothing left to avoid.
         if (data.length > 1) {
-            avoidYCollisions(leftLabels);
-            avoidYCollisions(rightLabels);
-            avoidXCollisions(topLabels);
-            avoidXCollisions(bottomLabels);
+            // Siding a label resizes the box the Y cascade measured, and the X pass in turn reads the
+            // offsets that cascade produced, so re-cascade once the sides settle. A group already holding
+            // one side is left alone, making the second round a fixed point rather than a cut-off.
+            for (let round = 0; round < 2; round++) {
+                avoidYCollisions(leftLabels);
+                avoidYCollisions(rightLabels);
+                const topSided = avoidXCollisions(topLabels);
+                const bottomSided = avoidXCollisions(bottomLabels);
+                if (!topSided && !bottomSided) break;
+
+                for (const d of data) {
+                    d.calloutLabel.collisionOffsetY = 0;
+                }
+            }
         }
     }
 
