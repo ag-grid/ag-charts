@@ -18,6 +18,7 @@ import {
     PREVIEW_SERIES,
     SERIES_COUNT_OPTIONS,
 } from './previewData';
+import { PREVIEW_MODULES } from './previewModules';
 
 const seriesOf = (options: unknown) => (options as { series: unknown[] }).series;
 
@@ -167,6 +168,20 @@ describe('preview chart types', () => {
             expect(candle.low).toBeGreaterThan(0);
             // Weekends are skipped so the ordinal-time axis has no gaps to draw.
             expect([1, 2, 3, 4, 5]).toContain(candle.date.getDay());
+        }
+    });
+
+    it('registers a module for every preset a preview type is built through', () => {
+        // The candlestick pane is created through AgCharts.createFinancialChart,
+        // which resolves a preset by name at creation. Without the module that
+        // carries it, the options never expand into a series and the pane draws
+        // a title over "No data to display" - with no error to follow.
+        const registered = new Set(
+            PREVIEW_MODULES.filter((module) => module.type === 'preset').map((module) => module.name)
+        );
+        for (const { id, preset } of PREVIEW_CHART_TYPES) {
+            if (preset == null) continue;
+            expect([...registered], `${id}: ${preset}`).toContain(preset);
         }
     });
 

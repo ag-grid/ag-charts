@@ -26,6 +26,13 @@ import {
 export type PreviewChartOptions = AgChartOptions | AgFinancialChartOptions;
 
 /**
+ * An AG Charts preset a preview type is built through, named as AG Charts names
+ * it: the same string reaches `ModuleRegistry` as the preset module's name, so
+ * a test can check the registered bundles answer for every type that asks.
+ */
+export type PreviewPreset = 'price-volume';
+
+/**
  * The chart types the preview can be switched between.
  *
  * A theme is not only a bar chart: markers, area fills, callout labels and the
@@ -64,7 +71,7 @@ export type PreviewChartType = {
      * have to wire up one at a time - and it is fixed at creation, so a pane
      * switching in or out of it remounts rather than updates.
      */
-    preset?: 'financial';
+    preset?: PreviewPreset;
     /** The main preview: the full chart, titled and with a legend. */
     buildOptions: (seriesCount: number, features: ChartFeatures) => PreviewChartOptions;
     /**
@@ -245,7 +252,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
         label: 'Candlestick',
         icon: 'chartsCandlestick',
         features: ['zoom', 'navigator', 'rangeButtons', 'toolbar', 'statusBar', 'volume'],
-        preset: 'financial',
+        preset: 'price-volume',
         /**
          * The one preview built for the chart's own UI rather than for its
          * series. Navigator, range buttons, drawing tools and status bar all
