@@ -1,13 +1,11 @@
-import { AgCharts, AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
-import type { AgChartInstance, AgChartOptions } from 'ag-charts-community';
+import { AgCharts, ModuleRegistry } from 'ag-charts-enterprise';
+import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions } from 'ag-charts-enterprise';
 import { type RefObject, useEffect, useRef } from 'react';
 
-// The whole community bundle rather than the handful of modules these charts
-// need: the preview is meant to grow into something that exercises more of the
-// theme (tooltips, crosshairs, a second chart type), and each of those would
-// otherwise fail at runtime rather than at build time. Worth trimming once the
-// preview content settles.
-ModuleRegistry.registerModules([AllCommunityModule]);
+import type { PreviewChartOptions, PreviewPreset } from './chartTypes';
+import { PREVIEW_MODULES } from './previewModules';
+
+ModuleRegistry.registerModules(PREVIEW_MODULES);
 
 /**
  * Mount a chart into a container and keep it in step with `options`.
@@ -17,10 +15,14 @@ ModuleRegistry.registerModules([AllCommunityModule]);
  * canvas and throw away the entry animation.
  *
  * `options` must be memoised by the caller - it is the update trigger.
+ *
+ * `preset` picks the factory. It is fixed for the life of the chart: a preset is
+ * chosen at creation and cannot be updated into or out of, so a caller switching
+ * between the two must remount rather than pass a different value.
  */
-export const useChart = (options: AgChartOptions): RefObject<HTMLDivElement> => {
+export const useChart = (options: PreviewChartOptions, preset?: PreviewPreset): RefObject<HTMLDivElement> => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const chartRef = useRef<AgChartInstance | null>(null);
+    const chartRef = useRef<AgChartInstance<PreviewChartOptions> | null>(null);
     // Read through a ref so mounting does not depend on the first options value,
     // which would recreate the chart whenever the caller's memo changed.
     const latestOptions = useRef(options);
@@ -29,7 +31,10 @@ export const useChart = (options: AgChartOptions): RefObject<HTMLDivElement> => 
     useEffect(() => {
         const container = containerRef.current;
         if (!container) return;
-        chartRef.current = AgCharts.create({ ...latestOptions.current, container });
+        chartRef.current =
+            preset === 'price-volume'
+                ? AgCharts.createFinancialChart({ ...(latestOptions.current as AgFinancialChartOptions), container })
+                : AgCharts.create({ ...(latestOptions.current as AgChartOptions), container });
         return () => {
             chartRef.current?.destroy();
             chartRef.current = null;

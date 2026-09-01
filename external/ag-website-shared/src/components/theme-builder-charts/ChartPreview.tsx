@@ -1,22 +1,24 @@
 import styled from '@emotion/styled';
-import type { AgChartOptions, AgChartTheme } from 'ag-charts-community';
 import { useMemo } from 'react';
 
-import type { PreviewChartType } from './chartTypes';
+import type { ChartFeatures } from './chartFeatures';
+import type { PreviewChartOptions, PreviewChartType } from './chartTypes';
+import type { ChartsTheme } from './chartsThemeOutput';
 import { useChart } from './useChart';
 
 interface Props {
-    theme: AgChartTheme;
+    theme: ChartsTheme;
     chartType: PreviewChartType;
     seriesCount: number;
+    features: ChartFeatures;
 }
 
-export const ChartPreview = ({ theme, chartType, seriesCount }: Props) => {
-    const options = useMemo<AgChartOptions>(
-        () => ({ ...chartType.buildOptions(seriesCount), theme }),
-        [chartType, seriesCount, theme]
+export const ChartPreview = ({ theme, chartType, seriesCount, features }: Props) => {
+    const options = useMemo<PreviewChartOptions>(
+        () => ({ ...chartType.buildOptions(seriesCount, features), theme }),
+        [chartType, seriesCount, features, theme]
     );
-    return <Container ref={useChart(options)} />;
+    return <Container ref={useChart(options, chartType.preset)} />;
 };
 
 const Container = styled('div')`

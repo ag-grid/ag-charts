@@ -1,4 +1,4 @@
-import { type Palette, paletteIsEmpty } from '@ag-website-shared/components/theme-builder/palette';
+import { type Palette, paletteIsEmpty, toThemePalette } from '@ag-website-shared/components/theme-builder/palette';
 import type { AgChartTheme, AgChartThemeName, AgChartThemePalette, AgChartThemeParams } from 'ag-charts-community';
 
 /**
@@ -64,20 +64,34 @@ const toChartThemeParams = (overriddenParams: Record<string, unknown>): AgChartT
             .map(([property, value]) => [property, toChartParamValue(property, value)])
     ) as AgChartThemeParams;
 
+/**
+ * The theme shape this tool produces: a base theme, params and a palette, and
+ * nothing else.
+ *
+ * `overrides` is dropped rather than left optional because it is the only part
+ * of a theme that carries a datum context, and `AgChartTheme` is invariant in
+ * that context - so a theme typed with one cannot be handed to both a plain
+ * chart and the price-volume preset, which pins the context to `never`. The
+ * builder emits no overrides, so saying so in the type costs nothing and lets
+ * one theme drive both previews.
+ */
+export type ChartsTheme = Omit<AgChartTheme, 'overrides'>;
+
 export type ChartsThemeSelection = {
     baseTheme: AgChartThemeName;
     params: Record<string, unknown>;
     palette: Palette;
 };
 
-export const toChartTheme = ({ baseTheme, params, palette }: ChartsThemeSelection): AgChartTheme => {
+export const toChartTheme = ({ baseTheme, params, palette }: ChartsThemeSelection): ChartsTheme => {
     const themeParams = toChartThemeParams(params);
     return {
         baseTheme,
         ...(Object.keys(themeParams).length > 0 ? { params: themeParams } : {}),
-        // The shared palette is a structural subset of AgChartThemePalette - it
-        // carries plain colours where AG Charts also allows gradients.
-        ...(paletteIsEmpty(palette) ? {} : { palette: palette satisfies AgChartThemePalette }),
+        // Through `toThemePalette`, which drops the editor's own bookkeeping.
+        // What is left is a structural subset of AgChartThemePalette - plain
+        // colours where AG Charts also allows gradients.
+        ...(paletteIsEmpty(palette) ? {} : { palette: toThemePalette(palette) satisfies AgChartThemePalette }),
     };
 };
 
