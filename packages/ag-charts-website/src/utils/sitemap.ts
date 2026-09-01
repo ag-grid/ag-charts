@@ -1,4 +1,5 @@
 import { FRAMEWORK_REDIRECT_PATH } from '../constants';
+import { isCanonicalisedToGridSite } from './canonicalUrl';
 
 /**
  * Example runner pages
@@ -62,14 +63,17 @@ export const isInternalPage = (page: string) => {
     );
 };
 
-const filterIgnoredPages = (page: string) => {
+const filterIgnoredPages = (page: string, siteBasePath: string) => {
     return (
         !isExamplePage(page) &&
         !isDebugPage(page) &&
         !isDemoPage(page) &&
         !isInternalPage(page) &&
         !isRedirectPage(page) &&
-        !isNonPublicContent(page)
+        !isNonPublicContent(page) &&
+        // Copies of pages the grid site owns canonicalise there, so listing them here would
+        // contradict the canonical the page itself emits.
+        !isCanonicalisedToGridSite(page, siteBasePath)
     );
 };
 
@@ -90,9 +94,9 @@ const filterIgnoredPages = (page: string) => {
  *
  * Check the sitemap locally at `http://localhost:4601/charts/sitemap-0.xml` and `http://localhost:4601/charts/sitemap`
  */
-export function getSitemapConfig() {
+export function getSitemapConfig(siteBasePath: string) {
     return {
-        filter: filterIgnoredPages,
+        filter: (page: string) => filterIgnoredPages(page, siteBasePath),
         lastmod: new Date(),
         namespaces: {
             news: false,

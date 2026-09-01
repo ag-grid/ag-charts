@@ -197,7 +197,7 @@ export default defineConfig({
         // Archive builds are fully noindex — omit sitemap generation and remove the /sitemap page.
         ...(!PUBLIC_BASE_URL?.includes('archive')
             ? [
-                  sitemap(getSitemapConfig()),
+                  sitemap(getSitemapConfig(PUBLIC_BASE_URL)),
                   agSitemapFilterNoindex({ enabled: PRODUCTION_SITE_URLS.includes(PUBLIC_SITE_URL) }),
                   agSitemapLastmod(),
                   agCacheSitemap({ cacheFolder: SITEMAP_CACHE_DIR }),
