@@ -1,4 +1,4 @@
-import { isDemoPage, isInternalPage } from './sitemap';
+import { getSitemapConfig, isDemoPage, isInternalPage } from './sitemap';
 
 describe('isInternalPage', () => {
     test.each`
@@ -29,5 +29,22 @@ describe('isDemoPage', () => {
         ${'/charts/gallery/'}    | ${false}
     `('$page -> $expected', ({ page, expected }) => {
         expect(isDemoPage(page)).toBe(expected);
+    });
+});
+
+describe('getSitemapConfig filter', () => {
+    const { filter } = getSitemapConfig('/charts');
+
+    // Copies of grid-owned pages canonicalise to the grid site, so the sitemap must not list them.
+    test.each`
+        page                                                            | included
+        ${'https://www.ag-grid.com/charts/session/opening-keynote/'}    | ${false}
+        ${'https://www.ag-grid.com/charts/community/'}                  | ${false}
+        ${'https://www.ag-grid.com/charts/community/tools-extensions/'} | ${false}
+        ${'https://www.ag-grid.com/charts/contact/'}                    | ${false}
+        ${'https://www.ag-grid.com/charts/license-pricing/'}            | ${true}
+        ${'https://www.ag-grid.com/charts/gallery/'}                    | ${true}
+    `('$page -> included: $included', ({ page, included }) => {
+        expect(filter(page)).toBe(included);
     });
 });
