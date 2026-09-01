@@ -35,6 +35,7 @@ import {
     mergeDefaults,
     modulus,
     normalizeAngle180,
+    normalizeAngle360,
     probedFitRegion,
     resolveLabelFit,
     resolveMinimumFontSize,
@@ -1486,6 +1487,83 @@ export class DonutSeries extends PolarSeries<
             return box.containsPoint(x1, y1) || boxCrossesSegment(box, x1, y1, x2, y2);
         };
 
+        // Every callout line is radial, so a box can only be crossed by lines at an angle it subtends from the
+        // centre. Sorting the labels by that angle turns a scan over all of them into a walk of a narrow arc.
+        const byAngle = data
+            .map((d) => ({ angle: normalizeAngle360(Math.atan2(d.midSin, d.midCos)), datum: d }))
+            .sort((a, b) => a.angle - b.angle);
+
+        const firstAtOrAfter = (angle: number) => {
+            let low = 0;
+            let high = byAngle.length;
+            while (low < high) {
+                const mid = (low + high) >> 1;
+                if (byAngle[mid].angle < angle) {
+                    low = mid + 1;
+                } else {
+                    high = mid;
+                }
+            }
+            return low;
+        };
+
+        /** The narrowest arc covering `box`, or undefined when it wraps the centre and so covers every angle. */
+        const boxArc = (box: BBox) => {
+            if (box.containsPoint(0, 0)) return;
+
+            const right = box.x + box.width;
+            const bottom = box.y + box.height;
+            const corners = [
+                normalizeAngle360(Math.atan2(box.y, box.x)),
+                normalizeAngle360(Math.atan2(box.y, right)),
+                normalizeAngle360(Math.atan2(bottom, box.x)),
+                normalizeAngle360(Math.atan2(bottom, right)),
+            ].sort((a, b) => a - b);
+
+            // The arc to keep is everything outside the widest gap between adjacent corners.
+            let gapIndex = 0;
+            let widest = corners[0] + 2 * Math.PI - corners[3];
+            for (let i = 1; i < corners.length; i++) {
+                const gap = corners[i] - corners[i - 1];
+                if (gap > widest) {
+                    widest = gap;
+                    gapIndex = i;
+                }
+            }
+            return { start: corners[gapIndex], end: corners[(gapIndex + 3) % 4] };
+        };
+
+        /** How many other labels' callout lines `box` crosses, stopping once it reaches `budget`. */
+        const countCrossedCalloutLines = (box: BBox, self: (typeof data)[number], budget: number) => {
+            // A label always sits at the end of its own line, so only the other lines are obstacles.
+            const count = (d: (typeof data)[number], lines: number) =>
+                d !== self && crossesCalloutLine(box, d) ? lines + 1 : lines;
+
+            const arc = boxArc(box);
+            let lines = 0;
+            if (arc == null) {
+                for (const { datum } of byAngle) {
+                    lines = count(datum, lines);
+                    if (lines >= budget) break;
+                }
+                return lines;
+            }
+
+            const total = byAngle.length;
+            const wraps = arc.start > arc.end;
+            for (let steps = 0, i = firstAtOrAfter(arc.start) % total; steps < total; steps++, i = (i + 1) % total) {
+                const { angle, datum } = byAngle[i];
+                const withinArc = wraps
+                    ? angle >= arc.start || angle <= arc.end
+                    : angle >= arc.start && angle <= arc.end;
+                if (!withinArc) break;
+
+                lines = count(datum, lines);
+                if (lines >= budget) break;
+            }
+            return lines;
+        };
+
         const leftLabels = data.filter((d) => d.midCos < 0).sort((a, b) => a.midSin - b.midSin);
         const rightLabels = data.filter((d) => d.midCos >= 0).sort((a, b) => a.midSin - b.midSin);
         const topLabels = data
@@ -1596,15 +1674,7 @@ export class DonutSeries extends PolarSeries<
                 if (best != null && sectors > best.sectors) return { sectors, lines: 0 };
 
                 const lineBudget = sectors === best?.sectors ? best.lines + 1 : Infinity;
-                let lines = 0;
-                for (const other of data) {
-                    // A label always sits at the end of its own line, so only the other lines are obstacles.
-                    if (other !== d && crossesCalloutLine(box, other)) {
-                        lines++;
-                        if (lines >= lineBudget) break;
-                    }
-                }
-                return { sectors, lines };
+                return { sectors, lines: countCrossedCalloutLines(box, d, lineBudget) };
             };
 
             // Setting the text beside its line keeps the label at its own radius, so it outranks a longer callout.
