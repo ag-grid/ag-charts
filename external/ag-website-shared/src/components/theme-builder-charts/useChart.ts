@@ -1,13 +1,22 @@
-import { AgCharts, AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
-import type { AgChartInstance, AgChartOptions } from 'ag-charts-community';
+import { AgCharts, AllCartesianModule, AllCommunityModule, AllPolarModule, ModuleRegistry } from 'ag-charts-enterprise';
+import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions } from 'ag-charts-enterprise';
 import { type RefObject, useEffect, useRef } from 'react';
 
-// The whole community bundle rather than the handful of modules these charts
-// need: the preview is meant to grow into something that exercises more of the
-// theme (tooltips, crosshairs, a second chart type), and each of those would
-// otherwise fail at runtime rather than at build time. Worth trimming once the
-// preview content settles.
-ModuleRegistry.registerModules([AllCommunityModule]);
+import type { PreviewChartOptions } from './chartTypes';
+
+/**
+ * Enterprise, because the theme is mostly chrome the community bundle cannot
+ * draw: the navigator, the toolbars, the context menu and the annotation panel
+ * are what carry the Chrome, Buttons & Inputs and Menus & Panels params, and a
+ * community-only preview leaves half the editor panel editing nothing. The
+ * watermark stays off - `licenseManager` suppresses it on localhost and on
+ * ag-grid.com, which is everywhere this page runs.
+ *
+ * Registered as three bundles rather than `AllEnterpriseModule`, which would
+ * also pull maps, topology, gauges and the tree series into a docs page that
+ * shows none of them.
+ */
+ModuleRegistry.registerModules([AllCommunityModule, AllCartesianModule, AllPolarModule]);
 
 /**
  * Mount a chart into a container and keep it in step with `options`.
@@ -17,10 +26,14 @@ ModuleRegistry.registerModules([AllCommunityModule]);
  * canvas and throw away the entry animation.
  *
  * `options` must be memoised by the caller - it is the update trigger.
+ *
+ * `isFinancial` picks the factory. It is fixed for the life of the chart: a
+ * preset is chosen at creation and cannot be updated into or out of, so a caller
+ * switching between the two must remount rather than pass a different flag.
  */
-export const useChart = (options: AgChartOptions): RefObject<HTMLDivElement> => {
+export const useChart = (options: PreviewChartOptions, isFinancial = false): RefObject<HTMLDivElement> => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const chartRef = useRef<AgChartInstance | null>(null);
+    const chartRef = useRef<AgChartInstance<PreviewChartOptions> | null>(null);
     // Read through a ref so mounting does not depend on the first options value,
     // which would recreate the chart whenever the caller's memo changed.
     const latestOptions = useRef(options);
@@ -29,7 +42,9 @@ export const useChart = (options: AgChartOptions): RefObject<HTMLDivElement> => 
     useEffect(() => {
         const container = containerRef.current;
         if (!container) return;
-        chartRef.current = AgCharts.create({ ...latestOptions.current, container });
+        chartRef.current = isFinancial
+            ? AgCharts.createFinancialChart({ ...(latestOptions.current as AgFinancialChartOptions), container })
+            : AgCharts.create({ ...(latestOptions.current as AgChartOptions), container });
         return () => {
             chartRef.current?.destroy();
             chartRef.current = null;

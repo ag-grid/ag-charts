@@ -2,6 +2,8 @@ import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { Select } from '@ag-website-shared/components/select/Select';
 import styled from '@emotion/styled';
 
+import { PreviewFeatures } from './PreviewFeatures';
+import type { ChartFeatures } from './chartFeatures';
 import { PREVIEW_CHART_TYPES, type PreviewChartType } from './chartTypes';
 import { SERIES_COUNT_OPTIONS } from './previewData';
 
@@ -12,19 +14,23 @@ interface Props {
     onChartTypeChange: (type: PreviewChartType) => void;
     seriesCount: number;
     onSeriesCountChange: (count: number) => void;
+    features: ChartFeatures;
+    onFeaturesChange: (features: ChartFeatures) => void;
 }
 
 /**
  * What the preview is showing, as opposed to how it is themed.
  *
- * Grouped rather than left as two loose controls because the count is unlikely
- * to be the last of these - category count is the obvious next one - and a group
- * has somewhere to put it.
+ * Grouped rather than left as loose controls because the list keeps growing -
+ * it began as a type and a count, has a features button now, and category count
+ * is the obvious next one - and a group has somewhere to put them.
  *
  * Sized and shaped like the framework selector in the docs - `isLarge` and
  * `isPopper`, an icon beside each option - because this is chrome on a docs
  * page, and a control that dresses differently reads as part of the preview it
- * sits above rather than as part of the site.
+ * sits above rather than as part of the site. The features button follows the
+ * same rule: grid's floats over the grid because a grid fills its box, but here
+ * it is one control among three and is sized to stand in their row.
  */
 export const PreviewOptions = ({
     paneLabel,
@@ -32,6 +38,8 @@ export const PreviewOptions = ({
     onChartTypeChange,
     seriesCount,
     onSeriesCountChange,
+    features,
+    onFeaturesChange,
 }: Props) => (
     <Wrapper>
         <TypeField>
@@ -47,19 +55,29 @@ export const PreviewOptions = ({
                 triggerAriaLabel={`${paneLabel} preview chart type`}
             />
         </TypeField>
-        <Field>
-            <Label aria-hidden="true">{chartType.countLabel}</Label>
-            <Select
-                isLarge
-                isPopper
-                options={SERIES_COUNT_OPTIONS}
-                value={seriesCount}
-                onChange={onSeriesCountChange}
-                getKey={String}
-                getLabel={String}
-                triggerAriaLabel={`Number of ${chartType.countLabel.toLowerCase()} in the ${paneLabel.toLowerCase()} preview`}
+        {chartType.countLabel && (
+            <Field>
+                <Label aria-hidden="true">{chartType.countLabel}</Label>
+                <Select
+                    isLarge
+                    isPopper
+                    options={SERIES_COUNT_OPTIONS}
+                    value={seriesCount}
+                    onChange={onSeriesCountChange}
+                    getKey={String}
+                    getLabel={String}
+                    triggerAriaLabel={`Number of ${chartType.countLabel.toLowerCase()} in the ${paneLabel.toLowerCase()} preview`}
+                />
+            </Field>
+        )}
+        <FeaturesField>
+            <PreviewFeatures
+                paneLabel={paneLabel}
+                available={chartType.features}
+                features={features}
+                onChange={onFeaturesChange}
             />
-        </Field>
+        </FeaturesField>
     </Wrapper>
 );
 
@@ -90,6 +108,18 @@ const Field = styled('div')`
 const TypeField = styled(Field)`
     button {
         width: 180px;
+    }
+`;
+
+// The popup button is built for the sidebar, where it is a full-width call to
+// action; here it stands beside two selects, so it takes their height and only
+// the width of its own label.
+const FeaturesField = styled(Field)`
+    button {
+        height: 36px;
+        width: auto;
+        white-space: nowrap;
+        box-shadow: none;
     }
 `;
 
