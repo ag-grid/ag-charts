@@ -23,10 +23,12 @@ import agCssAsString from './plugins/agCssAsString';
 import agDemosStatic from './plugins/agDemosStatic';
 import agDevCsp from './plugins/agDevCsp';
 import agDevMarkdownNegotiation from './plugins/agDevMarkdownNegotiation';
+import agGallerySeoChecker from './plugins/agGallerySeoChecker';
 import agHotModuleReload from './plugins/agHotModuleReload';
 import agHtaccessGen from './plugins/agHtaccessGen';
 import agRedirectsChecker from './plugins/agRedirectsChecker';
 import { FRAMEWORKS, FRAMEWORK_REDIRECT_PATH } from './src/constants';
+import { getIsBenchmarkOnlyBuild } from './src/utils/env';
 import { getAstroRedirectRules } from './src/utils/htaccess/htaccessRules';
 import { getSitemapConfig } from './src/utils/sitemap';
 import { urlWithBaseUrl } from './src/utils/urlWithBaseUrl';
@@ -232,6 +234,10 @@ export default defineConfig({
         }),
         agRedirectsChecker({
             skip: CHECK_REDIRECTS !== 'true',
+        }),
+        // Unconditional, unlike the env-gated checks above: a bad title must fail the build that renders it.
+        agGallerySeoChecker({
+            skip: getIsBenchmarkOnlyBuild(),
         }),
         agMkcertPreview({ enabled: httpsEnabled }),
     ],
