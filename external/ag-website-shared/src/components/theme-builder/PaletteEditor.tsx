@@ -33,10 +33,17 @@ export interface PaletteEditorProps {
 const FALLBACK_SERIES_COLOR: SeriesColor = { fill: '#5090dc', stroke: '#2b5c95' };
 
 const ACCENT_LABELS: Record<PaletteAccentKey, string> = {
-    up: 'Up (Financial)',
-    down: 'Down (Financial)',
-    neutral: 'Neutral (Financial)',
+    up: 'Up',
+    down: 'Down',
+    neutral: 'Neutral',
 };
+
+/**
+ * Two colour swatches side by side say nothing about which is which, and the
+ * order is not guessable - so every row is headed, and every swatch also names
+ * itself for a screen reader, which cannot read a column heading as a label.
+ */
+const COLUMN_LABELS = ['Fill', 'Stroke'];
 
 export const PaletteEditor = ({ value, onChange, maxSeriesColors }: PaletteEditorProps) => {
     const colors = toSeriesColors(value);
@@ -53,18 +60,24 @@ export const PaletteEditor = ({ value, onChange, maxSeriesColors }: PaletteEdito
 
     return (
         <Fields>
-            <FormField label="Series Colors">
-                <Slots>
+            <FormField
+                label="Series Colors"
+                docs="Each series takes the next slot, cycling once a chart has more series than the palette. Fills colour the series; strokes outline it, and only appear where the series is drawn with a stroke width."
+            >
+                <Rows>
+                    <ColumnHeadings gutter={SERIES_LABEL_WIDTH} />
                     {colors.map((color, index) => (
-                        <Slot key={index}>
-                            <SlotIndex>{index + 1}</SlotIndex>
+                        <Row key={index}>
+                            <SeriesIndex>{index + 1}</SeriesIndex>
                             <ColorPicker
                                 preventTransparency={false}
+                                ariaLabel={`Series color ${index + 1} fill`}
                                 value={color.fill}
                                 onChange={(fill) => updateColor(index, { fill: fill ?? color.fill })}
                             />
                             <ColorPicker
                                 preventTransparency={false}
+                                ariaLabel={`Series color ${index + 1} stroke`}
                                 value={color.stroke}
                                 onChange={(stroke) => updateColor(index, { stroke: stroke ?? color.stroke })}
                             />
@@ -76,26 +89,47 @@ export const PaletteEditor = ({ value, onChange, maxSeriesColors }: PaletteEdito
                             >
                                 <Trash2 size={14} />
                             </IconButton>
-                        </Slot>
+                        </Row>
                     ))}
-                </Slots>
+                </Rows>
             </FormField>
             {canAdd && (
                 <AddButton type="button" onClick={addColor}>
                     <Plus size={14} /> Add series color
                 </AddButton>
             )}
-            {PALETTE_ACCENT_KEYS.map((key) => (
-                <AccentEditor
-                    key={key}
-                    label={ACCENT_LABELS[key]}
-                    value={value[key]}
-                    onChange={(accent) => onChange(withAccentColors(value, key, accent))}
-                />
-            ))}
+            {/* One group rather than three fields, so the two columns are named
+                once and the three rows read as the set they are. */}
+            <FormField
+                label="Financial Colors"
+                docs="Rising, falling and unchanged prices in candlestick and OHLC series. A palette that leaves these unset is treated as an indexed one, and those series fall back to the series colours above."
+            >
+                <Rows>
+                    <ColumnHeadings gutter={ACCENT_LABEL_WIDTH} />
+                    {PALETTE_ACCENT_KEYS.map((key) => (
+                        <AccentEditor
+                            key={key}
+                            label={ACCENT_LABELS[key]}
+                            value={value[key]}
+                            onChange={(accent) => onChange(withAccentColors(value, key, accent))}
+                        />
+                    ))}
+                </Rows>
+            </FormField>
         </Fields>
     );
 };
+
+/** `gutter` is the width of the row-label column these headings sit beside. */
+const ColumnHeadings = ({ gutter }: { gutter: number }) => (
+    <Row>
+        <RowLabel style={{ width: gutter }} />
+        {COLUMN_LABELS.map((label) => (
+            <ColumnHeading key={label}>{label}</ColumnHeading>
+        ))}
+        <TrailingGutter />
+    </Row>
+);
 
 interface AccentEditorProps {
     label: string;
@@ -104,21 +138,29 @@ interface AccentEditorProps {
 }
 
 const AccentEditor = ({ label, value, onChange }: AccentEditorProps) => (
-    <FormField label={label}>
-        <Slot>
-            <ColorPicker
-                preventTransparency={false}
-                value={value?.fill ?? ''}
-                onChange={(fill) => onChange({ ...value, fill: fill ?? undefined })}
-            />
-            <ColorPicker
-                preventTransparency={false}
-                value={value?.stroke ?? ''}
-                onChange={(stroke) => onChange({ ...value, stroke: stroke ?? undefined })}
-            />
-        </Slot>
-    </FormField>
+    <Row>
+        <RowLabel>{label}</RowLabel>
+        <ColorPicker
+            preventTransparency={false}
+            ariaLabel={`${label} fill`}
+            value={value?.fill ?? ''}
+            onChange={(fill) => onChange({ ...value, fill: fill ?? undefined })}
+        />
+        <ColorPicker
+            preventTransparency={false}
+            ariaLabel={`${label} stroke`}
+            value={value?.stroke ?? ''}
+            onChange={(stroke) => onChange({ ...value, stroke: stroke ?? undefined })}
+        />
+        {/* Matches the series rows' remove button, so both groups end flush. */}
+        <TrailingGutter />
+    </Row>
 );
+
+/** Enough for "Neutral" at the row font size, and no wider - the panel is 300px. */
+const ACCENT_LABEL_WIDTH = 44;
+/** Enough for a two-digit slot number. */
+const SERIES_LABEL_WIDTH = 16;
 
 const Fields = styled('div')`
     display: flex;
@@ -126,13 +168,13 @@ const Fields = styled('div')`
     gap: 12px;
 `;
 
-const Slots = styled('div')`
+const Rows = styled('div')`
     display: flex;
     flex-direction: column;
     gap: 4px;
 `;
 
-const Slot = styled('div')`
+const Row = styled('div')`
     display: flex;
     align-items: center;
     gap: 6px;
@@ -144,13 +186,32 @@ const Slot = styled('div')`
     }
 `;
 
-const SlotIndex = styled('span')`
-    width: 16px;
+const RowLabel = styled('span')`
+    width: ${ACCENT_LABEL_WIDTH}px;
     flex-shrink: 0;
     color: var(--color-fg-secondary);
     opacity: 0.6;
     font-size: 11px;
+`;
+
+// Right-aligned, so the numbers sit against the swatches they belong to rather
+// than drifting away from them as the count passes nine.
+const SeriesIndex = styled(RowLabel)`
+    width: ${SERIES_LABEL_WIDTH}px;
     text-align: right;
+`;
+
+const ColumnHeading = styled('span')`
+    flex: 1;
+    min-width: 0;
+    color: var(--color-fg-secondary);
+    opacity: 0.6;
+    font-size: 11px;
+`;
+
+const TrailingGutter = styled('span')`
+    width: 14px;
+    flex-shrink: 0;
 `;
 
 const IconButton = styled('button')`

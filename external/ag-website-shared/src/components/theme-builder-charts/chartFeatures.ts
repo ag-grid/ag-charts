@@ -6,12 +6,16 @@
  * plain chart. Three whole groups of params - Chrome, Buttons & Inputs, Menus &
  * Panels - only reach the screen through a toolbar, a menu or a settings panel,
  * so without a way to summon those, half the tool edits values the user cannot
- * see. Every feature here is one that puts otherwise-invisible params on screen.
+ * see. The palette has the same problem in miniature: a chart resolves its
+ * series stroke width to zero unless asked, so the strokes column edits colours
+ * that never appear. Every feature here is one that puts otherwise-invisible
+ * values on screen.
  *
  * Deliberately not a list of everything a chart can do: a feature earns a place
  * only if switching it on changes something the editor panel can edit.
  */
 export const CHART_FEATURE_IDS = [
+    'seriesStrokes',
     'legend',
     'crosshairs',
     'contextMenu',
@@ -41,6 +45,11 @@ export interface ChartFeatureConfig {
 }
 
 export const CHART_FEATURES: ChartFeatureConfig[] = [
+    {
+        id: 'seriesStrokes',
+        label: 'Series Strokes',
+        hint: 'Outlines each series in its palette stroke, which charts hide by default',
+    },
     { id: 'legend', label: 'Legend', hint: 'Series names, and its pager once they overflow' },
     { id: 'crosshairs', label: 'Crosshairs', hint: 'Axis labels on hover - hover the chart to see them' },
     { id: 'contextMenu', label: 'Context Menu', hint: 'Menu colours - right-click the chart to open it' },
@@ -62,8 +71,15 @@ export const CHART_FEATURES: ChartFeatureConfig[] = [
  * On by default, because a feature nobody switches on is a param nobody sees.
  * Volume is the exception: it takes a fifth of the plot height for a series the
  * theme treats no differently from any other.
+ *
+ * That applies to series strokes with particular force - they are the one thing
+ * here a chart will not draw on its own, so left off the palette's strokes
+ * column would look broken rather than subtle. The cost is that the preview is
+ * not what a plain chart of the same theme draws, which is what the hint on the
+ * checkbox is for.
  */
 export const DEFAULT_CHART_FEATURES: ChartFeatures = {
+    seriesStrokes: true,
     legend: true,
     crosshairs: true,
     contextMenu: true,
