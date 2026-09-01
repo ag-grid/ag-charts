@@ -293,43 +293,73 @@ const Controls = styled('span')`
     gap: 4px;
 `;
 
+// The design system dresses a bare `button` as a filled primary button, and its
+// `:hover`, `:active`, `:disabled` and `:focus-visible` rules each carry a
+// pseudo-class - which outranks the single class Emotion generates. So `all:
+// unset` holds only until the pointer arrives, at which point a 14px icon
+// becomes a brand-blue pill. Repeating the class outranks all of those rules at
+// once, in every state, which is why nothing below needs `!important` and why
+// the colour stays an ordinary cascade that `.is-active` can still win.
+//
+// It also takes the design system's focus ring with it, so this supplies its
+// own: without one these buttons would be invisible to keyboard focus, and the
+// link toggle is a control you can only reach that way.
 const IconButton = styled('button')`
-    all: unset;
-    cursor: pointer;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    color: var(--color-fg-secondary);
-    opacity: 0.6;
+    &&& {
+        all: unset;
+        cursor: pointer;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        color: var(--color-fg-secondary);
+        opacity: 0.6;
 
-    &:hover:not(:disabled) {
-        opacity: 1;
-    }
+        &:hover:not(:disabled) {
+            opacity: 1;
+        }
 
-    &:disabled {
-        cursor: default;
-        opacity: 0.2;
-    }
+        &:focus-visible {
+            opacity: 1;
+            outline: 2px solid var(--color-brand-500);
+            outline-offset: 2px;
+            border-radius: 2px;
+        }
 
-    // A linked stroke is the default, so it is marked rather than shouted: the
-    // unlinked rows are the ones a user is looking for.
-    &.is-active {
-        opacity: 1;
-        color: var(--color-fg-primary);
+        &:disabled {
+            cursor: default;
+            opacity: 0.2;
+        }
+
+        // A linked stroke is the default, so it is marked rather than shouted: the
+        // unlinked rows are the ones a user is looking for.
+        &.is-active {
+            opacity: 1;
+            color: var(--color-fg-primary);
+        }
     }
 `;
 
+// Same reset, and for the same reason - see `IconButton`.
 const AddButton = styled('button')`
-    all: unset;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding-left: 22px;
-    color: var(--color-fg-secondary);
-    font-size: 12px;
+    &&& {
+        all: unset;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding-left: 22px;
+        color: var(--color-fg-secondary);
+        font-size: 12px;
 
-    &:hover {
-        color: var(--color-fg-primary);
+        &:hover {
+            color: var(--color-fg-primary);
+        }
+
+        &:focus-visible {
+            color: var(--color-fg-primary);
+            outline: 2px solid var(--color-brand-500);
+            outline-offset: 2px;
+            border-radius: 2px;
+        }
     }
 `;
