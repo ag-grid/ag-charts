@@ -1615,8 +1615,8 @@ export class DonutSeries extends PolarSeries<
             const sector = { startAngle, endAngle, innerRadius, outerRadius };
             const box = sectorBox(sector);
             extentSum += box.width + box.height;
-            // Probes move the label, never the sector, so the sector's edge geometry is resolved once.
-            return { box, sector, edges: sectorEdges(sector) };
+            // Probes move the label, never the sector, so the sector's geometry is resolved once.
+            return { box, sector, edges: sectorEdges(sector), outerRadiusSquared: outerRadius * outerRadius };
         });
 
         // The bisection probes this far more often than anything else in the pass, so prune before the exact test.
@@ -1629,11 +1629,20 @@ export class DonutSeries extends PolarSeries<
             sectorIndex.insert(obstacle.box, obstacle);
         }
 
-        const collidesSectors = (box: BBox) =>
-            sectorIndex.query(
+        const collidesSectors = (box: BBox) => {
+            // The search pushes labels past the sectors, so most probes reject on radius before the exact test.
+            const dx = Math.max(box.x, 0, -(box.x + box.width));
+            const dy = Math.max(box.y, 0, -(box.y + box.height));
+            const nearestRadiusSquared = dx * dx + dy * dy;
+
+            return sectorIndex.query(
                 box,
-                (obstacle) => box.collidesBBox(obstacle.box) && boxOverlapsSector(box, obstacle.sector, obstacle.edges)
+                (obstacle) =>
+                    nearestRadiusSquared <= obstacle.outerRadiusSquared &&
+                    box.collidesBBox(obstacle.box) &&
+                    boxOverlapsSector(box, obstacle.sector, obstacle.edges)
             );
+        };
 
         const avoidSectorCollisions = () => {
             // A push moves the label along its mid-angle without resizing it, so each side is measured once and
