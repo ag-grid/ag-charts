@@ -92,7 +92,7 @@ const Container = styled('div')`
     user-select: none;
     cursor: default;
 
-    font-family: -apple-system, BlinkMacSystemFont, 'IBM Plex Sans', sans-serif;
+    font-family: var(--text-font-family);
 
     @media screen and (max-width: 900px) {
         display: none;

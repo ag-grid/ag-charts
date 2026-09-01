@@ -1,3 +1,4 @@
+import type { IconName } from '@ag-website-shared/components/icon/Icon';
 import { type PersistentAtom, atomWithJSONStorage } from '@ag-website-shared/theming/JSONStorage';
 import type { AgCartesianChartOptions, AgCartesianSeriesOptions, AgChartOptions } from 'ag-charts-community';
 import { useAtom } from 'jotai';
@@ -29,6 +30,11 @@ import {
 export type PreviewChartType = {
     id: string;
     label: string;
+    /**
+     * The same icon the docs menu gives this series, so the control names a
+     * chart the way the rest of the site already names it.
+     */
+    icon: IconName;
     /** What the count control is called for this type - a donut has slices. */
     countLabel: string;
     /** The main preview: the full chart, titled and with a legend. */
@@ -86,6 +92,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
     {
         id: 'bar',
         label: 'Bar',
+        icon: 'chartsColumn',
         countLabel: 'Series',
         buildOptions: (count) =>
             cartesian(count, (key, name) => ({ type: 'bar', xKey: 'quarter', yKey: key, yName: name })),
@@ -101,6 +108,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
     {
         id: 'stackedBar',
         label: 'Stacked Bar',
+        icon: 'chartsColumnStacked',
         countLabel: 'Series',
         buildOptions: (count) =>
             cartesian(count, (key, name) => ({ type: 'bar', xKey: 'quarter', yKey: key, yName: name, stacked: true })),
@@ -114,6 +122,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
     {
         id: 'line',
         label: 'Line',
+        icon: 'chartsLine',
         countLabel: 'Series',
         buildOptions: (count) =>
             cartesian(count, (key, name) => ({ type: 'line', xKey: 'quarter', yKey: key, yName: name })),
@@ -127,6 +136,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
     {
         id: 'area',
         label: 'Area',
+        icon: 'chartsArea',
         countLabel: 'Series',
         buildOptions: (count) =>
             cartesian(count, (key, name) => ({ type: 'area', xKey: 'quarter', yKey: key, yName: name, stacked: true })),
@@ -140,6 +150,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
     {
         id: 'donut',
         label: 'Donut',
+        icon: 'chartsDonut',
         countLabel: 'Slices',
         buildOptions: (count) => ({
             data: totalsFor(count),
