@@ -1,4 +1,4 @@
-import { type Palette, paletteIsEmpty } from '@ag-website-shared/components/theme-builder/palette';
+import { type Palette, paletteIsEmpty, toThemePalette } from '@ag-website-shared/components/theme-builder/palette';
 import type { AgChartTheme, AgChartThemeName, AgChartThemePalette, AgChartThemeParams } from 'ag-charts-community';
 
 /**
@@ -88,9 +88,10 @@ export const toChartTheme = ({ baseTheme, params, palette }: ChartsThemeSelectio
     return {
         baseTheme,
         ...(Object.keys(themeParams).length > 0 ? { params: themeParams } : {}),
-        // The shared palette is a structural subset of AgChartThemePalette - it
-        // carries plain colours where AG Charts also allows gradients.
-        ...(paletteIsEmpty(palette) ? {} : { palette: palette satisfies AgChartThemePalette }),
+        // Through `toThemePalette`, which drops the editor's own bookkeeping.
+        // What is left is a structural subset of AgChartThemePalette - plain
+        // colours where AG Charts also allows gradients.
+        ...(paletteIsEmpty(palette) ? {} : { palette: toThemePalette(palette) satisfies AgChartThemePalette }),
     };
 };
 
