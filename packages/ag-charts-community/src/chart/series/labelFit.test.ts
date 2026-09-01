@@ -262,6 +262,27 @@ describe('series label fit', () => {
         return (series.labelSelection?.nodes() ?? []).filter((node) => node.visible && node.text !== '');
     };
 
+    // A sector label the wedge rejected: the fit wrote text onto the node, and the visibility gate then
+    // hid it whole. Text fitted to nothing renders nothing and is hidden by design, so it does not count.
+    const hiddenSectorNodes = (seriesIndex = 0): SectorLabelNode[] => {
+        const series = deproxy(chart as any).series[seriesIndex] as unknown as {
+            labelSelection?: { nodes: () => SectorLabelNode[] };
+        };
+        return (series.labelSelection?.nodes() ?? []).filter((node) => !node.visible && node.text !== '');
+    };
+
+    // Wide enough for a bounded label to read as a wrap rather than a column of single words.
+    const SECTOR_MAX_WIDTH = 90;
+
+    const sectorLineWidths = (seriesIndex = 0): number[] => {
+        const series = deproxy(chart as any).series[seriesIndex] as unknown as {
+            labelSelection?: { nodes: () => (SectorLabelNode & { getLineBoxes: () => { width: number }[] })[] };
+        };
+        return (series.labelSelection?.nodes() ?? [])
+            .filter((node) => node.visible)
+            .flatMap((node) => node.getLineBoxes().map((box) => box.width));
+    };
+
     const calloutNodes = (seriesIndex = 0): SectorLabelNode[] => {
         const series = deproxy(chart as any).series[seriesIndex] as unknown as {
             calloutLabelSelection: { selectByTag: (tag: number) => SectorLabelNode[] };
@@ -339,13 +360,15 @@ describe('series label fit', () => {
                         angleKey: 'value',
                         sectorLabelKey: 'label',
                         ...(type === 'donut' ? { innerRadiusRatio: 0.3 } : {}),
-                        sectorLabel: { enabled: true, maxWidth: 40 },
+                        sectorLabel: { enabled: true, maxWidth: SECTOR_MAX_WIDTH },
                     },
                 ],
             });
             const texts = sectorTexts();
             expect(someWrapped(texts)).toBe(true);
-            expect(someTruncated(texts)).toBe(true);
+            // Whether the wedge also runs out of room is the ellipsis test's business above; what this one
+            // owns is that every drawn line answers to the bound.
+            expect(Math.max(...sectorLineWidths())).toBeLessThanOrEqual(SECTOR_MAX_WIDTH);
         });
 
         it(`shrinks ${type} sector labels toward minimumFontSize before truncating`, async () => {
@@ -486,6 +509,41 @@ describe('series label fit', () => {
             const texts = calloutNodes().map((node) => node.text);
             expect(someWrapped(texts)).toBe(true);
             expect(someTruncated(texts)).toBe(true);
+        });
+        // A fit that overruns the wedge leaves the label hidden whole, so text fitted at any size has to
+        // stay inside the wedge it was fitted to.
+        it(`keeps ${type} sector labels inside their wedge at every chart size`, async () => {
+            const sizes: number[] = [];
+            for (let size = 380; size <= 620; size += 20) {
+                sizes.push(size);
+            }
+            const dropped: string[] = [];
+            for (const size of sizes) {
+                const options: any = {
+                    data: sectorLabelData,
+                    legend: { enabled: false },
+                    series: [
+                        {
+                            type,
+                            angleKey: 'value',
+                            sectorLabelKey: 'label',
+                            ...(type === 'donut' ? { innerRadiusRatio: 0.3 } : {}),
+                            sectorLabel: { enabled: true, fontSize: 24, wrapping: 'on-space', truncate: true },
+                        },
+                    ],
+                };
+                prepareTestOptions(options);
+                // prepareTestOptions fixes the canvas size, so the size under test is applied after it.
+                options.width = size;
+                options.height = size;
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+                for (const node of hiddenSectorNodes()) {
+                    dropped.push(`${size}px: ${JSON.stringify(node.text)}`);
+                }
+                chart.destroy();
+            }
+            expect(dropped).toEqual([]);
         });
     }
 

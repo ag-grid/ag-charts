@@ -64,7 +64,7 @@ import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
 import type { Text } from '../scene/shape/text';
 import { isRotatable } from '../scene/transformable';
-import { isPointInSector } from '../scene/util/sector';
+import { type SectorBoundaries, isBoxInSector, isPointInSector } from '../scene/util/sector';
 import {
     type Label,
     type LabelPlacementStyle,
@@ -226,6 +226,8 @@ export interface SectorLabelRect {
     /** Size the label text is fitted to. */
     readonly width: number;
     readonly height: number;
+    /** The block fits centred on the anchor, so a caller must not recentre it on the room it found. */
+    readonly anchored?: boolean;
 }
 
 // A box taller than one line by this ratio is treated as multi-line and fitted to a horizontal band
@@ -261,20 +263,32 @@ function furthestInside(limit: number, inside: (t: number) => boolean): number {
  * offers — the label ends up hugging one edge. Such a box is instead fitted to the wedge's true horizontal
  * extent across its own band (see {@link centreSectorLabelInBand}); the symmetric slide is kept for
  * single-line boxes, whose thin band cannot exhibit this.
+ *
+ * `blockHeight` and `blockWidth` replace the estimates once the caller knows what its text wrapped to: a block
+ * sized from one line is placed where a thin box fits, which is not where the block it grew into belongs. A
+ * block that fits on the anchor stays on it — the sector nominates that point for its label, and both searches
+ * below trade centring for room a block this size does not need.
  */
 export function fitSectorLabelRect(
     anchor: Point,
     sector: { startAngle: number; endAngle: number; innerRadius: number; outerRadius: number },
-    lineHeight: number
+    lineHeight: number,
+    blockHeight?: number,
+    blockWidth?: number
 ): SectorLabelRect {
-    const { width, height } = sectorLabelContainer(anchor, sector, lineHeight);
+    const container = sectorLabelContainer(anchor, sector, lineHeight);
+    const width = container.width;
+    const height = blockHeight ?? container.height;
     const halfWidth = width / 2;
     const halfHeight = height / 2;
     if (halfWidth <= 0 || halfHeight <= 0 || !isPointInSector(anchor.x, anchor.y, sector)) {
         return { centerX: anchor.x, centerY: anchor.y, width, height };
     }
+    if (blockWidth != null && blockHeight != null && fitsOnAnchor(anchor, sector, blockWidth, blockHeight)) {
+        return { centerX: anchor.x, centerY: anchor.y, width, height, anchored: true };
+    }
     if (height > lineHeight * SECTOR_MULTILINE_HEIGHT_RATIO) {
-        const centred = centreSectorLabelInBand(anchor, sector, height);
+        const centred = centreSectorLabelInBand(anchor, sector, height, blockWidth);
         if (centred != null) {
             return centred;
         }
@@ -300,21 +314,39 @@ const SECTOR_ARC_INSET = 0.75;
 // furthest from the centre decides between them rather than sub-pixel noise.
 const SECTOR_WIDTH_TOLERANCE = 2;
 
+/** Sector shrunk radially by {@link SECTOR_ARC_INSET}, so a box it accepts also clears the drawn arcs. */
+function arcInsetSector(sector: SectorBoundaries): SectorBoundaries {
+    return {
+        startAngle: sector.startAngle,
+        endAngle: sector.endAngle,
+        innerRadius: sector.innerRadius > 0 ? sector.innerRadius + SECTOR_ARC_INSET : 0,
+        outerRadius: Math.abs(sector.outerRadius) - SECTOR_ARC_INSET,
+    };
+}
+
+/** True when a `width` x `height` box centred on `anchor` lies inside the wedge, clear of its arcs. */
+function fitsOnAnchor(anchor: Point, sector: SectorBoundaries, width: number, height: number) {
+    const box = { x: anchor.x - width / 2, y: anchor.y - height / 2, width, height };
+    return isBoxInSector(box, arcInsetSector(sector));
+}
+
 /**
- * Fits a multi-line sector label to the widest horizontal band the wedge offers, placed as far from the
- * chart centre as that width allows. A tall box measured symmetrically about the bisector is capped by the
- * nearer radial edge and left hugging it; instead, candidate vertical centres are scanned and, at each, the
- * box spans the wedge's true horizontal extent common to its top and bottom edges (convex wedge, so those
- * edges bind) searched outward from the bisector with {@link isPointInSector}. The widest band wins, and
- * among equally wide bands the one furthest from the centre — where the wedge reads as a landscape strip
- * rather than a cramped tip — so the label sits centred between the wedge's sides. Returns `null` when no
- * band holds the box (e.g. a box nearly as tall as the radius), so the caller falls back to symmetric
- * placement.
+ * Fits a multi-line sector label to a horizontal band of the wedge. A tall box measured symmetrically about
+ * the bisector is capped by the nearer radial edge and left hugging it; instead, candidate vertical centres
+ * are scanned and, at each, the box spans the wedge's true horizontal extent common to its top and bottom
+ * edges (convex wedge, so those edges bind) searched outward from the bisector with {@link isPointInSector},
+ * which leaves the box centred between the wedge's sides. Returns `null` when no band holds the box (e.g. a
+ * box nearly as tall as the radius), so the caller falls back to symmetric placement.
+ *
+ * Of the bands that hold `blockWidth` — the width the text actually wrapped to — the one nearest `anchor`
+ * wins, so a label sits on the point the sector nominates for it and moves only as far as it must to fit.
+ * Without a wrapped width to answer to, the widest band wins instead, the furthest out among equals.
  */
 function centreSectorLabelInBand(
     anchor: Point,
     sector: { startAngle: number; endAngle: number; innerRadius: number; outerRadius: number },
-    height: number
+    height: number,
+    blockWidth?: number
 ): SectorLabelRect | null {
     const radius = Math.hypot(anchor.x, anchor.y);
     if (radius < 1e-6) {
@@ -323,13 +355,8 @@ function centreSectorLabelInBand(
     const midCos = anchor.x / radius;
     const midSin = anchor.y / radius;
     // Probe against arc-inset radii so the chosen box clears the arcs by SECTOR_ARC_INSET on both sides.
-    const outer = Math.abs(sector.outerRadius) - SECTOR_ARC_INSET;
-    const inset = {
-        startAngle: sector.startAngle,
-        endAngle: sector.endAngle,
-        innerRadius: sector.innerRadius > 0 ? sector.innerRadius + SECTOR_ARC_INSET : 0,
-        outerRadius: outer,
-    };
+    const inset = arcInsetSector(sector);
+    const outer = inset.outerRadius;
     const halfHeight = height / 2;
     const limit = outer * 2;
     // Furthest the bisector-seed on line `y` can slide along `dir` (±1 in x) while staying in the wedge.
@@ -362,6 +389,12 @@ function centreSectorLabelInBand(
         bands.push({ centerX: (left + right) / 2, centerY, width, height });
         maxWidth = Math.max(maxWidth, width);
     }
+    if (blockWidth != null) {
+        const nearest = nearestBandHolding(bands, anchor, Math.min(blockWidth, maxWidth) - SECTOR_WIDTH_TOLERANCE);
+        if (nearest != null) {
+            return nearest;
+        }
+    }
     // Among the widest bands (within a tolerance), take the one furthest from the chart centre.
     let best: SectorLabelRect | null = null;
     let bestRadius = -Infinity;
@@ -373,6 +406,23 @@ function centreSectorLabelInBand(
         if (bandRadius > bestRadius) {
             best = band;
             bestRadius = bandRadius;
+        }
+    }
+    return best;
+}
+
+/** Band at least `required` wide whose centre lies nearest `anchor`; `null` when none is wide enough. */
+function nearestBandHolding(bands: SectorLabelRect[], anchor: Point, required: number): SectorLabelRect | null {
+    let best: SectorLabelRect | null = null;
+    let bestDistance = Infinity;
+    for (const band of bands) {
+        if (band.width < required) {
+            continue;
+        }
+        const distance = Math.hypot(band.centerX - anchor.x, band.centerY - anchor.y);
+        if (distance < bestDistance) {
+            best = band;
+            bestDistance = distance;
         }
     }
     return best;
