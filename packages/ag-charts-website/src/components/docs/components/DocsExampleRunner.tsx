@@ -15,7 +15,7 @@ import {
     getExampleContentsUrl,
     getExamplePlunkrUrl,
     getExampleRunnerExampleUrl,
-    getExampleUrl,
+    getExampleLinkUrl,
 } from '../utils/urlPaths';
 
 interface Props {
@@ -86,7 +86,7 @@ const DocsExampleRunnerInner = ({
             ).then((res) => res.json());
 
             const getExampleFileHtml = fetch(
-                getExampleUrl({
+                getExampleLinkUrl({
                     internalFramework,
                     pageName,
                     exampleName,
@@ -103,7 +103,7 @@ const DocsExampleRunnerInner = ({
         }
 
         setExampleUrl(
-            getExampleUrl({
+            getExampleLinkUrl({
                 internalFramework,
                 pageName,
                 exampleName,

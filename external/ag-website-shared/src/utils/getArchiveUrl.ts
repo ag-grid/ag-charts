@@ -1,4 +1,5 @@
 import type { Library } from '@ag-grid-types';
+import { addAbsoluteTrailingSlash } from '@ag-website-shared/utils/addTrailingSlash';
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
 import { versionIsGreaterOrEqual } from '@ag-website-shared/utils/versionIsGreaterOrEqual';
 import { LEGACY_CHARTS_SITE_URL, PRODUCTION_CHARTS_SITE_URL, PRODUCTION_STUDIO_SITE_URL } from '@constants';
@@ -46,7 +47,9 @@ export const getDocumentationArchiveUrl = ({
         documentationArchiveLink = pathJoin(versionArchiveLink, '/documentation');
     }
 
-    return documentationArchiveLink;
+    // `pathJoin` strips the trailing slash off every segment, so it is re-added here: the archived
+    // docs are directory indexes and a slashless URL costs a 301 hop.
+    return addAbsoluteTrailingSlash(documentationArchiveLink);
 };
 
 /**

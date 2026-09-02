@@ -29,6 +29,10 @@ export const getExamplePageUrl = ({ framework, path }: { framework?: Framework; 
 
 /**
  * Dynamic path where examples are
+ *
+ * Deliberately unslashed: this is a base, not a link. It becomes `appLocation`, which
+ * `SystemJs` injects verbatim as the SystemJS `app` module-map target, so its exact spelling is
+ * load-bearing. Use `getExampleLinkUrl` for anything the browser navigates or fetches.
  */
 export const getExampleUrl = ({
     internalFramework,
@@ -43,6 +47,19 @@ export const getExampleUrl = ({
 };
 
 /**
+ * The example page as a URL to navigate or fetch.
+ *
+ * The page is served as a directory index, so a slashless URL costs a 301 hop (SE-166).
+ */
+export const getExampleLinkUrl = (params: {
+    internalFramework: InternalFramework;
+    pageName: string;
+    exampleName: string;
+}) => {
+    return getExampleUrl(params) + '/';
+};
+
+/**
  * Dynamic path where docs example runner examples are
  */
 export const getExampleRunnerExampleUrl = ({
@@ -54,7 +71,7 @@ export const getExampleRunnerExampleUrl = ({
     pageName: string;
     exampleName: string;
 }) => {
-    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, 'example-runner');
+    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, 'example-runner') + '/';
 };
 
 /**
@@ -69,7 +86,7 @@ export const getExamplePlunkrUrl = ({
     pageName: string;
     exampleName: string;
 }) => {
-    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, 'plunkr');
+    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, 'plunkr') + '/';
 };
 
 /**
@@ -84,7 +101,7 @@ export const getExampleCodeSandboxUrl = ({
     pageName: string;
     exampleName: string;
 }) => {
-    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, 'codesandbox');
+    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, 'codesandbox') + '/';
 };
 
 /**

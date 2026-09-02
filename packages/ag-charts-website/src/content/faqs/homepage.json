@@ -21,7 +21,7 @@
     },
     {
         "question": "Can I export AG Charts JavaScript charts as images?",
-        "answer": "Yes, AG Charts offers built-in export functionality for [JavaScript charts](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs). You can easily [export your charts](https://www.ag-grid.com/charts/react/api-download?utm_source=charts-homepage&amp;utm_medium=faqs) as PNG files, making it simple to include them in reports or share them with others."
+        "answer": "Yes, AG Charts offers built-in export functionality for [JavaScript charts](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs). You can easily [export your charts](https://www.ag-grid.com/charts/react/api-download/?utm_source=charts-homepage&amp;utm_medium=faqs) as PNG files, making it simple to include them in reports or share them with others."
     },
     {
         "question": "How do I integrate AG Charts JavaScript charts with React?",

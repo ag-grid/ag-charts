@@ -2,7 +2,7 @@
 import { getEntry, type CollectionEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import { getGalleryExamplePages } from '@components/gallery/utils/pageData';
-import { getExampleUrl } from '@components/gallery/utils/urlPaths';
+import { getExampleLinkUrl } from '@components/gallery/utils/urlPaths';
 
 const galleryDataEntry = (await getEntry('gallery', 'data')) as CollectionEntry<'gallery'>;
 const examples = getGalleryExamplePages({ galleryData: galleryDataEntry.data });
@@ -21,7 +21,7 @@ const examples = getGalleryExamplePages({ galleryData: galleryDataEntry.data });
                 {
                     examples.map((example, index) => {
                         const { exampleName } = example.params;
-                        const url = getExampleUrl({
+                        const url = getExampleLinkUrl({
                             exampleName,
                         });
                         return (
