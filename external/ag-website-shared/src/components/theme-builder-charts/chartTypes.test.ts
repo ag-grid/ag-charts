@@ -35,6 +35,22 @@ const strokeWidthOf = (series: unknown) => {
     return strokeWidth ?? marker?.strokeWidth;
 };
 
+/**
+ * The types that reach their outline through their own series options.
+ *
+ * The candlestick does not - the preset it is built through takes no series -
+ * and it is the wrong way round besides, so it is covered on its own below.
+ */
+const SERIES_STROKE_TYPES = PREVIEW_CHART_TYPES.filter(
+    (type) => type.features.includes('seriesStrokes') && type.themeOverrides == null
+);
+
+const CANDLESTICK = PREVIEW_CHART_TYPES.find((type) => type.id === 'candlestick')!;
+
+/** Everything a set of features decides, wherever the chart reads it from. */
+const previewOf = (type: (typeof PREVIEW_CHART_TYPES)[number], features: ChartFeatures) =>
+    JSON.stringify([type.buildOptions(DEFAULT_SERIES_COUNT, features), type.themeOverrides?.(features)]);
+
 describe('preview chart types', () => {
     it('builds the requested number of series at every offered count', () => {
         for (const type of COUNTED_TYPES) {
@@ -152,8 +168,8 @@ describe('preview chart types', () => {
         // nested (an axis crosshair) or top-level (a preset flag).
         for (const type of PREVIEW_CHART_TYPES) {
             for (const id of type.features) {
-                const on = JSON.stringify(type.buildOptions(DEFAULT_SERIES_COUNT, { ...ALL_ON, [id]: true }));
-                const off = JSON.stringify(type.buildOptions(DEFAULT_SERIES_COUNT, { ...ALL_ON, [id]: false }));
+                const on = previewOf(type, { ...ALL_ON, [id]: true });
+                const off = previewOf(type, { ...ALL_ON, [id]: false });
                 expect(on, `${type.id}: ${id}`).not.toBe(off);
             }
         }
@@ -198,8 +214,7 @@ describe('preview chart types', () => {
         // stroke, so a palette can carry a stroke for every slot and draw none
         // of them - which leaves the strokes column of the palette editor
         // changing colours nothing on screen ever uses.
-        for (const type of PREVIEW_CHART_TYPES) {
-            if (!type.features.includes('seriesStrokes')) continue;
+        for (const type of SERIES_STROKE_TYPES) {
             for (const series of seriesOf(type.buildOptions(DEFAULT_SERIES_COUNT, ALL_ON))) {
                 expect(strokeWidthOf(series), type.id).toBeGreaterThan(0);
             }
@@ -210,11 +225,26 @@ describe('preview chart types', () => {
         // The switch has to be a switch: setting a width unconditionally would
         // make every preview an outlined chart, which is not what the theme
         // being built produces.
-        for (const type of PREVIEW_CHART_TYPES) {
-            if (!type.features.includes('seriesStrokes')) continue;
+        for (const type of SERIES_STROKE_TYPES) {
             for (const series of seriesOf(type.buildOptions(DEFAULT_SERIES_COUNT, ALL_OFF))) {
                 expect(strokeWidthOf(series), type.id).toBeUndefined();
             }
+        }
+    });
+
+    it('takes the candlestick outline away rather than adding one', () => {
+        // The one series here that is outlined whether or not the chart asks, so
+        // its switch has to set a width of zero where the others set a width.
+        expect(CANDLESTICK.features).toContain('seriesStrokes');
+        expect(CANDLESTICK.themeOverrides?.(ALL_ON)).toBeUndefined();
+
+        const item = CANDLESTICK.themeOverrides?.(ALL_OFF)?.candlestick.series.item;
+        for (const direction of ['up', 'down'] as const) {
+            expect(item?.[direction]?.strokeWidth, direction).toBe(0);
+            // The wick takes the item's width when it has none of its own, so
+            // without one of its own it would go with the outline - and a
+            // candlestick without wicks is not a candlestick.
+            expect(item?.[direction]?.wick?.strokeWidth, direction).toBeGreaterThan(0);
         }
     });
 

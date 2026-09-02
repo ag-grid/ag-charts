@@ -48,7 +48,7 @@ export const CHART_FEATURES: ChartFeatureConfig[] = [
     {
         id: 'seriesStrokes',
         label: 'Series Strokes',
-        hint: 'Outlines each series in its palette stroke, which charts hide by default',
+        hint: 'Outlines each series in its palette stroke, which most charts hide by default',
     },
     { id: 'legend', label: 'Legend', hint: 'Series names, and its pager once they overflow' },
     { id: 'crosshairs', label: 'Crosshairs', hint: 'Axis labels on hover - hover the chart to see them' },
@@ -73,7 +73,7 @@ export const CHART_FEATURES: ChartFeatureConfig[] = [
  * theme treats no differently from any other.
  *
  * That applies to series strokes with particular force - they are the one thing
- * here a chart will not draw on its own, so left off the palette's strokes
+ * here most charts will not draw on their own, so left off the palette's strokes
  * column would look broken rather than subtle. The cost is that the preview is
  * not what a plain chart of the same theme draws, which is what the hint on the
  * checkbox is for.

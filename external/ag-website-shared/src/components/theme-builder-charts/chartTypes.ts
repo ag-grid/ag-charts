@@ -1,6 +1,7 @@
 import type { IconName } from '@ag-website-shared/components/icon/Icon';
 import { type PersistentAtom, atomWithJSONStorage } from '@ag-website-shared/theming/JSONStorage';
 import type {
+    AgCandlestickSeriesStyles,
     AgCartesianChartOptions,
     AgCartesianSeriesOptions,
     AgChartOptions,
@@ -24,6 +25,19 @@ import {
 
 /** Either shape the preview can hand to `useChart`. */
 export type PreviewChartOptions = AgChartOptions | AgFinancialChartOptions;
+
+/**
+ * The theme overrides a preview type may add.
+ *
+ * Deliberately not `AgChartTheme['overrides']`. That type carries the chart's
+ * datum context, `AgChartTheme` is invariant in it, and the two previews pin it
+ * to different things - the preset's is `never` - so a value typed with either
+ * context fits only one of them. The series options themselves carry no context,
+ * so naming them directly serves both, and it holds this down to what a preview
+ * has any business overriding. Same problem `ChartsTheme` answers by leaving
+ * `overrides` out altogether.
+ */
+export type PreviewThemeOverrides = { candlestick: { series: AgCandlestickSeriesStyles } };
 
 /**
  * An AG Charts preset a preview type is built through, named as AG Charts names
@@ -74,6 +88,14 @@ export type PreviewChartType = {
     preset?: PreviewPreset;
     /** The main preview: the full chart, titled and with a legend. */
     buildOptions: (seriesCount: number, features: ChartFeatures) => PreviewChartOptions;
+    /**
+     * Series styling a chart's own options have no room for.
+     *
+     * The price-volume preset takes a data set, a handful of switches and a
+     * theme, and nothing else - there is no `series` key to put a stroke width
+     * in - so for the type built through it this is the only way in.
+     */
+    themeOverrides?: (features: ChartFeatures) => PreviewThemeOverrides | undefined;
     /**
      * The preset thumbnails, which take the same form so the cards predict what
      * the user is actually previewing - but built from their own data rather
@@ -137,6 +159,36 @@ const shapeStroke = (features: ChartFeatures) =>
  */
 const markerStroke = (features: ChartFeatures) =>
     isFeatureActive(features, 'seriesStrokes') ? { marker: { strokeWidth: MARKER_STROKE_WIDTH } } : {};
+
+/**
+ * What a wick is drawn at once the candle's own stroke is gone.
+ *
+ * AG Charts' default, which is also what the wick was already using: it takes
+ * the item's stroke width when it has none of its own.
+ */
+const CANDLE_WICK_STROKE_WIDTH = 1;
+
+/**
+ * A candlestick with its outline switched off.
+ *
+ * The odd one out: every other series here draws no stroke until the chart asks
+ * for one, so the feature adds a width, while a candle is outlined whether asked
+ * or not and the feature has to take one away.
+ *
+ * The wick is handed a width of its own in exchange, because it would otherwise
+ * inherit the zero - and a candlestick whose wicks went with its outline would
+ * look broken rather than unstroked.
+ */
+const CANDLE_WITHOUT_STROKE = {
+    candlestick: {
+        series: {
+            item: {
+                up: { strokeWidth: 0, wick: { strokeWidth: CANDLE_WICK_STROKE_WIDTH } },
+                down: { strokeWidth: 0, wick: { strokeWidth: CANDLE_WICK_STROKE_WIDTH } },
+            },
+        },
+    },
+} satisfies PreviewThemeOverrides;
 
 /**
  * Crosshairs default on for continuous axes only, so a category x-axis has to
@@ -300,7 +352,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
         id: 'candlestick',
         label: 'Candlestick',
         icon: 'chartsCandlestick',
-        features: ['zoom', 'navigator', 'rangeButtons', 'toolbar', 'statusBar', 'volume'],
+        features: ['seriesStrokes', 'zoom', 'navigator', 'rangeButtons', 'toolbar', 'statusBar', 'volume'],
         preset: 'price-volume',
         /**
          * The one preview built for the chart's own UI rather than for its
@@ -322,6 +374,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
             volume: isFeatureActive(features, 'volume'),
             zoom: isFeatureActive(features, 'zoom'),
         }),
+        themeOverrides: (features) => (isFeatureActive(features, 'seriesStrokes') ? undefined : CANDLE_WITHOUT_STROKE),
         // Built as a plain chart rather than through the preset: a thumbnail
         // wants the candles and nothing else, and the preset's job is the
         // chrome that has no room on a card.
