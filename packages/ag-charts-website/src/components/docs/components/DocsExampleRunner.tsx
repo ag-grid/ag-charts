@@ -13,9 +13,9 @@ import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 import {
     getExampleCodeSandboxUrl,
     getExampleContentsUrl,
+    getExampleLinkUrl,
     getExamplePlunkrUrl,
     getExampleRunnerExampleUrl,
-    getExampleLinkUrl,
 } from '../utils/urlPaths';
 
 interface Props {
