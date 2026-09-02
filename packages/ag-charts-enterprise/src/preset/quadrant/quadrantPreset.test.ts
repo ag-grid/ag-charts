@@ -467,8 +467,8 @@ describe('Quadrant Preset theme isolation', () => {
 describe('Quadrant Preset label enabled default', () => {
     const resolveLabelEnabled = (options: Partial<AgQuadrantChartOptions>) => {
         const { processedOptions } = new _ModuleSupport.ChartOptions(
-            { data: NUMERIC.data, xKey: 'x', yKey: 'y', ...options } as unknown as AgChartOptions,
-            {} as AgChartOptions,
+            { data: NUMERIC.data, xKey: 'x', yKey: 'y', ...options },
+            {},
             {},
             {},
             { presetType: 'quadrant' }
@@ -476,7 +476,7 @@ describe('Quadrant Preset label enabled default', () => {
         return processedOptions.series[0].label.enabled;
     };
 
-    it.each([
+    const cases: [string, Partial<AgQuadrantChartOptions>, boolean][] = [
         ['AC1: labelKey given', { labelKey: 'label' }, true],
         ['AC1: labelKey given alongside label styling', { labelKey: 'label', label: { color: 'purple' } }, true],
         ['AC2: no labelKey', {}, false],
@@ -484,7 +484,9 @@ describe('Quadrant Preset label enabled default', () => {
         ['AC2: empty labelKey', { labelKey: '' }, false],
         ['AC3: no labelKey but label.enabled', { label: { enabled: true } }, true],
         ['AC3: labelKey but label.enabled false', { labelKey: 'label', label: { enabled: false } }, false],
-    ] as [string, Partial<AgQuadrantChartOptions>, boolean][])('%s', (_name, options, expected) => {
+    ];
+
+    it.each(cases)('%s', (_name, options, expected) => {
         expect(resolveLabelEnabled(options)).toBe(expected);
     });
 });
