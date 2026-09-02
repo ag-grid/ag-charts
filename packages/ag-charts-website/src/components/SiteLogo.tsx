@@ -1,6 +1,6 @@
 import siteHeaderStyles from '@ag-website-shared/components/site-header/SiteHeader.module.scss';
 import LogoType from '@ag-website-shared/images/inline-svgs/ag-charts-logotype.svg?react';
-import { addTrailingSlash } from '@ag-website-shared/utils/addTrailingSlash';
+import { addTrailingSlashToPath } from '@ag-website-shared/utils/addTrailingSlashToPath';
 import LogoMark from '@components/logo/LogoMark';
 import { SITE_BASE_URL } from '@constants';
 import { type FunctionComponent, useState } from 'react';
@@ -10,7 +10,7 @@ export const SiteLogo: FunctionComponent = () => {
 
     return (
         <a
-            href={addTrailingSlash(SITE_BASE_URL)}
+            href={addTrailingSlashToPath(SITE_BASE_URL)}
             aria-label="Home"
             className={siteHeaderStyles.headerLogo}
             onMouseEnter={() => {
