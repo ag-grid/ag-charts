@@ -2451,24 +2451,4 @@ ignore:
         reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
         expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
-  # FALSE POSITIVE - requires a human decision before this expiry, see reason below.
-  # `ag-charts-test` is our own private, never-published workspace package
-  # (libraries/ag-charts-test, "private": true). Snyk matches it by NAME against a
-  # malicious `ag-charts-test` package that a third party published to npm
-  # impersonating AG Charts; npm removed it and left a 0.0.1-security placeholder.
-  # We never install that package - the name resolves to the local workspace - so
-  # there is nothing to upgrade and no fix version exists.
-  # PERMANENT FIX (needs a human): rename the internal package to a scoped name
-  # (e.g. @ag-charts/test) so it cannot collide with, or be confused for, a public
-  # npm name. That also closes the dependency-confusion vector for good.
-  SNYK-JS-AGCHARTSTEST-17950302:
-    - '*':
-        reason: >-
-            False positive - name collision with a malicious npm package. This is our own
-            private workspace package (libraries/ag-charts-test, private: true), it is never
-            published and never fetched from npm, and it is dev/test-only tooling that is not
-            shipped in AG Charts runtime bundles. No fix version exists because there is
-            nothing to upgrade. Expires deliberately so the rename decision is revisited.
-        expires: '2027-03-02T00:00:00.000Z'
-        created: '2026-09-02T00:00:00.000Z'
 patch: {}

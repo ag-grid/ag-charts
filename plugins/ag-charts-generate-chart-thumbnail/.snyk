@@ -1,6 +1,30 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  # FALSE POSITIVE - a working entry must live in THIS file, not the repo root.
+  # `snyk test --yarn-workspaces` reads each workspace project's own .snyk, so a
+  # root-level ignore never reaches this project. The path is `*` on purpose: the
+  # advisory's vulnerable range is `*`, the finding is the package NAME itself, and
+  # a versioned path goes stale on every beta bump - which is exactly how the
+  # previous `ag-charts-test@14.0.0-beta.20260712` entry silently stopped matching.
+  #
+  # `ag-charts-test` is our own private, never-published workspace package
+  # (libraries/ag-charts-test, "private": true). Snyk matches it by name against a
+  # malicious `ag-charts-test` published to npm to impersonate AG Charts: version
+  # 99.9.1 on 2026-07-07 (an absurdly high version, the dependency-confusion
+  # signature), which npm removed on 2026-07-10, leaving a 0.0.1-security
+  # placeholder that also blocks re-registration. We never fetch it - the name
+  # resolves to the local workspace and our pin is exact - so there is nothing to
+  # upgrade and no fix version exists.
+  SNYK-JS-AGCHARTSTEST-17950302:
+    - '*':
+        reason: >-
+            False positive - name collision with a malicious npm package. This is our own
+            private workspace package (libraries/ag-charts-test, private: true), never
+            published and never fetched from npm, and it is dev/test-only tooling absent
+            from AG Charts runtime bundles. No fix version exists - nothing to upgrade.
+        expires: '2027-03-02T00:00:00.000Z'
+        created: '2026-09-02T00:00:00.000Z'
   SNYK-JS-BRACEEXPANSION-18313044:
     - glob@8.0.3 > minimatch@5.1.6 > brace-expansion@2.0.2:
         reason: >-
@@ -17,11 +41,6 @@ ignore:
             Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-07-27T09:08:46.605Z
-  SNYK-JS-AGCHARTSTEST-17950302:
-    - ag-charts-test@14.0.0-beta.20260712:
-        reason: 'The package with the issue is not the one we consume, which is an internal only one. The malicious package has been pulled from npm'
-        expires: 2027-03-02T00:00:00.000Z
-        created: 2026-07-15T09:49:06.485Z
   SNYK-JS-WS-17344547:
     - jsdom@26.1.0 > ws@8.18.2:
         reason: Used in build & dev - not included in final production build
