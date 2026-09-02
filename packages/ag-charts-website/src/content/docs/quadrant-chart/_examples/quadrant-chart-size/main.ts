@@ -14,6 +14,7 @@ const options: AgQuadrantChartOptions = {
     yKey: 'marginChange',
     yName: 'Margin change',
     sizeKey: 'revenue',
+    sizeName: 'Revenue',
     minSize: 8,
     maxSize: 40,
     labelKey: 'category',

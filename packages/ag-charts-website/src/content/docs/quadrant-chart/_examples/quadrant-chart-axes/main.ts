@@ -8,7 +8,7 @@ const options: AgQuadrantChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: { text: 'Roadmap Prioritisation' },
-    subtitle: { text: 'Expected impact against implementation effort' },
+    subtitle: { text: 'Effort against impact, with axis ticks shown' },
     xKey: 'effort',
     xName: 'Effort',
     yKey: 'impact',
@@ -16,9 +16,19 @@ const options: AgQuadrantChartOptions = {
     labelKey: 'initiative',
     labelName: 'Initiative',
     label: { enabled: true },
-    xAxis: { min: 0, max: 10, title: { text: 'Effort' } },
-    yAxis: { min: 0, max: 10, title: { text: 'Impact' } },
     pivot: { x: 4, y: 6 },
+    xAxis: {
+        min: 0,
+        max: 10,
+        title: { text: 'Effort' },
+        tick: { enabled: true },
+    },
+    yAxis: {
+        min: 0,
+        max: 10,
+        title: { text: 'Impact' },
+        tick: { enabled: true },
+    },
 };
 
 AgCharts.createQuadrantChart(options);

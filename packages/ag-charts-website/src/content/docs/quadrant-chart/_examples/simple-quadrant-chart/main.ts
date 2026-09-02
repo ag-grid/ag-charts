@@ -15,7 +15,6 @@ const options: AgQuadrantChartOptions = {
     yName: 'Margin change',
     labelKey: 'category',
     labelName: 'Category',
-    label: { enabled: true },
     xAxis: { title: { text: 'Revenue growth (%)' } },
     yAxis: { title: { text: 'Margin change (% points)' } },
 };

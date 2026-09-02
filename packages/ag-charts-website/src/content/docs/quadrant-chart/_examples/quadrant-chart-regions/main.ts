@@ -14,7 +14,6 @@ const options: AgQuadrantChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: { text: 'Product Portfolio Review' },
-    subtitle: { text: 'Year-on-year revenue growth against change in gross margin' },
     xKey: 'revenueGrowth',
     xName: 'Revenue growth',
     yKey: 'marginChange',
@@ -23,8 +22,9 @@ const options: AgQuadrantChartOptions = {
     labelName: 'Category',
     xAxis: { title: { text: 'Revenue growth (%)' } },
     yAxis: { title: { text: 'Margin change (% points)' } },
+    padding: { top: 30, right: 30, bottom: 10, left: 10 },
     regions: {
-        label: { position: 'inside-outer-outer', spacing: 10 },
+        label: { position: 'inside-outer-outer' },
         topLeft: { label: { text: 'Shrinking, Wider Margins' } },
         topRight: { label: { text: 'Growing, Wider Margins' } },
         bottomLeft: { label: { text: 'Shrinking, Thinner Margins' } },
