@@ -177,6 +177,28 @@ export function internalParser(js, html, exampleSettings: ExampleSettings, dirPa
         },
     });
 
+    // `AgCharts.create(options, { modules })` - the per-chart modules are re-emitted by each framework.
+    tsCollectors.push({
+        matches: (node) => tsNodeIsAgChartsCreateCall(node),
+        apply: (bindings, node: ts.CallExpression) => {
+            const [optionsArg, paramsArg] = node.arguments;
+            if (paramsArg == null) return;
+
+            if (!ts.isIdentifier(optionsArg) || !ts.isObjectLiteralExpression(paramsArg)) {
+                throw new Error(
+                    `AgCharts.create params must be an object literal following an options variable at "${dirPath}"`
+                );
+            }
+
+            for (const param of paramsArg.properties) {
+                if (!ts.isPropertyAssignment(param) || param.name.getText() !== 'modules') {
+                    throw new Error(`Unsupported AgCharts.create param "${param.name?.getText()}" at "${dirPath}"`);
+                }
+                bindings.chartModules[optionsArg.text] = tsGenerate(param.initializer, tsTree);
+            }
+        },
+    });
+
     // anything vars is considered an "global" var
     tsCollectors.push({
         matches: (node) => tsNodeIsTopLevelVariable(node, registered),
@@ -268,6 +290,7 @@ export function internalParser(js, html, exampleSettings: ExampleSettings, dirPa
         {
             properties: [],
             chartProperties: {},
+            chartModules: {},
             externalEventHandlers: [],
             instanceMethods: [],
             globals: [],
@@ -303,3 +326,13 @@ export function internalParser(js, html, exampleSettings: ExampleSettings, dirPa
 }
 
 export default parser;
+
+function tsNodeIsAgChartsCreateCall(node: ts.Node): node is ts.CallExpression {
+    return (
+        ts.isCallExpression(node) &&
+        ts.isPropertyAccessExpression(node.expression) &&
+        ts.isIdentifier(node.expression.expression) &&
+        node.expression.expression.text === 'AgCharts' &&
+        node.expression.name.text.startsWith('create')
+    );
+}

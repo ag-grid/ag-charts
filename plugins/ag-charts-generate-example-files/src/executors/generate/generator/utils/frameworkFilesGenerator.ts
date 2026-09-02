@@ -145,7 +145,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         const chartImports = typedBindings.imports
             .filter((i) => i.module.includes('ag-charts-community') || i.module.includes('ag-charts-enterprise'))
             .flatMap((imp) => imp.imports)
-            .filter((imp) => chartsExports.has(imp));
+            .filter((imp) => chartsExports.has(imp) || imp.endsWith('Module'));
         if (chartImports.length > 0) {
             mainJs = `const { ${chartImports.join(', ')} } = agCharts;` + '\n' + mainJs;
         }
