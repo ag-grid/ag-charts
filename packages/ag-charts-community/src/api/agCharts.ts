@@ -93,6 +93,14 @@ function takeOptionsArgumentIssue<O>(options: O, methodName: string): { options:
     return { options: rest as O, issue: issue as string };
 }
 
+// A chart is licensed by the modules it can use, not by which package happens to be loaded on the page.
+function usesEnterpriseModules(moduleScope: ModuleScope): boolean {
+    for (const module of moduleScope.listModules()) {
+        if (module.enterprise) return true;
+    }
+    return false;
+}
+
 // Public module types describe only the identifying fields; the runtime objects are full definitions.
 function instanceModules(params?: AgChartParams): Array<ModuleDefinition | ModuleDefinition[]> | undefined {
     return params?.modules as Array<ModuleDefinition | ModuleDefinition[]> | undefined;
@@ -107,8 +115,8 @@ export abstract class AgCharts {
     private static licenseManager?: LicenseManager;
     private static licenseChecked = false;
 
-    private static licenseCheck(options: AgChartOptions): LicenseManager | undefined {
-        if ((options as { withinStudio?: boolean }).withinStudio) {
+    private static licenseCheck(options: AgChartOptions, moduleScope: ModuleScope): LicenseManager | undefined {
+        if ((options as { withinStudio?: boolean }).withinStudio || !usesEnterpriseModules(moduleScope)) {
             return undefined;
         }
         let licenseManager = this.licenseManager;
@@ -171,7 +179,8 @@ export abstract class AgCharts {
         return debug.group('AgCharts.create()', () => {
             // deepClone should clone EVERYTHING here, so we can detect mutations in development mode.
             userOptions = Debug.inDevelopmentMode(() => deepFreeze(deepClone(userOptions))) ?? userOptions;
-            const licenseManager = this.licenseCheck(userOptions);
+            const moduleScope = ModuleRegistry.resolveModuleScope(optionsMetadata.modules);
+            const licenseManager = this.licenseCheck(userOptions, moduleScope);
             const chart = AgChartsInternal.createOrUpdate({
                 userOptions,
                 licenseManager,
@@ -538,7 +547,7 @@ class AgChartsInternal {
 
     private static readonly detachAndClear = (chart: Chart) => chart.detachAndClear();
     private static readonly destroy = (chart: Chart) => chart.destroy();
-    // A chart's context binds its module scope at construction, so pooled charts are keyed by scope too.
+    // A chart's context binds its module scope at construction, so pooled charts are keyed by module set too.
     private static getPool(optionMetadata: ChartInternalOptionMetadata, moduleScope: ModuleScope) {
         if (optionMetadata.pool !== true) return;
 

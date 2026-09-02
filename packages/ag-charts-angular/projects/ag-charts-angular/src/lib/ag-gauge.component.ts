@@ -21,6 +21,7 @@ export class AgGauge extends AgChartsBase<AgGaugeOptions> {
     @Input()
     public options: AgGaugeOptions = { type: 'radial-gauge', value: 0 };
 
+    /** Modules registered for this chart only, in addition to any registered globally. Read when the chart is created. */
     @Input()
     public modules: AgChartModule[] | undefined;
 

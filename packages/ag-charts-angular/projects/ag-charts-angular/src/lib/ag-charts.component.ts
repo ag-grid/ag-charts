@@ -21,6 +21,7 @@ export class AgCharts extends AgChartsBase<AgChartOptions> {
     @Input()
     public options: AgChartOptions = {};
 
+    /** Modules registered for this chart only, in addition to any registered globally. Read when the chart is created. */
     @Input()
     public modules: AgChartModule[] | undefined;
 

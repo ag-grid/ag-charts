@@ -1,7 +1,7 @@
 import type { Mock } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { type ModuleDefinition, ModuleRegistry, ModuleType } from 'ag-charts-core';
+import { type ModuleDefinition, ModuleRegistry, ModuleType, enterpriseRegistry } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
@@ -155,6 +155,52 @@ describe('instance modules', () => {
         afterEach(() => {
             chart?.destroy();
             chart = undefined;
+        });
+
+        describe('licence check', () => {
+            const enterprisePlugin: ModuleDefinition = {
+                type: ModuleType.Plugin,
+                name: 'enterprise-plugin',
+                version: LineSeriesModule.version,
+                enterprise: true,
+                create: () => ({}),
+            };
+            const createLicenseManager = vi.fn(() => ({
+                validateLicense: () => {},
+                isDisplayWatermark: () => true,
+                getWatermarkMessage: () => 'watermark',
+                getWatermarkForegroundConfig: () => undefined,
+                getWatermarkForegroundConfigForBrowser: () => undefined,
+                getLicenseDetails: () => ({}),
+            }));
+            const injectWatermark = vi.fn();
+
+            beforeEach(() => {
+                enterpriseRegistry.licenseManager = createLicenseManager;
+                enterpriseRegistry.injectWatermark = injectWatermark;
+            });
+
+            afterEach(() => {
+                delete enterpriseRegistry.licenseManager;
+                delete enterpriseRegistry.injectWatermark;
+            });
+
+            it('licenses a chart by the modules in its own scope', async () => {
+                ModuleRegistry.registerModules(LINE_MODULES);
+
+                const enterpriseChart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }), {
+                    modules: [enterprisePlugin],
+                });
+                await waitForChartStability(enterpriseChart);
+                expect(createLicenseManager).toHaveBeenCalledTimes(1);
+                expect(injectWatermark).toHaveBeenCalledTimes(1);
+                enterpriseChart.destroy();
+
+                chart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }));
+                await waitForChartStability(chart);
+                expect(injectWatermark).toHaveBeenCalledTimes(1);
+                expect(chart.isModuleRegistered('enterprise-plugin')).toBe(false);
+            });
         });
 
         it('throws when neither the global registry nor the params hold any module', () => {

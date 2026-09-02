@@ -92,6 +92,7 @@ function ChartWithConstructor<Props extends BaseChartProps>(
 
 export interface AgChartProps {
     options: AgChartOptions;
+    /** Modules registered for this chart only, in addition to any registered globally. Read when the chart is created. */
     modules?: AgChartModule[];
     style?: CSSProperties;
     className?: string;
@@ -104,6 +105,7 @@ export const AgCharts = /*#__PURE__*/ ChartWithConstructor<AgChartProps>(
 
 export interface AgFinancialChartProps {
     options: AgFinancialChartOptions;
+    /** Modules registered for this chart only, in addition to any registered globally. Read when the chart is created. */
     modules?: AgChartModule[];
     style?: CSSProperties;
     className?: string;
@@ -116,6 +118,7 @@ export const AgFinancialCharts = /*#__PURE__*/ ChartWithConstructor<AgFinancialC
 
 export interface AgGaugeProps {
     options: AgGaugeOptions;
+    /** Modules registered for this chart only, in addition to any registered globally. Read when the chart is created. */
     modules?: AgChartModule[];
     style?: CSSProperties;
     className?: string;
@@ -128,6 +131,7 @@ export const AgGauge = /*#__PURE__*/ ChartWithConstructor<AgGaugeProps>(
 
 export interface AgQuadrantChartProps {
     options: AgQuadrantChartOptions;
+    /** Modules registered for this chart only, in addition to any registered globally. Read when the chart is created. */
     modules?: AgChartModule[];
     style?: CSSProperties;
     className?: string;

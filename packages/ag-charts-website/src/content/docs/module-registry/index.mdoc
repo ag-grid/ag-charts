@@ -97,6 +97,8 @@ Modules passed to a chart are added to any registered globally, so a common base
 
 `AgCharts.createFinancialChart`, `AgCharts.createGauge` and `AgCharts.createQuadrantChart` accept the same second argument.
 
+The modules are read once, when the chart is created. Changing them afterwards, including through a framework property, has no effect on an existing chart.
+
 {% if isFramework("react") %}
 Pass the modules through the `modules` prop:
 
@@ -125,6 +127,8 @@ Pass the modules through the `modules` prop:
 {% /if %}
 
 Use `chart.isModuleRegistered('LineSeriesModule')` to check whether a module is available to a chart, whether it was registered globally or passed to the chart.
+
+A chart is licensed by the modules available to it. A chart whose modules, global and per chart, are all from AG Charts Community is not licence checked and shows no watermark, even when AG Charts Enterprise is loaded on the same page.
 
 ## Bundles
 
