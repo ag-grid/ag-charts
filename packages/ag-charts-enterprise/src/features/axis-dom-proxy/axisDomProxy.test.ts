@@ -4,7 +4,14 @@
 // explicitly set the original padding in the chart options where applicable.
 import { vi } from 'vitest';
 
-import { Chart, clickAction, setupMockCanvas, waitForChartStability } from 'ag-charts-community-test';
+import type { AgCartesianChartOptions } from 'ag-charts-community';
+import {
+    Chart,
+    clickAction,
+    doubleClickAction,
+    setupMockCanvas,
+    waitForChartStability,
+} from 'ag-charts-community-test';
 import { closeToBigInt, closeToDate, setupMockConsole } from 'ag-charts-test';
 
 import { createEnterpriseChart } from '../../test/utils';
@@ -341,12 +348,13 @@ describe('AxisDOMProxy', () => {
         // The end labels '0' and '1000' hide themselves to avoid overflowing, but their ticks and label
         // data still exist, so a click at either end reports the hidden label rather than skipping it.
         test('click - value/index match', async () => {
-            await clickAction(800, 560)(chart); // far right, where '1000' hid itself
+            // 799, not 800: the axis spans x 25..800 of an 800px canvas, so 800 is off the element.
+            await clickAction(799, 560)(chart); // far right, where '1000' hid itself
             await clickAction(25, 560)(chart); // far left, where '0' hid itself
             await waitForChartStability(chart);
 
             expect(click.mock.calls).toMatchObject([
-                [expect.objectContaining({ value: 1000, index: 5 })],
+                [expect.objectContaining({ value: expect.closeTo(998.71), index: 5 })],
                 [expect.objectContaining({ value: 0, index: 0 })],
             ]);
         });
@@ -839,6 +847,87 @@ describe('AxisDOMProxy', () => {
                 [expect.objectContaining({ value: 0, index: 0 })],
                 [expect.objectContaining({ value: 1, index: 2 })],
             ]);
+        });
+    });
+
+    // Co-ordinates sit inside the measured proxy bounds: x axis {x:48,y:555,w:732,h:25}, y {x:20,y:13,w:28,h:549}.
+    describe('chart-level click fallback', () => {
+        const X_AXIS_AREA: [number, number] = [400, 565];
+        const Y_AXIS_AREA: [number, number] = [30, 300];
+        let chartClick: ReturnType<typeof vi.fn>;
+        let chartDoubleClick: ReturnType<typeof vi.fn>;
+
+        type ChartOverrides = Pick<AgCartesianChartOptions, 'axes' | 'zoom'>;
+
+        async function createChart(overrides: ChartOverrides = {}) {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 'A', y: 1 },
+                    { x: 'B', y: 2 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                listeners: { click: chartClick, doubleClick: chartDoubleClick },
+                ...overrides,
+            };
+            return createEnterpriseChart(options);
+        }
+
+        beforeEach(() => {
+            chartClick = vi.fn();
+            chartDoubleClick = vi.fn();
+        });
+
+        test('fires for a click on either axis area', async () => {
+            chart = await createChart();
+
+            await clickAction(...X_AXIS_AREA)(chart);
+            await clickAction(...Y_AXIS_AREA)(chart);
+            await waitForChartStability(chart);
+
+            expect(chartClick.mock.calls).toMatchObject([
+                [expect.objectContaining({ type: 'click' })],
+                [expect.objectContaining({ type: 'click' })],
+            ]);
+        });
+
+        test('fires doubleClick for a double-click on the axis area', async () => {
+            chart = await createChart();
+
+            await doubleClickAction(...X_AXIS_AREA)(chart);
+            await waitForChartStability(chart);
+
+            expect(chartDoubleClick.mock.calls).toMatchObject([[expect.objectContaining({ type: 'doubleClick' })]]);
+        });
+
+        test('an axis listener consumes the click, and only for its own axis', async () => {
+            chart = await createChart({ axes: { x: { listeners: { click } }, y: {} } });
+
+            await clickAction(...X_AXIS_AREA)(chart);
+            await waitForChartStability(chart);
+
+            expect(click).toHaveBeenCalledTimes(1);
+            expect(chartClick).not.toHaveBeenCalled();
+
+            // The y axis has no listener of its own, so it still falls back to the chart-level one.
+            await clickAction(...Y_AXIS_AREA)(chart);
+            await waitForChartStability(chart);
+
+            expect(click).toHaveBeenCalledTimes(1);
+            expect(chartClick).toHaveBeenCalledTimes(1);
+        });
+
+        test('zoom owns the axis, so nothing is handed back to the chart', async () => {
+            chart = await createChart({ zoom: { enabled: true, enableDoubleClickToReset: true } });
+
+            await doubleClickAction(...X_AXIS_AREA)(chart);
+            await waitForChartStability(chart);
+
+            // A proxy is present, so nothing fired because it was suppressed rather than because the
+            // click missed the axis. Selected by property: jsdom does not reflect `role` to the attribute.
+            const proxies = Array.from(document.querySelectorAll('.ag-charts-proxy-elem'));
+            expect(proxies.some((el) => (el as HTMLElement).role === 'region')).toBe(true);
+            expect(chartClick).not.toHaveBeenCalled();
+            expect(chartDoubleClick).not.toHaveBeenCalled();
         });
     });
 });

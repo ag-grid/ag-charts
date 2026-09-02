@@ -323,6 +323,16 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         if (!div) return;
 
         const axisCtx = this.ctx.axisManager.getAxisIdContext(axisId);
+        // AG-18378: An axis proxy covers the axis area even when only the context menu needs it, so a click no axis
+        // listener wants is handed back to the chart-level listener - unless zoom owns the axis interaction.
+        if (axisCtx != null && !hasAxisClickListener(this.ctx.chartService, axisCtx)) {
+            if (!this.enabled.get('zoom')) {
+                const type = widgetEvent.type === 'dblclick' ? 'doubleClick' : 'click';
+                this.ctx.chartService.callListener({ type, event: widgetEvent.sourceEvent, coordinates: undefined });
+            }
+            return;
+        }
+
         const pick = axisCtx?.pickValue(this.toCanvasPoint(div, widgetEvent));
         if (!axisCtx || !pick) return;
 
@@ -445,7 +455,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
             this.ctx.eventsHub.emit('axis-dom-proxy:drag-end', { axisId, direction, event });
         });
         dragInterpretation.on('dblclick', (event) => {
-            if (this.hasClickListeners()) this.dispatchAxisClick(axisId, event);
+            this.dispatchAxisClick(axisId, event);
             if (!this.isEnabled() || !this.isEnabledDoubleClick()) return;
             this.ctx.eventsHub.emit('axis-dom-proxy:dblclick', { axisId, direction, event });
         });
@@ -464,7 +474,6 @@ export class AxisDOMProxy extends AbstractModuleInstance {
             this.ctx.eventsHub.emit('axis-dom-proxy:wheel', { axisId, direction, event });
         });
         dragInterpretation.on('click', (event) => {
-            if (!this.hasClickListeners()) return;
             this.dispatchAxisClick(axisId, event);
         });
         div.addListener('contextmenu', (event) => {
