@@ -77,19 +77,19 @@ export interface AgQuadrantPreset<TDatum, TContext>
 
 export interface AgQuadrantAxisPlacementOptions {
     /**
-     *  the axis title is placed at the crossing point, or at the axis' `position` edge.
+     *  Whether the axis title is placed at the crossing point, or at the axis' `position` edge.
      *
      * Default: `'edge'`
      */
     title?: AgCartesianAxisCrossAtPlacement;
     /**
-     *  the axis labels are placed at the crossing point, or at the axis' `position` edge.
+     *  Whether the axis labels are placed at the crossing point, or at the axis' `position` edge.
      *
      * Default: `'edge'`
      */
     label?: AgCartesianAxisCrossAtPlacement;
     /**
-     *  the crosshair label is placed at the crossing point, or at the axis' `position` edge.
+     *  Whether the crosshair label is placed at the crossing point, or at the axis' `position` edge.
      *
      * Default: `'edge'`
      */
