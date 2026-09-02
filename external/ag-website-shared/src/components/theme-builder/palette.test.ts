@@ -6,6 +6,7 @@ import {
     deriveStroke,
     fromSeriesColors,
     paletteIsEmpty,
+    strokesAreEnabled,
     toSeriesColors,
     toThemePalette,
     withAccentColors,
@@ -15,6 +16,7 @@ import {
     withDerivedStroke,
     withFill,
     withStroke,
+    withStrokesEnabled,
 } from './palette';
 
 const palette: Palette = {
@@ -174,6 +176,32 @@ describe('toThemePalette', () => {
 
     it('leaves out an accent that was never set', () => {
         expect(toThemePalette({ fills: [], strokes: [] })).toEqual({ fills: [], strokes: [] });
+    });
+
+    it('matches every stroke to its fill once strokes are off', () => {
+        // The only way to say "no outline" in a palette: dropping `strokes`
+        // would inherit the base theme's, which is an outline the user has
+        // switched off in a colour they never chose.
+        expect(toThemePalette(withStrokesEnabled(palette, false))).toEqual({
+            fills: ['#aaa', '#bbb'],
+            strokes: ['#aaa', '#bbb'],
+            up: { fill: '#0f0', stroke: '#0f0' },
+        });
+    });
+});
+
+describe('strokes switched off', () => {
+    it('is on for a palette that has never said', () => {
+        expect(strokesAreEnabled(palette)).toBe(true);
+        expect(strokesAreEnabled(withStrokesEnabled(palette, false))).toBe(false);
+    });
+
+    it('keeps the strokes it was given, to hand back when switched on again', () => {
+        // Clearing them would make the checkbox destructive, and there is no
+        // undo in the panel.
+        const off = withStrokesEnabled(palette, false);
+        expect(off.strokes).toEqual(palette.strokes);
+        expect(toThemePalette(withStrokesEnabled(off, true))).toEqual(toThemePalette(palette));
     });
 });
 

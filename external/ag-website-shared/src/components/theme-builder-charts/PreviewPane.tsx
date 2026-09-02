@@ -1,4 +1,5 @@
 import styled from '@emotion/styled';
+import { useMemo } from 'react';
 
 import { ChartPreview } from './ChartPreview';
 import { PreviewOptions } from './PreviewOptions';
@@ -11,6 +12,13 @@ import {
 } from './chartTypes';
 import type { ChartsTheme } from './chartsThemeOutput';
 
+interface Props {
+    pane: PreviewPaneId;
+    theme: ChartsTheme;
+    /** Whether the palette has strokes for an outline to be drawn in. */
+    strokesEnabled: boolean;
+}
+
 /**
  * One of the two preview charts, with the controls deciding what it shows.
  *
@@ -19,10 +27,25 @@ import type { ChartsTheme } from './chartsThemeOutput';
  * colours while standing on whatever background the preset chose, so a light
  * theme in dark mode put dark pills on a white surface.
  */
-export const PreviewPane = ({ pane, theme }: { pane: PreviewPaneId; theme: ChartsTheme }) => {
+export const PreviewPane = ({ pane, theme, strokesEnabled }: Props) => {
     const [chartType, setChartType] = usePreviewChartType(pane);
     const [seriesCount, setSeriesCount] = usePreviewSeriesCount(pane);
     const [features, setFeatures] = usePreviewFeatures(pane);
+
+    // With the palette's strokes off, an outline would be drawn in the fill's
+    // own colour - so the feature is neither offered nor applied, rather than
+    // left as a checkbox that changes nothing. What the pane had chosen stays
+    // in storage and comes back with the strokes.
+    const availableFeatures = strokesEnabled
+        ? chartType.features
+        : chartType.features.filter((id) => id !== 'seriesStrokes');
+    // Memoised because the chart rebuilds its options whenever these change by
+    // identity, and a fresh object every render would restart the preview's
+    // animation on any parent render.
+    const activeFeatures = useMemo(
+        () => (strokesEnabled ? features : { ...features, seriesStrokes: false }),
+        [strokesEnabled, features]
+    );
 
     return (
         <Pane>
@@ -34,6 +57,7 @@ export const PreviewPane = ({ pane, theme }: { pane: PreviewPaneId; theme: Chart
                     seriesCount={seriesCount}
                     onSeriesCountChange={setSeriesCount}
                     features={features}
+                    availableFeatures={availableFeatures}
                     onFeaturesChange={setFeatures}
                 />
             </Toolbar>
@@ -49,7 +73,7 @@ export const PreviewPane = ({ pane, theme }: { pane: PreviewPaneId; theme: Chart
                     theme={theme}
                     chartType={chartType}
                     seriesCount={seriesCount}
-                    features={features}
+                    features={activeFeatures}
                 />
             </Chart>
         </Pane>
