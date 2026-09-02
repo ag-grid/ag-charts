@@ -77,19 +77,19 @@ export interface AgQuadrantPreset<TDatum, TContext>
 
 export interface AgQuadrantAxisPlacementOptions {
     /**
-     * Whether the axis title is placed at the crossing point, or at the axis' `position` edge.
+     *  the axis title is placed at the crossing point, or at the axis' `position` edge.
      *
      * Default: `'edge'`
      */
     title?: AgCartesianAxisCrossAtPlacement;
     /**
-     * Whether the axis labels are placed at the crossing point, or at the axis' `position` edge.
+     *  the axis labels are placed at the crossing point, or at the axis' `position` edge.
      *
      * Default: `'edge'`
      */
     label?: AgCartesianAxisCrossAtPlacement;
     /**
-     * Whether the crosshair label is placed at the crossing point, or at the axis' `position` edge.
+     *  the crosshair label is placed at the crossing point, or at the axis' `position` edge.
      *
      * Default: `'edge'`
      */
@@ -199,10 +199,7 @@ export interface AgQuadrantLabelOptions<TDatum, TContext> extends Omit<
     AgScatterSeriesLabel<TDatum, TContext>,
     'formatter' | 'itemStyler'
 > {
-    /**
-     * Whether to show the labels. Defaults to `true` when either `labelKey` or a `label` object is set, and to
-     * `false` otherwise.
-     */
+    /** Whether to show the labels. Defaults to `true` when `labelKey` is set. */
     enabled?: boolean;
     /** A custom formatting function used to convert data values into text for display by labels. */
     formatter?: RichFormatter<AgChartLabelFormatterParams<TDatum, TContext> & AgQuadrantLabelFormatterParams<TDatum>>;
