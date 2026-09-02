@@ -20,8 +20,8 @@ const SPEED_OPTIONS = [
     { value: '250', label: '4×' },
 ];
 
-// Shared default visible window (minutes) that FinancialChart, PeerPerformance and the peer heatmap
-// (one bucket per minute) all align to; driven by the title-bar range buttons.
+// Shared default visible range (minutes), driven by the title-bar range buttons: zoom state for the
+// financial chart, a data window for PeerPerformance and the peer heatmap (one bucket per minute).
 const SHARED_WINDOW_MINUTES = 120;
 
 // Range-button choices for the shared time window, in trailing minutes.
@@ -44,13 +44,14 @@ export const FinancialApp = () => {
         peerTick,
         ticker,
         selectTicker,
+        setRetainFrom,
         running,
         setRunning,
         speedMs,
         setSpeedMs,
     } = useStreamingMarket();
 
-    // Shared trailing window (minutes) driven by the title-bar range buttons.
+    // Shared trailing range (minutes) driven by the title-bar range buttons.
     const [rangeMinutes, setRangeMinutes] = useState(SHARED_WINDOW_MINUTES);
     // Off-canvas watchlist drawer; only reachable on narrow viewports.
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -121,7 +122,12 @@ export const FinancialApp = () => {
                     </div>
                     <div className="fin-detail-card fin-chart-card">
                         <div className="fin-chart-body">
-                            <FinancialChart bars={bars} windowMinutes={rangeMinutes} ticker={ticker} />
+                            <FinancialChart
+                                bars={bars}
+                                rangeMinutes={rangeMinutes}
+                                ticker={ticker}
+                                onRetainFrom={setRetainFrom}
+                            />
                         </div>
                     </div>
 
