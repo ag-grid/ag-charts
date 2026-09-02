@@ -604,7 +604,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             }),
             ctx.chartState.observe((get) => {
                 this.throwOnLevel = get('options', 'validations')?.throwOn ?? 'none';
-                this.setIssueListener(get('options', 'validations')?.onDiagnosticRaised);
+                this.setIssueListener(get('options', 'validations')?.issueRaised);
             }),
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
                 e.layoutBox.shrink(ctx.chartState.getValue('options', 'padding'));
@@ -1788,9 +1788,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
      * previous tenant's listener in place would hand it this chart's issues. This can also run before
      * the option's validator has, hence the coercion rather than trusting the value.
      */
-    private setIssueListener(onDiagnosticRaised: unknown) {
+    private setIssueListener(issueRaised: unknown) {
         this.validationCollector.setIssueListener(
-            typeof onDiagnosticRaised === 'function' ? (onDiagnosticRaised as ValidationIssueListener) : undefined,
+            typeof issueRaised === 'function' ? (issueRaised as ValidationIssueListener) : undefined,
             this.ctx.logger
         );
     }
@@ -1798,7 +1798,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     applyOptions(newChartOptions: ChartOptions) {
         // Registered from the same options object in the same statement pair, so this pass's issues
         // reach the listener this pass declared without depending on when chartState observers flush.
-        this.setIssueListener(newChartOptions.processedOptions.validations?.onDiagnosticRaised);
+        this.setIssueListener(newChartOptions.processedOptions.validations?.issueRaised);
         this.validationCollector.setIssues(newChartOptions.validationIssues);
 
         if (newChartOptions.seriesWithUserVisibility) {

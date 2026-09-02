@@ -60,7 +60,7 @@ export const commonChartOptions = {
         overlayLevel: validationLevel,
         consoleLogLevel: validationLevel,
         throwOn: validationLevel,
-        onDiagnosticRaised: callback,
+        issueRaised: callback,
     },
     container: htmlElement,
     context: () => true,

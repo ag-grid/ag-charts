@@ -418,5 +418,5 @@ export interface AgChartValidationsOptions {
      *
      * Default: `undefined`
      */
-    onDiagnosticRaised?: (event: AgChartValidationIssueEvent) => void;
+    issueRaised?: (event: AgChartValidationIssueEvent) => void;
 }

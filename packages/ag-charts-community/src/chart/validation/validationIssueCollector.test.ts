@@ -405,7 +405,7 @@ describe('ValidationIssueCollector - issue listener', () => {
         collector.setIssues([errorIssue]);
 
         expect(loggerError).toHaveBeenCalledTimes(1);
-        expect(loggerError).toHaveBeenCalledWith('validations.onDiagnosticRaised threw an error', expect.any(Error));
+        expect(loggerError).toHaveBeenCalledWith('validations.issueRaised threw an error', expect.any(Error));
     });
 
     it('a re-entrant listener does not recurse, and its issues are delivered after it returns', () => {
