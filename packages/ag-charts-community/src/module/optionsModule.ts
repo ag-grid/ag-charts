@@ -910,7 +910,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         try {
             for (const issue of issues) {
                 try {
-                    listener({ level: issue.severity, message: issue.message });
+                    listener({ severity: issue.severity, message: issue.message });
                 } catch (error) {
                     // A throwing consumer must not displace the fail-fast error the caller is about to get.
                     this.logger.error('validations.issueRaised threw an error', error);

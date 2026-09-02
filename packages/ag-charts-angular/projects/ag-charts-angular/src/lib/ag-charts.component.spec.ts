@@ -266,7 +266,7 @@ describe('validations.issueRaised zone patching', () => {
 
         expect(patched).not.toBe((host.options as any).validations.issueRaised);
 
-        ngZone.runOutsideAngular(() => patched({ level: 'error', message: 'boom' }));
+        ngZone.runOutsideAngular(() => patched({ severity: 'error', message: 'boom' }));
 
         expect(host.issueRaised.calls).toBe(1);
         expect(host.issueRaised.inZone).toEqual([true]);

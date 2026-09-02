@@ -378,7 +378,7 @@ export type AgChartValidationLevel = 'error' | 'warning' | 'deprecation' | 'none
 /** A single validation problem reported by the chart. */
 export interface AgChartValidationIssueEvent {
     /** The severity of the problem. */
-    level: 'error' | 'warning' | 'deprecation';
+    severity: 'error' | 'warning' | 'deprecation';
     /** A description of the problem, the same text reported to the console and the validation overlay. */
     message: string;
 }
