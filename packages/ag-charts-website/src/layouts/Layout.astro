@@ -9,6 +9,7 @@ import dsStylesUrl from '@design-system/design-system.scss?url';
 import { Footer } from '@ag-website-shared/components/footer/Footer';
 import type { ApiMenuItem } from '@ag-grid-types';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+import { getCanonicalUrl } from '@utils/canonicalUrl';
 import { ApiTopBar } from '@components/top-bar/ApiTopBar';
 import { getIsProduction, getIsArchive, getIsStaging, getIsDev } from '@utils/env';
 import { isDynamicFrameworkPath, isDynamicFrameworkPathMatch, replaceDynamicFrameworkPath } from '@utils/framework';
@@ -97,7 +98,11 @@ const apiPaths = apiMenuData.items.flatMap(({ path }) => {
         path: urlWithBaseUrl(path),
     };
 });
-const canonicalUrl = new URL(Astro.url.pathname, metadata.canonicalUrlBase);
+const pageUrl = new URL(Astro.url.pathname, metadata.canonicalUrlBase);
+// The session, community and contact pages are copies of pages the grid site owns, so they
+// canonicalise to the grid URL instead of to themselves. Every other page canonicalises to itself.
+// The social tags keep this page's own URL so a share still resolves to the page that was shared.
+const canonicalUrl = getCanonicalUrl(pageUrl, metadata.canonicalUrlBase);
 const socialImage = urlWithBaseUrl(overrideSocialImage ?? '/images/ag-charts-social.png');
 
 const isApiLayout = apiMenuItems.some((item) => {
@@ -209,7 +214,7 @@ const structuredData: JsonLdObject[] = includeStructuredData
         <link rel="stylesheet" href={dsStylesUrl} />
 
         <!-- Facebook Meta Tags -->
-        <meta property="og:url" content={canonicalUrl}>
+        <meta property="og:url" content={pageUrl}>
         <meta property="og:type" content="website">
         <meta property="og:title" content={title}>
         <meta property="og:description" content={description}>
@@ -217,8 +222,8 @@ const structuredData: JsonLdObject[] = includeStructuredData
 
         <!-- Twitter Meta Tags -->
         <meta name="twitter:card" content="summary_large_image">
-        <meta property="twitter:domain" content={canonicalUrl.host}>
-        <meta property="twitter:url" content={canonicalUrl}>
+        <meta property="twitter:domain" content={pageUrl.host}>
+        <meta property="twitter:url" content={pageUrl}>
         <meta name="twitter:title" content={title}>
         <meta name="twitter:description" content={description}>
         <meta name="twitter:image" content={socialImage}>
