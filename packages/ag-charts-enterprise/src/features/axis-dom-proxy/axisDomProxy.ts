@@ -12,13 +12,18 @@ type ProxyAxis = {
     bounds?: _ModuleSupport.BBox;
 };
 
+function hasAxisListener(
+    chartService: _ModuleSupport.ChartService,
+    axisCtx: _ModuleSupport.AxisContext,
+    isDoubleClick: boolean
+): boolean {
+    return isDoubleClick
+        ? chartService.listeners.axisDoubleClick != null || axisCtx.listeners?.doubleClick != null
+        : chartService.listeners.axisClick != null || axisCtx.listeners?.click != null;
+}
+
 function hasAxisClickListener(chartService: _ModuleSupport.ChartService, axisCtx: _ModuleSupport.AxisContext): boolean {
-    return (
-        chartService.listeners.axisClick != null ||
-        chartService.listeners.axisDoubleClick != null ||
-        axisCtx.listeners?.click != null ||
-        axisCtx.listeners?.doubleClick != null
-    );
+    return hasAxisListener(chartService, axisCtx, false) || hasAxisListener(chartService, axisCtx, true);
 }
 
 function hasDraggableAxes(ctx: DynamicContext<_ModuleSupport.ChartRegistry>): boolean {
@@ -322,13 +327,17 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         const div = this.axes.find((axis) => axis.axisId === axisId)?.div;
         if (!div) return;
 
+        const isDoubleClick = widgetEvent.type === 'dblclick';
         const axisCtx = this.ctx.axisManager.getAxisIdContext(axisId);
         // AG-18378: An axis proxy covers the axis area even when only the context menu needs it, so a click no axis
         // listener wants is handed back to the chart-level listener - unless zoom owns the axis interaction.
-        if (axisCtx != null && !hasAxisClickListener(this.ctx.chartService, axisCtx)) {
+        if (axisCtx != null && !hasAxisListener(this.ctx.chartService, axisCtx, isDoubleClick)) {
             if (!this.enabled.get('zoom')) {
-                const type = widgetEvent.type === 'dblclick' ? 'doubleClick' : 'click';
-                this.ctx.chartService.callListener({ type, event: widgetEvent.sourceEvent, coordinates: undefined });
+                this.ctx.chartService.callListener({
+                    type: isDoubleClick ? 'doubleClick' : 'click',
+                    event: widgetEvent.sourceEvent,
+                    coordinates: undefined,
+                });
             }
             return;
         }
@@ -336,7 +345,6 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         const pick = axisCtx?.pickValue(this.toCanvasPoint(div, widgetEvent));
         if (!axisCtx || !pick) return;
 
-        const isDoubleClick = widgetEvent.type === 'dblclick';
         const { direction, boundSeries, domain, value, index, depth, groupPercentage } = pick;
         const params = {
             event: widgetEvent.sourceEvent,

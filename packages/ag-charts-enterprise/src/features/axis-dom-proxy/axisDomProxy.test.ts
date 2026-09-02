@@ -916,6 +916,34 @@ describe('AxisDOMProxy', () => {
             expect(chartClick).toHaveBeenCalledTimes(1);
         });
 
+        // A listener for one event type must not suppress the fallback for the other: the dispatch below
+        // picks its listener by event type, so the unmatched event would otherwise reach nothing at all.
+        test('a click-only axis listener leaves doubleClick to the chart', async () => {
+            chart = await createChart({ axes: { x: { listeners: { click } }, y: {} } });
+
+            await doubleClickAction(...X_AXIS_AREA)(chart);
+            await waitForChartStability(chart);
+
+            expect(click).toHaveBeenCalledTimes(2);
+            expect(chartClick).not.toHaveBeenCalled();
+            expect(chartDoubleClick.mock.calls).toMatchObject([[expect.objectContaining({ type: 'doubleClick' })]]);
+        });
+
+        test('a doubleClick-only axis listener leaves click to the chart', async () => {
+            const doubleClick = vi.fn();
+            chart = await createChart({ axes: { x: { listeners: { doubleClick } }, y: {} } });
+
+            await doubleClickAction(...X_AXIS_AREA)(chart);
+            await waitForChartStability(chart);
+
+            expect(doubleClick).toHaveBeenCalledTimes(1);
+            expect(chartDoubleClick).not.toHaveBeenCalled();
+            expect(chartClick.mock.calls).toMatchObject([
+                [expect.objectContaining({ type: 'click' })],
+                [expect.objectContaining({ type: 'click' })],
+            ]);
+        });
+
         test('zoom owns the axis, so nothing is handed back to the chart', async () => {
             chart = await createChart({ zoom: { enabled: true, enableDoubleClickToReset: true } });
 
