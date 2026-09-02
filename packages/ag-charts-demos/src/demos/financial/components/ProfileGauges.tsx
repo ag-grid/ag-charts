@@ -163,7 +163,7 @@ function ProfileGaugesImpl({ metrics }: ProfileGaugesProps) {
 
             <div className="fin-detail-card">
                 <div className="fin-detail-card-title">
-                    Beta (vs S&amp;P 500)
+                    Beta vs S&amp;P 500
                     <span className="fin-value" style={{ color: betaColor }}>
                         {signPrefix(beta)}
                         {Math.abs(beta).toFixed(2)}
