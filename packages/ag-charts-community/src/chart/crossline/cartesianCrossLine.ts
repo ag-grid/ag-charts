@@ -323,7 +323,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             clampedYStart = scale.convert(value as any, { clamp: true }) + offset;
             clampedYEnd = Number.NaN;
 
-            if (clampedYStart >= clippedRange1 || clampedYStart <= clippedRange0) {
+            if (clampedYStart > clippedRange1 || clampedYStart < clippedRange0) {
                 return;
             }
         } else if (range) {
@@ -340,7 +340,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
                 [yStart, yEnd] = [yEnd, yStart];
             }
 
-            if (clampedYStart >= clippedRange1 || clampedYEnd <= clippedRange0) {
+            if (clampedYStart > clippedRange1 || clampedYEnd < clippedRange0) {
                 return;
             }
 
