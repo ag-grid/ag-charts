@@ -79,6 +79,53 @@ ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule, CategoryAxis
 `ModuleRegistry.registerModules` is idempotent: registering the same module again is ignored unless a newer version is detected.
 {% /note %}
 
+## Registering Modules per Chart
+
+Modules can also be registered for a single chart instance by passing them in the second argument to `AgCharts.create`. This is useful when different charts on a page use different features, or when an application prefers not to rely on a global registry.
+
+```js
+import { AgCharts, CategoryAxisModule, LineSeriesModule, NumberAxisModule } from 'ag-charts-community';
+
+AgCharts.create(options, {
+    modules: [LineSeriesModule, NumberAxisModule, CategoryAxisModule],
+});
+```
+
+Modules passed to a chart are added to any registered globally, so a common baseline can be registered with `ModuleRegistry.registerModules` and extras supplied per chart. They stay registered for the lifetime of that chart, including across `update` calls, and are not visible to other charts.
+
+{% chartExampleRunner title="Per-Chart Registration" name="per-chart-registration" type="generated" /%}
+
+`AgCharts.createFinancialChart`, `AgCharts.createGauge` and `AgCharts.createQuadrantChart` accept the same second argument.
+
+{% if isFramework("react") %}
+Pass the modules through the `modules` prop:
+
+```jsx format="reactHooks"
+<AgCharts options={options} modules={[LineSeriesModule, NumberAxisModule, CategoryAxisModule]} />;
+```
+
+{% /if %}
+
+{% if isFramework("angular") %}
+Pass the modules through the `modules` input:
+
+```html
+<ag-charts [options]="options" [modules]="modules"></ag-charts>
+```
+
+{% /if %}
+
+{% if isFramework("vue") %}
+Pass the modules through the `modules` prop:
+
+```html
+<ag-charts :options="options" :modules="modules"></ag-charts>
+```
+
+{% /if %}
+
+Use `chart.isModuleRegistered('LineSeriesModule')` to check whether a module is available to a chart, whether it was registered globally or passed to the chart.
+
 ## Bundles
 
 - The `AllCommunityModule` bundle contains all of the modules available in AG Charts Community.

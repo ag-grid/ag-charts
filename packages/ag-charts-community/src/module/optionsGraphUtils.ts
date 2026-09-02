@@ -1,4 +1,4 @@
-import { type PlainObject, isNumber, isObjectLike } from 'ag-charts-core';
+import { type ModuleScope, type PlainObject, isNumber, isObjectLike } from 'ag-charts-core';
 
 import type { PaletteType } from './coreModulesTypes';
 
@@ -7,6 +7,7 @@ export interface VertexInterface {}
 export interface OptionsGraphInterface {
     readonly palette: PlainObject;
     readonly paletteType: PaletteType;
+    readonly moduleRegistry: ModuleScope;
 
     addEdge(from: VertexInterface, to: VertexInterface, edge?: string): void;
     addVertex(value: unknown): VertexInterface;

@@ -136,24 +136,49 @@ export default {
         }
 
         /**
-         * Extract module names from registerModules array argument
+         * Find the `modules` array of an `AgCharts.create*(options, { modules: [...] })` call
          */
-        function extractRegisteredModules(node) {
-            const modules = new Set();
-            if (node.arguments.length === 0) return modules;
+        function findInstanceModulesArray(node) {
+            if (node.type !== 'CallExpression') return null;
+            const callee = node.callee;
+            if (callee.type !== 'MemberExpression') return null;
+            const obj = callee.object;
+            const prop = callee.property;
+            if (obj.type !== 'Identifier' || obj.name !== 'AgCharts') return null;
+            if (prop.type !== 'Identifier' || !prop.name.startsWith('create')) return null;
 
-            const arg = node.arguments[0];
-            if (arg.type !== 'ArrayExpression') return modules;
+            const params = node.arguments[1];
+            if (!params || params.type !== 'ObjectExpression') return null;
+            const modulesProperty = params.properties.find(
+                (p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'modules'
+            );
+            if (!modulesProperty || modulesProperty.value.type !== 'ArrayExpression') return null;
+            return modulesProperty.value;
+        }
 
-            registeredModulesArrayNode = arg;
-
-            for (const element of arg.elements) {
+        /**
+         * Collect module identifiers from a registration array into `registeredModules`
+         */
+        function collectRegisteredModules(arrayNode) {
+            registeredModulesArrayNode ??= arrayNode;
+            for (const element of arrayNode.elements) {
                 if (element && element.type === 'Identifier') {
-                    modules.add(element.name);
+                    registeredModules.add(element.name);
                     registeredModuleNodes.set(element.name, element);
                 }
             }
-            return modules;
+        }
+
+        /**
+         * Extract module names from registerModules array argument
+         */
+        function extractRegisteredModules(node) {
+            if (node.arguments.length === 0) return;
+
+            const arg = node.arguments[0];
+            if (arg.type !== 'ArrayExpression') return;
+
+            collectRegisteredModules(arg);
         }
 
         /**
@@ -671,11 +696,19 @@ export default {
                 }
             },
 
-            // Find ModuleRegistry.registerModules([...])
+            // Find ModuleRegistry.registerModules([...]) and AgCharts.create(options, { modules: [...] })
             CallExpression(node) {
                 if (isRegisterModulesCall(node)) {
-                    registeredModules = extractRegisteredModules(node);
+                    registeredModules = new Set();
+                    registeredModulesArrayNode = null;
+                    extractRegisteredModules(node);
                     registeredModulesNode = node;
+                    return;
+                }
+                const instanceModules = findInstanceModulesArray(node);
+                if (instanceModules) {
+                    collectRegisteredModules(instanceModules);
+                    registeredModulesNode ??= node;
                 }
             },
 

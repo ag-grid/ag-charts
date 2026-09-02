@@ -271,6 +271,14 @@ export interface AgTypedChartInstance<TDatum, TContext, O extends AgChartInstanc
      */
     clearSelection(): void;
 
+    /**
+     * Returns whether a module is available to this chart, either registered globally or passed to it
+     * via `AgCharts.create(options, { modules })`.
+     *
+     * @param moduleId the exported module name, such as `'LineSeriesModule'`.
+     */
+    isModuleRegistered(moduleId: string): boolean;
+
     /** Destroy the chart instance and any allocated resources supporting its rendering. */
     destroy(): void;
 }

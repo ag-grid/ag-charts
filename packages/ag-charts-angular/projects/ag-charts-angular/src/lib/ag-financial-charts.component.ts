@@ -1,6 +1,12 @@
 import { Component, ElementRef, EventEmitter, Input, NgZone, Output, ViewEncapsulation } from '@angular/core';
 
-import { AgChartInstance, AgCharts as AgChartsAPI, AgFinancialChartOptions } from 'ag-charts-community';
+import {
+    AgChartInstance,
+    AgChartModule,
+    AgChartParams,
+    AgCharts as AgChartsAPI,
+    AgFinancialChartOptions,
+} from 'ag-charts-community';
 
 import { AgChartsBase } from './ag-charts-base';
 
@@ -15,6 +21,9 @@ export class AgFinancialCharts extends AgChartsBase<AgFinancialChartOptions> {
     @Input()
     public options: AgFinancialChartOptions = {};
 
+    @Input()
+    public modules: AgChartModule[] | undefined;
+
     @Output()
     public chartReady: EventEmitter<AgChartInstance> = new EventEmitter();
 
@@ -28,7 +37,7 @@ export class AgFinancialCharts extends AgChartsBase<AgFinancialChartOptions> {
         this._nativeElement = elementDef.nativeElement;
     }
 
-    protected createChart(options: AgFinancialChartOptions) {
-        return AgChartsAPI.createFinancialChart(options);
+    protected createChart(options: AgFinancialChartOptions, params: AgChartParams) {
+        return AgChartsAPI.createFinancialChart(options, params);
     }
 }

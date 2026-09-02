@@ -3,6 +3,7 @@ import {
     Graph,
     type Logger,
     ModuleRegistry,
+    type ModuleScope,
     type PlainObject,
     type Resolved,
     type Vertex,
@@ -67,7 +68,8 @@ export function createOptionsGraph(
     theme: ChartTheme,
     options: PlainObject,
     cssVariables?: Record<string, string>,
-    presetOptions?: PlainObject
+    presetOptions?: PlainObject,
+    moduleRegistry?: ModuleScope
 ): OptionsGraphAccessor {
     return debug.group('OptionsGraph.constructor()', () => {
         const optionsGraph = new OptionsGraph(
@@ -79,7 +81,8 @@ export function createOptionsGraph(
             theme.overrides,
             theme.getTemplateParameters(),
             cssVariables,
-            presetOptions
+            presetOptions,
+            moduleRegistry
         );
 
         return {
@@ -216,7 +219,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         private readonly overrides: PlainObject | undefined = undefined,
         private readonly internalParams: Map<unknown, unknown> = new Map(),
         private cssVariables: Record<string, string> = {},
-        private readonly presetOptions: PlainObject = {}
+        private readonly presetOptions: PlainObject = {},
+        public readonly moduleRegistry: ModuleScope = ModuleRegistry.resolveModuleScope()
     ) {
         super({
             cachedNeighboursEdge: PATH_EDGE,
@@ -253,7 +257,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             this.buildGraphFromObject(
                 this.root,
                 OVERRIDES_EDGE,
-                ModuleRegistry.getSeriesModule(seriesType)?.chartType === 'cartesian'
+                this.moduleRegistry.getSeriesModule(seriesType)?.chartType === 'cartesian'
                     ? commonOverrides
                     : without(commonOverrides, ['zoom', 'navigator'])
             );

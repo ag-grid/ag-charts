@@ -11,11 +11,13 @@ import {
     RegistryMode,
     getAxisModule,
     getChartModule,
+    getModuleScopeKey,
     getPresetModule,
     getSeriesModule,
     hasModule,
     ifRegistryChanged,
     isEnterprise,
+    isGlobalScope,
     isIntegrated,
     isModuleType,
     isUmd,
@@ -24,8 +26,10 @@ import {
     register,
     registerModules,
     reset,
+    resolveModuleScope,
     setRegistryMode,
 } from './moduleRegistry';
+import { createModuleScope } from './moduleScope';
 
 const everyModuleDefaults = {
     enterprise: false,
@@ -265,6 +269,113 @@ describe('moduleRegistry', () => {
 
             expect(callback).toHaveBeenCalledTimes(1);
             expect(revisionAfterReset).not.toBe(revisionBeforeReset);
+        });
+    });
+
+    describe('module scopes', () => {
+        test('a child scope falls back to the global registry', () => {
+            const globalSeries = createSeriesModule('global-series');
+            register(globalSeries);
+
+            const scope = createModuleScope(resolveModuleScope());
+            const ownSeries = createSeriesModule('own-series');
+            scope.register(ownSeries);
+
+            expect(scope.hasModule('global-series')).toBe(true);
+            expect(scope.getSeriesModule('global-series')).toBe(globalSeries);
+            expect(scope.getSeriesModule('own-series')).toBe(ownSeries);
+            expect(Array.from(scope.listModules())).toEqual([ownSeries, globalSeries]);
+        });
+
+        test('instance modules are not visible to the global registry', () => {
+            const scope = createModuleScope(resolveModuleScope());
+            scope.register(createSeriesModule('own-series'));
+
+            expect(hasModule('own-series')).toBe(false);
+            expect(Array.from(listModules())).toEqual([]);
+        });
+
+        test('an enterprise instance module shadows a same-version global community module', () => {
+            const community = createSeriesModule('shadowed');
+            const enterprise = createSeriesModule('shadowed', { enterprise: true });
+            register(community);
+
+            const scope = createModuleScope(resolveModuleScope());
+            scope.register(enterprise);
+
+            expect(scope.getSeriesModule('shadowed')).toBe(enterprise);
+            expect(getSeriesModule('shadowed')).toBe(community);
+            expect(Array.from(scope.listModulesByType(ModuleType.Series))).toEqual([enterprise]);
+        });
+
+        test('a same-version instance module already registered globally is ignored', () => {
+            const community = createSeriesModule('shared');
+            register(community);
+
+            const scope = createModuleScope(resolveModuleScope());
+            scope.register(createSeriesModule('shared', { chartType: 'polar' }));
+
+            expect(scope.getSeriesModule('shared')).toBe(community);
+        });
+
+        test('throws when an instance module conflicts with the global version', () => {
+            register(createSeriesModule('conflicting'));
+
+            const scope = createModuleScope(resolveModuleScope());
+            expect(() => scope.register(createSeriesModule('conflicting', { version: '2.0.0' }))).toThrow(
+                /already registered with different version/
+            );
+        });
+
+        test('global registration after scope creation is visible through the scope', () => {
+            const scope = createModuleScope(resolveModuleScope());
+            expect(scope.hasModule('late')).toBe(false);
+
+            const late = createAxisModule('late');
+            register(late);
+
+            expect(scope.getAxisModule('late')).toBe(late);
+        });
+
+        test('the revision token moves for both own and parent changes', () => {
+            const scope = createModuleScope(resolveModuleScope());
+            const callback = vi.fn();
+
+            const initial = scope.ifRegistryChanged(-1, callback);
+            expect(callback).toHaveBeenCalledTimes(1);
+            expect(scope.ifRegistryChanged(initial, callback)).toBe(initial);
+            expect(callback).toHaveBeenCalledTimes(1);
+
+            register(createSeriesModule('parent-change'));
+            const afterParent = scope.ifRegistryChanged(initial, callback);
+            expect(afterParent).not.toBe(initial);
+            expect(callback).toHaveBeenCalledTimes(2);
+
+            scope.register(createSeriesModule('own-change'));
+            expect(scope.ifRegistryChanged(afterParent, callback)).not.toBe(afterParent);
+            expect(callback).toHaveBeenCalledTimes(3);
+        });
+
+        test('resolveModuleScope returns the global scope without modules', () => {
+            expect(isGlobalScope(resolveModuleScope())).toBe(true);
+            expect(isGlobalScope(resolveModuleScope([]))).toBe(true);
+            expect(getModuleScopeKey(resolveModuleScope())).toBe('');
+        });
+
+        test('resolveModuleScope shares one scope per module set, regardless of order or nesting', () => {
+            const axis = createAxisModule('scoped-axis');
+            const series = createSeriesModule('scoped-series');
+
+            const first = resolveModuleScope([axis, series]);
+            const second = resolveModuleScope([[series], axis]);
+            const other = resolveModuleScope([series]);
+
+            expect(first).toBe(second);
+            expect(first).not.toBe(other);
+            expect(isGlobalScope(first)).toBe(false);
+            expect(getModuleScopeKey(first)).toBe('scoped-axis@1.0.0,scoped-series@1.0.0');
+            expect(first.getAxisModule('scoped-axis')).toBe(axis);
+            expect(hasModule('scoped-axis')).toBe(false);
         });
     });
 });

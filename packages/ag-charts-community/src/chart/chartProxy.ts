@@ -25,6 +25,7 @@ import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverri
 import type { Chart } from './chart';
 import type { DataServiceRestoredData } from './data/dataService';
 import { deepCloneDataSet } from './data/dataSetUtil';
+import { findExpectedModuleName } from './factory/expectedModules';
 import { InteractionState } from './interaction/interactionManager';
 import type { UpdateZoomSourcing } from './interaction/zoomManager';
 import { LegendPaginationOriginator, findCategoryLegend } from './legend/legendPaginationOriginator';
@@ -245,6 +246,13 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
     setSelection(items: Iterable<AgSelectionItemIds>): void {
         return this.chart?.setSelection(items);
+    }
+
+    isModuleRegistered(moduleId: string): boolean {
+        if (!this.chart) throw new Error(DESTROYED_ERROR);
+
+        const moduleName = findExpectedModuleName(moduleId) ?? moduleId;
+        return this.chart.chartOptions.moduleRegistry.hasModule(moduleName);
     }
 
     clearSelection(): void {

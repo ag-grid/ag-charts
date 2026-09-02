@@ -3,7 +3,9 @@ import {
     type DeepPartial,
     type LicenseManager,
     MementoCaretaker,
+    type ModuleDefinition,
     ModuleRegistry,
+    type ModuleScope,
     deepClone,
     deepFreeze,
     enterpriseRegistry,
@@ -14,6 +16,7 @@ import {
 import type {
     AgChartInstance,
     AgChartOptions,
+    AgChartParams,
     AgFinancialChartOptions,
     AgGaugeOptions,
     AgQuadrantChartOptions,
@@ -145,7 +148,14 @@ export abstract class AgCharts {
      */
     public static create<O extends AgChartOptions<DatumDefault, any>>( // set TContext=any for backward-compatibility
         userOptions: O,
-        optionsMetadata?: ChartInternalOptionMetadata
+        params?: AgChartParams
+    ): AgChartInstance<O> {
+        return this.createInternal(userOptions, { modules: params?.modules });
+    }
+
+    private static createInternal<O extends AgChartOptions<DatumDefault, any>>(
+        userOptions: O,
+        optionsMetadata: ChartInternalOptionMetadata
     ): AgChartInstance<O> {
         const { options: validOptions, issue: argumentIssue } = takeOptionsArgumentIssue(
             userOptions,
@@ -172,41 +182,53 @@ export abstract class AgCharts {
         });
     }
 
-    public static createFinancialChart(options: AgFinancialChartOptions): AgChartInstance<AgFinancialChartOptions> {
+    public static createFinancialChart(
+        options: AgFinancialChartOptions,
+        params?: AgChartParams
+    ): AgChartInstance<AgFinancialChartOptions> {
         options = withOptionsArgumentIssue(options, 'AgCharts.createFinancialChart()');
         return debug.group('AgCharts.createFinancialChart()', () => {
-            return this.create(options as any, { presetType: 'price-volume' }) as any;
+            return this.createInternal(options as any, { presetType: 'price-volume', modules: params?.modules }) as any;
         });
     }
 
-    public static createGauge(options: AgGaugeOptions): AgChartInstance<AgGaugeOptions> {
+    public static createGauge(options: AgGaugeOptions, params?: AgChartParams): AgChartInstance<AgGaugeOptions> {
         options = withOptionsArgumentIssue(options, 'AgCharts.createGauge()');
         return debug.group('AgCharts.createGauge()', () => {
-            return this.create(options as AgChartOptions, { presetType: 'gauge-preset' }) as any;
+            return this.createInternal(options as AgChartOptions, {
+                presetType: 'gauge-preset',
+                modules: params?.modules,
+            }) as any;
         });
     }
 
     public static createQuadrantChart<TDatum = DatumDefault, TContext = ContextDefault>(
-        options: AgQuadrantChartOptions<TDatum, TContext>
+        options: AgQuadrantChartOptions<TDatum, TContext>,
+        params?: AgChartParams
         // TODO: any to prevent errors
     ): AgChartInstance<AgQuadrantChartOptions<TDatum, any>> {
         options = withOptionsArgumentIssue(options, 'AgCharts.createQuadrantChart()');
         return debug.group('AgCharts.createQuadrantChart()', () => {
-            return this.create(options, {
+            return this.createInternal(options, {
                 presetType: 'quadrant',
+                modules: params?.modules,
             }) as AgChartInstance<AgQuadrantChartOptions<TDatum, any>>;
         });
     }
 
-    public static __createSparkline(options: AgSparklineOptions): AgChartInstance<AgSparklineOptions> {
+    public static __createSparkline(
+        options: AgSparklineOptions,
+        params?: AgChartParams
+    ): AgChartInstance<AgSparklineOptions> {
         options = withOptionsArgumentIssue(options, 'AgCharts.__createSparkline()');
         return debug.group('AgCharts.__createSparkline()', () => {
             const { pool, ...normalOptions } = options as any;
-            return this.create(withOptionsArgumentIssue(normalOptions, 'AgCharts.__createSparkline()'), {
+            return this.createInternal(withOptionsArgumentIssue(normalOptions, 'AgCharts.__createSparkline()'), {
                 presetType: 'sparkline',
                 pool: pool ?? true,
                 domMode: 'minimal',
                 withDragInterpretation: false,
+                modules: params?.modules,
             }) as any;
         });
     }
@@ -273,12 +295,18 @@ class AgChartsInternal {
         let { optionsArgumentIssue: argumentIssue } = opts;
         const styles = enterpriseRegistry.styles == null ? [] : [['ag-charts-enterprise', enterpriseRegistry.styles]];
 
-        if (ModuleRegistry.listModules().next().done) {
+        const moduleScope =
+            proxy?.chart?.chartOptions.moduleRegistry ??
+            ModuleRegistry.resolveModuleScope(
+                optionsMetadata.modules as Array<ModuleDefinition | ModuleDefinition[]> | undefined
+            );
+        if (moduleScope.listModules().next().done) {
             throw new Error(
                 [
                     'AG Charts - No modules have been registered.',
                     '',
-                    'Call ModuleRegistry.registerModules(...) with the modules you need before using AgCharts.create().',
+                    'Call ModuleRegistry.registerModules(...) with the modules you need before using AgCharts.create(),',
+                    'or pass them to the chart with AgCharts.create(options, { modules: [...] }).',
                     '',
                     'See https://www.ag-grid.com/charts/r/module-registry/ for more details.',
                 ].join('\n')
@@ -297,7 +325,7 @@ class AgChartsInternal {
             debug(() => ['>>> AgCharts.createOrUpdate() MUTATED user options', deepClone(mutableOptions)]);
         }
 
-        const pool = this.getPool(optionsMetadata);
+        const pool = this.getPool(optionsMetadata, moduleScope);
         let create = false;
         let poolResult;
         let chart = proxy?.chart;
@@ -344,10 +372,11 @@ class AgChartsInternal {
 
         if (
             chart == null ||
-            detectChartType(chartOptions.processedOptions) !== detectChartType(chart.chartOptions.processedOptions)
+            detectChartType(chartOptions.processedOptions, chartOptions.moduleRegistry) !==
+                detectChartType(chart.chartOptions.processedOptions, chart.chartOptions.moduleRegistry)
         ) {
             poolResult?.release(); // Undo previous obtain(), we need to use a different pool!
-            poolResult = this.getPool(chartOptions.optionMetadata)?.obtain(chartOptions);
+            poolResult = this.getPool(chartOptions.optionMetadata, chartOptions.moduleRegistry)?.obtain(chartOptions);
             if (poolResult) {
                 chart = poolResult.item;
             } else {
@@ -497,18 +526,22 @@ class AgChartsInternal {
 
     private static createChartInstance(this: void, options: ChartOptions, oldChart?: Chart): Chart {
         const transferableResource = oldChart?.destroy({ keepTransferableResources: true });
-        const chartType = detectChartType(options.processedOptions);
-        const chartDef = ModuleRegistry.getChartModule(chartType);
+        const chartType = detectChartType(options.processedOptions, options.moduleRegistry);
+        const chartDef = options.moduleRegistry.getChartModule(chartType);
         return chartDef.create(options, transferableResource) as Chart;
     }
 
     private static readonly detachAndClear = (chart: Chart) => chart.detachAndClear();
     private static readonly destroy = (chart: Chart) => chart.destroy();
-    private static getPool(optionMetadata: ChartInternalOptionMetadata) {
+    // A pooled chart's context binds its module scope at construction, so a chart must only ever be
+    // handed to a successor sharing that scope.
+    private static getPool(optionMetadata: ChartInternalOptionMetadata, moduleScope: ModuleScope) {
         if (optionMetadata.pool !== true) return;
 
+        const scopeKey = ModuleRegistry.getModuleScopeKey(moduleScope);
+        const presetType = optionMetadata.presetType ?? 'default';
         return Pool.getPool<Chart, ChartOptions>(
-            optionMetadata.presetType ?? 'default',
+            scopeKey ? `${presetType}|${scopeKey}` : presetType,
             this.createChartInstance,
             this.detachAndClear,
             this.destroy,
