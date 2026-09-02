@@ -4419,7 +4419,7 @@ describe('ChartOptions', () => {
             expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
         });
 
-        it("treats a duplicated severity as if it had been listed once, without reporting it", () => {
+        it('treats a duplicated severity as if it had been listed once, without reporting it', () => {
             const chartOptions = new ChartOptions(
                 invalidOptions({ validations: { consoleOn: ['error', 'error'] } }),
                 {} as AgChartOptions,
