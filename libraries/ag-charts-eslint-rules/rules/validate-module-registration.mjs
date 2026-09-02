@@ -63,7 +63,10 @@ export default {
         let registeredModuleNodes = new Map(); // moduleId -> AST node
         let registeredModulesNode = null;
         let registeredModulesArrayNode = null;
-        let requiredModules = new Map(); // moduleId -> { reason, node }
+        // Per-chart modules from AgCharts.create(options, { modules }), keyed by the options variable
+        // name or, for inline options, the call node. Only that chart's options can rely on them.
+        const instanceModules = new Map(); // owner -> { modules: Set, arrayNode }
+        let requiredModules = new Map(); // moduleId -> { reason, node, owners: Map<owner, node> }
         let isEnterprise = false;
         let explicitAxes = new Set(); // tracks 'x', 'y', 'angle', 'radius'
         let seriesTypes = [];
@@ -95,9 +98,46 @@ export default {
          * Add a required module with reason
          */
         function requireModule(moduleId, reason, node) {
-            if (!requiredModules.has(moduleId)) {
-                requiredModules.set(moduleId, { reason, node });
+            let info = requiredModules.get(moduleId);
+            if (!info) {
+                info = { reason, node, owners: new Map() };
+                requiredModules.set(moduleId, info);
             }
+            const owner = ownerOf(node);
+            if (!info.owners.has(owner)) {
+                info.owners.set(owner, node);
+            }
+        }
+
+        /**
+         * The chart whose options contain `node`: the top-level variable holding them, the
+         * `AgCharts.create*` call they are inlined into, or null when not attributable.
+         */
+        function ownerOf(node) {
+            if (!node) return null;
+            const ancestors = context.sourceCode.getAncestors(node);
+            const createCall = ancestors.find((a) => isCreateCall(a));
+            if (createCall) return createCall;
+            const declarator = ancestors.find(
+                (a) =>
+                    a.type === 'VariableDeclarator' && a.id.type === 'Identifier' && a.parent.parent.type === 'Program'
+            );
+            return declarator ? declarator.id.name : null;
+        }
+
+        /**
+         * Whether the required module is available to every chart that needs it
+         */
+        function isRequirementSatisfied(moduleId, owners, expandedRegistered, expandedAll) {
+            if (isModuleSatisfied(moduleId, expandedRegistered)) return null;
+            for (const [owner, node] of owners) {
+                const instance = instanceModules.get(owner);
+                const available = owner === null ? expandedAll : instance ? expandBundles(instance.modules) : null;
+                if (!available || !isModuleSatisfied(moduleId, available)) {
+                    return { node, arrayNode: instance?.arrayNode ?? registeredModulesArrayNode };
+                }
+            }
+            return null;
         }
 
         /**
@@ -136,16 +176,27 @@ export default {
         }
 
         /**
+         * Check if this is an AgCharts.create*() call
+         */
+        function isCreateCall(node) {
+            if (node.type !== 'CallExpression') return false;
+            const callee = node.callee;
+            if (callee.type !== 'MemberExpression') return false;
+            const obj = callee.object;
+            const prop = callee.property;
+            return (
+                obj.type === 'Identifier' &&
+                obj.name === 'AgCharts' &&
+                prop.type === 'Identifier' &&
+                prop.name.startsWith('create')
+            );
+        }
+
+        /**
          * Find the `modules` array of an `AgCharts.create*(options, { modules: [...] })` call
          */
         function findInstanceModulesArray(node) {
-            if (node.type !== 'CallExpression') return null;
-            const callee = node.callee;
-            if (callee.type !== 'MemberExpression') return null;
-            const obj = callee.object;
-            const prop = callee.property;
-            if (obj.type !== 'Identifier' || obj.name !== 'AgCharts') return null;
-            if (prop.type !== 'Identifier' || !prop.name.startsWith('create')) return null;
+            if (!isCreateCall(node)) return null;
 
             const params = node.arguments[1];
             if (!params || params.type !== 'ObjectExpression') return null;
@@ -157,16 +208,12 @@ export default {
         }
 
         /**
-         * Collect module identifiers from a registration array into `registeredModules`
+         * Module identifiers in a registration array
          */
-        function collectRegisteredModules(arrayNode) {
-            registeredModulesArrayNode ??= arrayNode;
-            for (const element of arrayNode.elements) {
-                if (element && element.type === 'Identifier') {
-                    registeredModules.add(element.name);
-                    registeredModuleNodes.set(element.name, element);
-                }
-            }
+        function moduleIdsOf(arrayNode) {
+            return arrayNode.elements
+                .filter((element) => element?.type === 'Identifier')
+                .map((element) => element.name);
         }
 
         /**
@@ -178,7 +225,26 @@ export default {
             const arg = node.arguments[0];
             if (arg.type !== 'ArrayExpression') return;
 
-            collectRegisteredModules(arg);
+            registeredModulesArrayNode = arg;
+            for (const element of arg.elements) {
+                if (element && element.type === 'Identifier') {
+                    registeredModules.add(element.name);
+                    registeredModuleNodes.set(element.name, element);
+                }
+            }
+        }
+
+        /**
+         * Record the per-chart modules of an AgCharts.create*(options, { modules }) call
+         */
+        function extractInstanceModules(node, arrayNode) {
+            const optionsArg = node.arguments[0];
+            const owner = optionsArg?.type === 'Identifier' ? optionsArg.name : node;
+            const entry = instanceModules.get(owner) ?? { modules: new Set(), arrayNode };
+            for (const moduleId of moduleIdsOf(arrayNode)) {
+                entry.modules.add(moduleId);
+            }
+            instanceModules.set(owner, entry);
         }
 
         /**
@@ -480,13 +546,13 @@ export default {
         /**
          * Create a fixer to remove a module from the registerModules array
          */
-        function createRemoveModuleFixer(moduleId) {
-            const moduleNode = registeredModuleNodes.get(moduleId);
-            if (!moduleNode || !registeredModulesArrayNode) return null;
+        function createRemoveModuleFixer(moduleId, arrayNode = registeredModulesArrayNode) {
+            const moduleNode = arrayNode?.elements.find((e) => e?.type === 'Identifier' && e.name === moduleId);
+            if (!moduleNode) return null;
 
             return function (fixer) {
                 const sourceCode = context.sourceCode || context.getSourceCode();
-                const elements = registeredModulesArrayNode.elements;
+                const elements = arrayNode.elements;
                 const index = elements.indexOf(moduleNode);
 
                 if (index === -1) return null;
@@ -542,8 +608,8 @@ export default {
         /**
          * Create a fixer to add a module to the registerModules array and import if needed
          */
-        function createAddModuleFixer(moduleId) {
-            if (!registeredModulesArrayNode) return null;
+        function createAddModuleFixer(moduleId, arrayNode = registeredModulesArrayNode) {
+            if (!arrayNode) return null;
 
             const packageName = moduleToPackage.get(moduleId);
             if (!packageName) return null; // Can't fix if we don't know the package
@@ -566,16 +632,16 @@ export default {
                     }
                 }
 
-                // Part 2: Add to registerModules array
-                const elements = registeredModulesArrayNode.elements;
+                // Part 2: Add to the registration array
+                const elements = arrayNode.elements;
 
                 if (elements.length === 0) {
                     // Empty array: insert as first element
-                    const openBracket = sourceCode.getFirstToken(registeredModulesArrayNode);
+                    const openBracket = sourceCode.getFirstToken(arrayNode);
                     yield fixer.insertTextAfter(openBracket, moduleId);
                 } else {
                     const lastElement = elements[elements.length - 1];
-                    const multiline = isArrayMultiline(registeredModulesArrayNode);
+                    const multiline = isArrayMultiline(arrayNode);
 
                     if (multiline) {
                         // Detect indentation from existing elements
@@ -705,10 +771,11 @@ export default {
                     registeredModulesNode = node;
                     return;
                 }
-                const instanceModules = findInstanceModulesArray(node);
-                if (instanceModules) {
-                    collectRegisteredModules(instanceModules);
+                const instanceModulesArray = findInstanceModulesArray(node);
+                if (instanceModulesArray) {
+                    extractInstanceModules(node, instanceModulesArray);
                     registeredModulesNode ??= node;
+                    registeredModulesArrayNode ??= instanceModulesArray;
                 }
             },
 
@@ -802,19 +869,46 @@ export default {
 
                 // Expand bundles in registered modules
                 const expandedRegistered = expandBundles(registeredModules);
+                const allModules = new Set(registeredModules);
+                for (const { modules } of instanceModules.values()) {
+                    for (const moduleId of modules) allModules.add(moduleId);
+                }
+                const expandedAll = expandBundles(allModules);
 
                 // Get intrinsic defaults (modules that are OK to register without explicit options)
                 const intrinsicDefaultSet = getIntrinsicDefaults();
 
                 // Check for missing modules
                 for (const [moduleId, info] of requiredModules) {
-                    if (!isModuleSatisfied(moduleId, expandedRegistered)) {
+                    const missing = isRequirementSatisfied(moduleId, info.owners, expandedRegistered, expandedAll);
+                    if (missing) {
                         context.report({
-                            node: info.node || registeredModulesNode,
+                            node: missing.node || info.node || registeredModulesNode,
                             messageId: 'missingModule',
                             data: { moduleId, reason: info.reason },
-                            fix: createAddModuleFixer(moduleId),
+                            fix: createAddModuleFixer(moduleId, missing.arrayNode),
                         });
+                    }
+                }
+
+                // Per-chart modules only serve that chart's options, or requirements not tied to any chart
+                if (warnOverRegistration) {
+                    for (const [owner, { modules, arrayNode }] of instanceModules) {
+                        for (const moduleId of modules) {
+                            if (bundleContents.has(moduleId) || intrinsicDefaultSet.has(moduleId)) continue;
+                            const usedByOwner = [...requiredModules.entries()].some(
+                                ([reqMod, info]) =>
+                                    (info.owners.has(owner) || info.owners.has(null)) &&
+                                    (reqMod === moduleId || bundleContents.get(reqMod)?.includes(moduleId))
+                            );
+                            if (usedByOwner) continue;
+                            context.report({
+                                node: arrayNode.elements.find((e) => e?.type === 'Identifier' && e.name === moduleId),
+                                messageId: validModuleIds.has(moduleId) ? 'unnecessaryModule' : 'unknownModule',
+                                data: { moduleId },
+                                fix: createRemoveModuleFixer(moduleId, arrayNode),
+                            });
+                        }
                     }
                 }
 

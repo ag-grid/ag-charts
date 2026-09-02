@@ -2,9 +2,10 @@ import type { Mock } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { type ModuleDefinition, ModuleRegistry, ModuleType, enterpriseRegistry } from 'ag-charts-core';
-import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartInstance, AgSparklineOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
+import { SparklinePresetModule } from '../api/preset/presetModules';
 import { LegendModule } from '../chart/legend/legendModule';
 import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import { LineSeriesModule } from '../chart/series/cartesian/lineSeriesModule';
@@ -200,6 +201,63 @@ describe('instance modules', () => {
                 await waitForChartStability(chart);
                 expect(injectWatermark).toHaveBeenCalledTimes(1);
                 expect(chart.isModuleRegistered('enterprise-plugin')).toBe(false);
+            });
+        });
+
+        describe('pooled charts', () => {
+            const SPARKLINE: AgSparklineOptions = { type: 'line', width: 200, height: 50, data: [1, 2, 3] };
+            const SPARKLINE_MODULES = [SparklinePresetModule, ...LINE_MODULES];
+            const { version } = LineSeriesModule;
+            const scopedPool = `Pool[name=sparkline|category@${version},line@${version},number@${version},sparkline@${version}]`;
+            let log: Mock;
+
+            beforeEach(() => {
+                (globalThis as any).agChartsDebug = ['pool'];
+                log = vi.spyOn(console, 'log').mockImplementation(() => {}) as Mock;
+            });
+
+            afterEach(() => {
+                delete (globalThis as any).agChartsDebug;
+                log.mockRestore();
+            });
+
+            function takePoolEvents(): string[] {
+                const events = log.mock.calls
+                    .map(([message]) => String(message))
+                    .filter((message) => message.startsWith('Pool['))
+                    .map((message) => message.replace(/ \(.*$/, ''));
+                log.mockClear();
+                return events;
+            }
+
+            async function createSparkline(modules?: ModuleDefinition[]) {
+                const sparkline = AgCharts.__createSparkline(prepareTestOptions({ ...SPARKLINE }), { modules });
+                await waitForChartStability(sparkline);
+                return sparkline;
+            }
+
+            it('re-uses pooled charts only across the same module set', async () => {
+                const first = await createSparkline(SPARKLINE_MODULES);
+                expect(first.isModuleRegistered('line')).toBe(true);
+                first.destroy();
+                expect(takePoolEvents()).toEqual([
+                    `${scopedPool}: Created instance`,
+                    `${scopedPool}: Releasing instance`,
+                    `${scopedPool}: Returned instance to free pool`,
+                ]);
+
+                const second = await createSparkline(SPARKLINE_MODULES);
+                expect(takePoolEvents()).toEqual([`${scopedPool}: Re-used instance`]);
+                second.destroy();
+
+                ModuleRegistry.registerModules(SPARKLINE_MODULES);
+                const global = await createSparkline();
+                expect(takePoolEvents()).toEqual([
+                    `${scopedPool}: Releasing instance`,
+                    `${scopedPool}: Returned instance to free pool`,
+                    'Pool[name=sparkline]: Created instance',
+                ]);
+                global.destroy();
             });
         });
 

@@ -104,7 +104,8 @@ export function internalParser(js, html, exampleSettings: ExampleSettings, dirPa
     const tsTree = parseFile(js);
     const tsCollectors = [];
     const tsOptionsCollectors = [];
-    const registered = [chartVariableName, optionsVariableName];
+    const chartParams = collectChartParams(tsTree, dirPath);
+    const registered = [chartVariableName, optionsVariableName, ...chartParams.paramsVariables];
 
     // handler is the function name, params are any function parameters
     domEventHandlers.forEach(([_, handler, params]) => {
@@ -174,28 +175,6 @@ export function internalParser(js, html, exampleSettings: ExampleSettings, dirPa
             registered.push(propertyName);
             bindings.chartProperties[id] = propertyName;
             bindings.properties.push({ name: propertyName, value: code });
-        },
-    });
-
-    // `AgCharts.create(options, { modules })` - the per-chart modules are re-emitted by each framework.
-    tsCollectors.push({
-        matches: (node) => tsNodeIsAgChartsCreateCall(node),
-        apply: (bindings, node: ts.CallExpression) => {
-            const [optionsArg, paramsArg] = node.arguments;
-            if (paramsArg == null) return;
-
-            if (!ts.isIdentifier(optionsArg) || !ts.isObjectLiteralExpression(paramsArg)) {
-                throw new Error(
-                    `AgCharts.create params must be an object literal following an options variable at "${dirPath}"`
-                );
-            }
-
-            for (const param of paramsArg.properties) {
-                if (!ts.isPropertyAssignment(param) || param.name.getText() !== 'modules') {
-                    throw new Error(`Unsupported AgCharts.create param "${param.name?.getText()}" at "${dirPath}"`);
-                }
-                bindings.chartModules[optionsArg.text] = tsGenerate(param.initializer, tsTree);
-            }
         },
     });
 
@@ -290,7 +269,7 @@ export function internalParser(js, html, exampleSettings: ExampleSettings, dirPa
         {
             properties: [],
             chartProperties: {},
-            chartModules: {},
+            chartModules: chartParams.modules,
             externalEventHandlers: [],
             instanceMethods: [],
             globals: [],
@@ -335,4 +314,54 @@ function tsNodeIsAgChartsCreateCall(node: ts.Node): node is ts.CallExpression {
         node.expression.expression.text === 'AgCharts' &&
         node.expression.name.text.startsWith('create')
     );
+}
+
+function findTopLevelInitializer(tsTree: ts.SourceFile, name: string): ts.Expression | undefined {
+    for (const statement of tsTree.statements) {
+        if (!ts.isVariableStatement(statement)) continue;
+        for (const declaration of statement.declarationList.declarations) {
+            if (ts.isIdentifier(declaration.name) && declaration.name.text === name) {
+                return declaration.initializer;
+            }
+        }
+    }
+}
+
+/**
+ * The per-chart `modules` of every `AgCharts.create(options, { modules })` call, keyed by the options
+ * variable, so each framework can re-emit them. A params object held in its own top-level variable is
+ * inlined, so that variable is reported for exclusion from the emitted globals.
+ */
+function collectChartParams(tsTree: ts.SourceFile, dirPath: string) {
+    const modules: Record<string, string> = {};
+    const paramsVariables: string[] = [];
+
+    const visit = (node: ts.Node) => {
+        if (tsNodeIsAgChartsCreateCall(node)) {
+            const [optionsArg, paramsArg] = node.arguments;
+            if (paramsArg == null) return;
+
+            let params: ts.Expression | undefined = paramsArg;
+            if (ts.isIdentifier(paramsArg)) {
+                params = findTopLevelInitializer(tsTree, paramsArg.text);
+                paramsVariables.push(paramsArg.text);
+            }
+            if (!ts.isIdentifier(optionsArg) || params == null || !ts.isObjectLiteralExpression(params)) {
+                throw new Error(
+                    `AgCharts.create params must be an object literal following an options variable at "${dirPath}"`
+                );
+            }
+
+            for (const param of params.properties) {
+                if (!ts.isPropertyAssignment(param) || param.name.getText() !== 'modules') {
+                    throw new Error(`Unsupported AgCharts.create param "${param.name?.getText()}" at "${dirPath}"`);
+                }
+                modules[optionsArg.text] = tsGenerate(param.initializer, tsTree);
+            }
+        }
+        ts.forEachChild(node, visit);
+    };
+    visit(tsTree);
+
+    return { modules, paramsVariables };
 }

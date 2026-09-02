@@ -27,6 +27,28 @@ AgCharts.create(lineOptions, { modules: [LineSeriesModule] });
 AgCharts.create(barOptions, { modules: [BarSeriesModule] });
 `;
 
+const VARIABLE_SRC = `
+import { AgCharts, BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+
+ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
+
+const lineModules = [LineSeriesModule];
+const barParams = { modules: [BarSeriesModule] };
+
+const lineOptions = {
+    container: document.getElementById('lineChart'),
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+};
+
+const barOptions = {
+    container: document.getElementById('barChart'),
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+};
+
+const chart = AgCharts.create(lineOptions, { modules: lineModules });
+AgCharts.create(barOptions, barParams);
+`;
+
 const parse = (srcFile: string) =>
     parser({ srcFile, html: HTML, dirPath: '/example', exampleSettings: { enterprise: false } });
 
@@ -35,6 +57,20 @@ describe('per-chart modules', () => {
         const { bindings, typedBindings } = parse(SRC);
         expect(bindings.chartModules).toEqual({ lineOptions: '[LineSeriesModule]', barOptions: '[BarSeriesModule]' });
         expect(typedBindings.chartModules).toEqual(bindings.chartModules);
+    });
+
+    test('parser resolves modules and params held in top-level variables', () => {
+        const { bindings, typedBindings } = parse(VARIABLE_SRC);
+        expect(bindings.chartModules).toEqual({ lineOptions: 'lineModules', barOptions: '[BarSeriesModule]' });
+        expect(typedBindings.globals.join('\n')).toContain('const lineModules = [LineSeriesModule]');
+        expect(typedBindings.globals.join('\n')).not.toContain('barParams');
+    });
+
+    test('typescript output inlines a params variable and keeps a modules variable', () => {
+        const output = standardiseWhitespace(vanillaToTypescript(parse(VARIABLE_SRC).typedBindings));
+        expect(output).toContain('AgCharts.create(lineOptions, { modules: lineModules });');
+        expect(output).toContain('AgCharts.create(barOptions, { modules: [BarSeriesModule] });');
+        expect(output).not.toContain('barParams');
     });
 
     test('parser rejects params other than modules', () => {
@@ -74,5 +110,25 @@ AgCharts.create(options, { theme: 'ag-default' });`)
         expect(output).toContain('public lineOptionsModules = [LineSeriesModule];');
         expect(output).toContain('[modules]="lineOptionsModules"');
         expect(output).toContain('[modules]="barOptionsModules"');
+    });
+
+    describe('generated output', () => {
+        for (const [name, src] of Object.entries({ inline: SRC, variables: VARIABLE_SRC })) {
+            test(`${name} typescript`, () => {
+                expect(vanillaToTypescript(parse(src).typedBindings)).toMatchSnapshot();
+            });
+            test(`${name} react`, async () => {
+                expect(await vanillaToReactFunctional(parse(src).bindings, [], [], false)).toMatchSnapshot();
+            });
+            test(`${name} react typescript`, async () => {
+                expect(await vanillaToReactFunctionalTs(parse(src).typedBindings, [], [], false)).toMatchSnapshot();
+            });
+            test(`${name} vue`, async () => {
+                expect(await vanillaToVue3(parse(src).typedBindings, [], false)).toMatchSnapshot();
+            });
+            test(`${name} angular`, async () => {
+                expect(await vanillaToAngular(parse(src).typedBindings, [], false)).toMatchSnapshot();
+            });
+        }
     });
 });
