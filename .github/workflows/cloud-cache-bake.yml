@@ -33,8 +33,12 @@ on:
                 required: false
                 default: false
 
+# The bake needs contents:write to create the release and upload the cache
+# asset, but that is scoped to the job that does it rather than granted to the
+# whole workflow — a top-level write applies to every job and is the widest
+# grant a workflow file can make.
 permissions:
-    contents: write
+    contents: read
 
 concurrency:
     # Two bakes racing would fight over the same release tag. Not cancel-in-progress:
@@ -45,6 +49,9 @@ concurrency:
 jobs:
     bake:
         name: Bake node_modules cache
+        permissions:
+            # `gh release create` / `upload` / `delete-asset` in the composite action.
+            contents: write
         runs-on: ubuntu-24.04
         # The base image for cloud sessions is Ubuntu 24.04 on x64 and .nvmrc pins a
         # single node version, so native binaries baked here match what the session

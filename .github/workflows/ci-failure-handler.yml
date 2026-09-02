@@ -69,6 +69,15 @@ on:
                 required: false
                 default: ''
 
+# Restrictive default. Both jobs below declare their own `permissions:` blocks,
+# which replace this wholesale rather than adding to it, so this grants nothing
+# at runtime — it exists because a workflow with no top-level block is treated
+# as write-all by consumers and scanners alike (OSSF Scorecard reads it that way
+# and scores Token-Permissions 0 on it). The `handle` job's write grants are
+# deliberate and justified in the security model above.
+permissions:
+    contents: read
+
 concurrency:
     # One investigation per failing commit; do not cancel an in-flight one.
     group: ci-failure-handler-${{ github.event.workflow_run.head_sha || inputs.run_id }}
