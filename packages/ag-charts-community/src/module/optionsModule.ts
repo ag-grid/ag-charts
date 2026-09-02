@@ -862,8 +862,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      * Resolves `validations.throwOn`, falling back to throwing on nothing for anything unusable. The
      * fallback direction is the opposite of `applyConsoleOn`'s deliberately: this runs before the array
      * validator has, and an invalid value must not make the chart throw about itself — nor turn
-     * fail-fast on for a consumer who never asked for it. Unrecognised elements are dropped rather than
-     * rejecting the array whole, because both outcomes mean the same thing here: do not throw.
+     * fail-fast on for a consumer who never asked for it.
      */
     private applyThrowOn(levels: unknown) {
         // Reuses `isLogLevel` so a new severity cannot be missed by either union. Any bad element
