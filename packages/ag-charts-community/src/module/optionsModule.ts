@@ -49,7 +49,6 @@ import {
     validate,
 } from 'ag-charts-core';
 import {
-    type AgChartModule,
     type AgChartOptions,
     type AgChartThemeParams,
     type AgChartValidationLevel,
@@ -187,7 +186,7 @@ export interface ChartInternalOptionMetadata {
     domMode?: 'normal' | 'minimal';
     withDragInterpretation?: boolean;
     /** Modules registered for this chart only, additive over the global registry. */
-    modules?: AgChartModule[];
+    modules?: Array<ModuleDefinition | ModuleDefinition[]>;
 }
 
 type GroupingOptions = {
@@ -350,9 +349,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.moduleRegistry =
             currentUserOptions instanceof ChartOptions
                 ? currentUserOptions.moduleRegistry
-                : ModuleRegistry.resolveModuleScope(
-                      this.optionMetadata.modules as Array<ModuleDefinition | ModuleDefinition[]> | undefined
-                  );
+                : ModuleRegistry.resolveModuleScope(this.optionMetadata.modules);
         this.processedOverrides = processedOverrides ?? {};
         this.suppressFailFast = refreshCSSVariables;
 

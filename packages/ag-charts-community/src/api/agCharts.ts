@@ -93,6 +93,11 @@ function takeOptionsArgumentIssue<O>(options: O, methodName: string): { options:
     return { options: rest as O, issue: issue as string };
 }
 
+// Public module types describe only the identifying fields; the runtime objects are full definitions.
+function instanceModules(params?: AgChartParams): Array<ModuleDefinition | ModuleDefinition[]> | undefined {
+    return params?.modules as Array<ModuleDefinition | ModuleDefinition[]> | undefined;
+}
+
 /**
  * Factory for creating and updating instances of AgChartInstance.
  *
@@ -150,7 +155,7 @@ export abstract class AgCharts {
         userOptions: O,
         params?: AgChartParams
     ): AgChartInstance<O> {
-        return this.createInternal(userOptions, { modules: params?.modules });
+        return this.createInternal(userOptions, { modules: instanceModules(params) });
     }
 
     private static createInternal<O extends AgChartOptions<DatumDefault, any>>(
@@ -188,7 +193,10 @@ export abstract class AgCharts {
     ): AgChartInstance<AgFinancialChartOptions> {
         options = withOptionsArgumentIssue(options, 'AgCharts.createFinancialChart()');
         return debug.group('AgCharts.createFinancialChart()', () => {
-            return this.createInternal(options as any, { presetType: 'price-volume', modules: params?.modules }) as any;
+            return this.createInternal(options as any, {
+                presetType: 'price-volume',
+                modules: instanceModules(params),
+            }) as any;
         });
     }
 
@@ -197,7 +205,7 @@ export abstract class AgCharts {
         return debug.group('AgCharts.createGauge()', () => {
             return this.createInternal(options as AgChartOptions, {
                 presetType: 'gauge-preset',
-                modules: params?.modules,
+                modules: instanceModules(params),
             }) as any;
         });
     }
@@ -211,7 +219,7 @@ export abstract class AgCharts {
         return debug.group('AgCharts.createQuadrantChart()', () => {
             return this.createInternal(options, {
                 presetType: 'quadrant',
-                modules: params?.modules,
+                modules: instanceModules(params),
             }) as AgChartInstance<AgQuadrantChartOptions<TDatum, any>>;
         });
     }
@@ -228,7 +236,7 @@ export abstract class AgCharts {
                 pool: pool ?? true,
                 domMode: 'minimal',
                 withDragInterpretation: false,
-                modules: params?.modules,
+                modules: instanceModules(params),
             }) as any;
         });
     }
@@ -296,10 +304,7 @@ class AgChartsInternal {
         const styles = enterpriseRegistry.styles == null ? [] : [['ag-charts-enterprise', enterpriseRegistry.styles]];
 
         const moduleScope =
-            proxy?.chart?.chartOptions.moduleRegistry ??
-            ModuleRegistry.resolveModuleScope(
-                optionsMetadata.modules as Array<ModuleDefinition | ModuleDefinition[]> | undefined
-            );
+            proxy?.chart?.chartOptions.moduleRegistry ?? ModuleRegistry.resolveModuleScope(optionsMetadata.modules);
         if (moduleScope.listModules().next().done) {
             throw new Error(
                 [
@@ -533,8 +538,7 @@ class AgChartsInternal {
 
     private static readonly detachAndClear = (chart: Chart) => chart.detachAndClear();
     private static readonly destroy = (chart: Chart) => chart.destroy();
-    // A pooled chart's context binds its module scope at construction, so a chart must only ever be
-    // handed to a successor sharing that scope.
+    // A chart's context binds its module scope at construction, so pooled charts are keyed by scope too.
     private static getPool(optionMetadata: ChartInternalOptionMetadata, moduleScope: ModuleScope) {
         if (optionMetadata.pool !== true) return;
 

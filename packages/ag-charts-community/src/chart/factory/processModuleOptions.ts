@@ -272,8 +272,6 @@ function formatImports(imports: string[], packageName: string) {
         : null;
 }
 
-// Suggests the registration route the author is already using: the params form for a chart created with
-// instance modules, the global registry otherwise.
 function createRegistrySnippet(moduleNames: string[], packageName: string, instanceModules: boolean): string {
     const moduleList = moduleNames.map(formatImportItem).join('\n');
     if (instanceModules) {
