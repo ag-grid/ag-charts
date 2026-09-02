@@ -234,7 +234,7 @@ export function createQuadrant(
 
     const scatterSeriesKeys = [...pointSeriesKeys, 'size'] as const;
 
-    const bubbleSeriesKeys = [...pointSeriesKeys, 'maxSize', 'minSize', 'sizeKey'] as const;
+    const bubbleSeriesKeys = [...pointSeriesKeys, 'maxSize', 'minSize', 'sizeKey', 'sizeName'] as const;
 
     const pivotX = pivot?.x ?? 0;
     const pivotY = pivot?.y ?? 0;
