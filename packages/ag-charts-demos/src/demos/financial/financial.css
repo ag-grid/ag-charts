@@ -146,34 +146,17 @@
     font-size: 13px;
 }
 
-/* ---- demo notice banner ---- */
-.fin-banner {
+/* ---- demo notice ---- */
+/* Anchor for the tooltip; the toolbar row itself must not grow to fit it. */
+.fin-info {
     position: relative;
-    display: flex;
-    gap: 10px;
-    margin: 8px 12px;
-    padding: 8px 40px 8px 12px;
-    background: var(--fin-notice);
-    color: #fff;
-    font-size: 12px;
-    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    /* Pulled back against the toolbar's 16px gap so the icon reads as part of the brand. */
+    margin-left: -8px;
 }
 
-.fin-banner-icon {
-    flex: none;
-    color: #fff;
-}
-
-.fin-banner-text {
-    flex: 0 1 auto;
-    font-weight: 600;
-}
-
-.fin-banner-dismiss {
-    position: absolute;
-    top: 50%;
-    right: 9px;
-    transform: translateY(-50%);
+.fin-info-trigger {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -181,19 +164,36 @@
     height: 22px;
     padding: 0;
     border: none;
+    border-radius: 3px;
     background: transparent;
-    color: #fff;
-    font: inherit;
-    line-height: 1;
+    color: var(--fin-muted);
     cursor: pointer;
-    opacity: 0.85;
 }
-.fin-banner-dismiss:hover {
-    opacity: 1;
+.fin-info-trigger:hover,
+.fin-info-trigger:focus-visible {
+    color: var(--fin-text);
 }
-.fin-banner-dismiss:focus-visible {
-    outline: 1px solid #fff;
+.fin-info-trigger:focus-visible {
+    outline: 1px solid var(--fin-accent);
     outline-offset: 1px;
+}
+
+.fin-info-tooltip {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 10;
+    /* Wide enough to hold the notice on two or three lines, narrow enough to stay on a phone. */
+    width: max-content;
+    max-width: min(320px, calc(100vw - 24px));
+    padding: 8px 10px;
+    background: var(--fin-notice);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 45%);
+    pointer-events: none;
 }
 
 .fin-clock {

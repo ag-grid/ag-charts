@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { fmtTime } from '../format';
+import { DemoInfo } from './DemoInfo';
 
 // A fixed demo balance. Static on purpose: nothing in the demo places a trade, so a
 // drifting balance would imply state that does not exist.
@@ -21,6 +22,7 @@ export function Toolbar() {
     return (
         <div className="fin-toolbar">
             <span className="fin-brand">AG Trade</span>
+            <DemoInfo />
 
             <div className="fin-toolbar-spacer" />
 

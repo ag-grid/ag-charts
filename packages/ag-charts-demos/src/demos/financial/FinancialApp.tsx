@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react';
 
-import { DemoBanner } from './components/DemoBanner';
 import { FinancialChart } from './components/FinancialChart';
 import { MostActive } from './components/MostActive';
 import { PeerPerformanceChart } from './components/PeerPerformanceChart';
@@ -73,7 +72,6 @@ export const FinancialApp = () => {
     return (
         <div className="fin-container">
             <Toolbar />
-            <DemoBanner />
 
             <div className="fin-body" data-drawer-open={drawerOpen}>
                 <div className="fin-sidebar fin-sidebar-left">
