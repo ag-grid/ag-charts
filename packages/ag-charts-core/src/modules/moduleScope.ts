@@ -124,6 +124,11 @@ export class ModuleScope {
         return `${this.parent.currentRevision()}:${this.revision}`;
     }
 
+    /** Whether this scope holds any definition of its own rather than only those of its parent. */
+    get hasOwnModules(): boolean {
+        return this.modules.size > 0;
+    }
+
     hasModule(moduleName: string): boolean {
         return this.modules.has(moduleName) || (this.parent?.hasModule(moduleName) ?? false);
     }
@@ -180,4 +185,31 @@ export class ModuleScope {
 
 export function createModuleScope(parent?: ModuleScope): ModuleScope {
     return new ModuleScope(parent);
+}
+
+export interface ScopedCache<T> {
+    /** The cache for `scope`, emptied first if the scope's registry changed since the last call. */
+    for(scope: ModuleScope): T;
+    /** Drops every scope's cache. */
+    clear(): void;
+}
+
+/** One cache per module scope for state derived from the scope's module set. */
+export function createScopedCache<T>(create: () => T, empty: (cache: T) => void): ScopedCache<T> {
+    let caches = new WeakMap<ModuleScope, { cache: T; revision: RegistryRevision }>();
+    return {
+        for(scope) {
+            let entry = caches.get(scope);
+            if (entry == null) {
+                entry = { cache: create(), revision: -1 };
+                caches.set(scope, entry);
+            }
+            const { cache } = entry;
+            entry.revision = scope.ifRegistryChanged(entry.revision, () => empty(cache));
+            return cache;
+        },
+        clear() {
+            caches = new WeakMap();
+        },
+    };
 }

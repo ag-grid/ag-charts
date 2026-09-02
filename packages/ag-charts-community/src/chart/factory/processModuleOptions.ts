@@ -7,8 +7,8 @@ import {
     ModuleType,
     type PlainObject,
     type PluginModuleDefinition,
-    type RegistryRevision,
     type SeriesPluginModuleDefinition,
+    createScopedCache,
     deepClone,
     deepFreeze,
     groupBy,
@@ -24,27 +24,19 @@ import { ExpectedModules, type ModulePlaceholder } from './expectedModules';
 
 const SkippedModules = new Set<string>(['foreground']);
 
-type ScopedSanitizedThemeCache = { cache: WeakMap<ChartTheme, ChartTheme>; revision: RegistryRevision };
-let sanitizedThemeCaches = new WeakMap<ModuleScope, ScopedSanitizedThemeCache>();
-const sanitizedThemeCacheDebug = Debug.create(true, 'perf', 'theme');
-
-function sanitizedThemeCacheFor(moduleRegistry: ModuleScope): WeakMap<ChartTheme, ChartTheme> {
-    let scoped = sanitizedThemeCaches.get(moduleRegistry);
-    if (scoped == null) {
-        scoped = { cache: new WeakMap(), revision: -1 };
-        sanitizedThemeCaches.set(moduleRegistry, scoped);
+const sanitizedThemeCaches = createScopedCache(
+    () => ({ themes: new WeakMap<ChartTheme, ChartTheme>() }),
+    (cache) => {
+        cache.themes = new WeakMap();
     }
-    scoped.revision = moduleRegistry.ifRegistryChanged(scoped.revision, () => {
-        scoped.cache = new WeakMap();
-    });
-    return scoped.cache;
-}
+);
+const sanitizedThemeCacheDebug = Debug.create(true, 'perf', 'theme');
 
 export function sanitizeThemeModules(
     theme: ChartTheme,
     moduleRegistry: ModuleScope = ModuleRegistry.resolveModuleScope()
 ): ChartTheme {
-    const sanitizedThemeCache = sanitizedThemeCacheFor(moduleRegistry);
+    const { themes: sanitizedThemeCache } = sanitizedThemeCaches.for(moduleRegistry);
     const cached = sanitizedThemeCache.get(theme);
     if (cached !== undefined) {
         sanitizedThemeCacheDebug('[CACHE] SanitizedTheme', 'hit');
@@ -59,7 +51,7 @@ export function sanitizeThemeModules(
 
 /** Test-only: drop all cached entries so cases start from a known cold state. */
 export function __clearSanitizedThemeCacheForTests() {
-    sanitizedThemeCaches = new WeakMap();
+    sanitizedThemeCaches.clear();
 }
 
 function sanitizeThemeModulesUncached(theme: ChartTheme, moduleRegistry: ModuleScope): ChartTheme {

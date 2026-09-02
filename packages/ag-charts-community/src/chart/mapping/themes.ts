@@ -4,12 +4,12 @@ import {
     ModuleRegistry,
     type ModuleScope,
     type OptionsDefs,
-    type RegistryRevision,
     ambientLogger,
     arrayOf,
     boolean,
     color,
     colorOrRef,
+    createScopedCache,
     fontFamilyFull,
     fontWeight,
     gradientStrict,
@@ -70,18 +70,12 @@ type ThemeMap = {
  * per module scope, so a chart with instance modules never reads a theme built for a different module set.
  */
 function memoizeByRegistry(factory: ThemeFactory): ThemeFactory {
-    const scoped = new WeakMap<
-        ModuleScope,
-        { cached: Map<string | undefined, ChartTheme>; lastSeen: RegistryRevision }
-    >();
+    const scoped = createScopedCache(
+        () => new Map<string | undefined, ChartTheme>(),
+        (cached) => cached.clear()
+    );
     return (presetName, moduleRegistry = ModuleRegistry.resolveModuleScope()) => {
-        let entry = scoped.get(moduleRegistry);
-        if (entry == null) {
-            entry = { cached: new Map(), lastSeen: -1 };
-            scoped.set(moduleRegistry, entry);
-        }
-        const { cached } = entry;
-        entry.lastSeen = moduleRegistry.ifRegistryChanged(entry.lastSeen, () => cached.clear());
+        const cached = scoped.for(moduleRegistry);
         if (!cached.has(presetName)) {
             cached.set(presetName, factory(presetName, moduleRegistry));
         }
@@ -121,26 +115,17 @@ export const themes: ThemeMap = {
 
 // Both caches key on preset name first: a preset's `themeTemplate` is baked into the instance, so the
 // preset name must stay OUTSIDE the weak key or a per-chart options object pins its ChartTheme forever.
-type ScopedChartThemeCache = {
-    byValue: Map<string | undefined, Map<string | null | undefined, ChartTheme>>;
-    byObject: Map<string | undefined, WeakMap<object, ChartTheme>>;
-    revision: RegistryRevision;
-};
-let chartThemeCaches = new WeakMap<ModuleScope, ScopedChartThemeCache>();
-const themeCacheDebug = Debug.create(true, 'perf', 'theme');
-
-function chartThemeCacheFor(moduleRegistry: ModuleScope): ScopedChartThemeCache {
-    let scoped = chartThemeCaches.get(moduleRegistry);
-    if (scoped == null) {
-        scoped = { byValue: new Map(), byObject: new Map(), revision: -1 };
-        chartThemeCaches.set(moduleRegistry, scoped);
+const chartThemeCaches = createScopedCache(
+    () => ({
+        byValue: new Map<string | undefined, Map<string | null | undefined, ChartTheme>>(),
+        byObject: new Map<string | undefined, WeakMap<object, ChartTheme>>(),
+    }),
+    ({ byValue, byObject }) => {
+        byValue.clear();
+        byObject.clear();
     }
-    scoped.revision = moduleRegistry.ifRegistryChanged(scoped.revision, () => {
-        scoped.byValue.clear();
-        scoped.byObject.clear();
-    });
-    return scoped;
-}
+);
+const themeCacheDebug = Debug.create(true, 'perf', 'theme');
 
 export const getChartTheme: typeof createChartTheme = (
     value,
@@ -148,7 +133,7 @@ export const getChartTheme: typeof createChartTheme = (
     presetName,
     moduleRegistry = ModuleRegistry.resolveModuleScope()
 ) => {
-    const { byValue: chartThemeCache, byObject: chartThemeObjectCache } = chartThemeCacheFor(moduleRegistry);
+    const { byValue: chartThemeCache, byObject: chartThemeObjectCache } = chartThemeCaches.for(moduleRegistry);
 
     const objectKey = typeof value === 'object' && value !== null ? value : undefined;
     let theme: ChartTheme | undefined;
@@ -184,7 +169,7 @@ export const getChartTheme: typeof createChartTheme = (
 
 /** Test-only: drop all cached entries so cases start from a known cold state. */
 export function __clearChartThemeCacheForTests() {
-    chartThemeCaches = new WeakMap();
+    chartThemeCaches.clear();
 }
 
 function createChartTheme(

@@ -4,7 +4,7 @@ import {
     Debug,
     LRUCache,
     type ModuleScope,
-    type RegistryRevision,
+    createScopedCache,
     deepFreeze,
 } from 'ag-charts-core';
 import type { AgChartThemeParams } from 'ag-charts-types';
@@ -29,8 +29,10 @@ export interface StructuralCacheEntry {
 }
 
 const STRUCTURAL_CACHE_MAX = 8;
-type ScopedStructuralCache = { cache: LRUCache<StructuralCacheEntry>; revision: RegistryRevision };
-let structuralCaches = new WeakMap<ModuleScope, ScopedStructuralCache>();
+const structuralCaches = createScopedCache(
+    () => new LRUCache<StructuralCacheEntry>(STRUCTURAL_CACHE_MAX),
+    (cache) => cache.clear()
+);
 const structuralCacheDebug = Debug.create(true, 'perf', 'opts');
 
 // Per-instance keys excluded from the cache key. `document`/`window`/`styleContainer`
@@ -80,29 +82,17 @@ function describeDataShape(data: unknown): string {
     return typeof firstNonNull;
 }
 
-function structuralCacheFor(moduleRegistry: ModuleScope): LRUCache<StructuralCacheEntry> {
-    let scoped = structuralCaches.get(moduleRegistry);
-    if (scoped == null) {
-        scoped = { cache: new LRUCache<StructuralCacheEntry>(STRUCTURAL_CACHE_MAX), revision: -1 };
-        structuralCaches.set(moduleRegistry, scoped);
-    }
-    scoped.revision = moduleRegistry.ifRegistryChanged(scoped.revision, () => {
-        scoped.cache.clear();
-    });
-    return scoped.cache;
-}
-
 export function getStructuralCacheEntry(key: string, moduleRegistry: ModuleScope): StructuralCacheEntry | undefined {
-    const entry = structuralCacheFor(moduleRegistry).get(key);
+    const entry = structuralCaches.for(moduleRegistry).get(key);
     structuralCacheDebug('[CACHE] StructuralOptions', entry ? 'hit' : 'miss');
     return entry;
 }
 
 export function setStructuralCacheEntry(key: string, value: StructuralCacheEntry, moduleRegistry: ModuleScope) {
-    structuralCacheFor(moduleRegistry).set(key, deepFreeze(value));
+    structuralCaches.for(moduleRegistry).set(key, deepFreeze(value));
 }
 
 /** Test-only: drop all cached entries so cases start from a known cold state. */
 export function __clearStructuralCacheForTests() {
-    structuralCaches = new WeakMap();
+    structuralCaches.clear();
 }

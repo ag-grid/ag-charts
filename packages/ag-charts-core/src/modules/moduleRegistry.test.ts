@@ -362,6 +362,27 @@ describe('moduleRegistry', () => {
             expect(getModuleScopeKey(resolveModuleScope())).toBe('');
         });
 
+        test('resolveModuleScope returns the global scope when every module is already registered globally', () => {
+            const axis = createAxisModule('already-global');
+            register(axis);
+
+            expect(isGlobalScope(resolveModuleScope([axis]))).toBe(true);
+            expect(isGlobalScope(resolveModuleScope([axis, createSeriesModule('own')]))).toBe(false);
+        });
+
+        test('resolveModuleScope keeps enterprise and community definitions of one module apart', () => {
+            const community = createSeriesModule('dual');
+            const enterprise = createSeriesModule('dual', { enterprise: true });
+
+            const communityScope = resolveModuleScope([community]);
+            const enterpriseScope = resolveModuleScope([enterprise]);
+
+            expect(communityScope).not.toBe(enterpriseScope);
+            expect(communityScope.getSeriesModule('dual')).toBe(community);
+            expect(enterpriseScope.getSeriesModule('dual')).toBe(enterprise);
+            expect(getModuleScopeKey(enterpriseScope)).toBe('dual@1.0.0:enterprise');
+        });
+
         test('resolveModuleScope shares one scope per module set, regardless of order or nesting', () => {
             const axis = createAxisModule('scoped-axis');
             const series = createSeriesModule('scoped-series');

@@ -26,14 +26,14 @@ const instanceScopeKeys = new WeakMap<ModuleScope, string>();
 
 function instanceScopeKey(definitions: ModuleDefinition[]): string {
     return definitions
-        .map((def) => `${def.name}@${def.version}`)
+        .map((def) => `${def.name}@${def.version}${def.enterprise ? ':enterprise' : ''}`)
         .sort((a, b) => a.localeCompare(b))
         .join(',');
 }
 
 /**
  * Returns the scope a chart created with the given instance `modules` should resolve against: the
- * global scope when there are none, otherwise a child scope holding them over the global registry.
+ * global scope when they add nothing to it, otherwise a child scope holding them over the global registry.
  */
 export function resolveModuleScope(modules?: Array<ModuleDefinition | ModuleDefinition[]>): ModuleScope {
     const definitions = modules?.flat() ?? [];
@@ -42,10 +42,13 @@ export function resolveModuleScope(modules?: Array<ModuleDefinition | ModuleDefi
     const key = instanceScopeKey(definitions);
     let scope = instanceScopes.get(key);
     if (scope == null) {
-        scope = createModuleScope(globalScope);
-        scope.registerModules(definitions);
+        const child = createModuleScope(globalScope);
+        child.registerModules(definitions);
+        scope = child.hasOwnModules ? child : globalScope;
         instanceScopes.set(key, scope);
-        instanceScopeKeys.set(scope, key);
+        if (scope !== globalScope) {
+            instanceScopeKeys.set(scope, key);
+        }
     }
     return scope;
 }
