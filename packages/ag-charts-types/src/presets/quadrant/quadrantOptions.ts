@@ -195,6 +195,8 @@ export interface AgQuadrantTooltipRendererParams<TDatum, TContext> extends AgSca
 > {
     /** The region the marker falls in, determined by comparing its x- and y-values against the pivot. */
     region: AgQuadrantRegion;
+    /** The human-readable description of the size values, as supplied via `sizeName`, present when `sizeKey` is set. */
+    sizeName?: string;
 }
 
 export interface AgQuadrantLabelOptions<TDatum, TContext> extends Omit<
