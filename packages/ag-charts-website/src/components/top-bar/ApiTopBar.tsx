@@ -1,5 +1,5 @@
 import type { ApiMenuItem, Framework } from '@ag-grid-types';
-import { addTrailingSlash } from '@ag-website-shared/utils/addTrailingSlash';
+import { addTrailingSlashToPath } from '@ag-website-shared/utils/addTrailingSlashToPath';
 import { DEFAULT_FRAMEWORK } from '@constants';
 import { useStore } from '@nanostores/react';
 import { $internalFramework } from '@stores/frameworkStore';
@@ -49,7 +49,7 @@ export const ApiTopBar: FunctionComponent<Props> = ({ menuItems, fullPath }) => 
                         <ul className="list-style-none">
                             {menuItemsWithFrameworkLinks.map(({ title, path }) => (
                                 <li key={path} className={pagePath.startsWith(path) ? styles.active : ''}>
-                                    <a href={addTrailingSlash(urlWithBaseUrl(path))}>{title}</a>
+                                    <a href={addTrailingSlashToPath(urlWithBaseUrl(path))}>{title}</a>
                                 </li>
                             ))}
                         </ul>
