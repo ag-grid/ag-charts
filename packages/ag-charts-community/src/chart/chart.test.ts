@@ -2254,7 +2254,7 @@ describe('validations.issueRaised', () => {
         chart.update(ChartUpdateType.FULL);
         await waitForChartStability(chart);
 
-        expect(issueRaised).toHaveBeenCalledWith({ level: 'error', message: thrownError.message });
+        expect(issueRaised).toHaveBeenCalledWith({ severity: 'error', message: thrownError.message });
     });
 });
 
@@ -2283,7 +2283,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
         ).toThrow(/validations.throwOn: warning/);
 
         expect(issueRaised).toHaveBeenCalledWith({
-            level: 'warning',
+            severity: 'warning',
             message: expect.stringContaining('series[0].strokeWidth'),
         });
         expectWarningsCalls().toHaveLength(1);
@@ -2306,7 +2306,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
 
         const errorMock = console.error as Mock;
         expect(issueRaised).toHaveBeenCalledWith({
-            level: 'error',
+            severity: 'error',
             message: expect.stringContaining('required modules are not registered'),
         });
         expect(errorMock).toHaveBeenCalledTimes(1);
@@ -2334,7 +2334,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
         ).rejects.toThrow(/validations.throwOn: warning/);
 
         expect(issueRaised).toHaveBeenCalledWith({
-            level: 'warning',
+            severity: 'warning',
             message: expect.stringContaining('series[0].strokeWidth'),
         });
         expectWarningsCalls().toHaveLength(1);
@@ -2385,7 +2385,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
 
         expect(outerListener).toHaveBeenCalledTimes(1);
         expect(innerListener).toHaveBeenCalledWith({
-            level: 'warning',
+            severity: 'warning',
             message: expect.stringContaining('series[0].strokeWidth'),
         });
         expectWarningsCalls().toHaveLength(2);
@@ -2478,7 +2478,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
         );
         boom = false;
 
-        expect(issueRaised).toHaveBeenCalledWith({ level: 'error', message: 'datum exploded' });
+        expect(issueRaised).toHaveBeenCalledWith({ severity: 'error', message: 'datum exploded' });
         (console.error as Mock).mockClear();
     });
 
@@ -2509,7 +2509,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
         await waitForChartStability(chart);
 
         expect(issueRaised).toHaveBeenCalledWith({
-            level: 'error',
+            severity: 'error',
             message: expect.stringContaining('itemStyler boom'),
         });
         expect(chart.validationCollector.hasVisibleIssues()).toBe(true);

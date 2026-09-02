@@ -305,16 +305,16 @@ describe('severityAtOrAbove', () => {
 });
 
 describe('ValidationIssueCollector - issue listener', () => {
-    it('dispatches { level, message } for each severity', () => {
+    it('dispatches { severity, message } for each severity', () => {
         const collector = new ValidationIssueCollector();
         const listener = vi.fn();
         collector.setIssueListener(listener);
 
         collector.setIssues([errorIssue, warningIssue, deprecationIssue]);
 
-        expect(listener).toHaveBeenNthCalledWith(1, { level: 'error', message: errorIssue.message });
-        expect(listener).toHaveBeenNthCalledWith(2, { level: 'warning', message: warningIssue.message });
-        expect(listener).toHaveBeenNthCalledWith(3, { level: 'deprecation', message: deprecationIssue.message });
+        expect(listener).toHaveBeenNthCalledWith(1, { severity: 'error', message: errorIssue.message });
+        expect(listener).toHaveBeenNthCalledWith(2, { severity: 'warning', message: warningIssue.message });
+        expect(listener).toHaveBeenNthCalledWith(3, { severity: 'deprecation', message: deprecationIssue.message });
         expect(listener).toHaveBeenCalledTimes(3);
     });
 
@@ -330,9 +330,9 @@ describe('ValidationIssueCollector - issue listener', () => {
         collector.commitCallbackIssues();
 
         expect(listener).toHaveBeenCalledTimes(3);
-        expect(listener).toHaveBeenNthCalledWith(1, { level: 'warning', message: warningIssue.message });
-        expect(listener).toHaveBeenNthCalledWith(2, { level: 'error', message: errorIssue.message });
-        expect(listener).toHaveBeenNthCalledWith(3, { level: 'deprecation', message: deprecationIssue.message });
+        expect(listener).toHaveBeenNthCalledWith(1, { severity: 'warning', message: warningIssue.message });
+        expect(listener).toHaveBeenNthCalledWith(2, { severity: 'error', message: errorIssue.message });
+        expect(listener).toHaveBeenNthCalledWith(3, { severity: 'deprecation', message: deprecationIssue.message });
     });
 
     it('does not re-dispatch a runtime error the catch site re-reports each failed pass', () => {
@@ -353,8 +353,8 @@ describe('ValidationIssueCollector - issue listener', () => {
 
         collector.setIssues([errorIssue, warningIssue]);
         expect(listener).toHaveBeenCalledTimes(2);
-        expect(listener).toHaveBeenNthCalledWith(1, { level: 'error', message: errorIssue.message });
-        expect(listener).toHaveBeenNthCalledWith(2, { level: 'warning', message: warningIssue.message });
+        expect(listener).toHaveBeenNthCalledWith(1, { severity: 'error', message: errorIssue.message });
+        expect(listener).toHaveBeenNthCalledWith(2, { severity: 'warning', message: warningIssue.message });
 
         listener.mockClear();
         collector.setIssues([errorIssue, warningIssue]);
@@ -362,7 +362,7 @@ describe('ValidationIssueCollector - issue listener', () => {
 
         collector.setIssues([errorIssue, warningIssue, deprecationIssue]);
         expect(listener).toHaveBeenCalledTimes(1);
-        expect(listener).toHaveBeenCalledWith({ level: 'deprecation', message: deprecationIssue.message });
+        expect(listener).toHaveBeenCalledWith({ severity: 'deprecation', message: deprecationIssue.message });
     });
 
     it('dispatches regardless of overlay level and dismissal', () => {
@@ -378,7 +378,7 @@ describe('ValidationIssueCollector - issue listener', () => {
         listener.mockClear();
         collector.setDataIssues([warningIssue]);
         expect(listener).toHaveBeenCalledTimes(1);
-        expect(listener).toHaveBeenCalledWith({ level: 'warning', message: warningIssue.message });
+        expect(listener).toHaveBeenCalledWith({ severity: 'warning', message: warningIssue.message });
     });
 
     it('a throwing listener does not propagate out of the recording call', () => {
@@ -442,8 +442,8 @@ describe('ValidationIssueCollector - issue listener', () => {
         collector.setIssues([errorIssue, warningIssue]);
 
         expect(second).toHaveBeenCalledTimes(2);
-        expect(second).toHaveBeenNthCalledWith(1, { level: 'error', message: errorIssue.message });
-        expect(second).toHaveBeenNthCalledWith(2, { level: 'warning', message: warningIssue.message });
+        expect(second).toHaveBeenNthCalledWith(1, { severity: 'error', message: errorIssue.message });
+        expect(second).toHaveBeenNthCalledWith(2, { severity: 'warning', message: warningIssue.message });
         expect(first).toHaveBeenCalledTimes(2);
     });
 

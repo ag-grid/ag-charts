@@ -37,7 +37,7 @@ export function severityAtOrAbove(level: ValidationOverlayLevel, severity: Valid
     return LEVEL_INCLUDES[level].includes(severity);
 }
 
-export type ValidationIssueListener = (event: { level: ValidationSeverity; message: string }) => void;
+export type ValidationIssueListener = (event: { severity: ValidationSeverity; message: string }) => void;
 
 function keyOf(issue: ValidationIssue): string {
     return `${issue.severity}:${issue.message}:${issue.code ?? ''}`;
@@ -100,7 +100,7 @@ export class ValidationIssueCollector {
             while (this.pendingDispatch.length > 0) {
                 const pending = this.pendingDispatch.shift()!;
                 try {
-                    listener({ level: pending.severity, message: pending.message });
+                    listener({ severity: pending.severity, message: pending.message });
                 } catch (error) {
                     this.issueListenerLogger?.error('validations.issueRaised threw an error', error);
                 }
