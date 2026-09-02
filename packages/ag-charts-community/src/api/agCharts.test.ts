@@ -464,7 +464,7 @@ describe('AgCharts', () => {
             chart = AgCharts.create(undefined as any);
             expectErrorCalls().toHaveLength(1);
             const { validationCollector } = deproxy(chart);
-            validationCollector.setOverlayLevel('error');
+            validationCollector.setOverlaySeverity('error');
             expect(validationCollector.hasVisibleIssues()).toBe(true);
             expect(validationCollector.getVisibleIssues().error).toEqual([
                 { severity: 'error', message: expect.stringMatching(/^AgCharts\.create\(\) requires a non-empty/) },

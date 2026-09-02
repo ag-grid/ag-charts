@@ -3,7 +3,7 @@
 // Minimum console severity a Logger emits (higher = quieter); the default of 0 admits every message.
 const SEVERITY = { deprecation: 1, warn: 2, error: 3 } as const;
 
-/** The public `validations.consoleLogLevel` scale, as an inclusive threshold. */
+/** The public `validations.consoleLogSeverity` scale, as an inclusive threshold. */
 export type LogLevel = 'deprecation' | 'warning' | 'error' | 'none';
 
 const LEVEL_SEVERITY: Record<LogLevel, number> = {
