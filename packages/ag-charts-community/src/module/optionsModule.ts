@@ -69,6 +69,7 @@ import {
 import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
 import { ChartTheme } from '../chart/themes/chartTheme';
+import { DEFAULT_CONSOLE_ON, DEFAULT_THROW_ON } from '../chart/validation/validationDefaults';
 import type { ValidationIssue, ValidationIssueListener } from '../chart/validation/validationIssueCollector';
 import {
     type OptionsGraphAccessor,
@@ -84,22 +85,6 @@ import {
     setStructuralCacheEntry,
 } from './optionsStructuralCache';
 import type { SeriesGrouping } from './seriesGrouping';
-
-// Frozen and shared with `Chart`, which re-applies the same three options from chart state: two
-// independently hoisted literals would be free to drift apart.
-
-/** The default `validations.consoleOn` — every severity, including deprecation notices. */
-export const DEFAULT_CONSOLE_ON: readonly AgChartValidationLevel[] = Object.freeze<AgChartValidationLevel[]>([
-    'error',
-    'warning',
-    'deprecation',
-]);
-
-/** The default `validations.showOverlayOn` — the overlay is opt-in, so no severity raises one. */
-export const DEFAULT_SHOW_OVERLAY_ON: readonly AgChartValidationLevel[] = Object.freeze<AgChartValidationLevel[]>([]);
-
-/** The default `validations.throwOn` — fail-fast is opt-in, so nothing throws unless a consumer asks for it. */
-export const DEFAULT_THROW_ON: readonly AgChartValidationLevel[] = Object.freeze<AgChartValidationLevel[]>([]);
 
 /**
  * A `validations.throwOn` fail-fast throw. Marks the error as already prefixed and already written to

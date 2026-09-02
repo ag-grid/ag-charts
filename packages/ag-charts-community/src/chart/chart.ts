@@ -50,12 +50,7 @@ import type {
 
 import type { UpdateOpts } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
-import {
-    type ChartOptions,
-    DEFAULT_CONSOLE_ON,
-    DEFAULT_SHOW_OVERLAY_ON,
-    DEFAULT_THROW_ON,
-} from '../module/optionsModule';
+import type { ChartOptions } from '../module/optionsModule';
 import type { SeriesGrouping } from '../module/seriesGrouping';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
@@ -98,6 +93,7 @@ import { Tooltip, type TooltipContent } from './tooltip/tooltip';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
+import { DEFAULT_CONSOLE_ON, DEFAULT_SHOW_OVERLAY_ON, DEFAULT_THROW_ON } from './validation/validationDefaults';
 import { ValidationIssueCollector, type ValidationIssueListener } from './validation/validationIssueCollector';
 
 const debug = Debug.create(true, 'opts');
