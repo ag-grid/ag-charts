@@ -2,67 +2,92 @@
 version: v1.25.1
 
 ignore:
+    # Dev-only, and there is no in-range fix. @vitest/mocker ships as part of
+    # vitest, which this repo pins to the exact version 2.1.9 in five manifests
+    # (root, ag-charts-community, ag-charts-core, ag-charts-enterprise,
+    # ag-charts-website). The advisory is fixed in 4.1.11, two majors up, so there
+    # is no range to relock within - clearing it means a deliberate vitest 4.x
+    # upgrade with config and snapshot-format changes across every suite, which is
+    # scheduled work rather than a dependency bump.
+    #
+    # vitest is a test-runner devDependency and reaches no published bundle, and it
+    # sits outside the published production dependency closure - a BFS from tslib,
+    # jsdom and skia-canvas covers 72 packages and contains no vitest.
+    #
+    # Path is `*` deliberately: a versioned path silently stops matching the moment
+    # a parent version moves, which is how four ignores in this repo had already
+    # died unnoticed.
+    SNYK-JS-VITESTMOCKER-19497933:
+        - '*':
+              reason: >-
+                  Dev-only test-runner dependency, absent from AG Charts runtime bundles and
+                  from the published production dependency closure. No in-range fix exists:
+                  vitest is pinned to exactly 2.1.9 and the advisory is fixed in 4.1.11, so
+                  remediation is a two-major vitest upgrade scheduled as its own work, not a
+                  bump. Time-boxed.
+              expires: 2027-03-02T00:00:00.000Z
+              created: 2026-09-02T00:00:00.000Z
     SNYK-JS-POSTCSS-18313038:
         - vitest@2.1.9 > vite@6.3.5 > postcss@8.5.3:
               reason: >-
                   Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
+              expires: 2027-03-02T00:00:00.000Z
               created: 2026-07-27T10:17:20.154Z
     SNYK-JS-POSTCSS-18313036:
         - vitest@2.1.9 > vite@6.3.5 > postcss@8.5.3:
               reason: >-
                   Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
+              expires: 2027-03-02T00:00:00.000Z
               created: 2026-07-27T10:16:26.712Z
     SNYK-JS-ESBUILD-17750822:
         - vitest@2.1.9 > vite@6.3.5 > esbuild@0.25.0:
               reason: >-
                   Test dependency - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
+              expires: 2027-03-02T00:00:00.000Z
               created: 2026-07-15T10:44:49.680Z
     SNYK-JS-VITE-17353904:
         - vitest@2.1.9 > vite-node@2.1.9 > vite@6.3.5:
               reason: >-
                   Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
+              expires: 2027-03-02T00:00:00.000Z
               created: 2026-06-24T13:44:44.122Z
         - vitest@2.1.9 > vite@6.3.5:
               reason: >-
                   Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
+              expires: 2027-03-02T00:00:00.000Z
               created: 2026-06-24T13:44:44.120Z
     SNYK-JS-VITEST-17120326:
         - vitest@2.1.9:
               reason: >-
                   Test dependency - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
+              expires: 2027-03-02T00:00:00.000Z
               created: 2026-06-05T10:12:32.309Z
     SNYK-JS-PICOMATCH-15765511:
         - vitest@2.1.9 > vite@6.3.5 > picomatch@4.0.2:
               reason: >-
                   Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
+              expires: 2027-03-02T00:00:00.000Z
               created: 2026-05-28T00:00:00.000Z
         - vitest@2.1.9 > vite@6.3.5 > tinyglobby@0.2.14 > picomatch@4.0.2:
               reason: >-
                   Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
+              expires: 2027-03-02T00:00:00.000Z
               created: 2026-05-28T00:00:00.000Z
     SNYK-JS-ROLLUP-15340920:
         - vitest@2.1.9 > vite@6.3.5 > rollup@4.42.0:
               reason: >-
                   Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
+              expires: 2027-03-02T00:00:00.000Z
               created: 2026-05-28T00:00:00.000Z
     SNYK-JS-VITE-15922242:
         - vitest@2.1.9 > vite@6.3.5:
               reason: >-
                   Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
+              expires: 2027-03-02T00:00:00.000Z
               created: 2026-05-28T00:00:00.000Z
         - vitest@2.1.9 > vite-node@2.1.9 > vite@6.3.5:
               reason: >-
                   Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
+              expires: 2027-03-02T00:00:00.000Z
               created: 2026-05-28T00:00:00.000Z
 patch: {}
