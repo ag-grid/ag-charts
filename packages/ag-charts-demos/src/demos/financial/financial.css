@@ -5,10 +5,9 @@
 /* Also applied to portalled content: Radix menus mount at document.body, outside .fin-container. */
 .fin-container,
 .fin-portal {
-    /* Lightness order is inverted against a light scheme: --fin-panel is the recessed working
-       area, --fin-panel-2 the raised card. */
+    /* Lightness order is inverted against a light scheme: --fin-panel is the recessed working area. */
     --fin-bg: #0e0f11;
-    --fin-panel: #17181a;
+    --fin-panel: #070708;
     /* Above the card: controls and floating menus. */
     --fin-elevated: #212327;
     --fin-elevated-hover: #2b2e34;
@@ -115,8 +114,19 @@
     font-size: 14px;
     font-weight: 650;
     letter-spacing: -0.1px;
-    /* Deliberately ink, not accent — the header carries no brand colour. */
+    /* Deliberately ink, not accent — the wordmark stays neutral; only the mark carries colour. */
     color: var(--fin-text);
+}
+
+.fin-brand-mark {
+    flex: 0 0 auto;
+}
+.fin-brand-mark-badge {
+    fill: var(--fin-accent-strong);
+}
+/* Knocked out to the header tone rather than white, so the badge reads as cut rather than drawn. */
+.fin-brand-mark-glyph {
+    fill: var(--fin-bg);
 }
 
 .fin-up {
@@ -152,8 +162,6 @@
     position: relative;
     display: inline-flex;
     align-items: center;
-    /* Pulled back against the toolbar's 16px gap so the icon reads as part of the brand. */
-    margin-left: -8px;
 }
 
 .fin-info-trigger {
@@ -181,7 +189,7 @@
 .fin-info-tooltip {
     position: absolute;
     top: calc(100% + 6px);
-    left: 0;
+    right: 0;
     z-index: 10;
     /* Wide enough to hold the notice on two or three lines, narrow enough to stay on a phone. */
     width: max-content;
@@ -194,11 +202,6 @@
     line-height: 1.4;
     box-shadow: 0 4px 12px rgb(0 0 0 / 45%);
     pointer-events: none;
-}
-
-.fin-clock {
-    color: var(--fin-muted);
-    font-variant-numeric: tabular-nums;
 }
 
 /* ---- layout ---- */
@@ -431,8 +434,7 @@
     min-height: 0;
 }
 
-/* Cards that hold a chart or a gauge share the same panel framing: a raised surface
-   on the recessed working area, with no outline. */
+/* Cards that hold a chart or a gauge share the same panel framing */
 .fin-detail-card {
     background: var(--fin-panel);
     padding: 12px;
