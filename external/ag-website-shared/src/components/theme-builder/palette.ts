@@ -51,6 +51,17 @@ export interface Palette {
      * needs no maintenance rather than a set of strokes that quietly go stale.
      */
     strokesDerived?: boolean[];
+    /**
+     * Whether the strokes are used at all.
+     *
+     * Optional, and absent means enabled, so a palette stored before this
+     * existed keeps the strokes it was built with.
+     *
+     * The strokes themselves are kept while this is off rather than cleared:
+     * switching it back on is meant to return what the user had, and a palette
+     * that forgot its strokes the moment they were hidden would be a trap.
+     */
+    strokesEnabled?: boolean;
     up?: PaletteAccent;
     down?: PaletteAccent;
     neutral?: PaletteAccent;
@@ -143,6 +154,14 @@ export interface SeriesColor {
 /** Absent means derived - see `Palette.strokesDerived`. */
 export const strokeIsDerived = (derived: boolean | undefined): boolean => derived ?? true;
 
+/** Absent means enabled - see `Palette.strokesEnabled`. */
+export const strokesAreEnabled = (palette: Palette): boolean => palette.strokesEnabled ?? true;
+
+export const withStrokesEnabled = (palette: Palette, enabled: boolean): Palette => ({
+    ...palette,
+    strokesEnabled: enabled,
+});
+
 export const toSeriesColors = ({ fills, strokes, strokesDerived }: Palette): SeriesColor[] =>
     fills.map((fill, index) => ({
         fill,
@@ -218,22 +237,37 @@ export const withAccentColors = (palette: Palette, key: PaletteAccentKey, value:
 /**
  * The palette as AG Charts takes it, without the editor's own bookkeeping.
  *
- * `strokesDerived` and an accent's `strokeDerived` describe where the next
- * stroke comes from, which is a question for the editor and not for a chart, so
- * they are projected out rather than passed along with everything else. Hosts
- * must go through this on the way to a theme - the shape is otherwise a
- * structural subset of `AgChartThemePalette`, and an extra key would ride along
- * unnoticed into the theme a user copies.
+ * `strokesDerived`, `strokesEnabled` and an accent's `strokeDerived` describe
+ * where the next stroke comes from and whether strokes are wanted at all, which
+ * are questions for the editor and not for a chart, so they are projected out
+ * rather than passed along with everything else. Hosts must go through this on
+ * the way to a theme - the shape is otherwise a structural subset of
+ * `AgChartThemePalette`, and an extra key would ride along unnoticed into the
+ * theme a user copies.
  */
-export const toThemePalette = ({ fills, strokes, up, down, neutral }: Palette) => ({
-    fills,
-    strokes,
-    ...(up ? { up: toThemeAccent(up) } : {}),
-    ...(down ? { down: toThemeAccent(down) } : {}),
-    ...(neutral ? { neutral: toThemeAccent(neutral) } : {}),
-});
+export const toThemePalette = (palette: Palette) => {
+    const { fills, strokes, up, down, neutral } = palette;
+    const enabled = strokesAreEnabled(palette);
+    return {
+        fills,
+        // Strokes off is expressed as a stroke matching its fill, because an AG
+        // Charts palette has no way to say "no stroke": dropping `strokes`
+        // inherits the base theme's, which is worse than an unwanted outline -
+        // a red fill ringed in the default navy. Matching also covers the
+        // series that outline themselves whatever the chart asks for - box
+        // plot, candlestick, treemap groups - which an unset stroke width
+        // would not.
+        strokes: enabled ? strokes : [...fills],
+        ...(up ? { up: toThemeAccent(up, enabled) } : {}),
+        ...(down ? { down: toThemeAccent(down, enabled) } : {}),
+        ...(neutral ? { neutral: toThemeAccent(neutral, enabled) } : {}),
+    };
+};
 
-const toThemeAccent = ({ fill, stroke }: PaletteAccent) => ({ fill, stroke });
+const toThemeAccent = ({ fill, stroke }: PaletteAccent, strokesEnabled: boolean) => ({
+    fill,
+    stroke: strokesEnabled ? stroke : fill,
+});
 
 export const paletteIsEmpty = (palette: Palette): boolean =>
     palette.fills.length === 0 && palette.strokes.length === 0 && !palette.up && !palette.down && !palette.neutral;

@@ -32,6 +32,18 @@ describe('toChartTheme', () => {
         expect(toChartTheme({ ...selection, palette: { fills: [], strokes: [] } }).palette).toBeUndefined();
     });
 
+    it('outlines nothing once the palette says so', () => {
+        // Including the series that draw an outline whether or not the chart
+        // asks for one, which an unset stroke width would not cover.
+        const off = { ...selection, palette: { ...selection.palette, strokesEnabled: false } };
+        expect(toChartTheme(off).palette).toEqual({
+            fills: ['#5090dc', '#ffa03a'],
+            strokes: ['#5090dc', '#ffa03a'],
+            up: { fill: '#459d55', stroke: '#459d55' },
+        });
+        expect(renderChartsThemeCode(off)).not.toContain('strokesEnabled');
+    });
+
     it('keeps every bookkeeping key out of the snippet the user copies', () => {
         // The end of the same thread: whatever survives the projection is what
         // someone pastes into their app.

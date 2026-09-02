@@ -1,3 +1,4 @@
+import { strokesAreEnabled } from '@ag-website-shared/components/theme-builder/palette';
 import { useRenderedTheme, useRenderedThemeInfo } from '@ag-website-shared/theming/rendered-theme';
 import styled from '@emotion/styled';
 import { useStore } from 'jotai';
@@ -72,7 +73,12 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
                 <PresetSelector chartType={primaryChartType} selectedId={preset.id} />
                 <PreviewRow>
                     {PREVIEW_PANES.map((pane) => (
-                        <PreviewPane key={pane} pane={pane} theme={previewTheme} />
+                        <PreviewPane
+                            key={pane}
+                            pane={pane}
+                            theme={previewTheme}
+                            strokesEnabled={strokesAreEnabled(selection.palette)}
+                        />
                     ))}
                 </PreviewRow>
             </Main>

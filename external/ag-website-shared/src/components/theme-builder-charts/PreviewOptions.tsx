@@ -3,7 +3,7 @@ import { Select } from '@ag-website-shared/components/select/Select';
 import styled from '@emotion/styled';
 
 import { PreviewFeatures } from './PreviewFeatures';
-import type { ChartFeatures } from './chartFeatures';
+import type { ChartFeatureId, ChartFeatures } from './chartFeatures';
 import { PREVIEW_CHART_TYPES, type PreviewChartType } from './chartTypes';
 import { SERIES_COUNT_OPTIONS } from './previewData';
 
@@ -15,6 +15,12 @@ interface Props {
     seriesCount: number;
     onSeriesCountChange: (count: number) => void;
     features: ChartFeatures;
+    /**
+     * Which features to offer. The pane's chart type decides most of it, but not
+     * all - a feature can also be held off by something outside the chart, so
+     * the list arrives ready made.
+     */
+    availableFeatures: ChartFeatureId[];
     onFeaturesChange: (features: ChartFeatures) => void;
 }
 
@@ -39,6 +45,7 @@ export const PreviewOptions = ({
     seriesCount,
     onSeriesCountChange,
     features,
+    availableFeatures,
     onFeaturesChange,
 }: Props) => (
     <Wrapper>
@@ -73,7 +80,7 @@ export const PreviewOptions = ({
         <FeaturesField>
             <PreviewFeatures
                 paneLabel={paneLabel}
-                available={chartType.features}
+                available={availableFeatures}
                 features={features}
                 onChange={onFeaturesChange}
             />
