@@ -97,7 +97,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         for (const crossLine of matches) {
             const { type: crossLineType, range, value } = crossLine;
             const crossLineId = crossLine.id ?? crossLine.internalId;
-            result.push({ clickedOn: 'cross-line', axisId, direction, crossLineId, crossLineType, range, value });
+            result.push({ type: 'crossLineClick', axisId, direction, crossLineId, crossLineType, range, value });
         }
         return result satisfies AgCrossLineClickEvent<unknown>['allClickParams'];
     }
@@ -117,10 +117,11 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
             callbacks.allClickParams.push(...allParamsOnThisAxis);
 
             // Use `Forbid` to ensure that allClickParams and rootLevelParams do have conflicting keys,
-            // otherwise the `...` spreading could silently and unintentionally override something.
+            // otherwise the `...` spreading could silently and unintentionally override something. `type` is
+            // exempt: the params carry the element kind, which the root event type deliberately overrides.
             type ParamType = (typeof allParamsOnThisAxis)[number];
             type EventType = PendingCrossLineCallbackParam;
-            const rootLevelParams: Forbid<EventType, keyof ParamType> = {
+            const rootLevelParams: Forbid<EventType, Exclude<keyof ParamType, 'type'>> = {
                 event: event.sourceEvent,
                 type: isClick ? 'crossLineClick' : 'crossLineDoubleClick',
             };
