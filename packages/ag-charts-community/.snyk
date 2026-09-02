@@ -1,6 +1,32 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  # Dev-only, and there is no in-range fix. @vitest/mocker ships as part of
+  # vitest, which this repo pins to the exact version 2.1.9 in five manifests
+  # (root, ag-charts-community, ag-charts-core, ag-charts-enterprise,
+  # ag-charts-website). The advisory is fixed in 4.1.11, two majors up, so there
+  # is no range to relock within - clearing it means a deliberate vitest 4.x
+  # upgrade with config and snapshot-format changes across every suite, which is
+  # scheduled work rather than a dependency bump.
+  #
+  # vitest is a test-runner devDependency and reaches no published bundle: every
+  # published package depends only on other ag-charts-* packages plus tslib,
+  # except ag-charts-server-side (jsdom, skia-canvas). Confirmed outside the
+  # published production closure - a BFS from tslib, jsdom and skia-canvas covers
+  # 72 packages and contains no vitest.
+  #
+  # Path is `*` deliberately: a versioned path silently stops matching the moment
+  # a parent version moves, which is how four ignores in this repo had already
+  # died unnoticed.
+  SNYK-JS-VITESTMOCKER-19497933:
+    - '*':
+        reason: >-
+            Dev-only test-runner dependency, absent from AG Charts runtime bundles and from
+            the published production dependency closure. No in-range fix exists: vitest is
+            pinned to exactly 2.1.9 and the advisory is fixed in 4.1.11, so remediation is a
+            two-major vitest upgrade scheduled as its own work, not a bump. Time-boxed.
+        expires: '2027-03-02T00:00:00.000Z'
+        created: '2026-09-02T00:00:00.000Z'
   # FALSE POSITIVE - a working entry must live in THIS file, not the repo root.
   # `snyk test --yarn-workspaces` reads each workspace project's own .snyk, so a
   # root-level ignore never reaches this project. The path is `*` on purpose: the
