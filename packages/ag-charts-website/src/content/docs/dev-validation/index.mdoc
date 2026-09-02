@@ -6,19 +6,24 @@ Option misconfiguration and caught runtime errors are normally reported only to 
 
 ## Validation Overlay
 
-The overlay is opt-in and intended for development. Enable it with `validations.showOverlayOn`, which defaults to `[]`:
+The overlay is opt-in and intended for development. Enable it with `validations.overlayLevel`, which defaults to `'none'`:
 
 {% chartExampleRunner title="Validation Overlay" name="validation-overlay" type="generated" /%}
 
 ```js format="snippet"
 {
     validations: {
-        showOverlayOn: ['warning'],
+        overlayLevel: 'warning',
     },
 }
 ```
 
-`showOverlayOn` lists the severities to show, each selected independently: `['warning']` shows warnings alone, and `['error', 'deprecation']` shows errors and deprecations but not warnings. The default `[]` shows nothing, so the overlay never appears unless you opt in.
+`overlayLevel` is an inclusive severity threshold: each level also shows every louder one.
+
+- `'error'` — errors only.
+- `'warning'` — errors and warnings.
+- `'deprecation'` — errors, warnings and deprecations.
+- `'none'` — nothing. This is the default, so the overlay never appears unless you opt in.
 
 Each issue shows a message, a code block, and a Copy button for pasting into a bug report. Dismiss hides the overlay for that chart instance without suppressing future issues.
 
