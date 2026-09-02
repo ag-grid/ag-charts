@@ -348,7 +348,9 @@ export function createQuadrant(
           }
         : undefined;
 
-    const labelEnabled = options.label?.enabled ?? Boolean(options.labelKey);
+    // A `label` object of any shape is an opt-in, so `label: {}` or `label: { fontSize: 12 }` reads the
+    // same as `label: { enabled: true }`; an explicit `enabled` always wins.
+    const labelEnabled = options.label?.enabled ?? (options.label != null || Boolean(options.labelKey));
 
     const series: (AgScatterSeriesOptions | AgBubbleSeriesOptions)[] = [];
 

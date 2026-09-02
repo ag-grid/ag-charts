@@ -479,6 +479,10 @@ describe('Quadrant Preset label enabled default', () => {
     const cases: [string, Partial<AgQuadrantChartOptions>, boolean][] = [
         ['AC1: labelKey given', { labelKey: 'label' }, true],
         ['AC1: labelKey given alongside label styling', { labelKey: 'label', label: { color: 'purple' } }, true],
+        ['AC1: empty label object opts in', { label: {} }, true],
+        ['AC1: label styling without enabled opts in', { label: { fontSize: 12 } }, true],
+        ['AC1: label object opts in on the bubble branch', { sizeKey: 'size', label: {} }, true],
+        ['AC1: label object opts in even with an empty labelKey', { labelKey: '', label: { fontSize: 12 } }, true],
         ['AC2: no labelKey', {}, false],
         ['AC2: no labelKey on the bubble branch', { sizeKey: 'size' }, false],
         ['AC2: empty labelKey', { labelKey: '' }, false],
