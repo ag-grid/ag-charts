@@ -199,6 +199,11 @@ export interface AgQuadrantLabelOptions<TDatum, TContext> extends Omit<
     AgScatterSeriesLabel<TDatum, TContext>,
     'formatter' | 'itemStyler'
 > {
+    /**
+     * Whether to show the labels. Defaults to `true` when either `labelKey` or a `label` object is set, and to
+     * `false` otherwise.
+     */
+    enabled?: boolean;
     /** A custom formatting function used to convert data values into text for display by labels. */
     formatter?: RichFormatter<AgChartLabelFormatterParams<TDatum, TContext> & AgQuadrantLabelFormatterParams<TDatum>>;
     /** Function used to style individual datum labels. */
