@@ -348,6 +348,8 @@ export function createQuadrant(
           }
         : undefined;
 
+    const labelEnabled = options.label?.enabled ?? Boolean(options.labelKey);
+
     const series: (AgScatterSeriesOptions | AgBubbleSeriesOptions)[] = [];
 
     if (options.sizeKey == null) {
@@ -362,6 +364,7 @@ export function createQuadrant(
             },
             label: {
                 ...options.label,
+                enabled: labelEnabled,
                 formatter: composedLabelFormatter,
                 itemStyler: composedLabelItemStyler,
             },
@@ -380,6 +383,7 @@ export function createQuadrant(
             },
             label: {
                 ...options.label,
+                enabled: labelEnabled,
                 formatter: composedLabelFormatter,
                 itemStyler: composedLabelItemStyler,
             },
