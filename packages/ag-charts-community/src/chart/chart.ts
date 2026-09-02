@@ -50,7 +50,12 @@ import type {
 
 import type { UpdateOpts } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
-import type { ChartOptions } from '../module/optionsModule';
+import {
+    type ChartOptions,
+    DEFAULT_CONSOLE_ON,
+    DEFAULT_SHOW_OVERLAY_ON,
+    DEFAULT_THROW_ON,
+} from '../module/optionsModule';
 import type { SeriesGrouping } from '../module/seriesGrouping';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
@@ -93,11 +98,7 @@ import { Tooltip, type TooltipContent } from './tooltip/tooltip';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
-import {
-    ValidationIssueCollector,
-    type ValidationIssueListener,
-    severityAtOrAbove,
-} from './validation/validationIssueCollector';
+import { ValidationIssueCollector, type ValidationIssueListener } from './validation/validationIssueCollector';
 
 const debug = Debug.create(true, 'opts');
 
@@ -588,7 +589,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 if (opts != null) this.overlays.set(opts);
             }),
             ctx.chartState.observe((get) => {
-                this.validationCollector.setOverlayLevel(get('options', 'validations')?.overlayLevel ?? 'none');
+                this.validationCollector.setShowOverlayOn(
+                    get('options', 'validations')?.showOverlayOn ?? DEFAULT_SHOW_OVERLAY_ON
+                );
             }),
             // A tooltip is painted in the browser's top layer (a `popover`), so no z-index can place it
             // beneath the validation overlay. Hold tooltips back while the overlay is shown so it stays legible.
@@ -600,10 +603,10 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 }
             }),
             ctx.chartState.observe((get) => {
-                ctx.logger.setLevel(get('options', 'validations')?.consoleLogLevel ?? 'deprecation');
+                ctx.logger.setEnabledLevels(get('options', 'validations')?.consoleOn ?? DEFAULT_CONSOLE_ON);
             }),
             ctx.chartState.observe((get) => {
-                this.throwOnLevel = get('options', 'validations')?.throwOn ?? 'none';
+                this.throwOnLevel = get('options', 'validations')?.throwOn ?? DEFAULT_THROW_ON;
                 this.setIssueListener(get('options', 'validations')?.onDiagnosticRaised);
             }),
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
@@ -919,7 +922,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     private readonly updateMutex = new Mutex();
     private clearCallbackCacheOnUpdate: boolean = false;
     private updateRequestors: Record<string, ChartUpdateType> = {};
-    private throwOnLevel: AgChartValidationLevel = 'none';
+    private throwOnLevel: readonly AgChartValidationLevel[] = DEFAULT_THROW_ON;
     private pendingFailFastError?: Error;
 
     private readonly performUpdateTrigger = debouncedCallback(({ count }) => {
@@ -1024,7 +1027,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             });
             this.runningUpdateType = ChartUpdateType.NONE;
             this._performUpdateNotify.notify();
-            if (severityAtOrAbove(this.throwOnLevel, 'error')) {
+            if (this.throwOnLevel.includes('error')) {
                 this.pendingFailFastError = new Error(
                     `AG Charts - validations.throwOn: error - ${String(error?.message ?? error)}`
                 );
