@@ -33,10 +33,12 @@ import {
     isStringFillArray,
     jsonDiff,
     keptCharacters,
+    measureLabelText,
     mergeDefaults,
     modulus,
     normalizeAngle180,
     probedFitRegion,
+    regionTextCapacity,
     resolveLabelFit,
     resolveMinimumFontSize,
     toNumber,
@@ -98,6 +100,7 @@ import {
     fitLabelToContainerAutoSize,
     fitSectorLabelRect,
     getLabelStyles,
+    sectorLabelRoom,
 } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
@@ -165,7 +168,8 @@ function fitSectorLabelToWedge(
     layout: (placed: PlacedSectorLabel, font: FontOptions) => BBox[]
 ): PlacedSectorLabel {
     const place = (sized: FontOptions, atFloor: boolean, inset: number, block: BlockSize | undefined) => {
-        const rect = fitSectorLabelRect(anchor, sector, cachedTextMeasurer(sized).lineHeight(), block);
+        const lineHeight = cachedTextMeasurer(sized).lineHeight();
+        const rect = fitSectorLabelRect(anchor, sector, lineHeight, block);
         const region = insetFitRegion(
             probedFitRegion(
                 { x: rect.centerX, y: rect.centerY },
@@ -175,6 +179,11 @@ function fitSectorLabelToWedge(
             Math.max(padding.left, padding.right) + inset,
             Math.max(padding.top, padding.bottom) + inset
         );
+        // The region bounds the text the same way the wedge does but for the block's own place in it,
+        // padding included, so it refuses what the wedge-wide bounds let through — still before any layout.
+        if (!atFloor && measureLabelText(text, sized).width > regionTextCapacity(region, lineHeight)) {
+            return undefined;
+        }
         // Above the floor the text must fit whole, so a truncating size is rejected and the search steps down.
         const policy = atFloor ? fit : { ...fit, overflowStrategy: 'hide' as const };
         // An anchored rect is the block's place, so the fit must not take a horizontal offset to exploit
@@ -195,7 +204,11 @@ function fitSectorLabelToWedge(
     const placeInWedge = (sized: FontOptions, atFloor: boolean) => {
         let inset = 0;
         let block: BlockSize | undefined;
-        let { placed, rectHeight } = place(sized, atFloor, inset, block);
+        const first = place(sized, atFloor, inset, block);
+        if (first == null) {
+            return { placed: { text: '', x: 0, y: 0 }, inWedge: false };
+        }
+        let { placed, rectHeight } = first;
         // Re-placing trades one shape of room for another, so the passes are candidates rather than
         // refinements: the one keeping the most text wins, and only a placement drawn inside the wedge can.
         let best: PlacedSectorLabel | undefined;
@@ -221,7 +234,11 @@ function fitSectorLabelToWedge(
             }
             inset = nextInset;
             block = nextBlock;
-            ({ placed, rectHeight } = place(sized, atFloor, inset, block));
+            const next = place(sized, atFloor, inset, block);
+            if (next == null) {
+                break;
+            }
+            ({ placed, rectHeight } = next);
         }
         // A wedge too narrow for one character leaves a bare ellipsis, which reads as an artefact rather
         // than a label, so it is dropped outright instead of appearing and vanishing as the chart resizes.
@@ -233,8 +250,18 @@ function fitSectorLabelToWedge(
     if (floor >= font.fontSize) return placeInWedge(font, true).placed;
     // Wedge clearance is not monotonic in the font size — a smaller size can reflow the text into a wider
     // block — so the ladder is scanned down rather than bisected, which could step past the largest fit.
+    // Measured at the smallest line height in play, so it bounds the room at every size on the ladder.
+    const room = sectorLabelRoom(anchor, sector, cachedTextMeasurer(fontWithSize(font, floor)).lineHeight());
     const found = findLargestFontSizeDescending(floor, font.fontSize, (fontSize, atFloor) => {
-        const { placed, inWedge } = placeInWedge(fontWithSize(font, fontSize), atFloor);
+        const sized = fontWithSize(font, fontSize);
+        // The wedge cannot hold more text than it has room for, whether measured by the area the text
+        // covers or by the lines the wedge can stack, so an oversized rung goes without being placed.
+        const lineHeight = cachedTextMeasurer(sized).lineHeight();
+        const advance = measureLabelText(text, sized).width;
+        if (!atFloor && (advance * lineHeight > room.area || advance > room.capacityAt(lineHeight))) {
+            return undefined;
+        }
+        const { placed, inWedge } = placeInWedge(sized, atFloor);
         if (!inWedge || isErased(placed.text)) return undefined;
         return { ...placed, fontSize: fontSize === font.fontSize ? undefined : fontSize };
     });

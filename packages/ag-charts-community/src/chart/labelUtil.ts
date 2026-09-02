@@ -319,6 +319,7 @@ const SECTOR_ARC_INSET = 0.75;
 // Two bands whose widths are within this many px count as equally wide, so the tie-break toward the band
 // furthest from the centre decides between them rather than sub-pixel noise.
 const SECTOR_WIDTH_TOLERANCE = 2;
+const BAND_STEPS = 48;
 
 /** Sector shrunk radially by {@link SECTOR_ARC_INSET}, so a box it accepts also clears the drawn arcs. */
 function arcInsetSector(sector: SectorBoundaries): SectorBoundaries {
@@ -337,31 +338,15 @@ function fitsOnAnchor(anchor: Point, sector: SectorBoundaries, { width, height }
 }
 
 /**
- * Fits a multi-line sector label to a horizontal band of the wedge. A tall box measured symmetrically about
- * the bisector is capped by the nearer radial edge and left hugging it; instead, candidate vertical centres
- * are scanned and, at each, the box spans the wedge's true horizontal extent common to its top and bottom
- * edges (convex wedge, so those edges bind) searched outward from the bisector with {@link isPointInSector},
- * which leaves the box centred between the wedge's sides. Returns `null` when no band holds the box (e.g. a
- * box nearly as tall as the radius), so the caller falls back to symmetric placement.
- *
- * Of the bands that hold `blockWidth` — the width the text actually wrapped to — the one nearest `anchor`
- * wins, so a label sits on the point the sector nominates for it and moves only as far as it must to fit.
- * Without a wrapped width to answer to, the widest band wins instead, the furthest out among equals.
+ * The wedge's horizontal extent at each of {@link BAND_STEPS} vertical centres, for a band `height` tall:
+ * the box at each spans the extent common to the band's top and bottom edges (convex wedge, so those edges
+ * bind) searched outward from the bisector with {@link isPointInSector}. Seeded from the bisector, so an
+ * anchor on the chart's centre has no ray to seed from and must be excluded by the caller.
  */
-function centreSectorLabelInBand(
-    anchor: Point,
-    sector: { startAngle: number; endAngle: number; innerRadius: number; outerRadius: number },
-    height: number,
-    blockWidth?: number
-): SectorLabelRect | null {
+function sectorBands(anchor: Point, inset: SectorBoundaries, height: number) {
     const radius = Math.hypot(anchor.x, anchor.y);
-    if (radius < 1e-6) {
-        return null;
-    }
     const midCos = anchor.x / radius;
     const midSin = anchor.y / radius;
-    // Probe against arc-inset radii so the chosen box clears the arcs by SECTOR_ARC_INSET on both sides.
-    const inset = arcInsetSector(sector);
     const outer = inset.outerRadius;
     const halfHeight = height / 2;
     const limit = outer * 2;
@@ -373,9 +358,8 @@ function centreSectorLabelInBand(
 
     const bands: SectorLabelRect[] = [];
     let maxWidth = 0;
-    const steps = 48;
-    for (let i = 0; i <= steps; i += 1) {
-        const centerY = -outer + (2 * outer * i) / steps;
+    for (let i = 0; i <= BAND_STEPS; i += 1) {
+        const centerY = -outer + (2 * outer * i) / BAND_STEPS;
         let left = -Infinity;
         let right = Infinity;
         let fits = true;
@@ -395,6 +379,61 @@ function centreSectorLabelInBand(
         bands.push({ centerX: (left + right) / 2, centerY, width, height });
         maxWidth = Math.max(maxWidth, width);
     }
+    return { bands, maxWidth };
+}
+
+/** Bounds on the text a wedge can hold, for a caller sizing a label before it lays any text out. */
+export interface SectorLabelRoom {
+    /** Total room the wedge's bands add up to. */
+    readonly area: number;
+    /** Widest total advance the wedge could hold at `lineHeight`, stacking as many whole lines as it fits. */
+    capacityAt(lineHeight: number): number;
+}
+
+/**
+ * The room a wedge offers a label, measured band by band for a band `lineHeight` tall. Both bounds are
+ * generous — a band is wider than the text centred in it, wrapping on words costs width they do not charge
+ * for, and a band measured for a short line is never narrower than a taller line would get — so text
+ * exceeding either cannot fit however it wraps, which is what makes them safe to reject a font size on.
+ */
+export function sectorLabelRoom(anchor: Point, sector: SectorBoundaries, lineHeight: number): SectorLabelRoom {
+    if (Math.hypot(anchor.x, anchor.y) < 1e-6) {
+        // No bisector to seed the bands from, so the wedge goes unmeasured and no font size is rejected.
+        return { area: Infinity, capacityAt: () => Infinity };
+    }
+    const inset = arcInsetSector(sector);
+    const { bands } = sectorBands(anchor, inset, lineHeight);
+    const step = (2 * inset.outerRadius) / BAND_STEPS;
+    const widest = bands.map((band) => band.width).toSorted((a, b) => b - a);
+    return {
+        area: widest.reduce((total, width) => total + width * step, 0),
+        capacityAt: (height: number) =>
+            widest.slice(0, Math.floor((widest.length * step) / height)).reduce((total, width) => total + width, 0),
+    };
+}
+
+/**
+ * Fits a multi-line sector label to one of the wedge's bands. A tall box measured symmetrically about the
+ * bisector is capped by the nearer radial edge and left hugging it, so a band — centred between the wedge's
+ * sides — is chosen instead. Returns `null` when no band holds the box (e.g. one nearly as tall as the
+ * radius), so the caller falls back to symmetric placement.
+ *
+ * Of the bands that hold `blockWidth` — the width the text actually wrapped to — the one nearest `anchor`
+ * wins, so a label sits on the point the sector nominates for it and moves only as far as it must to fit.
+ * Without a wrapped width to answer to, the widest band wins instead, the furthest out among equals.
+ */
+function centreSectorLabelInBand(
+    anchor: Point,
+    sector: { startAngle: number; endAngle: number; innerRadius: number; outerRadius: number },
+    height: number,
+    blockWidth?: number
+): SectorLabelRect | null {
+    const radius = Math.hypot(anchor.x, anchor.y);
+    if (radius < 1e-6) {
+        return null;
+    }
+    // Probe against arc-inset radii so the chosen box clears the arcs by SECTOR_ARC_INSET on both sides.
+    const { bands, maxWidth } = sectorBands(anchor, arcInsetSector(sector), height);
     if (blockWidth != null) {
         const nearest = nearestBandHolding(bands, anchor, Math.min(blockWidth, maxWidth) - SECTOR_WIDTH_TOLERANCE);
         if (nearest != null) {

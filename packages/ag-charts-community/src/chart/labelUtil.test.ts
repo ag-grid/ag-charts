@@ -12,7 +12,13 @@ import type { TextWrap } from 'ag-charts-types';
 import { isPointInSector } from '../scene/util/sector';
 import { setupMockCanvas } from '../util/test/mockCanvas';
 import { setupMockConsole } from '../util/test/mockConsole';
-import { buildBarLabelCandidates, fitLabelToContainer, fitSectorLabelRect, insideMarkerContainer } from './labelUtil';
+import {
+    buildBarLabelCandidates,
+    fitLabelToContainer,
+    fitSectorLabelRect,
+    insideMarkerContainer,
+    sectorLabelRoom,
+} from './labelUtil';
 
 const ELLIPSIS = '…';
 const FONT = { fontFamily: 'Verdana', fontSize: 15 };
@@ -148,16 +154,17 @@ describe('insideMarkerContainer', () => {
     });
 });
 
+const sector = (midAngle: number, halfSpan: number, innerRadius: number, outerRadius: number) => ({
+    startAngle: midAngle - halfSpan,
+    endAngle: midAngle + halfSpan,
+    innerRadius,
+    outerRadius,
+});
+const anchorAt = (radius: number, angle: number) => ({ x: radius * Math.cos(angle), y: radius * Math.sin(angle) });
+
 describe('fitSectorLabelRect', () => {
     setupMockConsole();
 
-    const sector = (midAngle: number, halfSpan: number, innerRadius: number, outerRadius: number) => ({
-        startAngle: midAngle - halfSpan,
-        endAngle: midAngle + halfSpan,
-        innerRadius,
-        outerRadius,
-    });
-    const anchorAt = (radius: number, angle: number) => ({ x: radius * Math.cos(angle), y: radius * Math.sin(angle) });
     const cornersInSector = (rect: ReturnType<typeof fitSectorLabelRect>, s: Parameters<typeof isPointInSector>[2]) => {
         const hw = rect.width / 2;
         const hh = rect.height / 2;
@@ -340,5 +347,23 @@ describe('buildBarLabelCandidates', () => {
             hideable: true,
         });
         expect(candidates.map((c) => c.placement)).toEqual(['inside-center']);
+    });
+});
+
+describe('sectorLabelRoom', () => {
+    const s = sector(0, Math.PI / 6, 40, 160);
+    const anchor = anchorAt(100, 0);
+
+    it('admits a block the wedge does hold, since a bound that refused one would drop a fitting label', () => {
+        const block = { width: 60, height: 28 };
+        expect(fitSectorLabelRect(anchor, s, 14, block).anchored).toBe(true);
+        const room = sectorLabelRoom(anchor, s, 14);
+        expect(room.capacityAt(14)).toBeGreaterThanOrEqual(block.width);
+        expect(room.area).toBeGreaterThanOrEqual(block.width * block.height);
+    });
+
+    it('holds fewer lines, and so less text, as the lines grow taller', () => {
+        const room = sectorLabelRoom(anchor, s, 14);
+        expect(room.capacityAt(28)).toBeLessThan(room.capacityAt(14));
     });
 });
