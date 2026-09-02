@@ -4419,6 +4419,22 @@ describe('ChartOptions', () => {
             expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
         });
 
+        it("treats a duplicated severity as if it had been listed once, without reporting it", () => {
+            const chartOptions = new ChartOptions(
+                invalidOptions({ validations: { consoleOn: ['error', 'error'] } }),
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+
+            // A repeat is not an invalid value: the array is accepted whole, and `['error', 'error']`
+            // selects exactly what `['error']` does - warning-severity output stays silenced.
+            expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.consoleOn')).toBe(false);
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+        });
+
         it('reports an invalid consoleOn value rather than silencing logging with it', () => {
             const chartOptions = new ChartOptions(
                 invalidOptions({ validations: { consoleOn: 'verbose' } }),

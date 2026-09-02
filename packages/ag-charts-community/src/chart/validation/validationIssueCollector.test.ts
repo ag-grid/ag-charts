@@ -29,6 +29,20 @@ describe('ValidationIssueCollector', () => {
         expect(collector.getVisibleIssues()).toEqual({ error: [], warning: [], deprecation: [deprecationIssue] });
     });
 
+    it('treats a duplicated severity as if it had been listed once', () => {
+        const collector = new ValidationIssueCollector();
+        collector.setIssues([errorIssue, warningIssue, deprecationIssue]);
+        collector.setShowOverlayOn(['warning']);
+
+        const changes = vi.fn();
+        collector.addListener(changes);
+        collector.setShowOverlayOn(['warning', 'warning']);
+
+        expect(collector.getVisibleIssues()).toEqual({ error: [], warning: [warningIssue], deprecation: [] });
+        // Selection is a set, so the repeat is not a change - it must not re-show a dismissed overlay.
+        expect(changes).not.toHaveBeenCalled();
+    });
+
     it('does not show a warning-only collection when only errors are selected', () => {
         const collector = new ValidationIssueCollector();
         collector.setShowOverlayOn(['error']);
