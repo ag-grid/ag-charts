@@ -1,4 +1,5 @@
 import { Information } from '@carbon/icons-react';
+import { keyframes } from '@emotion/react';
 import styled from '@emotion/styled';
 import { FloatingPortal, arrow, flip, offset, shift, useFloating, useHover, useInteractions } from '@floating-ui/react';
 import type { ReactElement, ReactNode } from 'react';
@@ -50,18 +51,21 @@ const TooltipImpl = ({ title, children, suppressPortal }: TooltipProps) => {
 
 const TooltipPopup = styled('div')``;
 
-const StyledTooltip = styled('div')`
-    @keyframes scaleIn {
-        from {
-            opacity: 0;
-            transform: scale(0) translateY(8px); // Merged transform
-        }
-        to {
-            opacity: 1;
-            transform: scale(1) translateY(0px); // Merged transform
-        }
+// Through the helper, so the name is unique: an animation name written into a
+// template literal is global, and this one used to reach every other component
+// that had called its own `scaleIn`.
+const scaleIn = keyframes`
+    from {
+        opacity: 0;
+        transform: scale(0) translateY(8px);
     }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0px);
+    }
+`;
 
+const StyledTooltip = styled('div')`
     z-index: 100000;
     max-width: 400px;
     background: var(--color-bg-primary);
@@ -71,7 +75,7 @@ const StyledTooltip = styled('div')`
     box-shadow: var(--shadow-md);
     font-size: 14px;
     color: var(--color-text-primary);
-    animation-name: scaleIn;
+    animation-name: ${scaleIn};
     animation-duration: 0.3s;
     animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 `;
