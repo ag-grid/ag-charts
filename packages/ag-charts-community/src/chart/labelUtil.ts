@@ -223,11 +223,18 @@ export interface SectorLabelRect {
     /** Centre of the inscribed rectangle — where the horizontal label sits. */
     readonly centerX: number;
     readonly centerY: number;
-    /** Size the label text is fitted to. */
+    /** Room the label may use at that centre: the wedge's own width there, not the text's. */
     readonly width: number;
+    /** The block's height — as measured by the caller when it supplied one, estimated from one line if not. */
     readonly height: number;
     /** The block fits centred on the anchor, so a caller must not recentre it on the room it found. */
     readonly anchored?: boolean;
+}
+
+/** Size a sector label's text actually wrapped to, as measured on the node that will draw it. */
+export interface BlockSize {
+    readonly width: number;
+    readonly height: number;
 }
 
 // A box taller than one line by this ratio is treated as multi-line and fitted to a horizontal band
@@ -264,31 +271,30 @@ function furthestInside(limit: number, inside: (t: number) => boolean): number {
  * extent across its own band (see {@link centreSectorLabelInBand}); the symmetric slide is kept for
  * single-line boxes, whose thin band cannot exhibit this.
  *
- * `blockHeight` and `blockWidth` replace the estimates once the caller knows what its text wrapped to: a block
- * sized from one line is placed where a thin box fits, which is not where the block it grew into belongs. A
- * block that fits on the anchor stays on it — the sector nominates that point for its label, and both searches
- * below trade centring for room a block this size does not need.
+ * `block` replaces the estimated size once the caller knows what its text wrapped to: a block sized from one
+ * line is placed where a thin box fits, which is not where the block it grew into belongs. A block that fits
+ * on the anchor stays on it — the sector nominates that point for its label, and both searches below trade
+ * centring for room a block this size does not need.
  */
 export function fitSectorLabelRect(
     anchor: Point,
     sector: { startAngle: number; endAngle: number; innerRadius: number; outerRadius: number },
     lineHeight: number,
-    blockHeight?: number,
-    blockWidth?: number
+    block?: BlockSize
 ): SectorLabelRect {
     const container = sectorLabelContainer(anchor, sector, lineHeight);
     const width = container.width;
-    const height = blockHeight ?? container.height;
+    const height = block?.height ?? container.height;
     const halfWidth = width / 2;
     const halfHeight = height / 2;
     if (halfWidth <= 0 || halfHeight <= 0 || !isPointInSector(anchor.x, anchor.y, sector)) {
         return { centerX: anchor.x, centerY: anchor.y, width, height };
     }
-    if (blockWidth != null && blockHeight != null && fitsOnAnchor(anchor, sector, blockWidth, blockHeight)) {
+    if (block != null && fitsOnAnchor(anchor, sector, block)) {
         return { centerX: anchor.x, centerY: anchor.y, width, height, anchored: true };
     }
     if (height > lineHeight * SECTOR_MULTILINE_HEIGHT_RATIO) {
-        const centred = centreSectorLabelInBand(anchor, sector, height, blockWidth);
+        const centred = centreSectorLabelInBand(anchor, sector, height, block?.width);
         if (centred != null) {
             return centred;
         }
@@ -324,8 +330,8 @@ function arcInsetSector(sector: SectorBoundaries): SectorBoundaries {
     };
 }
 
-/** True when a `width` x `height` box centred on `anchor` lies inside the wedge, clear of its arcs. */
-function fitsOnAnchor(anchor: Point, sector: SectorBoundaries, width: number, height: number) {
+/** True when a box of `block`'s size centred on `anchor` lies inside the wedge, clear of its arcs. */
+function fitsOnAnchor(anchor: Point, sector: SectorBoundaries, { width, height }: BlockSize) {
     const box = { x: anchor.x - width / 2, y: anchor.y - height / 2, width, height };
     return isBoxInSector(box, arcInsetSector(sector));
 }

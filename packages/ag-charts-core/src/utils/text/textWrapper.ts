@@ -152,12 +152,14 @@ export function fitLabelText(
 /**
  * {@link fitLabelText} for a caller that can place the label as well as write it: a shape with more room
  * on one side of the anchor than the other is only worth fitting to if the text is drawn where that room
- * is, so the offset it was fitted at comes back with the text.
+ * is, so the offset it was fitted at comes back with the text. `anchored` is for a caller that has settled
+ * on the anchor for this label after all: the fit then takes no horizontal offset it would have to discard.
  */
 export function fitLabelTextToRegion(
     text: NormalisedTextOrSegments,
     fit: LabelFit | undefined,
-    font: FontOptions
+    font: FontOptions,
+    anchored = false
 ): FittedRegionText {
     if (fit?.region == null) return { text: fitLabelText(text, fit, font), offsetX: 0, offsetY: 0 };
     const overflow = fit.overflowStrategy ?? 'preserve';
@@ -171,7 +173,8 @@ export function fitLabelTextToRegion(
             overflow,
         },
         fit.region,
-        fit.regionAlign ?? 'center'
+        fit.regionAlign ?? 'center',
+        anchored
     );
 }
 
@@ -315,7 +318,7 @@ function wrapTextToRegion(
     const roomForLines = Math.floor(limit / Math.max(1, lineHeight));
     const maxLines = Math.max(1, Math.min(roomForLines, source.length));
     let best: { text: string; offsetX: number; offsetY: number; consistent: boolean } | undefined;
-    let bestKept = -1;
+    let bestKept = 0;
     for (let lines = 1; lines <= maxLines; lines += 1) {
         const candidate = wrapBlockToRegion(source, options, region, align, limit, lineHeight, lines, anchored);
         const kept = survivingCharacters(candidate.text);

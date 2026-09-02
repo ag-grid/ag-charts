@@ -193,6 +193,21 @@ describe('fitSectorLabelRect', () => {
         expect(rect).toMatchObject({ centerX: 0, centerY: 0, width: 0, height: 0 });
     });
 
+    it('leaves a measured block on the anchor when the wedge holds it there', () => {
+        const s = sector(-Math.PI / 3, Math.PI / 8, 40, 120);
+        const anchor = anchorAt(85, -Math.PI / 3);
+        const rect = fitSectorLabelRect(anchor, s, 14, { width: 20, height: 14 });
+        expect(rect).toMatchObject({ centerX: anchor.x, centerY: anchor.y, anchored: true });
+    });
+
+    it('moves a measured block off the anchor only when the wedge cannot hold it there', () => {
+        const s = sector(-Math.PI / 3, Math.PI / 8, 40, 120);
+        const anchor = anchorAt(85, -Math.PI / 3);
+        const rect = fitSectorLabelRect(anchor, s, 14, { width: 70, height: 42 });
+        expect(rect.anchored).toBeUndefined();
+        expect(Math.hypot(rect.centerX - anchor.x, rect.centerY - anchor.y)).toBeGreaterThan(1);
+    });
+
     it('fits a multi-line label to the widest band, filling the wedge further out than the bisector', () => {
         // The closing sector's trailing radial edge is vertical, which caps a bisector-symmetric box, so a
         // tall label must instead span the wedge's true width furthest out, where the wedge is widest.

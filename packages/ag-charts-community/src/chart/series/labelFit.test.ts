@@ -368,7 +368,31 @@ describe('series label fit', () => {
             expect(someWrapped(texts)).toBe(true);
             // Whether the wedge also runs out of room is the ellipsis test's business above; what this one
             // owns is that every drawn line answers to the bound.
-            expect(Math.max(...sectorLineWidths())).toBeLessThanOrEqual(SECTOR_MAX_WIDTH);
+            const lineWidths = sectorLineWidths();
+            expect(lineWidths.length).toBeGreaterThan(0);
+            expect(Math.max(...lineWidths)).toBeLessThanOrEqual(SECTOR_MAX_WIDTH);
+        });
+
+        // A bound this narrow leaves each band a word wide, which is where a remainder pushed to the line
+        // below has to answer to that line's width rather than the one it came from.
+        it(`bounds ${type} sector labels by a maxWidth narrower than their words`, async () => {
+            await render({
+                data: sectorLabelData,
+                legend: { enabled: false },
+                series: [
+                    {
+                        type,
+                        angleKey: 'value',
+                        sectorLabelKey: 'label',
+                        ...(type === 'donut' ? { innerRadiusRatio: 0.3 } : {}),
+                        sectorLabel: { enabled: true, maxWidth: 40, truncate: true },
+                    },
+                ],
+            });
+            const lineWidths = sectorLineWidths();
+            expect(lineWidths.length).toBeGreaterThan(0);
+            expect(Math.max(...lineWidths)).toBeLessThanOrEqual(40);
+            expect(hiddenSectorNodes()).toEqual([]);
         });
 
         it(`shrinks ${type} sector labels toward minimumFontSize before truncating`, async () => {
@@ -511,10 +535,12 @@ describe('series label fit', () => {
             expect(someTruncated(texts)).toBe(true);
         });
         // A fit that overruns the wedge leaves the label hidden whole, so text fitted at any size has to
-        // stay inside the wedge it was fitted to.
+        // stay inside the wedge it was fitted to. Text fitted to nothing is the same defect one step
+        // earlier, so the wedge has to hold every label at every size, not merely show what it kept.
         it(`keeps ${type} sector labels inside their wedge at every chart size`, async () => {
             const dropped: string[] = [];
-            for (let size = 380; size <= 620; size += 20) {
+            const erased: string[] = [];
+            for (let size = 300; size <= 700; size += 20) {
                 const options: any = {
                     data: sectorLabelData,
                     legend: { enabled: false },
@@ -537,9 +563,13 @@ describe('series label fit', () => {
                 for (const node of hiddenSectorNodes()) {
                     dropped.push(`${size}px: ${JSON.stringify(node.text)}`);
                 }
+                if (sectorNodes().length !== sectorLabelData.length) {
+                    erased.push(`${size}px: ${sectorNodes().length} of ${sectorLabelData.length}`);
+                }
                 chart.destroy();
             }
             expect(dropped).toEqual([]);
+            expect(erased).toEqual([]);
         });
     }
 
