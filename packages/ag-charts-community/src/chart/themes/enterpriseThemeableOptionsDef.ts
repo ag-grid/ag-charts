@@ -254,18 +254,18 @@ const funnelPlacementDef = unionOrArray(
 );
 
 const coneFunnelPlacementDef = unionOrArray(
-    'before-start',
-    'before-center',
-    'before-end',
-    'middle-start',
+    'start-before',
+    'start-center',
+    'start-after',
+    'middle-before',
     'middle-center',
-    'middle-end',
-    'after-start',
-    'after-center',
-    'after-end',
-    deprecatedValue('before', 'Use `before-center` instead.'),
+    'middle-after',
+    'end-before',
+    'end-center',
+    'end-after',
+    deprecatedValue('before', 'Use `start-center` instead.'),
     deprecatedValue('middle', 'Use `middle-center` instead.'),
-    deprecatedValue('after', 'Use `after-center` instead.')
+    deprecatedValue('after', 'Use `end-center` instead.')
 );
 
 export const coneFunnelSeriesThemeableOptionsDef: OptionsDefs<AgConeFunnelSeriesThemeableOptions> = {
