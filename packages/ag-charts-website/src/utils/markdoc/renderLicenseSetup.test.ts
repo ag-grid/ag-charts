@@ -50,7 +50,7 @@ describe('buildLicenseSetupMarkdown', () => {
                 '> **Note**',
                 '>',
                 '> If you are using an older version of AG Charts, before v11.0.0, please see the relevant' +
-                    ' [documentation](https://www.ag-grid.com/documentation-archive) for help on installing your license key',
+                    ' [documentation](https://www.ag-grid.com/documentation-archive/) for help on installing your license key',
             ].join('\n')
         );
     });

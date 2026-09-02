@@ -68,8 +68,7 @@ export async function buildGalleryExampleMarkdown({
     document.push(
         `[View ${toTitle(page.seriesTitle)} Charts Documentation](${toAbsoluteUrl(seriesDocsUrl(page), siteRoot)})`
     );
-    // `getExampleUrl` omits the trailing slash the site serves the page on.
-    document.push(`[Run this example](${toAbsoluteUrl(`${getExampleUrl({ exampleName })}/`, siteRoot)})`);
+    document.push(`[Run this example](${toAbsoluteUrl(getExampleUrl({ exampleName }), siteRoot)})`);
 
     const entryFileName = contents?.entryFileName;
     if (entryFileName && contents?.files?.[entryFileName]) {

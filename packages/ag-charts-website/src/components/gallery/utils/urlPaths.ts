@@ -3,9 +3,14 @@ import type { ThemeName } from '@stores/themeStore';
 import { getDevFileUrl } from '@utils/devFileUrl';
 import { pathJoin } from '@utils/pathJoin';
 
+/**
+ * Trailing slash: the example is served as a directory index, so a slashless URL costs a 301.
+ * `getExampleContentsUrl`/`getExampleFileUrl` build on this through `pathJoin`, which drops the
+ * slash again before appending a file name.
+ */
 export const getExampleUrl = ({ exampleName, isFullPath }: { exampleName: string; isFullPath?: boolean }) => {
-    const path = pathJoin(SITE_BASE_URL, 'gallery', 'examples', exampleName);
-    const fullPath = pathJoin(import.meta.env?.PUBLIC_SITE_URL, path);
+    const path = pathJoin(SITE_BASE_URL, 'gallery', 'examples', exampleName) + '/';
+    const fullPath = pathJoin(import.meta.env?.PUBLIC_SITE_URL, path) + '/';
     return isFullPath ? fullPath : path;
 };
 
@@ -16,8 +21,8 @@ export const getExampleRunnerExampleUrl = ({
     exampleName: string;
     isFullPath?: boolean;
 }) => {
-    const path = pathJoin(SITE_BASE_URL, 'gallery', 'examples', exampleName, 'example-runner');
-    const fullPath = pathJoin(import.meta.env?.PUBLIC_SITE_URL, path);
+    const path = pathJoin(SITE_BASE_URL, 'gallery', 'examples', exampleName, 'example-runner') + '/';
+    const fullPath = pathJoin(import.meta.env?.PUBLIC_SITE_URL, path) + '/';
     return isFullPath ? fullPath : path;
 };
 
@@ -47,17 +52,18 @@ export const getPlainExampleUrl = ({
     excludeSiteBaseUrl?: boolean;
 }) => {
     const plainExamplePath = pathJoin('gallery', 'examples', exampleName, 'plain');
-    const fullPlainExamplePath = excludeSiteBaseUrl ? plainExamplePath : pathJoin(SITE_BASE_URL, plainExamplePath);
-    const fullPath = pathJoin(import.meta.env?.PUBLIC_SITE_URL, fullPlainExamplePath);
+    const fullPlainExamplePath =
+        (excludeSiteBaseUrl ? plainExamplePath : pathJoin(SITE_BASE_URL, plainExamplePath)) + '/';
+    const fullPath = pathJoin(import.meta.env?.PUBLIC_SITE_URL, fullPlainExamplePath) + '/';
     return isFullPath ? fullPath : fullPlainExamplePath;
 };
 
 export const getExampleCodeSandboxUrl = ({ exampleName }: { exampleName: string }) => {
-    return pathJoin(SITE_BASE_URL, 'gallery', 'examples', exampleName, 'codesandbox');
+    return pathJoin(SITE_BASE_URL, 'gallery', 'examples', exampleName, 'codesandbox') + '/';
 };
 
 export const getExamplePlunkrUrl = ({ exampleName }: { exampleName: string }) => {
-    return pathJoin(SITE_BASE_URL, 'gallery', 'examples', exampleName, 'plunkr');
+    return pathJoin(SITE_BASE_URL, 'gallery', 'examples', exampleName, 'plunkr') + '/';
 };
 
 export const getPageUrl = (pageName: string) => {

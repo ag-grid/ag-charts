@@ -18,7 +18,7 @@ export const LICENSE_SETUP_COPY = {
     npmLead: 'Or install using npm:',
     olderVersionNote: {
         before: 'If you are using an older version of AG Charts, before v11.0.0, please see the relevant',
-        link: { text: 'documentation', url: '/documentation-archive' },
+        link: { text: 'documentation', url: '/documentation-archive/' },
         after: 'for help on installing your license key',
     },
     bootstrapLead: 'An example of how to set up your AG Charts Enterprise License Key:',
