@@ -21,20 +21,24 @@ import {
     cachedTextMeasurer,
     canRenderTextOffscreen,
     extractDomain,
-    findLargestFittingFontSize,
+    findLargestFontSizeDescending,
     fitLabelTextAutoSize,
     fitLabelTextToRegion,
     fontWithSize,
     formatValue,
+    hasRealChars,
     insetFitRegion,
     isErased,
     isGradientFill,
     isStringFillArray,
     jsonDiff,
+    keptCharacters,
+    measureLabelText,
     mergeDefaults,
     modulus,
     normalizeAngle180,
     probedFitRegion,
+    regionTextCapacity,
     resolveLabelFit,
     resolveMinimumFontSize,
     toNumber,
@@ -90,7 +94,14 @@ import {
     valueProperty,
 } from '../../data/processors';
 import { Label, expandLabelBoxExtent, expandLabelPadding } from '../../label';
-import { fitLabelToContainer, fitLabelToContainerAutoSize, fitSectorLabelRect, getLabelStyles } from '../../labelUtil';
+import {
+    type BlockSize,
+    fitLabelToContainer,
+    fitLabelToContainerAutoSize,
+    fitSectorLabelRect,
+    getLabelStyles,
+    sectorLabelRoom,
+} from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -115,6 +126,37 @@ import {
     PolarSeries,
 } from './polarSeries';
 
+/** Extra clearance (px) retried when a placement the region accepted still overruns the wedge once drawn. */
+const WEDGE_RETRY_INSETS = [1, 2, 4, 8];
+// Clearance retries plus the passes the block height needs to settle, which is one per line it ends with.
+const MAX_WEDGE_ATTEMPTS = 8;
+// Block and wedge heights within this many px are the same box; the fit rounds bands to whole lines.
+const HEIGHT_CONVERGED = 1;
+
+/** A sector label placed in its wedge: the fitted text, and where the text node has to draw it. */
+interface PlacedSectorLabel {
+    text: NormalisedTextOrSegments;
+    x: number;
+    y: number;
+    fontSize?: number;
+}
+
+/** Lays a candidate out on the label's own node, so the fit reads the boxes the visibility gate will judge. */
+function wedgeLabelLayout(node: Text) {
+    return (placed: PlacedSectorLabel, font: FontOptions) => {
+        node.text = placed.text;
+        node.x = placed.x;
+        node.y = placed.y;
+        node.setFont(font);
+        return node.getLineBoxes();
+    };
+}
+
+function sameBlock(a: BlockSize | undefined, b: BlockSize | undefined) {
+    if (a == null || b == null) return a === b;
+    return a.width === b.width && a.height === b.height;
+}
+
 /** The wedge's usable region depends on the line height, so every candidate size is placed and probed afresh. */
 function fitSectorLabelToWedge(
     text: NormalisedTextOrSegments,
@@ -122,32 +164,108 @@ function fitSectorLabelToWedge(
     font: FontOptions,
     anchor: Point,
     sector: SectorBoundaries,
-    padding: Required<PaddingOptions>
-): { text: NormalisedTextOrSegments; x: number; y: number; fontSize?: number } {
-    const place = (sized: FontOptions, atFloor: boolean) => {
-        const rect = fitSectorLabelRect(anchor, sector, cachedTextMeasurer(sized).lineHeight());
+    padding: Required<PaddingOptions>,
+    layout: (placed: PlacedSectorLabel, font: FontOptions) => BBox[]
+): PlacedSectorLabel {
+    const place = (sized: FontOptions, atFloor: boolean, inset: number, block: BlockSize | undefined) => {
+        const lineHeight = cachedTextMeasurer(sized).lineHeight();
+        const rect = fitSectorLabelRect(anchor, sector, lineHeight, block);
         const region = insetFitRegion(
             probedFitRegion(
                 { x: rect.centerX, y: rect.centerY },
                 (x, y) => isPointInSector(x, y, sector),
                 Math.abs(sector.outerRadius) * 2
             ),
-            Math.max(padding.left, padding.right),
-            Math.max(padding.top, padding.bottom)
+            Math.max(padding.left, padding.right) + inset,
+            Math.max(padding.top, padding.bottom) + inset
         );
+        // The region bounds the text the same way the wedge does but for the block's own place in it,
+        // padding included, so it refuses what the wedge-wide bounds let through — still before any layout.
+        if (!atFloor && measureLabelText(text, sized).width > regionTextCapacity(region, lineHeight)) {
+            return undefined;
+        }
         // Above the floor the text must fit whole, so a truncating size is rejected and the search steps down.
         const policy = atFloor ? fit : { ...fit, overflowStrategy: 'hide' as const };
-        const fitted = fitLabelTextToRegion(text, withFitRegion(policy, region), sized);
-        return { text: fitted.text, x: rect.centerX + fitted.offsetX, y: rect.centerY };
+        // An anchored rect is the block's place, so the fit must not take a horizontal offset to exploit
+        // room on one side: the text would be wrapped for bands it is then not drawn in.
+        const fitted = fitLabelTextToRegion(text, withFitRegion(policy, region), sized, rect.anchored);
+        return {
+            placed: { text: fitted.text, x: rect.centerX + fitted.offsetX, y: rect.centerY + fitted.offsetY },
+            rectHeight: rect.height,
+        };
+    };
+    /**
+     * The wedge is sized for a block before its text has wrapped, and the region samples the wedge rather
+     * than proving it, so each placement is measured on the node: one that overruns the wedge is re-fitted
+     * with more clearance, and one whose block is not the size the wedge was sized for is placed again
+     * for the size it turned out to be — a block only earns the anchor, or the band that suits it, once
+     * its own width and height are known.
+     */
+    const placeInWedge = (sized: FontOptions, atFloor: boolean) => {
+        let inset = 0;
+        let block: BlockSize | undefined;
+        const first = place(sized, atFloor, inset, block);
+        if (first == null) {
+            return { placed: { text: '', x: 0, y: 0 }, inWedge: false };
+        }
+        let { placed, rectHeight } = first;
+        // Re-placing trades one shape of room for another, so the passes are candidates rather than
+        // refinements: the one keeping the most text wins, and only a placement drawn inside the wedge can.
+        let best: PlacedSectorLabel | undefined;
+        let bestKept = 0;
+        for (let attempt = 0; attempt < MAX_WEDGE_ATTEMPTS && hasRealChars(placed.text); attempt += 1) {
+            const boxes = layout(placed, sized);
+            const inWedge = boxes.every((box) => isBoxInSector(box, sector));
+            const kept = inWedge ? keptCharacters(placed.text) : 0;
+            // A later pass ties only by placing the same text better, so equal candidates prefer it.
+            if (kept > 0 && kept >= bestKept) {
+                best = placed;
+                bestKept = kept;
+            }
+            const drawn = BBox.merge(boxes);
+            if (inWedge && block != null && Math.abs(drawn.height - rectHeight) < HEIGHT_CONVERGED) {
+                break;
+            }
+            const nextInset = inWedge ? inset : WEDGE_RETRY_INSETS[Math.min(attempt, WEDGE_RETRY_INSETS.length - 1)];
+            const nextBlock = inWedge ? { width: drawn.width, height: drawn.height } : block;
+            // Nothing the next placement reads has moved, so it would fit the same text in the same place.
+            if (nextInset === inset && sameBlock(nextBlock, block)) {
+                break;
+            }
+            inset = nextInset;
+            block = nextBlock;
+            const next = place(sized, atFloor, inset, block);
+            if (next == null) {
+                break;
+            }
+            ({ placed, rectHeight } = next);
+        }
+        // A wedge too narrow for one character leaves a bare ellipsis, which reads as an artefact rather
+        // than a label, so it is dropped outright instead of appearing and vanishing as the chart resizes.
+        const chosen = best ?? placed;
+        const kept = hasRealChars(chosen.text) ? chosen.text : '';
+        return { placed: { ...chosen, text: kept }, inWedge: best != null };
     };
     const floor = resolveMinimumFontSize(fit.minimumFontSize, font.fontSize);
-    if (floor >= font.fontSize) return place(font, true);
-    const found = findLargestFittingFontSize(floor, font.fontSize, (fontSize, atFloor) => {
-        const placed = place(fontWithSize(font, fontSize), atFloor);
-        if (isErased(placed.text)) return undefined;
+    if (floor >= font.fontSize) return placeInWedge(font, true).placed;
+    // Wedge clearance is not monotonic in the font size — a smaller size can reflow the text into a wider
+    // block — so the ladder is scanned down rather than bisected, which could step past the largest fit.
+    // Measured at the smallest line height in play, so it bounds the room at every size on the ladder.
+    const room = sectorLabelRoom(anchor, sector, cachedTextMeasurer(fontWithSize(font, floor)).lineHeight());
+    const found = findLargestFontSizeDescending(floor, font.fontSize, (fontSize, atFloor) => {
+        const sized = fontWithSize(font, fontSize);
+        // The wedge cannot hold more text than it has room for, whether measured by the area the text
+        // covers or by the lines the wedge can stack, so an oversized rung goes without being placed.
+        const lineHeight = cachedTextMeasurer(sized).lineHeight();
+        const advance = measureLabelText(text, sized).width;
+        if (!atFloor && (advance * lineHeight > room.area || advance > room.capacityAt(lineHeight))) {
+            return undefined;
+        }
+        const { placed, inWedge } = placeInWedge(sized, atFloor);
+        if (!inWedge || isErased(placed.text)) return undefined;
         return { ...placed, fontSize: fontSize === font.fontSize ? undefined : fontSize };
     });
-    return found ?? place(fontWithSize(font, floor), true);
+    return found ?? placeInWedge(fontWithSize(font, floor), true).placed;
 }
 
 interface PieDonutLabelDatum {
@@ -1761,13 +1879,17 @@ export class DonutSeries extends PolarSeries<
                         // The wedge bounds the text rather than capping the inscribed rect, and is lopsided
                         // about the anchor, so the fit also reports where to draw.
                         const anchor = { x: datum.midCos * labelRadius, y: datum.midSin * labelRadius };
+                        // The node judges each candidate, so alignment and boxing are settled first.
+                        text.setAlign(align);
+                        text.setBoxing(style);
                         const fitted = fitSectorLabelToWedge(
                             datum.sectorLabel.text,
                             sectorFit,
                             style,
                             anchor,
                             sectorBounds,
-                            labelPadding
+                            labelPadding,
+                            wedgeLabelLayout(text)
                         );
                         text.text = fitted.text;
                         text.x = fitted.x;
