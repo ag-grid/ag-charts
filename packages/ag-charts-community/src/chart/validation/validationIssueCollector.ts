@@ -3,7 +3,7 @@ import type { Logger } from 'ag-charts-core';
 import { Listeners } from '../../util/listeners';
 
 export type ValidationSeverity = 'error' | 'warning' | 'deprecation';
-export type ValidationOverlayLevel = ValidationSeverity | 'none';
+export type ValidationSeverityThreshold = ValidationSeverity | 'none';
 
 export interface ValidationIssue {
     severity: ValidationSeverity;
@@ -24,8 +24,8 @@ export interface ValidationSink {
 
 export const SEVERITY_ORDER: ValidationSeverity[] = ['error', 'warning', 'deprecation'];
 
-// Inclusive threshold: a level shows its own severity and every louder one ('error' is loudest).
-const LEVEL_INCLUDES: Record<ValidationOverlayLevel, ValidationSeverity[]> = {
+// Inclusive threshold: a threshold admits its own severity and every louder one ('error' is loudest).
+const SEVERITY_INCLUDES: Record<ValidationSeverityThreshold, ValidationSeverity[]> = {
     error: ['error'],
     warning: ['error', 'warning'],
     deprecation: ['error', 'warning', 'deprecation'],
@@ -33,8 +33,8 @@ const LEVEL_INCLUDES: Record<ValidationOverlayLevel, ValidationSeverity[]> = {
 };
 
 /** Inclusive-threshold test shared by the overlay and `validations.throwOn`. */
-export function severityAtOrAbove(level: ValidationOverlayLevel, severity: ValidationSeverity): boolean {
-    return LEVEL_INCLUDES[level].includes(severity);
+export function severityAtOrAbove(threshold: ValidationSeverityThreshold, severity: ValidationSeverity): boolean {
+    return SEVERITY_INCLUDES[threshold].includes(severity);
 }
 
 export type ValidationIssueListener = (event: { severity: ValidationSeverity; message: string }) => void;
@@ -57,7 +57,7 @@ export class ValidationIssueCollector {
     private callbackIssues: ValidationIssue[] = [];
     private pendingCallbackIssues: ValidationIssue[] = [];
     private runtimeIssues: ValidationIssue[] = [];
-    private overlayLevel: ValidationOverlayLevel = 'none';
+    private overlaySeverity: ValidationSeverityThreshold = 'none';
     private dismissed = false;
     private signature = '';
     private readonly listeners = new Listeners<'change', () => void>();
@@ -110,9 +110,9 @@ export class ValidationIssueCollector {
         }
     }
 
-    setOverlayLevel(level: ValidationOverlayLevel) {
-        if (this.overlayLevel === level) return;
-        this.overlayLevel = level;
+    setOverlaySeverity(severity: ValidationSeverityThreshold) {
+        if (this.overlaySeverity === severity) return;
+        this.overlaySeverity = severity;
         this.listeners.dispatch('change');
     }
 
@@ -209,14 +209,14 @@ export class ValidationIssueCollector {
     }
 
     hasVisibleIssues(): boolean {
-        if (this.overlayLevel === 'none' || this.dismissed) return false;
-        return this.allIssues().some((issue) => severityAtOrAbove(this.overlayLevel, issue.severity));
+        if (this.overlaySeverity === 'none' || this.dismissed) return false;
+        return this.allIssues().some((issue) => severityAtOrAbove(this.overlaySeverity, issue.severity));
     }
 
     getVisibleIssues(): GroupedValidationIssues {
         const grouped: GroupedValidationIssues = { error: [], warning: [], deprecation: [] };
         for (const issue of this.allIssues()) {
-            if (severityAtOrAbove(this.overlayLevel, issue.severity)) {
+            if (severityAtOrAbove(this.overlaySeverity, issue.severity)) {
                 grouped[issue.severity].push(issue);
             }
         }

@@ -4383,10 +4383,10 @@ describe('ChartOptions', () => {
             ...extra,
         }) as AgChartOptions;
 
-    describe('validations.consoleLogLevel', () => {
+    describe('validations.consoleLogSeverity', () => {
         it('silences first-render validation warnings when set to `none`, without silencing validation itself', () => {
             const chartOptions = new ChartOptions(
-                invalidOptions({ validations: { consoleLogLevel: 'none' } }),
+                invalidOptions({ validations: { consoleLogSeverity: 'none' } }),
                 {} as AgChartOptions,
                 {},
                 {},
@@ -4397,7 +4397,7 @@ describe('ChartOptions', () => {
             expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
         });
 
-        it('warns for the same invalid options without a consoleLogLevel override', () => {
+        it('warns for the same invalid options without a consoleLogSeverity override', () => {
             const chartOptions = new ChartOptions(invalidOptions(), {} as AgChartOptions, {}, {}, {});
 
             expect(console.warn).toHaveBeenCalled();
@@ -4406,7 +4406,7 @@ describe('ChartOptions', () => {
 
         it('silences validation warnings when set to `error`', () => {
             const chartOptions = new ChartOptions(
-                invalidOptions({ validations: { consoleLogLevel: 'error' } }),
+                invalidOptions({ validations: { consoleLogSeverity: 'error' } }),
                 {} as AgChartOptions,
                 {},
                 {},
@@ -4417,28 +4417,28 @@ describe('ChartOptions', () => {
             expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
         });
 
-        it('reports an invalid consoleLogLevel value rather than silencing logging with it', () => {
+        it('reports an invalid consoleLogSeverity value rather than silencing logging with it', () => {
             const chartOptions = new ChartOptions(
-                invalidOptions({ validations: { consoleLogLevel: 'verbose' } }),
+                invalidOptions({ validations: { consoleLogSeverity: 'verbose' } }),
                 {} as AgChartOptions,
                 {},
                 {},
                 {}
             );
 
-            expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.consoleLogLevel')).toBe(
+            expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.consoleLogSeverity')).toBe(
                 true
             );
             const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
-            expect(messages.some((m) => m.includes('validations.consoleLogLevel'))).toBe(true);
+            expect(messages.some((m) => m.includes('validations.consoleLogSeverity'))).toBe(true);
             expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
         });
 
-        it('reports an explicit null consoleLogLevel rather than deferring to a silencing override', () => {
+        it('reports an explicit null consoleLogSeverity rather than deferring to a silencing override', () => {
             const chartOptions = new ChartOptions(
-                invalidOptions({ validations: { consoleLogLevel: null } }),
+                invalidOptions({ validations: { consoleLogSeverity: null } }),
                 {} as AgChartOptions,
-                { validations: { consoleLogLevel: 'none' } } as Partial<AgChartOptions>,
+                { validations: { consoleLogSeverity: 'none' } } as Partial<AgChartOptions>,
                 {},
                 {}
             );
@@ -4450,7 +4450,7 @@ describe('ChartOptions', () => {
 
         it('returns to default logging once a delta update removes a `none` override', () => {
             const base = new ChartOptions(
-                invalidOptions({ validations: { consoleLogLevel: 'none' } }),
+                invalidOptions({ validations: { consoleLogSeverity: 'none' } }),
                 {} as AgChartOptions,
                 {},
                 {},
@@ -4711,9 +4711,9 @@ describe('ChartOptions', () => {
             );
         });
 
-        it('records the issue independently of `consoleLogLevel` silencing the console', () => {
+        it('records the issue independently of `consoleLogSeverity` silencing the console', () => {
             const chartOptions = new ChartOptions(
-                badStrokeWidthOptions({ consoleLogLevel: 'none' }),
+                badStrokeWidthOptions({ consoleLogSeverity: 'none' }),
                 {} as AgChartOptions,
                 {},
                 {},

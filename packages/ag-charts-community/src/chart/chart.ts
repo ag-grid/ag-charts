@@ -36,7 +36,7 @@ import type {
     AgBaseAxisOptions,
     AgChartInstance,
     AgChartOptions,
-    AgChartValidationLevel,
+    AgChartValidationSeverity,
     AgColorType,
     AgCoordinates,
     AgDataTransaction,
@@ -588,7 +588,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 if (opts != null) this.overlays.set(opts);
             }),
             ctx.chartState.observe((get) => {
-                this.validationCollector.setOverlayLevel(get('options', 'validations')?.overlayLevel ?? 'none');
+                this.validationCollector.setOverlaySeverity(get('options', 'validations')?.overlaySeverity ?? 'none');
             }),
             // A tooltip is painted in the browser's top layer (a `popover`), so no z-index can place it
             // beneath the validation overlay. Hold tooltips back while the overlay is shown so it stays legible.
@@ -600,10 +600,10 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 }
             }),
             ctx.chartState.observe((get) => {
-                ctx.logger.setLevel(get('options', 'validations')?.consoleLogLevel ?? 'deprecation');
+                ctx.logger.setLevel(get('options', 'validations')?.consoleLogSeverity ?? 'deprecation');
             }),
             ctx.chartState.observe((get) => {
-                this.throwOnLevel = get('options', 'validations')?.throwOn ?? 'none';
+                this.throwOnSeverity = get('options', 'validations')?.throwOn ?? 'none';
                 this.setIssueListener(get('options', 'validations')?.issueRaised);
             }),
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
@@ -919,7 +919,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     private readonly updateMutex = new Mutex();
     private clearCallbackCacheOnUpdate: boolean = false;
     private updateRequestors: Record<string, ChartUpdateType> = {};
-    private throwOnLevel: AgChartValidationLevel = 'none';
+    private throwOnSeverity: AgChartValidationSeverity = 'none';
     private pendingFailFastError?: Error;
 
     private readonly performUpdateTrigger = debouncedCallback(({ count }) => {
@@ -1024,7 +1024,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             });
             this.runningUpdateType = ChartUpdateType.NONE;
             this._performUpdateNotify.notify();
-            if (severityAtOrAbove(this.throwOnLevel, 'error')) {
+            if (severityAtOrAbove(this.throwOnSeverity, 'error')) {
                 this.pendingFailFastError = new Error(
                     `AG Charts - validations.throwOn: error - ${String(error?.message ?? error)}`
                 );

@@ -2145,7 +2145,7 @@ describe('validations.throwOn — runtime errors', () => {
     });
 
     it('writes the console record and records the overlay issue before rejecting — fail-fast suppresses nothing', async () => {
-        const proxy = AgCharts.create(throwOnOptions({ throwOn: 'error', overlayLevel: 'error' })) as AgChartProxy;
+        const proxy = AgCharts.create(throwOnOptions({ throwOn: 'error', overlaySeverity: 'error' })) as AgChartProxy;
         chart = deproxy(proxy);
         armProcessDataThrow(chart);
 
@@ -2240,7 +2240,7 @@ describe('validations.issueRaised', () => {
         chart?.destroy();
     });
 
-    it('fires for a runtime error caught in tryPerformUpdate(), regardless of consoleLogLevel/overlayLevel', async () => {
+    it('fires for a runtime error caught in tryPerformUpdate(), regardless of consoleLogSeverity/overlaySeverity', async () => {
         const issueRaised = vi.fn();
         const thrownError = new Error('processData boom');
 
@@ -2252,8 +2252,8 @@ describe('validations.issueRaised', () => {
             ],
             series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
             validations: {
-                consoleLogLevel: 'none',
-                overlayLevel: 'none',
+                consoleLogSeverity: 'none',
+                overlaySeverity: 'none',
                 issueRaised,
             },
         }) as AgChartProxy;
@@ -2517,7 +2517,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
                     },
                 },
             ],
-            validations: { overlayLevel: 'error', issueRaised },
+            validations: { overlaySeverity: 'error', issueRaised },
         }) as AgChartProxy;
         chart = deproxy(proxy);
         await waitForChartStability(chart);

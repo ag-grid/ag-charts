@@ -370,10 +370,10 @@ export interface AgBaseChartOptions<
 }
 
 /**
- * The severity of validation problem to report, as an inclusive threshold: each level also reports
- * every louder level. `'none'` reports nothing.
+ * The severity of validation problem to report, as an inclusive threshold: each severity also
+ * reports every louder one. `'none'` reports nothing.
  */
-export type AgChartValidationLevel = 'error' | 'warning' | 'deprecation' | 'none';
+export type AgChartValidationSeverity = 'error' | 'warning' | 'deprecation' | 'none';
 
 /** A single validation problem reported by the chart. */
 export interface AgChartValidationIssueEvent {
@@ -392,13 +392,13 @@ export interface AgChartValidationsOptions {
      *
      * Default: `'deprecation'`
      */
-    consoleLogLevel?: AgChartValidationLevel;
+    consoleLogSeverity?: AgChartValidationSeverity;
     /**
      * The minimum severity of validation problem to report in an overlay on the chart itself.
      *
      * Default: `'none'`
      */
-    overlayLevel?: AgChartValidationLevel;
+    overlaySeverity?: AgChartValidationSeverity;
     /**
      * The minimum severity of validation problem that causes the chart to throw instead of warning
      * and falling back to a default. `'none'` never throws, matching the behaviour of charts that do
@@ -409,12 +409,12 @@ export interface AgChartValidationsOptions {
      *
      * Default: `'none'`
      */
-    throwOn?: AgChartValidationLevel;
+    throwOn?: AgChartValidationSeverity;
     /**
      * Called for each validation problem the chart raises — an invalid option value or a runtime error
      * caught during a chart update. The reported problems are the same set the validation overlay
      * shows, not every diagnostic the chart can write to the console. Never gated by
-     * `consoleLogLevel` or `overlayLevel`.
+     * `consoleLogSeverity` or `overlaySeverity`.
      *
      * Default: `undefined`
      */

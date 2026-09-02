@@ -49,7 +49,7 @@ import {
 import {
     type AgChartOptions,
     type AgChartThemeParams,
-    type AgChartValidationLevel,
+    type AgChartValidationSeverity,
     type AgChartValidationsOptions,
     type AgMiniChartSeriesOptions,
     type AgPresetOptions,
@@ -89,11 +89,11 @@ import {
 } from './optionsStructuralCache';
 import type { SeriesGrouping } from './seriesGrouping';
 
-/** The default `validations.consoleLogLevel` — everything, including deprecation notices. */
-const DEFAULT_CONSOLE_LOG_LEVEL: AgChartValidationLevel = 'deprecation';
+/** The default `validations.consoleLogSeverity` — everything, including deprecation notices. */
+const DEFAULT_CONSOLE_LOG_SEVERITY: AgChartValidationSeverity = 'deprecation';
 
 /** The default `validations.throwOn` — fail-fast is opt-in, so nothing throws unless a consumer asks for it. */
-const DEFAULT_THROW_ON: AgChartValidationLevel = 'none';
+const DEFAULT_THROW_ON: AgChartValidationSeverity = 'none';
 
 /**
  * A `validations.throwOn` fail-fast throw. Marks the error as already prefixed and already written to
@@ -306,7 +306,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     // rather than captured, making the adopt order irrelevant.
     private validationSink?: (issue: ValidationIssue) => void;
 
-    private throwOn: AgChartValidationLevel = 'none';
+    private throwOn: AgChartValidationSeverity = 'none';
 
     // `validations.issueRaised`, resolved here rather than read off the chart because a fail-fast
     // throw aborts this constructor: the chart never adopts these issues, so this is the only
@@ -384,10 +384,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Must precede `slowSetup()`'s first validation pass so a user-supplied `'none'` suppresses the
         // first warning. Keyed on presence, not nullishness, so an explicit `null` still warns.
         const userValidations = getValidations(this.userOptions);
-        this.applyConsoleLogLevel(
-            isObjectWithProperty(userValidations, 'consoleLogLevel')
-                ? userValidations.consoleLogLevel
-                : getValidations(this.processedOverrides)?.consoleLogLevel
+        this.applyConsoleLogSeverity(
+            isObjectWithProperty(userValidations, 'consoleLogSeverity')
+                ? userValidations.consoleLogSeverity
+                : getValidations(this.processedOverrides)?.consoleLogSeverity
         );
         this.applyThrowOn(
             isObjectWithProperty(userValidations, 'throwOn')
@@ -471,7 +471,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.activeTheme = activeTheme;
         this.processedOptions = processedOptions;
         // Re-apply from the merged result so a value arriving via a theme or preset also takes effect.
-        this.applyConsoleLogLevel(getValidations(this.processedOptions)?.consoleLogLevel);
+        this.applyConsoleLogSeverity(getValidations(this.processedOptions)?.consoleLogSeverity);
         // State consistency only: this runs after every `record*` call, so it arms nothing this pass.
         this.applyThrowOn(getValidations(this.processedOptions)?.throwOn);
         // As above: re-applied from the merged result so a theme- or preset-supplied listener also counts.
@@ -816,8 +816,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      */
     adoptLogger(logger: Logger) {
         this.logger = logger;
-        // A pooled chart adopts a different Logger after validation, so the level must be re-applied.
-        this.applyConsoleLogLevel(getValidations(this.processedOptions)?.consoleLogLevel);
+        // A pooled chart adopts a different Logger after validation, so the severity must be re-applied.
+        this.applyConsoleLogSeverity(getValidations(this.processedOptions)?.consoleLogSeverity);
         // Likewise for the throw threshold and the issue listener.
         this.applyThrowOn(getValidations(this.processedOptions)?.throwOn);
         this.applyIssueListener(getValidations(this.processedOptions)?.issueRaised);
@@ -838,25 +838,27 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     /**
-     * Points the Logger at the requested level, falling back to the default for anything unrecognised.
+     * Points the Logger at the requested severity, falling back to the default for anything unrecognised.
      * The fallback is load-bearing: this runs before the union validator has, so an invalid value must
      * not silence the very warning that reports it.
      */
-    private applyConsoleLogLevel(level: unknown) {
-        // Typed as the public option so the two level unions stay pinned to each other at compile time.
-        const consoleLogLevel: AgChartValidationLevel = isLogLevel(level) ? level : DEFAULT_CONSOLE_LOG_LEVEL;
-        this.logger.setLevel(consoleLogLevel);
+    private applyConsoleLogSeverity(severity: unknown) {
+        // Typed as the public option so the two severity unions stay pinned to each other at compile time.
+        const consoleLogSeverity: AgChartValidationSeverity = isLogLevel(severity)
+            ? severity
+            : DEFAULT_CONSOLE_LOG_SEVERITY;
+        this.logger.setLevel(consoleLogSeverity);
     }
 
     /**
      * Resolves `validations.throwOn`, falling back to `'none'` for anything unrecognised. The fallback
-     * direction is the opposite of `applyConsoleLogLevel`'s deliberately: this runs before the union
+     * direction is the opposite of `applyConsoleLogSeverity`'s deliberately: this runs before the union
      * validator has, and an invalid value must not make the chart throw about itself — nor turn
      * fail-fast on for a consumer who never asked for it.
      */
-    private applyThrowOn(level: unknown) {
-        // Reuses `isLogLevel` so a new level cannot be missed by either union.
-        this.throwOn = isLogLevel(level) ? level : DEFAULT_THROW_ON;
+    private applyThrowOn(severity: unknown) {
+        // Reuses `isLogLevel` so a new severity cannot be missed by either union.
+        this.throwOn = isLogLevel(severity) ? severity : DEFAULT_THROW_ON;
     }
 
     /**
@@ -954,7 +956,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     /**
      * Report an argument that could not be options at all (`create(undefined)`, `create(3)`, an empty
      * object) through the same feed as any option-validation error, so it reaches the console log, the
-     * `validations.overlayLevel` overlay, `validations.issueRaised` and `validations.throwOn`. Raised
+     * `validations.overlaySeverity` overlay, `validations.issueRaised` and `validations.throwOn`. Raised
      * at `error` severity - unlike a per-option problem, nothing of the caller's intent survives it.
      *
      * Pushed as a new array: the unchanged-options fast path aliases `validationIssues` to the base
