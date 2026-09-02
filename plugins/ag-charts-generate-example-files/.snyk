@@ -5,134 +5,134 @@ ignore:
     - glob@8.0.3 > minimatch@5.1.6 > brace-expansion@2.0.2:
         reason: >-
             Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-07-27T09:08:46.979Z
     - jscodeshift@0.16.1 > temp@0.9.4 > rimraf@2.6.3 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
         reason: >-
             Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-07-27T09:08:46.924Z
     - jscodeshift@0.16.1 > node-dir@0.1.17 > minimatch@3.1.2 > brace-expansion@2.0.2:
         reason: >-
             Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-07-27T09:08:46.922Z
     - '@nx/devkit@18.3.4 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2':
         reason: >-
             Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-07-27T09:08:46.630Z
     - '@nx/devkit@18.3.4 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6 > brace-expansion@2.0.2':
         reason: >-
             Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-07-27T09:08:46.627Z
   SNYK-JS-AGCHARTSTEST-17950302:
     - ag-charts-test@14.0.0-beta.20260712:
         reason: 'The package with the issue is not the one we consume, which is an internal only one. The malicious package has been pulled from npm'
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-07-15T09:49:06.487Z
   SNYK-JS-TMP-17315641:
     - '@nx/devkit@18.3.4 > tmp@0.2.1':
         reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-06-24T13:43:11.599Z
   SNYK-JS-PICOMATCH-15765511:
     - sucrase@3.35.1 > tinyglobby@0.2.15 > picomatch@4.0.3:
         reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-27T16:19:14.055Z
     - jscodeshift@0.16.1 > micromatch@4.0.8 > picomatch@2.3.1:
         reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-27T16:19:13.479Z
   SNYK-JS-BRACEEXPANSION-15789759:
     - glob@8.0.3 > minimatch@5.1.6 > brace-expansion@2.0.2:
         reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-27T16:17:29.816Z
     - jscodeshift@0.16.1 > temp@0.9.4 > rimraf@2.6.3 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
         reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-27T16:17:29.494Z
     - jscodeshift@0.16.1 > node-dir@0.1.17 > minimatch@3.1.2 > brace-expansion@2.0.2:
         reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-27T16:17:29.492Z
     - '@nx/devkit@18.3.4 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2':
         reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-27T16:17:29.457Z
     - '@nx/devkit@18.3.4 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6 > brace-expansion@2.0.2':
         reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-27T16:17:29.455Z
   SNYK-JS-MINIMATCH-15353389:
     - jscodeshift@0.16.1 > temp@0.9.4 > rimraf@2.6.3 > glob@7.2.3 > minimatch@3.1.2:
         reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T17:27:24.771Z
     - '@nx/devkit@18.3.4 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2':
         reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T17:27:24.769Z
     - jscodeshift@0.16.1 > node-dir@0.1.17 > minimatch@3.1.2:
         reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T17:27:24.766Z
     - '@nx/devkit@18.3.4 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6':
         reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T17:27:24.764Z
     - glob@8.0.3 > minimatch@5.1.6:
         reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T17:27:24.758Z
   SNYK-JS-MINIMATCH-15309438:
     - jscodeshift@0.16.1 > temp@0.9.4 > rimraf@2.6.3 > glob@7.2.3 > minimatch@3.1.2:
         reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T16:59:15.988Z
     - '@nx/devkit@18.3.4 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2':
         reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T16:59:15.984Z
     - jscodeshift@0.16.1 > node-dir@0.1.17 > minimatch@3.1.2:
         reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T16:59:15.975Z
     - '@nx/devkit@18.3.4 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6':
         reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T16:59:15.973Z
     - glob@8.0.3 > minimatch@5.1.6:
         reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T16:59:15.968Z
   SNYK-JS-TMP-16881240:
     - '@nx/devkit@18.3.4 > tmp@0.2.1':
         reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
   SNYK-JS-BRACEEXPANSION-17706650:
     - glob@8.0.3 > minimatch@5.1.6 > brace-expansion@2.0.2:
         reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
-        expires: '2026-10-23T00:00:00.000Z'
+        expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
     - jscodeshift@0.16.1 > node-dir@0.1.17 > minimatch@3.1.2 > brace-expansion@2.0.2:
         reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
-        expires: '2026-10-23T00:00:00.000Z'
+        expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
     - '@nx/devkit@18.3.4 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6 > brace-expansion@2.0.2':
         reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
-        expires: '2026-10-23T00:00:00.000Z'
+        expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
     - '@nx/devkit@18.3.4 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2':
         reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
-        expires: '2026-10-23T00:00:00.000Z'
+        expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
     - jscodeshift@0.16.1 > temp@0.9.4 > rimraf@2.6.3 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
         reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
-        expires: '2026-10-23T00:00:00.000Z'
+        expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
 patch: {}
