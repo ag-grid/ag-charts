@@ -130,6 +130,19 @@ export default defineConfig({
                 'ag-charts-react',
                 'ag-charts-vue3',
             ],
+            // Dev-server only. These are reachable exclusively through a lazily hydrated island
+            // or (for the transitions runtime) a virtual module the dep crawler cannot follow, so
+            // Vite discovers them after its initial crawl, re-optimises, and reloads the page —
+            // 504-ing whichever island requests were in flight. Pre-declaring them keeps the
+            // first load stable.
+            include: [
+                'astro/virtual-modules/transitions-router.js',
+                'astro/virtual-modules/transitions-types.js',
+                'astro/virtual-modules/transitions-events.js',
+                'astro/virtual-modules/transitions-swap-functions.js',
+                'algoliasearch/lite',
+                'react-instantsearch',
+            ],
         },
         server: {
             https: httpsEnabled,
