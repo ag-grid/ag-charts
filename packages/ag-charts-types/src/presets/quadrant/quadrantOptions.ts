@@ -63,6 +63,8 @@ export interface AgQuadrantPreset<TDatum, TContext>
     regions?: AgQuadrantRegionsOptions;
     /** The key to use to retrieve size values from the data, used to control the size of the markers. */
     sizeKey?: DatumKey<TDatum>;
+    /** A human-readable description of the size values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    sizeName?: string;
     /** Determines the smallest size a marker can be in pixels when `sizeKey` is present. Defaults to `size` when not set. */
     minSize?: PixelSize;
     /** Determines the largest size a marker can be in pixels when `sizeKey` is present. */
@@ -193,6 +195,8 @@ export interface AgQuadrantTooltipRendererParams<TDatum, TContext> extends AgSca
 > {
     /** The region the marker falls in, determined by comparing its x- and y-values against the pivot. */
     region: AgQuadrantRegion;
+    /** The human-readable description of the size values, as supplied via `sizeName`, present when `sizeKey` is set. */
+    sizeName?: string;
 }
 
 export interface AgQuadrantLabelOptions<TDatum, TContext> extends Omit<
