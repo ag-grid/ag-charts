@@ -177,6 +177,7 @@ describe('instance modules', () => {
             const injectWatermark = vi.fn();
 
             beforeEach(() => {
+                injectWatermark.mockClear();
                 enterpriseRegistry.licenseManager = createLicenseManager;
                 enterpriseRegistry.injectWatermark = injectWatermark;
             });
@@ -201,6 +202,23 @@ describe('instance modules', () => {
                 await waitForChartStability(chart);
                 expect(injectWatermark).toHaveBeenCalledTimes(1);
                 expect(chart.isModuleRegistered('enterprise-plugin')).toBe(false);
+            });
+
+            it('licenses a community chart once an update resolves enterprise modules', async () => {
+                ModuleRegistry.registerModules(LINE_MODULES);
+                chart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }));
+                await waitForChartStability(chart);
+                expect(injectWatermark).not.toHaveBeenCalled();
+
+                ModuleRegistry.registerModules([enterprisePlugin]);
+                await chart.update(prepareTestOptions({ ...LINE_CHART }));
+                await waitForChartStability(chart);
+                expect(chart.isModuleRegistered('enterprise-plugin')).toBe(true);
+                expect(injectWatermark).toHaveBeenCalledTimes(1);
+
+                await chart.update(prepareTestOptions({ ...LINE_CHART }));
+                await waitForChartStability(chart);
+                expect(injectWatermark).toHaveBeenCalledTimes(1);
             });
         });
 

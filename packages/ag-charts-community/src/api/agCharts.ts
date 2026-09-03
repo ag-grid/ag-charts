@@ -101,6 +101,18 @@ function usesEnterpriseModules(moduleScope: ModuleScope): boolean {
     return false;
 }
 
+let pageLicenseManager: LicenseManager | undefined;
+let licenseChecked = false;
+// The licence is validated once per page; every chart that needs it shares the result.
+function validatedLicenseManager(options: AgChartOptions): LicenseManager | undefined {
+    if (!licenseChecked) {
+        pageLicenseManager = enterpriseRegistry.licenseManager?.(options);
+        pageLicenseManager?.validateLicense();
+        licenseChecked = true;
+    }
+    return pageLicenseManager;
+}
+
 // Public module types describe only the identifying fields; the runtime objects are full definitions.
 function instanceModules(params?: AgChartParams): Array<ModuleDefinition | ModuleDefinition[]> | undefined {
     return params?.modules as Array<ModuleDefinition | ModuleDefinition[]> | undefined;
@@ -112,23 +124,6 @@ function instanceModules(params?: AgChartParams): Array<ModuleDefinition | Modul
  * @docsInterface
  */
 export abstract class AgCharts {
-    private static licenseManager?: LicenseManager;
-    private static licenseChecked = false;
-
-    private static licenseCheck(options: AgChartOptions, moduleScope: ModuleScope): LicenseManager | undefined {
-        if ((options as { withinStudio?: boolean }).withinStudio || !usesEnterpriseModules(moduleScope)) {
-            return undefined;
-        }
-        let licenseManager = this.licenseManager;
-        if (!this.licenseChecked) {
-            licenseManager = enterpriseRegistry.licenseManager?.(options);
-            this.licenseManager = licenseManager;
-            licenseManager?.validateLicense();
-            this.licenseChecked = true;
-        }
-        return licenseManager;
-    }
-
     /** @private - for use by Charts website dark-mode support. */
     static readonly optionsMutationFn?: (opts: AgChartOptions, preset?: string) => AgChartOptions;
 
@@ -179,19 +174,12 @@ export abstract class AgCharts {
         return debug.group('AgCharts.create()', () => {
             // deepClone should clone EVERYTHING here, so we can detect mutations in development mode.
             userOptions = Debug.inDevelopmentMode(() => deepFreeze(deepClone(userOptions))) ?? userOptions;
-            const moduleScope = ModuleRegistry.resolveModuleScope(optionsMetadata.modules);
-            const licenseManager = this.licenseCheck(userOptions, moduleScope);
             const chart = AgChartsInternal.createOrUpdate({
                 userOptions,
-                licenseManager,
                 optionsMetadata,
                 optionsArgumentIssue: argumentIssue,
                 apiStartTime,
             });
-
-            if (licenseManager?.isDisplayWatermark()) {
-                enterpriseRegistry.injectWatermark?.(chart.chart!.ctx.domManager, licenseManager.getWatermarkMessage());
-            }
             return chart as unknown as AgChartInstance<O>;
         });
     }
@@ -288,7 +276,6 @@ class AgChartsInternal {
         deltaOptions?: DeepPartial<AgChartOptions>;
         processedOverrides?: Partial<AgChartOptions>;
         proxy?: AgChartInstanceProxy;
-        licenseManager?: LicenseManager;
         specialOverrides?: Partial<ChartSpecialOverrides>;
         optionsMetadata?: ChartInternalOptionMetadata;
         /** Reported as an `error` validation issue once the chart exists - see `optionsArgumentIssue()`. */
@@ -300,7 +287,6 @@ class AgChartsInternal {
         let { proxy } = opts;
         const {
             userOptions,
-            licenseManager,
             processedOverrides = proxy?.chart?.chartOptions.processedOverrides ?? {},
             specialOverrides = proxy?.chart?.chartOptions.specialOverrides ?? {},
             optionsMetadata = proxy?.chart?.chartOptions.optionMetadata ?? {},
@@ -447,13 +433,15 @@ class AgChartsInternal {
         chart.ctx.dataService.setForcedLoading(loading);
 
         if (proxy == null) {
-            proxy = new AgChartInstanceProxy(chart, AgChartsInternal.callbackApi, licenseManager);
+            proxy = new AgChartInstanceProxy(chart, AgChartsInternal.callbackApi);
             proxy.releaseChart = poolResult?.release;
         } else if (poolResult || create) {
             proxy.releaseChart?.();
             proxy.chart = chart;
             proxy.releaseChart = poolResult?.release;
         }
+        const chartProxy = proxy;
+        AgChartsInternal.licenseCheck(chartProxy, chartOptions);
 
         if (debug.check() && typeof globalThis.window !== 'undefined') {
             (globalThis as any).agChartInstances ??= {};
@@ -478,6 +466,7 @@ class AgChartsInternal {
             );
             // Re-derived per refresh, so registering the module later recovers.
             if (refreshedChartOptions.unusableLeadSeriesType != null) return;
+            AgChartsInternal.licenseCheck(chartProxy, refreshedChartOptions);
             AgChartsInternal.requestFactoryUpdate(chart, refreshedChartOptions);
         });
 
@@ -489,6 +478,22 @@ class AgChartsInternal {
         AgChartsInternal.requestFactoryUpdate(chart, chartOptions);
 
         return proxy;
+    }
+
+    // Re-run on every update: a community chart's scope gains enterprise modules registered after it was created.
+    private static licenseCheck(proxy: AgChartInstanceProxy, chartOptions: ChartOptions) {
+        const { userOptions, processedOptions, moduleRegistry } = chartOptions;
+        // Presets strip this undocumented flag from the processed options, so read it as the user gave it.
+        const withinStudio = (userOptions as { withinStudio?: boolean }).withinStudio;
+        if (proxy.licenseManager != null || withinStudio || !usesEnterpriseModules(moduleRegistry)) return;
+
+        const licenseManager = validatedLicenseManager(processedOptions);
+        if (licenseManager == null) return;
+
+        proxy.licenseManager = licenseManager;
+        if (licenseManager.isDisplayWatermark()) {
+            enterpriseRegistry.injectWatermark?.(proxy.chart!.ctx.domManager, licenseManager.getWatermarkMessage());
+        }
     }
 
     // `Parameters` and `unknown` here strictly enforce type-safety.

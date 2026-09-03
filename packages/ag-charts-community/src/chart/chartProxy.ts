@@ -78,11 +78,11 @@ export class AgChartInstanceProxy implements AgChartProxy {
     })
     chart?: Chart;
     releaseChart?: () => void;
+    licenseManager?: LicenseManager;
 
     constructor(
         chart: Chart,
-        private readonly factoryApi: FactoryApi,
-        private readonly licenseManager?: LicenseManager
+        private readonly factoryApi: FactoryApi
     ) {
         this.chart = chart;
     }
