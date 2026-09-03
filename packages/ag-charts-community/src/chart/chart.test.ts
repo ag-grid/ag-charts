@@ -2371,10 +2371,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
         expect(issueRaised).toHaveBeenCalled();
         expectWarningsCalls().toHaveLength(1);
         const errorMock = console.error as Mock;
-        expect(errorMock).toHaveBeenCalledWith(
-            'AG Charts - validations.issueRaised threw an error',
-            expect.any(Error)
-        );
+        expect(errorMock).toHaveBeenCalledWith('AG Charts - validations.issueRaised threw an error', expect.any(Error));
         errorMock.mockClear();
     });
 
@@ -2408,10 +2405,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
         expectWarningsCalls().toHaveLength(2);
         // The inner chart's own fail-fast error unwinds through the outer listener.
         const errorMock = console.error as Mock;
-        expect(errorMock).toHaveBeenCalledWith(
-            'AG Charts - validations.issueRaised threw an error',
-            expect.any(Error)
-        );
+        expect(errorMock).toHaveBeenCalledWith('AG Charts - validations.issueRaised threw an error', expect.any(Error));
         errorMock.mockClear();
     });
 
