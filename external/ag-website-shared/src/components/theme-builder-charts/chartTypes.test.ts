@@ -8,7 +8,13 @@ import {
     isFeatureActive,
     isFeatureEnabled,
 } from './chartFeatures';
-import { DEFAULT_CHART_TYPE_IDS, PREVIEW_CHART_TYPES, PREVIEW_PANES, snapSeriesCount } from './chartTypes';
+import {
+    DEFAULT_CHART_TYPE_IDS,
+    PREVIEW_CHART_TYPES,
+    PREVIEW_PANES,
+    THUMBNAIL_OPTIONS,
+    snapSeriesCount,
+} from './chartTypes';
 import {
     CANDLESTICK_DATA,
     DEFAULT_SERIES_COUNT,
@@ -17,6 +23,7 @@ import {
     PREVIEW_DATA,
     PREVIEW_SERIES,
     SERIES_COUNT_OPTIONS,
+    THUMBNAIL_SERIES_KEYS,
 } from './previewData';
 import { PREVIEW_MODULES } from './previewModules';
 
@@ -106,13 +113,23 @@ describe('preview chart types', () => {
         }
     });
 
-    it('keeps the thumbnails at a fixed eight, independent of the count', () => {
+    it('keeps the thumbnail at a fixed eight, independent of the count', () => {
         // Deliberate: the cards separate themes from each other, and at a
         // user-chosen count of two the lookalike palettes would converge again.
-        for (const type of COUNTED_TYPES) {
-            const thumbnail = type.thumbnailOptions as { series: unknown[]; data: unknown[] };
-            const slots = type.id === 'donut' ? thumbnail.data.length : thumbnail.series.length;
-            expect(slots, type.id).toBe(8);
+        // The count control drives the panes only.
+        expect(seriesOf(THUMBNAIL_OPTIONS).length).toBe(8);
+        expect(THUMBNAIL_SERIES_KEYS.length).toBe(8);
+    });
+
+    it('has thumbnail data behind every band the card draws', () => {
+        // The card takes a prefix of the rows, so a key missing from one of them
+        // leaves a gap that reads as a palette one colour short rather than as a
+        // chart with something wrong with it.
+        const { data, series } = THUMBNAIL_OPTIONS as { data: Record<string, unknown>[]; series: unknown[] };
+        for (const row of data) {
+            for (const { yKey } of series as { yKey: string }[]) {
+                expect(typeof row[yKey], `${String(row.period)}.${yKey}`).toBe('number');
+            }
         }
     });
 

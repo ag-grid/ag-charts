@@ -180,17 +180,16 @@ export const totalsFor = (count: number) =>
  * The thumbnails need a different shape from the main preview.
  *
  * The stock palettes run the same hue sequence - blue, orange, green, cyan,
- * yellow - and differ mainly in saturation and tone, so a handful of thin bars
- * makes Default, Material and Vivid near-indistinguishable at card size. Eight
- * stacked series reach further into each palette and turn the colours into large
- * contiguous blocks, where those differences actually read.
+ * yellow - and differ mainly in saturation and tone, so a card showing two or
+ * three of them leaves Default, Material and Vivid near-indistinguishable.
+ * Eight reach far enough into each palette for those differences to read.
  */
 export const THUMBNAIL_SERIES_KEYS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
 /**
  * Six columns, so the bars stay slim enough to read as a chart at card size,
  * with enough variation in the totals and in each band that the columns are not
- * six copies of one another.
+ * six copies of one another. The card itself takes a prefix of these.
  */
 export const THUMBNAIL_DATA = [
     { period: '1', a: 38, b: 41, c: 22, d: 31, e: 14, f: 24, g: 9, h: 17 },
@@ -200,15 +199,6 @@ export const THUMBNAIL_DATA = [
     { period: '5', a: 43, b: 35, c: 26, d: 44, e: 18, f: 9, g: 23, h: 19 },
     { period: '6', a: 56, b: 32, c: 48, d: 21, e: 29, f: 20, g: 12, h: 25 },
 ];
-
-/** The same eight bands as one slice each, for the single-series thumbnails. */
-export const THUMBNAIL_SLICES = THUMBNAIL_SERIES_KEYS.map((key) => ({
-    slice: key,
-    value: THUMBNAIL_DATA.reduce(
-        (total, row) => total + (row[key as keyof (typeof THUMBNAIL_DATA)[number]] as number),
-        0
-    ),
-}));
 
 /**
  * Two years of weekday bars for the candlestick preview.
@@ -289,10 +279,3 @@ const buildCandles = (dates: Date[]): PreviewCandle[] => {
 };
 
 export const CANDLESTICK_DATA = buildCandles(tradingDaysEndingToday(TRADING_DAYS));
-
-/**
- * A handful of bars for the preset thumbnails. Taken from the end of the series
- * rather than generated separately, so a card shows the same instrument the
- * preview does.
- */
-export const THUMBNAIL_CANDLES = CANDLESTICK_DATA.slice(-16);
