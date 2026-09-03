@@ -55,6 +55,38 @@ const DARK_PALETTE_KEYS = [
     'up',
 ];
 
+/**
+ * Renders a chart under `theme` and returns the `--ag-charts-*` custom properties the resolved
+ * parameters publish on its root element.
+ */
+const getThemeProperties = async (theme: AgCartesianChartOptions['theme'], charts: ChartOrProxy[]) => {
+    const container = document.body.appendChild(document.createElement('div'));
+    const chart = AgCharts.create({
+        theme,
+        width: 400,
+        height: 300,
+        container,
+        data: [{ x: 'a', y: 1 }],
+        series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+    } as AgCartesianChartOptions);
+    charts.push(chart);
+    await waitForChartStability(chart);
+
+    // The resolved parameters are published as custom properties on the chart's root element.
+    const root = container.querySelector<HTMLElement>('[class*="ag-charts-theme-"]');
+    if (root == null) throw new Error('no chart root element found');
+
+    const { style } = root;
+    const properties: Record<string, string> = {};
+    for (let i = 0; i < style.length; i++) {
+        const name = style[i];
+        if (name.startsWith('--ag-charts') && !UNMAPPABLE_PROPERTIES.includes(name)) {
+            properties[name] = style.getPropertyValue(name);
+        }
+    }
+    return properties;
+};
+
 describe("the documentation examples' dark mode", () => {
     setupMockConsole();
     setupMockCanvas();
@@ -69,37 +101,9 @@ describe("the documentation examples' dark mode", () => {
         charts = [];
     });
 
-    const getThemeProperties = async (theme: AgCartesianChartOptions['theme']) => {
-        const container = document.body.appendChild(document.createElement('div'));
-        const chart = AgCharts.create({
-            theme,
-            width: 400,
-            height: 300,
-            container,
-            data: [{ x: 'a', y: 1 }],
-            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-        } as AgCartesianChartOptions);
-        charts.push(chart);
-        await waitForChartStability(chart);
-
-        // The resolved parameters are published as custom properties on the chart's root element.
-        const root = container.querySelector<HTMLElement>('[class*="ag-charts-theme-"]');
-        if (root == null) throw new Error('no chart root element found');
-
-        const { style } = root;
-        const properties: Record<string, string> = {};
-        for (let i = 0; i < style.length; i++) {
-            const name = style[i];
-            if (name.startsWith('--ag-charts') && !UNMAPPABLE_PROPERTIES.includes(name)) {
-                properties[name] = style.getPropertyValue(name);
-            }
-        }
-        return properties;
-    };
-
     test('parameters reproduce the dark theme on top of the default one', async () => {
-        const fromParams = await getThemeProperties({ baseTheme: 'ag-default', params: DARK_MODE_PARAMS });
-        const fromDarkTheme = await getThemeProperties('ag-default-dark');
+        const fromParams = await getThemeProperties({ baseTheme: 'ag-default', params: DARK_MODE_PARAMS }, charts);
+        const fromDarkTheme = await getThemeProperties('ag-default-dark', charts);
 
         expect(fromParams).toEqual(fromDarkTheme);
     });
@@ -113,5 +117,43 @@ describe("the documentation examples' dark mode", () => {
             .sort((a, b) => a.localeCompare(b));
 
         expect(differing).toEqual(DARK_PALETTE_KEYS);
+    });
+});
+
+/**
+ * `buttonBackgroundColor` drives the resting fill of the range buttons, the zoom buttons and the
+ * annotation toolbars (AG-18409). It defaults to `chromeBackgroundColor` so those toolbars look
+ * unchanged when it is unset, and overrides it once a user sets it.
+ */
+describe('buttonBackgroundColor', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let charts: ChartOrProxy[] = [];
+
+    afterEach(async () => {
+        for (const chart of charts) {
+            await waitForChartStability(chart);
+            chart.destroy();
+        }
+        charts = [];
+    });
+
+    test.each(['ag-default', 'ag-default-dark'])('defaults to chromeBackgroundColor in %s', async (baseTheme) => {
+        const properties = await getThemeProperties(baseTheme, charts);
+
+        expect(properties['--ag-charts-button-background-color']).toBe(
+            properties['--ag-charts-chrome-background-color']
+        );
+    });
+
+    test('overrides chromeBackgroundColor once set', async () => {
+        const properties = await getThemeProperties(
+            { baseTheme: 'ag-default', params: { buttonBackgroundColor: 'red', chromeBackgroundColor: 'blue' } },
+            charts
+        );
+
+        expect(properties['--ag-charts-button-background-color']).toBe('red');
+        expect(properties['--ag-charts-chrome-background-color']).toBe('blue');
     });
 });

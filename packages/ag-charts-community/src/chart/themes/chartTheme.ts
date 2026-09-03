@@ -190,7 +190,7 @@ export class ChartTheme {
             chromeTextColor: { $ref: 'foregroundColor' },
             chromeSubtleTextColor: { $mix: [{ $ref: 'chromeTextColor' }, { $ref: 'backgroundColor' }, 0.38] },
 
-            buttonBackgroundColor: { $ref: 'backgroundColor' },
+            buttonBackgroundColor: { $ref: 'chromeBackgroundColor' },
             buttonBorder: {
                 color: { $ref: 'borderColor' },
                 width: { $ref: 'borderWidth' },
