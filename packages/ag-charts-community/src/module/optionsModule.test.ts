@@ -4383,10 +4383,10 @@ describe('ChartOptions', () => {
             ...extra,
         }) as AgChartOptions;
 
-    describe('validations.consoleLogSeverity', () => {
-        it('silences first-render validation warnings when set to `none`, without silencing validation itself', () => {
+    describe('validations.consoleOn', () => {
+        it('honours an explicit `[]`, silencing first-render warnings without silencing validation itself', () => {
             const chartOptions = new ChartOptions(
-                invalidOptions({ validations: { consoleLogSeverity: 'none' } }),
+                invalidOptions({ validations: { consoleOn: [] } }),
                 {} as AgChartOptions,
                 {},
                 {},
@@ -4395,18 +4395,20 @@ describe('ChartOptions', () => {
 
             expect(console.warn).not.toHaveBeenCalled();
             expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+            // An empty selection is a usable value, so it is honoured rather than defaulted away.
+            expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.consoleOn')).toBe(false);
         });
 
-        it('warns for the same invalid options without a consoleLogSeverity override', () => {
+        it('warns for the same invalid options without a consoleOn override', () => {
             const chartOptions = new ChartOptions(invalidOptions(), {} as AgChartOptions, {}, {}, {});
 
             expect(console.warn).toHaveBeenCalled();
             expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
         });
 
-        it('silences validation warnings when set to `error`', () => {
+        it("silences warning-severity output when set to `['error']`", () => {
             const chartOptions = new ChartOptions(
-                invalidOptions({ validations: { consoleLogSeverity: 'error' } }),
+                invalidOptions({ validations: { consoleOn: ['error'] } }),
                 {} as AgChartOptions,
                 {},
                 {},
@@ -4417,28 +4419,69 @@ describe('ChartOptions', () => {
             expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
         });
 
-        it('reports an invalid consoleLogSeverity value rather than silencing logging with it', () => {
+        it('treats a duplicated severity as if it had been listed once, without reporting it', () => {
             const chartOptions = new ChartOptions(
-                invalidOptions({ validations: { consoleLogSeverity: 'verbose' } }),
+                invalidOptions({ validations: { consoleOn: ['error', 'error'] } }),
                 {} as AgChartOptions,
                 {},
                 {},
                 {}
             );
 
-            expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.consoleLogSeverity')).toBe(
-                true
+            // A repeat is not an invalid value: the array is accepted whole, and `['error', 'error']`
+            // selects exactly what `['error']` does - warning-severity output stays silenced.
+            expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.consoleOn')).toBe(false);
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+        });
+
+        it('reports an invalid consoleOn value rather than silencing logging with it', () => {
+            const chartOptions = new ChartOptions(
+                invalidOptions({ validations: { consoleOn: 'verbose' } }),
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
             );
+
+            expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.consoleOn')).toBe(true);
             const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
-            expect(messages.some((m) => m.includes('validations.consoleLogSeverity'))).toBe(true);
+            expect(messages.some((m) => m.includes('validations.consoleOn'))).toBe(true);
             expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
         });
 
-        it('reports an explicit null consoleLogSeverity rather than deferring to a silencing override', () => {
+        // A rejected array must fall back to the *loudest* default, never to the elements that
+        // happened to parse: the report of the bad value itself goes through `logger.warn`.
+        it.each<{ label: string; value: unknown }>([
+            { label: "['loud']", value: ['loud'] },
+            { label: "['error', 'loud']", value: ['error', 'loud'] },
+            { label: "'error' (not an array)", value: 'error' },
+        ])(
+            'falls back to the loudest default for an unusable consoleOn ($label), and still reports it',
+            ({ value }) => {
+                const chartOptions = new ChartOptions(
+                    invalidOptions({ validations: { consoleOn: value } }),
+                    {} as AgChartOptions,
+                    {},
+                    {},
+                    {}
+                );
+
+                expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.consoleOn')).toBe(
+                    true
+                );
+                const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+                expect(messages.some((m) => m.includes('validations.consoleOn'))).toBe(true);
+                // `['error', 'loud']` filtered to `['error']` would leave warnings off and lose both messages.
+                expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
+            }
+        );
+
+        it('reports an explicit null consoleOn rather than deferring to a silencing override', () => {
             const chartOptions = new ChartOptions(
-                invalidOptions({ validations: { consoleLogSeverity: null } }),
+                invalidOptions({ validations: { consoleOn: null } }),
                 {} as AgChartOptions,
-                { validations: { consoleLogSeverity: 'none' } } as Partial<AgChartOptions>,
+                { validations: { consoleOn: [] } } as Partial<AgChartOptions>,
                 {},
                 {}
             );
@@ -4448,9 +4491,9 @@ describe('ChartOptions', () => {
             expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
         });
 
-        it('returns to default logging once a delta update removes a `none` override', () => {
+        it('returns to default logging once a delta update removes an empty-array override', () => {
             const base = new ChartOptions(
-                invalidOptions({ validations: { consoleLogSeverity: 'none' } }),
+                invalidOptions({ validations: { consoleOn: [] } }),
                 {} as AgChartOptions,
                 {},
                 {},
@@ -4473,46 +4516,53 @@ describe('ChartOptions', () => {
             expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
         });
 
-        it('does not throw when explicitly set to `none`', () => {
-            expect(
-                () =>
-                    new ChartOptions(
-                        invalidOptions({ validations: { throwOn: 'none' } }),
-                        {} as AgChartOptions,
-                        {},
-                        {},
-                        {}
-                    )
-            ).not.toThrow();
+        it('honours an explicit `[]`, which never throws and is not reported as unusable', () => {
+            let chartOptions!: ChartOptions<AgChartOptions>;
+            expect(() => {
+                chartOptions = new ChartOptions(
+                    invalidOptions({ validations: { throwOn: [] } }),
+                    {} as AgChartOptions,
+                    {},
+                    {},
+                    {}
+                );
+            }).not.toThrow();
 
             expect(console.warn).toHaveBeenCalled();
+            expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.throwOn')).toBe(false);
         });
 
-        it.each(['loud', null, 42])(
-            'does not throw for an unrecognised throwOn value (%s), and the union validator still reports it',
-            (badValue) => {
-                let chartOptions!: ChartOptions<AgChartOptions>;
-                expect(() => {
-                    chartOptions = new ChartOptions(
-                        invalidOptions({ validations: { throwOn: badValue } }),
-                        {} as AgChartOptions,
-                        {},
-                        {},
-                        {}
-                    );
-                }).not.toThrow();
+        // A bad element rejects the whole array, so the key is dropped and the default (off) applies -
+        // the diagnostic is reported at the option path rather than at an element of it.
+        it.each<{ label: string; value: unknown }>([
+            { label: "'loud'", value: 'loud' },
+            { label: 'null', value: null },
+            { label: '42', value: 42 },
+            { label: "['loud']", value: ['loud'] },
+            { label: "['error', 'loud']", value: ['error', 'loud'] },
+            { label: "'error' (not an array)", value: 'error' },
+        ])('does not throw for an unusable throwOn value ($label), and the validator still reports it', ({ value }) => {
+            let chartOptions!: ChartOptions<AgChartOptions>;
+            expect(() => {
+                chartOptions = new ChartOptions(
+                    invalidOptions({ validations: { throwOn: value } }),
+                    {} as AgChartOptions,
+                    {},
+                    {},
+                    {}
+                );
+            }).not.toThrow();
 
-                expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.throwOn')).toBe(true);
-                const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
-                expect(messages.some((m) => m.includes('validations.throwOn'))).toBe(true);
-            }
-        );
+            expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.throwOn')).toBe(true);
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.includes('validations.throwOn'))).toBe(true);
+        });
 
         it('throws on a warning-severity option error, naming the option path in the message', () => {
             expect(
                 () =>
                     new ChartOptions(
-                        invalidOptions({ validations: { throwOn: 'warning' } }),
+                        invalidOptions({ validations: { throwOn: ['warning'] } }),
                         {} as AgChartOptions,
                         {},
                         {},
@@ -4525,7 +4575,7 @@ describe('ChartOptions', () => {
             expect(
                 () =>
                     new ChartOptions(
-                        invalidOptions({ validations: { throwOn: 'warning' } }),
+                        invalidOptions({ validations: { throwOn: ['warning'] } }),
                         {} as AgChartOptions,
                         {},
                         {},
@@ -4541,7 +4591,7 @@ describe('ChartOptions', () => {
             let thrown!: Error;
             try {
                 new ChartOptions(
-                    invalidOptions({ validations: { throwOn: 'warning' } }),
+                    invalidOptions({ validations: { throwOn: ['warning'] } }),
                     {} as AgChartOptions,
                     {},
                     {},
@@ -4551,7 +4601,7 @@ describe('ChartOptions', () => {
                 thrown = e as Error;
             }
 
-            // Nothing was ignored under an armed threshold - the pass aborted instead of defaulting.
+            // Nothing was ignored under an armed `throwOn` - the pass aborted instead of defaulting.
             expect(thrown).toBeDefined();
             expect(thrown.message).not.toMatch(/ignoring/i);
             expect(thrown.message).toMatch(
@@ -4574,7 +4624,7 @@ describe('ChartOptions', () => {
                         lineDash: 'notanarray' as any,
                     },
                 ],
-                validations: { throwOn: 'warning' },
+                validations: { throwOn: ['warning'] },
             } as AgChartOptions;
 
             expect(() => new ChartOptions(options, {} as AgChartOptions, {}, {}, {})).toThrow();
@@ -4582,11 +4632,11 @@ describe('ChartOptions', () => {
             expect(console.warn).toHaveBeenCalledTimes(1);
         });
 
-        it('does not throw at `error` for a warning-severity option error (nothing in the option pass is error-severity)', () => {
+        it("does not throw at `['error']` for a warning-severity option error (nothing in the option pass is error-severity)", () => {
             expect(
                 () =>
                     new ChartOptions(
-                        invalidOptions({ validations: { throwOn: 'error' } }),
+                        invalidOptions({ validations: { throwOn: ['error'] } }),
                         {} as AgChartOptions,
                         {},
                         {},
@@ -4597,30 +4647,33 @@ describe('ChartOptions', () => {
             expect(console.warn).toHaveBeenCalled();
         });
 
-        it('throws at `deprecation` too, since the threshold is inclusive of every louder severity', () => {
-            expect(
-                () =>
-                    new ChartOptions(
-                        invalidOptions({ validations: { throwOn: 'deprecation' } }),
-                        {} as AgChartOptions,
-                        {},
-                        {},
-                        {}
-                    )
-            ).toThrowError(/^AG Charts - validations\.throwOn: warning - /);
+        it("does not throw at `['deprecation']` for a warning-severity option error, each severity being independent", () => {
+            let chartOptions!: ChartOptions<AgChartOptions>;
+            expect(() => {
+                chartOptions = new ChartOptions(
+                    invalidOptions({ validations: { throwOn: ['deprecation'] } }),
+                    {} as AgChartOptions,
+                    {},
+                    {},
+                    {}
+                );
+            }).not.toThrow();
+
+            expect(console.warn).toHaveBeenCalled();
+            expect(chartOptions.validationIssues.some((issue) => issue.severity === 'warning')).toBe(true);
         });
 
         it('re-validates and throws again on a warm update, rather than carrying validation issues forward (S6/D4)', () => {
             const validOptions: AgChartOptions = {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                validations: { throwOn: 'warning' },
+                validations: { throwOn: ['warning'] },
             } as AgChartOptions;
 
             const base = new ChartOptions(validOptions, {} as AgChartOptions, {}, {}, {});
             expect(console.warn).not.toHaveBeenCalled();
 
             expect(
-                () => new ChartOptions(base, invalidOptions({ validations: { throwOn: 'warning' } }), {}, {}, {})
+                () => new ChartOptions(base, invalidOptions({ validations: { throwOn: ['warning'] } }), {}, {}, {})
             ).toThrow();
         });
 
@@ -4628,7 +4681,7 @@ describe('ChartOptions', () => {
             expect(
                 () =>
                     new ChartOptions(
-                        invalidOptions({ validations: { throwOn: 'warning' } }),
+                        invalidOptions({ validations: { throwOn: ['warning'] } }),
                         {} as AgChartOptions,
                         {},
                         {},
@@ -4651,18 +4704,18 @@ describe('ChartOptions', () => {
                     ...extra,
                 }) as any;
 
-            it('throws at `error` for a dropped axis module, after the console record is written', () => {
+            it("throws at `['error']` for a dropped axis module, after the console record is written", () => {
                 const logger = new Logger();
 
                 expect(() =>
-                    prepareOptions(unregisteredAxisOptions({ validations: { throwOn: 'error' } }), logger)
+                    prepareOptions(unregisteredAxisOptions({ validations: { throwOn: ['error'] } }), logger)
                 ).toThrow(/required modules are not registered/);
 
                 const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
                 expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
             });
 
-            it('silently drops the unregistered module at `none`, exactly as today', () => {
+            it('silently drops the unregistered module when throwOn is left at its default, exactly as today', () => {
                 const logger = new Logger();
 
                 expect(() => prepareOptions(unregisteredAxisOptions(), logger)).not.toThrow();
@@ -4671,18 +4724,30 @@ describe('ChartOptions', () => {
                 expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
             });
 
-            it('throws at `error` for a dropped plugin module too, not just series/axes', () => {
+            it("throws at `['error']` for a dropped plugin module too, not just series/axes", () => {
                 const logger = new Logger();
                 const options = {
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                     zoom: { enabled: true },
-                    validations: { throwOn: 'error' },
+                    validations: { throwOn: ['error'] },
                 } as AgChartOptions;
 
                 expect(() => prepareOptions(options, logger)).toThrow(/required modules are not registered/);
 
                 const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
                 expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+            });
+
+            // Asserted on the module message rather than on whether anything throws, so an unrelated
+            // diagnostic from the same fixture cannot decide the case either way.
+            it("arms only the tier it names — the dropped module throws at `['error']` but not at `['warning']`", () => {
+                expect(() =>
+                    prepareOptions(unregisteredAxisOptions({ validations: { throwOn: ['error'] } }), new Logger())
+                ).toThrow(/required modules are not registered/);
+
+                expect(() =>
+                    prepareOptions(unregisteredAxisOptions({ validations: { throwOn: ['warning'] } }), new Logger())
+                ).not.toThrow(/required modules are not registered/);
             });
         });
     });
@@ -4711,9 +4776,9 @@ describe('ChartOptions', () => {
             );
         });
 
-        it('records the issue independently of `consoleLogSeverity` silencing the console', () => {
+        it('records the issue independently of `consoleOn` silencing the console', () => {
             const chartOptions = new ChartOptions(
-                badStrokeWidthOptions({ consoleLogSeverity: 'none' }),
+                badStrokeWidthOptions({ consoleOn: [] }),
                 {} as AgChartOptions,
                 {},
                 {},

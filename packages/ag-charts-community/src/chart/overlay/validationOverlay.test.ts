@@ -36,11 +36,11 @@ describe('ValidationOverlay', () => {
         }
     });
 
-    describe('#overlaySeverity threshold', () => {
-        test('warning level renders the overlay with a warnings section and summary, console warning still fires', async () => {
+    describe('#showOverlayOn selection', () => {
+        test("['warning'] renders the overlay with a warnings section and summary, console warning still fires", async () => {
             chart = await createChart({
                 ...invalidStrokeWidthOptions,
-                validations: { overlaySeverity: 'warning' },
+                validations: { showOverlayOn: ['warning'] },
             } as AgChartOptions);
 
             const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-validation-overlay');
@@ -65,7 +65,7 @@ describe('ValidationOverlay', () => {
 `);
         });
 
-        test('none level (default) renders no overlay, matching today’s behaviour; console warning still fires', async () => {
+        test('the default empty selection renders no overlay; console warning still fires', async () => {
             chart = await createChart(invalidStrokeWidthOptions);
 
             expect(chart.ctx.agDocument.body.querySelector('.ag-charts-validation-overlay')).toBeNull();
@@ -79,10 +79,10 @@ describe('ValidationOverlay', () => {
 `);
         });
 
-        test('error level excludes a warning-severity issue, so no overlay is rendered', async () => {
+        test("['error'] excludes a warning-severity issue, so no overlay is rendered", async () => {
             chart = await createChart({
                 ...invalidStrokeWidthOptions,
-                validations: { overlaySeverity: 'error' },
+                validations: { showOverlayOn: ['error'] },
             } as AgChartOptions);
 
             expect(chart.ctx.agDocument.body.querySelector('.ag-charts-validation-overlay')).toBeNull();
@@ -102,7 +102,7 @@ describe('ValidationOverlay', () => {
             chart = await createChart({
                 ...invalidStrokeWidthOptions,
                 data: [],
-                validations: { overlaySeverity: 'warning' },
+                validations: { showOverlayOn: ['warning'] },
             } as AgChartOptions);
 
             expect(chart.ctx.agDocument.body.querySelector('.ag-charts-validation-overlay')).not.toBeNull();
@@ -124,7 +124,7 @@ describe('ValidationOverlay', () => {
         test('replacing one issue with another re-renders the overlay content while it stays shown', async () => {
             const options = prepareTestOptions({
                 ...invalidStrokeWidthOptions,
-                validations: { overlaySeverity: 'warning' },
+                validations: { showOverlayOn: ['warning'] },
             } as AgChartOptions);
             const proxy = AgCharts.create(options);
             chart = deproxy(proxy);
@@ -173,7 +173,7 @@ describe('ValidationOverlay', () => {
             const suppressSpy = vi.spyOn(chart.ctx.tooltipManager, 'suppressTooltip');
             const unsuppressSpy = vi.spyOn(chart.ctx.tooltipManager, 'unsuppressTooltip');
 
-            chart.validationCollector.setOverlaySeverity('warning');
+            chart.validationCollector.setShowOverlayOn(['warning']);
             expect(chart.validationCollector.hasVisibleIssues()).toBe(true);
             expect(suppressSpy).toHaveBeenCalledWith('validation-overlay');
             expect(unsuppressSpy).not.toHaveBeenCalled();
@@ -198,7 +198,7 @@ describe('ValidationOverlay', () => {
             try {
                 chart = await createChart({
                     ...invalidStrokeWidthOptions,
-                    validations: { overlaySeverity: 'warning' },
+                    validations: { showOverlayOn: ['warning'] },
                 } as AgChartOptions);
 
                 expect(chart.validationCollector.hasVisibleIssues()).toBe(true);
@@ -240,7 +240,7 @@ describe('ValidationOverlay', () => {
         test('a throwing itemStyler surfaces one error entry on the overlay and the chart still renders', async () => {
             chart = await createChart({
                 ...throwingItemStylerOptions,
-                validations: { overlaySeverity: 'error' },
+                validations: { showOverlayOn: ['error'] },
             } as AgChartOptions);
 
             const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-validation-overlay');
@@ -264,10 +264,27 @@ describe('ValidationOverlay', () => {
             ]);
         });
 
+        // The mirror of the `['warning']` case in `#showOverlayOn selection`: each severity is
+        // selected on its own, so a warnings-only selection must leave an error unshown.
+        test("['warning'] does not render an error-severity callback issue", async () => {
+            chart = await createChart({
+                ...throwingItemStylerOptions,
+                validations: { showOverlayOn: ['warning'] },
+            } as AgChartOptions);
+
+            expect(chart.ctx.agDocument.body.querySelector('.ag-charts-validation-overlay')).toBeNull();
+            expect(chart.validationCollector.hasVisibleIssues()).toBe(false);
+            expect(chart.validationCollector.getVisibleIssues().error).toHaveLength(0);
+
+            expectWarningsCalls().toEqual([
+                [expect.stringContaining('Uncaught exception in user callback'), expect.any(Error)],
+            ]);
+        });
+
         test('a still-broken itemStyler stays on the overlay across a cache-hit redraw', async () => {
             chart = await createChart({
                 ...throwingItemStylerOptions,
-                validations: { overlaySeverity: 'error' },
+                validations: { showOverlayOn: ['error'] },
             } as AgChartOptions);
 
             const errorMessages = () =>
@@ -298,7 +315,7 @@ describe('ValidationOverlay', () => {
         test('dismiss hides the overlay; a subsequent different issue re-shows it', async () => {
             const options = prepareTestOptions({
                 ...invalidStrokeWidthOptions,
-                validations: { overlaySeverity: 'warning' },
+                validations: { showOverlayOn: ['warning'] },
             } as AgChartOptions);
             const proxy = AgCharts.create(options);
             chart = deproxy(proxy);

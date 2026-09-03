@@ -37,7 +37,7 @@ const options: AgCartesianChartOptions = {
         y: { type: 'number' },
     },
     validations: {
-        overlaySeverity: 'warning',
+        showOverlayOn: ['warning'],
     },
 };
 

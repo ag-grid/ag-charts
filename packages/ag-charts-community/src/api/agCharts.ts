@@ -63,7 +63,7 @@ const OPTIONS_ARGUMENT_ISSUE = Symbol('agChartsOptionsArgumentIssue');
  * so the fields named in the message are guidance for the caller, not a stricter requirement.
  *
  * Reported, never thrown: the chart reports it as an `error`-severity validation issue, so it reaches
- * the console, the `validations.overlaySeverity` overlay and `validations.issueRaised` like any other
+ * the console, the `validations.showOverlayOn` overlay and `validations.issueRaised` like any other
  * validation error, and a wrapper does not have to translate an exception into its own error channel.
  */
 function optionsArgumentIssue(options: unknown, methodName: string): string | undefined {

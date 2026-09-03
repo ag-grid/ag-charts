@@ -69,11 +69,8 @@ import {
 import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
 import { ChartTheme } from '../chart/themes/chartTheme';
-import {
-    type ValidationIssue,
-    type ValidationIssueListener,
-    severityAtOrAbove,
-} from '../chart/validation/validationIssueCollector';
+import { DEFAULT_CONSOLE_ON, DEFAULT_THROW_ON } from '../chart/validation/validationDefaults';
+import type { ValidationIssue, ValidationIssueListener } from '../chart/validation/validationIssueCollector';
 import {
     type OptionsGraphAccessor,
     SHALLOW_OPTION_KEYS,
@@ -88,12 +85,6 @@ import {
     setStructuralCacheEntry,
 } from './optionsStructuralCache';
 import type { SeriesGrouping } from './seriesGrouping';
-
-/** The default `validations.consoleLogSeverity` — everything, including deprecation notices. */
-const DEFAULT_CONSOLE_LOG_SEVERITY: AgChartValidationSeverity = 'deprecation';
-
-/** The default `validations.throwOn` — fail-fast is opt-in, so nothing throws unless a consumer asks for it. */
-const DEFAULT_THROW_ON: AgChartValidationSeverity = 'none';
 
 /**
  * A `validations.throwOn` fail-fast throw. Marks the error as already prefixed and already written to
@@ -306,7 +297,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     // rather than captured, making the adopt order irrelevant.
     private validationSink?: (issue: ValidationIssue) => void;
 
-    private throwOn: AgChartValidationSeverity = 'none';
+    private throwOn: readonly AgChartValidationSeverity[] = DEFAULT_THROW_ON;
 
     // `validations.issueRaised`, resolved here rather than read off the chart because a fail-fast
     // throw aborts this constructor: the chart never adopts these issues, so this is the only
@@ -381,13 +372,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             });
             this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
         }
-        // Must precede `slowSetup()`'s first validation pass so a user-supplied `'none'` suppresses the
+        // Must precede `slowSetup()`'s first validation pass so a user-supplied `[]` suppresses the
         // first warning. Keyed on presence, not nullishness, so an explicit `null` still warns.
         const userValidations = getValidations(this.userOptions);
-        this.applyConsoleLogSeverity(
-            isObjectWithProperty(userValidations, 'consoleLogSeverity')
-                ? userValidations.consoleLogSeverity
-                : getValidations(this.processedOverrides)?.consoleLogSeverity
+        this.applyConsoleOn(
+            isObjectWithProperty(userValidations, 'consoleOn')
+                ? userValidations.consoleOn
+                : getValidations(this.processedOverrides)?.consoleOn
         );
         this.applyThrowOn(
             isObjectWithProperty(userValidations, 'throwOn')
@@ -442,7 +433,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 !dataChangedLength &&
                 // An armed `throwOn` must re-validate on every pass — the fast path carries `validationIssues`
                 // forward without calling the `record*` methods that throw.
-                this.throwOn === 'none'
+                this.throwOn.length === 0
             ) {
                 ({ activeTheme, processedOptions, fastDelta } = this.fastSetup(deltaOptions, baseChartOptions));
                 themeParameters = baseChartOptions.themeParameters;
@@ -471,7 +462,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.activeTheme = activeTheme;
         this.processedOptions = processedOptions;
         // Re-apply from the merged result so a value arriving via a theme or preset also takes effect.
-        this.applyConsoleLogSeverity(getValidations(this.processedOptions)?.consoleLogSeverity);
+        this.applyConsoleOn(getValidations(this.processedOptions)?.consoleOn);
         // State consistency only: this runs after every `record*` call, so it arms nothing this pass.
         this.applyThrowOn(getValidations(this.processedOptions)?.throwOn);
         // As above: re-applied from the merged result so a theme- or preset-supplied listener also counts.
@@ -559,7 +550,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Minimal-mode structural-output cache fast path.
         const cacheKey = this.computeStructuralCacheKeyForSlowSetup(deltaOptions, stripSymbols);
         // As above: an armed `throwOn` must re-validate, and a cache hit skips every `record*` call.
-        if (cacheKey !== undefined && this.throwOn === 'none') {
+        if (cacheKey !== undefined && this.throwOn.length === 0) {
             const cached = getStructuralCacheEntry(cacheKey);
             if (cached) {
                 return this.slowSetupCached(cached);
@@ -816,9 +807,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      */
     adoptLogger(logger: Logger) {
         this.logger = logger;
-        // A pooled chart adopts a different Logger after validation, so the severity must be re-applied.
-        this.applyConsoleLogSeverity(getValidations(this.processedOptions)?.consoleLogSeverity);
-        // Likewise for the throw threshold and the issue listener.
+        // A pooled chart adopts a different Logger after validation, so the severities must be re-applied.
+        this.applyConsoleOn(getValidations(this.processedOptions)?.consoleOn);
+        // Likewise for the throw severities and the issue listener.
         this.applyThrowOn(getValidations(this.processedOptions)?.throwOn);
         this.applyIssueListener(getValidations(this.processedOptions)?.issueRaised);
     }
@@ -838,27 +829,31 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     /**
-     * Points the Logger at the requested severity, falling back to the default for anything unrecognised.
-     * The fallback is load-bearing: this runs before the union validator has, so an invalid value must
+     * Points the Logger at the requested severities, falling back to the default for anything unusable.
+     * The fallback is load-bearing: this runs before the array validator has, so an invalid value must
      * not silence the very warning that reports it.
      */
-    private applyConsoleLogSeverity(severity: unknown) {
-        // Typed as the public option so the two severity unions stay pinned to each other at compile time.
-        const consoleLogSeverity: AgChartValidationSeverity = isLogLevel(severity)
-            ? severity
-            : DEFAULT_CONSOLE_LOG_SEVERITY;
-        this.logger.setLevel(consoleLogSeverity);
+    private applyConsoleOn(severities: unknown) {
+        // Rejected whole on any unrecognised element, matching the strict validator that runs later.
+        // Honouring the recognised remainder of `['error', 'loud']` would leave `warn` disabled, and the
+        // rejection of that same array is itself reported through `warn`. An explicit `[]` is honoured —
+        // it is a request for silence, not a bad value.
+        const consoleOn: readonly AgChartValidationSeverity[] =
+            isArray(severities) && severities.every(isLogLevel) ? severities : DEFAULT_CONSOLE_ON;
+        this.logger.setEnabledLevels(consoleOn);
     }
 
     /**
-     * Resolves `validations.throwOn`, falling back to `'none'` for anything unrecognised. The fallback
-     * direction is the opposite of `applyConsoleLogSeverity`'s deliberately: this runs before the union
+     * Resolves `validations.throwOn`, falling back to throwing on nothing for anything unusable. The
+     * fallback direction is the opposite of `applyConsoleOn`'s deliberately: this runs before the array
      * validator has, and an invalid value must not make the chart throw about itself — nor turn
      * fail-fast on for a consumer who never asked for it.
      */
-    private applyThrowOn(severity: unknown) {
-        // Reuses `isLogLevel` so a new severity cannot be missed by either union.
-        this.throwOn = isLogLevel(severity) ? severity : DEFAULT_THROW_ON;
+    private applyThrowOn(severities: unknown) {
+        // Reuses `isLogLevel` so a new severity cannot be missed by either union. Any bad element
+        // rejects the whole array, matching the strict option validator: a partially-valid
+        // `['error', 'loud']` must not arm `error` for the pass whose validator rejects it.
+        this.throwOn = isArray(severities) && severities.every(isLogLevel) ? severities : DEFAULT_THROW_ON;
     }
 
     /**
@@ -870,9 +865,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     /**
-     * Reports every issue this pass produced — the accumulated ones plus the `trigger` that tripped
-     * the threshold — to `validations.issueRaised` immediately before a fail-fast throw. AC 3: the
-     * listener is never gated by a severity threshold, and `throwOn` is a threshold — but the throw
+     * Reports every issue this pass produced — the accumulated ones plus the `trigger` that armed the
+     * throw — to `validations.issueRaised` immediately before a fail-fast throw. AC 3: the
+     * listener is never gated by severity, and `throwOn` is a severity selection — but the throw
      * unwinds out of this constructor, so `Chart.applyOptions()` never runs
      * and the collector that normally dispatches never receives these issues. Delivering here is what
      * makes the two independent. Ordering is the listener first, then the throw.
@@ -956,7 +951,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     /**
      * Report an argument that could not be options at all (`create(undefined)`, `create(3)`, an empty
      * object) through the same feed as any option-validation error, so it reaches the console log, the
-     * `validations.overlaySeverity` overlay, `validations.issueRaised` and `validations.throwOn`. Raised
+     * `validations.showOverlayOn` overlay, `validations.issueRaised` and `validations.throwOn`. Raised
      * at `error` severity - unlike a per-option problem, nothing of the caller's intent survives it.
      *
      * Pushed as a new array: the unchanged-options fast path aliases `validationIssues` to the base
@@ -977,14 +972,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     /**
-     * Throws for the first issue whose severity meets the armed `validations.throwOn` threshold — never
-     * called before the console record and the overlay push above have already happened, and never
-     * before this pass's issues have reached `validations.issueRaised`.
+     * Throws for the first issue whose severity `validations.throwOn` selects — never called before the
+     * console record and the overlay push above have already happened, and never before this pass's
+     * issues have reached `validations.issueRaised`.
      */
     private throwIfFailFast(issue: ValidationIssue): void {
-        if (this.suppressFailFast || this.throwOn === 'none' || !severityAtOrAbove(this.throwOn, issue.severity)) {
-            return;
-        }
+        if (this.suppressFailFast || !this.throwOn.includes(issue.severity)) return;
         this.dispatchIssuesBeforeThrow(issue);
         const location = issue.code ? `\`${issue.code}\`: ` : '';
         throw new FailFastError(
@@ -998,14 +991,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      * in `Chart.tryPerformUpdate()`. Arming `throwOn` is what makes that reachable on a warm update: it
      * forces the slow path, so the read happens during option processing rather than during the update.
      *
-     * With the threshold armed at `error` that escape *is* the fail-fast delivery, so it must carry the
+     * With `'error'` selected that escape *is* the fail-fast delivery, so it must carry the
      * same console record and the same prefix as every other one (AG-17831 TC1). A `record*` fail-fast
      * throw already has both, and the CSS-refresh re-construction has no caller to throw to, so both
      * pass through untouched.
      */
     private decorateOptionsProcessingFailure(error: unknown): unknown {
         if (error instanceof FailFastError) return error;
-        if (this.suppressFailFast || !severityAtOrAbove(this.throwOn, 'error')) return error;
+        if (this.suppressFailFast || !this.throwOn.includes('error')) return error;
 
         // Console record first, and worded exactly as the unarmed update-loop catch words it, so the
         // two paths read identically in the console.

@@ -3,7 +3,6 @@ import type { Logger } from 'ag-charts-core';
 import { Listeners } from '../../util/listeners';
 
 export type ValidationSeverity = 'error' | 'warning' | 'deprecation';
-export type ValidationSeverityThreshold = ValidationSeverity | 'none';
 
 export interface ValidationIssue {
     severity: ValidationSeverity;
@@ -22,19 +21,19 @@ export interface ValidationSink {
     recordIssue(issue: ValidationIssue): void;
 }
 
+/** The order the overlay renders its severity sections in — presentation, not selection. */
 export const SEVERITY_ORDER: ValidationSeverity[] = ['error', 'warning', 'deprecation'];
 
-// Inclusive threshold: a threshold admits its own severity and every louder one ('error' is loudest).
-const SEVERITY_INCLUDES: Record<ValidationSeverityThreshold, ValidationSeverity[]> = {
-    error: ['error'],
-    warning: ['error', 'warning'],
-    deprecation: ['error', 'warning', 'deprecation'],
-    none: [],
-};
+// An internal encoding of the overlay's severity selection as one integer, so it is cheap to store,
+// compare and test. Deliberately independent of SEVERITY_ORDER, which means something else.
+const SEVERITY_BIT: Record<ValidationSeverity, number> = { error: 1, warning: 2, deprecation: 4 };
 
-/** Inclusive-threshold test shared by the overlay and `validations.throwOn`. */
-export function severityAtOrAbove(threshold: ValidationSeverityThreshold, severity: ValidationSeverity): boolean {
-    return SEVERITY_INCLUDES[threshold].includes(severity);
+function severityMask(severities: readonly ValidationSeverity[]): number {
+    let mask = 0;
+    for (const severity of severities) {
+        mask |= SEVERITY_BIT[severity];
+    }
+    return mask;
 }
 
 export type ValidationIssueListener = (event: { severity: ValidationSeverity; message: string }) => void;
@@ -49,7 +48,7 @@ function signatureOf(issues: ValidationIssue[]): string {
 
 /**
  * Per-chart-instance sink for validation issues (option misconfiguration and caught runtime errors).
- * The overlay processor subscribes to it and re-evaluates whenever the collection or threshold changes.
+ * The overlay processor subscribes to it and re-evaluates whenever the collection or selection changes.
  */
 export class ValidationIssueCollector {
     private issues: ValidationIssue[] = [];
@@ -57,7 +56,7 @@ export class ValidationIssueCollector {
     private callbackIssues: ValidationIssue[] = [];
     private pendingCallbackIssues: ValidationIssue[] = [];
     private runtimeIssues: ValidationIssue[] = [];
-    private overlaySeverity: ValidationSeverityThreshold = 'none';
+    private showOverlayMask = 0;
     private dismissed = false;
     private signature = '';
     private readonly listeners = new Listeners<'change', () => void>();
@@ -82,7 +81,7 @@ export class ValidationIssueCollector {
     }
 
     /**
-     * Reports issues to the user-supplied listener as they are recorded, ahead of any threshold or
+     * Reports issues to the user-supplied listener as they are recorded, ahead of any severity or
      * dismissal filtering, so that delivery cannot depend on the overlay or console settings.
      */
     private dispatchIssues(issues: ValidationIssue[]) {
@@ -110,9 +109,15 @@ export class ValidationIssueCollector {
         }
     }
 
-    setOverlaySeverity(severity: ValidationSeverityThreshold) {
-        if (this.overlaySeverity === severity) return;
-        this.overlaySeverity = severity;
+    /**
+     * Selects the severities the overlay shows, an empty selection showing no overlay at all. Compared
+     * by content: the caller allocates a fresh array every options pass, so a reference guard would
+     * never fire and every pass would dispatch a spurious change.
+     */
+    setShowOverlayOn(severities: readonly ValidationSeverity[]) {
+        const mask = severityMask(severities);
+        if (this.showOverlayMask === mask) return;
+        this.showOverlayMask = mask;
         this.listeners.dispatch('change');
     }
 
@@ -209,14 +214,14 @@ export class ValidationIssueCollector {
     }
 
     hasVisibleIssues(): boolean {
-        if (this.overlaySeverity === 'none' || this.dismissed) return false;
-        return this.allIssues().some((issue) => severityAtOrAbove(this.overlaySeverity, issue.severity));
+        if (this.showOverlayMask === 0 || this.dismissed) return false;
+        return this.allIssues().some((issue) => (this.showOverlayMask & SEVERITY_BIT[issue.severity]) !== 0);
     }
 
     getVisibleIssues(): GroupedValidationIssues {
         const grouped: GroupedValidationIssues = { error: [], warning: [], deprecation: [] };
         for (const issue of this.allIssues()) {
-            if (severityAtOrAbove(this.overlaySeverity, issue.severity)) {
+            if ((this.showOverlayMask & SEVERITY_BIT[issue.severity]) !== 0) {
                 grouped[issue.severity].push(issue);
             }
         }

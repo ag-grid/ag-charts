@@ -174,7 +174,7 @@ describe('OverlaysProcessor', () => {
         const { overlays, validationCollector, eventsHub } = build();
         const validationSpy = vi.spyOn(overlays.validation, 'getElement');
 
-        validationCollector.setOverlaySeverity('warning');
+        validationCollector.setShowOverlayOn(['warning']);
         validationCollector.setIssues([{ severity: 'warning', message: 'bad option' }]);
 
         // width/height options shrink the canvas (200x200) below its 800x600 DOM container; the modal
@@ -189,7 +189,7 @@ describe('OverlaysProcessor', () => {
         const { overlays, validationCollector, eventsHub } = build();
         const validationSpy = vi.spyOn(overlays.validation, 'getElement');
 
-        validationCollector.setOverlaySeverity('warning');
+        validationCollector.setShowOverlayOn(['warning']);
         validationCollector.setIssues([{ severity: 'warning', message: 'bad option' }]);
 
         emitLayout(eventsHub, new BBox(0, 0, 800, 600), { width: 800, height: 600 });
@@ -208,7 +208,7 @@ describe('OverlaysProcessor', () => {
         const { overlays, validationCollector, eventsHub } = build();
         const validationSpy = vi.spyOn(overlays.validation, 'getElement');
 
-        validationCollector.setOverlaySeverity('error');
+        validationCollector.setShowOverlayOn(['error']);
         validationCollector.setIssues([{ severity: 'error', message: 'update error' }]);
         emitLayout(eventsHub, new BBox(0, 0, 800, 600), { width: 800, height: 600 });
         expect(overlays.validation.focusBox).toEqual(new BBox(0, 0, 800, 600));

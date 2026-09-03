@@ -2130,7 +2130,7 @@ describe('validations.throwOn — runtime errors', () => {
     }
 
     it('throwOn: error rejects both waitForUpdate() and update() with the caught runtime error', async () => {
-        const proxy = AgCharts.create(throwOnOptions({ throwOn: 'error' })) as AgChartProxy;
+        const proxy = AgCharts.create(throwOnOptions({ throwOn: ['error'] })) as AgChartProxy;
         chart = deproxy(proxy);
         armProcessDataThrow(chart);
 
@@ -2138,14 +2138,14 @@ describe('validations.throwOn — runtime errors', () => {
         expect(drainErrorLog()).toHaveLength(1);
 
         armProcessDataThrow(chart);
-        await expect(proxy.update(throwOnOptions({ throwOn: 'error' }, UPDATED_DATA))).rejects.toThrow(
+        await expect(proxy.update(throwOnOptions({ throwOn: ['error'] }, UPDATED_DATA))).rejects.toThrow(
             RUNTIME_ERROR_MESSAGE
         );
         expect(drainErrorLog()).toHaveLength(1);
     });
 
     it('writes the console record and records the overlay issue before rejecting — fail-fast suppresses nothing', async () => {
-        const proxy = AgCharts.create(throwOnOptions({ throwOn: 'error', overlaySeverity: 'error' })) as AgChartProxy;
+        const proxy = AgCharts.create(throwOnOptions({ throwOn: ['error'], showOverlayOn: ['error'] })) as AgChartProxy;
         chart = deproxy(proxy);
         armProcessDataThrow(chart);
 
@@ -2160,7 +2160,7 @@ describe('validations.throwOn — runtime errors', () => {
         expect(visible.error.some((issue) => issue.message.includes(RUNTIME_ERROR_MESSAGE))).toBe(true);
     });
 
-    it('leaves default (none) behaviour unchanged — waitForUpdate() resolves through a caught runtime error', async () => {
+    it('leaves default (empty throwOn) behaviour unchanged — waitForUpdate() resolves through a caught runtime error', async () => {
         const proxy = AgCharts.create(throwOnOptions()) as AgChartProxy;
         chart = deproxy(proxy);
         armProcessDataThrow(chart);
@@ -2170,7 +2170,7 @@ describe('validations.throwOn — runtime errors', () => {
     });
 
     it('does not re-throw a stale fail-fast error on a later successful update', async () => {
-        const proxy = AgCharts.create(throwOnOptions({ throwOn: 'error' })) as AgChartProxy;
+        const proxy = AgCharts.create(throwOnOptions({ throwOn: ['error'] })) as AgChartProxy;
         chart = deproxy(proxy);
         armProcessDataThrow(chart);
 
@@ -2179,11 +2179,11 @@ describe('validations.throwOn — runtime errors', () => {
 
         // processData is left unmocked for this pass, so it succeeds and takeFailFastError() must
         // find nothing left to deliver.
-        await expect(proxy.update(throwOnOptions({ throwOn: 'error' }, UPDATED_DATA))).resolves.toBeUndefined();
+        await expect(proxy.update(throwOnOptions({ throwOn: ['error'] }, UPDATED_DATA))).resolves.toBeUndefined();
     });
 
     it('leaves internal awaiters of Chart.waitForUpdate unaffected by a pending fail-fast error', async () => {
-        const proxy = AgCharts.create(throwOnOptions({ throwOn: 'error' })) as AgChartProxy;
+        const proxy = AgCharts.create(throwOnOptions({ throwOn: ['error'] })) as AgChartProxy;
         chart = deproxy(proxy);
         armProcessDataThrow(chart);
 
@@ -2214,7 +2214,7 @@ describe('validations.throwOn — runtime errors', () => {
             },
         ];
 
-        const proxy = AgCharts.create(throwOnOptions({ throwOn: 'error' }, rows)) as AgChartProxy;
+        const proxy = AgCharts.create(throwOnOptions({ throwOn: ['error'] }, rows)) as AgChartProxy;
         chart = deproxy(proxy);
         await proxy.waitForUpdate();
         drainErrorLog();
@@ -2240,7 +2240,7 @@ describe('validations.issueRaised', () => {
         chart?.destroy();
     });
 
-    it('fires for a runtime error caught in tryPerformUpdate(), regardless of consoleLogSeverity/overlaySeverity', async () => {
+    it('fires for a runtime error caught in tryPerformUpdate(), regardless of consoleOn/showOverlayOn', async () => {
         const issueRaised = vi.fn();
         const thrownError = new Error('processData boom');
 
@@ -2252,8 +2252,8 @@ describe('validations.issueRaised', () => {
             ],
             series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
             validations: {
-                consoleLogSeverity: 'none',
-                overlaySeverity: 'none',
+                consoleOn: [],
+                showOverlayOn: [],
                 issueRaised,
             },
         }) as AgChartProxy;
@@ -2282,7 +2282,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
         (chart as unknown) = undefined;
     });
 
-    // AC 3: the listener is never gated by a severity threshold, and `throwOn` is one. The throw
+    // AC 3: the listener is never gated by a severity selection, and `throwOn` is one. The throw
     // unwinds out of `new ChartOptions()`, so the chart never adopts the issues that caused it.
     it('fires on create() for an issue that also trips throwOn', () => {
         const issueRaised = vi.fn();
@@ -2292,7 +2292,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
                 container: document.body,
                 data: [{ x: 'A', y: 10 }],
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
-                validations: { throwOn: 'warning', issueRaised },
+                validations: { throwOn: ['warning'], issueRaised },
             })
         ).toThrow(/validations.throwOn: warning/);
 
@@ -2314,7 +2314,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
                 data: [{ x: 'A', y: 10 }],
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
                 zoom: { enabled: true },
-                validations: { throwOn: 'error', issueRaised },
+                validations: { throwOn: ['error'], issueRaised },
             })
         ).toThrow(/validations.throwOn: error/);
 
@@ -2333,7 +2333,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
             container: document.body,
             data: [{ x: 'A', y: 10 }],
             series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-            validations: { throwOn: 'warning', issueRaised },
+            validations: { throwOn: ['warning'], issueRaised },
         };
         const proxy = AgCharts.create(options) as AgChartProxy;
         chart = deproxy(proxy);
@@ -2364,7 +2364,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
                 container: document.body,
                 data: [{ x: 'A', y: 10 }],
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
-                validations: { throwOn: 'warning', issueRaised },
+                validations: { throwOn: ['warning'], issueRaised },
             })
         ).toThrow(/validations.throwOn: warning/);
 
@@ -2384,7 +2384,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
                 container: document.body,
                 data: [{ x: 'A', y: 10 }],
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
-                validations: { throwOn: 'warning', issueRaised: innerListener },
+                validations: { throwOn: ['warning'], issueRaised: innerListener },
             });
         });
 
@@ -2393,7 +2393,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
                 container: document.body,
                 data: [{ x: 'A', y: 10 }],
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
-                validations: { throwOn: 'warning', issueRaised: outerListener },
+                validations: { throwOn: ['warning'], issueRaised: outerListener },
             })
         ).toThrow(/validations.throwOn: warning/);
 
@@ -2415,7 +2415,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
             container: document.body,
             data: [{ x: 'A', y: 10 }],
             series: [{ type: 'bar' as const, xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
-            validations: { throwOn: 'warning' as const, issueRaised },
+            validations: { throwOn: ['warning' as const], issueRaised },
         });
         const issueRaised = vi.fn(() => {
             AgCharts.create(failingOptions());
@@ -2438,7 +2438,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
                 data: [{ x: 'A', y: 10 }],
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
                 validations: {
-                    throwOn: 'warning',
+                    throwOn: ['warning'],
                     issueRaised: (event) => {
                         calls.push(event);
                         create();
@@ -2478,7 +2478,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
             height: 300,
             data: rows.slice(),
             series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-            validations: { throwOn: 'error', issueRaised },
+            validations: { throwOn: ['error'], issueRaised },
         });
 
         const proxy = AgCharts.create(options() as any) as AgChartProxy;
@@ -2517,7 +2517,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
                     },
                 },
             ],
-            validations: { overlaySeverity: 'error', issueRaised },
+            validations: { showOverlayOn: ['error'], issueRaised },
         }) as AgChartProxy;
         chart = deproxy(proxy);
         await waitForChartStability(chart);
