@@ -33,7 +33,7 @@ const stylesTheme: WithThemeParams<AgRangesOptions> = {
             { $ref: 'buttonBorder.width' },
         ],
     },
-    textColor: { $ref: 'chromeTextColor' },
+    textColor: { $ref: 'buttonTextColor' },
 };
 
 const stateTheme: WithThemeParams<AgRangesStateStyles> = {
