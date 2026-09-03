@@ -15,7 +15,7 @@ interface Props {
 }
 
 const optimizeAltTextForSeo = (label: string): string => {
-    if (label.toLowerCase().endsWith('chart')) {
+    if (label.toLowerCase().includes('chart')) {
         return label;
     }
 

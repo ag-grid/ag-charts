@@ -1,0 +1,29 @@
+---
+import { getEntry, type CollectionEntry } from 'astro:content';
+import { galleryFamilyName } from '../utils/gallerySeo';
+import { getFamilyExamples } from '../utils/relatedExamples';
+
+interface Props {
+    /** Chart family key, as `seriesName` in `content/gallery/data.json`. */
+    series: string;
+}
+
+const { series } = Astro.props;
+
+const galleryEntry = (await getEntry('gallery', 'data')) as CollectionEntry<'gallery'>;
+const family = getFamilyExamples({ galleryData: galleryEntry.data, seriesName: series });
+---
+
+<p>
+    Every {galleryFamilyName(family.title)} example in the <a href={family.hubUrl}>AG Charts gallery</a>:
+</p>
+
+<ul>
+    {
+        family.examples.map(({ label, url }) => (
+            <li>
+                <a href={url}>{label}</a>
+            </li>
+        ))
+    }
+</ul>

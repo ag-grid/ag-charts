@@ -1,5 +1,4 @@
 import type { BoxBounds, CanvasPoint } from 'ag-charts-core';
-import { boxContains } from 'ag-charts-core';
 import { CANVAS_HEIGHT, CANVAS_WIDTH, Caster, type MockEvent, makeMockEvent } from 'ag-charts-test';
 
 import { BBox } from '../../scene/bbox';
@@ -75,6 +74,15 @@ function initBoundingClientRect(widgets: WidgetSet) {
     }
 }
 
+/**
+ * A DOM box occupies the half-open interval `[x, x + width)`, so a point on its far edge belongs to
+ * whatever element abuts it. `boxContains` is inclusive at both edges, which would let an axis proxy
+ * claim the first row/column of the series area it sits against.
+ */
+function boxContainsExclusive(b: BoxBounds, x: number, y: number): boolean {
+    return x >= b.x && x < b.x + b.width && y >= b.y && y < b.y + b.height;
+}
+
 function isClickable(widget: Widget | undefined): widget is Widget {
     if (widget == null) return false;
     const style = widget.getElement().style;
@@ -148,38 +156,29 @@ function findNavigatorTarget(navigatorModule: unknown, clientX: number, clientY:
     return undefined;
 }
 
-function findZoomTarget(
-    zoomModule: unknown,
-    axisDOMProxyModule: unknown,
-    clientX: number,
-    clientY: number
-): MockEvent | undefined {
-    if (zoomModule === undefined) return undefined;
+/**
+ * An axis proxy element covers its axis area whenever any axis feature has requested one — zoom,
+ * the scrollbar, or the context menu, which is enabled by default. `.ag-charts-proxy-elem` sets
+ * `pointer-events: auto`, so a click there lands on the proxy rather than on the chart container,
+ * and `isClickable` covers the cases where it does not (hidden, or pointer events disabled because
+ * the axis overlaps the series area).
+ */
+function findAxisTarget(axisDOMProxyModule: unknown, clientX: number, clientY: number): MockEvent | undefined {
+    if (axisDOMProxyModule === undefined) return undefined;
 
-    const zoomCaster = new Caster(zoomModule);
-    const zoom = zoomCaster.accessProperty('opts').findBoolean('enabled').findBoolean('enableAxisDragging').value;
-    const hasZooming: boolean = zoom.enabled && zoom.enableAxisDragging;
+    const domProxy = new Caster(axisDOMProxyModule)
+        .findProperty('axes')
+        .castProperty('axes', Array)
+        .findArrayElementProperties('axes', 'div')
+        .castArrayElementProperties('axes', 'div', NativeWidget).value;
 
-    const axisDOMProxyCaster = new Caster(axisDOMProxyModule);
-    const hasClickListeners: boolean = !!axisDOMProxyCaster
-        .findProperty('hasClickListeners')
-        .callProperty('hasClickListeners').value;
-
-    if (hasZooming || hasClickListeners) {
-        const domProxy = axisDOMProxyCaster
-            .findProperty('axes')
-            .castProperty('axes', Array)
-            .findArrayElementProperties('axes', 'div')
-            .castArrayElementProperties('axes', 'div', NativeWidget).value;
-
-        for (const axis of domProxy.axes) {
-            const bbox = axis.div.getBounds();
-            if (isClickable(axis.div) && boxContains(bbox, clientX, clientY)) {
-                const offsetX = clientX - bbox.x;
-                const offsetY = clientY - bbox.y;
-                const target = axis.div.getElement();
-                return makeMockEvent({ target, offsetX, offsetY, clientX, clientY });
-            }
+    for (const axis of domProxy.axes) {
+        const bbox = axis.div.getBounds();
+        if (isClickable(axis.div) && boxContainsExclusive(bbox, clientX, clientY)) {
+            const offsetX = clientX - bbox.x;
+            const offsetY = clientY - bbox.y;
+            const target = axis.div.getElement();
+            return makeMockEvent({ target, offsetX, offsetY, clientX, clientY });
         }
     }
 
@@ -210,7 +209,7 @@ export function findChartTarget(chart: Chart, clientX: number, clientY: number):
     return (
         findLegendTarget(getModule('legend'), clientX, clientY) ??
         findNavigatorTarget(getModule('navigator'), clientX, clientY) ??
-        findZoomTarget(getModule('zoom'), getModule('axis-dom-proxy'), clientX, clientY) ??
+        findAxisTarget(getModule('axis-dom-proxy'), clientX, clientY) ??
         findSeriesAreaTarget(chart, widgets, clientX, clientY)
     );
 }

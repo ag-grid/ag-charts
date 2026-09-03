@@ -463,3 +463,34 @@ describe('Quadrant Preset theme isolation', () => {
         expectQuadrantStyling(resolveAxes(quadrantOptions(), 'quadrant'));
     });
 });
+
+describe('Quadrant Preset label enabled default', () => {
+    const resolveLabelEnabled = (options: Partial<AgQuadrantChartOptions>) => {
+        const { processedOptions } = new _ModuleSupport.ChartOptions(
+            { data: NUMERIC.data, xKey: 'x', yKey: 'y', ...options },
+            {},
+            {},
+            {},
+            { presetType: 'quadrant' }
+        ) as unknown as { processedOptions: { series: Record<string, any>[] } };
+        return processedOptions.series[0].label.enabled;
+    };
+
+    const cases: [string, Partial<AgQuadrantChartOptions>, boolean][] = [
+        ['AC1: labelKey given', { labelKey: 'label' }, true],
+        ['AC1: labelKey given alongside label styling', { labelKey: 'label', label: { color: 'purple' } }, true],
+        ['AC1: empty label object opts in', { label: {} }, true],
+        ['AC1: label styling without enabled opts in', { label: { fontSize: 12 } }, true],
+        ['AC1: label object opts in on the bubble branch', { sizeKey: 'size', label: {} }, true],
+        ['AC1: label object opts in even with an empty labelKey', { labelKey: '', label: { fontSize: 12 } }, true],
+        ['AC2: no labelKey', {}, false],
+        ['AC2: no labelKey on the bubble branch', { sizeKey: 'size' }, false],
+        ['AC2: empty labelKey', { labelKey: '' }, false],
+        ['AC3: no labelKey but label.enabled', { label: { enabled: true } }, true],
+        ['AC3: labelKey but label.enabled false', { labelKey: 'label', label: { enabled: false } }, false],
+    ];
+
+    it.each(cases)('%s', (_name, options, expected) => {
+        expect(resolveLabelEnabled(options)).toBe(expected);
+    });
+});

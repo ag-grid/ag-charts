@@ -1330,7 +1330,7 @@ describe('Chart', () => {
                 { month: 'Mar', unitsSold: 132, revenue: 19800 },
             ];
 
-            const dualAxisOptions = (hidden?: 'y' | 'y2'): AgCartesianChartOptions => ({
+            const dualAxisOptions = (visible: { y: boolean; y2: boolean }): AgCartesianChartOptions => ({
                 data: DUAL_AXIS_DATA,
                 axes: {
                     x: { type: 'category', position: 'bottom' },
@@ -1338,28 +1338,42 @@ describe('Chart', () => {
                     y2: { type: 'number', position: 'right' },
                 },
                 series: [
-                    { type: 'bar', xKey: 'month', yKey: 'unitsSold', visible: hidden !== 'y' },
-                    { type: 'line', xKey: 'month', yKey: 'revenue', yKeyAxis: 'y2', visible: hidden !== 'y2' },
+                    { type: 'bar', xKey: 'month', yKey: 'unitsSold', visible: visible.y },
+                    { type: 'line', xKey: 'month', yKey: 'revenue', yKeyAxis: 'y2', visible: visible.y2 },
                 ],
             });
 
-            it('reports every axis while both series are visible', async () => {
-                await createChartWithClickListener(dualAxisOptions());
+            // Asserted instead of the object: `toEqual` cannot tell `{}` from `{ y: undefined }`.
+            const sortedAxisKeys = (coordinates: object) => Object.keys(coordinates).sort((a, b) => a.localeCompare(b));
+
+            it('reports a coordinate for every axis while both series are visible', async () => {
+                await createChartWithClickListener(dualAxisOptions({ y: true, y2: true }));
                 await clickAtEmptyPlot();
 
                 const [{ coordinates }] = popClickEvents();
-                expect(Object.keys(coordinates).sort((a, b) => a.localeCompare(b))).toEqual(['x', 'y', 'y2']);
+                expect(sortedAxisKeys(coordinates)).toEqual(['x', 'y', 'y2']);
+                expect(coordinates.y.value).toEqual(expect.any(Number));
+                expect(coordinates.y2.value).toEqual(expect.any(Number));
             });
 
-            it.each(['y', 'y2'] as const)('omits the %s axis when its only series is hidden', async (hidden) => {
-                await createChartWithClickListener(dualAxisOptions(hidden));
+            it('reports y as undefined when the primary y series is hidden', async () => {
+                await createChartWithClickListener(dualAxisOptions({ y: false, y2: true }));
                 await clickAtEmptyPlot();
 
                 const [{ coordinates }] = popClickEvents();
-                // Absent, not present-and-undefined: consumers branch on `axisId in coordinates`.
-                expect(hidden in coordinates).toBe(false);
-                const stillVisible = hidden === 'y' ? 'y2' : 'y';
-                expect(coordinates[stillVisible].value).toEqual(expect.any(Number));
+                expect(sortedAxisKeys(coordinates)).toEqual(['x', 'y', 'y2']);
+                expect(coordinates.y).toBeUndefined();
+                expect(coordinates.y2.value).toEqual(expect.any(Number));
+            });
+
+            it('reports y2 as undefined when the secondary y series is hidden', async () => {
+                await createChartWithClickListener(dualAxisOptions({ y: true, y2: false }));
+                await clickAtEmptyPlot();
+
+                const [{ coordinates }] = popClickEvents();
+                expect(sortedAxisKeys(coordinates)).toEqual(['x', 'y', 'y2']);
+                expect(coordinates.y2).toBeUndefined();
+                expect(coordinates.y.value).toEqual(expect.any(Number));
             });
         });
     });
