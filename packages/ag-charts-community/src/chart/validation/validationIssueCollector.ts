@@ -114,8 +114,8 @@ export class ValidationIssueCollector {
      * by content: the caller allocates a fresh array every options pass, so a reference guard would
      * never fire and every pass would dispatch a spurious change.
      */
-    setShowOverlayOn(levels: readonly ValidationSeverity[]) {
-        const mask = severityMask(levels);
+    setShowOverlayOn(severities: readonly ValidationSeverity[]) {
+        const mask = severityMask(severities);
         if (this.showOverlayMask === mask) return;
         this.showOverlayMask = mask;
         this.listeners.dispatch('change');

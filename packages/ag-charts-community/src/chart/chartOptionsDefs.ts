@@ -52,7 +52,7 @@ export const initialStatePickedOptionsDef: OptionsDefs<AgActiveState> = {
 // Strict, so an array carrying an unrecognised severity is rejected whole and diagnosed, rather than
 // having that element silently dropped: a bare union validator returns a boolean, which `arrayOf`
 // cannot turn into a per-element diagnostic.
-const validationLevels = arrayOf(
+const validationSeverities = arrayOf(
     strictUnion<AgChartValidationSeverity>()('error', 'warning', 'deprecation'),
     "an array of validation severities ('error', 'warning' or 'deprecation')"
 );
@@ -63,9 +63,9 @@ export const commonChartOptions = {
     withinStudio: undocumented(boolean),
     loading: boolean,
     validations: {
-        showOverlayOn: validationLevels,
-        consoleOn: validationLevels,
-        throwOn: validationLevels,
+        showOverlayOn: validationSeverities,
+        consoleOn: validationSeverities,
+        throwOn: validationSeverities,
         issueRaised: callback,
     },
     container: htmlElement,

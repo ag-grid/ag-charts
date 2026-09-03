@@ -602,7 +602,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 ctx.logger.setEnabledLevels(get('options', 'validations')?.consoleOn ?? DEFAULT_CONSOLE_ON);
             }),
             ctx.chartState.observe((get) => {
-                this.throwOnLevel = get('options', 'validations')?.throwOn ?? DEFAULT_THROW_ON;
+                this.throwOnSeverities = get('options', 'validations')?.throwOn ?? DEFAULT_THROW_ON;
                 this.setIssueListener(get('options', 'validations')?.issueRaised);
             }),
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
@@ -918,7 +918,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     private readonly updateMutex = new Mutex();
     private clearCallbackCacheOnUpdate: boolean = false;
     private updateRequestors: Record<string, ChartUpdateType> = {};
-    private throwOnLevel: readonly AgChartValidationSeverity[] = DEFAULT_THROW_ON;
+    private throwOnSeverities: readonly AgChartValidationSeverity[] = DEFAULT_THROW_ON;
     private pendingFailFastError?: Error;
 
     private readonly performUpdateTrigger = debouncedCallback(({ count }) => {
@@ -1023,7 +1023,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             });
             this.runningUpdateType = ChartUpdateType.NONE;
             this._performUpdateNotify.notify();
-            if (this.throwOnLevel.includes('error')) {
+            if (this.throwOnSeverities.includes('error')) {
                 this.pendingFailFastError = new Error(
                     `AG Charts - validations.throwOn: error - ${String(error?.message ?? error)}`
                 );

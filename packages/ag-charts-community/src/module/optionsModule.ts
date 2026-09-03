@@ -833,13 +833,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      * The fallback is load-bearing: this runs before the array validator has, so an invalid value must
      * not silence the very warning that reports it.
      */
-    private applyConsoleOn(levels: unknown) {
+    private applyConsoleOn(severities: unknown) {
         // Rejected whole on any unrecognised element, matching the strict validator that runs later.
         // Honouring the recognised remainder of `['error', 'loud']` would leave `warn` disabled, and the
         // rejection of that same array is itself reported through `warn`. An explicit `[]` is honoured —
         // it is a request for silence, not a bad value.
         const consoleOn: readonly AgChartValidationSeverity[] =
-            isArray(levels) && levels.every(isLogLevel) ? levels : DEFAULT_CONSOLE_ON;
+            isArray(severities) && severities.every(isLogLevel) ? severities : DEFAULT_CONSOLE_ON;
         this.logger.setEnabledLevels(consoleOn);
     }
 
@@ -849,11 +849,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      * validator has, and an invalid value must not make the chart throw about itself — nor turn
      * fail-fast on for a consumer who never asked for it.
      */
-    private applyThrowOn(levels: unknown) {
+    private applyThrowOn(severities: unknown) {
         // Reuses `isLogLevel` so a new severity cannot be missed by either union. Any bad element
         // rejects the whole array, matching the strict option validator: a partially-valid
         // `['error', 'loud']` must not arm `error` for the pass whose validator rejects it.
-        this.throwOn = isArray(levels) && levels.every(isLogLevel) ? levels : DEFAULT_THROW_ON;
+        this.throwOn = isArray(severities) && severities.every(isLogLevel) ? severities : DEFAULT_THROW_ON;
     }
 
     /**
