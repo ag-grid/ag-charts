@@ -405,11 +405,11 @@ export class DOMManager extends BaseManager {
         this.attachObserver = this.agDocument.createMutationObserver(this.onAttachTransition);
         this.attachObserver?.observe(container.ownerDocument.documentElement, { childList: true, subtree: true });
 
-        this.attachIntersectionObserver = this.agDocument.createIntersectionObserver((observedEntries) => {
-            if (observedEntries.some((entry) => entry.isIntersecting)) {
-                this.onAttachTransition();
-            }
-        });
+        // The IntersectionObserver is a connection signal, not a visibility gate: it fires its initial
+        // callback once the target is connected regardless of intersection. A connected container that
+        // is hidden, zero-sized, offscreen or clipped never intersects, yet still needs the re-measure,
+        // so onAttachTransition runs on any callback and decides off isConnected.
+        this.attachIntersectionObserver = this.agDocument.createIntersectionObserver(this.onAttachTransition);
         this.attachIntersectionObserver?.observe(container);
     }
 

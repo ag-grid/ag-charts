@@ -248,6 +248,60 @@ describe('DOMManager', () => {
             expect(doc.head.querySelector('style[data-ag-charts="late-test"]')).toBeNull();
             expect(doc.head.querySelector('style[data-ag-charts="ag-charts-community"]')).toBeNull();
         });
+
+        it('should measure a container connected inside a shadow root even when it never intersects', async () => {
+            // Append the container directly into an already-connected shadow root: the document
+            // MutationObserver cannot see this shadow-tree mutation, so the IntersectionObserver is the
+            // only attach signal. A hidden / zero-sized / offscreen container is connected but never
+            // intersects, so the re-measure must run off the connection signal, not on intersection.
+            // jsdom defines no IntersectionObserver, so inject one to drive the callback.
+            let intersectionCallback: IntersectionObserverCallback | undefined;
+            class FakeIntersectionObserver {
+                constructor(cb: IntersectionObserverCallback) {
+                    intersectionCallback = cb;
+                }
+                observe() {}
+                disconnect() {}
+                unobserve() {}
+                takeRecords(): IntersectionObserverEntry[] {
+                    return [];
+                }
+            }
+            vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver);
+
+            const component = doc.createElement('div');
+            const shadow = component.attachShadow({ mode: 'open' });
+            doc.body.append(component);
+
+            const container = doc.createElement('div');
+            const dm = new DOMManager(eventsHub, 'late-shadow-hidden', doc, container);
+
+            dm.setDeferring(false);
+            await vi.runAllTimersAsync();
+            expect(dm.containerSize).toBeUndefined();
+
+            // Connect via the shadow root — invisible to the document MutationObserver.
+            shadow.appendChild(container);
+            Object.defineProperty(container, 'clientWidth', { value: 400, configurable: true });
+            Object.defineProperty(container, 'clientHeight', { value: 250, configurable: true });
+            vi.spyOn(doc.window, 'getComputedStyle').mockReturnValue({
+                paddingLeft: '0px',
+                paddingRight: '0px',
+                paddingTop: '0px',
+                paddingBottom: '0px',
+            } as any);
+
+            // Fire the observation as not-intersecting: a connected-but-hidden container must still measure.
+            intersectionCallback?.(
+                [{ isIntersecting: false } as IntersectionObserverEntry],
+                {} as IntersectionObserver
+            );
+            await vi.runAllTimersAsync();
+
+            expect(dm.containerSize).toMatchObject({ width: 400, height: 250 });
+
+            vi.unstubAllGlobals();
+        });
     });
 
     describe('getBoundingClientRect() caching', () => {
