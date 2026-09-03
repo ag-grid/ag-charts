@@ -24,8 +24,6 @@ interface TrafficDatum {
     id: string;
 }
 
-const HALF_DAY_MS = 12 * 60 * 60 * 1000;
-
 // Must be a string: the selection API treats a numeric itemId as a raw datum index.
 const dayId = (d: Date) => String(d.getTime());
 
@@ -168,8 +166,15 @@ export function TrafficChart({
                 xKey: 'date',
                 yKey: 'value',
                 yName: 'Current period',
-                fill: def.color,
-                fillOpacity: 0.15,
+                fill: {
+                    type: 'gradient',
+                    colorStops: [
+                        { color: { ref: 'chartBackgroundColor' } },
+                        { color: { ref: 'chartBackgroundColor', mix: 0.7, ontoColor: def.color } },
+                        { color: def.color },
+                    ],
+                },
+                fillOpacity: 0.5,
                 stroke: def.color,
                 strokeWidth: 2.5,
                 marker: {

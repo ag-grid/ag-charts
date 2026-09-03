@@ -26,11 +26,11 @@ export function PagePerformanceChart({ data }: PagePerformanceChartProps) {
                     direction: 'horizontal',
                     xKey: 'pageTitle',
                     yKey: 'pageviews',
-                    yName: 'Pageviews',
+                    yName: 'Page views',
                     xKeyAxis: 'page',
                     yKeyAxis: 'views',
                     fill: PALETTE[0],
-                    cornerRadius: 4,
+                    cornerRadius: 2,
                 },
                 {
                     type: 'bar',
@@ -41,11 +41,17 @@ export function PagePerformanceChart({ data }: PagePerformanceChartProps) {
                     xKeyAxis: 'page',
                     yKeyAxis: 'rate',
                     fill: PALETTE[1],
-                    cornerRadius: 4,
+                    cornerRadius: 2,
                 },
             ],
             axes: {
-                page: { type: 'category', position: 'left' },
+                page: {
+                    type: 'category',
+                    position: 'left',
+                    label: {
+                        truncate: true,
+                    },
+                },
                 views: {
                     type: 'number',
                     position: 'bottom',

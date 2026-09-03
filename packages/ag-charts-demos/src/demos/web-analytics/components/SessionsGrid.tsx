@@ -188,6 +188,7 @@ export const SessionsGrid = forwardRef<SessionsGridHandle, SessionsGridProps>(fu
             {
                 field: 'pageviewsCount',
                 headerName: 'Page views',
+                type: 'rightAligned',
                 minWidth: 100,
                 filter: 'agNumberColumnFilter',
                 filterParams: {
@@ -198,6 +199,7 @@ export const SessionsGrid = forwardRef<SessionsGridHandle, SessionsGridProps>(fu
             {
                 field: 'sessionDuration',
                 headerName: 'Duration',
+                type: 'rightAligned',
                 minWidth: 100,
                 filter: 'agNumberColumnFilter',
                 filterParams: {
@@ -216,6 +218,7 @@ export const SessionsGrid = forwardRef<SessionsGridHandle, SessionsGridProps>(fu
             {
                 field: 'conversionValue',
                 headerName: 'Value',
+                type: 'rightAligned',
                 minWidth: 100,
                 filter: 'agNumberColumnFilter',
                 filterParams: {

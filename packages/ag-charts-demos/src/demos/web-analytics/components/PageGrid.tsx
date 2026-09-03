@@ -22,28 +22,32 @@ export function PageGrid({ rows }: PageGridProps) {
             { field: 'pageTitle', headerName: 'Title', flex: 1.2, minWidth: 140 },
             {
                 field: 'pageviews',
-                headerName: 'Pageviews',
+                headerName: 'Page views',
+                type: 'rightAligned',
                 valueFormatter: ({ value }) => (value == null ? '' : fmtInt(value)),
                 sort: 'desc',
             },
             {
                 field: 'uniquePageviews',
                 headerName: 'Unique',
+                type: 'rightAligned',
                 valueFormatter: ({ value }) => (value == null ? '' : fmtInt(value)),
             },
             {
                 field: 'avgTimeOnPage',
                 headerName: 'Avg time',
+                type: 'rightAligned',
                 valueFormatter: ({ value }) => (value == null ? '' : fmtDuration(value)),
             },
             {
                 field: 'entrances',
                 headerName: 'Entrances',
+                type: 'rightAligned',
                 valueFormatter: ({ value }) => (value == null ? '' : fmtInt(value)),
             },
-            { field: 'bounceRate', headerName: 'Bounce', valueFormatter: rate },
-            { field: 'exitRate', headerName: 'Exit', valueFormatter: rate },
-            { field: 'conversionRate', headerName: 'Conv. rate', valueFormatter: rate },
+            { field: 'bounceRate', headerName: 'Bounce', type: 'rightAligned', valueFormatter: rate },
+            { field: 'exitRate', headerName: 'Exit', type: 'rightAligned', valueFormatter: rate },
+            { field: 'conversionRate', headerName: 'Conv. rate', type: 'rightAligned', valueFormatter: rate },
         ],
         []
     );

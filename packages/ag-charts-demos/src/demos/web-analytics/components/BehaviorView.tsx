@@ -64,7 +64,7 @@ export function BehaviorView({ funnelData, pathData, pageData, sessions, hasData
                 <section className="wa-card">
                     <div className="wa-card-head">
                         <div>
-                            <h2 className="wa-card-title">Pageviews vs conversion rate</h2>
+                            <h2 className="wa-card-title">Page views vs conversion rate</h2>
                         </div>
                     </div>
                     <div className="wa-chart-box">

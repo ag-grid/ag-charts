@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { AudienceView } from './components/AudienceView';
 import { BehaviorView } from './components/BehaviorView';
+import { BrandMark } from './components/BrandMark';
 import { DemoNotice } from './components/DemoNotice';
 import { buildKpis } from './components/KpiTiles';
 import { OverviewView } from './components/OverviewView';
@@ -121,7 +122,7 @@ export function WebAnalyticsApp() {
         <RTabs.Root className="wa-app" value={view} onValueChange={setView}>
             <header className="wa-topbar">
                 <span className="wa-brand">
-                    <span className="wa-brand-dot" aria-hidden="true" />
+                    <BrandMark />
                     Pulse Analytics
                 </span>
                 <RTabs.List className="wa-tabs-list" aria-label="Analytics views">

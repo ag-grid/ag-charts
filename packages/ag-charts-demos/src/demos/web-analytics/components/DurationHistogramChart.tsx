@@ -28,7 +28,7 @@ export function DurationHistogramChart({ sessions }: DurationHistogramChartProps
                     fill: PALETTE[0],
                     stroke: 'white',
                     strokeWidth: 1,
-                    cornerRadius: 3,
+                    cornerRadius: 4,
                     tooltip: {
                         renderer: () => ({
                             symbol: { marker: { enabled: false } },

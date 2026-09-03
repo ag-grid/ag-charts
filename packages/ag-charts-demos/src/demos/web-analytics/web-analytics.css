@@ -68,11 +68,9 @@
     letter-spacing: -0.01em;
     margin-right: 24px;
 }
-.wa-brand-dot {
-    width: 20px;
-    height: 20px;
-    border-radius: 5px;
-    background: var(--wa-accent);
+.wa-brand-mark {
+    flex: none;
+    display: block;
 }
 .wa-topbar-spacer {
     flex: 1 1 auto;

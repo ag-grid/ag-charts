@@ -38,6 +38,7 @@ export function PathFlowChart({ data }: PathFlowChartProps) {
                 alignment: 'center',
                 sort: 'data',
                 itemStyler: ({ label }) => ({ fill: pageColor(label), stroke: pageColor(label) }),
+                cornerRadius: 3,
             },
             link: {
                 // Fade each link from its start-node colour to its end-node colour;

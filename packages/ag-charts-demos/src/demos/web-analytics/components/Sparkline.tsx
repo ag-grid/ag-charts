@@ -35,8 +35,11 @@ function sparklineOptions(
         minHeight: 0,
         background: { visible: false },
         padding: { top: 3, right: 4, bottom: 3, left: 4 },
-        fill: color,
-        fillOpacity: 0.16,
+        fill: {
+            type: 'gradient',
+            colorStops: [{ color: '#ffffff' }, { color: color }],
+        },
+        fillOpacity: 0.3,
         stroke: color,
         strokeWidth: 2,
         marker: { fill: color },
