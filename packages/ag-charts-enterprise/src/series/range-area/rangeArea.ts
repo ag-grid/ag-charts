@@ -293,13 +293,24 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     protected override hasPickableNodeShapes(): boolean {
         return this.markerNodesPickable;
     }
+
+    /**
+     * The fill path carries a segments datum, so the base-class scan of `contentGroup` would resolve
+     * a click anywhere inside the band to a non-node datum. Only marker nodes count.
+     */
+    protected override pickNodesExactShape(point: Point): _ModuleSupport.SeriesNodePickMatch[] {
+        return this.pickNodeDataExactShape(point) ?? this.pickModulesExactShape(point) ?? [];
+    }
     private placedLabelData: PlacedLabel<RangeAreaLabelDatum>[] = [];
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             pathsPerSeries: ['fill', 'lowStroke', 'highStroke'],
-            pickModes: [_ModuleSupport.SeriesNodePickMode.AXIS_ALIGNED],
+            pickModes: [
+                _ModuleSupport.SeriesNodePickMode.AXIS_ALIGNED,
+                _ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH,
+            ],
             propertyKeys: {
                 [ChartAxisDirection.X]: ['xKey'],
                 [ChartAxisDirection.Y]: ['yLowKey', 'yHighKey'],

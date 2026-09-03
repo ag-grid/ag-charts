@@ -73,6 +73,7 @@ import {
     type MarkerStyleCompute,
     type PickFocusInputs,
     Series,
+    type SeriesNodePickMatch,
     SeriesNodePickMode,
 } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
@@ -251,6 +252,14 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
 
     protected override hasPickableNodeShapes(): boolean {
         return this.markerNodesPickable;
+    }
+
+    /**
+     * The fill and stroke paths carry a segments datum, so the base-class scan of `contentGroup`
+     * would resolve a click anywhere inside the fill to a non-node datum. Only marker nodes count.
+     */
+    protected override pickNodesExactShape(point: Point): SeriesNodePickMatch[] {
+        return this.pickNodeDataExactShape(point) ?? this.pickModulesExactShape(point) ?? [];
     }
 
     readonly backgroundGroup = new Group({
