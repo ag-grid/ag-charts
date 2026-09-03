@@ -1701,21 +1701,8 @@ describe('CrossLine', () => {
         const X_MAX = new Date(Date.UTC(2024, 11, 1));
         const BEFORE_X_MIN = new Date(Date.UTC(2023, 11, 1));
         const AFTER_X_MAX = new Date(Date.UTC(2025, 0, 1));
-
         const Y_MIN = 1;
         const Y_MAX = 5;
-
-        const DATA = [
-            { date: X_MIN, value: 2 },
-            { date: new Date(Date.UTC(2024, 5, 1)), value: Y_MAX },
-            { date: X_MAX, value: Y_MIN },
-        ];
-
-        /**
-         * Spans the whole domain, so it is drawn across the series area whatever happens at the
-         * boundaries. That makes it both the ruler locating the extremes and a guaranteed click hit, so
-         * every click reports an `allClickParams` for the assertions to read.
-         */
         const RULER = 'ruler';
 
         let crossLineClick: ViFn;
@@ -1729,7 +1716,11 @@ describe('CrossLine', () => {
 
             crossLineClick = vi.fn();
             chart = await createChart({
-                data: DATA,
+                data: [
+                    { date: X_MIN, value: 2 },
+                    { date: new Date(Date.UTC(2024, 5, 1)), value: Y_MAX },
+                    { date: X_MAX, value: Y_MIN },
+                ],
                 series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
                 listeners: { crossLineClick },
                 axes: {
