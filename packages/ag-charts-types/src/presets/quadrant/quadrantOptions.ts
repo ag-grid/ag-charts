@@ -42,9 +42,7 @@ export interface AgQuadrantPreset<TDatum, TContext>
             | 'title'
             | 'tooltip'
         > {
-    /** Whether to move the axis lines so that they cross at the pivot, with the axis titles remaining at the edge of
-     * the chart. When `false`, the axes stay at the bottom and left of the chart. The regions are divided at the
-     * pivot either way.
+    /** Whether to move the axis lines so that they cross at the pivot. When `false`, the axes stay at the bottom and left of the chart.
      *
      * Default: `true`
      */
@@ -114,13 +112,13 @@ export interface AgQuadrantPivotOptions {
 export interface AgQuadrantRegionsOptions {
     /** Configuration for labels shared across every region. */
     label?: AgQuadrantRegionsLabelOptions;
-    /** Configuration for the region containing values below the pivot on the x-axis and above it on the y-axis. */
+    /** Configuration for the top left region. */
     topLeft?: AgQuadrantRegionOptions;
-    /** Configuration for the region containing values above the pivot on both axes. */
+    /** Configuration for the top right region. */
     topRight?: AgQuadrantRegionOptions;
-    /** Configuration for the region containing values below the pivot on both axes. */
+    /** Configuration for the bottom left region. */
     bottomLeft?: AgQuadrantRegionOptions;
-    /** Configuration for the region containing values above the pivot on the x-axis and below it on the y-axis. */
+    /** Configuration for the bottom right region. */
     bottomRight?: AgQuadrantRegionOptions;
 }
 
@@ -128,7 +126,7 @@ export interface AgQuadrantRegionsLabelOptions extends Omit<
     AgSeriesAreaBackgroundRegionLabel,
     'position' | 'text' | 'xOffset' | 'yOffset'
 > {
-    /** The placement of the label within its region, resolved relative to the pivot so that one value places all
+    /** The placement of the label within its region, resolved relative to the region so that a single value places all
      * four region labels symmetrically.
      *
      * Default: `'inside-outer-outer'`
@@ -147,9 +145,9 @@ export interface AgQuadrantRegionLabelOptions extends AgQuadrantRegionsLabelOpti
     text?: string;
 }
 
-/** A region label placement, in which `inner` is towards the pivot, `outer` towards the edge of the series area,
- * and `center` midway between them. The first token of an `inside` placement places the label vertically,
- * against the top or bottom edge, and the second horizontally, against the left or right edge.
+/** A region label placement, in which `inner` is towards the pivot, `outer` is towards the edge of the series area,
+ * and `center` is midway between them.
+ * The first token of an `inside` placement places the label vertically, and the second horizontally.
  */
 export type AgQuadrantRegionLabelPosition =
     | 'outside-outer'

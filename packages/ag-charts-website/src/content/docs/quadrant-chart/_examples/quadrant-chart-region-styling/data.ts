@@ -48,7 +48,7 @@ export function getData() {
         { country: 'Indonesia', tempAnomaly: 0.91, precipAnomaly: 5.3 },
         { country: 'Philippines', tempAnomaly: 0.87, precipAnomaly: 6.0 },
         { country: 'China', tempAnomaly: 1.53, precipAnomaly: 2.9 },
-        { country: 'Mongolia', tempAnomaly: 2.21, precipAnomaly: -7.0 },
+        { country: 'Mongolia', tempAnomaly: 2.11, precipAnomaly: -7.0 },
         { country: 'Japan', tempAnomaly: 1.38, precipAnomaly: 4.9 },
         { country: 'South Korea', tempAnomaly: 1.49, precipAnomaly: 6.0 },
         { country: 'Australia', tempAnomaly: 1.46, precipAnomaly: -5.1 },
