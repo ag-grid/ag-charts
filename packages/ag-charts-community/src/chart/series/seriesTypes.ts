@@ -13,8 +13,8 @@ import type {
 } from 'ag-charts-core';
 import type {
     AgActiveItemState,
-    AgClickParams,
     AgCoordinates,
+    AgHitParams,
     AgNodeClickParams,
     AgNodeContextMenuActionEvent,
     AgNumericValue,
@@ -105,13 +105,13 @@ export type FireNodeEventParams = {
     /**
      * Index into `datums` of the node whose params are flattened onto the event root. Historically, click events only
      * ever reported 1 series-node at most. Nowadays, left/right click events report all series-nodes that overlap at
-     * this click-point (`allNodesParams` / `allShowOnParams` ). The `winner` is that series-node for backward
+     * this click-point (`allHitParams` / `allShowOnParams` ). The `winner` is that series-node for backward
      * compatibility.
      */
     winner: number;
     coordinates: AgCoordinates | undefined;
     // Params for elements of other kinds picked at the same point (e.g. currently cross lines
-    otherClickParams?: AgClickParams<unknown>[];
+    otherHitParams?: AgHitParams<unknown>[];
 };
 
 export interface ISeriesProperties {
@@ -149,7 +149,7 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     fireNodeClickEvent(opts: FireNodeEventParams): boolean;
     fireNodeDoubleClickEvent(opts: FireNodeEventParams): boolean;
     createNodeContextMenuActionEvent(opts: FireNodeEventParams): AgNodeContextMenuActionEvent;
-    createNodeParams(datum: TDatum): AgNodeClickParams<unknown>;
+    createNodeParams(datum: TDatum): Omit<AgNodeClickParams<unknown>, 'type'>;
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
     getLabelData(): PointLabelDatum[];

@@ -92,19 +92,24 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         return result;
     }
 
-    private toParamsArray(matches: CrossLine[], result: CrossLineValuePick[]): CrossLineValuePick[] {
+    private toParamsArray(
+        matches: CrossLine[],
+        result: CrossLineValuePick[],
+        // Each entry reports the event this Cross Line would deliver for the interaction that hit it.
+        type: CrossLineValuePick['type']
+    ): CrossLineValuePick[] {
         const { userAxisId: axisId, direction } = this.axisCtx;
         for (const crossLine of matches) {
             const { type: crossLineType, range, value } = crossLine;
             const crossLineId = crossLine.id ?? crossLine.internalId;
-            result.push({ type: 'crossLineClick', axisId, direction, crossLineId, crossLineType, range, value });
+            result.push({ type, axisId, direction, crossLineId, crossLineType, range, value });
         }
-        return result satisfies AgCrossLineClickEvent<unknown>['allClickParams'];
+        return result satisfies AgCrossLineClickEvent<unknown>['allHitParams'];
     }
 
     private onSeriesAreaContextMenu(event: SeriesAreaContextMenuEvent): void {
         const picks = this.pickCrosslines(event);
-        this.toParamsArray(picks, event.crossLine);
+        this.toParamsArray(picks, event.crossLine, 'crossLineContextMenuAction');
     }
 
     private onSeriesAreaCanvasClick(event: SeriesAreaCanvasClickEvent): void {
@@ -113,12 +118,16 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
             const callbacks = event.pendingCrossLineCallbacks;
             const isClick = event.type === 'click';
 
-            const allParamsOnThisAxis = this.toParamsArray(picks, []);
-            callbacks.allClickParams.push(...allParamsOnThisAxis);
+            const allParamsOnThisAxis = this.toParamsArray(
+                picks,
+                [],
+                isClick ? 'crossLineClick' : 'crossLineDoubleClick'
+            );
+            callbacks.allHitParams.push(...allParamsOnThisAxis);
 
-            // Use `Forbid` to ensure that allClickParams and rootLevelParams do have conflicting keys,
+            // Use `Forbid` to ensure that allHitParams and rootLevelParams do have conflicting keys,
             // otherwise the `...` spreading could silently and unintentionally override something. `type` is
-            // exempt: the params carry the element kind, which the root event type deliberately overrides.
+            // exempt: an entry carries the same event type as the root, so overriding it is intentional.
             type ParamType = (typeof allParamsOnThisAxis)[number];
             type EventType = PendingCrossLineCallbackParam;
             const rootLevelParams: Forbid<EventType, Exclude<keyof ParamType, 'type'>> = {
@@ -126,7 +135,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
                 type: isClick ? 'crossLineClick' : 'crossLineDoubleClick',
             };
             const params: CallbackParamRules<EventType> = {
-                allClickParams: undefined,
+                allHitParams: undefined,
                 ...allParamsOnThisAxis[0],
                 ...rootLevelParams,
             };

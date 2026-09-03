@@ -778,7 +778,7 @@ describe('CrossLine', () => {
             expect(click).not.toHaveBeenCalled();
         });
 
-        describe('overlapping crosslines allClickParams', () => {
+        describe('overlapping crosslines allHitParams', () => {
             let chartClick: ViFn;
             let chartCrossLineClick: ViFn;
             let chartCrossLineDoubleClick: ViFn;
@@ -832,7 +832,7 @@ describe('CrossLine', () => {
                         direction: 'x',
                         value: 'May',
                         // TODO: add AG-17613 `coordinated`
-                        allClickParams: [
+                        allHitParams: [
                             expect.objectContaining({
                                 type: 'crossLineClick',
                                 crossLineId: 'blue-line',
@@ -862,17 +862,17 @@ describe('CrossLine', () => {
                 expect(chartSeriesNodeClick).toHaveBeenCalledTimes(0);
                 expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(0);
             });
-            test('TC7: a double-click root uses the double-click type, its entries the click type', async () => {
+            test('TC7: a double-click brands the root and every entry with the double-click type', async () => {
                 await doubleClickAction(505, 130)(chart);
                 expect(chartCrossLineDoubleClick).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        // The discriminant marks the kind of element, so entries stay on the click value.
+                        // Entries track `event.type`, so they read `crossLineDoubleClick` here, not `crossLineClick`.
                         type: 'crossLineDoubleClick',
                         crossLineId: 'blue-line',
-                        allClickParams: [
-                            expect.objectContaining({ type: 'crossLineClick', crossLineId: 'blue-line' }),
-                            expect.objectContaining({ type: 'crossLineClick', crossLineId: 'grey-range' }),
-                            expect.objectContaining({ type: 'crossLineClick', crossLineId: 'CrossLine-3' }),
+                        allHitParams: [
+                            expect.objectContaining({ type: 'crossLineDoubleClick', crossLineId: 'blue-line' }),
+                            expect.objectContaining({ type: 'crossLineDoubleClick', crossLineId: 'grey-range' }),
+                            expect.objectContaining({ type: 'crossLineDoubleClick', crossLineId: 'CrossLine-3' }),
                         ],
                     })
                 );
@@ -885,7 +885,7 @@ describe('CrossLine', () => {
                         // The cross line still wins the event, so it carries the root params.
                         type: 'crossLineClick',
                         crossLineId: 'blue-line',
-                        allClickParams: [
+                        allHitParams: [
                             expect.objectContaining({
                                 type: 'crossLineClick',
                                 crossLineId: 'blue-line',
@@ -996,7 +996,7 @@ describe('CrossLine', () => {
                     // The series node still wins the event, so it carries the root params.
                     type: 'seriesNodeClick',
                     datum: { x: 'May', y: 3 },
-                    allClickParams: [
+                    allHitParams: [
                         expect.objectContaining({
                             type: 'seriesNodeClick',
                             datum: { x: 'May', y: 3 },
@@ -1017,7 +1017,7 @@ describe('CrossLine', () => {
                 expect(chartSeriesNodeClick).toHaveBeenCalledWith(expected);
                 // TC7: no entry carries the old `clickedOn` discriminant.
                 const [event] = seriesSeriesNodeClick.mock.calls[0];
-                for (const params of [event, ...event.allClickParams]) {
+                for (const params of [event, ...event.allHitParams]) {
                     expect(params).not.toHaveProperty('clickedOn');
                 }
             });
@@ -1026,7 +1026,7 @@ describe('CrossLine', () => {
                 const expected = expect.objectContaining({
                     type: 'seriesNodeClick',
                     datum: { x: 'Jan', y: 8 },
-                    allClickParams: [expect.objectContaining({ type: 'seriesNodeClick', datum: { x: 'Jan', y: 8 } })],
+                    allHitParams: [expect.objectContaining({ type: 'seriesNodeClick', datum: { x: 'Jan', y: 8 } })],
                 });
                 expect(seriesSeriesNodeClick).toHaveBeenCalledWith(expected);
                 expect(chartSeriesNodeClick).toHaveBeenCalledWith(expected);
