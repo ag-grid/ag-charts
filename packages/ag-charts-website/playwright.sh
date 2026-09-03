@@ -6,7 +6,9 @@ cd $(dirname $0)
 
 astro_port=4601
 astro_pid_file="${RUNNER_TEMP:-/tmp}/ag-charts-astro-dev.pid"
-astro_log_file="${RUNNER_TEMP:-/tmp}/ag-charts-astro-dev.log"
+# Something clears ${RUNNER_TEMP} between steps on the hosted runners, so a caller that
+# needs the log to outlive the test step points AG_ASTRO_LOG at a durable path.
+astro_log_file="${AG_ASTRO_LOG:-${RUNNER_TEMP:-/tmp}/ag-charts-astro-dev.log}"
 
 function report_flaky_tests {
   # Runs with a non-default --config (e.g. playwright.cross-browser.config.ts) write their JSON
