@@ -249,6 +249,10 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
         options: examples.DOMAIN_EXTREME_LINE_CROSSLINES,
         assertions: cartesianChartAssertions({ axisTypes: { x: 'time', y: 'number' }, seriesTypes: ['line'] }),
     },
+    OUTSIDE_DOMAIN_LINE_CROSSLINES: {
+        options: examples.OUTSIDE_DOMAIN_LINE_CROSSLINES,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'time', y: 'number' }, seriesTypes: ['line'] }),
+    },
     DUAL_LEFT_AXES_CROSSLINE_LINE: {
         options: examples.DUAL_LEFT_AXES_CROSSLINE_LINE,
         assertions: cartesianChartAssertions({
@@ -1694,7 +1698,6 @@ describe('CrossLine', () => {
     // extreme converts to exactly the pixel boundary cross lines are culled against.
     describe('AG-18387: cross lines at the axis extremes', () => {
         const X_MIN = new Date(Date.UTC(2024, 0, 1));
-        const X_MID = new Date(Date.UTC(2024, 1, 1));
         const X_MAX = new Date(Date.UTC(2024, 11, 1));
         const BEFORE_X_MIN = new Date(Date.UTC(2023, 11, 1));
         const AFTER_X_MAX = new Date(Date.UTC(2025, 0, 1));
@@ -1704,108 +1707,133 @@ describe('CrossLine', () => {
 
         const DATA = [
             { date: X_MIN, value: 2 },
-            { date: X_MID, value: Y_MAX },
-            { date: new Date(Date.UTC(2024, 5, 1)), value: 3 },
+            { date: new Date(Date.UTC(2024, 5, 1)), value: Y_MAX },
             { date: X_MAX, value: Y_MIN },
         ];
 
-        /** Cross lines go on the axis under test; the other axis is left bare. */
-        const optionsFor = (
-            direction: 'x' | 'y',
-            crossLines: AgCartesianCrossLineOptions[]
-        ): AgCartesianChartOptions => ({
-            data: DATA,
-            series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
-            axes: {
-                x: { position: 'bottom', type: 'time', nice: false, ...(direction === 'x' && { crossLines }) },
-                y: {
-                    position: 'left',
-                    type: 'number',
-                    min: Y_MIN,
-                    max: Y_MAX,
-                    ...(direction === 'y' && { crossLines }),
-                },
-            },
-        });
-
         /**
-         * The ids of the cross lines that ended up drawn. `calculateLayout` leaves a culled cross line
-         * without node data, which `update` turns into hidden scene-graph groups.
+         * Spans the whole domain, so it is drawn across the series area whatever happens at the
+         * boundaries. That makes it both the ruler locating the extremes and a guaranteed click hit, so
+         * every click reports an `allClickParams` for the assertions to read.
          */
-        const drawnCrossLineIds = (axisId: string): string[] => {
-            const axis = chart.axes.findById(axisId)!;
-            const instances = getCrossLinesPlugin(axis)?.getInstances() ?? [];
-            return instances
-                .filter(
-                    (crossLine) => (crossLine.type === 'range' ? crossLine.rangeGroup : crossLine.lineGroup).visible
-                )
-                .map((crossLine) => crossLine.id!);
+        const RULER = 'ruler';
+
+        let crossLineClick: ViFn;
+
+        const createExtremesChart = async (direction: 'x' | 'y', crossLines: AgCartesianCrossLineOptions[]) => {
+            const ruler: AgCartesianCrossLineOptions =
+                direction === 'x'
+                    ? { id: RULER, type: 'range', range: [X_MIN, X_MAX] }
+                    : { id: RULER, type: 'range', range: [Y_MIN, Y_MAX] };
+            const withCrossLines = { crossLines: [ruler, ...crossLines] };
+
+            crossLineClick = vi.fn();
+            chart = await createChart({
+                data: DATA,
+                series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
+                listeners: { crossLineClick },
+                axes: {
+                    x: { position: 'bottom', type: 'time', nice: false, ...(direction === 'x' && withCrossLines) },
+                    y: {
+                        position: 'left',
+                        type: 'number',
+                        min: Y_MIN,
+                        max: Y_MAX,
+                        ...(direction === 'y' && withCrossLines),
+                    },
+                },
+            });
         };
 
-        const drawn = async (direction: 'x' | 'y', crossLines: AgCartesianCrossLineOptions[]) => {
-            chart = await createChart(optionsFor(direction, crossLines));
-            return drawnCrossLineIds(direction);
+        /** Canvas points on the axis's min and max, read off the ruler rather than a cross line under test. */
+        const axisExtremePoints = (direction: 'x' | 'y') => {
+            const axis = chart.axes.findById(direction)!;
+            const ruler = (getCrossLinesPlugin(axis)?.getInstances() ?? []).find(({ id }) => id === RULER);
+            expect(ruler).toBeDefined();
+
+            const box = Transformable.toCanvas(ruler!.rangeGroup);
+            expect(box.width * box.height).toBeGreaterThan(0);
+
+            // Nudged inside the series area so the click registers; a cross line drawn on the edge is
+            // still within the cross-line hit tolerance of these points.
+            const inset = 2;
+            const centre = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+            return direction === 'x'
+                ? { min: { x: box.x + inset, y: centre.y }, max: { x: box.x + box.width - inset, y: centre.y } }
+                : { min: { x: centre.x, y: box.y + box.height - inset }, max: { x: centre.x, y: box.y + inset } };
         };
 
-        const line = (id: string, value: unknown): AgCartesianCrossLineOptions => ({
-            id,
-            type: 'line',
-            value,
-            strokeWidth: 1,
-            label: { text: id },
+        /** The ids of every cross line the click reported hitting, as the public event lists them. */
+        const clickAxisExtreme = async (direction: 'x' | 'y', extreme: 'min' | 'max') => {
+            const { x, y } = axisExtremePoints(direction)[extreme];
+            await clickAction(x, y)(chart);
+
+            expect(crossLineClick).toHaveBeenCalled();
+            const [event] = crossLineClick.mock.lastCall as [AgCrossLineClickEvent];
+            return event.allClickParams
+                .filter((params) => params.clickedOn === 'cross-line')
+                .map(({ crossLineId }) => crossLineId)
+                .sort((a, b) => a.localeCompare(b));
+        };
+
+        it('reports a line cross line on the time axis min', async () => {
+            await createExtremesChart('x', [{ id: 'first', type: 'line', value: X_MIN, strokeWidth: 1 }]);
+
+            expect(await clickAxisExtreme('x', 'min')).toEqual(['first', RULER]);
         });
 
-        const range = (id: string, r: [unknown, unknown]): AgCartesianCrossLineOptions => ({
-            id,
-            type: 'range',
-            range: r,
-            label: { text: id },
+        it('reports a line cross line on the time axis max', async () => {
+            await createExtremesChart('x', [{ id: 'last', type: 'line', value: X_MAX, strokeWidth: 1 }]);
+
+            expect(await clickAxisExtreme('x', 'max')).toEqual(['last', RULER]);
         });
 
-        it('draws a line cross line on the time axis min, max and in between', async () => {
-            expect(await drawn('x', [line('min', X_MIN), line('mid', X_MID), line('max', X_MAX)])).toEqual([
-                'min',
-                'mid',
-                'max',
-            ]);
+        it('reports a line cross line on the number axis min', async () => {
+            await createExtremesChart('y', [{ id: 'floor', type: 'line', value: Y_MIN, strokeWidth: 1 }]);
+
+            expect(await clickAxisExtreme('y', 'min')).toEqual(['floor', RULER]);
         });
 
-        it('draws a line cross line on the number axis min and max', async () => {
-            expect(await drawn('y', [line('min', Y_MIN), line('mid', 3), line('max', Y_MAX)])).toEqual([
-                'min',
-                'mid',
-                'max',
-            ]);
+        it('reports a line cross line on the number axis max', async () => {
+            await createExtremesChart('y', [{ id: 'ceiling', type: 'line', value: Y_MAX, strokeWidth: 1 }]);
+
+            expect(await clickAxisExtreme('y', 'max')).toEqual(['ceiling', RULER]);
         });
 
-        it('still culls a line cross line beyond the time axis domain', async () => {
-            expect(await drawn('x', [line('before-min', BEFORE_X_MIN), line('after-max', AFTER_X_MAX)])).toEqual([]);
+        it('reports nothing for a line cross line before the time axis min', async () => {
+            await createExtremesChart('x', [{ id: 'before-first', type: 'line', value: BEFORE_X_MIN, strokeWidth: 1 }]);
+
+            expect(await clickAxisExtreme('x', 'min')).toEqual([RULER]);
         });
 
-        it('still culls a line cross line beyond the number axis domain', async () => {
-            expect(await drawn('y', [line('below-min', Y_MIN - 1), line('above-max', Y_MAX + 1)])).toEqual([]);
+        it('reports nothing for a line cross line after the time axis max', async () => {
+            await createExtremesChart('x', [{ id: 'after-last', type: 'line', value: AFTER_X_MAX, strokeWidth: 1 }]);
+
+            expect(await clickAxisExtreme('x', 'max')).toEqual([RULER]);
         });
 
-        it('draws a range cross line that starts on the axis min or ends on the axis max', async () => {
-            expect(await drawn('y', [range('from-min', [Y_MIN, 3]), range('to-max', [3, Y_MAX])])).toEqual([
-                'from-min',
-                'to-max',
-            ]);
+        it('reports nothing for a line cross line below the number axis min', async () => {
+            await createExtremesChart('y', [{ id: 'below-floor', type: 'line', value: Y_MIN - 1, strokeWidth: 1 }]);
+
+            expect(await clickAxisExtreme('y', 'min')).toEqual([RULER]);
         });
 
-        it('still culls a range cross line wholly beyond the axis domain', async () => {
-            expect(
-                await drawn('y', [
-                    range('below-min', [Y_MIN - 2, Y_MIN - 1]),
-                    range('above-max', [Y_MAX + 1, Y_MAX + 2]),
-                ])
-            ).toEqual([]);
+        it('reports nothing for a line cross line above the number axis max', async () => {
+            await createExtremesChart('y', [{ id: 'above-ceiling', type: 'line', value: Y_MAX + 1, strokeWidth: 1 }]);
+
+            expect(await clickAxisExtreme('y', 'max')).toEqual([RULER]);
         });
 
-        it('still culls a range cross line that only touches the axis min or max', async () => {
-            expect(
-                await drawn('y', [range('at-min', [Y_MIN - 1, Y_MIN]), range('at-max', [Y_MAX, Y_MAX + 1])])
-            ).toEqual([]);
+        it('reports a range cross line that starts on the number axis min', async () => {
+            await createExtremesChart('y', [{ id: 'from-floor', type: 'range', range: [Y_MIN, 3] }]);
+
+            expect(await clickAxisExtreme('y', 'min')).toEqual(['from-floor', RULER]);
+        });
+
+        it('reports nothing for a range cross line that only reaches the number axis min', async () => {
+            await createExtremesChart('y', [{ id: 'up-to-floor', type: 'range', range: [Y_MIN - 1, Y_MIN] }]);
+
+            expect(await clickAxisExtreme('y', 'min')).toEqual([RULER]);
         });
     });
 });

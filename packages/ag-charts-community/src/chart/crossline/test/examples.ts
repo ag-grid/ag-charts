@@ -793,3 +793,43 @@ export const DOMAIN_EXTREME_LINE_CROSSLINES: AgCartesianChartOptions = {
         },
     },
 };
+
+/**
+ * The counterpart to {@link DOMAIN_EXTREME_LINE_CROSSLINES}: the same chart with every cross line
+ * moved just outside the domain, where none of them may draw. Clamping puts an out-of-domain value on
+ * the same pixel as one on the extreme, so this is what stops a fix for the former reaching too far.
+ */
+export const OUTSIDE_DOMAIN_LINE_CROSSLINES: AgCartesianChartOptions = {
+    ...DOMAIN_EXTREME_LINE_CROSSLINES,
+    axes: {
+        x: {
+            position: 'bottom',
+            type: 'time',
+            nice: false,
+            crossLines: [
+                {
+                    type: 'line',
+                    value: new Date(Date.UTC(2023, 11, 1)),
+                    label: { text: 'Before first', position: 'top' },
+                    ...xAxisLineCrossLineStyle,
+                },
+                {
+                    type: 'line',
+                    value: new Date(Date.UTC(2025, 0, 1)),
+                    label: { text: 'After last', position: 'top' },
+                    ...xAxisLineCrossLineStyle,
+                },
+            ],
+        },
+        y: {
+            position: 'left',
+            type: 'number',
+            min: 1,
+            max: 5,
+            crossLines: [
+                { type: 'line', value: 0, label: { text: 'Below min', position: 'right' }, ...yAxisLineCrossLineStyle },
+                { type: 'line', value: 6, label: { text: 'Above max', position: 'right' }, ...yAxisLineCrossLineStyle },
+            ],
+        },
+    },
+};
