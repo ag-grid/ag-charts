@@ -5,6 +5,7 @@ import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import faqData from '../../content/faqs/homepage.json';
 import homepage from '../../content/homepage/homepage.json';
 import versionsData from '../../content/versions/ag-charts-versions.json';
+import { buildChartsFrontmatter } from './chartsFrontmatter';
 import { latestReleasesMarkdown } from './latestReleasesMarkdown';
 import { withDefaultFramework } from './withDefaultFramework';
 
@@ -104,12 +105,13 @@ function faqsBlock(section: HomepageSections['faqs']): string {
 export function buildHomepageMarkdown({ siteRoot }: { siteRoot?: string } = {}): string {
     const { hero, sections } = homepage as HomepageContent;
 
-    const frontmatter = [
-        '---',
-        'title: "JavaScript Charts | AG Charts"',
-        'description: "Create beautiful, high-performance JavaScript Charts quickly with AG Charts. Free forever; upgrade to enterprise for advanced features and dedicated support."',
-        '---',
-    ].join('\n');
+    const frontmatter = buildChartsFrontmatter({
+        pageUrl: '/',
+        siteRoot,
+        title: 'JavaScript Charts | AG Charts',
+        description:
+            'Create beautiful, high-performance JavaScript Charts quickly with AG Charts. Free forever; upgrade to enterprise for advanced features and dedicated support.',
+    });
 
     const document = [
         frontmatter,

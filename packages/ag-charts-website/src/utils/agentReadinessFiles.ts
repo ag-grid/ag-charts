@@ -8,6 +8,12 @@
  * set is assembled from the same canonical base, so changing the host updates every link.
  */
 
+/** A named group of links in the `llms.txt` page index, e.g. `Series > Bar Series`. */
+export interface LlmsTxtSection {
+    title: string;
+    links: Array<{ title: string; url: string }>;
+}
+
 interface AgentReadinessInput {
     /** Canonical charts site root with a trailing slash, e.g. `https://www.ag-grid.com/charts/`. */
     siteRoot: string;
@@ -24,6 +30,13 @@ interface AgentReadinessInput {
      * Defaults to true.
      */
     includeMarkdownDocs?: boolean;
+    /**
+     * The complete page index published below the curated sections: the docs nav flattened into
+     * its groups, then everything else grouped as the sitemap groups it. Optional, so the
+     * curated head of the file still builds without a nav or a sitemap to hand.
+     */
+    docsIndex?: LlmsTxtSection[];
+    siteIndex?: LlmsTxtSection[];
 }
 
 interface AgentReadinessLinks {
@@ -62,8 +75,37 @@ function buildLinks({ siteRoot, chartsDocsPrefix }: AgentReadinessInput): AgentR
  * Build the `/charts/llms.txt` body: an H1 with the product name, a one-line summary, then short
  * sections of markdown links to the key pages (the llms.txt format).
  */
+/** Render one index group as an `###` heading over its links, or nothing when it is empty. */
+function renderIndexSection({ title, links }: LlmsTxtSection): string {
+    if (!links.length) {
+        return '';
+    }
+    return [`### ${title}`, ...links.map((link) => `- [${link.title}](${link.url})`)].join('\n');
+}
+
+function renderIndex(sections: LlmsTxtSection[] = []): string {
+    return sections.map(renderIndexSection).filter(Boolean).join('\n\n');
+}
+
 export function buildLlmsTxt(input: AgentReadinessInput): string {
     const l = buildLinks(input);
+    const docsIndex = renderIndex(input.docsIndex);
+    const siteIndex = renderIndex(input.siteIndex);
+    // The docs exist once per framework, so listing all four would quadruple the file for no new
+    // information. Publish the framework-agnostic JavaScript URL and state the substitution.
+    const anyFrameworkPrefix = input.chartsDocsPrefix.replace(/^[a-z]+/, '<framework>');
+    const docsIndexSection = docsIndex
+        ? [
+              '',
+              '## Documentation',
+              'Every documentation page, in navigation order. Each URL is the framework-agnostic' +
+                  ` JavaScript one; replace \`${input.chartsDocsPrefix}\` with \`${anyFrameworkPrefix}\`` +
+                  ' (`react`, `angular` or `vue`) for the framework-specific page.',
+              '',
+              `${docsIndex}\n`,
+          ].join('\n')
+        : '';
+    const siteIndexSection = siteIndex ? ['', '## Site pages', '', `${siteIndex}\n`].join('\n') : '';
     // State the `.md` rule rather than enumerate pages, which would drift out of date.
     const markdownLine =
         input.includeMarkdownDocs === false
@@ -84,7 +126,7 @@ export function buildLlmsTxt(input: AgentReadinessInput): string {
 - [Pipeline](${l.pipeline}): roadmap and backlog of upcoming features and fixes
 - [Documentation Archive](${l.documentationArchive}): docs for previous versions
 - [Sitemap](${l.sitemap}): full list of indexable pages
-`;
+${docsIndexSection}${siteIndexSection}`;
 }
 
 /**
