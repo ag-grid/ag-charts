@@ -139,13 +139,16 @@ describe('buttonBackgroundColor', () => {
         charts = [];
     });
 
-    test.each(['ag-default', 'ag-default-dark'])('defaults to chromeBackgroundColor in %s', async (baseTheme) => {
-        const properties = await getThemeProperties(baseTheme, charts);
+    test.each(['ag-default', 'ag-default-dark'] as const)(
+        'defaults to chromeBackgroundColor in %s',
+        async (baseTheme) => {
+            const properties = await getThemeProperties(baseTheme, charts);
 
-        expect(properties['--ag-charts-button-background-color']).toBe(
-            properties['--ag-charts-chrome-background-color']
-        );
-    });
+            expect(properties['--ag-charts-button-background-color']).toBe(
+                properties['--ag-charts-chrome-background-color']
+            );
+        }
+    );
 
     test('overrides chromeBackgroundColor once set', async () => {
         const properties = await getThemeProperties(
