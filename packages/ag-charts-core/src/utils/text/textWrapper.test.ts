@@ -449,6 +449,11 @@ describe('wrapLines', () => {
             expect(result).toEqual(['Hello']);
         });
     });
+    it('keeps an orphan on its own line when moving it back would overrun the width', () => {
+        // Pulling the previous line's last word down to join the orphan adds a space, and the joined line
+        // has to be measured as it will be drawn: 'CC DDDD' is 70px, so the 65px budget cannot take it.
+        expect(wrapLines('A B CC DDDD', { font, maxWidth: 65, textWrap: 'on-space' })).toEqual(['A B CC', 'DDDD']);
+    });
 });
 
 describe('clipLines', () => {
@@ -1105,6 +1110,23 @@ describe('fitLabelText bounded by a shape', () => {
         const fitted = fitLabelTextToRegion('AAAA BBBB', { region, wrapping: 'on-space' }, font);
         expect(fitted.text).toBe('AAAA BBBB');
         expect(fitted.offsetX).toBe(-50);
+    });
+
+    it('cuts a word that will not fit to the width of the line it lands on', () => {
+        // A narrow top row over a wide one, and a word too wide for the row the wrap is closing: the word
+        // moves to the row below, so it is cut to that row's width and not to the one it left.
+        const region: FitRegion = {
+            spanAt: (_top, bottom) => (bottom <= LINE_HEIGHT ? [-25, 25] : [-45, 45]),
+            extentAbove: 0,
+            extentBelow: 2 * LINE_HEIGHT,
+        };
+        expect(
+            fitLabelText(
+                'AAAA BBBBBBBB',
+                { region, regionAlign: 'start', wrapping: 'on-space', overflowStrategy: 'ellipsis' },
+                font
+            )
+        ).toBe('AAAA\nBBBBBBBB');
     });
 
     it('fits a lopsided shape at the anchor for a caller that cannot move the label', () => {

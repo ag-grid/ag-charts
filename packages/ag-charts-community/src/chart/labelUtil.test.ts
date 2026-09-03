@@ -12,7 +12,13 @@ import type { TextWrap } from 'ag-charts-types';
 import { isPointInSector } from '../scene/util/sector';
 import { setupMockCanvas } from '../util/test/mockCanvas';
 import { setupMockConsole } from '../util/test/mockConsole';
-import { buildBarLabelCandidates, fitLabelToContainer, fitSectorLabelRect, insideMarkerContainer } from './labelUtil';
+import {
+    buildBarLabelCandidates,
+    fitLabelToContainer,
+    fitSectorLabelRect,
+    insideMarkerContainer,
+    sectorLabelRoom,
+} from './labelUtil';
 
 const ELLIPSIS = '…';
 const FONT = { fontFamily: 'Verdana', fontSize: 15 };
@@ -148,16 +154,17 @@ describe('insideMarkerContainer', () => {
     });
 });
 
+const sector = (midAngle: number, halfSpan: number, innerRadius: number, outerRadius: number) => ({
+    startAngle: midAngle - halfSpan,
+    endAngle: midAngle + halfSpan,
+    innerRadius,
+    outerRadius,
+});
+const anchorAt = (radius: number, angle: number) => ({ x: radius * Math.cos(angle), y: radius * Math.sin(angle) });
+
 describe('fitSectorLabelRect', () => {
     setupMockConsole();
 
-    const sector = (midAngle: number, halfSpan: number, innerRadius: number, outerRadius: number) => ({
-        startAngle: midAngle - halfSpan,
-        endAngle: midAngle + halfSpan,
-        innerRadius,
-        outerRadius,
-    });
-    const anchorAt = (radius: number, angle: number) => ({ x: radius * Math.cos(angle), y: radius * Math.sin(angle) });
     const cornersInSector = (rect: ReturnType<typeof fitSectorLabelRect>, s: Parameters<typeof isPointInSector>[2]) => {
         const hw = rect.width / 2;
         const hh = rect.height / 2;
@@ -191,6 +198,21 @@ describe('fitSectorLabelRect', () => {
     it('leaves an anchor at the centre unchanged', () => {
         const rect = fitSectorLabelRect({ x: 0, y: 0 }, sector(0, Math.PI / 4, 0, 120), 14);
         expect(rect).toMatchObject({ centerX: 0, centerY: 0, width: 0, height: 0 });
+    });
+
+    it('leaves a measured block on the anchor when the wedge holds it there', () => {
+        const s = sector(-Math.PI / 3, Math.PI / 8, 40, 120);
+        const anchor = anchorAt(85, -Math.PI / 3);
+        const rect = fitSectorLabelRect(anchor, s, 14, { width: 20, height: 14 });
+        expect(rect).toMatchObject({ centerX: anchor.x, centerY: anchor.y, anchored: true });
+    });
+
+    it('moves a measured block off the anchor only when the wedge cannot hold it there', () => {
+        const s = sector(-Math.PI / 3, Math.PI / 8, 40, 120);
+        const anchor = anchorAt(85, -Math.PI / 3);
+        const rect = fitSectorLabelRect(anchor, s, 14, { width: 70, height: 42 });
+        expect(rect.anchored).toBeUndefined();
+        expect(Math.hypot(rect.centerX - anchor.x, rect.centerY - anchor.y)).toBeGreaterThan(1);
     });
 
     it('fits a multi-line label to the widest band, filling the wedge further out than the bisector', () => {
@@ -325,5 +347,23 @@ describe('buildBarLabelCandidates', () => {
             hideable: true,
         });
         expect(candidates.map((c) => c.placement)).toEqual(['inside-center']);
+    });
+});
+
+describe('sectorLabelRoom', () => {
+    const s = sector(0, Math.PI / 6, 40, 160);
+    const anchor = anchorAt(100, 0);
+
+    it('admits a block the wedge does hold, since a bound that refused one would drop a fitting label', () => {
+        const block = { width: 60, height: 28 };
+        expect(fitSectorLabelRect(anchor, s, 14, block).anchored).toBe(true);
+        const room = sectorLabelRoom(anchor, s, 14);
+        expect(room.capacityAt(14)).toBeGreaterThanOrEqual(block.width);
+        expect(room.area).toBeGreaterThanOrEqual(block.width * block.height);
+    });
+
+    it('holds fewer lines, and so less text, as the lines grow taller', () => {
+        const room = sectorLabelRoom(anchor, s, 14);
+        expect(room.capacityAt(28)).toBeLessThan(room.capacityAt(14));
     });
 });

@@ -1,5 +1,7 @@
 import { toAbsoluteUrl } from '@ag-website-shared/markdoc/toAbsoluteUrl';
+import { GALLERY_HUB_COPY } from '@components/gallery/galleryCopy';
 import { GALLERY_CTAS } from '@components/gallery/galleryCtas';
+import { galleryFamilyHeading, resolveGalleryH1 } from '@components/gallery/utils/gallerySeo';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 
 import galleryData from '../../content/gallery/data.json';
@@ -35,25 +37,26 @@ export function buildGalleryMarkdown({ siteRoot }: { siteRoot?: string } = {}): 
 
     const frontmatter = [
         '---',
-        'title: "Gallery"',
-        'description: "Gallery of JavaScript Charts and JavaScript Graphs created with AG Charts. View source code and interact with Charts; live edit examples with CodeSandbox and Plunker."',
+        `title: ${JSON.stringify(GALLERY_HUB_COPY.title)}`,
+        `description: ${JSON.stringify(GALLERY_HUB_COPY.description)}`,
         '---',
     ].join('\n');
 
     const sections = [
         frontmatter,
-        '# AG Charts Gallery',
-        'Browse the AG Charts gallery of chart examples, grouped by chart type. Each example links to a live, interactive demo.',
+        `# ${GALLERY_HUB_COPY.h1}`,
+        GALLERY_HUB_COPY.intro,
         GALLERY_CTAS.map(
             (cta) => `[${cta.title}](${toAbsoluteUrl(urlWithBaseUrl(withDefaultFramework(cta.url)), siteRoot)})`
         ).join(' | '),
     ];
 
     for (const chartType of series.flat()) {
-        const heading = chartType.enterprise ? `${chartType.title} (Enterprise)` : chartType.title;
+        const familyHeading = galleryFamilyHeading(chartType.title);
+        const heading = chartType.enterprise ? `${familyHeading} (Enterprise)` : familyHeading;
         const links = chartType.examples
             .filter((example) => !example.hidden)
-            .map((example) => `- [${example.title}](${galleryExampleUrl(example.name, siteRoot)})`);
+            .map((example) => `- [${resolveGalleryH1(example)}](${galleryExampleUrl(example.name, siteRoot)})`);
 
         if (links.length === 0) {
             continue;

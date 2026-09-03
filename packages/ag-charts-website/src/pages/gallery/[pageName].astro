@@ -6,8 +6,10 @@ import GalleryExampleRunner from '@components/gallery/components/GalleryExampleR
 import { getGalleryPages } from '@components/gallery/utils/pageData';
 import { GalleryExampleLink } from '@components/gallery/components/GalleryExampleLink';
 import { GallerySeriesLink } from '@components/gallery/components/GallerySeriesLink';
-import { resolveGallerySeo } from '@components/gallery/utils/gallerySeo';
+import { galleryFamilyHeading, resolveGallerySeo } from '@components/gallery/utils/gallerySeo';
+import { relatedExamplesHeading } from '@components/gallery/utils/relatedExamples';
 import { GALLERY_FRAMEWORK_LINKS } from '@components/gallery/galleryFrameworkLinks';
+import { GALLERY_IMAGE_DPR_ENHANCEMENT } from '@constants';
 
 export async function getStaticPaths() {
     const galleryEntry = (await getEntry('gallery', 'data')) as CollectionEntry<'gallery'>;
@@ -16,11 +18,12 @@ export async function getStaticPaths() {
     return pages;
 }
 
-const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
+const { page, relatedExamples } = Astro.props;
 const exampleName = Astro.params.pageName;
 
 // Shared with the page's `.md` twin so the two describe the example identically.
 const seo = resolveGallerySeo(page);
+const relatedHeading = relatedExamplesHeading({ seriesTitle: page.seriesTitle, related: relatedExamples });
 ---
 
 <Layout title={seo.title} description={seo.description} showSearchBar={true}>
@@ -59,15 +62,28 @@ const seo = resolveGallerySeo(page);
 
         <GalleryExampleRunner exampleName={exampleName} />
 
-        <p class="moreExampleLabel text-secondary">More from the charts gallery...</p>
+        {
+            relatedExamples.length > 0 && (
+                <Fragment>
+                    <h2 class="moreExampleLabel">{relatedHeading}</h2>
 
-        <div class="moreExamples">
-            <GalleryExampleLink client:load label={prevExample.title} exampleName={prevExample.name} />
+                    <p class="moreExampleHubLink text-secondary">
+                        <a href={page.galleryHubUrl}>View all {galleryFamilyHeading(page.seriesTitle)}</a>
+                    </p>
 
-            <GalleryExampleLink client:load label={nextExampleOne.title} exampleName={nextExampleOne.name} />
-
-            <GalleryExampleLink client:load label={nextExampleTwo.title} exampleName={nextExampleTwo.name} />
-        </div>
+                    <div class="moreExamples">
+                        {relatedExamples.map(({ label, name }) => (
+                            <GalleryExampleLink
+                                client:visible
+                                label={label}
+                                exampleName={name}
+                                enableDprScaling={GALLERY_IMAGE_DPR_ENHANCEMENT}
+                            />
+                        ))}
+                    </div>
+                </Fragment>
+            )
+        }
     </div>
 </Layout>
 
@@ -121,13 +137,12 @@ const seo = resolveGallerySeo(page);
 
     .moreExampleLabel {
         margin-top: $spacing-size-24;
-
-        @media screen and (min-width: $breakpoint-gallery-small) {
-            font-size: var(--text-fs-lg);
-        }
+        margin-bottom: $spacing-size-1;
+        text-align: center;
     }
 
-    .moreExampleLabel {
+    .moreExampleHubLink {
+        margin-bottom: $spacing-size-6;
         text-align: center;
     }
 
@@ -136,12 +151,6 @@ const seo = resolveGallerySeo(page);
         flex-wrap: wrap;
         justify-content: center;
         gap: $spacing-size-6;
-
-        @media screen and (min-width: 720px) and (max-width: 1120px) {
-            :global(astro-island):nth-child(1) {
-                display: none;
-            }
-        }
     }
 </style>
 

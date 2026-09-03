@@ -67,6 +67,12 @@ export interface FittedRegionText {
     text: NormalisedTextOrSegments;
     /** Horizontal offset from the anchor, for a shape with more room on one side of it than the other. */
     offsetX: number;
+    /**
+     * Vertical offset of the block's centre from the anchor. A block taller than the room above or below
+     * the anchor is fitted where the shape can hold it rather than centred on it, so a caller drawing the
+     * text centred on the anchor would put it in bands it was never wrapped to.
+     */
+    offsetY: number;
 }
 
 /** `'preserve'` is engine-internal: text still wraps to `maxWidth`, but nothing is ever dropped or ellipsised. */
@@ -146,14 +152,16 @@ export function fitLabelText(
 /**
  * {@link fitLabelText} for a caller that can place the label as well as write it: a shape with more room
  * on one side of the anchor than the other is only worth fitting to if the text is drawn where that room
- * is, so the offset it was fitted at comes back with the text.
+ * is, so the offset it was fitted at comes back with the text. `anchored` is for a caller that has settled
+ * on the anchor for this label after all: the fit then takes no horizontal offset it would have to discard.
  */
 export function fitLabelTextToRegion(
     text: NormalisedTextOrSegments,
     fit: LabelFit | undefined,
-    font: FontOptions
+    font: FontOptions,
+    anchored = false
 ): FittedRegionText {
-    if (fit?.region == null) return { text: fitLabelText(text, fit, font), offsetX: 0 };
+    if (fit?.region == null) return { text: fitLabelText(text, fit, font), offsetX: 0, offsetY: 0 };
     const overflow = fit.overflowStrategy ?? 'preserve';
     return wrapTextToRegion(
         text,
@@ -165,7 +173,8 @@ export function fitLabelTextToRegion(
             overflow,
         },
         fit.region,
-        fit.regionAlign ?? 'center'
+        fit.regionAlign ?? 'center',
+        anchored
     );
 }
 
@@ -251,7 +260,12 @@ function wrapBlockToRegion(
     const marked = markLostText(String(wrapped), text, options, widthAt, lineHeight);
     // A candidate whose text did not wrap into the block it was measured for was fitted to the wrong
     // bands, so it only stands until a line count that agrees with itself keeps as much.
-    return { text: marked, offsetX, consistent: marked.split('\n').length === lines };
+    return {
+        text: marked,
+        offsetX,
+        offsetY: blockTop + height / 2,
+        consistent: marked.split('\n').length === lines,
+    };
 }
 
 /**
@@ -291,7 +305,7 @@ function wrapTextToRegion(
 ): FittedRegionText {
     const limit = Math.min(options.maxHeight ?? Infinity, region.extentAbove + region.extentBelow);
     if (isArray(text)) {
-        return { text: refineSegmentsToRegion(text, options, region, align, limit), offsetX: 0 };
+        return { text: refineSegmentsToRegion(text, options, region, align, limit), offsetX: 0, offsetY: 0 };
     }
 
     // One line's height, not the measured block's: a source carrying its own line breaks would otherwise
@@ -303,18 +317,31 @@ function wrapTextToRegion(
     // and that also bounds the search when a region reports an unbounded extent.
     const roomForLines = Math.floor(limit / Math.max(1, lineHeight));
     const maxLines = Math.max(1, Math.min(roomForLines, source.length));
-    let best: { text: string; offsetX: number; consistent: boolean } | undefined;
-    let bestKept = -1;
+    let best: { text: string; offsetX: number; offsetY: number; consistent: boolean } | undefined;
+    let bestKept = 0;
     for (let lines = 1; lines <= maxLines; lines += 1) {
         const candidate = wrapBlockToRegion(source, options, region, align, limit, lineHeight, lines, anchored);
         const kept = survivingCharacters(candidate.text);
-        if (kept > bestKept || (kept === bestKept && candidate.consistent && best?.consistent === false)) {
+        if (isBetterCandidate(candidate.consistent, kept, best?.consistent, bestKept)) {
             bestKept = kept;
             best = candidate;
         }
         if (bestKept >= wanted && best?.consistent === true) break;
     }
-    return best == null ? { text, offsetX: 0 } : { text: best.text, offsetX: best.offsetX };
+    if (best == null) return { text, offsetX: 0, offsetY: 0 };
+    return { text: best.text, offsetX: best.offsetX, offsetY: best.offsetY };
+}
+
+/**
+ * Whether a candidate layout beats the one held. A candidate whose text did not wrap into the line count
+ * it was measured for was fitted to bands its lines do not land in, so the shape it was fitted to can
+ * reject it once drawn and the label is then lost whole: a self-consistent layout wins however much less
+ * of the text it keeps, and an inconsistent one stands only until the first consistent one arrives.
+ */
+function isBetterCandidate(consistent: boolean, kept: number, bestConsistent: boolean | undefined, bestKept: number) {
+    if (bestConsistent == null) return true;
+    if (consistent !== bestConsistent) return consistent;
+    return kept > bestKept;
 }
 
 /**
@@ -356,6 +383,16 @@ export function withFitRegion(fit: LabelFit | undefined, region: FitRegion | und
 /** A fit can bound the text away to nothing, which the placement engine treats as no label at all. */
 export function isErased(text: NormalisedTextOrSegments): boolean {
     return isArray(text) ? text.length === 0 : String(text).length === 0;
+}
+
+/** Characters of `text` that survived a fit, ignoring the layout and the ellipsis marking the loss. */
+export function keptCharacters(text: NormalisedTextOrSegments): number {
+    if (!isArray(text)) return survivingCharacters(toTextString(text));
+    let kept = 0;
+    for (const segment of text) {
+        if (segment.type !== 'image') kept += survivingCharacters(toTextString(segment.text));
+    }
+    return kept;
 }
 
 /**
@@ -723,10 +760,16 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
                         result.push(line.slice(0, lastSpaceIndex).trimEnd());
                         resumeAfterBreak(lastSpaceIndex);
                         continue;
-                    } else if (wrapOnSpace && textWidth > maxWidth()) {
+                    } else if (wrapOnSpace) {
+                        // The word that did not fit lands on the line below, whose width a shape-bounded
+                        // label narrows band by band, so that is the width it answers to.
+                        const remainder = line.slice(lastSpaceIndex).trimStart();
+                        result.push(line.slice(0, lastSpaceIndex).trimEnd());
+                        const remainderWidth = maxWidth();
                         result.push(
-                            line.slice(0, lastSpaceIndex).trimEnd(),
-                            truncateLine(line.slice(lastSpaceIndex).trimStart(), measurer, maxWidth(), true)
+                            measurer.textWidth(remainder) <= remainderWidth
+                                ? remainder
+                                : truncateLine(remainder, measurer, remainderWidth, true)
                         );
                     }
                 } else if (wrapOnSpace) {
@@ -837,9 +880,12 @@ function avoidOrphans(lines: string[], measurer: ITextMeasurer, options: WrapOpt
 
     const lastWord = beforeLast.slice(lastSpaceIndex + 1);
     const maxWidth = options.maxWidthAt == null ? options.maxWidth : lastLineMaxWidth(lines, measurer, options);
-    if (measurer.textWidth(lastLine + lastWord) <= maxWidth) {
+    // Measured as it will be drawn, joining space included: a line that reads as fitting without it
+    // overruns its width by a space, which a shape-bounded label pays for by being hidden whole.
+    const joined = lastWord + ' ' + lastLine;
+    if (measurer.textWidth(joined) <= maxWidth) {
         lines[length - 2] = beforeLast.slice(0, lastSpaceIndex);
-        lines[length - 1] = lastWord + ' ' + lastLine;
+        lines[length - 1] = joined;
     }
 }
 

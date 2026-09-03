@@ -1,6 +1,7 @@
 import { getGalleryPages } from '@components/gallery/utils/pageData';
+import type { GalleryRelatedExample } from '@components/gallery/utils/relatedExamples';
 import { DISABLE_MARKDOWN_DOCS, SITE_URL } from '@constants';
-import type { GalleryExampleNeighbour, GalleryExamplePage } from '@utils/markdown-pages/buildGalleryExampleMarkdown';
+import type { GalleryExamplePage } from '@utils/markdown-pages/buildGalleryExampleMarkdown';
 import { buildGalleryExampleMarkdown } from '@utils/markdown-pages/buildGalleryExampleMarkdown';
 import { type CollectionEntry, getEntry } from 'astro:content';
 
@@ -20,18 +21,16 @@ export async function GET({
 }: {
     props: {
         page: GalleryExamplePage;
-        prevExample: GalleryExampleNeighbour;
-        nextExampleOne: GalleryExampleNeighbour;
-        nextExampleTwo: GalleryExampleNeighbour;
+        relatedExamples: GalleryRelatedExample[];
     };
     params: Record<string, string>;
 }) {
-    const { page, prevExample, nextExampleOne, nextExampleTwo } = props;
+    const { page, relatedExamples } = props;
 
     const output = await buildGalleryExampleMarkdown({
         page,
         exampleName: params.pageName,
-        neighbours: [prevExample, nextExampleOne, nextExampleTwo],
+        relatedExamples,
         siteRoot: SITE_URL,
     });
 
