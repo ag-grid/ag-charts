@@ -182,7 +182,8 @@ In this configuration:
 - `sizeKey` maps the data field controlling marker size.
 - `minSize` and `maxSize` bound the size scale. `minSize` defaults to `size` when not set.
 
-Marker text comes from `labelKey` and is styled and positioned with `label`. See
+Marker text comes from `labelKey` and is styled and positioned with `label`. Labels are shown by default when
+`labelKey` or a `label` object is set, and are otherwise hidden; set `label.enabled` to override either way. See
 [Series Labels](./series-labels/) for label placement and collision options, and [Series Markers](./markers/) for
 the available marker shapes.
 
