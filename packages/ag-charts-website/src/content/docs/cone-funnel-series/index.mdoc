@@ -64,15 +64,17 @@ Each divider can show its value with `label`, positioned by the side of the divi
 {
     label: {
         enabled: true,
-        placement: 'before-center',
+        placement: 'start-center',
     },
 }
 ```
 
 In this configuration:
 
-- `before` and `after` are the two sides of the divider and `middle` sits on it, while `start`, `center` and `end` run along it.
-- The single-word values `'before'`, `'middle'` and `'after'` are deprecated. Use `'before-center'`, `'middle-center'` and `'after-center'` instead.
+- `start` and `end` are the two sides of the divider and `middle` sits on it, while `before`, `center` and `after` position the label along its length.
+- `before` and `after` follow text alignment: where the divider spans the horizontal axis, `before` is its left end in a left-to-right chart and its right end in a right-to-left one. Where the divider spans the vertical axis, `before` is always its top end.
+- `start` and `end` are direction-aware in the same way: where the divider spans the vertical axis, `start` is its left side in a left-to-right chart and its right side in a right-to-left one.
+- The single-word values `'before'`, `'middle'` and `'after'` are deprecated. Use `'start-center'`, `'middle-center'` and `'end-center'` instead.
 
 See [Series Labels](./series-labels/) for the full set of label, placement and collision options.
 

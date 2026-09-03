@@ -66,27 +66,27 @@ export type AgFunnelSeriesLabelPlacement =
 
 /**
  * Where a cone funnel label is placed relative to its divider. Cone funnel labels are always drawn
- * clear of the divider itself, so placement combines two axes: `before`/`middle`/`after` choose the
- * side of the divider (`middle` sits on it), while `start`/`center`/`end` position the label along
+ * clear of the divider itself, so placement combines two axes: `start`/`middle`/`end` choose the
+ * side of the divider (`middle` sits on it), while `before`/`center`/`after` position the label along
  * its length.
  *
- * `start` and `end` follow text-alignment semantics and are direction-aware: where the divider spans
- * the horizontal axis, `start` is its left end in a left-to-right chart and its right end in a
- * right-to-left one. Where the divider spans the vertical axis, `start` is always its top end.
+ * `before` and `after` follow text-alignment semantics and are direction-aware: where the divider spans
+ * the horizontal axis, `before` is its left end in a left-to-right chart and its right end in a
+ * right-to-left one. Where the divider spans the vertical axis, `before` is always its top end.
  *
- * `before` and `after` are direction-aware in the same way: where the divider spans the vertical axis,
- * `before` is its left side in a left-to-right chart and its right side in a right-to-left one.
+ * `start` and `end` are direction-aware in the same way: where the divider spans the vertical axis,
+ * `start` is its left side in a left-to-right chart and its right side in a right-to-left one.
  */
 export type AgConeFunnelSeriesLabelPlacement =
-    | 'before-start'
-    | 'before-center'
-    | 'before-end'
-    | 'middle-start'
+    | 'start-before'
+    | 'start-center'
+    | 'start-after'
+    | 'middle-before'
     | 'middle-center'
-    | 'middle-end'
-    | 'after-start'
-    | 'after-center'
-    | 'after-end';
+    | 'middle-after'
+    | 'end-before'
+    | 'end-center'
+    | 'end-after';
 
 /** @deprecated Use the `*-center` values of {@link AgConeFunnelSeriesLabelPlacement} instead. */
 export type AgConeFunnelSeriesLabelPlacementAlias = 'before' | 'middle' | 'after';
