@@ -1177,7 +1177,10 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         if (ctx.colorScaleValid && datum.colorValue != null) {
             stylerStyle.fill = series.colorScale.convert(datum.colorValue);
         } else if (
-            ctx.colorKey != null &&
+            // Truthy, not `!= null` — `processData` only declares the `colorValue` column for a
+            // truthy `colorKey`, so `colorKey: ''` must not be treated as a present colour key and
+            // paint every datum with `missingDataFill` (AG-18383).
+            ctx.colorKey &&
             datum.colorValue == null &&
             series.properties.colorScale.missingDataFill != null
         ) {
@@ -1221,7 +1224,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             return;
         }
 
-        // colorKey forces cacheable=false: applyPerDatumStyle mutates stylerStyle.fill per datum.
+        // A truthy colorKey forces cacheable=false: applyPerDatumStyle mutates stylerStyle.fill per datum.
         this.runMarkerStylePass<
             BubbleStylerPassCtx,
             BubbleScatterNodeDatum,
@@ -1232,7 +1235,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             isHighlight,
             { marker, params, isHighlight, colorScaleValid, colorKey },
             {
-                cacheable: colorKey == null,
+                cacheable: !colorKey,
                 compute: BubbleSeries.computePerDatumStylerStyle,
                 apply: BubbleSeries.applyPerDatumStyle,
             }
