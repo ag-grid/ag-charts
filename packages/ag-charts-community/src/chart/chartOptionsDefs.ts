@@ -29,7 +29,7 @@ import type {
     AgActiveItemState,
     AgActiveState,
     AgCartesianChartOptions,
-    AgChartValidationLevel,
+    AgChartValidationSeverity,
     AgInitialStateLegendOptions,
     AgPolarChartOptions,
     AgSeriesAreaBackgroundRegion,
@@ -53,7 +53,7 @@ export const initialStatePickedOptionsDef: OptionsDefs<AgActiveState> = {
 // having that element silently dropped: a bare union validator returns a boolean, which `arrayOf`
 // cannot turn into a per-element diagnostic.
 const validationLevels = arrayOf(
-    strictUnion<AgChartValidationLevel>()('error', 'warning', 'deprecation'),
+    strictUnion<AgChartValidationSeverity>()('error', 'warning', 'deprecation'),
     "an array of validation severities ('error', 'warning' or 'deprecation')"
 );
 
@@ -66,7 +66,7 @@ export const commonChartOptions = {
         showOverlayOn: validationLevels,
         consoleOn: validationLevels,
         throwOn: validationLevels,
-        onDiagnosticRaised: callback,
+        issueRaised: callback,
     },
     container: htmlElement,
     context: () => true,

@@ -28,15 +28,15 @@ export const SEVERITY_ORDER: ValidationSeverity[] = ['error', 'warning', 'deprec
 // compare and test. Deliberately independent of SEVERITY_ORDER, which means something else.
 const SEVERITY_BIT: Record<ValidationSeverity, number> = { error: 1, warning: 2, deprecation: 4 };
 
-function severityMask(levels: readonly ValidationSeverity[]): number {
+function severityMask(severities: readonly ValidationSeverity[]): number {
     let mask = 0;
-    for (const level of levels) {
-        mask |= SEVERITY_BIT[level];
+    for (const severity of severities) {
+        mask |= SEVERITY_BIT[severity];
     }
     return mask;
 }
 
-export type ValidationIssueListener = (event: { level: ValidationSeverity; message: string }) => void;
+export type ValidationIssueListener = (event: { severity: ValidationSeverity; message: string }) => void;
 
 function keyOf(issue: ValidationIssue): string {
     return `${issue.severity}:${issue.message}:${issue.code ?? ''}`;
@@ -99,9 +99,9 @@ export class ValidationIssueCollector {
             while (this.pendingDispatch.length > 0) {
                 const pending = this.pendingDispatch.shift()!;
                 try {
-                    listener({ level: pending.severity, message: pending.message });
+                    listener({ severity: pending.severity, message: pending.message });
                 } catch (error) {
-                    this.issueListenerLogger?.error('validations.onDiagnosticRaised threw an error', error);
+                    this.issueListenerLogger?.error('validations.issueRaised threw an error', error);
                 }
             }
         } finally {

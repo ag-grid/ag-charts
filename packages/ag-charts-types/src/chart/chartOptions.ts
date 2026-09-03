@@ -373,12 +373,12 @@ export interface AgBaseChartOptions<
  * The severity of a validation problem. Each severity is selected independently, so an option
  * taking these values reports exactly the severities it lists and nothing else.
  */
-export type AgChartValidationLevel = 'error' | 'warning' | 'deprecation';
+export type AgChartValidationSeverity = 'error' | 'warning' | 'deprecation';
 
 /** A single validation problem reported by the chart. */
 export interface AgChartValidationIssueEvent {
     /** The severity of the problem. */
-    level: 'error' | 'warning' | 'deprecation';
+    severity: 'error' | 'warning' | 'deprecation';
     /** A description of the problem, the same text reported to the console and the validation overlay. */
     message: string;
 }
@@ -393,14 +393,14 @@ export interface AgChartValidationsOptions {
      *
      * Default: `['error', 'warning', 'deprecation']`
      */
-    consoleOn?: AgChartValidationLevel[];
+    consoleOn?: AgChartValidationSeverity[];
     /**
      * The severities of validation problem to report in an overlay on the chart itself. Each
      * severity is handled independently of the others. An empty array shows no overlay at all.
      *
      * Default: `[]`
      */
-    showOverlayOn?: AgChartValidationLevel[];
+    showOverlayOn?: AgChartValidationSeverity[];
     /**
      * The severities of validation problem that cause the chart to throw instead of warning and
      * falling back to a default. Each severity is handled independently of the others, so
@@ -412,7 +412,7 @@ export interface AgChartValidationsOptions {
      *
      * Default: `[]`
      */
-    throwOn?: AgChartValidationLevel[];
+    throwOn?: AgChartValidationSeverity[];
     /**
      * Called for each validation problem the chart raises — an invalid option value or a runtime error
      * caught during a chart update. The reported problems are the same set the validation overlay
@@ -421,5 +421,5 @@ export interface AgChartValidationsOptions {
      *
      * Default: `undefined`
      */
-    onDiagnosticRaised?: (event: AgChartValidationIssueEvent) => void;
+    issueRaised?: (event: AgChartValidationIssueEvent) => void;
 }
