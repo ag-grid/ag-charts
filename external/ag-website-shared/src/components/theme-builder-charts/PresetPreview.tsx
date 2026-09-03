@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 import type { AgChartOptions } from 'ag-charts-community';
 import { memo, useLayoutEffect, useMemo } from 'react';
 
-import type { PreviewChartType } from './chartTypes';
+import { THUMBNAIL_OPTIONS } from './chartTypes';
 import { toChartTheme } from './chartsThemeOutput';
 import type { ChartsPreset } from './presets';
 import { useChart } from './useChart';
@@ -12,9 +12,9 @@ import { useChart } from './useChart';
  * user's charts will look like rather than abstracting the theme into a strip of
  * colour swatches.
  *
- * It follows the selected preview type, so the cards answer the question the
- * user is actually asking - "what would my donut look like in each theme?" -
- * rather than always showing bars.
+ * Always the same chart, whatever the two panes are showing: a row of cards can
+ * only separate one theme from another if the only thing differing between them
+ * is the theme. See `THUMBNAIL_OPTIONS`.
  *
  * Unlike grid's thumbnails - which render a large grid and crop it, because a
  * grid's header and first rows stay recognisable under a crop - this renders a
@@ -26,21 +26,20 @@ import { useChart } from './useChart';
  */
 interface Props {
     preset: ChartsPreset;
-    chartType: PreviewChartType;
 }
 
-export const PresetPreview = memo(({ preset, chartType }: Props) => {
+export const PresetPreview = memo(({ preset }: Props) => {
     const options = useMemo<AgChartOptions>(() => {
         const theme = toChartTheme({ baseTheme: preset.baseTheme, params: preset.params, palette: preset.palette });
         return {
-            ...chartType.thumbnailOptions,
+            ...THUMBNAIL_OPTIONS,
             // Padding is pinned because the presets choose their own, and a card
             // laid out differently from its neighbours stops reading as a
             // comparable swatch. The main preview keeps the preset's own value,
             // which is the one the user is actually choosing.
             theme: { ...theme, params: { ...theme.params, chartPadding: 6 } },
         };
-    }, [chartType, preset]);
+    }, [preset]);
     const containerRef = useChart(options);
 
     useLayoutEffect(() => {

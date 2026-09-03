@@ -6,17 +6,15 @@ import { useStore } from 'jotai';
 import { useState } from 'react';
 
 import { PresetPreview } from './PresetPreview';
-import type { PreviewChartType } from './chartTypes';
 import { setStoredPalette } from './paletteModel';
 import { setSelectedPresetId } from './presetModel';
 import { type ChartsPreset, PRESETS, toSharedPreset } from './presets';
 
 interface Props {
-    chartType: PreviewChartType;
     selectedId: string | undefined;
 }
 
-export const PresetSelector = ({ chartType, selectedId }: Props) => {
+export const PresetSelector = ({ selectedId }: Props) => {
     const store = useStore();
     const [showDialog, setShowDialog] = useState(false);
     const [pendingPreset, setPendingPreset] = useState<ChartsPreset | null>(null);
@@ -54,7 +52,7 @@ export const PresetSelector = ({ chartType, selectedId }: Props) => {
                         aria-label={preset.label}
                         aria-pressed={preset.id === selectedId}
                     >
-                        <PresetPreview preset={preset} chartType={chartType} />
+                        <PresetPreview preset={preset} />
                     </PresetButton>
                 ))}
             </PresetScroller>

@@ -8,7 +8,7 @@ import { EditorPanel } from './EditorPanel';
 import { GetThemeButton } from './GetTheme';
 import { PresetSelector } from './PresetSelector';
 import { PreviewPane } from './PreviewPane';
-import { PREVIEW_PANES, PRIMARY_PANE, usePreviewChartType } from './chartTypes';
+import { PREVIEW_PANES } from './chartTypes';
 import { type ChartsThemeSelection, toChartTheme } from './chartsThemeOutput';
 import { setStoredPalette, useStoredPalette } from './paletteModel';
 import { getSelectedPresetId, setSelectedPresetId, useSelectedPresetId } from './presetModel';
@@ -19,9 +19,6 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
     const renderedTheme = useRenderedTheme();
     const { overriddenParams } = useRenderedThemeInfo();
     const storedPalette = useStoredPalette();
-    // Only to keep the preset thumbnails showing a chart that is actually on
-    // screen; each pane owns the type it renders.
-    const [primaryChartType] = usePreviewChartType(PRIMARY_PANE);
 
     const preset = findPreset(useSelectedPresetId()) ?? initialPreset;
 
@@ -70,7 +67,7 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
                 </MenuBottom>
             </Menu>
             <Main>
-                <PresetSelector chartType={primaryChartType} selectedId={preset.id} />
+                <PresetSelector selectedId={preset.id} />
                 <PreviewRow>
                     {PREVIEW_PANES.map((pane) => (
                         <PreviewPane

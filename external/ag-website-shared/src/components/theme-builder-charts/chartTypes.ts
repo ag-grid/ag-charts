@@ -15,10 +15,8 @@ import {
     DEFAULT_SERIES_COUNT,
     PREVIEW_DATA,
     SERIES_COUNT_OPTIONS,
-    THUMBNAIL_CANDLES,
     THUMBNAIL_DATA,
     THUMBNAIL_SERIES_KEYS,
-    THUMBNAIL_SLICES,
     seriesFor,
     totalsFor,
 } from './previewData';
@@ -96,28 +94,37 @@ export type PreviewChartType = {
      * in - so for the type built through it this is the only way in.
      */
     themeOverrides?: (features: ChartFeatures) => PreviewThemeOverrides | undefined;
-    /**
-     * The preset thumbnails, which take the same form so the cards predict what
-     * the user is actually previewing - but built from their own data rather
-     * than a shrunk copy of the preview.
-     *
-     * Fixed at eight series, deliberately, and NOT following the count control.
-     * A thumbnail's job is to separate one theme from another, and the stock
-     * palettes only diverge a few slots in - at a user-chosen count of two,
-     * Default, Material and Vivid would be indistinguishable again. The cards
-     * are swatches of the theme, not previews of the user's data.
-     */
-    thumbnailOptions: AgChartOptions;
 };
 
-const THUMBNAIL_AXES = {
-    x: { type: 'category' as const, position: 'bottom' as const, label: { enabled: false } },
-    // `nice: false` because with no labels there are only a couple of ticks, and
-    // rounding the domain out to the next round tick leaves the plot half empty.
-    y: { type: 'number' as const, position: 'left' as const, label: { enabled: false }, nice: false },
+/**
+ * The chart every preset card draws, whichever types the two panes are showing.
+ *
+ * Bars, and only bars. A card's job is to separate one theme from another at a
+ * glance, and a row of cards can only do that if they are all the same chart -
+ * a reader comparing twelve themes should be reading twelve palettes, not
+ * re-reading one shape. Bars carry the most of a theme in the least space:
+ * every palette slot as a filled block, plus the axes, the grid lines and the
+ * background behind them.
+ *
+ * Built from its own data rather than a shrunk copy of the preview, and fixed
+ * at eight series whatever the count control says: the stock palettes only
+ * diverge a few slots in, so at a user-chosen count of two, Default, Material
+ * and Vivid would be indistinguishable again. The cards are swatches of the
+ * theme, not previews of the user's data.
+ */
+export const THUMBNAIL_OPTIONS: AgChartOptions = {
+    // Fewer columns than the data carries: eight grouped bars across six
+    // columns would be hair-thin at card size.
+    data: THUMBNAIL_DATA.slice(0, 3),
+    series: THUMBNAIL_SERIES_KEYS.map((key) => ({ type: 'bar', xKey: 'period', yKey: key })),
+    axes: {
+        x: { type: 'category', position: 'bottom', label: { enabled: false } },
+        // `nice: false` because with no labels there are only a couple of ticks,
+        // and rounding the domain out to the next tick leaves the plot half empty.
+        y: { type: 'number', position: 'left', label: { enabled: false }, nice: false },
+    },
+    legend: { enabled: false },
 };
-
-const THUMBNAIL_LEGEND = { enabled: false };
 
 const TITLE = { text: 'Quarterly Revenue by Country' };
 const SUBTITLE = { text: 'Figures in millions (USD)' };
@@ -244,14 +251,6 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
                 yName: name,
                 ...shapeStroke(features),
             })),
-        thumbnailOptions: {
-            // Fewer columns than the stacked variants: eight grouped bars across
-            // six columns would be hair-thin at card size.
-            data: THUMBNAIL_DATA.slice(0, 3),
-            series: THUMBNAIL_SERIES_KEYS.map((key) => ({ type: 'bar', xKey: 'period', yKey: key })),
-            axes: THUMBNAIL_AXES,
-            legend: THUMBNAIL_LEGEND,
-        },
     },
     {
         id: 'stackedBar',
@@ -268,12 +267,6 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
                 stacked: true,
                 ...shapeStroke(features),
             })),
-        thumbnailOptions: {
-            data: THUMBNAIL_DATA,
-            series: THUMBNAIL_SERIES_KEYS.map((key) => ({ type: 'bar', xKey: 'period', yKey: key, stacked: true })),
-            axes: THUMBNAIL_AXES,
-            legend: THUMBNAIL_LEGEND,
-        },
     },
     {
         id: 'line',
@@ -289,12 +282,6 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
                 yName: name,
                 ...markerStroke(features),
             })),
-        thumbnailOptions: {
-            data: THUMBNAIL_DATA,
-            series: THUMBNAIL_SERIES_KEYS.map((key) => ({ type: 'line', xKey: 'period', yKey: key })),
-            axes: THUMBNAIL_AXES,
-            legend: THUMBNAIL_LEGEND,
-        },
     },
     {
         id: 'area',
@@ -311,12 +298,6 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
                 stacked: true,
                 ...shapeStroke(features),
             })),
-        thumbnailOptions: {
-            data: THUMBNAIL_DATA,
-            series: THUMBNAIL_SERIES_KEYS.map((key) => ({ type: 'area', xKey: 'period', yKey: key, stacked: true })),
-            axes: THUMBNAIL_AXES,
-            legend: THUMBNAIL_LEGEND,
-        },
     },
     {
         id: 'donut',
@@ -340,13 +321,6 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
             ],
             ...commonOptions(features),
         }),
-        thumbnailOptions: {
-            data: THUMBNAIL_SLICES,
-            // No `calloutLabelKey`: that is what draws the callout labels, and
-            // there is no room for them on a card.
-            series: [{ type: 'donut', angleKey: 'value', innerRadiusRatio: 0.6 }],
-            legend: THUMBNAIL_LEGEND,
-        },
     },
     {
         id: 'candlestick',
@@ -375,29 +349,6 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
             zoom: isFeatureActive(features, 'zoom'),
         }),
         themeOverrides: (features) => (isFeatureActive(features, 'seriesStrokes') ? undefined : CANDLE_WITHOUT_STROKE),
-        // Built as a plain chart rather than through the preset: a thumbnail
-        // wants the candles and nothing else, and the preset's job is the
-        // chrome that has no room on a card.
-        thumbnailOptions: {
-            data: THUMBNAIL_CANDLES,
-            series: [
-                {
-                    type: 'candlestick',
-                    xKey: 'date',
-                    openKey: 'open',
-                    highKey: 'high',
-                    lowKey: 'low',
-                    closeKey: 'close',
-                },
-            ],
-            axes: {
-                // `ordinal-time` rather than `time`, so the weekends the data
-                // skips do not open gaps between the candles.
-                x: { type: 'ordinal-time', position: 'bottom', label: { enabled: false } },
-                y: THUMBNAIL_AXES.y,
-            },
-            legend: THUMBNAIL_LEGEND,
-        },
     },
 ];
 
@@ -420,9 +371,6 @@ export const PREVIEW_PANE_LABELS: Record<PreviewPaneId, string> = {
     left: 'Left',
     right: 'Right',
 };
-
-/** The pane the preset thumbnails follow, so the cards predict one of the two. */
-export const PRIMARY_PANE: PreviewPaneId = 'left';
 
 /**
  * A plain chart and a chart made mostly of UI, because those are the two halves
