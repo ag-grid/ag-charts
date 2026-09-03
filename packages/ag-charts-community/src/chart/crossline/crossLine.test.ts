@@ -6,6 +6,7 @@ import type {
     AgCartesianCrossLineLabelOptions,
     AgCartesianCrossLineOptions,
     AgCrossLineClickEvent,
+    AgCrossLineClickParams,
     AgCrossLineLabelPosition,
     AgCrossLineListeners,
 } from 'ag-charts-types';
@@ -1784,8 +1785,8 @@ describe('CrossLine', () => {
 
             expect(crossLineClick).toHaveBeenCalled();
             const [event] = crossLineClick.mock.lastCall as [AgCrossLineClickEvent];
-            return event.allClickParams
-                .filter((params) => params.clickedOn === 'cross-line')
+            return event.allHitParams
+                .filter((params): params is AgCrossLineClickParams => params.type === 'crossLineClick')
                 .map(({ crossLineId }) => crossLineId)
                 .sort((a, b) => a.localeCompare(b));
         };
