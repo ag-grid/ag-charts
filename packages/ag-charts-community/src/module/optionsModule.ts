@@ -9,7 +9,6 @@ import {
     type DeepPartial,
     type FontOptions,
     Logger,
-    type ModuleDefinition,
     ModuleRegistry,
     type ModuleScope,
     ModuleType,
@@ -49,6 +48,7 @@ import {
     validate,
 } from 'ag-charts-core';
 import {
+    type AgChartModule,
     type AgChartOptions,
     type AgChartThemeParams,
     type AgChartValidationLevel,
@@ -76,6 +76,7 @@ import {
     type ValidationIssueListener,
     severityAtOrAbove,
 } from '../chart/validation/validationIssueCollector';
+import { resolveInstanceModuleScope } from './instanceModuleScope';
 import {
     type OptionsGraphAccessor,
     SHALLOW_OPTION_KEYS,
@@ -186,7 +187,7 @@ export interface ChartInternalOptionMetadata {
     domMode?: 'normal' | 'minimal';
     withDragInterpretation?: boolean;
     /** Modules registered for this chart only, additive over the global registry. */
-    modules?: Array<ModuleDefinition | ModuleDefinition[]>;
+    modules?: AgChartModule[];
 }
 
 type GroupingOptions = {
@@ -349,7 +350,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.moduleRegistry =
             currentUserOptions instanceof ChartOptions
                 ? currentUserOptions.moduleRegistry
-                : ModuleRegistry.resolveModuleScope(this.optionMetadata.modules);
+                : resolveInstanceModuleScope(this.optionMetadata.modules);
         this.processedOverrides = processedOverrides ?? {};
         this.suppressFailFast = refreshCSSVariables;
 

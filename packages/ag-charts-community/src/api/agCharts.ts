@@ -3,7 +3,6 @@ import {
     type DeepPartial,
     type LicenseManager,
     MementoCaretaker,
-    type ModuleDefinition,
     ModuleRegistry,
     type ModuleScope,
     deepClone,
@@ -29,6 +28,7 @@ import { Chart } from '../chart/chart';
 import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
 import type { DataServiceRestoredData } from '../chart/data/dataService';
 import { detectChartType } from '../chart/mapping/types';
+import { resolveInstanceModuleScope } from '../module/instanceModuleScope';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import { Pool } from '../util/pool';
 import { VERSION } from '../version';
@@ -113,11 +113,6 @@ function validatedLicenseManager(options: AgChartOptions): LicenseManager | unde
     return pageLicenseManager;
 }
 
-// Public module types describe only the identifying fields; the runtime objects are full definitions.
-function instanceModules(params?: AgChartParams): Array<ModuleDefinition | ModuleDefinition[]> | undefined {
-    return params?.modules as Array<ModuleDefinition | ModuleDefinition[]> | undefined;
-}
-
 /**
  * Factory for creating and updating instances of AgChartInstance.
  *
@@ -158,7 +153,7 @@ export abstract class AgCharts {
         userOptions: O,
         params?: AgChartParams
     ): AgChartInstance<O> {
-        return this.createInternal(userOptions, { modules: instanceModules(params) });
+        return this.createInternal(userOptions, { modules: params?.modules });
     }
 
     private static createInternal<O extends AgChartOptions<DatumDefault, any>>(
@@ -192,7 +187,7 @@ export abstract class AgCharts {
         return debug.group('AgCharts.createFinancialChart()', () => {
             return this.createInternal(options as any, {
                 presetType: 'price-volume',
-                modules: instanceModules(params),
+                modules: params?.modules,
             }) as any;
         });
     }
@@ -202,7 +197,7 @@ export abstract class AgCharts {
         return debug.group('AgCharts.createGauge()', () => {
             return this.createInternal(options as AgChartOptions, {
                 presetType: 'gauge-preset',
-                modules: instanceModules(params),
+                modules: params?.modules,
             }) as any;
         });
     }
@@ -216,7 +211,7 @@ export abstract class AgCharts {
         return debug.group('AgCharts.createQuadrantChart()', () => {
             return this.createInternal(options, {
                 presetType: 'quadrant',
-                modules: instanceModules(params),
+                modules: params?.modules,
             }) as AgChartInstance<AgQuadrantChartOptions<TDatum, any>>;
         });
     }
@@ -233,7 +228,7 @@ export abstract class AgCharts {
                 pool: pool ?? true,
                 domMode: 'minimal',
                 withDragInterpretation: false,
-                modules: instanceModules(params),
+                modules: params?.modules,
             }) as any;
         });
     }
@@ -303,7 +298,7 @@ class AgChartsInternal {
         const styles = enterpriseRegistry.styles == null ? [] : [['ag-charts-enterprise', enterpriseRegistry.styles]];
 
         const moduleScope =
-            proxy?.chart?.chartOptions.moduleRegistry ?? ModuleRegistry.resolveModuleScope(optionsMetadata.modules);
+            proxy?.chart?.chartOptions.moduleRegistry ?? resolveInstanceModuleScope(optionsMetadata.modules);
         if (moduleScope.listModules().next().done) {
             throw new Error(
                 [

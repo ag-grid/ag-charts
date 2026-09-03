@@ -275,8 +275,8 @@ export interface AgTypedChartInstance<TDatum, TContext, O extends AgChartInstanc
      * Returns whether a module is available to this chart, either registered globally or passed to it
      * via `AgCharts.create(options, { modules })`.
      *
-     * @param moduleId the exported name of an individual module, such as `'LineSeriesModule'`; bundles such as
-     * `AllCommunityModule` are not module names.
+     * @param moduleId the exported name of a module, such as `'LineSeriesModule'`. Bundles such as `AllCommunityModule`
+     * are not modules; `'QuadrantChartModule'` is accepted because the quadrant preset is only exported as a bundle.
      */
     isModuleRegistered(moduleId: string): boolean;
 

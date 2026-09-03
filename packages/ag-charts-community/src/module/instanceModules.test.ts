@@ -336,6 +336,32 @@ describe('instance modules', () => {
             expect(ModuleRegistry.hasModule('line')).toBe(false);
         });
 
+        it('answers isModuleRegistered() for plugin modules by their exported name', async () => {
+            const axisInteraction: ModuleDefinition = {
+                type: ModuleType.Plugin,
+                name: 'axis-dom-proxy',
+                version: LineSeriesModule.version,
+                enterprise: false,
+                create: () => ({}),
+            };
+
+            chart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }), {
+                modules: [...LINE_MODULES, axisInteraction],
+            });
+            await waitForChartStability(chart);
+
+            expect(chart.isModuleRegistered('AxisInteractionModule')).toBe(true);
+            expect(chart.isModuleRegistered('ZoomModule')).toBe(false);
+        });
+
+        it('rejects instance modules that are not module definitions', () => {
+            expect(() =>
+                AgCharts.create(prepareTestOptions({ ...LINE_CHART }), {
+                    modules: [...LINE_MODULES, { name: 'not-a-module' } as any],
+                })
+            ).toThrow(/`modules` must contain modules exported by ag-charts-community or ag-charts-enterprise/);
+        });
+
         it('runs instance plugin modules through the chart context', async () => {
             const register = vi.fn();
             const plugin: ModuleDefinition = {

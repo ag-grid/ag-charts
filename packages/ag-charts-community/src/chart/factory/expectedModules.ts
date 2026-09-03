@@ -429,6 +429,13 @@ export const ExpectedModules = new Map<string, ModulePlaceholder>(
             },
             {
                 type: 'plugin',
+                name: 'axis-dom-proxy',
+                chartType: 'cartesian',
+                enterprise: true,
+                moduleId: 'AxisInteractionModule',
+            },
+            {
+                type: 'plugin',
                 name: 'flashOnUpdate',
                 enterprise: true,
                 moduleId: 'FlashOnUpdateModule',
