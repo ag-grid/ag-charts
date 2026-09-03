@@ -26,8 +26,7 @@ export function isUnsupportedBrowser() {
         if (versionExec == null) return false;
         const version = Number.parseInt(versionExec[1], 10);
 
-        // 127 as that is the minimum version for Playwright e2e tests.
-        const supported = version > 126;
+        const supported = version >= 115;
 
         if (!supported) {
             ambientLog.warnOnce(`Unsupported Chrome version: ${version}; ${userAgent}`);
