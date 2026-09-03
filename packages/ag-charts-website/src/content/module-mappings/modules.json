@@ -242,8 +242,8 @@
                 },
                 {
                     "moduleName": "QuadrantChartModule",
-                    "name": "Quadrant Charts",
-                    "path": "quadrant-charts",
+                    "name": "Quadrant Chart",
+                    "path": "quadrant-chart",
                     "isEnterprise": true
                 },
                 {

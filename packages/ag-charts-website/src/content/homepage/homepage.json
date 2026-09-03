@@ -4,7 +4,7 @@
         "subHeading": "The professional choice for developers building enterprise applications",
         "cta": {
             "title": "See the charts",
-            "url": "/gallery?utm_source=charts-homepage&utm_medium=hero-section&utm_campaign=homepage-cta"
+            "url": "/gallery/?utm_source=charts-homepage&utm_medium=hero-section&utm_campaign=homepage-cta"
         }
     },
     "sections": {
@@ -62,7 +62,7 @@
         "integrated": {
             "tag": "AG Grid Integrated JavaScript Charts",
             "heading": "AG Grid Integrated Charts, Powered by AG Charts",
-            "subHeadingHtml": "AG Charts powers the <a href=\"https://www.ag-grid.com/react-data-grid/integrated-charts/\">Integrated Charts</a> feature in <a href=\"https://www.ag-grid.com/\">AG Grid</a> - our market leading data grid library which is used by 90% of the Fortune 500. Purchase an <a href=\"https://www.ag-grid.com/license-pricing\">Enterprise Bundle License</a> to access all of the Enterprise features in both AG Grid and AG Charts."
+            "subHeadingHtml": "AG Charts powers the <a href=\"https://www.ag-grid.com/react-data-grid/integrated-charts/\">Integrated Charts</a> feature in <a href=\"https://www.ag-grid.com/\">AG Grid</a> - our market leading data grid library which is used by 90% of the Fortune 500. Purchase an <a href=\"https://www.ag-grid.com/license-pricing/\">Enterprise Bundle License</a> to access all of the Enterprise features in both AG Grid and AG Charts."
         },
         "releases": {
             "tag": "Latest JavaScript Charting Releases from AG Charts",

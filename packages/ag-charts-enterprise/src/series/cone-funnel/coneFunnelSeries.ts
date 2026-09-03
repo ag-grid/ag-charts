@@ -86,7 +86,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
     }
 
     protected override defaultLabelPlacement(): AgConeFunnelSeriesLabelPlacement {
-        return 'before-center';
+        return 'start-center';
     }
 
     protected override resolveLabelPlacements(barAlongX: boolean) {

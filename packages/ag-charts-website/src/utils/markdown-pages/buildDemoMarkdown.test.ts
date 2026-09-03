@@ -33,7 +33,7 @@ describe('buildDemoMarkdown', () => {
 
         it('lists every sibling demo with its description, on an absolute trailing-slash URL', () => {
             for (const example of DEMO_EXAMPLES) {
-                const url = urlWithBaseUrl(`${example.path.replace(/^\./, '')}/`);
+                const url = urlWithBaseUrl(example.path);
                 expect(output).toContain(`- [${example.title}](https://www.ag-grid.com${url})`);
                 expect(output).toContain(example.description);
             }

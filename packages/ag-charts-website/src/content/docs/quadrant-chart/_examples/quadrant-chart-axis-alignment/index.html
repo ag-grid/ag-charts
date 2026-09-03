@@ -1,0 +1,21 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <button onclick="toggleAlignAxesToPivot()">Toggle Align Axes to Pivot</button>
+        <label for="title-placement">Title:</label>
+        <select id="title-placement" onchange="updateTitlePlacement(event.target.value)">
+            <option value="edge" selected>edge</option>
+            <option value="crossing">crossing</option>
+        </select>
+        <label for="label-placement">Label:</label>
+        <select id="label-placement" onchange="updateLabelPlacement(event.target.value)">
+            <option value="edge" selected>edge</option>
+            <option value="crossing">crossing</option>
+        </select>
+        <label for="crosshair-label-placement">Crosshair Label:</label>
+        <select id="crosshair-label-placement" onchange="updateCrosshairLabelPlacement(event.target.value)">
+            <option value="edge" selected>edge</option>
+            <option value="crossing">crossing</option>
+        </select>
+    </div>
+</div>
+<div id="myChart"></div>

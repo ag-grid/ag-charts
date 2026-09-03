@@ -1,5 +1,6 @@
 import { buildCommunityToolsExtensionsMarkdown } from '@ag-website-shared/markdown-pages/community/buildCommunityToolsExtensionsMarkdown';
 import { DISABLE_MARKDOWN_DOCS, SITE_URL } from '@constants';
+import { chartsSiteFrontmatter } from '@utils/markdown-pages/chartsFrontmatter';
 
 // Served at /community/tools-extensions.md — a markdown twin of the /community/tools-extensions
 // page for LLMs, built from the same tools-extensions.json the page renders.
@@ -9,7 +10,12 @@ export function GET() {
     }
 
     return new Response(
-        buildCommunityToolsExtensionsMarkdown({ product: 'AG Charts', currentSite: 'charts', siteRoot: SITE_URL }),
+        buildCommunityToolsExtensionsMarkdown({
+            product: 'AG Charts',
+            currentSite: 'charts',
+            siteRoot: SITE_URL,
+            siteFrontmatter: chartsSiteFrontmatter({ pageUrl: '/community/tools-extensions/', siteRoot: SITE_URL }),
+        }),
         {
             status: 200,
             headers: {

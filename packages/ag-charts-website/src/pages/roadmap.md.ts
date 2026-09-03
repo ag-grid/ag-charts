@@ -1,5 +1,6 @@
 import { buildRoadmapMarkdown } from '@ag-website-shared/markdown-pages/buildRoadmapMarkdown';
 import { DISABLE_MARKDOWN_DOCS, SITE_URL } from '@constants';
+import { chartsSiteFrontmatter } from '@utils/markdown-pages/chartsFrontmatter';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 
 import roadmapData from '../../public/roadmap/roadmap.json';
@@ -14,6 +15,7 @@ export function GET() {
         roadmapData,
         productName: 'AG Charts',
         siteRoot: SITE_URL,
+        siteFrontmatter: chartsSiteFrontmatter({ pageUrl: '/roadmap/', siteRoot: SITE_URL }),
         // Item links are framework-relative, so pick a framework for the framework-agnostic twin.
         resolveUrl: (url) => urlWithPrefix({ framework: 'javascript', url }),
         // Stamped at build time so quarter labels are deterministic within a build.

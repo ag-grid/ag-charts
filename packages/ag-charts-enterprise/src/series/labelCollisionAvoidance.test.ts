@@ -1201,15 +1201,15 @@ describe('label collision avoidance', () => {
 
         describe('cone funnel', () => {
             const CONE_PLACEMENTS = [
-                'before-start',
-                'before-center',
-                'before-end',
-                'middle-start',
+                'start-before',
+                'start-center',
+                'start-after',
+                'middle-before',
                 'middle-center',
-                'middle-end',
-                'after-start',
-                'after-center',
-                'after-end',
+                'middle-after',
+                'end-before',
+                'end-center',
+                'end-after',
             ];
 
             const options = (label: object = {}, series: object = {}, chartOptions: object = {}): any => ({
@@ -1228,12 +1228,12 @@ describe('label collision avoidance', () => {
                 ...chartOptions,
             });
 
-            it('renders the theme default exactly as an explicit before-center placement', async () => {
+            it('renders the theme default exactly as an explicit start-center placement', async () => {
                 await expectPixelIdenticalAcrossUpdate(
                     ctx,
                     createEnterpriseChart,
                     options(),
-                    options({ placement: 'before-center' })
+                    options({ placement: 'start-center' })
                 );
             });
 
@@ -1251,42 +1251,42 @@ describe('label collision avoidance', () => {
                 expect(middle.every((label) => label.hidden !== true)).toBe(true);
             });
 
-            it('swaps start and end under RTL when the dividers span the horizontal axis', async () => {
-                const ltr = await anchors(options({ placement: 'before-start' }));
-                const rtl = await anchors(options({ placement: 'before-start' }, {}, { enableRtl: true }));
+            it('swaps before and after under RTL when the dividers span the horizontal axis', async () => {
+                const ltr = await anchors(options({ placement: 'start-before' }));
+                const rtl = await anchors(options({ placement: 'start-before' }, {}, { enableRtl: true }));
 
-                expect(ltr.map((label) => label.placement)).toEqual(stageData.map(() => 'before-start'));
-                expect(rtl.map((label) => label.placement)).toEqual(stageData.map(() => 'before-end'));
+                expect(ltr.map((label) => label.placement)).toEqual(stageData.map(() => 'start-before'));
+                expect(rtl.map((label) => label.placement)).toEqual(stageData.map(() => 'start-after'));
             });
 
-            it('mirrors before and after, but not start and end, under RTL when the dividers span the vertical axis', async () => {
+            it('mirrors start and end, but not before and after, under RTL when the dividers span the vertical axis', async () => {
                 const horizontal = (chartOptions: object = {}) =>
-                    options({ placement: 'before-start' }, { direction: 'horizontal' }, chartOptions);
+                    options({ placement: 'start-before' }, { direction: 'horizontal' }, chartOptions);
                 const ltr = await anchors(horizontal());
                 const rtl = await anchors(horizontal({ enableRtl: true }));
 
-                expect(rtl.map((label) => label.placement)).toEqual(stageData.map(() => 'after-start'));
+                expect(rtl.map((label) => label.placement)).toEqual(stageData.map(() => 'end-before'));
                 for (const [index, label] of ltr.entries()) {
                     expect(rtl[index].x).toBeGreaterThan(label.x);
                     expect(rtl[index].y).toBeCloseTo(label.y, 5);
                 }
             });
 
-            it('runs start to end down a vertical divider', async () => {
+            it('runs before to after down a vertical divider', async () => {
                 const along = (placement: string) => anchors(options({ placement }, { direction: 'horizontal' }));
-                const start = await along('before-start');
-                const end = await along('before-end');
+                const before = await along('start-before');
+                const after = await along('start-after');
 
-                for (const [index, label] of start.entries()) {
-                    expect(label.y).toBeLessThan(end[index].y);
-                    expect(label.x).toBeCloseTo(end[index].x, 5);
+                for (const [index, label] of before.entries()) {
+                    expect(label.y).toBeLessThan(after[index].y);
+                    expect(label.x).toBeCloseTo(after[index].x, 5);
                 }
             });
 
             it.each([
-                ['before', 'before-center'],
+                ['before', 'start-center'],
                 ['middle', 'middle-center'],
-                ['after', 'after-center'],
+                ['after', 'end-center'],
             ])('renders the deprecated %s alias exactly as %s', async (alias, canonical) => {
                 const aliased = await anchors(options({ placement: alias }));
                 expectWarningsCalls().toEqual([[expect.stringContaining('deprecated')]]);
@@ -1295,9 +1295,9 @@ describe('label collision avoidance', () => {
             });
 
             it('resolves a fallback list mixing canonical placements with a deprecated alias', async () => {
-                const mixed = await anchors(options({ placement: ['before-center', 'after'] }));
+                const mixed = await anchors(options({ placement: ['start-center', 'after'] }));
                 expectWarningsCalls().toEqual([[expect.stringContaining('deprecated')]]);
-                const canonical = await anchors(options({ placement: ['before-center', 'after-center'] }));
+                const canonical = await anchors(options({ placement: ['start-center', 'end-center'] }));
                 expect(mixed).toEqual(canonical);
             });
 

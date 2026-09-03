@@ -25,6 +25,28 @@ export function regionWidthAt(region: FitRegion, top: number, bottom: number, of
     return Math.max(0, 2 * Math.min(offsetX - left, right - offsetX));
 }
 
+/**
+ * The most text a region could hold at `lineHeight`, as a total advance width: the widest bands it has the
+ * vertical room to stack, summed. Wrapping cannot beat this — breaking on words and centring only cost
+ * width — so text measuring wider than this cannot fit whole however it is wrapped.
+ */
+export function regionTextCapacity(region: FitRegion, lineHeight: number): number {
+    const lines = Math.floor((region.extentAbove + region.extentBelow) / lineHeight);
+    if (lines < 1) {
+        return 0;
+    }
+    const widths: number[] = [];
+    // Half-line strides, since a band's width is taken across its whole height and a line of the block
+    // need not sit where a top-aligned one would.
+    for (let top = -region.extentAbove; top + lineHeight <= region.extentBelow; top += lineHeight / 2) {
+        widths.push(regionWidthAt(region, top, top + lineHeight));
+    }
+    return widths
+        .toSorted((a, b) => b - a)
+        .slice(0, lines)
+        .reduce((total, width) => total + width, 0);
+}
+
 /** The room a pyramid stage offers a label anchored at `anchor` along the trapezoid's span axis. */
 export function trapezoidFitRegion(trapezoid: TrapezoidBounds, anchorSpan: number): FitRegion {
     return {

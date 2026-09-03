@@ -29,7 +29,7 @@ import type {
     AgActiveItemState,
     AgActiveState,
     AgCartesianChartOptions,
-    AgChartValidationLevel,
+    AgChartValidationSeverity,
     AgInitialStateLegendOptions,
     AgPolarChartOptions,
     AgSeriesAreaBackgroundRegion,
@@ -48,8 +48,14 @@ export const initialStatePickedOptionsDef: OptionsDefs<AgActiveState> = {
     frozen: boolean,
 };
 
-// Exhaustive against the public option type, so neither side can gain a level without the other.
-const validationLevel = strictUnion<AgChartValidationLevel>()('error', 'warning', 'deprecation', 'none');
+// Exhaustive against the public option type, so neither side can gain a severity without the other.
+// Strict, so an array carrying an unrecognised severity is rejected whole and diagnosed, rather than
+// having that element silently dropped: a bare union validator returns a boolean, which `arrayOf`
+// cannot turn into a per-element diagnostic.
+const validationSeverities = arrayOf(
+    strictUnion<AgChartValidationSeverity>()('error', 'warning', 'deprecation'),
+    "an array of validation severities ('error', 'warning' or 'deprecation')"
+);
 
 // These options are being validated by other modules
 export const commonChartOptions = {
@@ -57,10 +63,10 @@ export const commonChartOptions = {
     withinStudio: undocumented(boolean),
     loading: boolean,
     validations: {
-        overlayLevel: validationLevel,
-        consoleLogLevel: validationLevel,
-        throwOn: validationLevel,
-        onDiagnosticRaised: callback,
+        showOverlayOn: validationSeverities,
+        consoleOn: validationSeverities,
+        throwOn: validationSeverities,
+        issueRaised: callback,
     },
     container: htmlElement,
     context: () => true,
