@@ -193,12 +193,16 @@ export interface AgQuadrantTooltipRendererParams<TDatum, TContext> extends AgSca
 > {
     /** The region the marker falls in, determined by comparing its x- and y-values against the pivot. */
     region: AgQuadrantRegion;
+    /** The human-readable description of the size values, as supplied via `sizeName`, present when `sizeKey` is set. */
+    sizeName?: string;
 }
 
 export interface AgQuadrantLabelOptions<TDatum, TContext> extends Omit<
     AgScatterSeriesLabel<TDatum, TContext>,
     'formatter' | 'itemStyler'
 > {
+    /** Whether to show the labels. Defaults to `true` when `labelKey` is set. */
+    enabled?: boolean;
     /** A custom formatting function used to convert data values into text for display by labels. */
     formatter?: RichFormatter<AgChartLabelFormatterParams<TDatum, TContext> & AgQuadrantLabelFormatterParams<TDatum>>;
     /** Function used to style individual datum labels. */

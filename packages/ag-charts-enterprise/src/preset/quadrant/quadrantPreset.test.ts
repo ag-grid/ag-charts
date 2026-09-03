@@ -10,7 +10,9 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Logger } from 'ag-charts-core';
 import type {
+    AgBubbleSeriesOptions,
     AgChartOptions,
     AgQuadrantChartOptions,
     AgQuadrantRegionLabelOptions,
@@ -20,6 +22,7 @@ import type {
 } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createQuadrant } from './quadrantPreset';
 
 const NUMERIC: AgQuadrantChartOptions = {
     data: [
@@ -326,6 +329,45 @@ describe('Quadrant Preset', () => {
         }
     );
 
+    it('forwards sizeName to the tooltip renderer params', () => {
+        const rendererParams: unknown[] = [];
+
+        const cartesianOptions = createQuadrant(
+            {
+                ...BUBBLE_SIZED_NUMERIC,
+                sizeName: 'Population',
+                tooltip: {
+                    renderer: (params) => {
+                        rendererParams.push(params);
+                        return {};
+                    },
+                },
+            },
+            undefined,
+            undefined,
+            undefined,
+            new Logger(),
+            () => undefined
+        );
+
+        const bubbleSeries = cartesianOptions.series?.find(
+            (series): series is AgBubbleSeriesOptions => series.type === 'bubble'
+        );
+        expect(bubbleSeries).toBeDefined();
+        expect(bubbleSeries?.sizeName).toBe('Population');
+
+        bubbleSeries?.tooltip?.renderer?.({
+            datum: { x: -100, y: -100, size: 1 },
+            xKey: 'x',
+            yKey: 'y',
+            sizeKey: 'size',
+            sizeName: 'Population',
+        } as Parameters<NonNullable<NonNullable<AgBubbleSeriesOptions['tooltip']>['renderer']>>[0]);
+
+        expect(rendererParams).toHaveLength(1);
+        expect(rendererParams[0]).toMatchObject({ sizeName: 'Population', region: 'bottom-left' });
+    });
+
     describe('region label spacing', () => {
         const SPACING_EXAMPLES: Record<string, AgQuadrantChartOptions> = {
             AWAY_FROM_PIVOT: regionLabelOptions('inside-inner-inner', undefined, { spacing: 40 }),
@@ -461,5 +503,36 @@ describe('Quadrant Preset theme isolation', () => {
     it('does not lose the preset template to a plain chart created beforehand', () => {
         expectPlainStyling(resolveAxes(plainOptions()));
         expectQuadrantStyling(resolveAxes(quadrantOptions(), 'quadrant'));
+    });
+});
+
+describe('Quadrant Preset label enabled default', () => {
+    const resolveLabelEnabled = (options: Partial<AgQuadrantChartOptions>) => {
+        const { processedOptions } = new _ModuleSupport.ChartOptions(
+            { data: NUMERIC.data, xKey: 'x', yKey: 'y', ...options },
+            {},
+            {},
+            {},
+            { presetType: 'quadrant' }
+        ) as unknown as { processedOptions: { series: Record<string, any>[] } };
+        return processedOptions.series[0].label.enabled;
+    };
+
+    const cases: [string, Partial<AgQuadrantChartOptions>, boolean][] = [
+        ['AC1: labelKey given', { labelKey: 'label' }, true],
+        ['AC1: labelKey given alongside label styling', { labelKey: 'label', label: { color: 'purple' } }, true],
+        ['AC1: empty label object opts in', { label: {} }, true],
+        ['AC1: label styling without enabled opts in', { label: { fontSize: 12 } }, true],
+        ['AC1: label object opts in on the bubble branch', { sizeKey: 'size', label: {} }, true],
+        ['AC1: label object opts in even with an empty labelKey', { labelKey: '', label: { fontSize: 12 } }, true],
+        ['AC2: no labelKey', {}, false],
+        ['AC2: no labelKey on the bubble branch', { sizeKey: 'size' }, false],
+        ['AC2: empty labelKey', { labelKey: '' }, false],
+        ['AC3: no labelKey but label.enabled', { label: { enabled: true } }, true],
+        ['AC3: labelKey but label.enabled false', { labelKey: 'label', label: { enabled: false } }, false],
+    ];
+
+    it.each(cases)('%s', (_name, options, expected) => {
+        expect(resolveLabelEnabled(options)).toBe(expected);
     });
 });

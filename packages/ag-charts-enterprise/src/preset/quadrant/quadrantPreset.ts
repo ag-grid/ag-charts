@@ -234,7 +234,7 @@ export function createQuadrant(
 
     const scatterSeriesKeys = [...pointSeriesKeys, 'size'] as const;
 
-    const bubbleSeriesKeys = [...pointSeriesKeys, 'maxSize', 'minSize', 'sizeKey'] as const;
+    const bubbleSeriesKeys = [...pointSeriesKeys, 'maxSize', 'minSize', 'sizeKey', 'sizeName'] as const;
 
     const pivotX = pivot?.x ?? 0;
     const pivotY = pivot?.y ?? 0;
@@ -348,6 +348,10 @@ export function createQuadrant(
           }
         : undefined;
 
+    // A `label` object of any shape is an opt-in, so `label: {}` or `label: { fontSize: 12 }` reads the
+    // same as `label: { enabled: true }`; an explicit `enabled` always wins.
+    const labelEnabled = options.label?.enabled ?? (options.label != null || Boolean(options.labelKey));
+
     const series: (AgScatterSeriesOptions | AgBubbleSeriesOptions)[] = [];
 
     if (options.sizeKey == null) {
@@ -362,6 +366,7 @@ export function createQuadrant(
             },
             label: {
                 ...options.label,
+                enabled: labelEnabled,
                 formatter: composedLabelFormatter,
                 itemStyler: composedLabelItemStyler,
             },
@@ -380,6 +385,7 @@ export function createQuadrant(
             },
             label: {
                 ...options.label,
+                enabled: labelEnabled,
                 formatter: composedLabelFormatter,
                 itemStyler: composedLabelItemStyler,
             },
