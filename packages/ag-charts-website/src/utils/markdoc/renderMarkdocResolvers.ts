@@ -1,7 +1,7 @@
 import type { MarkdownFramework, MarkdownResolvers } from '@ag-website-shared/markdoc/renderMarkdocToMarkdown';
 import { toAbsoluteUrl } from '@ag-website-shared/markdoc/toAbsoluteUrl';
 import { getExamplesPath, getPageImages } from '@components/docs/utils/filesData';
-import { getExampleUrl } from '@components/docs/utils/urlPaths';
+import { getExampleLinkUrl } from '@components/docs/utils/urlPaths';
 import { getGeneratedContents } from '@components/example-generator';
 import { stripOutExampleGeneratorCode } from '@components/example-runner/components/stripOutExampleGeneratorCode';
 import { transform as transformSnippet } from '@components/snippet/snippetTransformer';
@@ -73,7 +73,7 @@ export function createChartsMarkdownResolvers({ siteRoot }: { siteRoot?: string 
                 stripOutExampleGeneratorCode(files);
                 const cleanCode = files[fileName].trim();
                 const liveUrl = toAbsoluteUrl(
-                    getExampleUrl({ internalFramework, pageName, exampleName: name }),
+                    getExampleLinkUrl({ internalFramework, pageName, exampleName: name }),
                     siteRoot
                 );
                 return {

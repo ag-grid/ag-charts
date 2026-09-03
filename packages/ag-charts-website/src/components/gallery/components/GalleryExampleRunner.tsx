@@ -8,9 +8,9 @@ import { GALLERY_EXAMPLE_TYPE, GALLERY_INTERNAL_FRAMEWORK } from '../constants';
 import {
     getExampleCodeSandboxUrl,
     getExampleContentsUrl,
+    getExampleLinkUrl,
     getExamplePlunkrUrl,
     getExampleRunnerExampleUrl,
-    getExampleUrl,
 } from '../utils/urlPaths';
 
 interface Props {
@@ -69,7 +69,7 @@ const GalleryExampleRunnerInner = ({
             ).then((res) => res.json());
 
             const getExampleFileHtml = fetch(
-                getExampleUrl({
+                getExampleLinkUrl({
                     exampleName,
                 })
             ).then((res) => res.text());
@@ -88,7 +88,7 @@ const GalleryExampleRunnerInner = ({
         }
 
         setExampleUrl(
-            getExampleUrl({
+            getExampleLinkUrl({
                 exampleName,
             })
         );

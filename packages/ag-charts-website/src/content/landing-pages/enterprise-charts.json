@@ -104,36 +104,42 @@
                     "title": "Heatmaps",
                     "description": "Visualise data density and patterns",
                     "pageName": "heatmap-series",
-                    "exampleName": "heatmap-no-labels"
+                    "exampleName": "heatmap-no-labels",
+                    "link": "./react/heatmap-series/"
                 },
                 {
                     "title": "Box Plots",
                     "description": "Show statistical distributions",
                     "pageName": "box-plot-series",
-                    "exampleName": "box-plot-no-labels"
+                    "exampleName": "box-plot-no-labels",
+                    "link": "./react/box-plot-series/"
                 },
                 {
                     "title": "Treemaps",
                     "description": "Display hierarchical data as nested rectangles",
                     "pageName": "treemap-series",
-                    "exampleName": "treemap-no-labels"
+                    "exampleName": "treemap-no-labels",
+                    "link": "./react/treemap-series/"
                 },
                 {
                     "title": "Nightingale",
                     "description": "Radial charts for cyclical or categorical comparisons",
                     "pageName": "nightingale-series",
-                    "exampleName": "nightingale-no-labels"
+                    "exampleName": "nightingale-no-labels",
+                    "link": "./react/nightingale-series/"
                 },
                 {
                     "title": "Radial Gauge",
                     "description": "Display single values on circular scales",
                     "pageName": "radial-gauge",
-                    "exampleName": "radial-gauge-no-labels"
+                    "exampleName": "radial-gauge-no-labels",
+                    "link": "./react/radial-gauge/"
                 },
                 {
                     "title": "And More...",
                     "description": "30+ chart types available",
-                    "icon": "chartsCombination"
+                    "icon": "chartsCombination",
+                    "link": "./gallery/"
                 }
             ],
             "cta": {

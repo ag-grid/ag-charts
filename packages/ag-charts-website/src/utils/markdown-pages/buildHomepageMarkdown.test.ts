@@ -14,7 +14,7 @@ describe('buildHomepageMarkdown', () => {
     it('renders the hero subheading and its CTA link', () => {
         expect(output).toContain('The professional choice for developers building enterprise applications');
         expect(output).toContain(
-            '[See the charts](https://www.ag-grid.com/gallery?utm_source=charts-homepage&utm_medium=hero-section&utm_campaign=homepage-cta)'
+            '[See the charts](https://www.ag-grid.com/gallery/?utm_source=charts-homepage&utm_medium=hero-section&utm_campaign=homepage-cta)'
         );
     });
 

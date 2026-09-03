@@ -64,8 +64,8 @@ export function HeroGallery({ examples, height, autoAdvanceDelay = 7000, framewo
                 framework,
             });
         }
-        // Gallery example: /gallery/examples/{exampleName}/example-runner
-        return urlWithBaseUrl(`/gallery/examples/${example.exampleName}/example-runner`);
+        // Gallery example: /gallery/examples/{exampleName}/example-runner/
+        return urlWithBaseUrl(`/gallery/examples/${example.exampleName}/example-runner/`);
     };
 
     return (

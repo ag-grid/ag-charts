@@ -37,6 +37,9 @@ const LOCATOR_FACTORIES = new Set([
     'or',
 ]);
 
+const CONTEXT_DESTROYED_BY_NAVIGATION = /Execution context was destroyed/;
+const NAVIGATION_SETTLE_ATTEMPTS = 3;
+
 async function waitForCharts(page: Page) {
     // Wait for a rAF-then-setTimeout chain so that:
     // 1. rAF-scheduled chart updates (zoom animations, scene renders) begin
@@ -44,7 +47,25 @@ async function waitForCharts(page: Page) {
     // Only after both have had a chance to fire do we inspect the stability
     // attributes, ensuring we don't read a stale "false" before an animation
     // has even been scheduled.
-    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0))));
+    const settle = () =>
+        page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0))));
+    // The action just performed can legitimately start a full-page navigation: this site has no
+    // client router, so Astro's `navigate()` assigns `location.href`, and the evaluate then races the
+    // new document. That is the navigation, not an unstable chart: wait for the document to load and
+    // settle again. `load` can resolve for the outgoing document if the navigation has not committed
+    // yet, so allow a couple of rounds before giving up.
+    for (let attempt = 1; ; attempt++) {
+        try {
+            await settle();
+            break;
+        } catch (error) {
+            const destroyedByNavigation = error instanceof Error && CONTEXT_DESTROYED_BY_NAVIGATION.test(error.message);
+            if (!destroyedByNavigation || attempt >= NAVIGATION_SETTLE_ATTEMPTS) {
+                throw error;
+            }
+            await page.waitForLoadState('load').catch(() => undefined);
+        }
+    }
     for (const locator of await page.locator('.ag-charts-wrapper').all()) {
         await waitForChartUpdate(locator);
     }
@@ -104,7 +125,14 @@ const PAGE_LOCATOR_METHODS = [
 ] as const;
 
 export const test = base.extend({
-    page: ({ page }, use) => {
+    page: async ({ page }, use) => {
+        // LOCAL REPRO ONLY: slow the renderer so action/navigation races surface as they do on CI.
+        const cpuThrottle = Number(process.env.E2E_CPU_THROTTLE ?? 0);
+        if (cpuThrottle > 1) {
+            const cdp = await page.context().newCDPSession(page);
+            await cdp.send('Emulation.setCPUThrottlingRate', { rate: cpuThrottle });
+        }
+
         Object.assign(page, {
             mouse: stabilityProxy(page, page.mouse),
             keyboard: stabilityProxy(page, page.keyboard),

@@ -2,7 +2,7 @@ import { toAbsoluteUrl } from '@ag-website-shared/markdoc/toAbsoluteUrl';
 import { getGeneratedContents } from '@components/example-generator';
 import { stripOutExampleGeneratorCode } from '@components/example-runner/components/stripOutExampleGeneratorCode';
 import { resolveGallerySeo } from '@components/gallery/utils/gallerySeo';
-import { getExampleFileUrl, getExampleUrl, getPageUrl } from '@components/gallery/utils/urlPaths';
+import { getExampleFileUrl, getExampleLinkUrl, getPageUrl } from '@components/gallery/utils/urlPaths';
 import { toTitle } from '@utils/toTitle';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 import GithubSlugger from 'github-slugger';
@@ -71,8 +71,7 @@ export async function buildGalleryExampleMarkdown({
     document.push(
         `[View ${toTitle(page.seriesTitle)} Charts Documentation](${toAbsoluteUrl(seriesDocsUrl(page), siteRoot)})`
     );
-    // `getExampleUrl` omits the trailing slash the site serves the page on.
-    document.push(`[Run this example](${toAbsoluteUrl(`${getExampleUrl({ exampleName })}/`, siteRoot)})`);
+    document.push(`[Run this example](${toAbsoluteUrl(getExampleLinkUrl({ exampleName }), siteRoot)})`);
 
     const entryFileName = contents?.entryFileName;
     if (entryFileName && contents?.files?.[entryFileName]) {
