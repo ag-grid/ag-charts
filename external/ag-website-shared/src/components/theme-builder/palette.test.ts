@@ -15,6 +15,7 @@ import {
     withDerivedAccentStroke,
     withDerivedStroke,
     withFill,
+    withPaletteDefaults,
     withStroke,
     withStrokesEnabled,
 } from './palette';
@@ -218,3 +219,34 @@ const channels = (hex: string): [number, number, number] => [
     parseInt(hex.slice(3, 5), 16),
     parseInt(hex.slice(5, 7), 16),
 ];
+
+describe('completing a stored palette', () => {
+    const defaults: Palette = {
+        fills: ['#aaa'],
+        strokes: ['#bbb'],
+        up: { fill: '#0f0', stroke: '#0a0' },
+        down: { fill: '#f00', stroke: '#a00' },
+        neutral: { fill: '#888', stroke: '#555' },
+    };
+
+    it('supplies the financial colours a record was written without', () => {
+        // A palette with none of the three is an indexed palette to AG Charts,
+        // which then draws rising candles hollow - so the outline is the whole
+        // candle, and switching it off empties the chart.
+        const stored: Palette = { fills: ['#111', '#222'], strokes: ['#333', '#444'] };
+        expect(withPaletteDefaults(stored, defaults)).toEqual({
+            fills: ['#111', '#222'],
+            strokes: ['#333', '#444'],
+            up: { fill: '#0f0', stroke: '#0a0' },
+            down: { fill: '#f00', stroke: '#a00' },
+            neutral: { fill: '#888', stroke: '#555' },
+        });
+    });
+
+    it('leaves a colour the user has cleared cleared', () => {
+        // Cleared is an answer, and an accent that has been edited is present
+        // whether or not there is a colour in it.
+        const stored: Palette = { fills: ['#111'], strokes: ['#333'], up: { fill: undefined, stroke: undefined } };
+        expect(withPaletteDefaults(stored, defaults).up).toEqual({ fill: undefined, stroke: undefined });
+    });
+});

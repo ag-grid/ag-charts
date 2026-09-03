@@ -1,7 +1,8 @@
-import type { Palette } from '@ag-website-shared/components/theme-builder/palette';
+import { type Palette, withPaletteDefaults } from '@ag-website-shared/components/theme-builder/palette';
 import { atomWithJSONStorage } from '@ag-website-shared/theming/JSONStorage';
 import type { Store } from '@ag-website-shared/theming/store';
 import { useAtom, useAtomValue } from 'jotai';
+import { useMemo } from 'react';
 
 import { DEFAULT_THEME_NAME, getPalette } from './chartsTheme';
 
@@ -23,11 +24,19 @@ const DEFAULT_PALETTE = getPalette(DEFAULT_THEME_NAME);
 /** Unset means "inherit the base theme's palette". */
 const paletteAtom = atomWithJSONStorage<Palette | undefined>('charts-palette', undefined);
 
+const completed = (palette: Palette) => withPaletteDefaults(palette, DEFAULT_PALETTE);
+
 export const usePalette = () => {
     const [stored, setStored] = useAtom(paletteAtom);
-    return [stored ?? DEFAULT_PALETTE, setStored] as const;
+    const palette = useMemo(() => (stored == null ? DEFAULT_PALETTE : completed(stored)), [stored]);
+    return [palette, setStored] as const;
 };
 
-export const useStoredPalette = () => useAtomValue(paletteAtom);
+// Memoised because the preview theme is rebuilt whenever this changes by
+// identity, and a fresh object every render would restart the chart's animation.
+export const useStoredPalette = () => {
+    const stored = useAtomValue(paletteAtom);
+    return useMemo(() => (stored == null ? undefined : completed(stored)), [stored]);
+};
 
 export const setStoredPalette = (store: Store, palette: Palette | undefined) => store.set(paletteAtom, palette);

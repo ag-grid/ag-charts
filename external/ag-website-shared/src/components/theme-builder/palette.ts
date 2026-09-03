@@ -269,5 +269,20 @@ const toThemeAccent = ({ fill, stroke }: PaletteAccent, strokesEnabled: boolean)
     stroke: strokesEnabled ? stroke : fill,
 });
 
+/**
+ * A stored palette, with anything it has no opinion on taken from another.
+ *
+ * The financial colours are why this exists. A palette carrying none of `up`,
+ * `down` or `neutral` is an *indexed* palette to AG Charts, which draws rising
+ * candles hollow - transparent fill, the outline doing the whole job - so a
+ * record written before those rows existed leaves three blank swatches in the
+ * editor and a candlestick that empties out the moment its stroke is switched
+ * off.
+ *
+ * Absent, not empty: a colour the user has cleared is stored as an accent with
+ * no fill in it, which is an opinion, and stays cleared.
+ */
+export const withPaletteDefaults = (palette: Palette, defaults: Palette): Palette => ({ ...defaults, ...palette });
+
 export const paletteIsEmpty = (palette: Palette): boolean =>
     palette.fills.length === 0 && palette.strokes.length === 0 && !palette.up && !palette.down && !palette.neutral;
