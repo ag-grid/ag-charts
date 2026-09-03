@@ -65,7 +65,7 @@ export default {
         let registeredModulesArrayNode = null;
         // Per-chart modules from AgCharts.create(options, { modules }), keyed by the options variable
         // name or, for inline options, the call node. Only that chart's options can rely on them.
-        const instanceModules = new Map(); // owner -> { modules: Set, arrayNode }
+        const instanceModules = new Map(); // owner -> { modules: Set, arrayNode, sources: Map<moduleId, arrayNode> }
         let requiredModules = new Map(); // moduleId -> { reason, node, owners: Map<owner, node> }
         let isEnterprise = false;
         let explicitAxes = new Set(); // tracks 'x', 'y', 'angle', 'radius'
@@ -118,26 +118,50 @@ export default {
             const ancestors = context.sourceCode.getAncestors(node);
             const createCall = ancestors.find((a) => isCreateCall(a));
             if (createCall) return createCall;
-            const declarator = ancestors.find(
-                (a) =>
-                    a.type === 'VariableDeclarator' && a.id.type === 'Identifier' && a.parent.parent.type === 'Program'
-            );
+            const declarator = ancestors.find((a) => isTopLevelDeclarator(a));
             return declarator ? declarator.id.name : null;
         }
 
+        function isTopLevelDeclarator(node) {
+            if (node.type !== 'VariableDeclarator' || node.id.type !== 'Identifier') return false;
+            const scope = node.parent.parent;
+            return scope.type === 'Program' || scope.type === 'ExportNamedDeclaration';
+        }
+
         /**
-         * Whether the required module is available to every chart that needs it
+         * The owners an `AgCharts.create*(options, { modules })` call registers its modules for: the options
+         * variable, or the call itself for inline options plus any top-level variables spread into them.
          */
-        function isRequirementSatisfied(moduleId, owners, expandedRegistered, expandedAll) {
-            if (isModuleSatisfied(moduleId, expandedRegistered)) return null;
+        function ownersOfCreateCall(node) {
+            const optionsArg = node.arguments[0];
+            if (optionsArg?.type === 'Identifier') return [optionsArg.name];
+            const owners = [node];
+            if (optionsArg?.type === 'ObjectExpression') {
+                for (const property of optionsArg.properties) {
+                    if (property.type === 'SpreadElement' && property.argument.type === 'Identifier') {
+                        owners.push(property.argument.name);
+                    }
+                }
+            }
+            return owners;
+        }
+
+        /**
+         * Where the required module is missing, one entry per registration array a fix would add it to:
+         * the global one for charts on the registry, or a chart's own `modules` array.
+         */
+        function unsatisfiedRequirements(moduleId, owners, expandedRegistered, expandedAll) {
+            if (isModuleSatisfied(moduleId, expandedRegistered)) return [];
+            const missing = new Map(); // arrayNode -> node
             for (const [owner, node] of owners) {
                 const instance = instanceModules.get(owner);
                 const available = owner === null ? expandedAll : instance ? expandBundles(instance.modules) : null;
                 if (!available || !isModuleSatisfied(moduleId, available)) {
-                    return { node, arrayNode: instance?.arrayNode ?? registeredModulesArrayNode };
+                    const arrayNode = instance?.arrayNode ?? registeredModulesArrayNode;
+                    if (!missing.has(arrayNode)) missing.set(arrayNode, node);
                 }
             }
-            return null;
+            return [...missing].map(([arrayNode, node]) => ({ node, arrayNode }));
         }
 
         /**
@@ -238,13 +262,14 @@ export default {
          * Record the per-chart modules of an AgCharts.create*(options, { modules }) call
          */
         function extractInstanceModules(node, arrayNode) {
-            const optionsArg = node.arguments[0];
-            const owner = optionsArg?.type === 'Identifier' ? optionsArg.name : node;
-            const entry = instanceModules.get(owner) ?? { modules: new Set(), arrayNode };
-            for (const moduleId of moduleIdsOf(arrayNode)) {
-                entry.modules.add(moduleId);
+            for (const owner of ownersOfCreateCall(node)) {
+                const entry = instanceModules.get(owner) ?? { modules: new Set(), arrayNode, sources: new Map() };
+                for (const moduleId of moduleIdsOf(arrayNode)) {
+                    entry.modules.add(moduleId);
+                    if (!entry.sources.has(moduleId)) entry.sources.set(moduleId, arrayNode);
+                }
+                instanceModules.set(owner, entry);
             }
-            instanceModules.set(owner, entry);
         }
 
         /**
@@ -880,8 +905,12 @@ export default {
 
                 // Check for missing modules
                 for (const [moduleId, info] of requiredModules) {
-                    const missing = isRequirementSatisfied(moduleId, info.owners, expandedRegistered, expandedAll);
-                    if (missing) {
+                    for (const missing of unsatisfiedRequirements(
+                        moduleId,
+                        info.owners,
+                        expandedRegistered,
+                        expandedAll
+                    )) {
                         context.report({
                             node: missing.node || info.node || registeredModulesNode,
                             messageId: 'missingModule',
@@ -891,24 +920,35 @@ export default {
                     }
                 }
 
-                // Per-chart modules only serve that chart's options, or requirements not tied to any chart
+                // Per-chart modules only serve the charts of the call that passed them, or requirements not tied
+                // to any chart. A call with spread options has several owners, so gather them per array element.
                 if (warnOverRegistration) {
-                    for (const [owner, { modules, arrayNode }] of instanceModules) {
+                    const elementOwners = new Map(); // array element -> Set<owner>
+                    for (const [owner, { modules, sources }] of instanceModules) {
                         for (const moduleId of modules) {
-                            if (bundleContents.has(moduleId) || intrinsicDefaultSet.has(moduleId)) continue;
-                            const usedByOwner = [...requiredModules.entries()].some(
-                                ([reqMod, info]) =>
-                                    (info.owners.has(owner) || info.owners.has(null)) &&
-                                    (reqMod === moduleId || bundleContents.get(reqMod)?.includes(moduleId))
+                            const arrayNode = sources.get(moduleId);
+                            const element = arrayNode.elements.find(
+                                (e) => e?.type === 'Identifier' && e.name === moduleId
                             );
-                            if (usedByOwner) continue;
-                            context.report({
-                                node: arrayNode.elements.find((e) => e?.type === 'Identifier' && e.name === moduleId),
-                                messageId: validModuleIds.has(moduleId) ? 'unnecessaryModule' : 'unknownModule',
-                                data: { moduleId },
-                                fix: createRemoveModuleFixer(moduleId, arrayNode),
-                            });
+                            if (!elementOwners.has(element)) elementOwners.set(element, new Set());
+                            elementOwners.get(element).add(owner);
                         }
+                    }
+                    for (const [element, owners] of elementOwners) {
+                        const moduleId = element.name;
+                        if (bundleContents.has(moduleId) || intrinsicDefaultSet.has(moduleId)) continue;
+                        const used = [...requiredModules.entries()].some(
+                            ([reqMod, info]) =>
+                                (info.owners.has(null) || [...owners].some((owner) => info.owners.has(owner))) &&
+                                (reqMod === moduleId || bundleContents.get(reqMod)?.includes(moduleId))
+                        );
+                        if (used) continue;
+                        context.report({
+                            node: element,
+                            messageId: validModuleIds.has(moduleId) ? 'unnecessaryModule' : 'unknownModule',
+                            data: { moduleId },
+                            fix: createRemoveModuleFixer(moduleId, element.parent),
+                        });
                     }
                 }
 
