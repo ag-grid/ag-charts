@@ -6,19 +6,19 @@ Option misconfiguration and caught runtime errors are normally reported only to 
 
 ## Validation Overlay
 
-The overlay is opt-in and intended for development. Enable it with `validations.overlayLevel`, which defaults to `'none'`:
+The overlay is opt-in and intended for development. Enable it with `validations.overlaySeverity`, which defaults to `'none'`:
 
 {% chartExampleRunner title="Validation Overlay" name="validation-overlay" type="generated" /%}
 
 ```js format="snippet"
 {
     validations: {
-        overlayLevel: 'warning',
+        overlaySeverity: 'warning',
     },
 }
 ```
 
-`overlayLevel` is an inclusive severity threshold: each level also shows every louder one.
+`overlaySeverity` is an inclusive threshold: each severity also shows every louder one.
 
 - `'error'` — errors only.
 - `'warning'` — errors and warnings.

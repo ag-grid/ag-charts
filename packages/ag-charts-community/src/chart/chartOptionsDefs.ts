@@ -29,7 +29,7 @@ import type {
     AgActiveItemState,
     AgActiveState,
     AgCartesianChartOptions,
-    AgChartValidationLevel,
+    AgChartValidationSeverity,
     AgInitialStateLegendOptions,
     AgPolarChartOptions,
     AgSeriesAreaBackgroundRegion,
@@ -49,7 +49,7 @@ export const initialStatePickedOptionsDef: OptionsDefs<AgActiveState> = {
 };
 
 // Exhaustive against the public option type, so neither side can gain a level without the other.
-const validationLevel = strictUnion<AgChartValidationLevel>()('error', 'warning', 'deprecation', 'none');
+const validationSeverity = strictUnion<AgChartValidationSeverity>()('error', 'warning', 'deprecation', 'none');
 
 // These options are being validated by other modules
 export const commonChartOptions = {
@@ -57,10 +57,10 @@ export const commonChartOptions = {
     withinStudio: undocumented(boolean),
     loading: boolean,
     validations: {
-        overlayLevel: validationLevel,
-        consoleLogLevel: validationLevel,
-        throwOn: validationLevel,
-        onDiagnosticRaised: callback,
+        overlaySeverity: validationSeverity,
+        consoleLogSeverity: validationSeverity,
+        throwOn: validationSeverity,
+        issueRaised: callback,
     },
     container: htmlElement,
     context: () => true,

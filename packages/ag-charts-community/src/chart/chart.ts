@@ -36,7 +36,7 @@ import type {
     AgBaseAxisOptions,
     AgChartInstance,
     AgChartOptions,
-    AgChartValidationLevel,
+    AgChartValidationSeverity,
     AgColorType,
     AgCoordinates,
     AgDataTransaction,
@@ -588,7 +588,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 if (opts != null) this.overlays.set(opts);
             }),
             ctx.chartState.observe((get) => {
-                this.validationCollector.setOverlayLevel(get('options', 'validations')?.overlayLevel ?? 'none');
+                this.validationCollector.setOverlaySeverity(get('options', 'validations')?.overlaySeverity ?? 'none');
             }),
             // A tooltip is painted in the browser's top layer (a `popover`), so no z-index can place it
             // beneath the validation overlay. Hold tooltips back while the overlay is shown so it stays legible.
@@ -600,11 +600,11 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 }
             }),
             ctx.chartState.observe((get) => {
-                ctx.logger.setLevel(get('options', 'validations')?.consoleLogLevel ?? 'deprecation');
+                ctx.logger.setLevel(get('options', 'validations')?.consoleLogSeverity ?? 'deprecation');
             }),
             ctx.chartState.observe((get) => {
-                this.throwOnLevel = get('options', 'validations')?.throwOn ?? 'none';
-                this.setIssueListener(get('options', 'validations')?.onDiagnosticRaised);
+                this.throwOnSeverity = get('options', 'validations')?.throwOn ?? 'none';
+                this.setIssueListener(get('options', 'validations')?.issueRaised);
             }),
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
                 e.layoutBox.shrink(ctx.chartState.getValue('options', 'padding'));
@@ -919,7 +919,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     private readonly updateMutex = new Mutex();
     private clearCallbackCacheOnUpdate: boolean = false;
     private updateRequestors: Record<string, ChartUpdateType> = {};
-    private throwOnLevel: AgChartValidationLevel = 'none';
+    private throwOnSeverity: AgChartValidationSeverity = 'none';
     private pendingFailFastError?: Error;
 
     private readonly performUpdateTrigger = debouncedCallback(({ count }) => {
@@ -1024,7 +1024,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             });
             this.runningUpdateType = ChartUpdateType.NONE;
             this._performUpdateNotify.notify();
-            if (severityAtOrAbove(this.throwOnLevel, 'error')) {
+            if (severityAtOrAbove(this.throwOnSeverity, 'error')) {
                 this.pendingFailFastError = new Error(
                     `AG Charts - validations.throwOn: error - ${String(error?.message ?? error)}`
                 );
@@ -1788,9 +1788,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
      * previous tenant's listener in place would hand it this chart's issues. This can also run before
      * the option's validator has, hence the coercion rather than trusting the value.
      */
-    private setIssueListener(onDiagnosticRaised: unknown) {
+    private setIssueListener(issueRaised: unknown) {
         this.validationCollector.setIssueListener(
-            typeof onDiagnosticRaised === 'function' ? (onDiagnosticRaised as ValidationIssueListener) : undefined,
+            typeof issueRaised === 'function' ? (issueRaised as ValidationIssueListener) : undefined,
             this.ctx.logger
         );
     }
@@ -1798,7 +1798,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     applyOptions(newChartOptions: ChartOptions) {
         // Registered from the same options object in the same statement pair, so this pass's issues
         // reach the listener this pass declared without depending on when chartState observers flush.
-        this.setIssueListener(newChartOptions.processedOptions.validations?.onDiagnosticRaised);
+        this.setIssueListener(newChartOptions.processedOptions.validations?.issueRaised);
         this.validationCollector.setIssues(newChartOptions.validationIssues);
 
         if (newChartOptions.seriesWithUserVisibility) {
