@@ -82,11 +82,6 @@ ignore:
         reason: Test dependency - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-06-05T10:12:32.314Z
-  SNYK-JS-FOLLOWREDIRECTS-16032162:
-    - skia-canvas@3.0.8 > follow-redirects@1.15.11:
-        reason: Used in build & dev - not included in final production build
-        expires: 2027-03-02T00:00:00.000Z
-        created: 2026-05-01T11:18:01.231Z
   SNYK-JS-LODASH-15869625:
     - jest-image-snapshot@6.4.0 > lodash@4.17.21:
         reason: Used in build & dev - not included in final production build

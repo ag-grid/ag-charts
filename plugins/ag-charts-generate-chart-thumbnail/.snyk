@@ -25,11 +25,6 @@ ignore:
             from AG Charts runtime bundles. No fix version exists - nothing to upgrade.
         expires: '2027-03-02T00:00:00.000Z'
         created: '2026-09-02T00:00:00.000Z'
-  SNYK-JS-WS-17344547:
-    - jsdom@26.1.0 > ws@8.18.2:
-        reason: Used in build & dev - not included in final production build
-        expires: 2027-03-02T00:00:00.000Z
-        created: 2026-06-24T13:44:58.739Z
   SNYK-JS-TMP-17315641:
     - '@nx/devkit@18.3.4 > tmp@0.2.1':
         reason: Used in build & dev - not included in final production build
