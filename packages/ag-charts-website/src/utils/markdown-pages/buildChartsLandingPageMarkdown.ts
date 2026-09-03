@@ -23,6 +23,7 @@ import { getFrameworkFromInternalFramework } from '@utils/framework';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 
+import { buildChartsFrontmatter } from './chartsFrontmatter';
 import { type ReleaseVersion, latestReleasesMarkdown } from './latestReleasesMarkdown';
 
 /** The `landingPages` entry as this builder needs it: the shared shape, narrowed to charts sections. */
@@ -34,6 +35,8 @@ export interface BuildChartsLandingPageMarkdownOptions {
     content: ChartsLandingPageContent;
     /** The `versions` collection, for the hero's version badge and the What's New section. */
     versions?: Array<LandingPageVersion & ReleaseVersion>;
+    /** The landing page's own URL, for the frontmatter's related links. */
+    pageUrl: string;
     siteRoot?: string;
 }
 
@@ -179,6 +182,7 @@ function heroBlock(
 export function buildChartsLandingPageMarkdown({
     content,
     versions,
+    pageUrl,
     siteRoot,
 }: BuildChartsLandingPageMarkdownOptions): string {
     const framework = getFrameworkFromInternalFramework(content.internalFramework);
@@ -189,12 +193,12 @@ export function buildChartsLandingPageMarkdown({
     // framework-relative and need the prefixing helper to land on the right docs page.
     const resolveFaqUrl: Resolve = (url) => urlWithPrefix({ framework, url });
 
-    const frontmatter = [
-        '---',
-        `title: ${JSON.stringify(content.meta.title)}`,
-        `description: ${JSON.stringify(content.meta.description)}`,
-        '---',
-    ].join('\n');
+    const frontmatter = buildChartsFrontmatter({
+        pageUrl,
+        siteRoot,
+        title: content.meta.title,
+        description: content.meta.description,
+    });
 
     const hero = content.sections.find((section) => section.type === 'hero');
     const intro = hero ? heroBlock(hero, content, versions, siteRoot) : [];

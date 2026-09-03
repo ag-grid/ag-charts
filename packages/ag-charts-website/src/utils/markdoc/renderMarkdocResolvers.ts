@@ -6,11 +6,11 @@ import { getGeneratedContents } from '@components/example-generator';
 import { stripOutExampleGeneratorCode } from '@components/example-runner/components/stripOutExampleGeneratorCode';
 import { transform as transformSnippet } from '@components/snippet/snippetTransformer';
 import { getInternalFramework } from '@utils/framework';
-import { urlWithPrefix } from '@utils/urlWithPrefix';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { renderMarkdocTag } from './renderMarkdocTag';
+import { resolveMarkdownLinkHref } from './resolveMarkdownLinkHref';
 
 // Shiki-style language per framework, matching the on-page code viewer.
 const FRAMEWORK_LANGUAGES: Record<MarkdownFramework, string> = {
@@ -107,13 +107,8 @@ export function createChartsMarkdownResolvers({ siteRoot }: { siteRoot?: string 
             }
         },
 
-        resolveLinkHref: ({ href, framework }) => {
-            try {
-                return toAbsoluteUrl(urlWithPrefix({ url: href, framework }), siteRoot);
-            } catch {
-                return href;
-            }
-        },
+        resolveLinkHref: ({ href, framework, pageName }) =>
+            resolveMarkdownLinkHref({ href, framework, pageName, siteRoot }),
 
         resolveImageSrc: async ({ imagePath, pageName }) => {
             try {

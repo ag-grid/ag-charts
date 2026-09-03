@@ -53,6 +53,55 @@ describe('buildLlmsTxt', () => {
             expect(url).toContain('https://www.ag-grid.com/charts/');
         }
     });
+
+    describe('page index', () => {
+        const DOCS_INDEX = [
+            {
+                title: 'Series > Cartesian',
+                links: [
+                    { title: 'Bar Series', url: 'https://www.ag-grid.com/charts/javascript/bar-series/' },
+                    { title: 'Line Series', url: 'https://www.ag-grid.com/charts/javascript/line-series/' },
+                ],
+            },
+        ];
+        const SITE_INDEX = [
+            { title: 'General', links: [{ title: 'Gallery', url: 'https://www.ag-grid.com/charts/gallery/' }] },
+        ];
+        const indexed = buildLlmsTxt({ ...INPUT, docsIndex: DOCS_INDEX, siteIndex: SITE_INDEX });
+
+        test('publishes the docs under their navigation groups, in the order given', () => {
+            expect(indexed).toContain('## Documentation');
+            expect(indexed).toContain(
+                [
+                    '### Series > Cartesian',
+                    '- [Bar Series](https://www.ag-grid.com/charts/javascript/bar-series/)',
+                    '- [Line Series](https://www.ag-grid.com/charts/javascript/line-series/)',
+                ].join('\n')
+            );
+        });
+
+        test('states the framework substitution instead of repeating the docs four times', () => {
+            expect(indexed).toContain('replace `javascript` with `<framework>`');
+            expect(indexed).not.toContain('react/bar-series');
+        });
+
+        test('publishes the rest of the site under its sitemap groups', () => {
+            expect(indexed).toContain('## Site pages');
+            expect(indexed).toContain('### General\n- [Gallery](https://www.ag-grid.com/charts/gallery/)');
+        });
+
+        test('keeps the curated sections above the index', () => {
+            expect(indexed.indexOf('## Docs and tools')).toBeLessThan(indexed.indexOf('## Documentation'));
+            expect(indexed.indexOf('## Optional')).toBeLessThan(indexed.indexOf('## Documentation'));
+            expect(indexed.indexOf('## Documentation')).toBeLessThan(indexed.indexOf('## Site pages'));
+        });
+
+        test('emits no index headings when there is nothing to index', () => {
+            expect(txt).not.toContain('## Documentation');
+            expect(txt).not.toContain('## Site pages');
+            expect(buildLlmsTxt({ ...INPUT, docsIndex: [], siteIndex: [] })).toBe(txt);
+        });
+    });
 });
 
 describe('buildAgentsMd', () => {

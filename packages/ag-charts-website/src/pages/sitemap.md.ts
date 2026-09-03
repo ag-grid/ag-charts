@@ -1,7 +1,8 @@
 import parseSitemap from '@ag-website-shared/components/sitemap/utils/sitemaputils';
 import { SITEMAP_BUILD_DIR, SITEMAP_CACHE_DIR } from '@ag-website-shared/constants';
 import { getSitemapXml } from '@ag-website-shared/utils/getSitemapXml';
-import { DISABLE_MARKDOWN_DOCS, LIVE_SITEMAP_URL, PRODUCTION_CHARTS_SITE_URL } from '@constants';
+import { DISABLE_MARKDOWN_DOCS, LIVE_SITEMAP_URL, PRODUCTION_CHARTS_SITE_URL, SITE_URL } from '@constants';
+import { buildChartsFrontmatter } from '@utils/markdown-pages/chartsFrontmatter';
 import { SITEMAP_PAGE_CONTENT } from '@utils/markdown-pages/sitemapPageContent';
 
 // Content-negotiated from the HTML URL on Accept: text/markdown — see htaccessRules.ts.
@@ -25,12 +26,12 @@ export async function GET() {
 
     const output =
         [
-            [
-                '---',
-                `title: ${JSON.stringify(SITEMAP_PAGE_CONTENT.title)}`,
-                `description: ${JSON.stringify(SITEMAP_PAGE_CONTENT.description)}`,
-                '---',
-            ].join('\n'),
+            buildChartsFrontmatter({
+                pageUrl: '/sitemap/',
+                siteRoot: SITE_URL,
+                title: SITEMAP_PAGE_CONTENT.title,
+                description: SITEMAP_PAGE_CONTENT.description,
+            }),
             `# ${SITEMAP_PAGE_CONTENT.heading}`,
             SITEMAP_PAGE_CONTENT.description,
             `Every page listed here also has a markdown version: append \`.md\` to the URL. The homepage is the one URL with no \`.md\` suffix - its copy is ${PRODUCTION_CHARTS_SITE_URL}/index.md.`,
