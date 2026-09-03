@@ -14,16 +14,10 @@ interface Props {
 }
 
 export const ChartPreview = ({ theme, chartType, seriesCount, features }: Props) => {
-    const options = useMemo<PreviewChartOptions>(() => {
-        // Merged here rather than in the builder's own theme: these are the
-        // preview's, not the user's, and the theme the export dialog hands out
-        // should not carry a stroke width this tool decided on.
-        const overrides = chartType.themeOverrides?.(features);
-        return {
-            ...chartType.buildOptions(seriesCount, features),
-            theme: overrides ? { ...theme, overrides } : theme,
-        };
-    }, [chartType, seriesCount, features, theme]);
+    const options = useMemo<PreviewChartOptions>(
+        () => ({ ...chartType.buildOptions(seriesCount, features), theme }),
+        [chartType, seriesCount, features, theme]
+    );
     return <Container ref={useChart(options, chartType.preset)} />;
 };
 
