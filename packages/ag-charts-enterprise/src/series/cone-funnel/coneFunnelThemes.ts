@@ -59,7 +59,7 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
                 threshold: 4,
                 alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
             },
-            placement: 'before-center',
+            placement: 'start-center',
             spacing: 4,
         },
         tooltip: {
