@@ -159,7 +159,7 @@ describe('BubbleSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            expectWarningsCalls().toEqual([]);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
         });
     });
@@ -190,7 +190,7 @@ describe('BubbleSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            expectWarningsCalls().toEqual([]);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
         });
 
@@ -201,7 +201,7 @@ describe('BubbleSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            expectWarningsCalls().toEqual([]);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
         });
     });
@@ -1446,7 +1446,7 @@ describe('BubbleSeries', () => {
             await createBubble({ minSize: 10, maxSize: 30, sizeDomain: [0, 100] });
             // s=0 -> minSize; s=50 -> midpoint; s=200 (above the domain) -> maxSize.
             expect(nodeSizes(chart)).toEqual([10, 20, 30]);
-            expectWarningsCalls().toEqual([]);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
 
         it('reverses the mapping and clamps with a reversed sizeDomain (AC5, AC6)', async () => {
@@ -1472,21 +1472,21 @@ describe('BubbleSeries', () => {
             await waitForChartStability(chart);
             // Zero-width domains resolve to the range midpoint (10 + 30) / 2, never NaN/Infinity.
             expect(nodeSizes(chart)).toEqual([20, 20, 20]);
-            expectWarningsCalls().toEqual([]);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
 
         it('clamps the upper bound up to minSize when only minSize is set, without warning (AC8, AC9)', async () => {
             // Default maxSize is 30; minSize 40 is authoritative so both resolve to 40.
             await createBubble({ minSize: 40, sizeDomain: [0, 100] });
             expect(nodeSizes(chart)).toEqual([40, 40, 40]);
-            expectWarningsCalls().toEqual([]);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
 
         it('clamps to minSize when only maxSize is set below the default minSize, without warning (AC10)', async () => {
             // Default minSize is 7; maxSize 5 is below it, so the authoritative minSize wins and both resolve to 7.
             await createBubble({ maxSize: 5, sizeDomain: [0, 100] });
             expect(nodeSizes(chart)).toEqual([7, 7, 7]);
-            expectWarningsCalls().toEqual([]);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
 
         it('warns and reverts to theme defaults when both bounds are inverted (AC7)', async () => {
@@ -1711,7 +1711,7 @@ describe('BubbleSeries undefined size value emits no warning on visible-range co
         // start at validCount.
         series.xCoordinateRange(validCount, 0, validCount);
 
-        expectWarningsCalls().toEqual([]);
+        expectWarningsCalls().toMatchInlineSnapshot(`[]`);
 
         chart.destroy();
     });
