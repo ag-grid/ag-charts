@@ -125,7 +125,14 @@ const PAGE_LOCATOR_METHODS = [
 ] as const;
 
 export const test = base.extend({
-    page: ({ page }, use) => {
+    page: async ({ page }, use) => {
+        // LOCAL REPRO ONLY: slow the renderer so action/navigation races surface as they do on CI.
+        const cpuThrottle = Number(process.env.E2E_CPU_THROTTLE ?? 0);
+        if (cpuThrottle > 1) {
+            const cdp = await page.context().newCDPSession(page);
+            await cdp.send('Emulation.setCPUThrottlingRate', { rate: cpuThrottle });
+        }
+
         Object.assign(page, {
             mouse: stabilityProxy(page, page.mouse),
             keyboard: stabilityProxy(page, page.keyboard),
