@@ -122,8 +122,8 @@ describe("the documentation examples' dark mode", () => {
 
 /**
  * `buttonBackgroundColor` drives the resting fill of the range buttons, the zoom buttons and the
- * annotation toolbars (AG-18409). It defaults to `chromeBackgroundColor` so those toolbars look
- * unchanged when it is unset, and overrides it once a user sets it.
+ * annotation toolbars. It defaults to `chromeBackgroundColor` so those toolbars look unchanged
+ * when it is unset, and overrides it once a user sets it.
  */
 describe('buttonBackgroundColor', () => {
     setupMockConsole();
