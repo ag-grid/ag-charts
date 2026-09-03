@@ -1,12 +1,6 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
-  SNYK-JS-BRACEEXPANSION-18313044:
-    - jest-image-snapshot@6.4.0 > rimraf@2.7.1 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: 2027-03-02T00:00:00.000Z
-        created: 2026-07-27T09:08:46.961Z
   SNYK-JS-WS-17344547:
     - jsdom@24.1.3 > ws@8.18.2:
         reason: JSDOM is run in an isolated environment so ws does not have access to the network
@@ -22,11 +16,6 @@ ignore:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-04-15T13:32:58.751Z
-  SNYK-JS-BRACEEXPANSION-15789759:
-    - jest-image-snapshot@6.4.0 > rimraf@2.7.1 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
-        reason: Used in build & dev - not included in final production build
-        expires: 2027-03-02T00:00:00.000Z
-        created: 2026-03-27T16:17:29.676Z
   SNYK-JS-MINIMATCH-15353389:
     - jest-image-snapshot@6.4.0 > rimraf@2.7.1 > glob@7.2.3 > minimatch@3.1.2:
         reason: Test dependency - not included in final production build
@@ -37,9 +26,4 @@ ignore:
         reason: Test dependency - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T16:57:07.425Z
-  SNYK-JS-BRACEEXPANSION-17706650:
-    - jest-image-snapshot@6.4.0 > rimraf@2.7.1 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
-        reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
-        expires: '2027-03-02T00:00:00.000Z'
-        created: '2026-07-23T00:00:00.000Z'
 patch: {}

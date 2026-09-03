@@ -63,12 +63,6 @@ ignore:
             Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-07-27T10:16:26.706Z
-  SNYK-JS-BRACEEXPANSION-18313044:
-    - jest-image-snapshot@6.4.0 > rimraf@2.7.1 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: 2027-03-02T00:00:00.000Z
-        created: 2026-07-27T09:08:46.956Z
   SNYK-JS-ESBUILD-17750822:
     - vitest@2.1.9 > vite@6.3.5 > esbuild@0.25.0:
         reason: Test dependency - not included in final production build
@@ -110,11 +104,6 @@ ignore:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
-  SNYK-JS-BRACEEXPANSION-15789759:
-    - jest-image-snapshot@6.4.0 > rimraf@2.7.1 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
-        reason: Used in build & dev - not included in final production build
-        expires: 2027-03-02T00:00:00.000Z
-        created: 2026-05-28T00:00:00.000Z
   SNYK-JS-MINIMATCH-15353389:
     - jest-image-snapshot@6.4.0 > rimraf@2.7.1 > glob@7.2.3 > minimatch@3.1.2:
         reason: Used in build & dev - not included in final production build
@@ -144,9 +133,4 @@ ignore:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
-  SNYK-JS-BRACEEXPANSION-17706650:
-    - jest-image-snapshot@6.4.0 > rimraf@2.7.1 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
-        reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
-        expires: '2027-03-02T00:00:00.000Z'
-        created: '2026-07-23T00:00:00.000Z'
 patch: {}

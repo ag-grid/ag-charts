@@ -25,22 +25,6 @@ ignore:
             from AG Charts runtime bundles. No fix version exists - nothing to upgrade.
         expires: '2027-03-02T00:00:00.000Z'
         created: '2026-09-02T00:00:00.000Z'
-  SNYK-JS-BRACEEXPANSION-18313044:
-    - glob@8.0.3 > minimatch@5.1.6 > brace-expansion@2.0.2:
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: 2027-03-02T00:00:00.000Z
-        created: 2026-07-27T09:08:46.973Z
-    - '@nx/devkit@18.3.4 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2':
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: 2027-03-02T00:00:00.000Z
-        created: 2026-07-27T09:08:46.610Z
-    - '@nx/devkit@18.3.4 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6 > brace-expansion@2.0.2':
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: 2027-03-02T00:00:00.000Z
-        created: 2026-07-27T09:08:46.605Z
   SNYK-JS-WS-17344547:
     - jsdom@26.1.0 > ws@8.18.2:
         reason: Used in build & dev - not included in final production build
@@ -51,19 +35,6 @@ ignore:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-06-24T13:43:11.595Z
-  SNYK-JS-BRACEEXPANSION-15789759:
-    - glob@8.0.3 > minimatch@5.1.6 > brace-expansion@2.0.2:
-        reason: Used in build & dev - not included in final production build
-        expires: 2027-03-02T00:00:00.000Z
-        created: 2026-03-27T16:17:29.813Z
-    - '@nx/devkit@18.3.4 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2':
-        reason: Used in build & dev - not included in final production build
-        expires: 2027-03-02T00:00:00.000Z
-        created: 2026-03-27T16:17:29.448Z
-    - '@nx/devkit@18.3.4 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6 > brace-expansion@2.0.2':
-        reason: Used in build & dev - not included in final production build
-        expires: 2027-03-02T00:00:00.000Z
-        created: 2026-03-27T16:17:29.445Z
   SNYK-JS-MINIMATCH-15353389:
     - '@nx/devkit@18.3.4 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2':
         reason: Used in build & dev - not included in final production build
@@ -95,19 +66,6 @@ ignore:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
-  SNYK-JS-BRACEEXPANSION-17706650:
-    - glob@8.0.3 > minimatch@5.1.6 > brace-expansion@2.0.2:
-        reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
-        expires: '2027-03-02T00:00:00.000Z'
-        created: '2026-07-23T00:00:00.000Z'
-    - '@nx/devkit@18.3.4 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6 > brace-expansion@2.0.2':
-        reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
-        expires: '2027-03-02T00:00:00.000Z'
-        created: '2026-07-23T00:00:00.000Z'
-    - '@nx/devkit@18.3.4 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2':
-        reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
-        expires: '2027-03-02T00:00:00.000Z'
-        created: '2026-07-23T00:00:00.000Z'
   SNYK-JS-SHARP-18184259:
     - sharp@0.33.5:
         reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
