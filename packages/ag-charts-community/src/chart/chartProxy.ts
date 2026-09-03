@@ -45,7 +45,8 @@ export interface FactoryApi {
         processedOverrides?: Partial<AgChartOptions>,
         specialOverrides?: ChartSpecialOverrides,
         optionsMetadata?: ChartInternalOptionMetadata,
-        data?: DataServiceRestoredData
+        data?: DataServiceRestoredData,
+        licenseManager?: LicenseManager
     ): AgChartProxy;
     update(
         opts: AgChartOptions,
@@ -322,7 +323,8 @@ export class AgChartInstanceProxy implements AgChartProxy {
             processedOverrides,
             specialOverrides,
             optionsMetadata,
-            data
+            data,
+            this.licenseManager
         );
 
         if (state.legend) {

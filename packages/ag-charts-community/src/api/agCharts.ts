@@ -249,13 +249,14 @@ class AgChartsInternal {
 
     private static readonly callbackApi: FactoryApi = {
         caretaker: AgChartsInternal.caretaker,
-        create(userOptions, processedOverrides, specialOverrides, optionsMetadata, data) {
+        create(userOptions, processedOverrides, specialOverrides, optionsMetadata, data, licenseManager) {
             return AgChartsInternal.createOrUpdate({
                 userOptions,
                 processedOverrides,
                 specialOverrides,
                 optionsMetadata,
                 data,
+                licenseManager,
             });
         },
         update(opts, chart, specialOverrides, apiStartTime) {
@@ -276,6 +277,8 @@ class AgChartsInternal {
         deltaOptions?: DeepPartial<AgChartOptions>;
         processedOverrides?: Partial<AgChartOptions>;
         proxy?: AgChartInstanceProxy;
+        /** An internal clone (e.g. for image download) inherits its source chart's licence rather than being re-checked. */
+        licenseManager?: LicenseManager;
         specialOverrides?: Partial<ChartSpecialOverrides>;
         optionsMetadata?: ChartInternalOptionMetadata;
         /** Reported as an `error` validation issue once the chart exists - see `optionsArgumentIssue()`. */
@@ -287,6 +290,7 @@ class AgChartsInternal {
         let { proxy } = opts;
         const {
             userOptions,
+            licenseManager,
             processedOverrides = proxy?.chart?.chartOptions.processedOverrides ?? {},
             specialOverrides = proxy?.chart?.chartOptions.specialOverrides ?? {},
             optionsMetadata = proxy?.chart?.chartOptions.optionMetadata ?? {},
@@ -434,6 +438,7 @@ class AgChartsInternal {
 
         if (proxy == null) {
             proxy = new AgChartInstanceProxy(chart, AgChartsInternal.callbackApi);
+            proxy.licenseManager = licenseManager;
             proxy.releaseChart = poolResult?.release;
         } else if (poolResult || create) {
             proxy.releaseChart?.();

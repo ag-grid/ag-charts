@@ -204,6 +204,13 @@ describe('instance modules', () => {
                 expect(chart.isModuleRegistered('enterprise-plugin')).toBe(false);
             });
 
+            it('skips the licence check for a chart hosted within Studio', async () => {
+                ModuleRegistry.registerModules([...LINE_MODULES, enterprisePlugin]);
+                chart = AgCharts.create(prepareTestOptions({ ...LINE_CHART, withinStudio: true } as any));
+                await waitForChartStability(chart);
+                expect(injectWatermark).not.toHaveBeenCalled();
+            });
+
             it('licenses a community chart once an update resolves enterprise modules', async () => {
                 ModuleRegistry.registerModules(LINE_MODULES);
                 chart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }));
