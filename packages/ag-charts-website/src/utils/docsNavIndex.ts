@@ -41,7 +41,12 @@ export function navSectionsToIndex({
             .filter((item) => item.title && isDestination(item) && isAvailableFor(item, framework))
             .map((item) => ({
                 title: item.title!,
-                url: toAbsoluteUrl(urlWithPrefix({ url: item.url ?? `./${item.path}/`, framework }), siteRoot),
+                // The base path comes from `siteRoot` alone: `urlWithPrefix` would add a second
+                // copy, and its own value varies by build environment.
+                url: toAbsoluteUrl(
+                    urlWithPrefix({ url: item.url ?? `./${item.path}/`, framework, siteBaseUrl: '' }),
+                    siteRoot
+                ),
             }));
         if (links.length) {
             // A nav section can be untitled — the API nav opens with a `hideTitle` section

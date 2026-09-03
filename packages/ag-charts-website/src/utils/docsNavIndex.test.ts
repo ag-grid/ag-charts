@@ -1,9 +1,16 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 
 import { navPageNames, navSectionsToIndex } from './docsNavIndex';
 import type { DocsNavItem } from './docsRelatedLinks';
 
-const SITE_ROOT = 'https://www.ag-grid.com/';
+// The base path a production build serves under, which `urlWithPrefix` reads from here. Together
+// with the canonical `SITE_ROOT` below it, these assertions catch a URL carrying it twice.
+vi.mock('@constants', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('@constants')>()),
+    SITE_BASE_URL: '/charts/',
+}));
+
+const SITE_ROOT = 'https://www.ag-grid.com/charts/';
 
 const NAV: DocsNavItem[] = [
     {
@@ -35,10 +42,10 @@ describe('navSectionsToIndex', () => {
 
     test('resolves docs pages to absolute URLs for the given framework', () => {
         expect(index[0].links).toEqual([
-            { title: 'Quick Start', url: 'https://www.ag-grid.com/javascript/quick-start/' },
+            { title: 'Quick Start', url: 'https://www.ag-grid.com/charts/javascript/quick-start/' },
         ]);
         expect(index[1].links).toEqual([
-            { title: 'Installation', url: 'https://www.ag-grid.com/javascript/installation/' },
+            { title: 'Installation', url: 'https://www.ag-grid.com/charts/javascript/installation/' },
         ]);
     });
 
