@@ -43,12 +43,12 @@ export interface AgNodeClickEvent<
     TContext = ContextDefault,
 > extends AgBaseNodeClickEvent<TEvent, TDatum, TContext> {
     /** Every element hit at this point, including the winning element carried by these root params. */
-    allHitParams: AgHitParams<TDatum>[];
+    allMatchedParams: AgMatchedParams<TDatum>[];
 }
 
 /**
  * One element identified at the point an interaction hit, discriminated by its `type` field. This is the element
- * type of `allHitParams`, letting one listener see everything under the cursor — for example a series node drawn
+ * type of `allMatchedParams`, letting one listener see everything under the cursor — for example a series node drawn
  * over a Cross Line. Entries are grouped by kind, with the kind that won the event first; the winning element
  * itself is included but not necessarily at index 0, so identify it by comparing ids against the event root.
  *
@@ -61,7 +61,7 @@ export interface AgNodeClickEvent<
  * the event rather than the kind of element on its own, so a test for one kind must cover every interaction's
  * value.
  */
-export type AgHitParams<TDatum> = AgNodeClickParams<TDatum> | AgCrossLineClickParams;
+export type AgMatchedParams<TDatum> = AgNodeClickParams<TDatum> | AgCrossLineClickParams;
 
 /**
  * Everything a node event reports about the picked datum itself, i.e. an {@link AgNodeClickEvent} minus the
@@ -301,7 +301,7 @@ export interface AgCrossLineClickParams {
 
 interface AgAllCrossLineClickParams {
     /** Every element that matched at the click point, including the winning element carried by these root params. */
-    allHitParams: AgHitParams<DatumDefault>[];
+    allMatchedParams: AgMatchedParams<DatumDefault>[];
 }
 
 export interface AgCrossLineContextMenuActionEvent<TContext = ContextDefault>

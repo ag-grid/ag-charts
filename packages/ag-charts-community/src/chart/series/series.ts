@@ -43,8 +43,8 @@ import type {
     AgActiveItemState,
     AgChartLabelFormatterParams,
     AgDrawingMode,
-    AgHitParams,
     AgInitialStateLegendOptions,
+    AgMatchedParams,
     AgNodeClickEvent,
     AgNodeClickParams,
     AgNodeContextMenuActionEvent,
@@ -1267,8 +1267,8 @@ export abstract class Series<
             ...d.series.createNodeParams(d),
             type,
         }));
-        // Series nodes lead, so `winner` still indexes `allHitParams`.
-        const allHitParams: AgHitParams<unknown>[] =
+        // Series nodes lead, so `winner` still indexes `allMatchedParams`.
+        const allMatchedParams: AgMatchedParams<unknown>[] =
             otherHitParams != null && otherHitParams.length > 0 ? [...nodeParams, ...otherHitParams] : nodeParams;
 
         let defaultPrevented = false;
@@ -1277,7 +1277,7 @@ export abstract class Series<
             type,
             event,
             coordinates,
-            allHitParams,
+            allMatchedParams,
             get defaultPrevented() {
                 return defaultPrevented;
             },

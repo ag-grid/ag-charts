@@ -779,7 +779,7 @@ describe('CrossLine', () => {
             expect(click).not.toHaveBeenCalled();
         });
 
-        describe('overlapping crosslines allHitParams', () => {
+        describe('overlapping crosslines allMatchedParams', () => {
             let chartClick: ViFn;
             let chartCrossLineClick: ViFn;
             let chartCrossLineDoubleClick: ViFn;
@@ -833,7 +833,7 @@ describe('CrossLine', () => {
                         direction: 'x',
                         value: 'May',
                         // TODO: add AG-17613 `coordinated`
-                        allHitParams: [
+                        allMatchedParams: [
                             expect.objectContaining({
                                 type: 'crossLineClick',
                                 crossLineId: 'blue-line',
@@ -870,7 +870,7 @@ describe('CrossLine', () => {
                         // Entries track `event.type`, so they read `crossLineDoubleClick` here, not `crossLineClick`.
                         type: 'crossLineDoubleClick',
                         crossLineId: 'blue-line',
-                        allHitParams: [
+                        allMatchedParams: [
                             expect.objectContaining({ type: 'crossLineDoubleClick', crossLineId: 'blue-line' }),
                             expect.objectContaining({ type: 'crossLineDoubleClick', crossLineId: 'grey-range' }),
                             expect.objectContaining({ type: 'crossLineDoubleClick', crossLineId: 'CrossLine-3' }),
@@ -886,7 +886,7 @@ describe('CrossLine', () => {
                         // The cross line still wins the event, so it carries the root params.
                         type: 'crossLineClick',
                         crossLineId: 'blue-line',
-                        allHitParams: [
+                        allMatchedParams: [
                             expect.objectContaining({
                                 type: 'crossLineClick',
                                 crossLineId: 'blue-line',
@@ -997,7 +997,7 @@ describe('CrossLine', () => {
                     // The series node still wins the event, so it carries the root params.
                     type: 'seriesNodeClick',
                     datum: { x: 'May', y: 3 },
-                    allHitParams: [
+                    allMatchedParams: [
                         expect.objectContaining({
                             type: 'seriesNodeClick',
                             datum: { x: 'May', y: 3 },
@@ -1018,7 +1018,7 @@ describe('CrossLine', () => {
                 expect(chartSeriesNodeClick).toHaveBeenCalledWith(expected);
                 // TC7: no entry carries the old `clickedOn` discriminant.
                 const [event] = seriesSeriesNodeClick.mock.calls[0];
-                for (const params of [event, ...event.allHitParams]) {
+                for (const params of [event, ...event.allMatchedParams]) {
                     expect(params).not.toHaveProperty('clickedOn');
                 }
             });
@@ -1027,7 +1027,7 @@ describe('CrossLine', () => {
                 const expected = expect.objectContaining({
                     type: 'seriesNodeClick',
                     datum: { x: 'Jan', y: 8 },
-                    allHitParams: [expect.objectContaining({ type: 'seriesNodeClick', datum: { x: 'Jan', y: 8 } })],
+                    allMatchedParams: [expect.objectContaining({ type: 'seriesNodeClick', datum: { x: 'Jan', y: 8 } })],
                 });
                 expect(seriesSeriesNodeClick).toHaveBeenCalledWith(expected);
                 expect(chartSeriesNodeClick).toHaveBeenCalledWith(expected);
@@ -1785,7 +1785,7 @@ describe('CrossLine', () => {
 
             expect(crossLineClick).toHaveBeenCalled();
             const [event] = crossLineClick.mock.lastCall as [AgCrossLineClickEvent];
-            return event.allHitParams
+            return event.allMatchedParams
                 .filter((params): params is AgCrossLineClickParams => params.type === 'crossLineClick')
                 .map(({ crossLineId }) => crossLineId)
                 .sort((a, b) => a.localeCompare(b));

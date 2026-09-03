@@ -14,7 +14,7 @@ import type {
 import type {
     AgActiveItemState,
     AgCoordinates,
-    AgHitParams,
+    AgMatchedParams,
     AgNodeClickParams,
     AgNodeContextMenuActionEvent,
     AgNumericValue,
@@ -105,13 +105,13 @@ export type FireNodeEventParams = {
     /**
      * Index into `datums` of the node whose params are flattened onto the event root. Historically, click events only
      * ever reported 1 series-node at most. Nowadays, left/right click events report all series-nodes that overlap at
-     * this click-point (`allHitParams` / `allShowOnParams` ). The `winner` is that series-node for backward
+     * this click-point (`allMatchedParams` / `allShowOnParams` ). The `winner` is that series-node for backward
      * compatibility.
      */
     winner: number;
     coordinates: AgCoordinates | undefined;
     // Params for elements of other kinds picked at the same point (e.g. currently cross lines
-    otherHitParams?: AgHitParams<unknown>[];
+    otherHitParams?: AgMatchedParams<unknown>[];
 };
 
 export interface ISeriesProperties {

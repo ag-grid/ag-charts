@@ -6,8 +6,8 @@ import type {
     AgChartDoubleClickEvent,
     AgContextMenuItemShowOn,
     AgCoordinates,
-    AgHitParams,
     AgInitialFocus,
+    AgMatchedParams,
 } from 'ag-charts-types';
 
 import type {
@@ -673,7 +673,7 @@ export class SeriesAreaManager extends BaseManager {
 
         if (isSeriesWidget) {
             // Cross-line-only here, and populated whether or not any cross-line listener exists.
-            const clicked = this.checkSeriesNodeClick(event, pendingCrossLineCallbacks.allHitParams);
+            const clicked = this.checkSeriesNodeClick(event, pendingCrossLineCallbacks.allMatchedParams);
             if (clicked) {
                 if (clicked.defaultPrevented) return;
                 this.emitSeriesAreaClickEvent(event, true, clicked.node, clicked.target);
@@ -709,7 +709,7 @@ export class SeriesAreaManager extends BaseManager {
             canvasY,
             sourceEvent,
             pendingCrossLineCallbacks: {
-                allHitParams: [],
+                allMatchedParams: [],
                 axes: new Map(),
                 crossLines: new Map(),
             },
@@ -896,15 +896,15 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private checkCrossLineClick(event: ClickLikeEvent, pendingCallbacks: PendingCrossLineCallbacks): boolean {
-        const { allHitParams, axes, crossLines } = pendingCallbacks;
+        const { allMatchedParams, axes, crossLines } = pendingCallbacks;
         const chartListener =
             event.type === 'click'
                 ? this.chart.ctx.chartService.listeners.crossLineClick
                 : this.chart.ctx.chartService.listeners.crossLineDoubleClick;
-        return allHitParams.length > 0 && (axes.size > 0 || crossLines.size > 0 || chartListener != null);
+        return allMatchedParams.length > 0 && (axes.size > 0 || crossLines.size > 0 || chartListener != null);
     }
 
-    private pickSeriesNodeHitParams(event: ClickLikeEvent): AgHitParams<unknown>[] {
+    private pickSeriesNodeHitParams(event: ClickLikeEvent): AgMatchedParams<unknown>[] {
         const pickedNodes = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
         if (pickedNodes == null || pickedNodes.matches.length === 0) return [];
         const { matches, target } = pickedNodes;
@@ -918,7 +918,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private checkSeriesNodeClick(
         event: ClickLikeEvent & { preventZoomDblClick?: boolean },
-        crossLineParams: AgHitParams<unknown>[]
+        crossLineParams: AgMatchedParams<unknown>[]
     ): SeriesNodeClickCheck | undefined {
         const pickedNodes = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
         const updated = this.pickManager.onPickedNodesTooltip(pickedNodes);

@@ -7,7 +7,7 @@ import type {
     AgCrossLineDoubleClickEvent,
     AgCrossLineLabelPosition,
     AgCrossLineListeners,
-    AgHitParams,
+    AgMatchedParams,
     AgTimeInterval,
     AgTimeIntervalUnit,
 } from 'ag-charts-types';
@@ -33,11 +33,11 @@ interface PendingCallback {
 }
 
 export type PendingCrossLineCallbackParam =
-    | Forbid<AgCrossLineClickEvent, 'allHitParams'>
-    | Forbid<AgCrossLineDoubleClickEvent, 'allHitParams'>;
+    | Forbid<AgCrossLineClickEvent, 'allMatchedParams'>
+    | Forbid<AgCrossLineDoubleClickEvent, 'allMatchedParams'>;
 
 export interface PendingCrossLineCallbacks {
-    allHitParams: AgCrossLineClickParams[];
+    allMatchedParams: AgCrossLineClickParams[];
     chart?: PendingCallback;
     axes: Map<string, PendingCallback>;
     crossLines: Map<string, PendingCallback>;
@@ -67,25 +67,25 @@ export function validateCrossLineValue(crossLine: ICrossLine, scale: Scale<any, 
     }
 }
 
-function firePendingCrossLineCallback(allHitParams: AgHitParams<unknown>[], callback: PendingCallback): void {
+function firePendingCrossLineCallback(allMatchedParams: AgMatchedParams<unknown>[], callback: PendingCallback): void {
     const { callers, fn, params } = callback;
-    callWithContext(callers, fn, { ...params, allHitParams });
+    callWithContext(callers, fn, { ...params, allMatchedParams });
 }
 
 export function fireAllPendingCrossLineCallbacks(
     pending: PendingCrossLineCallbacks,
-    otherHitParams: AgHitParams<unknown>[]
+    otherHitParams: AgMatchedParams<unknown>[]
 ): void {
-    const allHitParams: AgHitParams<unknown>[] =
-        otherHitParams.length > 0 ? [...pending.allHitParams, ...otherHitParams] : pending.allHitParams;
+    const allMatchedParams: AgMatchedParams<unknown>[] =
+        otherHitParams.length > 0 ? [...pending.allMatchedParams, ...otherHitParams] : pending.allMatchedParams;
     for (const crossLine of pending.crossLines.values()) {
-        firePendingCrossLineCallback(allHitParams, crossLine);
+        firePendingCrossLineCallback(allMatchedParams, crossLine);
     }
     for (const axis of pending.axes.values()) {
-        firePendingCrossLineCallback(allHitParams, axis);
+        firePendingCrossLineCallback(allMatchedParams, axis);
     }
     if (pending.chart) {
-        firePendingCrossLineCallback(allHitParams, pending.chart);
+        firePendingCrossLineCallback(allMatchedParams, pending.chart);
     }
 }
 

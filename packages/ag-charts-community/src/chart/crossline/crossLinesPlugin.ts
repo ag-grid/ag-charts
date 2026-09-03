@@ -104,7 +104,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
             const crossLineId = crossLine.id ?? crossLine.internalId;
             result.push({ type, axisId, direction, crossLineId, crossLineType, range, value });
         }
-        return result satisfies AgCrossLineClickEvent<unknown>['allHitParams'];
+        return result satisfies AgCrossLineClickEvent<unknown>['allMatchedParams'];
     }
 
     private onSeriesAreaContextMenu(event: SeriesAreaContextMenuEvent): void {
@@ -123,9 +123,9 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
                 [],
                 isClick ? 'crossLineClick' : 'crossLineDoubleClick'
             );
-            callbacks.allHitParams.push(...allParamsOnThisAxis);
+            callbacks.allMatchedParams.push(...allParamsOnThisAxis);
 
-            // Use `Forbid` to ensure that allHitParams and rootLevelParams do have conflicting keys,
+            // Use `Forbid` to ensure that allMatchedParams and rootLevelParams do have conflicting keys,
             // otherwise the `...` spreading could silently and unintentionally override something. `type` is
             // exempt: an entry carries the same event type as the root, so overriding it is intentional.
             type ParamType = (typeof allParamsOnThisAxis)[number];
@@ -135,7 +135,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
                 type: isClick ? 'crossLineClick' : 'crossLineDoubleClick',
             };
             const params: CallbackParamRules<EventType> = {
-                allHitParams: undefined,
+                allMatchedParams: undefined,
                 ...allParamsOnThisAxis[0],
                 ...rootLevelParams,
             };
