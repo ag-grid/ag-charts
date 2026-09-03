@@ -159,7 +159,7 @@ describe('BubbleSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            expectWarningsCalls().toEqual([]);
             await compare();
         });
     });
@@ -190,7 +190,7 @@ describe('BubbleSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            expectWarningsCalls().toEqual([]);
             await compare();
         });
 
@@ -201,7 +201,7 @@ describe('BubbleSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            expectWarningsCalls().toEqual([]);
             await compare();
         });
     });
@@ -1446,7 +1446,7 @@ describe('BubbleSeries', () => {
             await createBubble({ minSize: 10, maxSize: 30, sizeDomain: [0, 100] });
             // s=0 -> minSize; s=50 -> midpoint; s=200 (above the domain) -> maxSize.
             expect(nodeSizes(chart)).toEqual([10, 20, 30]);
-            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            expectWarningsCalls().toEqual([]);
         });
 
         it('reverses the mapping and clamps with a reversed sizeDomain (AC5, AC6)', async () => {
@@ -1472,21 +1472,21 @@ describe('BubbleSeries', () => {
             await waitForChartStability(chart);
             // Zero-width domains resolve to the range midpoint (10 + 30) / 2, never NaN/Infinity.
             expect(nodeSizes(chart)).toEqual([20, 20, 20]);
-            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            expectWarningsCalls().toEqual([]);
         });
 
         it('clamps the upper bound up to minSize when only minSize is set, without warning (AC8, AC9)', async () => {
             // Default maxSize is 30; minSize 40 is authoritative so both resolve to 40.
             await createBubble({ minSize: 40, sizeDomain: [0, 100] });
             expect(nodeSizes(chart)).toEqual([40, 40, 40]);
-            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            expectWarningsCalls().toEqual([]);
         });
 
         it('clamps to minSize when only maxSize is set below the default minSize, without warning (AC10)', async () => {
             // Default minSize is 7; maxSize 5 is below it, so the authoritative minSize wins and both resolve to 7.
             await createBubble({ maxSize: 5, sizeDomain: [0, 100] });
             expect(nodeSizes(chart)).toEqual([7, 7, 7]);
-            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            expectWarningsCalls().toEqual([]);
         });
 
         it('warns and reverts to theme defaults when both bounds are inverted (AC7)', async () => {
@@ -1711,8 +1711,87 @@ describe('BubbleSeries undefined size value emits no warning on visible-range co
         // start at validCount.
         series.xCoordinateRange(validCount, 0, validCount);
 
-        expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        expectWarningsCalls().toEqual([]);
 
         chart.destroy();
+    });
+});
+
+describe('AG-18383 empty-string labelKey', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: AgChartInstance | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+        vi.restoreAllMocks();
+    });
+
+    const DATA = [
+        { x: 1, y: 40, s: 4, label: 'a' },
+        { x: 2, y: 120, s: 8, label: 'b' },
+        { x: 3, y: 80, s: 6, label: 'c' },
+    ];
+
+    const optionsWith = (seriesOverrides: object): AgCartesianChartOptions =>
+        prepareTestOptions({
+            data: DATA,
+            series: [{ type: 'scatter', xKey: 'x', yKey: 'y', ...seriesOverrides }],
+            axes: {
+                x: { type: 'number', position: 'bottom', min: 0, max: 4 },
+                y: { type: 'number', position: 'left', min: 0, max: 160 },
+            },
+            legend: { enabled: false },
+        } as AgCartesianChartOptions);
+
+    // `labelKey: ''` is falsy, so no `labelValue` column is declared (bubbleSeries.ts `processData`).
+    // Every consumer must agree: a `!= null` check there resolves a column that was never declared and
+    // throws "didn't find property definition for [labelValue, …]", blanking the chart.
+    const cases: [name: string, seriesOverrides: object][] = [
+        ['scatter, no label option', { labelKey: '' }],
+        ['scatter, label object present (opts labels in)', { labelKey: '', label: {} }],
+        ['scatter, label.enabled: true', { labelKey: '', label: { enabled: true } }],
+        ['bubble, no label option', { type: 'bubble', sizeKey: 's', labelKey: '' }],
+        ['bubble, label object present', { type: 'bubble', sizeKey: 's', labelKey: '', label: {} }],
+        // `sizeKey` carried the same declare-truthy/resolve-nullish mismatch. (`colorKey` did too,
+        // but it is an enterprise-only option and warns when set in a community-only suite.)
+        ['bubble, empty-string sizeKey', { type: 'bubble', sizeKey: '' }],
+    ];
+
+    it.each(cases)('renders without an update error — %s', async (_name, seriesOverrides) => {
+        chart = AgCharts.create(optionsWith(seriesOverrides));
+        await waitForChartStability(chart);
+
+        const sample = createSceneGeometrySampler(chart)();
+        const markerKeys = [...sample.keys()].filter((key) => /^series\[0\]\/marker\[.+\]$/.test(key));
+
+        // Anti-vacuity: the crash blanked the canvas, so "no error" only means something if the
+        // markers really did render.
+        expect(markerKeys.length).toBe(DATA.length);
+        expect(console.error).not.toHaveBeenCalled();
+        expectWarningsCalls().toEqual([]);
+    });
+
+    it.each(cases)('builds tooltip content without an update error — %s', async (_name, seriesOverrides) => {
+        chart = AgCharts.create(optionsWith(seriesOverrides));
+        await waitForChartStability(chart);
+
+        const sample = createSceneGeometrySampler(chart)();
+        const marker = [...sample.entries()].find(([key]) => /^series\[0\]\/marker\[.+\]$/.test(key))?.[1];
+        expect(marker).toBeDefined();
+
+        // The tooltip path resolves `labelValue` under its own `labelKey` guard (bubbleSeries.ts
+        // `getTooltipData`), which must use the same truthiness as the column declaration.
+        // Markers are translation-positioned, so the centre is the translation plus the local centre
+        // (which is 0 for a centre-origin marker, and w/2 for a top-left one).
+        const cx = (marker!['translationX'] ?? 0) + marker!['x'] + marker!['width'] / 2;
+        const cy = (marker!['translationY'] ?? 0) + marker!['y'] + marker!['height'] / 2;
+        await hoverAction(cx, cy)(chart);
+        await waitForChartStability(chart);
+
+        expect(console.error).not.toHaveBeenCalled();
+        expectWarningsCalls().toEqual([]);
     });
 });
