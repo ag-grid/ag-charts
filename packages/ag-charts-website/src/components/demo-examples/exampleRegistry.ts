@@ -13,14 +13,14 @@ export const DEMO_EXAMPLES: DemoExample[] = [
     {
         id: 'financial',
         title: 'Financial Dashboard',
-        path: './examples',
+        path: './examples/',
         description: 'Candlestick and volume series driven by a live price feed.',
         demoAppId: 'financial',
     },
     {
         id: 'web-analytics',
         title: 'Web Analytics',
-        path: './examples-web-analytics',
+        path: './examples-web-analytics/',
         description: 'Traffic, funnel and retention charts over a shared date range.',
         demoAppId: 'web-analytics',
     },
@@ -29,7 +29,7 @@ export const DEMO_EXAMPLES: DemoExample[] = [
     // {
     //     id: 'procurement',
     //     title: 'Procurement Manager',
-    //     path: './examples-procurement',
+    //     path: './examples-procurement/',
     //     description: 'Spend, supplier and delivery charts for a procurement manager workspace.',
     //     demoAppId: 'procurement',
     // },
@@ -38,7 +38,7 @@ export const DEMO_EXAMPLES: DemoExample[] = [
     // {
     //     id: 'real-time',
     //     title: 'Real-Time Monitoring',
-    //     path: './examples-real-time',
+    //     path: './examples-real-time/',
     //     description: 'Streaming time-series with thresholds and annotations.',
     //     demoAppId: 'real-time',
     // },

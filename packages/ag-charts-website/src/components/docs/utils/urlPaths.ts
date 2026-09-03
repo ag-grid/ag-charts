@@ -29,6 +29,10 @@ export const getExamplePageUrl = ({ framework, path }: { framework?: Framework; 
 
 /**
  * Dynamic path where examples are
+ *
+ * Trailing slash: the example is served as a directory index, so a slashless URL costs a 301.
+ * `getExampleContentsUrl`/`getExampleFileUrl` build on this through `pathJoin`, which drops the
+ * slash again before appending a file name.
  */
 export const getExampleUrl = ({
     internalFramework,
@@ -39,7 +43,7 @@ export const getExampleUrl = ({
     pageName: string;
     exampleName: string;
 }) => {
-    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName);
+    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName) + '/';
 };
 
 /**
@@ -54,7 +58,7 @@ export const getExampleRunnerExampleUrl = ({
     pageName: string;
     exampleName: string;
 }) => {
-    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, 'example-runner');
+    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, 'example-runner') + '/';
 };
 
 /**
@@ -69,7 +73,7 @@ export const getExamplePlunkrUrl = ({
     pageName: string;
     exampleName: string;
 }) => {
-    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, 'plunkr');
+    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, 'plunkr') + '/';
 };
 
 /**
@@ -84,7 +88,7 @@ export const getExampleCodeSandboxUrl = ({
     pageName: string;
     exampleName: string;
 }) => {
-    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, 'codesandbox');
+    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, 'codesandbox') + '/';
 };
 
 /**
