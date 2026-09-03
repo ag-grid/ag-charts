@@ -149,6 +149,10 @@ const GTM_UTM_WEBHOOK_CAPTURING_PHASE_HASH = "'sha256-1biJs72+znqmnYHTG0Ps3v04No
 // Inline script used by the contact form.
 const CONTACT_FORM_SCRIPT_HASH = "'sha256-D3cdipua6lhS2IQ0W0AlSNVVsS+2b/sXycSE8m8PkxY='";
 
+// GTM tag for internal promo tracking: fires a GA4 event. Digest taken from the browser's
+// CSP violation report. AG-3390.
+const GTM_PROMO_TRACKING_HASH = "'sha256-nC2/ZWBpMyJEdVw5YxKBKxSMNwMN/lOAPrHk4RcIBbc='";
+
 const SITE_SCRIPT_HASHES = [
     hashInlineScript(DARK_MODE_INIT_SCRIPT),
     hashInlineScript(PLAUSIBLE_INIT_SCRIPT),
@@ -160,6 +164,7 @@ const SITE_SCRIPT_HASHES = [
     GTM_UTM_WEBHOOK_HASH,
     GTM_UTM_WEBHOOK_CAPTURING_PHASE_HASH,
     CONTACT_FORM_SCRIPT_HASH,
+    GTM_PROMO_TRACKING_HASH,
 ];
 
 // Enzuzo, the cookie-consent banner that replaces OneTrust. Like OneTrust before it,
@@ -226,6 +231,37 @@ const LINKEDIN_BEACON_HOST = 'https://px.ads.linkedin.com';
 // this changes if the automation is recreated in another zone.
 const MAKE_WEBHOOK_HOST = 'https://hook.eu2.make.com';
 
+// Google Ads (GTM "Google tag" destination AW-873243008, in the shared GTM container alongside
+// the existing GA4 tag). Nothing here references these origins directly — as with Enzuzo and
+// LinkedIn, the CSP is the only place the site declares them. AG-3390.
+//
+// MOST OF THIS ONLY FIRES ONCE MARKETING CONSENT IS GRANTED. Under the default
+// consent-denied state gtag.js sends a single non-personalised beacon (npa=1) and nothing
+// else, so testing without accepting cookies in the Enzuzo banner shows almost none of these
+// violations. Accept all cookies first, or the policy will look complete when it is not.
+//
+//  - googleads.g.doubleclick.net serves the view-through conversion / remarketing tag
+//    (/pagead/viewthroughconversion/<id>), injected as an external <script>, so it is
+//    script-src. Its own hn= parameter names googleadservices.com, which is a hint carried in
+//    the URL rather than a second request.
+//  - ad.doubleclick.net takes the /ccm/s/collect conversion hit, sent with the Fetch API and
+//    so governed by connect-src. Distinct from stats.g.doubleclick.net, already allowed above.
+//  - googleadservices.com and pagead2.googlesyndication.com take the /pagead/conversion and
+//    /ccm/conversion beacons, tried with fetch() before an <img> fallback; without them the
+//    beacon silently degrades to the less reliable pixel. www.google.com (already allowed for
+//    reCAPTCHA) is the third host the same beacon tries.
+//
+// Deliberately NOT allowed until a violation actually shows up, matching the LinkedIn note
+// above: adservice.google.com/pagead/regclk and ade.googlesyndication.com/ddm/activity, which
+// appear as dead fallbacks in every gtag.js payload, and the ad.doubleclick.net image pixels
+// the permissive img-src already covers.
+const GOOGLE_ADS_SDK_HOST = 'https://googleads.g.doubleclick.net';
+const GOOGLE_ADS_CONVERSION_HOSTS = [
+    'https://www.googleadservices.com',
+    'https://pagead2.googlesyndication.com',
+    'https://ad.doubleclick.net',
+];
+
 // Apache <If> expression matching the URL paths that get the 'examples' scope.
 // Charts serves example-runner documents at both /gallery/examples/<name>/... and
 // /<framework>/<page>/examples/<name>/..., and the whole site sits under /charts in
@@ -285,6 +321,7 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             'https://js.zi-scripts.com', // ZoomInfo tag (injected via GTM)
             'https://*.zoominfo.com', // ZoomInfo FormComplete (trial form)
             LINKEDIN_SDK_HOST, // LinkedIn Insight Tag SDK (injected via GTM)
+            GOOGLE_ADS_SDK_HOST, // Google Ads view-through conversion / remarketing tag
             'https://www.google.com', // reCAPTCHA (license-pricing trial form)
             'https://www.gstatic.com', // reCAPTCHA
             'https://www.youtube.com', // YouTube iframe JS API (loads into the page)
@@ -336,6 +373,7 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             'https://*.zoominfo.com', // ZoomInfo
             LINKEDIN_BEACON_HOST, // LinkedIn Insight Tag: website-actions beacon and attribution-trigger fetch
             'https://www.google.com', // reCAPTCHA (api2/clr XHR)
+            ...GOOGLE_ADS_CONVERSION_HOSTS, // Google Ads (AW-873243008) conversion/remarketing beacon
             'https://cdn.cookielaw.org', // OneTrust config/JSON/asset XHR (GTM-injected, prod-only)
             'https://*.onetrust.com', // OneTrust geolocation + consent-receipt endpoints
             ENZUZO_APP_HOST, // Enzuzo banner config, cookie list and consent-analytics XHR
