@@ -29,6 +29,10 @@ export class BoundedTextWidget extends Widget<HTMLDivElement> {
         this.textElement = createSvgElement('text');
         this.textElement.role = 'presentation';
 
+        // Safari shows the I-beam cursor over SVG <text> on hover; this proxy is presentational,
+        // so force the default cursor on the text to keep the arrow cursor.
+        this.textElement.style.cursor = 'default';
+
         this.svgElement = createSvgElement('svg');
         this.svgElement.appendChild(this.textElement);
         this.svgElement.style.width = '100%';
