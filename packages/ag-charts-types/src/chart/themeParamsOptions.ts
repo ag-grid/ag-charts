@@ -60,11 +60,7 @@ export interface AgBaseChartThemeParams {
     borderWidth?: PixelSize;
     /** Default corner radius for many UI elements such as menus and dialogs.  */
     borderRadius?: PixelSize;
-    /**
-     * Background colour of standard action buttons. A colour string, or a theme-colour reference object.
-     *
-     * Default: `chromeBackgroundColor`
-     */
+    /** Background colour of standard action buttons. A colour string, or a theme-colour reference object. */
     buttonBackgroundColor?: AgCssColorOrRef;
     /** Border around standard action buttons. `true` for the default border, `false` to disable, or an object to customise it. */
     buttonBorder?: boolean | AgBorderThemeParam;
