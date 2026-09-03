@@ -22,52 +22,52 @@ export const FUNNEL_TO_BAR_PLACEMENT: Record<AgFunnelSeriesLabelPlacement, BarLa
 };
 
 /**
- * A cone funnel divider spans the value axis and its `before`/`after` is the cross axis, which is the
- * normal bar convention: the side of the line maps onto `beside-*` and the position along it onto the
- * bar's own `start`/`center`/`end`.
+ * A cone funnel divider spans the value axis and its `start`/`end` sides lie on the cross axis, which
+ * is the normal bar convention: the side of the line maps onto `beside-*`, and the
+ * `before`/`center`/`after` position along the line onto the bar's own `start`/`center`/`end`.
  */
 export const CONE_FUNNEL_TO_BAR_PLACEMENT: Record<AgConeFunnelSeriesLabelPlacement, BarLabelPlacement> = {
-    'middle-start': 'inside-start',
+    'middle-before': 'inside-start',
     'middle-center': 'inside-center',
-    'middle-end': 'inside-end',
-    'before-start': 'beside-before-start',
-    'before-center': 'beside-before-center',
-    'before-end': 'beside-before-end',
-    'after-start': 'beside-after-start',
-    'after-center': 'beside-after-center',
-    'after-end': 'beside-after-end',
+    'middle-after': 'inside-end',
+    'start-before': 'beside-before-start',
+    'start-center': 'beside-before-center',
+    'start-after': 'beside-before-end',
+    'end-before': 'beside-after-start',
+    'end-center': 'beside-after-center',
+    'end-after': 'beside-after-end',
 };
 
 const CONE_FUNNEL_ALIASES: Record<AgConeFunnelSeriesLabelPlacementAlias, AgConeFunnelSeriesLabelPlacement> = {
-    before: 'before-center',
+    before: 'start-center',
     middle: 'middle-center',
-    after: 'after-center',
+    after: 'end-center',
 };
 
-/** Mirrors the side of a vertical divider, whose `before`/`after` is the horizontal axis. */
+/** Mirrors the side of a vertical divider, whose `start`/`end` sides lie on the horizontal axis. */
 const CONE_FUNNEL_RTL_SIDE_SWAP: Record<AgConeFunnelSeriesLabelPlacement, AgConeFunnelSeriesLabelPlacement> = {
-    'before-start': 'after-start',
-    'before-center': 'after-center',
-    'before-end': 'after-end',
-    'middle-start': 'middle-start',
+    'start-before': 'end-before',
+    'start-center': 'end-center',
+    'start-after': 'end-after',
+    'middle-before': 'middle-before',
     'middle-center': 'middle-center',
-    'middle-end': 'middle-end',
-    'after-start': 'before-start',
-    'after-center': 'before-center',
-    'after-end': 'before-end',
+    'middle-after': 'middle-after',
+    'end-before': 'start-before',
+    'end-center': 'start-center',
+    'end-after': 'start-after',
 };
 
-/** Mirrors the position along a horizontal divider, whose `start`/`end` is the horizontal axis. */
+/** Mirrors the position along a horizontal divider, whose `before`/`after` ends lie on the horizontal axis. */
 const CONE_FUNNEL_RTL_SWAP: Record<AgConeFunnelSeriesLabelPlacement, AgConeFunnelSeriesLabelPlacement> = {
-    'before-start': 'before-end',
-    'before-end': 'before-start',
-    'before-center': 'before-center',
-    'middle-start': 'middle-end',
-    'middle-end': 'middle-start',
+    'start-before': 'start-after',
+    'start-after': 'start-before',
+    'start-center': 'start-center',
+    'middle-before': 'middle-after',
+    'middle-after': 'middle-before',
     'middle-center': 'middle-center',
-    'after-start': 'after-end',
-    'after-end': 'after-start',
-    'after-center': 'after-center',
+    'end-before': 'end-after',
+    'end-after': 'end-before',
+    'end-center': 'end-center',
 };
 
 /**
@@ -144,7 +144,7 @@ export function resolveFunnelPlacements(
 /**
  * The ordered placement list a cone funnel label cascades through, with the deprecated single-word
  * aliases mapped onto their `*-center` equivalents. A right-to-left chart mirrors whichever half of a
- * placement runs along the horizontal axis: `start`/`end` for a horizontal divider, `before`/`after` for
+ * placement runs along the horizontal axis: `before`/`after` for a horizontal divider, `start`/`end` for
  * a vertical one.
  */
 export function resolveConeFunnelPlacements(

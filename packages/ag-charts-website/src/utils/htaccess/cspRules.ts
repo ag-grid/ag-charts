@@ -17,6 +17,7 @@
  */
 import { createHash } from 'node:crypto';
 
+import type { AcceptedCspViolation } from '../csp/cspViolationReport';
 import {
     DARK_MODE_INIT_SCRIPT,
     KBD_PLATFORM_INIT_SCRIPT,
@@ -120,12 +121,35 @@ const SITE_SCRIPT_HASHES = [
 // only place the site declares these origins. Its `new Function` paths throw without
 // 'unsafe-eval', which we will not grant site-wide, so keep the Enzuzo console configuration
 // free of template placeholders and string-bodied event handlers.
+// Independently of those, the bundle calls eval() unconditionally on load, in a guarded
+// fallback that redefines functions it has already defined, so the call achieves nothing when
+// it succeeds and costs nothing when it is blocked. It is blocked on every page, and that is
+// accepted below so the post-deploy CSP report does not carry it as something to fix. The
+// acceptance is deliberately narrow — only eval, only from the cookiebar bundle — so a stale
+// hash for the consent bridge, a blocked connect, or an eval from any other script still
+// surfaces.
 // React and React DOM ship no ES module build on npm, so the example runner's import map
 // resolves them through esm.sh.
 const ESM_SH_HOST = 'https://esm.sh';
 
 const ENZUZO_APP_HOST = 'https://app.enzuzo.com';
 const ENZUZO_GVL_HOST = 'https://gvl.enzuzo.com';
+
+/**
+ * Violations the site policy knowingly produces and will not be changed to fix. Read by the
+ * page-verification suite's CSP reporter (scripts/csp/cspViolationReporter.ts) so the
+ * post-deploy report marks them accepted rather than raising them. Each entry's reasoning
+ * belongs in the comment above the host it concerns, not here.
+ */
+export const ACCEPTED_CSP_VIOLATIONS: AcceptedCspViolation[] = [
+    {
+        directive: 'script-src',
+        blockedUri: 'eval',
+        // The bundle path carries the account id; match the path, not the whole URL.
+        sourceFilePrefix: `${ENZUZO_APP_HOST}/scripts/cookiebar/`,
+        reason: "Enzuzo's banner bundle calls eval() in a redundant fallback on load; 'unsafe-eval' is not granted site-wide for a consent banner (see ENZUZO_APP_HOST in cspRules.ts).",
+    },
+];
 
 // LinkedIn Insight Tag, loaded by a tag in the shared GTM container, so the CSP is the only
 // place the site declares these origins. The rest of LinkedIn's published required-domains

@@ -39,13 +39,16 @@
     align-items: center;
     justify-content: space-between;
     height: 100%;
+}
 
-    h1 {
-        margin-bottom: 0px;
-        // At the full 2xl size the title wraps to two lines and overflows the toolbar
-        // band once it competes with the theme dropdown for width (below ~430px).
-        font-size: clamp(20px, 5vw, var(--text-fs-2xl));
-    }
+// A label rather than a heading: the page's H1 is in the scrolling content below.
+.toolbarTitle {
+    // At the full 2xl size the title overflows the toolbar band once it competes with
+    // the theme dropdown for width (below ~430px).
+    font-size: clamp(20px, 5vw, var(--text-fs-2xl));
+    line-height: var(--text-lh-2xl);
+    font-weight: var(--text-bold);
+    color: var(--color-fg-primary);
 }
 
 .toolbarTitleGroup {

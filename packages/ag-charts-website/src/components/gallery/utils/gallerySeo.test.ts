@@ -1,9 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
 import galleryData from '../../../content/gallery/data.json';
-import { GALLERY_FAMILY_COPY, GALLERY_PAGE_COPY } from '../galleryCopy';
+import { GALLERY_FAMILY_COPY, GALLERY_HUB_COPY, GALLERY_PAGE_COPY } from '../galleryCopy';
 import { getGalleryExamples } from './filesData';
-import { MAX_TITLE_LENGTH, resolveGallerySeo } from './gallerySeo';
+import {
+    MAX_TITLE_LENGTH,
+    galleryFamilyHeading,
+    galleryFamilyName,
+    resolveGalleryH1,
+    resolveGallerySeo,
+} from './gallerySeo';
 
 const EXAMPLES = getGalleryExamples({ galleryData });
 const RESOLVED = EXAMPLES.map(({ exampleName, page }) => ({ exampleName, seo: resolveGallerySeo(page) }));
@@ -87,6 +93,63 @@ describe('resolveGallerySeo', () => {
     it('resolves distinct titles per page, so no two pages compete for the same result', () => {
         const titles = RESOLVED.map(({ seo }) => seo.title);
         expect(new Set(titles).size).toBe(titles.length);
+    });
+});
+
+describe('the gallery hub copy', () => {
+    it('keeps the title within the length the formula holds the example pages to', () => {
+        expect(GALLERY_HUB_COPY.title.length).toBeLessThanOrEqual(MAX_TITLE_LENGTH);
+    });
+
+    it('lands the meta description in the 140-155 character band', () => {
+        expect(GALLERY_HUB_COPY.description.length).toBeGreaterThanOrEqual(140);
+        expect(GALLERY_HUB_COPY.description.length).toBeLessThanOrEqual(155);
+    });
+
+    it('names the gallery in the title and the H1', () => {
+        expect(GALLERY_HUB_COPY.title).toContain('AG Charts Gallery');
+        expect(GALLERY_HUB_COPY.h1).toContain('AG Charts Gallery');
+    });
+
+    it('links more examples than the "100+" the copy claims', () => {
+        const visible = galleryData.series
+            .flat()
+            .flatMap((series) => series.examples)
+            .filter((example) => !example.hidden);
+        expect(visible.length).toBeGreaterThan(100);
+    });
+});
+
+describe('galleryFamilyName', () => {
+    it('names a family in the singular', () => {
+        expect(galleryFamilyName('Bar')).toBe('Bar Chart');
+        expect(galleryFamilyName('OHLC')).toBe('OHLC Chart');
+    });
+
+    it('does not repeat a family name that already says Chart', () => {
+        expect(galleryFamilyName('Org Chart')).toBe('Org Chart');
+        const families = galleryData.series.flat().map((series) => galleryFamilyName(series.title));
+        expect(families.filter((name) => /Chart Chart/.test(name))).toEqual([]);
+    });
+});
+
+describe('galleryFamilyHeading', () => {
+    it('pluralises a family name into a heading', () => {
+        expect(galleryFamilyHeading('Bar')).toBe('Bar Charts');
+        expect(galleryFamilyHeading('OHLC')).toBe('OHLC Charts');
+    });
+
+    it('does not repeat a family name that already says Chart', () => {
+        expect(galleryFamilyHeading('Org Chart')).toBe('Org Charts');
+        const families = galleryData.series.flat().map((series) => galleryFamilyHeading(series.title));
+        expect(families.filter((heading) => /Chart Charts/.test(heading))).toEqual([]);
+    });
+});
+
+describe('resolveGalleryH1', () => {
+    it('resolves the same H1 the page serves, for every example', () => {
+        const disagree = EXAMPLES.filter(({ page }) => resolveGalleryH1(page) !== resolveGallerySeo(page).h1);
+        expect(disagree).toEqual([]);
     });
 });
 

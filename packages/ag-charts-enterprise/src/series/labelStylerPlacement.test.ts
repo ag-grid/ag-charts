@@ -174,7 +174,7 @@ describe('label itemStyler participates in placement', () => {
      */
     describe('funnel family reports public placements to the styler', () => {
         const FUNNEL_PLACEMENT = /^(inside|outside)-(center|before|after)$/;
-        const CONE_FUNNEL_PLACEMENT = /^(before|middle|after)-(start|center|end)$/;
+        const CONE_FUNNEL_PLACEMENT = /^(start|middle|end)-(before|center|after)$/;
 
         const seriesChart = (type: string, placement: string[], extra: object, seen: Set<string>) => ({
             data: [
@@ -230,7 +230,7 @@ describe('label itemStyler participates in placement', () => {
         });
 
         it('reports cone-funnel placements to a cone-funnel label styler', async () => {
-            const seen = await styledPlacements('cone-funnel', ['before-center', 'after-center']);
+            const seen = await styledPlacements('cone-funnel', ['start-center', 'end-center']);
             expect(seen.every((placement) => CONE_FUNNEL_PLACEMENT.test(placement))).toBe(true);
         });
     });

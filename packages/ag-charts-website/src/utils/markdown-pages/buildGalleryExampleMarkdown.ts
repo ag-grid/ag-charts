@@ -1,7 +1,8 @@
 import { toAbsoluteUrl } from '@ag-website-shared/markdoc/toAbsoluteUrl';
 import { getGeneratedContents } from '@components/example-generator';
 import { stripOutExampleGeneratorCode } from '@components/example-runner/components/stripOutExampleGeneratorCode';
-import { resolveGallerySeo } from '@components/gallery/utils/gallerySeo';
+import { galleryFamilyHeading, resolveGallerySeo } from '@components/gallery/utils/gallerySeo';
+import { type GalleryRelatedExample, relatedExamplesHeading } from '@components/gallery/utils/relatedExamples';
 import { getExampleFileUrl, getExampleUrl, getPageUrl } from '@components/gallery/utils/urlPaths';
 import { toTitle } from '@utils/toTitle';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
@@ -17,19 +18,15 @@ export interface GalleryExamplePage {
     /** Docs page for the chart type. Absent for series whose docs page follows the default slug. */
     seriesLink?: string;
     enterprise?: boolean;
-}
-
-/** A neighbouring example, as the page's "More from the charts gallery" links render it. */
-export interface GalleryExampleNeighbour {
-    title: string;
-    name: string;
+    /** The chart family's section on the gallery hub. */
+    galleryHubUrl: string;
 }
 
 export interface BuildGalleryExampleMarkdownOptions {
     page: GalleryExamplePage;
     exampleName: string;
-    /** The three neighbours the page links to, in page order. */
-    neighbours: GalleryExampleNeighbour[];
+    /** The related examples the page's strip links, in the same order. */
+    relatedExamples: GalleryRelatedExample[];
     siteRoot?: string;
 }
 
@@ -52,7 +49,7 @@ function seriesDocsUrl(page: GalleryExamplePage): string {
 export async function buildGalleryExampleMarkdown({
     page,
     exampleName,
-    neighbours,
+    relatedExamples,
     siteRoot,
 }: BuildGalleryExampleMarkdownOptions): Promise<string> {
     const contents = await getGeneratedContents({ type: 'gallery', exampleName });
@@ -71,8 +68,7 @@ export async function buildGalleryExampleMarkdown({
     document.push(
         `[View ${toTitle(page.seriesTitle)} Charts Documentation](${toAbsoluteUrl(seriesDocsUrl(page), siteRoot)})`
     );
-    // `getExampleUrl` omits the trailing slash the site serves the page on.
-    document.push(`[Run this example](${toAbsoluteUrl(`${getExampleUrl({ exampleName })}/`, siteRoot)})`);
+    document.push(`[Run this example](${toAbsoluteUrl(getExampleUrl({ exampleName }), siteRoot)})`);
 
     const entryFileName = contents?.entryFileName;
     if (entryFileName && contents?.files?.[entryFileName]) {
@@ -95,11 +91,15 @@ export async function buildGalleryExampleMarkdown({
         }
     }
 
-    if (neighbours.length) {
-        const links = neighbours
-            .map(({ title, name }) => `- [${title}](${toAbsoluteUrl(getPageUrl(name), siteRoot)})`)
+    if (relatedExamples.length) {
+        const links = relatedExamples
+            .map(({ label, name }) => `- [${label}](${toAbsoluteUrl(getPageUrl(name), siteRoot)})`)
             .join('\n');
-        document.push('## More from the charts gallery', links);
+        document.push(
+            `## ${relatedExamplesHeading({ seriesTitle: page.seriesTitle, related: relatedExamples })}`,
+            `[View all ${galleryFamilyHeading(page.seriesTitle)}](${toAbsoluteUrl(page.galleryHubUrl, siteRoot)})`,
+            links
+        );
     }
 
     return `${document.join('\n\n').trimEnd()}\n`;

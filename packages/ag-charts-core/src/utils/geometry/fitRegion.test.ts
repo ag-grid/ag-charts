@@ -6,6 +6,7 @@ import {
     insetFitRegion,
     maskFitRegion,
     probedFitRegion,
+    regionTextCapacity,
     regionWidthAt,
     trapezoidFitRegion,
 } from './fitRegion';
@@ -122,6 +123,22 @@ describe('probedFitRegion over a shape with a hole', () => {
         const region = probedFitRegion({ x: -100, y: 0 }, annulus(50, 200), 400);
         const [, right] = region.spanAt(0, 0);
         expect(right).toBeCloseTo(50, 1);
+    });
+});
+
+describe('regionTextCapacity', () => {
+    test('stacks whole lines of the widest bands, and reports nothing for a region too short for one', () => {
+        const region = rect(120, 40);
+        expect(regionTextCapacity(region, 20)).toBe(240);
+        expect(regionTextCapacity(region, 40)).toBe(120);
+        expect(regionTextCapacity(region, 41)).toBe(0);
+    });
+
+    test('bounds a tapering region by its widest bands, not the one the anchor sits in', () => {
+        const region = trapezoidFitRegion(stage(), 50);
+        // Two 25px lines of the 100px stage, taken from the base end where it is 160px and 200px across.
+        expect(regionTextCapacity(region, 25)).toBeGreaterThanOrEqual(2 * regionWidthAt(region, 25, 50));
+        expect(regionTextCapacity(region, 25)).toBeGreaterThan(regionTextCapacity(region, 50));
     });
 });
 

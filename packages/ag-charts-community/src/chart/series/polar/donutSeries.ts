@@ -16,27 +16,29 @@ import {
     type Point,
     PolarZIndexMap,
     type RequireOptional,
-    SpatialIndex,
     type WrapOptions,
+    anyOverlap,
     cachedTextMeasurer,
     canRenderTextOffscreen,
     extractDomain,
-    findLargestFittingFontSize,
+    findLargestFontSizeDescending,
     fitLabelTextAutoSize,
     fitLabelTextToRegion,
     fontWithSize,
     formatValue,
-    gridCellSize,
+    hasRealChars,
     insetFitRegion,
     isErased,
     isGradientFill,
     isStringFillArray,
     jsonDiff,
+    keptCharacters,
+    measureLabelText,
     mergeDefaults,
     modulus,
     normalizeAngle180,
-    normalizeAngle360,
     probedFitRegion,
+    regionTextCapacity,
     resolveLabelFit,
     resolveMinimumFontSize,
     toNumber,
@@ -66,7 +68,6 @@ import { LinearScale } from '../../../scale/linearScale';
 import { BBox } from '../../../scene/bbox';
 import type { GradientParams } from '../../../scene/gradient/gradient';
 import { Group, TranslatableGroup } from '../../../scene/group';
-import { boxCrossesSegment } from '../../../scene/intersection';
 import { PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
@@ -79,7 +80,6 @@ import {
     isBoxInSector,
     isPointInSector,
     sectorBox,
-    sectorEdges,
 } from '../../../scene/util/sector';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, getMissCount } from '../../data/dataModel';
@@ -93,8 +93,15 @@ import {
     rangedValueProperty,
     valueProperty,
 } from '../../data/processors';
-import { Label, expandLabelBoxExtent } from '../../label';
-import { fitLabelToContainer, fitLabelToContainerAutoSize, fitSectorLabelRect, getLabelStyles } from '../../labelUtil';
+import { Label, expandLabelBoxExtent, expandLabelPadding } from '../../label';
+import {
+    type BlockSize,
+    fitLabelToContainer,
+    fitLabelToContainerAutoSize,
+    fitSectorLabelRect,
+    getLabelStyles,
+    sectorLabelRoom,
+} from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -119,6 +126,37 @@ import {
     PolarSeries,
 } from './polarSeries';
 
+/** Extra clearance (px) retried when a placement the region accepted still overruns the wedge once drawn. */
+const WEDGE_RETRY_INSETS = [1, 2, 4, 8];
+// Clearance retries plus the passes the block height needs to settle, which is one per line it ends with.
+const MAX_WEDGE_ATTEMPTS = 8;
+// Block and wedge heights within this many px are the same box; the fit rounds bands to whole lines.
+const HEIGHT_CONVERGED = 1;
+
+/** A sector label placed in its wedge: the fitted text, and where the text node has to draw it. */
+interface PlacedSectorLabel {
+    text: NormalisedTextOrSegments;
+    x: number;
+    y: number;
+    fontSize?: number;
+}
+
+/** Lays a candidate out on the label's own node, so the fit reads the boxes the visibility gate will judge. */
+function wedgeLabelLayout(node: Text) {
+    return (placed: PlacedSectorLabel, font: FontOptions) => {
+        node.text = placed.text;
+        node.x = placed.x;
+        node.y = placed.y;
+        node.setFont(font);
+        return node.getLineBoxes();
+    };
+}
+
+function sameBlock(a: BlockSize | undefined, b: BlockSize | undefined) {
+    if (a == null || b == null) return a === b;
+    return a.width === b.width && a.height === b.height;
+}
+
 /** The wedge's usable region depends on the line height, so every candidate size is placed and probed afresh. */
 function fitSectorLabelToWedge(
     text: NormalisedTextOrSegments,
@@ -126,72 +164,108 @@ function fitSectorLabelToWedge(
     font: FontOptions,
     anchor: Point,
     sector: SectorBoundaries,
-    padding: Required<PaddingOptions>
-): { text: NormalisedTextOrSegments; x: number; y: number; fontSize?: number } {
-    const place = (sized: FontOptions, atFloor: boolean) => {
-        const rect = fitSectorLabelRect(anchor, sector, cachedTextMeasurer(sized).lineHeight());
+    padding: Required<PaddingOptions>,
+    layout: (placed: PlacedSectorLabel, font: FontOptions) => BBox[]
+): PlacedSectorLabel {
+    const place = (sized: FontOptions, atFloor: boolean, inset: number, block: BlockSize | undefined) => {
+        const lineHeight = cachedTextMeasurer(sized).lineHeight();
+        const rect = fitSectorLabelRect(anchor, sector, lineHeight, block);
         const region = insetFitRegion(
             probedFitRegion(
                 { x: rect.centerX, y: rect.centerY },
                 (x, y) => isPointInSector(x, y, sector),
                 Math.abs(sector.outerRadius) * 2
             ),
-            Math.max(padding.left, padding.right),
-            Math.max(padding.top, padding.bottom)
+            Math.max(padding.left, padding.right) + inset,
+            Math.max(padding.top, padding.bottom) + inset
         );
+        // The region bounds the text the same way the wedge does but for the block's own place in it,
+        // padding included, so it refuses what the wedge-wide bounds let through — still before any layout.
+        if (!atFloor && measureLabelText(text, sized).width > regionTextCapacity(region, lineHeight)) {
+            return undefined;
+        }
         // Above the floor the text must fit whole, so a truncating size is rejected and the search steps down.
         const policy = atFloor ? fit : { ...fit, overflowStrategy: 'hide' as const };
-        const fitted = fitLabelTextToRegion(text, withFitRegion(policy, region), sized);
-        return { text: fitted.text, x: rect.centerX + fitted.offsetX, y: rect.centerY };
+        // An anchored rect is the block's place, so the fit must not take a horizontal offset to exploit
+        // room on one side: the text would be wrapped for bands it is then not drawn in.
+        const fitted = fitLabelTextToRegion(text, withFitRegion(policy, region), sized, rect.anchored);
+        return {
+            placed: { text: fitted.text, x: rect.centerX + fitted.offsetX, y: rect.centerY + fitted.offsetY },
+            rectHeight: rect.height,
+        };
+    };
+    /**
+     * The wedge is sized for a block before its text has wrapped, and the region samples the wedge rather
+     * than proving it, so each placement is measured on the node: one that overruns the wedge is re-fitted
+     * with more clearance, and one whose block is not the size the wedge was sized for is placed again
+     * for the size it turned out to be — a block only earns the anchor, or the band that suits it, once
+     * its own width and height are known.
+     */
+    const placeInWedge = (sized: FontOptions, atFloor: boolean) => {
+        let inset = 0;
+        let block: BlockSize | undefined;
+        const first = place(sized, atFloor, inset, block);
+        if (first == null) {
+            return { placed: { text: '', x: 0, y: 0 }, inWedge: false };
+        }
+        let { placed, rectHeight } = first;
+        // Re-placing trades one shape of room for another, so the passes are candidates rather than
+        // refinements: the one keeping the most text wins, and only a placement drawn inside the wedge can.
+        let best: PlacedSectorLabel | undefined;
+        let bestKept = 0;
+        for (let attempt = 0; attempt < MAX_WEDGE_ATTEMPTS && hasRealChars(placed.text); attempt += 1) {
+            const boxes = layout(placed, sized);
+            const inWedge = boxes.every((box) => isBoxInSector(box, sector));
+            const kept = inWedge ? keptCharacters(placed.text) : 0;
+            // A later pass ties only by placing the same text better, so equal candidates prefer it.
+            if (kept > 0 && kept >= bestKept) {
+                best = placed;
+                bestKept = kept;
+            }
+            const drawn = BBox.merge(boxes);
+            if (inWedge && block != null && Math.abs(drawn.height - rectHeight) < HEIGHT_CONVERGED) {
+                break;
+            }
+            const nextInset = inWedge ? inset : WEDGE_RETRY_INSETS[Math.min(attempt, WEDGE_RETRY_INSETS.length - 1)];
+            const nextBlock = inWedge ? { width: drawn.width, height: drawn.height } : block;
+            // Nothing the next placement reads has moved, so it would fit the same text in the same place.
+            if (nextInset === inset && sameBlock(nextBlock, block)) {
+                break;
+            }
+            inset = nextInset;
+            block = nextBlock;
+            const next = place(sized, atFloor, inset, block);
+            if (next == null) {
+                break;
+            }
+            ({ placed, rectHeight } = next);
+        }
+        // A wedge too narrow for one character leaves a bare ellipsis, which reads as an artefact rather
+        // than a label, so it is dropped outright instead of appearing and vanishing as the chart resizes.
+        const chosen = best ?? placed;
+        const kept = hasRealChars(chosen.text) ? chosen.text : '';
+        return { placed: { ...chosen, text: kept }, inWedge: best != null };
     };
     const floor = resolveMinimumFontSize(fit.minimumFontSize, font.fontSize);
-    if (floor >= font.fontSize) return place(font, true);
-    const found = findLargestFittingFontSize(floor, font.fontSize, (fontSize, atFloor) => {
-        const placed = place(fontWithSize(font, fontSize), atFloor);
-        if (isErased(placed.text)) return undefined;
+    if (floor >= font.fontSize) return placeInWedge(font, true).placed;
+    // Wedge clearance is not monotonic in the font size — a smaller size can reflow the text into a wider
+    // block — so the ladder is scanned down rather than bisected, which could step past the largest fit.
+    // Measured at the smallest line height in play, so it bounds the room at every size on the ladder.
+    const room = sectorLabelRoom(anchor, sector, cachedTextMeasurer(fontWithSize(font, floor)).lineHeight());
+    const found = findLargestFontSizeDescending(floor, font.fontSize, (fontSize, atFloor) => {
+        const sized = fontWithSize(font, fontSize);
+        // The wedge cannot hold more text than it has room for, whether measured by the area the text
+        // covers or by the lines the wedge can stack, so an oversized rung goes without being placed.
+        const lineHeight = cachedTextMeasurer(sized).lineHeight();
+        const advance = measureLabelText(text, sized).width;
+        if (!atFloor && (advance * lineHeight > room.area || advance > room.capacityAt(lineHeight))) {
+            return undefined;
+        }
+        const { placed, inWedge } = placeInWedge(sized, atFloor);
+        if (!inWedge || isErased(placed.text)) return undefined;
         return { ...placed, fontSize: fontSize === font.fontSize ? undefined : fontSize };
     });
-    return found ?? place(fontWithSize(font, floor), true);
-}
-
-const twoPi = 2 * Math.PI;
-
-/** An angular span running anticlockwise from `start` by `sweep`, in radians. */
-interface Arc {
-    start: number;
-    sweep: number;
-}
-
-/** True when two angular spans share an angle. */
-function arcsOverlap(a: Arc, b: Arc) {
-    if (a.sweep >= twoPi || b.sweep >= twoPi) return true;
-    return normalizeAngle360(b.start - a.start) <= a.sweep || normalizeAngle360(a.start - b.start) <= b.sweep;
-}
-
-/** The narrowest arc covering `box`, or undefined when the box wraps the centre and so covers every angle. */
-function boxArc(box: BBox): Arc | undefined {
-    if (box.containsPoint(0, 0)) return;
-
-    const right = box.x + box.width;
-    const bottom = box.y + box.height;
-    const corners = [
-        normalizeAngle360(Math.atan2(box.y, box.x)),
-        normalizeAngle360(Math.atan2(box.y, right)),
-        normalizeAngle360(Math.atan2(bottom, box.x)),
-        normalizeAngle360(Math.atan2(bottom, right)),
-    ].sort((a, b) => a - b);
-
-    // The arc to keep is everything outside the widest gap between adjacent corners.
-    let widest = corners[0] + twoPi - corners[3];
-    let gapIndex = 0;
-    for (let i = 1; i < corners.length; i++) {
-        const gap = corners[i] - corners[i - 1];
-        if (gap > widest) {
-            widest = gap;
-            gapIndex = i;
-        }
-    }
-    return { start: corners[gapIndex], sweep: twoPi - widest };
+    return found ?? placeInWedge(fontWithSize(font, floor), true).placed;
 }
 
 interface PieDonutLabelDatum {
@@ -201,8 +275,6 @@ interface PieDonutLabelDatum {
     hidden: boolean;
     collisionTextAlign?: CanvasTextAlign;
     collisionOffsetY: number;
-    /** Extra radius, beyond the sector's own, that the label and its callout line are pushed out by. */
-    collisionRadiusOffset: number;
     box?: BBox;
 }
 
@@ -772,7 +844,6 @@ export class DonutSeries extends PolarSeries<
                 hidden: false,
                 collisionTextAlign: undefined,
                 collisionOffsetY: 0,
-                collisionRadiusOffset: 0,
                 box: undefined,
             };
         }
@@ -1353,11 +1424,10 @@ export class DonutSeries extends PolarSeries<
                 line.strokeOpacity = this.getHighlightStyle(isDatumHighlighted, datum.datumIndex).opacity ?? 1;
                 line.fill = undefined;
 
-                const lineEndRadius = outerRadius + label.collisionRadiusOffset + calloutLength;
                 const x1 = datum.midCos * outerRadius;
                 const y1 = datum.midSin * outerRadius;
-                let x2 = datum.midCos * lineEndRadius;
-                let y2 = datum.midSin * lineEndRadius;
+                let x2 = datum.midCos * (outerRadius + calloutLength);
+                let y2 = datum.midSin * (outerRadius + calloutLength);
 
                 const isMoved = label.collisionTextAlign ?? label.collisionOffsetY !== 0;
                 if (isMoved && label.box != null) {
@@ -1429,57 +1499,29 @@ export class DonutSeries extends PolarSeries<
         return corners.some((corner) => corner.x ** 2 + corner.y ** 2 > sur2);
     }
 
-    /**
-     * Where the label's text anchor sits, so that the near edge of its drawn box - not the text - lands at the
-     * end of the callout line. Probing and painting must agree exactly, so both go through here.
-     */
-    private getCalloutLabelRadius(
-        datum: PieDonutNodeDatum,
-        label: PieDonutLabelDatum,
-        outerRadius: number,
-        extent: Required<PaddingOptions>,
-        calloutLength: number
-    ) {
-        const { midCos, midSin } = datum;
-        const boxInset =
-            Math.abs(midCos) * (midCos >= 0 ? extent.left : extent.right) +
-            Math.abs(midSin) * (midSin >= 0 ? extent.top : extent.bottom);
-
-        return (
-            outerRadius + label.collisionRadiusOffset + calloutLength + this.properties.calloutLabel.offset + boxInset
-        );
-    }
-
-    /** Nothing here depends on the collision offsets, so it is resolved once and reused across every probe. */
-    private getCalloutLabelMetrics(datum: Has<'calloutLabel', PieDonutNodeDatum>) {
+    private getCalloutLabelBBox(datum: Has<'calloutLabel', PieDonutNodeDatum>): BBox {
         const { calloutLabel } = this.properties;
-        const style = this.getLabelStyle(datum, calloutLabel, 'calloutLabel');
-        const fitted = this.fitCalloutLabel(datum.calloutLabel.text, style);
-        return {
-            extent: expandLabelBoxExtent(style),
-            calloutLength: this.getCalloutLineStyle(datum, false).length,
-            text: fitted.text,
-            font: fontWithSize(style, fitted.fontSize),
-        };
-    }
-
-    private getCalloutLabelBBox(
-        datum: Has<'calloutLabel', PieDonutNodeDatum>,
-        metrics = this.getCalloutLabelMetrics(datum)
-    ): BBox {
         const label = datum.calloutLabel;
-        const { extent, calloutLength, text, font } = metrics;
 
-        const labelRadius = this.getCalloutLabelRadius(datum, label, datum.outerRadius, extent, calloutLength);
+        const style = this.getLabelStyle(datum, calloutLabel, 'calloutLabel');
+        const padding = expandLabelPadding(style);
+        const calloutLength = this.getCalloutLineStyle(datum, false).length;
 
-        return Text.measureBBox(text, datum.midCos * labelRadius, datum.midSin * labelRadius + label.collisionOffsetY, {
-            font,
-            textAlign: label.collisionTextAlign ?? label.textAlign,
-            textBaseline: label.textBaseline,
-        }).grow(extent);
+        const labelRadius = datum.outerRadius + calloutLength + calloutLabel.offset;
+        const x = datum.midCos * labelRadius;
+        const y = datum.midSin * labelRadius + label.collisionOffsetY;
+
+        const textAlign = label.collisionTextAlign ?? label.textAlign;
+        const textBaseline = label.textBaseline;
+        const fitted = this.fitCalloutLabel(label.text, style);
+        return Text.measureBBox(fitted.text, x, y, {
+            font: fontWithSize(style, fitted.fontSize),
+            textAlign,
+            textBaseline,
+        }).grow(padding);
     }
 
-    private computeCalloutLabelCollisionOffsets(isBoxHidden: (box: BBox) => boolean) {
+    private computeCalloutLabelCollisionOffsets() {
         const { radiusScale } = this;
         const { minSpacing } = this.properties.calloutLabel;
         const innerRadius = radiusScale.convert(0);
@@ -1498,85 +1540,11 @@ export class DonutSeries extends PolarSeries<
             label.hidden = false;
             label.collisionTextAlign = undefined;
             label.collisionOffsetY = 0;
-            label.collisionRadiusOffset = 0;
         }
 
-        const metrics = new Map(data.map((d) => [d, this.getCalloutLabelMetrics(d)] as const));
-        const metricsOf = (d: (typeof data)[number]) => metrics.get(d)!;
-        const labelBox = (d: (typeof data)[number]) => this.getCalloutLabelBBox(d, metricsOf(d));
-
-        const crossesCalloutLine = (box: BBox, d: (typeof data)[number]) => {
-            const { midCos, midSin, outerRadius } = d;
-            const lineEndRadius = outerRadius + d.calloutLabel.collisionRadiusOffset + metricsOf(d).calloutLength;
-            const x1 = midCos * outerRadius;
-            const y1 = midSin * outerRadius;
-            const x2 = midCos * lineEndRadius;
-            const y2 = midSin * lineEndRadius;
-
-            // This runs for every pair of labels, so reject on the segment's extent before the exact test.
-            if (
-                Math.max(x1, x2) < box.x ||
-                Math.min(x1, x2) > box.x + box.width ||
-                Math.max(y1, y2) < box.y ||
-                Math.min(y1, y2) > box.y + box.height
-            ) {
-                return false;
-            }
-
-            // A line wholly inside the box crosses none of its edges, so containment is a separate question.
-            return box.containsPoint(x1, y1) || boxCrossesSegment(box, x1, y1, x2, y2);
-        };
-
-        // Every callout line is radial, so a box can only be crossed by lines at an angle it subtends from the
-        // centre. Sorting the labels by that angle turns a scan over all of them into a walk of a narrow arc.
-        const byAngle = data
-            .map((d) => ({ angle: normalizeAngle360(Math.atan2(d.midSin, d.midCos)), datum: d }))
-            .sort((a, b) => a.angle - b.angle);
-
-        const firstAtOrAfter = (angle: number) => {
-            let low = 0;
-            let high = byAngle.length;
-            while (low < high) {
-                const mid = (low + high) >> 1;
-                if (byAngle[mid].angle < angle) {
-                    low = mid + 1;
-                } else {
-                    high = mid;
-                }
-            }
-            return low;
-        };
-
-        /** How many other labels' callout lines `box` crosses, stopping once it reaches `budget`. */
-        const countCrossedCalloutLines = (
-            box: BBox,
-            arc: Arc | undefined,
-            self: (typeof data)[number],
-            budget: number
-        ) => {
-            // A label always sits at the end of its own line, so only the other lines are obstacles.
-            const count = (d: (typeof data)[number], lines: number) =>
-                d !== self && crossesCalloutLine(box, d) ? lines + 1 : lines;
-
-            let lines = 0;
-            if (arc == null) {
-                for (const { datum } of byAngle) {
-                    lines = count(datum, lines);
-                    if (lines >= budget) break;
-                }
-                return lines;
-            }
-
-            const total = byAngle.length;
-            for (let steps = 0, i = firstAtOrAfter(arc.start) % total; steps < total; steps++, i = (i + 1) % total) {
-                const { angle, datum } = byAngle[i];
-                if (normalizeAngle360(angle - arc.start) > arc.sweep) break;
-
-                lines = count(datum, lines);
-                if (lines >= budget) break;
-            }
-            return lines;
-        };
+        if (data.length <= 1) {
+            return;
+        }
 
         const leftLabels = data.filter((d) => d.midCos < 0).sort((a, b) => a.midSin - b.midSin);
         const rightLabels = data.filter((d) => d.midCos >= 0).sort((a, b) => a.midSin - b.midSin);
@@ -1592,8 +1560,8 @@ export class DonutSeries extends PolarSeries<
             next: (typeof data)[number],
             direction: 'to-top' | 'to-bottom'
         ) => {
-            const box = labelBox(label).grow(minSpacing / 2);
-            const other = labelBox(next).grow(minSpacing / 2);
+            const box = this.getCalloutLabelBBox(label).grow(minSpacing / 2);
+            const other = this.getCalloutLabelBBox(next).grow(minSpacing / 2);
             // The full collision is not detected, because sometimes
             // the next label can appear behind the label with offset
             const collidesOrBehind =
@@ -1621,225 +1589,16 @@ export class DonutSeries extends PolarSeries<
             }
         };
 
-        let maxOuterRadius = 0;
-        let extentSum = 0;
         const sectorObstacles = fullData.map((datum) => {
             const { startAngle, endAngle, outerRadius } = datum;
-            maxOuterRadius = Math.max(maxOuterRadius, outerRadius);
             const sector = { startAngle, endAngle, innerRadius, outerRadius };
-            const box = sectorBox(sector);
-            extentSum += box.width + box.height;
-            // Probes move the label, never the sector, so the sector's geometry is resolved once.
-            const arc = { start: normalizeAngle360(startAngle), sweep: Math.abs(endAngle - startAngle) };
-            return { box, sector, arc, edges: sectorEdges(sector), outerRadiusSquared: outerRadius * outerRadius };
+            return { box: sectorBox(sector), ref: sector };
         });
-
-        // The bisection probes this far more often than anything else in the pass, so prune before the exact test.
-        const sectorIndex = new SpatialIndex<(typeof sectorObstacles)[number]>();
-        sectorIndex.reset(
-            BBox.merge(sectorObstacles.map(({ box }) => box)),
-            gridCellSize(extentSum, 2 * sectorObstacles.length)
-        );
-        for (const obstacle of sectorObstacles) {
-            sectorIndex.insert(obstacle.box, obstacle);
-        }
-
-        // Anything lying in both the box and a sector shares an angle and a radius with each, so a sector past
-        // either bound cannot overlap. Both rejects are far cheaper than `boxOverlapsSector`, the exact test.
-        const collidesSectors = (box: BBox, arc: Arc | undefined) => {
-            const dx = Math.max(box.x, 0, -(box.x + box.width));
-            const dy = Math.max(box.y, 0, -(box.y + box.height));
-            const nearestRadiusSquared = dx * dx + dy * dy;
-
-            return sectorIndex.query(
-                box,
-                (obstacle) =>
-                    nearestRadiusSquared <= obstacle.outerRadiusSquared &&
-                    (arc == null || arcsOverlap(arc, obstacle.arc)) &&
-                    box.collidesBBox(obstacle.box) &&
-                    boxOverlapsSector(box, obstacle.sector, obstacle.edges)
-            );
-        };
-
-        const avoidSectorCollisions = () => {
-            // A push moves the label along its mid-angle without resizing it, so each side is measured once and
-            // every probe of that side is the same box translated. Re-measuring per probe dominated this pass.
-            interface Placement {
-                /** The unpadded box at zero offset; every probe of this side is it, translated. */
-                base: BBox;
-                /** Covers this side at every offset, so obstacle rejects can use it without re-deriving one. */
-                arc: Arc | undefined;
-            }
-
-            const placements = new Map<(typeof data)[number], Map<CanvasTextAlign | undefined, Placement>>();
-            const probe = new BBox(0, 0, 0, 0);
-
-            const placementOf = (d: (typeof data)[number], side: CanvasTextAlign | undefined) => {
-                let bySide = placements.get(d);
-                if (bySide == null) {
-                    bySide = new Map<CanvasTextAlign | undefined, Placement>();
-                    placements.set(d, bySide);
-                }
-
-                const cached = bySide.get(side);
-                if (cached != null) return cached;
-
-                const label = d.calloutLabel;
-                const { collisionTextAlign, collisionRadiusOffset } = label;
-                label.collisionTextAlign = side;
-                label.collisionRadiusOffset = 0;
-                const base = labelBox(d);
-                label.collisionTextAlign = collisionTextAlign;
-                label.collisionRadiusOffset = collisionRadiusOffset;
-
-                // Obstacles are tested against the padded box, so the arc has to cover that rather than the text.
-                const padded = base.clone().grow(minSpacing / 2);
-
-                // A push slides the box away from the centre, which only narrows the angles it covers, so the
-                // zero-offset arc covers every offset - but only while the box lies wholly ahead of the centre.
-                const outward =
-                    Math.min(
-                        d.midCos * padded.x + d.midSin * padded.y,
-                        d.midCos * (padded.x + padded.width) + d.midSin * padded.y,
-                        d.midCos * padded.x + d.midSin * (padded.y + padded.height),
-                        d.midCos * (padded.x + padded.width) + d.midSin * (padded.y + padded.height)
-                    ) > 0;
-
-                const placement: Placement = { base, arc: outward ? boxArc(padded) : undefined };
-                bySide.set(side, placement);
-                return placement;
-            };
-
-            /** The unpadded probe box. Consumed before the next is taken, so they all share one instance. */
-            const probeBox = ({ base }: Placement, d: (typeof data)[number], offset: number) => {
-                probe.x = base.x + d.midCos * offset;
-                probe.y = base.y + d.midSin * offset;
-                probe.width = base.width;
-                probe.height = base.height;
-                return probe;
-            };
-
-            // A sector is cleared by the margin labels keep from each other, so a remedy never stops flush to an arc.
-            const encroachesSector = (placement: Placement, d: (typeof data)[number], offset: number) =>
-                collidesSectors(probeBox(placement, d, offset).grow(minSpacing / 2), placement.arc);
-
-            // Sector overlaps must go; crossing a neighbour's callout line is lesser, so it only ranks candidates.
-            // Line crossings rank a candidate only against an incumbent it ties with on sectors, so one that
-            // already loses needs no count at all and a tying one can stop as soon as it cannot win.
-            const overlaps = (
-                d: (typeof data)[number],
-                placement: Placement,
-                box: BBox,
-                best?: { sectors: number; lines: number }
-            ) => {
-                box = box.grow(minSpacing / 2);
-                const sectors = collidesSectors(box, placement.arc) ? 1 : 0;
-                if (best != null && sectors > best.sectors) return { sectors, lines: 0 };
-
-                const lineBudget = sectors === best?.sectors ? best.lines + 1 : Infinity;
-                return { sectors, lines: countCrossedCalloutLines(box, placement.arc, d, lineBudget) };
-            };
-
-            // Setting the text beside its line keeps the label at its own radius, so it outranks a longer callout.
-            const sidesToTry = (d: (typeof data)[number]): (CanvasTextAlign | undefined)[] =>
-                d.calloutLabel.textAlign === 'center'
-                    ? [undefined, d.midCos < 0 ? 'right' : 'left', d.midCos < 0 ? 'left' : 'right']
-                    : [undefined];
-
-            // No sector reaches past the largest radius, which bounds the search: `limit` is the upper bracket.
-            const smallestClearingPush = (d: (typeof data)[number], placement: Placement, limit: number) => {
-                if (encroachesSector(placement, d, limit)) return;
-
-                let colliding = 0;
-                let clear = limit;
-                for (let i = 0; i < 8; i++) {
-                    const offset = (colliding + clear) / 2;
-                    if (encroachesSector(placement, d, offset)) {
-                        colliding = offset;
-                    } else {
-                        clear = offset;
-                    }
-                }
-                return clear;
-            };
-
-            const resolve = (d: (typeof data)[number]) => {
-                const label = d.calloutLabel;
-                const place = (side: CanvasTextAlign | undefined, offset: number) => {
-                    label.collisionTextAlign = side;
-                    label.collisionRadiusOffset = offset;
-                };
-
-                place(undefined, 0);
-                const seed = placementOf(d, undefined);
-                let best = {
-                    side: undefined as CanvasTextAlign | undefined,
-                    offset: 0,
-                    ...overlaps(d, seed, probeBox(seed, d, 0)),
-                };
-                if (best.sectors === 0 && best.lines === 0) return;
-
-                const consider = (side: CanvasTextAlign | undefined, offset: number) => {
-                    const placement = placementOf(d, side);
-                    const box = probeBox(placement, d, offset);
-                    // A remedy that costs the label its visibility is worse than the overlap it was avoiding.
-                    if (isBoxHidden(box)) return;
-
-                    // Ranked on sector overlaps first, then line crossings, and only then on how far it moved.
-                    const candidate = { side, offset, ...overlaps(d, placement, box, best) };
-                    if (candidate.sectors !== best.sectors) {
-                        if (candidate.sectors < best.sectors) best = candidate;
-                    } else if (candidate.lines !== best.lines) {
-                        if (candidate.lines < best.lines) best = candidate;
-                    } else if (candidate.offset < best.offset) {
-                        best = candidate;
-                    }
-                };
-
-                // Index 0 is the placement `best` was seeded from, so re-probing it can never win.
-                const sides = sidesToTry(d);
-                for (const side of sides.slice(1)) {
-                    consider(side, 0);
-                    // Nothing beats an unmoved label that overlaps nothing, so the pushes below cannot improve on it.
-                    if (best.sectors === 0 && best.lines === 0 && best.offset === 0) {
-                        place(best.side, 0);
-                        return;
-                    }
-                }
-
-                const limit = maxOuterRadius - d.outerRadius;
-                if (limit > 0) {
-                    for (const side of sides) {
-                        const offset = smallestClearingPush(d, placementOf(d, side), limit);
-                        if (offset != null) consider(side, offset);
-                    }
-                }
-
-                if (best.sectors > 0) {
-                    // Nothing clears the sectors, so settle for the side that at least moves off their mid-angle.
-                    place(sides.length > 1 ? sides[1] : undefined, 0);
-                    return;
-                }
-                place(best.side, best.offset);
-            };
-
-            // A push lengthens a callout line, so labels settled earlier may end up crossing it: sweep twice.
-            // A sweep that moved nothing leaves the next one nothing to react to, so it can stop there.
-            for (let pass = 0; pass < 2; pass++) {
-                let moved = false;
-                for (const d of data) {
-                    resolve(d);
-                    const { collisionTextAlign, collisionRadiusOffset } = d.calloutLabel;
-                    moved ||= collisionTextAlign != null || collisionRadiusOffset !== 0;
-                }
-                if (!moved) break;
-            }
-        };
 
         const avoidXCollisions = (labels: typeof data) => {
             const labelsCollideLabelsByY = data.some((datum) => datum.calloutLabel.collisionOffsetY !== 0);
 
-            const boxes = labels.map((label) => labelBox(label));
+            const boxes = labels.map((label) => this.getCalloutLabelBBox(label));
             const paddedBoxes = boxes.map((box) => box.clone().grow(minSpacing / 2));
 
             let labelsCollideLabelsByX = false;
@@ -1854,20 +1613,13 @@ export class DonutSeries extends PolarSeries<
                 }
             }
 
-            // Where a series has one radius, siding the whole group is its only remedy for a sector overlap.
-            if (
-                !labelsCollideLabelsByX &&
-                !labelsCollideLabelsByY &&
-                !boxes.some((box) => collidesSectors(box, boxArc(box)))
-            ) {
-                return false;
-            }
+            const labelsCollideSectors = anyOverlap(boxes, sectorObstacles, boxOverlapsSector);
 
-            let sided = false;
+            if (!labelsCollideLabelsByX && !labelsCollideLabelsByY && !labelsCollideSectors) return;
+
             for (const d of labels) {
+                if (d.calloutLabel.textAlign !== 'center') continue;
                 const label = d.calloutLabel;
-                // Sector overlaps have already picked a side; overriding it here would undo their remedy.
-                if (label.textAlign !== 'center' || label.collisionTextAlign != null) continue;
                 if (d.midCos < 0) {
                     label.collisionTextAlign = 'right';
                 } else if (d.midCos > 0) {
@@ -1875,29 +1627,13 @@ export class DonutSeries extends PolarSeries<
                 } else {
                     label.collisionTextAlign = 'center';
                 }
-                sided = true;
             }
-            return sided;
         };
 
-        avoidSectorCollisions();
-        // The remaining passes resolve labels against each other, so a lone label has nothing left to avoid.
-        if (data.length > 1) {
-            // Siding a label resizes the box the Y cascade measured, and the X pass in turn reads the
-            // offsets that cascade produced, so re-cascade once the sides settle. A group already holding
-            // one side is left alone, making the second round a fixed point rather than a cut-off.
-            for (let round = 0; round < 2; round++) {
-                avoidYCollisions(leftLabels);
-                avoidYCollisions(rightLabels);
-                const topSided = avoidXCollisions(topLabels);
-                const bottomSided = avoidXCollisions(bottomLabels);
-                if (!topSided && !bottomSided) break;
-
-                for (const d of data) {
-                    d.calloutLabel.collisionOffsetY = 0;
-                }
-            }
-        }
+        avoidYCollisions(leftLabels);
+        avoidYCollisions(rightLabels);
+        avoidXCollisions(topLabels);
+        avoidXCollisions(bottomLabels);
     }
 
     private fitCalloutLabel(text: NormalisedTextOrSegments, style: FontOptions) {
@@ -1943,13 +1679,7 @@ export class DonutSeries extends PolarSeries<
             const style = this.getLabelStyle(datum, calloutLabel, 'calloutLabel', isDatumHighlighted);
             const calloutLength = this.getCalloutLineStyle(datum, false).length;
 
-            const labelRadius = this.getCalloutLabelRadius(
-                datum,
-                label,
-                outerRadius,
-                expandLabelBoxExtent(style),
-                calloutLength
-            );
+            const labelRadius = outerRadius + calloutLength + calloutLabel.offset;
             const x = datum.midCos * labelRadius;
             const y = datum.midSin * labelRadius + label.collisionOffsetY;
 
@@ -1998,7 +1728,7 @@ export class DonutSeries extends PolarSeries<
 
     override computeLabelsBBox(options: { hideWhenNecessary: boolean }, seriesRect: BBox) {
         const { calloutLabel } = this.properties;
-        const { maxCollisionOffset, minSpacing } = calloutLabel;
+        const { offset, maxCollisionOffset, minSpacing } = calloutLabel;
 
         if (!calloutLabel.avoidCollisions) {
             return null;
@@ -2007,6 +1737,7 @@ export class DonutSeries extends PolarSeries<
         this.maybeRefreshNodeData();
 
         this.updateRadiusScale(false);
+        this.computeCalloutLabelCollisionOffsets();
 
         const textBoxes: BBox[] = [];
         const text = new Text();
@@ -2029,29 +1760,6 @@ export class DonutSeries extends PolarSeries<
             }
         }
 
-        const titleCleanArea =
-            titleBox == null
-                ? undefined
-                : new BBox(
-                      titleBox.x - minSpacing,
-                      -this.centerY,
-                      titleBox.width + 2 * minSpacing,
-                      titleBox.y + titleBox.height + minSpacing + this.centerY
-                  );
-
-        const isBoxHidden = (box: BBox) => {
-            if (titleCleanArea != null && box.collidesBBox(titleCleanArea)) return true;
-            if (!options.hideWhenNecessary) return false;
-
-            const { maxWidth, hasVerticalOverflow, hasSurroundingSeriesOverflow } = this.getLabelOverflow(
-                box,
-                seriesRect
-            );
-            return hasVerticalOverflow || box.width > maxWidth || hasSurroundingSeriesOverflow;
-        };
-
-        this.computeCalloutLabelCollisionOffsets(isBoxHidden);
-
         for (const datum of this.calloutNodeData) {
             const label = datum.calloutLabel;
             if (!label || datum.outerRadius === 0) {
@@ -2060,13 +1768,7 @@ export class DonutSeries extends PolarSeries<
 
             const style = this.getLabelStyle(datum, calloutLabel, 'calloutLabel');
             const calloutLength = this.getCalloutLineStyle(datum, false).length;
-            const labelRadius = this.getCalloutLabelRadius(
-                datum,
-                label,
-                datum.outerRadius,
-                expandLabelBoxExtent(style),
-                calloutLength
-            );
+            const labelRadius = datum.outerRadius + calloutLength + offset;
             const x = datum.midCos * labelRadius;
             const y = datum.midSin * labelRadius + label.collisionOffsetY;
             const fitted = this.fitCalloutLabel(label.text, style);
@@ -2083,9 +1785,37 @@ export class DonutSeries extends PolarSeries<
             label.box = box;
 
             // Hide labels that where pushed too far by the collision avoidance algorithm
-            if (Math.abs(label.collisionOffsetY) > maxCollisionOffset || isBoxHidden(box)) {
+            if (Math.abs(label.collisionOffsetY) > maxCollisionOffset) {
                 label.hidden = true;
                 continue;
+            }
+
+            // Hide labels intersecting or above the title
+            if (titleBox) {
+                const seriesTop = -this.centerY;
+                const titleCleanArea = new BBox(
+                    titleBox.x - minSpacing,
+                    seriesTop,
+                    titleBox.width + 2 * minSpacing,
+                    titleBox.y + titleBox.height + minSpacing - seriesTop
+                );
+                if (box.collidesBBox(titleCleanArea)) {
+                    label.hidden = true;
+                    continue;
+                }
+            }
+
+            if (options.hideWhenNecessary) {
+                const { maxWidth, hasVerticalOverflow, hasSurroundingSeriesOverflow } = this.getLabelOverflow(
+                    box,
+                    seriesRect
+                );
+                const isTooShort = box.width > maxWidth;
+
+                if (hasVerticalOverflow || isTooShort || hasSurroundingSeriesOverflow) {
+                    label.hidden = true;
+                    continue;
+                }
             }
 
             label.hidden = false;
@@ -2149,13 +1879,17 @@ export class DonutSeries extends PolarSeries<
                         // The wedge bounds the text rather than capping the inscribed rect, and is lopsided
                         // about the anchor, so the fit also reports where to draw.
                         const anchor = { x: datum.midCos * labelRadius, y: datum.midSin * labelRadius };
+                        // The node judges each candidate, so alignment and boxing are settled first.
+                        text.setAlign(align);
+                        text.setBoxing(style);
                         const fitted = fitSectorLabelToWedge(
                             datum.sectorLabel.text,
                             sectorFit,
                             style,
                             anchor,
                             sectorBounds,
-                            labelPadding
+                            labelPadding,
+                            wedgeLabelLayout(text)
                         );
                         text.text = fitted.text;
                         text.x = fitted.x;

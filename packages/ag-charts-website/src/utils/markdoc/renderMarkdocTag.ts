@@ -9,6 +9,8 @@ import { getDocumentationArchiveUrl } from '@ag-website-shared/utils/getArchiveU
 import { getChangelogUrl } from '@ag-website-shared/utils/getChangelogUrl';
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
 import { getExamplesPath } from '@components/docs/utils/filesData';
+import { galleryFamilyName } from '@components/gallery/utils/gallerySeo';
+import { type RelatedGalleryData, getFamilyExamples } from '@components/gallery/utils/relatedExamples';
 import { agLibraryVersion } from '@constants';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
@@ -43,6 +45,8 @@ export async function renderMarkdocTag(params: RenderMarkdocTagParams): Promise<
                 return await renderApiReferenceTable({ attributes, framework });
             case 'moduleMappings':
                 return await renderModuleMappings(framework, siteRoot);
+            case 'galleryExamples':
+                return await renderGalleryExamples(attributes, siteRoot);
             case 'majorTable':
                 return await renderMajorTable(attributes, framework, siteRoot);
             case 'embedSnippet':
@@ -76,6 +80,20 @@ async function renderModuleMappings(framework: MarkdownFramework, siteRoot?: str
     }
     const groups = (entry.data as { groups: ModuleNode[] }).groups ?? [];
     return buildModuleMappingsTable(groups, framework, siteRoot);
+}
+
+async function renderGalleryExamples(attributes: Record<string, any>, siteRoot?: string): Promise<string> {
+    const entry = await getEntry('gallery', 'data');
+    if (!entry) {
+        return '';
+    }
+    const family = getFamilyExamples({
+        galleryData: entry.data as RelatedGalleryData,
+        seriesName: String(attributes.series ?? ''),
+    });
+    const links = family.examples.map(({ label, url }) => `- [${label}](${toAbsoluteUrl(url, siteRoot)})`).join('\n');
+    const hubUrl = toAbsoluteUrl(family.hubUrl, siteRoot);
+    return `Every ${galleryFamilyName(family.title)} example in the [AG Charts gallery](${hubUrl}):\n\n${links}`;
 }
 
 async function renderMajorTable(

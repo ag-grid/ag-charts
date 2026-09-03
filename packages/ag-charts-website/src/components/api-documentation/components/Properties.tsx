@@ -89,11 +89,15 @@ function CodeCollapsibleButton({
 }) {
     return (
         <button
+            type="button"
+            // Safari omits buttons from the tab order without an explicit tabindex.
+            tabIndex={0}
             className={classnames(styles.seeMore, 'button-style-none', {
                 [styles.isExpanded]: isExpanded,
             })}
             onClick={onClick}
-            aria-label={`See more details about ${name}`}
+            aria-expanded={Boolean(isExpanded)}
+            aria-label={`${isExpanded ? 'Hide' : 'See more'} details about ${name}`}
         >
             <Icon name="chevronDown" />
         </button>

@@ -11,9 +11,9 @@ import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 export function buildDemoMarkdown({ demo, siteRoot }: { demo: DemoExampleId; siteRoot?: string }): string {
     const content = DEMO_PAGE_CONTENT[demo];
     const { primaryCta, secondaryCta } = DEMO_PAGE_HERO;
-    // Registry paths are base-relative and unslashed (`./examples`); the site's URLs have a
-    // trailing slash, and a twin's links are read outside the site that would redirect.
-    const demoUrl = (path: string) => toAbsoluteUrl(urlWithBaseUrl(`${path.replace(/^\./, '')}/`), siteRoot);
+    // Registry paths are base-relative (`./examples/`); a twin's links are read outside the site,
+    // so they are made absolute here.
+    const demoUrl = (path: string) => toAbsoluteUrl(urlWithBaseUrl(path), siteRoot);
     const current = getDemoExample(demo);
 
     const document = [
