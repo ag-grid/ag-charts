@@ -322,6 +322,23 @@ EOF
 
 CACHE_RELEASE_TAG="${AG_CLOUD_CACHE_TAG:-cloud-cache}"
 
+# Generation label for the encryption key, carried in the asset name. It must
+# match the bake action's `key-generation` input: change one, change both.
+#
+# Its whole purpose is rotation. Assets are otherwise keyed by the lockfile hash
+# alone, so a new passphrase would leave every published asset undecryptable
+# under a name sessions still resolve — each one fetching several hundred MB
+# before finding out. A generation in the name turns that into an ordinary cache
+# miss, and the superseded assets age out through the bake's own prune.
+CACHE_KEY_GENERATION="${AG_CLOUD_CACHE_KEY_GENERATION:-k1}"
+
+# Two independent subkeys from the one passphrase, so the key that encrypts is
+# not the key that authenticates. Labelled HMAC rather than a KDF because both
+# sides need the same derivation from a shell with nothing installed.
+cache_subkey() {
+    printf '%s' "${AG_CLOUD_CACHE_KEY:-}" | openssl dgst -sha256 -hmac "$1" -r | cut -d' ' -f1
+}
+
 # owner/repo carrying the baked asset, derived from the clone rather than
 # hardcoded: this script is shared by ag-charts, ag-grid and ag-studio through the
 # ag-shared subrepo, and each publishes its own.
@@ -366,9 +383,31 @@ restore_prebuilt_node_modules() {
         return 1
     fi
 
+    mkdir -p "$AG_CLOUD_CACHE_DIR" 2>/dev/null || true
+
+    # The payload is encrypted, so without the passphrase there is no fast path.
+    #
+    # Report this as a CONFIGURATION fault and not as a miss. From the far side
+    # the two are indistinguishable — both end with an unscripted tree and a
+    # session owing finish-setup.sh — and an environment whose variable was never
+    # set would otherwise read as "no bake for this lockfile" for ever, silently
+    # taking the slow path this whole mechanism exists to remove.
+    if [[ -z "${AG_CLOUD_CACHE_KEY:-}" ]]; then
+        log_warn "CONFIG: AG_CLOUD_CACHE_KEY is unset, so the prebuilt cache cannot be decrypted. Add it to the cloud environment's variables (see external/ag-shared/docs/claude-code-cloud-sessions.md), then rebuild the environment. Falling back to a local install."
+        printf 'AG_CLOUD_CACHE_KEY unset\n' >"${AG_CLOUD_CACHE_DIR}/prebuilt-skipped" 2>/dev/null || true
+        return 1
+    fi
+
+    # Clear the marker as soon as the key is known good, not after a successful
+    # download. An earlier build may have recorded a missing or mismatched key; if
+    # this one has the key but then hits an ordinary miss, a zstd failure or a
+    # network error, a marker left in place would have cloud-doctor.sh reporting a
+    # configuration fault that no longer exists.
+    rm -f "${AG_CLOUD_CACHE_DIR}/prebuilt-skipped"
+
     local hash asset url
     hash="$(sha256_of "$REPO_ROOT/yarn.lock")"
-    asset="node-modules-${hash:0:16}.tar.zst"
+    asset="node-modules-${hash:0:16}-${CACHE_KEY_GENERATION}.bin"
     url="https://github.com/${slug}/releases/download/${CACHE_RELEASE_TAG}/${asset}"
 
     if ! ensure_zstd; then
@@ -395,6 +434,48 @@ restore_prebuilt_node_modules() {
     fi
     log_info "downloaded ${asset} ($(du -sh "$tarball" 2>/dev/null | awk '{print $1}'))"
 
+    # Authenticate before decrypting.
+    #
+    # The asset carries its MAC as a fixed 65-byte header — 64 hex characters and
+    # a newline — ahead of the ciphertext. Encryption alone would not be enough:
+    # `openssl enc` is unauthenticated and AES-CTR is malleable, so an encrypted
+    # payload is merely unreadable, not unforgeable. Anyone able to write the
+    # release could swap it; only a holder of the passphrase can produce one that
+    # verifies here.
+    #
+    # The authenticated data covers the asset NAME as well as the bytes, and the
+    # name used is the one derived from THIS repo's lockfile above — never anything
+    # read from the download. Over the ciphertext alone, a valid asset copied onto
+    # another lockfile's name would verify, and the wrong tree would then be cached
+    # with this lockfile's hash stamped beside it, which nothing downstream could
+    # detect. The encoding must match the bake action's byte for byte.
+    #
+    # The shape check is load-bearing too, and not paranoia about the bake: a
+    # proxy or an error page served with a 200 arrives as a plausible file, and
+    # "the header is not 64 hex characters" is a far more useful log line than a
+    # zstd format error 400 MB later.
+    local kenc kmac mac_want mac_got
+    kenc="$(cache_subkey ag-cloud-cache-enc)"
+    kmac="$(cache_subkey ag-cloud-cache-mac)"
+    mac_want="$(head -c 64 "$tarball" 2>/dev/null || true)"
+    if [[ ! "$mac_want" =~ ^[0-9a-f]{64}$ ]]; then
+        rm -f "$tarball"
+        log_warn "CONFIG: ${asset} does not start with a MAC header — the download is not a cache asset. Falling back to a local install."
+        printf '%s: malformed header\n' "$asset" >"${AG_CLOUD_CACHE_DIR}/prebuilt-skipped" 2>/dev/null || true
+        return 1
+    fi
+    mac_got="$({
+        printf 'ag-cloud-cache/v1\n%s\n' "$asset"
+        tail -c +66 "$tarball"
+    } | openssl dgst -sha256 -hmac "$kmac" -r | cut -d' ' -f1)"
+    if [[ "$mac_want" != "$mac_got" ]]; then
+        rm -f "$tarball"
+        log_warn "CONFIG: ${asset} failed authentication — AG_CLOUD_CACHE_KEY does not match the key generation ${CACHE_KEY_GENERATION} was baked with, or the asset was altered or substituted after publication. Falling back to a local install."
+        printf '%s: MAC mismatch\n' "$asset" >"${AG_CLOUD_CACHE_DIR}/prebuilt-skipped" 2>/dev/null || true
+        return 1
+    fi
+    log_info "authenticated ${asset}"
+
     local staging="${AG_CLOUD_CACHE_DIR}/node_modules.prebuilt.$$"
     rm -rf "$staging"
     mkdir -p "$staging"
@@ -403,9 +484,18 @@ restore_prebuilt_node_modules() {
         rm -rf "$staging" "$tarball"
         return 1
     fi
-    if ! with_timeout "$slice" tar -I zstd -xf "$tarball" -C "$staging" 2>/dev/null; then
+    # Decrypt and extract in one pass. Streaming rather than staging a plaintext
+    # tarball keeps peak disk at one copy of the tree instead of two, and the key
+    # goes through the environment rather than argv so it is not visible in `ps`
+    # to anything else sharing the VM.
+    if ! AG_CLOUD_CACHE_KENC="$kenc" with_timeout "$slice" bash -c '
+        set -o pipefail
+        tail -c +66 "$1" |
+            openssl enc -d -aes-256-ctr -pbkdf2 -iter 200000 -pass env:AG_CLOUD_CACHE_KENC |
+            tar -I zstd -x -C "$2"
+    ' _ "$tarball" "$staging" 2>/dev/null; then
         rm -rf "$staging" "$tarball"
-        log_warn "prebuilt tarball failed to extract; falling back to a local install"
+        log_warn "prebuilt payload failed to decrypt or extract; falling back to a local install"
         return 1
     fi
     rm -f "$tarball"
