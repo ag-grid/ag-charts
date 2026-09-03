@@ -2,15 +2,4 @@
 version: v1.25.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
-    SNYK-JS-PICOMATCH-15765511:
-        - '@types/jest@29.5.11 > expect@29.7.0 > jest-message-util@29.7.0 > micromatch@4.0.8 > picomatch@2.3.1':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2027-03-02T00:00:00.000Z
-              created: 2026-03-27T16:19:13.688Z
-        - '@types/jest@29.5.11 > expect@29.7.0 > jest-util@29.7.0 > picomatch@2.3.1':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2027-03-02T00:00:00.000Z
-              created: 2026-03-27T16:19:13.687Z
 patch: {}
