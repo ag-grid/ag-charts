@@ -1215,12 +1215,9 @@ describe('ScatterSeries', () => {
             await expectSameMarkersWhenReversed({ x: true, y: true });
         });
     });
-    describe('AG-18413 empty-string keys', () => {
-        type NodeDatum = { point: { size: number }; label?: { text?: string } };
+    describe('AG-18413 a key naming no column', () => {
         const nodeData = (c: AgChartInstance) =>
-            (deproxy(c).series[0] as unknown as { getNodeData(): NodeDatum[] }).getNodeData();
-        const nodeSizes = (c: AgChartInstance) => nodeData(c).map((d) => d.point.size);
-        const labelTexts = (c: AgChartInstance) => nodeData(c).map((d) => d.label?.text);
+            (deproxy(c).series[0] as unknown as { getNodeData(): unknown[] }).getNodeData();
 
         const createScatter = async (seriesOverrides: object) => {
             const options = {
@@ -1241,17 +1238,23 @@ describe('ScatterSeries', () => {
             await waitForChartStability(chart);
         };
 
-        it('treats an empty labelKey as an omitted labelKey (TC3)', async () => {
-            await createScatter({ labelKey: '', label: { enabled: true } });
-            const emptyKeySizes = nodeSizes(chart);
-            const emptyKeyLabels = labelTexts(chart);
+        it.each([
+            ['an empty labelKey (TC3)', { labelKey: '', label: { enabled: true } }, `''`],
+            ['an unmatched labelKey', { labelKey: 'nope', label: { enabled: true } }, `'nope'`],
+        ] as [string, object, string][])('renders nothing and warns for %s', async (_name, overrides, key) => {
+            await createScatter(overrides);
 
-            chart.destroy();
-            await createScatter({ label: { enabled: true } });
+            expect(nodeData(chart)).toEqual([]);
+            expect(deproxy(chart).series[0].hasData).toBe(false);
+            expectWarningsCalls().toEqual([
+                [`AG Charts - the key ${key} was not found in any data element for ScatterSeries-1.`],
+            ]);
+        });
 
-            expect(emptyKeySizes).toEqual(nodeSizes(chart));
-            expect(emptyKeyLabels).toEqual(labelTexts(chart));
-            expect(emptyKeyLabels).toEqual(['10', '20', '30']);
+        it('keeps the series populated for a labelKey that does name a column', async () => {
+            await createScatter({ labelKey: 'l', label: { enabled: true } });
+
+            expect(nodeData(chart)).toHaveLength(3);
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
     });
