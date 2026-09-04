@@ -39,10 +39,10 @@ describe('Logger', () => {
         });
     });
 
-    describe('setLevel', () => {
-        it('silences deprecation, warn and error at "none"', () => {
+    describe('setEnabledLevels', () => {
+        it('silences deprecation, warn and error when no level is enabled', () => {
             const logger = new Logger();
-            logger.setLevel('none');
+            logger.setEnabledLevels([]);
             logger.deprecation('d');
             logger.warn('w');
             logger.error('e');
@@ -50,9 +50,9 @@ describe('Logger', () => {
             expect(console.error).not.toHaveBeenCalled();
         });
 
-        it('emits only error at "error"', () => {
+        it('emits only error for ["error"]', () => {
             const logger = new Logger();
-            logger.setLevel('error');
+            logger.setEnabledLevels(['error']);
             logger.deprecation('d');
             logger.warn('w');
             logger.error('e');
@@ -60,9 +60,9 @@ describe('Logger', () => {
             expect(console.error).toHaveBeenCalledTimes(1);
         });
 
-        it('emits warn and error but not deprecation at "warning"', () => {
+        it('emits warn and error but not deprecation for ["error", "warning"]', () => {
             const logger = new Logger();
-            logger.setLevel('warning');
+            logger.setEnabledLevels(['error', 'warning']);
             logger.deprecation('d');
             logger.warn('w');
             logger.error('e');
@@ -71,12 +71,35 @@ describe('Logger', () => {
             expect(console.error).toHaveBeenCalledTimes(1);
         });
 
-        it('emits all three at "deprecation" and by default (anti-vacuity control)', () => {
-            const atDeprecation = new Logger();
-            atDeprecation.setLevel('deprecation');
-            atDeprecation.deprecation('d');
-            atDeprecation.warn('w');
-            atDeprecation.error('e');
+        it('emits warn but neither deprecation nor error for ["warning"]', () => {
+            const logger = new Logger();
+            logger.setEnabledLevels(['warning']);
+            logger.deprecation('d');
+            logger.warn('w');
+            logger.error('e');
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            expect(console.warn).toHaveBeenCalledWith('AG Charts - w');
+            expect(console.error).not.toHaveBeenCalled();
+        });
+
+        it('skips the intervening warn tier for ["error", "deprecation"]', () => {
+            const logger = new Logger();
+            logger.setEnabledLevels(['error', 'deprecation']);
+            logger.deprecation('d');
+            logger.warn('w');
+            logger.error('e');
+            // `deprecation` and `warn` share `console.warn`, so the message identifies which one ran.
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            expect(console.warn).toHaveBeenCalledWith('AG Charts - d');
+            expect(console.error).toHaveBeenCalledTimes(1);
+        });
+
+        it('emits all three for every level and by default (anti-vacuity control)', () => {
+            const allEnabled = new Logger();
+            allEnabled.setEnabledLevels(['error', 'warning', 'deprecation']);
+            allEnabled.deprecation('d');
+            allEnabled.warn('w');
+            allEnabled.error('e');
             expect(console.warn).toHaveBeenCalledTimes(2);
             expect(console.error).toHaveBeenCalledTimes(1);
 
@@ -96,7 +119,7 @@ describe('Logger', () => {
             logger.warn('before');
             expect(console.warn).toHaveBeenCalledTimes(1);
 
-            logger.setLevel('error');
+            logger.setEnabledLevels(['error']);
             logger.warn('after');
             expect(console.warn).toHaveBeenCalledTimes(1);
         });
@@ -112,24 +135,24 @@ describe('Logger', () => {
             expect(console.warn).toHaveBeenCalledTimes(2);
         });
 
-        it('re-emits a warnOnce message once the level is lowered below what suppressed it', () => {
+        it('re-emits a warnOnce message once its level is enabled again', () => {
             const logger = new Logger();
-            logger.setLevel('error');
+            logger.setEnabledLevels(['error']);
             logger.warnOnce('x');
             expect(console.warn).not.toHaveBeenCalled();
 
-            logger.setLevel('deprecation');
+            logger.setEnabledLevels(['error', 'warning', 'deprecation']);
             logger.warnOnce('x');
             expect(console.warn).toHaveBeenCalledTimes(1);
         });
 
-        it('re-emits a deprecationOnce message once the level is lowered below what suppressed it', () => {
+        it('re-emits a deprecationOnce message once its level is enabled again', () => {
             const logger = new Logger();
-            logger.setLevel('warning');
+            logger.setEnabledLevels(['error', 'warning']);
             logger.deprecationOnce('y');
             expect(console.warn).not.toHaveBeenCalled();
 
-            logger.setLevel('deprecation');
+            logger.setEnabledLevels(['error', 'warning', 'deprecation']);
             logger.deprecationOnce('y');
             expect(console.warn).toHaveBeenCalledTimes(1);
         });
@@ -167,10 +190,10 @@ describe('Logger', () => {
             expect(console.groupEnd).not.toHaveBeenCalled();
         });
 
-        it('does not open the group for a message its severity floor suppresses', () => {
-            // `'error'` is a quieter-than-warn floor, so a warn inside the group is gated out.
+        it('does not open the group for a message its enabled levels suppress', () => {
+            // `'warning'` is not enabled, so a warn inside the group is gated out.
             const logger = new Logger();
-            logger.setLevel('error');
+            logger.setEnabledLevels(['error']);
             logger.logGroup('gated', () => logger.warn('suppressed'));
             expect(console.warn).not.toHaveBeenCalled();
             expect(console.groupCollapsed).not.toHaveBeenCalled();

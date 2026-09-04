@@ -7,6 +7,8 @@ import { toAbsoluteUrl } from '@ag-website-shared/markdoc/toAbsoluteUrl';
 import { resolveSharedUrl } from '@ag-website-shared/utils/resolveSharedUrl';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 
+import { buildChartsFrontmatter } from './chartsFrontmatter';
+
 // The page is framework-agnostic, so its doc links resolve against one arbitrary framework.
 const FRAMEWORK: Framework = 'javascript';
 
@@ -114,12 +116,13 @@ function renderTrial(siteRoot?: string): string {
  * (DEV_LICENSE_DATA + chartsFeaturesMatrix.json) and serialises it directly.
  */
 export function buildLicensePricingMarkdown({ siteRoot }: { siteRoot?: string } = {}): string {
-    const frontmatter = [
-        '---',
-        'title: "AG Charts: Licence & Pricing"',
-        'description: "AG Charts licence plans, prices, and a full Community vs Enterprise vs Bundle feature comparison."',
-        '---',
-    ].join('\n');
+    const frontmatter = buildChartsFrontmatter({
+        pageUrl: '/license-pricing/',
+        siteRoot,
+        title: 'AG Charts: Licence & Pricing',
+        description:
+            'AG Charts licence plans, prices, and a full Community vs Enterprise vs Bundle feature comparison.',
+    });
 
     const document = [
         frontmatter,

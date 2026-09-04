@@ -246,7 +246,7 @@ function isChartTypeOperation(graph: OptionsGraphInterface, vertex: VertexInterf
     const seriesType = graph.getResolvedPath(['series', '0', 'type']);
     if (typeof seriesType !== 'string') return false;
 
-    const seriesModule = ModuleRegistry.getSeriesModule(seriesType);
+    const seriesModule = graph.moduleRegistry.getSeriesModule(seriesType);
     if (seriesModule == null) return false;
 
     switch (value) {

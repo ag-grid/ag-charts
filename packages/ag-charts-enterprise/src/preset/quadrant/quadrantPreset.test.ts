@@ -10,7 +10,9 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Logger } from 'ag-charts-core';
 import type {
+    AgBubbleSeriesOptions,
     AgChartOptions,
     AgQuadrantChartOptions,
     AgQuadrantRegionLabelOptions,
@@ -20,6 +22,7 @@ import type {
 } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createQuadrant } from './quadrantPreset';
 
 const NUMERIC: AgQuadrantChartOptions = {
     data: [
@@ -325,6 +328,45 @@ describe('Quadrant Preset', () => {
             }
         }
     );
+
+    it('forwards sizeName to the tooltip renderer params', () => {
+        const rendererParams: unknown[] = [];
+
+        const cartesianOptions = createQuadrant(
+            {
+                ...BUBBLE_SIZED_NUMERIC,
+                sizeName: 'Population',
+                tooltip: {
+                    renderer: (params) => {
+                        rendererParams.push(params);
+                        return {};
+                    },
+                },
+            },
+            undefined,
+            undefined,
+            undefined,
+            new Logger(),
+            () => undefined
+        );
+
+        const bubbleSeries = cartesianOptions.series?.find(
+            (series): series is AgBubbleSeriesOptions => series.type === 'bubble'
+        );
+        expect(bubbleSeries).toBeDefined();
+        expect(bubbleSeries?.sizeName).toBe('Population');
+
+        bubbleSeries?.tooltip?.renderer?.({
+            datum: { x: -100, y: -100, size: 1 },
+            xKey: 'x',
+            yKey: 'y',
+            sizeKey: 'size',
+            sizeName: 'Population',
+        } as Parameters<NonNullable<NonNullable<AgBubbleSeriesOptions['tooltip']>['renderer']>>[0]);
+
+        expect(rendererParams).toHaveLength(1);
+        expect(rendererParams[0]).toMatchObject({ sizeName: 'Population', region: 'bottom-left' });
+    });
 
     describe('region label spacing', () => {
         const SPACING_EXAMPLES: Record<string, AgQuadrantChartOptions> = {

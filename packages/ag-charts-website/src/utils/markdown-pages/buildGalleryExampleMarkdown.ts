@@ -8,6 +8,8 @@ import { toTitle } from '@utils/toTitle';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 import GithubSlugger from 'github-slugger';
 
+import { buildChartsFrontmatter } from './chartsFrontmatter';
+
 /** A gallery example as `getGalleryExamples` hands it to the page (and to this builder). */
 export interface GalleryExamplePage {
     title: string;
@@ -56,9 +58,12 @@ export async function buildGalleryExampleMarkdown({
     const seo = resolveGallerySeo(page);
 
     const document: string[] = [
-        ['---', `title: ${JSON.stringify(seo.title)}`, `description: ${JSON.stringify(seo.description)}`, '---'].join(
-            '\n'
-        ),
+        buildChartsFrontmatter({
+            pageUrl: `/gallery/${exampleName}/`,
+            siteRoot,
+            title: seo.title,
+            description: seo.description,
+        }),
         `# ${seo.h1}`,
         seo.intro,
     ];
@@ -68,8 +73,7 @@ export async function buildGalleryExampleMarkdown({
     document.push(
         `[View ${toTitle(page.seriesTitle)} Charts Documentation](${toAbsoluteUrl(seriesDocsUrl(page), siteRoot)})`
     );
-    // `getExampleUrl` omits the trailing slash the site serves the page on.
-    document.push(`[Run this example](${toAbsoluteUrl(`${getExampleUrl({ exampleName })}/`, siteRoot)})`);
+    document.push(`[Run this example](${toAbsoluteUrl(getExampleUrl({ exampleName }), siteRoot)})`);
 
     const entryFileName = contents?.entryFileName;
     if (entryFileName && contents?.files?.[entryFileName]) {

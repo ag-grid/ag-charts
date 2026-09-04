@@ -247,8 +247,12 @@ Object.assign(chordSeriesThemeableOptionsDef.label, without(undocumentedLabelFit
 
 const funnelPlacementDef = unionOrArray(
     'inside-center',
+    'inside-start',
+    'inside-end',
     'inside-before',
     'inside-after',
+    'outside-start',
+    'outside-end',
     'outside-before',
     'outside-after'
 );

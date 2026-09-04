@@ -35,6 +35,7 @@ import type { AgNumericValue, PaddingOptions } from 'ag-charts-types';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 import { FunnelConnector } from './funnelConnector';
+import type { PlacementAxes } from './funnelLabelPlacement';
 import { prepareConnectorAnimationFunctions, resetConnectorSelectionsFn } from './funnelUtil';
 
 const {
@@ -123,8 +124,8 @@ export interface FunnelLabelContext {
     placements: readonly _ModuleSupport.BarLabelPlacement[];
     /** The public placement values the label datum and `itemStyler` report. */
     reportedPlacements: readonly FunnelLabelPlacement[];
-    isVertical: boolean;
-    isUpward: boolean;
+    /** The bar axis flags each placement is positioned against, index-parallel with {@link placements}. */
+    axes: readonly PlacementAxes[];
     /** Cross-axis extent for the inside regions of a divider with no thickness of its own. */
     insideCrossRegion?: BoxBounds;
     routesThroughEngine: boolean;
@@ -543,8 +544,7 @@ export abstract class BaseFunnelSeries<
     protected abstract resolveLabelPlacements(barAlongX: boolean): {
         placements: readonly _ModuleSupport.BarLabelPlacement[];
         reportedPlacements: readonly FunnelLabelPlacement[];
-        isVertical: boolean;
-        isUpward: boolean;
+        axes: readonly PlacementAxes[];
         insideCrossRegion?: BoxBounds;
     };
 
@@ -561,15 +561,13 @@ export abstract class BaseFunnelSeries<
 
     private createLabelContext(barAlongX: boolean): FunnelLabelContext {
         const { label } = this.properties;
-        const { placements, reportedPlacements, isVertical, isUpward, insideCrossRegion } =
-            this.resolveLabelPlacements(barAlongX);
+        const { placements, reportedPlacements, axes, insideCrossRegion } = this.resolveLabelPlacements(barAlongX);
         const boxPadding = expandPlacementLabelBoxExtent(label);
         const labelFit = resolveLabelFit(label, !label.collision.alwaysShow);
         return {
             placements,
             reportedPlacements,
-            isVertical,
-            isUpward,
+            axes,
             insideCrossRegion,
             routesThroughEngine: barLabelRoutesThroughEngine(
                 undefined,
@@ -631,23 +629,24 @@ export abstract class BaseFunnelSeries<
         };
 
         const measured = measureLabelText(text, label);
-        const candidates = buildBarLabelCandidates<AgFunnelSeriesLabelFormatterParams, FunnelLabelPlacement>({
-            isUpward: labelContext.isUpward,
-            isVertical: labelContext.isVertical,
-            placements: labelContext.placements,
-            reportedPlacements: labelContext.reportedPlacements,
-            orientations: ['horizontal'],
-            spacing: label.spacing,
-            label,
-            textWidth: measured.width,
-            textHeight: measured.height,
-            rect,
-            insideCrossRegion: labelContext.insideCrossRegion,
-            hideable: !label.collision.alwaysShow,
-            plotRegion: labelContext.plotRegion,
-            fitted: labelContext.labelFit != null,
-            text,
-        });
+        const candidates = labelContext.placements.flatMap((placement, index) =>
+            buildBarLabelCandidates<AgFunnelSeriesLabelFormatterParams, FunnelLabelPlacement>({
+                ...labelContext.axes[index],
+                placements: [placement],
+                reportedPlacements: [labelContext.reportedPlacements[index]],
+                orientations: ['horizontal'],
+                spacing: label.spacing,
+                label,
+                textWidth: measured.width,
+                textHeight: measured.height,
+                rect,
+                insideCrossRegion: labelContext.insideCrossRegion,
+                hideable: !label.collision.alwaysShow,
+                plotRegion: labelContext.plotRegion,
+                fitted: labelContext.labelFit != null,
+                text,
+            })
+        );
 
         // The engine picks the first candidate that fits; the first is baked so rendering is correct even
         // when the label never routes through the engine. A routed label is restyled per candidate by the
@@ -664,7 +663,7 @@ export abstract class BaseFunnelSeries<
                           label,
                           this.labelStylerParams(),
                           undefined,
-                          (placement) => labelContext.reportedPlacements[labelContext.placements.indexOf(placement)]
+                          () => built.placement
                       )
                   );
         if (first != null) {

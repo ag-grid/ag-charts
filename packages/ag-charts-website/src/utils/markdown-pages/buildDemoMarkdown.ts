@@ -4,6 +4,8 @@ import type { DemoExampleId } from '@components/demo-examples/exampleRegistry';
 import { DEMO_EXAMPLES, getDemoExample } from '@components/demo-examples/exampleRegistry';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 
+import { buildChartsFrontmatter } from './chartsFrontmatter';
+
 /**
  * Build the markdown twin of a showcase page. The showcase is an interactive demo with no text
  * representation, so the twin carries the page's hero copy and lists the sibling demos.
@@ -11,18 +13,18 @@ import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 export function buildDemoMarkdown({ demo, siteRoot }: { demo: DemoExampleId; siteRoot?: string }): string {
     const content = DEMO_PAGE_CONTENT[demo];
     const { primaryCta, secondaryCta } = DEMO_PAGE_HERO;
-    // Registry paths are base-relative and unslashed (`./examples`); the site's URLs have a
-    // trailing slash, and a twin's links are read outside the site that would redirect.
-    const demoUrl = (path: string) => toAbsoluteUrl(urlWithBaseUrl(`${path.replace(/^\./, '')}/`), siteRoot);
+    // Registry paths are base-relative (`./examples/`); a twin's links are read outside the site,
+    // so they are made absolute here.
+    const demoUrl = (path: string) => toAbsoluteUrl(urlWithBaseUrl(path), siteRoot);
     const current = getDemoExample(demo);
 
     const document = [
-        [
-            '---',
-            `title: ${JSON.stringify(content.metaTitle)}`,
-            `description: ${JSON.stringify(content.metaDescription)}`,
-            '---',
-        ].join('\n'),
+        buildChartsFrontmatter({
+            pageUrl: `${current.path.replace(/^\./, '')}/`,
+            siteRoot,
+            title: content.metaTitle,
+            description: content.metaDescription,
+        }),
         `# ${DEMO_PAGE_HERO.title}`,
         DEMO_PAGE_HERO.description,
         `This page runs an interactive AG Charts demo: ${current.description} ` +

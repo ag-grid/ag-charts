@@ -5,7 +5,7 @@ const ModuleRegistry = {
 
 // Stub AgCharts
 const AgCharts = {
-    create: (_options: unknown) => ({}),
+    create: (_options: unknown, _params?: unknown) => ({}),
 };
 
 // Stub module identifiers
@@ -264,3 +264,55 @@ const backgroundRegionsMissing = {
     seriesArea: { backgroundRegions: [{ xRange: [0, 1], yRange: [0, 1] }] },
 };
 AgCharts.create(backgroundRegionsMissing);
+
+// =============================================================================
+// TEST CASE 17: Per-chart modules count as registered, whichever order the calls come in
+// =============================================================================
+const perChartLine = {
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+    axes: { x: { type: 'ordinal-time' }, y: { type: 'number' } },
+};
+AgCharts.create(perChartLine, { modules: [LineSeriesModule] });
+ModuleRegistry.registerModules([CandlestickSeriesModule, NumberAxisModule, OrdinalTimeAxisModule, LegendModule]);
+
+// =============================================================================
+// TEST CASE 18: Per-chart modules missing and over-registered - should error
+// =============================================================================
+const perChartMissing = {
+    series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
+    axes: { x: { type: 'ordinal-time' }, y: { type: 'number' } },
+};
+AgCharts.create(perChartMissing, { modules: [ContextMenuModule] });
+
+// =============================================================================
+// TEST CASE 19: Two create calls sharing one options variable - the unused module in the second call should error
+// =============================================================================
+const perChartShared = {
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+    axes: { x: { type: 'ordinal-time' }, y: { type: 'number' } },
+};
+AgCharts.create(perChartShared, { modules: [LineSeriesModule, NumberAxisModule, OrdinalTimeAxisModule] });
+AgCharts.create(perChartShared, { modules: [ContextMenuModule] });
+
+// =============================================================================
+// TEST CASE 20: Exported options are attributed to their chart - another chart's modules must not satisfy them
+// =============================================================================
+export const perChartExported = {
+    series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
+    axes: { x: { type: 'ordinal-time' }, y: { type: 'number' } },
+};
+AgCharts.create(perChartExported, { modules: [LineSeriesModule] });
+const perChartOther = {
+    series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
+    axes: { x: { type: 'ordinal-time' }, y: { type: 'number' } },
+};
+AgCharts.create(perChartOther, { modules: [AreaSeriesModule] });
+
+// =============================================================================
+// TEST CASE 21: Options spread into the create call keep their per-chart modules - should pass
+// =============================================================================
+const perChartSpread = {
+    series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
+    axes: { x: { type: 'ordinal-time' }, y: { type: 'number' } },
+};
+AgCharts.create({ ...perChartSpread, title: { text: 'Spread' } }, { modules: [AreaSeriesModule] });

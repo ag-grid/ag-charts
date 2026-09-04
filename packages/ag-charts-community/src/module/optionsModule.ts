@@ -10,6 +10,7 @@ import {
     type FontOptions,
     Logger,
     ModuleRegistry,
+    type ModuleScope,
     ModuleType,
     type PlainObject,
     type PresetModuleDefinition,
@@ -47,9 +48,10 @@ import {
     validate,
 } from 'ag-charts-core';
 import {
+    type AgChartModule,
     type AgChartOptions,
     type AgChartThemeParams,
-    type AgChartValidationLevel,
+    type AgChartValidationSeverity,
     type AgChartValidationsOptions,
     type AgMiniChartSeriesOptions,
     type AgPresetOptions,
@@ -69,11 +71,9 @@ import {
 import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
 import { ChartTheme } from '../chart/themes/chartTheme';
-import {
-    type ValidationIssue,
-    type ValidationIssueListener,
-    severityAtOrAbove,
-} from '../chart/validation/validationIssueCollector';
+import { DEFAULT_CONSOLE_ON, DEFAULT_THROW_ON } from '../chart/validation/validationDefaults';
+import type { ValidationIssue, ValidationIssueListener } from '../chart/validation/validationIssueCollector';
+import { resolveInstanceModuleScope } from './instanceModuleScope';
 import {
     type OptionsGraphAccessor,
     SHALLOW_OPTION_KEYS,
@@ -88,12 +88,6 @@ import {
     setStructuralCacheEntry,
 } from './optionsStructuralCache';
 import type { SeriesGrouping } from './seriesGrouping';
-
-/** The default `validations.consoleLogLevel` — everything, including deprecation notices. */
-const DEFAULT_CONSOLE_LOG_LEVEL: AgChartValidationLevel = 'deprecation';
-
-/** The default `validations.throwOn` — fail-fast is opt-in, so nothing throws unless a consumer asks for it. */
-const DEFAULT_THROW_ON: AgChartValidationLevel = 'none';
 
 /**
  * A `validations.throwOn` fail-fast throw. Marks the error as already prefixed and already written to
@@ -183,6 +177,8 @@ export interface ChartInternalOptionMetadata {
     pool?: boolean;
     domMode?: 'normal' | 'minimal';
     withDragInterpretation?: boolean;
+    /** Modules registered for this chart only, additive over the global registry. */
+    modules?: AgChartModule[];
 }
 
 type GroupingOptions = {
@@ -279,6 +275,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     processedOverrides: Partial<T>;
     specialOverrides: ChartSpecialOverrides;
     optionMetadata: ChartInternalOptionMetadata;
+    readonly moduleRegistry: ModuleScope;
     themeParameters: AgChartThemeParams = {};
     annotationThemes: any;
     googleFonts?: Set<string>;
@@ -306,9 +303,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     // rather than captured, making the adopt order irrelevant.
     private validationSink?: (issue: ValidationIssue) => void;
 
-    private throwOn: AgChartValidationLevel = 'none';
+    private throwOn: readonly AgChartValidationSeverity[] = DEFAULT_THROW_ON;
 
-    // `validations.onDiagnosticRaised`, resolved here rather than read off the chart because a fail-fast
+    // `validations.issueRaised`, resolved here rather than read off the chart because a fail-fast
     // throw aborts this constructor: the chart never adopts these issues, so this is the only
     // reference to the listener that survives to report them. See `dispatchIssuesBeforeThrow`.
     private issueListener?: ValidationIssueListener;
@@ -341,6 +338,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     ) {
         this.logger = logger ?? new Logger();
         this.optionMetadata = metadata ?? {};
+        this.moduleRegistry =
+            currentUserOptions instanceof ChartOptions
+                ? currentUserOptions.moduleRegistry
+                : resolveInstanceModuleScope(this.optionMetadata.modules);
         this.processedOverrides = processedOverrides ?? {};
         this.suppressFailFast = refreshCSSVariables;
 
@@ -381,13 +382,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             });
             this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
         }
-        // Must precede `slowSetup()`'s first validation pass so a user-supplied `'none'` suppresses the
+        // Must precede `slowSetup()`'s first validation pass so a user-supplied `[]` suppresses the
         // first warning. Keyed on presence, not nullishness, so an explicit `null` still warns.
         const userValidations = getValidations(this.userOptions);
-        this.applyConsoleLogLevel(
-            isObjectWithProperty(userValidations, 'consoleLogLevel')
-                ? userValidations.consoleLogLevel
-                : getValidations(this.processedOverrides)?.consoleLogLevel
+        this.applyConsoleOn(
+            isObjectWithProperty(userValidations, 'consoleOn')
+                ? userValidations.consoleOn
+                : getValidations(this.processedOverrides)?.consoleOn
         );
         this.applyThrowOn(
             isObjectWithProperty(userValidations, 'throwOn')
@@ -397,9 +398,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Armed before the first validation pass for the same reason as `throwOn`: an issue raised
         // during `slowSetup()` can abort it, and the listener must already be known to be told.
         this.applyIssueListener(
-            isObjectWithProperty(userValidations, 'onDiagnosticRaised')
-                ? userValidations.onDiagnosticRaised
-                : getValidations(this.processedOverrides)?.onDiagnosticRaised
+            isObjectWithProperty(userValidations, 'issueRaised')
+                ? userValidations.issueRaised
+                : getValidations(this.processedOverrides)?.issueRaised
         );
 
         let activeTheme,
@@ -429,7 +430,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const presetDef =
                 this.optionMetadata.presetType == null
                     ? undefined
-                    : ModuleRegistry.getPresetModule(this.optionMetadata.presetType);
+                    : this.moduleRegistry.getPresetModule(this.optionMetadata.presetType);
             if (
                 !stripSymbols &&
                 !refreshCSSVariables &&
@@ -442,7 +443,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 !dataChangedLength &&
                 // An armed `throwOn` must re-validate on every pass — the fast path carries `validationIssues`
                 // forward without calling the `record*` methods that throw.
-                this.throwOn === 'none'
+                this.throwOn.length === 0
             ) {
                 ({ activeTheme, processedOptions, fastDelta } = this.fastSetup(deltaOptions, baseChartOptions));
                 themeParameters = baseChartOptions.themeParameters;
@@ -471,11 +472,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.activeTheme = activeTheme;
         this.processedOptions = processedOptions;
         // Re-apply from the merged result so a value arriving via a theme or preset also takes effect.
-        this.applyConsoleLogLevel(getValidations(this.processedOptions)?.consoleLogLevel);
+        this.applyConsoleOn(getValidations(this.processedOptions)?.consoleOn);
         // State consistency only: this runs after every `record*` call, so it arms nothing this pass.
         this.applyThrowOn(getValidations(this.processedOptions)?.throwOn);
         // As above: re-applied from the merged result so a theme- or preset-supplied listener also counts.
-        this.applyIssueListener(getValidations(this.processedOptions)?.onDiagnosticRaised);
+        this.applyIssueListener(getValidations(this.processedOptions)?.issueRaised);
         this.fastDelta = fastDelta ?? undefined;
         this.themeParameters = themeParameters;
         this.annotationThemes = annotationThemes;
@@ -519,7 +520,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const { presetType } = this.optionMetadata;
 
         if (presetType != null && deltaOptions != null) {
-            const presetDef = ModuleRegistry.getPresetModule(presetType);
+            const presetDef = this.moduleRegistry.getPresetModule(presetType);
             // Handle preset data transforms gracefully.
             if (presetDef?.processData && deltaOptions.data != null) {
                 const { series, data } = presetDef.processData(deltaOptions.data);
@@ -559,8 +560,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Minimal-mode structural-output cache fast path.
         const cacheKey = this.computeStructuralCacheKeyForSlowSetup(deltaOptions, stripSymbols);
         // As above: an armed `throwOn` must re-validate, and a cache hit skips every `record*` call.
-        if (cacheKey !== undefined && this.throwOn === 'none') {
-            const cached = getStructuralCacheEntry(cacheKey);
+        if (cacheKey !== undefined && this.throwOn.length === 0) {
+            const cached = getStructuralCacheEntry(cacheKey, this.moduleRegistry);
             if (cached) {
                 return this.slowSetupCached(cached);
             }
@@ -582,13 +583,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         let optionsTheme = options.theme;
         let missingPresetModule: ModulePlaceholder | undefined;
         if (presetType != null) {
-            presetDef = ModuleRegistry.getPresetModule(presetType);
+            presetDef = this.moduleRegistry.getPresetModule(presetType);
             presetDefName = presetDef?.name;
             optionsTheme ??= presetDef?.baseTheme;
             missingPresetModule = presetDef == null ? ExpectedModules.get(presetType) : undefined;
         }
 
-        const activeTheme = sanitizeThemeModules(getChartTheme(optionsTheme, this.logger, presetDefName));
+        const activeTheme = sanitizeThemeModules(
+            getChartTheme(optionsTheme, this.logger, presetDefName, this.moduleRegistry),
+            this.moduleRegistry
+        );
 
         if (presetDef) {
             const { validate: validatePreset = validate } = presetDef;
@@ -625,13 +629,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         // Must run before chart validation to cleanup invalid types.
-        removeIncompatibleModuleOptions(undefined, options);
+        removeIncompatibleModuleOptions(undefined, options, this.moduleRegistry);
 
         const missingSeriesModules = this.validateSeriesOptions(options, this.validateParams);
 
-        const chartType = detectChartType(options);
+        const chartType = detectChartType(options, this.moduleRegistry);
 
-        this.chartDef = ModuleRegistry.getChartModule(chartType);
+        this.chartDef = this.moduleRegistry.getChartModule(chartType);
 
         // Must run before chart validation, which would otherwise report these as unknown options.
         this.removeIncompatibleSeriesAreaOptions(options);
@@ -673,7 +677,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             activeTheme,
             options,
             this.processedCSSVariables,
-            presetOptions
+            presetOptions,
+            this.moduleRegistry
         );
         const resolvedOptions = optionsGraph.resolve(this.logger) as any;
         const themeParameters = optionsGraph.resolveParams();
@@ -683,12 +688,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // TODO: move into options graph?
         const processedOptions = mergeDefaults(processedOverrides, resolvedOptions);
 
-        removeIncompatibleModuleOptions(this.chartDef.name, processedOptions);
+        removeIncompatibleModuleOptions(this.chartDef.name, processedOptions, this.moduleRegistry);
         const reportedMissingModules = processModuleOptions(
             this.chartDef.name,
             processedOptions,
             missingSeriesModules.concat(missingAxesModules, missingPresetModule ?? []),
-            this.logger
+            this.logger,
+            this.moduleRegistry
         );
         // A dropped series/axis/plugin option is error-severity under fail-fast, thrown only after
         // `processModuleOptions` has already written its console record above.
@@ -727,16 +733,20 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             for (const key of VOLATILE_KEYS) {
                 delete rest[key];
             }
-            setStructuralCacheEntry(cacheKey, {
-                processedOptions: rest,
-                themeParameters,
-                googleFonts: googleFonts.size > 0 ? new Set(googleFonts) : undefined,
-                fonts: fonts.size > 0 ? new Set(fonts) : undefined,
-                annotationThemes,
-                chartDef: this.chartDef,
-                validationIssues: this.validationIssues,
-                remappedAxisKeys,
-            });
+            setStructuralCacheEntry(
+                cacheKey,
+                {
+                    processedOptions: rest,
+                    themeParameters,
+                    googleFonts: googleFonts.size > 0 ? new Set(googleFonts) : undefined,
+                    fonts: fonts.size > 0 ? new Set(fonts) : undefined,
+                    annotationThemes,
+                    chartDef: this.chartDef,
+                    validationIssues: this.validationIssues,
+                    remappedAxisKeys,
+                },
+                this.moduleRegistry
+            );
         }
 
         return {
@@ -766,12 +776,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const presetDef =
             this.optionMetadata.presetType == null
                 ? undefined
-                : ModuleRegistry.getPresetModule(this.optionMetadata.presetType);
+                : this.moduleRegistry.getPresetModule(this.optionMetadata.presetType);
 
         // Must resolve the theme exactly as `slowSetup` does, or a cached chart is styled differently
         // from the one that populated the cache.
         const optionsTheme = (this.userOptions as any).theme ?? presetDef?.baseTheme;
-        const activeTheme = sanitizeThemeModules(getChartTheme(optionsTheme, this.logger, presetDef?.name));
+        const activeTheme = sanitizeThemeModules(
+            getChartTheme(optionsTheme, this.logger, presetDef?.name, this.moduleRegistry),
+            this.moduleRegistry
+        );
         this.chartDef = cached.chartDef;
 
         // A cache hit skips the loops that populate `validationIssues`, so replay the captured issues.
@@ -796,7 +809,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         // Un-memoized graph — each chart needs its own resolution state for stylers' resolvePartial.
-        const optionsGraph = createOptionsGraph(activeTheme, processedOptions as PlainObject);
+        const optionsGraph = createOptionsGraph(
+            activeTheme,
+            processedOptions as PlainObject,
+            undefined,
+            undefined,
+            this.moduleRegistry
+        );
 
         return {
             activeTheme,
@@ -816,11 +835,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      */
     adoptLogger(logger: Logger) {
         this.logger = logger;
-        // A pooled chart adopts a different Logger after validation, so the level must be re-applied.
-        this.applyConsoleLogLevel(getValidations(this.processedOptions)?.consoleLogLevel);
-        // Likewise for the throw threshold and the issue listener.
+        // A pooled chart adopts a different Logger after validation, so the severities must be re-applied.
+        this.applyConsoleOn(getValidations(this.processedOptions)?.consoleOn);
+        // Likewise for the throw severities and the issue listener.
         this.applyThrowOn(getValidations(this.processedOptions)?.throwOn);
-        this.applyIssueListener(getValidations(this.processedOptions)?.onDiagnosticRaised);
+        this.applyIssueListener(getValidations(this.processedOptions)?.issueRaised);
     }
 
     /** Point wrapped user callbacks at the owning chart's validation sink, so a swallowed throw surfaces. */
@@ -838,29 +857,35 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     /**
-     * Points the Logger at the requested level, falling back to the default for anything unrecognised.
-     * The fallback is load-bearing: this runs before the union validator has, so an invalid value must
+     * Points the Logger at the requested severities, falling back to the default for anything unusable.
+     * The fallback is load-bearing: this runs before the array validator has, so an invalid value must
      * not silence the very warning that reports it.
      */
-    private applyConsoleLogLevel(level: unknown) {
-        // Typed as the public option so the two level unions stay pinned to each other at compile time.
-        const consoleLogLevel: AgChartValidationLevel = isLogLevel(level) ? level : DEFAULT_CONSOLE_LOG_LEVEL;
-        this.logger.setLevel(consoleLogLevel);
+    private applyConsoleOn(severities: unknown) {
+        // Rejected whole on any unrecognised element, matching the strict validator that runs later.
+        // Honouring the recognised remainder of `['error', 'loud']` would leave `warn` disabled, and the
+        // rejection of that same array is itself reported through `warn`. An explicit `[]` is honoured —
+        // it is a request for silence, not a bad value.
+        const consoleOn: readonly AgChartValidationSeverity[] =
+            isArray(severities) && severities.every(isLogLevel) ? severities : DEFAULT_CONSOLE_ON;
+        this.logger.setEnabledLevels(consoleOn);
     }
 
     /**
-     * Resolves `validations.throwOn`, falling back to `'none'` for anything unrecognised. The fallback
-     * direction is the opposite of `applyConsoleLogLevel`'s deliberately: this runs before the union
+     * Resolves `validations.throwOn`, falling back to throwing on nothing for anything unusable. The
+     * fallback direction is the opposite of `applyConsoleOn`'s deliberately: this runs before the array
      * validator has, and an invalid value must not make the chart throw about itself — nor turn
      * fail-fast on for a consumer who never asked for it.
      */
-    private applyThrowOn(level: unknown) {
-        // Reuses `isLogLevel` so a new level cannot be missed by either union.
-        this.throwOn = isLogLevel(level) ? level : DEFAULT_THROW_ON;
+    private applyThrowOn(severities: unknown) {
+        // Reuses `isLogLevel` so a new severity cannot be missed by either union. Any bad element
+        // rejects the whole array, matching the strict option validator: a partially-valid
+        // `['error', 'loud']` must not arm `error` for the pass whose validator rejects it.
+        this.throwOn = isArray(severities) && severities.every(isLogLevel) ? severities : DEFAULT_THROW_ON;
     }
 
     /**
-     * Resolves `validations.onDiagnosticRaised`. This runs before the union validator has, hence the
+     * Resolves `validations.issueRaised`. This runs before the union validator has, hence the
      * coercion rather than trusting the value.
      */
     private applyIssueListener(listener: unknown) {
@@ -868,9 +893,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     /**
-     * Reports every issue this pass produced — the accumulated ones plus the `trigger` that tripped
-     * the threshold — to `validations.onDiagnosticRaised` immediately before a fail-fast throw. AC 3: the
-     * listener is never gated by a severity threshold, and `throwOn` is a threshold — but the throw
+     * Reports every issue this pass produced — the accumulated ones plus the `trigger` that armed the
+     * throw — to `validations.issueRaised` immediately before a fail-fast throw. AC 3: the
+     * listener is never gated by severity, and `throwOn` is a severity selection — but the throw
      * unwinds out of this constructor, so `Chart.applyOptions()` never runs
      * and the collector that normally dispatches never receives these issues. Delivering here is what
      * makes the two independent. Ordering is the listener first, then the throw.
@@ -910,10 +935,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         try {
             for (const issue of issues) {
                 try {
-                    listener({ level: issue.severity, message: issue.message });
+                    listener({ severity: issue.severity, message: issue.message });
                 } catch (error) {
                     // A throwing consumer must not displace the fail-fast error the caller is about to get.
-                    this.logger.error('validations.onDiagnosticRaised threw an error', error);
+                    this.logger.error('validations.issueRaised threw an error', error);
                 }
             }
         } finally {
@@ -954,7 +979,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     /**
      * Report an argument that could not be options at all (`create(undefined)`, `create(3)`, an empty
      * object) through the same feed as any option-validation error, so it reaches the console log, the
-     * `validations.overlayLevel` overlay, `validations.onDiagnosticRaised` and `validations.throwOn`. Raised
+     * `validations.showOverlayOn` overlay, `validations.issueRaised` and `validations.throwOn`. Raised
      * at `error` severity - unlike a per-option problem, nothing of the caller's intent survives it.
      *
      * Pushed as a new array: the unchanged-options fast path aliases `validationIssues` to the base
@@ -975,14 +1000,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     /**
-     * Throws for the first issue whose severity meets the armed `validations.throwOn` threshold — never
-     * called before the console record and the overlay push above have already happened, and never
-     * before this pass's issues have reached `validations.onDiagnosticRaised`.
+     * Throws for the first issue whose severity `validations.throwOn` selects — never called before the
+     * console record and the overlay push above have already happened, and never before this pass's
+     * issues have reached `validations.issueRaised`.
      */
     private throwIfFailFast(issue: ValidationIssue): void {
-        if (this.suppressFailFast || this.throwOn === 'none' || !severityAtOrAbove(this.throwOn, issue.severity)) {
-            return;
-        }
+        if (this.suppressFailFast || !this.throwOn.includes(issue.severity)) return;
         this.dispatchIssuesBeforeThrow(issue);
         const location = issue.code ? `\`${issue.code}\`: ` : '';
         throw new FailFastError(
@@ -996,19 +1019,19 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      * in `Chart.tryPerformUpdate()`. Arming `throwOn` is what makes that reachable on a warm update: it
      * forces the slow path, so the read happens during option processing rather than during the update.
      *
-     * With the threshold armed at `error` that escape *is* the fail-fast delivery, so it must carry the
+     * With `'error'` selected that escape *is* the fail-fast delivery, so it must carry the
      * same console record and the same prefix as every other one (AG-17831 TC1). A `record*` fail-fast
      * throw already has both, and the CSS-refresh re-construction has no caller to throw to, so both
      * pass through untouched.
      */
     private decorateOptionsProcessingFailure(error: unknown): unknown {
         if (error instanceof FailFastError) return error;
-        if (this.suppressFailFast || !severityAtOrAbove(this.throwOn, 'error')) return error;
+        if (this.suppressFailFast || !this.throwOn.includes('error')) return error;
 
         // Console record first, and worded exactly as the unarmed update-loop catch words it, so the
         // two paths read identically in the console.
         this.logger.error('update error', error, error instanceof Error ? error.stack : undefined);
-        // Then `validations.onDiagnosticRaised`, for the same reason the `record*` path dispatches before its
+        // Then `validations.issueRaised`, for the same reason the `record*` path dispatches before its
         // throw (AG-17830 AC 3): this escape bypasses the update loop's catch, so the collector that
         // normally reports a caught runtime error never sees this one. The message is the raw error's,
         // matching both the thrown copy and what the collector would have reported unarmed.
@@ -1022,7 +1045,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const seriesArea = options.seriesArea as Record<string, unknown> | undefined;
         if (chartType == null || seriesArea == null) return;
 
-        for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
+        for (const module of this.moduleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
             if (!module.chartType || module.chartType === chartType || seriesArea[module.name] == null) continue;
 
             delete seriesArea[module.name];
@@ -1036,7 +1059,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private validatePluginOptions(options: T, params: ValidateParams) {
-        for (const pluginDef of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
+        for (const pluginDef of this.moduleRegistry.listModulesByType(ModuleType.Plugin)) {
             const pluginKey = pluginDef.name as keyof T;
             if (
                 pluginKey in options &&
@@ -1067,7 +1090,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const defaultPlaceholder = ExpectedModules.get(defaultType);
             if (
                 this.optionMetadata.presetType == null &&
-                ModuleRegistry.getSeriesModule(defaultType) == null &&
+                this.moduleRegistry.getSeriesModule(defaultType) == null &&
                 defaultPlaceholder?.type === ModuleType.Series
             ) {
                 missingModules.push(defaultPlaceholder);
@@ -1078,7 +1101,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         for (let index = 0; index < seriesCount; index++) {
             const keyPath = `series[${index}]`;
             const seriesOptions = options.series![index];
-            const seriesDef = ModuleRegistry.getSeriesModule(seriesOptions.type);
+            const seriesDef = this.moduleRegistry.getSeriesModule(seriesOptions.type);
 
             if (seriesDef == null) {
                 const isEnterprise = ModuleRegistry.isEnterprise();
@@ -1151,7 +1174,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
 
             const keyPath = `axes.${this.unmappedAxisKeys?.get(key) ?? key}`;
-            const axisDef = ModuleRegistry.getAxisModule(axisOptions.type);
+            const axisDef = this.moduleRegistry.getAxisModule(axisOptions.type);
 
             if (axisDef == null) {
                 const modulePlaceholder = ExpectedModules.get(axisOptions.type);
@@ -1219,7 +1242,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Presets supply their own series, so the user options' lead type says nothing about them.
         if (this.optionMetadata.presetType != null) return undefined;
         const seriesType = this.optionsType(this.userOptions);
-        return ModuleRegistry.getSeriesModule(seriesType) == null ? seriesType : undefined;
+        return this.moduleRegistry.getSeriesModule(seriesType) == null ? seriesType : undefined;
     }
 
     private processSeriesOptions(options: T) {
@@ -1228,7 +1251,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const processedSeries = (options.series as SeriesOptionsTypes[])?.map((series, index) => {
             this.validateSizeBounds(series, index);
 
-            const seriesDef = ModuleRegistry.getSeriesModule(series.type);
+            const seriesDef = this.moduleRegistry.getSeriesModule(series.type);
             const visibleDefined = Boolean(seriesDef?.options?.visible);
 
             const seriesDefaults: Record<string, unknown> = {};
@@ -1290,7 +1313,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             isObject(primarySeriesOptions) &&
             'direction' in primarySeriesOptions &&
             primarySeriesOptions.direction === 'horizontal' &&
-            ModuleRegistry.getSeriesModule(primarySeriesOptions.type)?.axisKeysFlipped != null;
+            this.moduleRegistry.getSeriesModule(primarySeriesOptions.type)?.axisKeysFlipped != null;
 
         if (!hasAxes && !hasNonDefaultSeriesAxisKeys && !isPrimarySeriesFlipped) {
             (options as any).axes = defaultAxes;
@@ -1338,7 +1361,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      * mixture of flipped and non-flipped series within the same chart.
      */
     private getSeriesDirectionAxisKey(seriesOptions: NonNullable<T['series']>[number], direction: ChartAxisDirection) {
-        const seriesModule = ModuleRegistry.getSeriesModule(seriesOptions.type);
+        const seriesModule = this.moduleRegistry.getSeriesModule(seriesOptions.type);
         if (!seriesModule) return;
 
         const isFlipped = 'direction' in seriesOptions && seriesOptions.direction === 'horizontal';
@@ -1583,7 +1606,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const seriesData: DatumDefault[] = userSeriesOptions?.data ?? data;
         if (!seriesData?.length) return;
 
-        const predictAxis = ModuleRegistry.getSeriesModule(seriesType)?.predictAxis;
+        const predictAxis = this.moduleRegistry.getSeriesModule(seriesType)?.predictAxis;
         if (!predictAxis) return;
 
         const axes = new Map<ChartAxisDirection, SeriesPredictAxis<SeriesType> | undefined>();
@@ -1631,7 +1654,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private cloneDefaultAxes(seriesType: SeriesType) {
-        const seriesModule = ModuleRegistry.getSeriesModule(seriesType);
+        const seriesModule = this.moduleRegistry.getSeriesModule(seriesType);
         return seriesModule?.defaultAxes ? deepClone(seriesModule.defaultAxes) : {};
     }
 
@@ -1758,7 +1781,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private getSeriesGroupingOptions(series: SeriesOptionsTypes & GroupingOptions) {
-        const { groupable, stackable, stackedByDefault = false } = ModuleRegistry.getSeriesModule(series.type)!;
+        const { groupable, stackable, stackedByDefault = false } = this.moduleRegistry.getSeriesModule(series.type)!;
 
         if (series.grouped && !groupable) {
             this.logger.warnOnce(`unsupported grouping of series type "${series.type}".`);
@@ -1861,7 +1884,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private soloSeriesIntegrity(options: Partial<T>) {
         if (!isArray(options.series as unknown)) return;
-        const isSolo = (seriesType: string) => ModuleRegistry.getSeriesModule(seriesType)?.solo ?? false;
+        const isSolo = (seriesType: string) => this.moduleRegistry.getSeriesModule(seriesType)?.solo ?? false;
         const allSeries: SeriesOptionsTypes[] | undefined = options.series;
         if (allSeries && allSeries.length > 1 && allSeries.some((series) => isSolo(series.type))) {
             const mainSeriesType = this.optionsType(options);

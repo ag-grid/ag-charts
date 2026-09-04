@@ -73,6 +73,13 @@ function getPropertyBindings(bindings: any, id: string, property: any) {
         propertyVars.push(`const agCharts = ref(null);`);
     }
     propertyAttributes.push(`:options="${property.name}"`);
+    const modules = bindings.chartModules[property.name];
+    if (modules) {
+        const modulesName = `${property.name}Modules`;
+        propertyNames.push(modulesName);
+        propertyVars.push(`const ${modulesName} = ${modules};`);
+        propertyAttributes.push(`:modules="${modulesName}"`);
+    }
 
     Object.entries(bindings.chartAttributes[id]).forEach(([key, value]) => {
         if (key === 'style') {

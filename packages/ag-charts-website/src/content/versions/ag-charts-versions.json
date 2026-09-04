@@ -5,7 +5,7 @@
         "highlights": [
             {
                 "text": "Quadrant Charts",
-                "path": "./quadrant-charts/"
+                "path": "./quadrant-chart/"
             },
             {
                 "text": "Additional Click Events",

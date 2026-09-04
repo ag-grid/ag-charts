@@ -17,7 +17,6 @@ import {
     Color,
     Debug,
     type ModuleInstance,
-    ModuleRegistry,
     ModuleType,
     ZIndexMap,
     callWithContext,
@@ -36,7 +35,7 @@ import type {
     AgBaseAxisOptions,
     AgChartInstance,
     AgChartOptions,
-    AgChartValidationLevel,
+    AgChartValidationSeverity,
     AgColorType,
     AgCoordinates,
     AgDataTransaction,
@@ -93,11 +92,8 @@ import { Tooltip, type TooltipContent } from './tooltip/tooltip';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
-import {
-    ValidationIssueCollector,
-    type ValidationIssueListener,
-    severityAtOrAbove,
-} from './validation/validationIssueCollector';
+import { DEFAULT_CONSOLE_ON, DEFAULT_SHOW_OVERLAY_ON, DEFAULT_THROW_ON } from './validation/validationDefaults';
+import { ValidationIssueCollector, type ValidationIssueListener } from './validation/validationIssueCollector';
 
 const debug = Debug.create(true, 'opts');
 
@@ -489,6 +485,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             withDragInterpretation: options.optionMetadata.withDragInterpretation ?? true,
             syncManager: new SyncManager(this),
             logger: options.logger,
+            moduleRegistry: options.moduleRegistry,
             updateMutex: this.updateMutex,
             cssVariables: options.processedCSSVariables,
         }));
@@ -588,7 +585,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 if (opts != null) this.overlays.set(opts);
             }),
             ctx.chartState.observe((get) => {
-                this.validationCollector.setOverlayLevel(get('options', 'validations')?.overlayLevel ?? 'none');
+                this.validationCollector.setShowOverlayOn(
+                    get('options', 'validations')?.showOverlayOn ?? DEFAULT_SHOW_OVERLAY_ON
+                );
             }),
             // A tooltip is painted in the browser's top layer (a `popover`), so no z-index can place it
             // beneath the validation overlay. Hold tooltips back while the overlay is shown so it stays legible.
@@ -600,11 +599,11 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 }
             }),
             ctx.chartState.observe((get) => {
-                ctx.logger.setLevel(get('options', 'validations')?.consoleLogLevel ?? 'deprecation');
+                ctx.logger.setEnabledLevels(get('options', 'validations')?.consoleOn ?? DEFAULT_CONSOLE_ON);
             }),
             ctx.chartState.observe((get) => {
-                this.throwOnLevel = get('options', 'validations')?.throwOn ?? 'none';
-                this.setIssueListener(get('options', 'validations')?.onDiagnosticRaised);
+                this.throwOnSeverities = get('options', 'validations')?.throwOn ?? DEFAULT_THROW_ON;
+                this.setIssueListener(get('options', 'validations')?.issueRaised);
             }),
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
                 e.layoutBox.shrink(ctx.chartState.getValue('options', 'padding'));
@@ -919,7 +918,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     private readonly updateMutex = new Mutex();
     private clearCallbackCacheOnUpdate: boolean = false;
     private updateRequestors: Record<string, ChartUpdateType> = {};
-    private throwOnLevel: AgChartValidationLevel = 'none';
+    private throwOnSeverities: readonly AgChartValidationSeverity[] = DEFAULT_THROW_ON;
     private pendingFailFastError?: Error;
 
     private readonly performUpdateTrigger = debouncedCallback(({ count }) => {
@@ -1024,7 +1023,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             });
             this.runningUpdateType = ChartUpdateType.NONE;
             this._performUpdateNotify.notify();
-            if (severityAtOrAbove(this.throwOnLevel, 'error')) {
+            if (this.throwOnSeverities.includes('error')) {
                 this.pendingFailFastError = new Error(
                     `AG Charts - validations.throwOn: error - ${String(error?.message ?? error)}`
                 );
@@ -1573,7 +1572,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     private updateLegends(initialStateLegend?: AgInitialStateLegendOptions[]) {
-        for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
+        for (const module of this.ctx.moduleRegistry.listModulesByType(ModuleType.Plugin)) {
             switch (module.name) {
                 case 'legend':
                     this.setCategoryLegendData(initialStateLegend);
@@ -1788,9 +1787,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
      * previous tenant's listener in place would hand it this chart's issues. This can also run before
      * the option's validator has, hence the coercion rather than trusting the value.
      */
-    private setIssueListener(onDiagnosticRaised: unknown) {
+    private setIssueListener(issueRaised: unknown) {
         this.validationCollector.setIssueListener(
-            typeof onDiagnosticRaised === 'function' ? (onDiagnosticRaised as ValidationIssueListener) : undefined,
+            typeof issueRaised === 'function' ? (issueRaised as ValidationIssueListener) : undefined,
             this.ctx.logger
         );
     }
@@ -1798,7 +1797,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     applyOptions(newChartOptions: ChartOptions) {
         // Registered from the same options object in the same statement pair, so this pass's issues
         // reach the listener this pass declared without depending on when chartState observers flush.
-        this.setIssueListener(newChartOptions.processedOptions.validations?.onDiagnosticRaised);
+        this.setIssueListener(newChartOptions.processedOptions.validations?.issueRaised);
         this.validationCollector.setIssues(newChartOptions.validationIssues);
 
         if (newChartOptions.seriesWithUserVisibility) {
@@ -2086,7 +2085,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         const { type: chartType } = this.constructor as any;
 
         let modulesChanged = false;
-        for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
+        for (const module of this.ctx.moduleRegistry.listModulesByType(ModuleType.Plugin)) {
             const shouldBeEnabled = !module.chartType || module.chartType === chartType;
             if (shouldBeEnabled === this.modulesManager.isEnabled(module.name)) continue;
 
@@ -2114,7 +2113,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         const seriesAreaModuleContext = this.seriesArea.createModuleContext();
         const seriesAreaModuleMap = this.seriesArea.getModuleMap();
 
-        for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
+        for (const module of this.ctx.moduleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
             if (module.chartType && module.chartType !== chartType) continue;
 
             const pluginOptions = (options.seriesArea as any)[module.name];
@@ -2152,7 +2151,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             return 'no-change';
         }
 
-        const matchResult = matchSeriesOptions(chart.series, optSeries, oldOptSeries);
+        const matchResult = matchSeriesOptions(chart.series, optSeries, oldOptSeries, this.ctx.moduleRegistry);
         if (matchResult.status === 'no-overlap') {
             debug(`Chart.applySeries() - creating new series instances, status: ${matchResult.status}`, matchResult);
             const chartSeries = optSeries.map((opts) => this.createSeries(opts));
@@ -2256,7 +2255,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     private createSeries(seriesOptions: SeriesOptionsTypes): UnknownSeries {
-        const seriesModule = ModuleRegistry.getSeriesModule(seriesOptions.type);
+        const seriesModule = this.ctx.moduleRegistry.getSeriesModule(seriesOptions.type);
         const seriesInstance = seriesModule!.create(this.getModuleContext()) as UnknownSeries;
         this.applySeriesOptionModules(seriesInstance, seriesOptions);
         this.applySeriesValues(seriesInstance, seriesOptions);
@@ -2267,7 +2266,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         const moduleContext = series.createModuleContext();
         const moduleMap = series.getModuleMap();
 
-        for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
+        for (const module of this.ctx.moduleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
             if (module.name in options && (module.seriesTypes?.includes(series.type) ?? true)) {
                 moduleMap.addModule(module.name, module.create(moduleContext));
             }
@@ -2279,7 +2278,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { type, data, seriesGrouping, showInMiniChart, ...seriesOptions } = options as any;
 
-        for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
+        for (const module of this.ctx.moduleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
             if (module.name in seriesOptions) {
                 const moduleInstance: any = moduleMap.getModule(module.name);
                 if (moduleInstance) {
@@ -2314,11 +2313,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
         const moduleContext = this.getModuleContext();
 
         for (const [id, axisOptions] of entries(options)) {
-            const axis = ModuleRegistry.getAxisModule(axisOptions.type!)!.create(
-                moduleContext,
-                id as AxisID,
-                axisOptions
-            ) as ChartAxis;
+            const axis = this.ctx.moduleRegistry
+                .getAxisModule(axisOptions.type!)!
+                .create(moduleContext, id as AxisID, axisOptions) as ChartAxis;
             this.applyAxisModules(axis, axisOptions);
 
             newAxes.push(axis);
@@ -2334,7 +2331,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         const moduleMap = axis.getModuleMap();
         const { type: chartType } = this.constructor as any;
 
-        for (const module of ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
+        for (const module of this.ctx.moduleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
             if (module.chartType && module.chartType !== chartType) continue;
 
             const optionsKey = module.optionsKey ?? module.name;

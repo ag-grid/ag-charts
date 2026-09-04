@@ -6,6 +6,7 @@ import type {
     AgCartesianCrossLineLabelOptions,
     AgCartesianCrossLineOptions,
     AgCrossLineClickEvent,
+    AgCrossLineClickParams,
     AgCrossLineLabelPosition,
     AgCrossLineListeners,
 } from 'ag-charts-types';
@@ -244,6 +245,14 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
             axisTypes: { x: 'number', y: 'category' },
             seriesTypes: repeat('bar', 2),
         }),
+    },
+    DOMAIN_EXTREME_LINE_CROSSLINES: {
+        options: examples.DOMAIN_EXTREME_LINE_CROSSLINES,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'time', y: 'number' }, seriesTypes: ['line'] }),
+    },
+    OUTSIDE_DOMAIN_LINE_CROSSLINES: {
+        options: examples.OUTSIDE_DOMAIN_LINE_CROSSLINES,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'time', y: 'number' }, seriesTypes: ['line'] }),
     },
     DUAL_LEFT_AXES_CROSSLINE_LINE: {
         options: examples.DUAL_LEFT_AXES_CROSSLINE_LINE,
@@ -770,14 +779,16 @@ describe('CrossLine', () => {
             expect(click).not.toHaveBeenCalled();
         });
 
-        describe('overlapping crosslines allClickParams', () => {
+        describe('overlapping crosslines allMatchedParams', () => {
             let chartClick: ViFn;
             let chartCrossLineClick: ViFn;
+            let chartCrossLineDoubleClick: ViFn;
             let chartSeriesNodeClick: ViFn;
             let seriesSeriesNodeClick: ViFn;
             beforeEach(async () => {
                 chartClick = vi.fn();
                 chartCrossLineClick = vi.fn();
+                chartCrossLineDoubleClick = vi.fn();
                 chartSeriesNodeClick = vi.fn();
                 seriesSeriesNodeClick = vi.fn();
                 chart = await createChart({
@@ -808,6 +819,7 @@ describe('CrossLine', () => {
                     listeners: {
                         click: chartClick,
                         crossLineClick: chartCrossLineClick,
+                        crossLineDoubleClick: chartCrossLineDoubleClick,
                         seriesNodeClick: chartSeriesNodeClick,
                     },
                 });
@@ -821,23 +833,23 @@ describe('CrossLine', () => {
                         direction: 'x',
                         value: 'May',
                         // TODO: add AG-17613 `coordinated`
-                        allClickParams: [
+                        allMatchedParams: [
                             expect.objectContaining({
-                                clickedOn: 'cross-line',
+                                type: 'crossLineClick',
                                 crossLineId: 'blue-line',
                                 axisId: 'myX',
                                 direction: 'x',
                                 value: 'May',
                             }),
                             expect.objectContaining({
-                                clickedOn: 'cross-line',
+                                type: 'crossLineClick',
                                 crossLineId: 'grey-range',
                                 axisId: 'myX',
                                 direction: 'x',
                                 range: ['Mar', 'Jul'],
                             }),
                             expect.objectContaining({
-                                clickedOn: 'cross-line',
+                                type: 'crossLineClick',
                                 crossLineId: 'CrossLine-3',
                                 axisId: 'myY',
                                 direction: 'y',
@@ -851,27 +863,42 @@ describe('CrossLine', () => {
                 expect(chartSeriesNodeClick).toHaveBeenCalledTimes(0);
                 expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(0);
             });
+            test('TC7: a double-click brands the root and every entry with the double-click type', async () => {
+                await doubleClickAction(505, 130)(chart);
+                expect(chartCrossLineDoubleClick).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        // Entries track `event.type`, so they read `crossLineDoubleClick` here, not `crossLineClick`.
+                        type: 'crossLineDoubleClick',
+                        crossLineId: 'blue-line',
+                        allMatchedParams: [
+                            expect.objectContaining({ type: 'crossLineDoubleClick', crossLineId: 'blue-line' }),
+                            expect.objectContaining({ type: 'crossLineDoubleClick', crossLineId: 'grey-range' }),
+                            expect.objectContaining({ type: 'crossLineDoubleClick', crossLineId: 'CrossLine-3' }),
+                        ],
+                    })
+                );
+            });
             test('AC4i: a cross-line win reports the series node it covers', async () => {
                 // The May bar sits under the blue line and inside the grey range band.
                 await clickAction(505, 470)(chart);
                 expect(chartCrossLineClick).toHaveBeenCalledWith(
                     expect.objectContaining({
                         // The cross line still wins the event, so it carries the root params.
-                        clickedOn: 'cross-line',
+                        type: 'crossLineClick',
                         crossLineId: 'blue-line',
-                        allClickParams: [
+                        allMatchedParams: [
                             expect.objectContaining({
-                                clickedOn: 'cross-line',
+                                type: 'crossLineClick',
                                 crossLineId: 'blue-line',
                                 value: 'May',
                             }),
                             expect.objectContaining({
-                                clickedOn: 'cross-line',
+                                type: 'crossLineClick',
                                 crossLineId: 'grey-range',
                                 range: ['Mar', 'Jul'],
                             }),
                             expect.objectContaining({
-                                clickedOn: 'series-node',
+                                type: 'seriesNodeClick',
                                 datum: { x: 'May', y: 3 },
                             }),
                         ],
@@ -968,20 +995,20 @@ describe('CrossLine', () => {
                 await clickAction(505, 470)(chart);
                 const expected = expect.objectContaining({
                     // The series node still wins the event, so it carries the root params.
-                    clickedOn: 'series-node',
+                    type: 'seriesNodeClick',
                     datum: { x: 'May', y: 3 },
-                    allClickParams: [
+                    allMatchedParams: [
                         expect.objectContaining({
-                            clickedOn: 'series-node',
+                            type: 'seriesNodeClick',
                             datum: { x: 'May', y: 3 },
                         }),
                         expect.objectContaining({
-                            clickedOn: 'cross-line',
+                            type: 'crossLineClick',
                             crossLineId: 'blue-line',
                             value: 'May',
                         }),
                         expect.objectContaining({
-                            clickedOn: 'cross-line',
+                            type: 'crossLineClick',
                             crossLineId: 'grey-range',
                             range: ['Mar', 'Jul'],
                         }),
@@ -989,13 +1016,18 @@ describe('CrossLine', () => {
                 });
                 expect(seriesSeriesNodeClick).toHaveBeenCalledWith(expected);
                 expect(chartSeriesNodeClick).toHaveBeenCalledWith(expected);
+                // TC7: no entry carries the old `clickedOn` discriminant.
+                const [event] = seriesSeriesNodeClick.mock.calls[0];
+                for (const params of [event, ...event.allMatchedParams]) {
+                    expect(params).not.toHaveProperty('clickedOn');
+                }
             });
             test('AC4ii: a series-node click clear of any cross line reports only itself', async () => {
                 await clickAction(140, 255)(chart);
                 const expected = expect.objectContaining({
-                    clickedOn: 'series-node',
+                    type: 'seriesNodeClick',
                     datum: { x: 'Jan', y: 8 },
-                    allClickParams: [expect.objectContaining({ clickedOn: 'series-node', datum: { x: 'Jan', y: 8 } })],
+                    allMatchedParams: [expect.objectContaining({ type: 'seriesNodeClick', datum: { x: 'Jan', y: 8 } })],
                 });
                 expect(seriesSeriesNodeClick).toHaveBeenCalledWith(expected);
                 expect(chartSeriesNodeClick).toHaveBeenCalledWith(expected);
@@ -1683,6 +1715,140 @@ describe('CrossLine', () => {
         it('renders series labels over cross line labels that reserve nothing', async () => {
             chart = await createChart(packedReservationChart(false));
             await compare();
+        });
+    });
+
+    // `nice: false` and explicit `min`/`max` pin the domain to the data extremes, so a cross line on an
+    // extreme converts to exactly the pixel boundary cross lines are culled against.
+    describe('AG-18387: cross lines at the axis extremes', () => {
+        const X_MIN = new Date(Date.UTC(2024, 0, 1));
+        const X_MAX = new Date(Date.UTC(2024, 11, 1));
+        const BEFORE_X_MIN = new Date(Date.UTC(2023, 11, 1));
+        const AFTER_X_MAX = new Date(Date.UTC(2025, 0, 1));
+        const Y_MIN = 1;
+        const Y_MAX = 5;
+        const RULER = 'ruler';
+
+        let crossLineClick: ViFn;
+
+        const createExtremesChart = async (direction: 'x' | 'y', crossLines: AgCartesianCrossLineOptions[]) => {
+            const ruler: AgCartesianCrossLineOptions =
+                direction === 'x'
+                    ? { id: RULER, type: 'range', range: [X_MIN, X_MAX] }
+                    : { id: RULER, type: 'range', range: [Y_MIN, Y_MAX] };
+            const withCrossLines = { crossLines: [ruler, ...crossLines] };
+
+            crossLineClick = vi.fn();
+            chart = await createChart({
+                data: [
+                    { date: X_MIN, value: 2 },
+                    { date: new Date(Date.UTC(2024, 5, 1)), value: Y_MAX },
+                    { date: X_MAX, value: Y_MIN },
+                ],
+                series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
+                listeners: { crossLineClick },
+                axes: {
+                    x: { position: 'bottom', type: 'time', nice: false, ...(direction === 'x' && withCrossLines) },
+                    y: {
+                        position: 'left',
+                        type: 'number',
+                        min: Y_MIN,
+                        max: Y_MAX,
+                        ...(direction === 'y' && withCrossLines),
+                    },
+                },
+            });
+        };
+
+        /** Canvas points on the axis's min and max, read off the ruler rather than a cross line under test. */
+        const axisExtremePoints = (direction: 'x' | 'y') => {
+            const axis = chart.axes.findById(direction)!;
+            const ruler = (getCrossLinesPlugin(axis)?.getInstances() ?? []).find(({ id }) => id === RULER);
+            expect(ruler).toBeDefined();
+
+            const box = Transformable.toCanvas(ruler!.rangeGroup);
+            expect(box.width * box.height).toBeGreaterThan(0);
+
+            // Nudged inside the series area so the click registers; a cross line drawn on the edge is
+            // still within the cross-line hit tolerance of these points.
+            const inset = 2;
+            const centre = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+            return direction === 'x'
+                ? { min: { x: box.x + inset, y: centre.y }, max: { x: box.x + box.width - inset, y: centre.y } }
+                : { min: { x: centre.x, y: box.y + box.height - inset }, max: { x: centre.x, y: box.y + inset } };
+        };
+
+        /** The ids of every cross line the click reported hitting, as the public event lists them. */
+        const clickAxisExtreme = async (direction: 'x' | 'y', extreme: 'min' | 'max') => {
+            const { x, y } = axisExtremePoints(direction)[extreme];
+            await clickAction(x, y)(chart);
+
+            expect(crossLineClick).toHaveBeenCalled();
+            const [event] = crossLineClick.mock.lastCall as [AgCrossLineClickEvent];
+            return event.allMatchedParams
+                .filter((params): params is AgCrossLineClickParams => params.type === 'crossLineClick')
+                .map(({ crossLineId }) => crossLineId)
+                .sort((a, b) => a.localeCompare(b));
+        };
+
+        it('reports a line cross line on the time axis min', async () => {
+            await createExtremesChart('x', [{ id: 'first', type: 'line', value: X_MIN, strokeWidth: 1 }]);
+
+            expect(await clickAxisExtreme('x', 'min')).toEqual(['first', RULER]);
+        });
+
+        it('reports a line cross line on the time axis max', async () => {
+            await createExtremesChart('x', [{ id: 'last', type: 'line', value: X_MAX, strokeWidth: 1 }]);
+
+            expect(await clickAxisExtreme('x', 'max')).toEqual(['last', RULER]);
+        });
+
+        it('reports a line cross line on the number axis min', async () => {
+            await createExtremesChart('y', [{ id: 'floor', type: 'line', value: Y_MIN, strokeWidth: 1 }]);
+
+            expect(await clickAxisExtreme('y', 'min')).toEqual(['floor', RULER]);
+        });
+
+        it('reports a line cross line on the number axis max', async () => {
+            await createExtremesChart('y', [{ id: 'ceiling', type: 'line', value: Y_MAX, strokeWidth: 1 }]);
+
+            expect(await clickAxisExtreme('y', 'max')).toEqual(['ceiling', RULER]);
+        });
+
+        it('reports nothing for a line cross line before the time axis min', async () => {
+            await createExtremesChart('x', [{ id: 'before-first', type: 'line', value: BEFORE_X_MIN, strokeWidth: 1 }]);
+
+            expect(await clickAxisExtreme('x', 'min')).toEqual([RULER]);
+        });
+
+        it('reports nothing for a line cross line after the time axis max', async () => {
+            await createExtremesChart('x', [{ id: 'after-last', type: 'line', value: AFTER_X_MAX, strokeWidth: 1 }]);
+
+            expect(await clickAxisExtreme('x', 'max')).toEqual([RULER]);
+        });
+
+        it('reports nothing for a line cross line below the number axis min', async () => {
+            await createExtremesChart('y', [{ id: 'below-floor', type: 'line', value: Y_MIN - 1, strokeWidth: 1 }]);
+
+            expect(await clickAxisExtreme('y', 'min')).toEqual([RULER]);
+        });
+
+        it('reports nothing for a line cross line above the number axis max', async () => {
+            await createExtremesChart('y', [{ id: 'above-ceiling', type: 'line', value: Y_MAX + 1, strokeWidth: 1 }]);
+
+            expect(await clickAxisExtreme('y', 'max')).toEqual([RULER]);
+        });
+
+        it('reports a range cross line that starts on the number axis min', async () => {
+            await createExtremesChart('y', [{ id: 'from-floor', type: 'range', range: [Y_MIN, 3] }]);
+
+            expect(await clickAxisExtreme('y', 'min')).toEqual(['from-floor', RULER]);
+        });
+
+        it('reports nothing for a range cross line that only reaches the number axis min', async () => {
+            await createExtremesChart('y', [{ id: 'up-to-floor', type: 'range', range: [Y_MIN - 1, Y_MIN] }]);
+
+            expect(await clickAxisExtreme('y', 'min')).toEqual([RULER]);
         });
     });
 });

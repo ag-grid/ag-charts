@@ -22,6 +22,7 @@ export async function landingPageMarkdownResponse(slug: string): Promise<Respons
     const markdown = buildChartsLandingPageMarkdown({
         content: contentEntry.data,
         versions: versionsEntry?.data,
+        pageUrl: `/${slug}/`,
         siteRoot: SITE_URL,
     });
 

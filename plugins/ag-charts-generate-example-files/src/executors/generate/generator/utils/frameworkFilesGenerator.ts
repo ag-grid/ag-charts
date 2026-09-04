@@ -124,8 +124,12 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         const internalFramework: InternalFramework = 'vanilla';
         const entryFileName = getEntryFileName(internalFramework);
         const mainFileName = getMainFileName(internalFramework);
-        // Strip ModuleRegistry calls (including multi-line) - vanilla uses UMD bundle with pre-registered modules
-        let mainJs = readAsJsFile(entryFile).replace(/ModuleRegistry\.registerModules\([\s\S]*?\);/m, '');
+        // Strip ModuleRegistry calls (including multi-line) and the comments introducing them - vanilla
+        // uses the UMD bundle with pre-registered modules
+        let mainJs = readAsJsFile(entryFile).replace(
+            /(?:^[ \t]*\/\/[^\n]*\n)*^[ \t]*ModuleRegistry\.registerModules\([\s\S]*?\);[ \t]*\n?/m,
+            ''
+        );
 
         // Before the UMD globals are unpacked below, so that the injected snippets - which a plain
         // script cannot hoist over - end up beneath the declarations they reference.
@@ -145,7 +149,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         const chartImports = typedBindings.imports
             .filter((i) => i.module.includes('ag-charts-community') || i.module.includes('ag-charts-enterprise'))
             .flatMap((imp) => imp.imports)
-            .filter((imp) => chartsExports.has(imp));
+            .filter((imp) => chartsExports.has(imp) || imp.endsWith('Module'));
         if (chartImports.length > 0) {
             mainJs = `const { ${chartImports.join(', ')} } = agCharts;` + '\n' + mainJs;
         }

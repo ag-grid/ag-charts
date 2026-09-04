@@ -12,7 +12,9 @@ import {
 
 import {
     type AgChartInstance,
+    type AgChartModule,
     type AgChartOptions,
+    type AgChartParams,
     AgCharts as AgChartsAPI,
     AgFinancialChartOptions,
     AgGaugeOptions,
@@ -21,6 +23,8 @@ import {
 
 interface BaseChartProps {
     options: object;
+    /** Modules registered for this chart only, in addition to any registered globally. Read when the chart is created. */
+    modules?: AgChartModule[];
     style?: CSSProperties;
     className?: string;
 }
@@ -39,18 +43,18 @@ function getOptions(
 }
 
 function ChartWithConstructor<Props extends BaseChartProps>(
-    ctor: (options: Props['options']) => AgChartInstance<Props['options']>,
+    ctor: (options: Props['options'], params: AgChartParams) => AgChartInstance<Props['options']>,
     displayName: string
 ) {
     const Component = forwardRef<AgChartInstance, Props>(function AgChartsReact(props, ref) {
-        const { options, style, className } = props;
+        const { options, modules, style, className } = props;
         const containerRef = useRef<HTMLDivElement>(null);
         const chartRef = useRef<AgChartInstance | undefined>();
 
         // This fires earlier than ideal - so has a negative impact on mounting performance
         // but it's important we do this so refs work as expected
         useLayoutEffect(() => {
-            const chart = ctor(getOptions(options, containerRef, displayName));
+            const chart = ctor(getOptions(options, containerRef, displayName), { modules });
             chartRef.current = chart;
 
             return () => {
@@ -88,44 +92,52 @@ function ChartWithConstructor<Props extends BaseChartProps>(
 
 export interface AgChartProps {
     options: AgChartOptions;
+    /** Modules registered for this chart only, in addition to any registered globally. Read when the chart is created. */
+    modules?: AgChartModule[];
     style?: CSSProperties;
     className?: string;
 }
 
 export const AgCharts = /*#__PURE__*/ ChartWithConstructor<AgChartProps>(
-    (options) => AgChartsAPI.create(options),
+    (options, params) => AgChartsAPI.create(options, params),
     'AgCharts'
 );
 
 export interface AgFinancialChartProps {
     options: AgFinancialChartOptions;
+    /** Modules registered for this chart only, in addition to any registered globally. Read when the chart is created. */
+    modules?: AgChartModule[];
     style?: CSSProperties;
     className?: string;
 }
 
 export const AgFinancialCharts = /*#__PURE__*/ ChartWithConstructor<AgFinancialChartProps>(
-    (options) => AgChartsAPI.createFinancialChart(options),
+    (options, params) => AgChartsAPI.createFinancialChart(options, params),
     'AgFinancialCharts'
 );
 
 export interface AgGaugeProps {
     options: AgGaugeOptions;
+    /** Modules registered for this chart only, in addition to any registered globally. Read when the chart is created. */
+    modules?: AgChartModule[];
     style?: CSSProperties;
     className?: string;
 }
 
 export const AgGauge = /*#__PURE__*/ ChartWithConstructor<AgGaugeProps>(
-    (options) => AgChartsAPI.createGauge(options),
+    (options, params) => AgChartsAPI.createGauge(options, params),
     'AgGauge'
 );
 
 export interface AgQuadrantChartProps {
     options: AgQuadrantChartOptions;
+    /** Modules registered for this chart only, in addition to any registered globally. Read when the chart is created. */
+    modules?: AgChartModule[];
     style?: CSSProperties;
     className?: string;
 }
 
 export const AgQuadrantChart = /*#__PURE__*/ ChartWithConstructor<AgQuadrantChartProps>(
-    (options) => AgChartsAPI.createQuadrantChart(options),
+    (options, params) => AgChartsAPI.createQuadrantChart(options, params),
     'AgQuadrantChart'
 );

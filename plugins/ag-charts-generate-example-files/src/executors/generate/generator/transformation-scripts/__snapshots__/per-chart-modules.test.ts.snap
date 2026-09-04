@@ -1,0 +1,511 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`per-chart modules > generated output > inline angular 1`] = `
+"import { Component } from '@angular/core';
+import { AgCharts } from 'ag-charts-angular';
+import { BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+
+        ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
+        
+
+            @Component({
+                selector: 'line-chart',
+                standalone: true,
+                imports: [AgCharts],
+                template: \`<ag-charts
+        [options]="lineOptions"
+        [modules]="lineOptionsModules"
+    ></ag-charts>\`
+            })
+            class LineChart {
+                public lineOptions;
+                public lineOptionsModules = [LineSeriesModule];
+
+                constructor() {
+                    this.lineOptions = {
+    
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+};
+                }
+            }
+
+            @Component({
+                selector: 'bar-chart',
+                standalone: true,
+                imports: [AgCharts],
+                template: \`<ag-charts
+        [options]="barOptions"
+        [modules]="barOptionsModules"
+    ></ag-charts>\`
+            })
+            class BarChart {
+                public barOptions;
+                public barOptionsModules = [BarSeriesModule];
+
+                constructor() {
+                    this.barOptions = {
+    
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+};
+                }
+            }
+
+        @Component({
+            selector: 'my-app',
+            standalone: true,
+            imports: [LineChart, BarChart],
+            template: \`<line-chart style="display: grid; undefined"></line-chart><bar-chart style="display: grid; undefined"></bar-chart>\`
+        })
+        export class AppComponent {
+        }
+        "
+`;
+
+exports[`per-chart modules > generated output > inline react 1`] = `
+"
+            import React, { useState, Fragment } from 'react';
+            import { createRoot } from 'react-dom/client';
+            import { AgCharts } from 'ag-charts-react';
+            import { BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+
+            ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
+        
+
+            const LineChart = () => {
+                const [lineOptions, setLineOptions] = useState({
+    
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+});
+
+                return <AgCharts
+        
+        options={lineOptions}
+        modules={[LineSeriesModule]}
+    />;
+            }
+
+            const BarChart = () => {
+                const [barOptions, setBarOptions] = useState({
+    
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+});
+
+                return <AgCharts
+        
+        options={barOptions}
+        modules={[BarSeriesModule]}
+    />;
+            }
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(
+            <Fragment>
+                <LineChart /><BarChart />
+            </Fragment>
+        );
+        "
+`;
+
+exports[`per-chart modules > generated output > inline react typescript 1`] = `
+"
+            import React, { useState, Fragment } from 'react';
+            import { createRoot } from 'react-dom/client';
+            import { AgCharts } from 'ag-charts-react';
+            import { BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+
+            ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
+        
+
+            const LineChart = () => {
+                const [lineOptions, setLineOptions] = useState<AgChartOptions>({
+    
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+});
+
+                return <AgCharts
+            
+            options={lineOptions}
+            modules={[LineSeriesModule]}
+    />;
+            }
+
+            const BarChart = () => {
+                const [barOptions, setBarOptions] = useState<AgChartOptions>({
+    
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+});
+
+                return <AgCharts
+            
+            options={barOptions}
+            modules={[BarSeriesModule]}
+    />;
+            }
+
+        const root = createRoot(document.getElementById('root')!);
+        root.render(
+            <Fragment>
+                <LineChart /><BarChart />
+            </Fragment>
+        );
+        "
+`;
+
+exports[`per-chart modules > generated output > inline typescript 1`] = `
+"import { AgCharts, BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+
+ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
+
+const lineOptions = {
+    
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+};
+
+lineOptions.container = document.getElementById('lineChart');
+
+const barOptions = {
+    
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+};
+
+barOptions.container = document.getElementById('barChart');
+
+AgCharts.create(lineOptions, { modules: [LineSeriesModule] });
+AgCharts.create(barOptions, { modules: [BarSeriesModule] });"
+`;
+
+exports[`per-chart modules > generated output > inline vue 1`] = `
+"
+            import { createApp, defineComponent, ref } from 'vue';
+import { AgCharts } from 'ag-charts-vue3';
+import type { AgChartOptions } from 'ag-charts-types';
+import { BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+
+            ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
+        
+
+            const LineChart = {
+                template: \`
+    <ag-charts
+      :options="lineOptions"
+      :modules="lineOptionsModules"
+    />
+  \`,
+                components: {
+                    'ag-charts': AgCharts
+                },
+                setup(props) {
+                    const lineOptions = ref({
+    
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+});
+                    const lineOptionsModules = [LineSeriesModule];
+
+                    
+
+                    return {
+                        lineOptions,
+                        lineOptionsModules
+                    }
+                }
+            }
+            
+
+            const BarChart = {
+                template: \`
+    <ag-charts
+      :options="barOptions"
+      :modules="barOptionsModules"
+    />
+  \`,
+                components: {
+                    'ag-charts': AgCharts
+                },
+                setup(props) {
+                    const barOptions = ref({
+    
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+});
+                    const barOptionsModules = [BarSeriesModule];
+
+                    
+
+                    return {
+                        barOptions,
+                        barOptionsModules
+                    }
+                }
+            }
+            
+
+        const ChartExample = {
+            template: \`
+    <line-chart style="undefined"></line-chart><bar-chart style="undefined"></bar-chart>
+  \`,
+            components: {
+                'line-chart': LineChart,
+                'bar-chart': BarChart
+            },
+        }
+
+        createApp(ChartExample).mount("#app");
+        "
+`;
+
+exports[`per-chart modules > generated output > variables angular 1`] = `
+"import { Component } from '@angular/core';
+import { AgCharts } from 'ag-charts-angular';
+import { BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+
+        const lineModules = [LineSeriesModule]
+ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
+        
+
+            @Component({
+                selector: 'line-chart',
+                standalone: true,
+                imports: [AgCharts],
+                template: \`<ag-charts
+        [options]="lineOptions"
+        [modules]="lineOptionsModules"
+    ></ag-charts>\`
+            })
+            class LineChart {
+                public lineOptions;
+                public lineOptionsModules = lineModules;
+
+                constructor() {
+                    this.lineOptions = {
+    
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+};
+                }
+            }
+
+            @Component({
+                selector: 'bar-chart',
+                standalone: true,
+                imports: [AgCharts],
+                template: \`<ag-charts
+        [options]="barOptions"
+        [modules]="barOptionsModules"
+    ></ag-charts>\`
+            })
+            class BarChart {
+                public barOptions;
+                public barOptionsModules = [BarSeriesModule];
+
+                constructor() {
+                    this.barOptions = {
+    
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+};
+                }
+            }
+
+        @Component({
+            selector: 'my-app',
+            standalone: true,
+            imports: [LineChart, BarChart],
+            template: \`<line-chart style="display: grid; undefined"></line-chart><bar-chart style="display: grid; undefined"></bar-chart>\`
+        })
+        export class AppComponent {
+        }
+        "
+`;
+
+exports[`per-chart modules > generated output > variables react 1`] = `
+"
+            import React, { useState, Fragment } from 'react';
+            import { createRoot } from 'react-dom/client';
+            import { AgCharts } from 'ag-charts-react';
+            import { BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+
+            const lineModules = [LineSeriesModule]
+            ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
+        
+
+            const LineChart = () => {
+                const [lineOptions, setLineOptions] = useState({
+    
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+});
+
+                return <AgCharts
+        
+        options={lineOptions}
+        modules={lineModules}
+    />;
+            }
+
+            const BarChart = () => {
+                const [barOptions, setBarOptions] = useState({
+    
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+});
+
+                return <AgCharts
+        
+        options={barOptions}
+        modules={[BarSeriesModule]}
+    />;
+            }
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(
+            <Fragment>
+                <LineChart /><BarChart />
+            </Fragment>
+        );
+        "
+`;
+
+exports[`per-chart modules > generated output > variables react typescript 1`] = `
+"
+            import React, { useState, Fragment } from 'react';
+            import { createRoot } from 'react-dom/client';
+            import { AgCharts } from 'ag-charts-react';
+            import { BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+
+            const lineModules = [LineSeriesModule]
+            ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
+        
+
+            const LineChart = () => {
+                const [lineOptions, setLineOptions] = useState<AgChartOptions>({
+    
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+});
+
+                return <AgCharts
+            
+            options={lineOptions}
+            modules={lineModules}
+    />;
+            }
+
+            const BarChart = () => {
+                const [barOptions, setBarOptions] = useState<AgChartOptions>({
+    
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+});
+
+                return <AgCharts
+            
+            options={barOptions}
+            modules={[BarSeriesModule]}
+    />;
+            }
+
+        const root = createRoot(document.getElementById('root')!);
+        root.render(
+            <Fragment>
+                <LineChart /><BarChart />
+            </Fragment>
+        );
+        "
+`;
+
+exports[`per-chart modules > generated output > variables typescript 1`] = `
+"import { AgCharts, BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+
+const lineModules = [LineSeriesModule]
+ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
+
+const lineOptions = {
+    
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+};
+
+lineOptions.container = document.getElementById('lineChart');
+
+const barOptions = {
+    
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+};
+
+barOptions.container = document.getElementById('barChart');
+
+AgCharts.create(lineOptions, { modules: lineModules });
+AgCharts.create(barOptions, { modules: [BarSeriesModule] });"
+`;
+
+exports[`per-chart modules > generated output > variables vue 1`] = `
+"
+            import { createApp, defineComponent, ref } from 'vue';
+import { AgCharts } from 'ag-charts-vue3';
+import type { AgChartOptions } from 'ag-charts-types';
+import { BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+
+            const lineModules = [LineSeriesModule]
+
+ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
+        
+
+            const LineChart = {
+                template: \`
+    <ag-charts
+      :options="lineOptions"
+      :modules="lineOptionsModules"
+    />
+  \`,
+                components: {
+                    'ag-charts': AgCharts
+                },
+                setup(props) {
+                    const lineOptions = ref({
+    
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+});
+                    const lineOptionsModules = lineModules;
+
+                    
+
+                    return {
+                        lineOptions,
+                        lineOptionsModules
+                    }
+                }
+            }
+            
+
+            const BarChart = {
+                template: \`
+    <ag-charts
+      :options="barOptions"
+      :modules="barOptionsModules"
+    />
+  \`,
+                components: {
+                    'ag-charts': AgCharts
+                },
+                setup(props) {
+                    const barOptions = ref({
+    
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+});
+                    const barOptionsModules = [BarSeriesModule];
+
+                    
+
+                    return {
+                        barOptions,
+                        barOptionsModules
+                    }
+                }
+            }
+            
+
+        const ChartExample = {
+            template: \`
+    <line-chart style="undefined"></line-chart><bar-chart style="undefined"></bar-chart>
+  \`,
+            components: {
+                'line-chart': LineChart,
+                'bar-chart': BarChart
+            },
+        }
+
+        createApp(ChartExample).mount("#app");
+        "
+`;

@@ -4,10 +4,10 @@ import type {
     AgActiveItemState,
     AgChartClickEvent,
     AgChartDoubleClickEvent,
-    AgClickParams,
     AgContextMenuItemShowOn,
     AgCoordinates,
     AgInitialFocus,
+    AgMatchedParams,
 } from 'ag-charts-types';
 
 import type {
@@ -666,14 +666,14 @@ export class SeriesAreaManager extends BaseManager {
         const clickedCrossLine = this.checkCrossLineClick(event, pendingCrossLineCallbacks);
         if (clickedCrossLine) {
             // The cross line wins the event, but still reports the series nodes it covered.
-            const nodeParams = isSeriesWidget ? this.pickSeriesNodeClickParams(event) : [];
+            const nodeParams = isSeriesWidget ? this.pickSeriesNodeHitParams(event) : [];
             fireAllPendingCrossLineCallbacks(pendingCrossLineCallbacks, nodeParams);
             return; // dodge chart-level / series-level user callbacks.
         }
 
         if (isSeriesWidget) {
             // Cross-line-only here, and populated whether or not any cross-line listener exists.
-            const clicked = this.checkSeriesNodeClick(event, pendingCrossLineCallbacks.allClickParams);
+            const clicked = this.checkSeriesNodeClick(event, pendingCrossLineCallbacks.allMatchedParams);
             if (clicked) {
                 if (clicked.defaultPrevented) return;
                 this.emitSeriesAreaClickEvent(event, true, clicked.node, clicked.target);
@@ -709,7 +709,7 @@ export class SeriesAreaManager extends BaseManager {
             canvasY,
             sourceEvent,
             pendingCrossLineCallbacks: {
-                allClickParams: [],
+                allMatchedParams: [],
                 axes: new Map(),
                 crossLines: new Map(),
             },
@@ -896,27 +896,29 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private checkCrossLineClick(event: ClickLikeEvent, pendingCallbacks: PendingCrossLineCallbacks): boolean {
-        const { allClickParams, axes, crossLines } = pendingCallbacks;
+        const { allMatchedParams, axes, crossLines } = pendingCallbacks;
         const chartListener =
             event.type === 'click'
                 ? this.chart.ctx.chartService.listeners.crossLineClick
                 : this.chart.ctx.chartService.listeners.crossLineDoubleClick;
-        return allClickParams.length > 0 && (axes.size > 0 || crossLines.size > 0 || chartListener != null);
+        return allMatchedParams.length > 0 && (axes.size > 0 || crossLines.size > 0 || chartListener != null);
     }
 
-    private pickSeriesNodeClickParams(event: ClickLikeEvent): AgClickParams<unknown>[] {
+    private pickSeriesNodeHitParams(event: ClickLikeEvent): AgMatchedParams<unknown>[] {
         const pickedNodes = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
         if (pickedNodes == null || pickedNodes.matches.length === 0) return [];
         const { matches, target } = pickedNodes;
         // A dedicated control (e.g. the org-chart expander) owns its clicks outright and never reaches the user's
         // node click listeners, so it must not surface through a cross-line event either.
         if (!matches[0].series.firesUserClickListeners(target)) return [];
-        return matches.map((d) => d.series.createNodeParams(d));
+        // A cross line won the event, so these nodes still report the node event this interaction would deliver.
+        const type = event.type === 'click' ? 'seriesNodeClick' : 'seriesNodeDoubleClick';
+        return matches.map((d) => ({ ...d.series.createNodeParams(d), type }));
     }
 
     private checkSeriesNodeClick(
         event: ClickLikeEvent & { preventZoomDblClick?: boolean },
-        crossLineParams: AgClickParams<unknown>[]
+        crossLineParams: AgMatchedParams<unknown>[]
     ): SeriesNodeClickCheck | undefined {
         const pickedNodes = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
         const updated = this.pickManager.onPickedNodesTooltip(pickedNodes);
@@ -939,7 +941,7 @@ export class SeriesAreaManager extends BaseManager {
             datums: matches,
             winner: matches.indexOf(updated.active),
             coordinates,
-            otherClickParams: crossLineParams,
+            otherHitParams: crossLineParams,
         };
 
         if (event.type === 'click') {

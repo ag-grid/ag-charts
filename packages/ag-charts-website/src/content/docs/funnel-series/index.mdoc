@@ -75,21 +75,23 @@ In this configuration:
 
 ## Labels
 
-Each stage can show its value with `label`, positioned along the stage axis.
+Each stage can show its value with `label`, positioned inside or outside the stage.
 
 ```js format="snippet"
 {
     label: {
         enabled: true,
-        placement: ['inside-center', 'outside-after'],
+        placement: ['inside-center', 'outside-end'],
     },
 }
 ```
 
 In this configuration:
 
-- `inside-center` centres the label in the stage, and `outside-after` places it after the stage along the stage axis.
+- `inside-center` centres the label in the stage, and `outside-end` places it after the stage along the stage axis.
 - Providing `placement` as an ordered array allows a label that does not fit inside its stage to fall back to the outside position.
+
+`start` and `end` run along the stage axis and swap when that axis is reversed. `before` and `after` sit on the same sides as `stageLabel.placement`: left and right of a vertical funnel's stage, mirrored in a right-to-left chart, and above and below a horizontal one's.
 
 See [Series Labels](./series-labels/) for the full set of label, placement and collision options.
 

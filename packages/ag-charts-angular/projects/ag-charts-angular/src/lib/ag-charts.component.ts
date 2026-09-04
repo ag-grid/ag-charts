@@ -1,6 +1,12 @@
 import { Component, ElementRef, EventEmitter, Input, NgZone, Output, ViewEncapsulation } from '@angular/core';
 
-import { AgChartInstance, AgChartOptions, AgCharts as AgChartsAPI } from 'ag-charts-community';
+import {
+    AgChartInstance,
+    AgChartModule,
+    AgChartOptions,
+    AgChartParams,
+    AgCharts as AgChartsAPI,
+} from 'ag-charts-community';
 
 import { AgChartsBase } from './ag-charts-base';
 
@@ -15,6 +21,10 @@ export class AgCharts extends AgChartsBase<AgChartOptions> {
     @Input()
     public options: AgChartOptions = {};
 
+    /** Modules registered for this chart only, in addition to any registered globally. Read when the chart is created. */
+    @Input()
+    public modules: AgChartModule[] | undefined;
+
     @Output()
     public chartReady: EventEmitter<AgChartInstance> = new EventEmitter();
 
@@ -28,7 +38,7 @@ export class AgCharts extends AgChartsBase<AgChartOptions> {
         this._nativeElement = elementDef.nativeElement;
     }
 
-    protected createChart(options: AgChartOptions) {
-        return AgChartsAPI.create(options);
+    protected createChart(options: AgChartOptions, params: AgChartParams) {
+        return AgChartsAPI.create(options, params);
     }
 }

@@ -71,12 +71,12 @@ export interface AgHeatmapSeriesThemeableOptions<TDatum = DatumDefault, TContext
     cornerRadius?: PixelSize;
     /** Horizontal position of the label.
      *
-     * @deprecated v14.1.0 Use `label.textAlign` instead.
+     * @deprecated v14.2.0 Use `label.textAlign` instead.
      */
     textAlign?: TextAlign;
     /** Vertical position of the label.
      *
-     * @deprecated v14.1.0 Use `label.verticalAlign` instead.
+     * @deprecated v14.2.0 Use `label.verticalAlign` instead.
      */
     verticalAlign?: VerticalAlign;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */

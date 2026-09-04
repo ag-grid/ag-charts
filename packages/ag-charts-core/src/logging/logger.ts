@@ -1,22 +1,13 @@
 /* eslint-disable no-console */
 
-// Minimum console severity a Logger emits (higher = quieter); the default of 0 admits every message.
-const SEVERITY = { deprecation: 1, warn: 2, error: 3 } as const;
+export const LOG_LEVELS = ['error', 'warning', 'deprecation'] as const;
 
-/** The public `validations.consoleLogLevel` scale, as an inclusive threshold. */
-export type LogLevel = 'deprecation' | 'warning' | 'error' | 'none';
+/** The console severities a Logger can emit, each selected independently of the others. */
+export type LogLevel = (typeof LOG_LEVELS)[number];
 
-const LEVEL_SEVERITY: Record<LogLevel, number> = {
-    // The loudest level admits everything, so it is exactly the ungated default rather than a floor.
-    deprecation: 0,
-    warning: SEVERITY.warn,
-    error: SEVERITY.error,
-    none: SEVERITY.error + 1,
-};
-
-/** Derived from the severity table, so a new level cannot be missed here. */
+/** Derived from the level tuple, so a new level cannot be missed here. */
 export function isLogLevel(value: unknown): value is LogLevel {
-    return typeof value === 'string' && Object.hasOwn(LEVEL_SEVERITY, value);
+    return typeof value === 'string' && (LOG_LEVELS as readonly string[]).includes(value);
 }
 
 interface LogGroup {
@@ -31,11 +22,17 @@ export class Logger {
     // message has actually been emitted within it.
     private readonly groups: LogGroup[] = [];
 
-    constructor(private minSeverity: number = 0) {}
+    // OPTIMIZATION: one flag per level rather than a Set or a per-call `includes`, since `error()`,
+    // `warn()` and `deprecation()` are called from option-application paths.
+    private errorEnabled = true;
+    private warningEnabled = true;
+    private deprecationEnabled = true;
 
-    /** Raises or lowers the threshold on a live Logger, which the chart's options lifecycle drives. */
-    setLevel(level: LogLevel) {
-        this.minSeverity = LEVEL_SEVERITY[level];
+    /** Replaces the enabled severities on a live Logger, which the chart's options lifecycle drives. */
+    setEnabledLevels(levels: readonly LogLevel[]) {
+        this.errorEnabled = levels.includes('error');
+        this.warningEnabled = levels.includes('warning');
+        this.deprecationEnabled = levels.includes('deprecation');
     }
 
     log(...logContent: any[]) {
@@ -44,27 +41,27 @@ export class Logger {
     }
 
     /**
-     * The quietest tier — deprecation notices, which `'warning'` and above suppress. Emitted on the
-     * same console channel as `warn`.
+     * Deprecation notices. Emitted on the same console channel as `warn`, but a tier of its own that
+     * is enabled and disabled independently of it.
      *
      * Returns whether the message was emitted, so `guardOnce` can avoid caching a suppressed message.
      */
     deprecation(message: any, ...logContent: any[]) {
-        if (this.minSeverity > SEVERITY.deprecation) return false;
+        if (!this.deprecationEnabled) return false;
         this.openGroups();
         console.warn(`AG Charts - ${message}`, ...logContent);
         return true;
     }
 
     warn(message: any, ...logContent: any[]) {
-        if (this.minSeverity > SEVERITY.warn) return false;
+        if (!this.warningEnabled) return false;
         this.openGroups();
         console.warn(`AG Charts - ${message}`, ...logContent);
         return true;
     }
 
     error(message: any, ...logContent: any[]) {
-        if (this.minSeverity > SEVERITY.error) return false;
+        if (!this.errorEnabled) return false;
         this.openGroups();
         if (typeof message === 'object') {
             console.error(`AG Charts error`, message, ...logContent);
@@ -92,8 +89,8 @@ export class Logger {
         }
         const cacheKey = `${prefix}: ${message}`;
         if (this.doOnceCache.has(cacheKey)) return;
-        // Only remember a message the severity gate actually let through: the level is mutable, so
-        // caching a suppressed message would swallow it permanently once the level is lowered.
+        // Only remember a message the severity gate actually let through: the enabled levels are
+        // mutable, so caching a suppressed message would swallow it permanently once it is enabled.
         if (cb(messageOrError)) {
             this.doOnceCache.add(cacheKey);
         }

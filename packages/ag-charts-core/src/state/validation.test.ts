@@ -242,7 +242,7 @@ describe('Validation utils', () => {
     });
 
     describe('deprecated wrapper', () => {
-        afterEach(() => validationLogger.setLevel('deprecation'));
+        afterEach(() => validationLogger.setEnabledLevels(['error', 'warning', 'deprecation']));
 
         test('emits a deprecationOnce notice at the default console level', () => {
             const { cleared, invalid } = validate<{ colorScale: string }>(
@@ -256,8 +256,8 @@ describe('Validation utils', () => {
             expect((console.warn as Mock).mock.calls[0][0]).toContain('Use `colorScale.fills` instead.');
         });
 
-        test('silences the notice once the console level is raised to "warning"', () => {
-            validationLogger.setLevel('warning');
+        test('silences the notice once "deprecation" is deselected from the console levels', () => {
+            validationLogger.setEnabledLevels(['error', 'warning']);
             // A message distinct from the preceding test's, so the shared logger's do-once cache
             // cannot be what keeps this quiet.
             const { cleared, invalid } = validate<{ colorScale: string }>(

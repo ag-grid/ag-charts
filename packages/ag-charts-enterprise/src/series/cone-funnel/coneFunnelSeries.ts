@@ -12,7 +12,11 @@ import {
     type FunnelAnimationData,
     type FunnelNodeDatum,
 } from '../funnel/baseFunnelSeries';
-import { CONE_FUNNEL_TO_BAR_PLACEMENT, resolveConeFunnelPlacements } from '../funnel/funnelLabelPlacement';
+import {
+    CONE_FUNNEL_TO_BAR_PLACEMENT,
+    funnelValuePlacementAxes,
+    resolveConeFunnelPlacements,
+} from '../funnel/funnelLabelPlacement';
 import { ConeFunnelProperties } from './coneFunnelProperties';
 import { resetLineSelectionsFn } from './coneFunnelUtil';
 
@@ -96,14 +100,12 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
             barAlongX,
             this.ctx.domManager.isRtl
         );
+        const axes = funnelValuePlacementAxes(barAlongX);
         return {
             placements: reportedPlacements.map((placement) => CONE_FUNNEL_TO_BAR_PLACEMENT[placement]),
             reportedPlacements,
-            // A divider spans the value axis, so `before`/`after` is the cross axis: the bar convention.
-            isVertical: !barAlongX,
-            // `start`/`end` run along the divider in reading order: left to right, or top to bottom.
-            isUpward: barAlongX,
-            // The divider has no thickness, so a `middle-*` region takes its cross extent from the plot.
+            axes: reportedPlacements.map(() => axes),
+            // The divider has no thickness, so a `middle-*` region takes its cross extent from the series area.
             insideCrossRegion: this.getSeriesPlotRegion(),
         };
     }

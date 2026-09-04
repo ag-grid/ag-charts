@@ -24,6 +24,7 @@ import {
     FONT_SIZE_RATIO,
     IS_DARK_THEME,
     ModuleRegistry,
+    type ModuleScope,
     ModuleType,
     PALETTE_ALT_DOWN_FILL,
     PALETTE_ALT_DOWN_STROKE,
@@ -377,13 +378,20 @@ export class ChartTheme {
         };
     }
 
-    constructor(options: AgChartTheme = {}, presetName?: string) {
+    constructor(
+        options: AgChartTheme = {},
+        presetName?: string,
+        moduleRegistry: ModuleScope = ModuleRegistry.resolveModuleScope()
+    ) {
         const { overrides, palette, params } = deepClone(options) as AgChartThemeOptions;
-        const defaults = this.createChartConfigPerChartType(this.getDefaults(presetName));
+        const defaults = this.createChartConfigPerChartType(
+            this.getDefaults(presetName, moduleRegistry),
+            moduleRegistry
+        );
         const presets: Record<string, any> = {};
 
         if (overrides) {
-            this.processOverrides(presets, overrides);
+            this.processOverrides(presets, overrides, moduleRegistry);
         }
 
         const { fills, strokes, sequentialColors, ...otherColors } = this.getDefaultColors();
@@ -404,8 +412,8 @@ export class ChartTheme {
         this.presets = deepFreeze(presets);
     }
 
-    private processOverrides(presets: AgPresetOverrides, overrides: AgThemeOverrides) {
-        for (const s of ModuleRegistry.listModulesByType(ModuleType.Series)) {
+    private processOverrides(presets: AgPresetOverrides, overrides: AgThemeOverrides, moduleRegistry: ModuleScope) {
+        for (const s of moduleRegistry.listModulesByType(ModuleType.Series)) {
             const seriesType = s.name as keyof AgThemeOverrides;
             const seriesOverrides = overrides[seriesType];
 
@@ -416,9 +424,9 @@ export class ChartTheme {
         }
     }
 
-    private createChartConfigPerChartType(config: AgChartThemeOverrides) {
-        for (const chartModule of ModuleRegistry.listModulesByType(ModuleType.Chart)) {
-            for (const seriesModule of ModuleRegistry.listModulesByType(ModuleType.Series)) {
+    private createChartConfigPerChartType(config: AgChartThemeOverrides, moduleRegistry: ModuleScope) {
+        for (const chartModule of moduleRegistry.listModulesByType(ModuleType.Chart)) {
+            for (const seriesModule of moduleRegistry.listModulesByType(ModuleType.Series)) {
                 if (seriesModule.chartType !== chartModule.name) continue;
                 config[seriesModule.name as keyof AgChartThemeOverrides] ??= chartModule.themeTemplate;
             }
@@ -426,8 +434,8 @@ export class ChartTheme {
         return config;
     }
 
-    private getDefaults(presetName?: string): AgChartThemeOverrides {
-        const presetModule = presetName == null ? undefined : ModuleRegistry.getPresetModule(presetName);
+    private getDefaults(presetName: string | undefined, moduleRegistry: ModuleScope): AgChartThemeOverrides {
+        const presetModule = presetName == null ? undefined : moduleRegistry.getPresetModule(presetName);
         const presetTemplate = presetModule?.themeTemplate;
 
         const getOverridesByType = (chartType: ChartType, seriesTypes: string[]) => {
@@ -435,17 +443,17 @@ export class ChartTheme {
             const chartTypeDefaults = mergeDefaultsShallowOperations(
                 { axes: {} },
                 presetTemplate?.common,
-                ...Array.from(ModuleRegistry.listModulesByType(ModuleType.Plugin), (p) => ({
+                ...Array.from(moduleRegistry.listModulesByType(ModuleType.Plugin), (p) => ({
                     [p.name]: p.themeTemplate,
                 })),
-                ModuleRegistry.getChartModule(chartType)?.themeTemplate,
+                moduleRegistry.getChartModule(chartType)?.themeTemplate,
                 this.getChartDefaults()
             );
 
             for (const seriesType of seriesTypes) {
                 result[seriesType] = mergeDefaultsShallowOperations(
                     (presetTemplate as any)?.[seriesType],
-                    getSeriesThemeTemplate(seriesType),
+                    getSeriesThemeTemplate(seriesType, moduleRegistry),
                     result[seriesType] ?? chartTypeDefaults
                 );
 
@@ -461,11 +469,11 @@ export class ChartTheme {
 
                 const { axes } = result[seriesType] as { axes: Record<string, object> };
 
-                for (const axisModule of ModuleRegistry.listModulesByType(ModuleType.Axis)) {
+                for (const axisModule of moduleRegistry.listModulesByType(ModuleType.Axis)) {
                     axes[axisModule.name] = mergeDefaultsShallowOperations(
                         axes[axisModule.name],
                         !axisModule.chartType || axisModule.chartType === chartType
-                            ? getAxisThemeTemplate(axisModule.name)
+                            ? getAxisThemeTemplate(axisModule.name, moduleRegistry)
                             : null
                     );
                 }
@@ -479,7 +487,7 @@ export class ChartTheme {
             return result;
         };
 
-        const seriesModules = [...ModuleRegistry.listModulesByType(ModuleType.Series)];
+        const seriesModules = [...moduleRegistry.listModulesByType(ModuleType.Series)];
         const seriesByChartType = groupBy(seriesModules, (s) => s.chartType || 'unknown');
 
         return mergeDefaultsShallowOperations(
@@ -585,9 +593,9 @@ export class ChartTheme {
     }
 }
 
-function getAxisThemeTemplate(axisType: string) {
-    let themeTemplate = ModuleRegistry.getAxisModule(axisType)?.themeTemplate ?? {};
-    for (const module of ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
+function getAxisThemeTemplate(axisType: string, moduleRegistry: ModuleScope) {
+    let themeTemplate = moduleRegistry.getAxisModule(axisType)?.themeTemplate ?? {};
+    for (const module of moduleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
         if (module.axisTypes?.includes(axisType) ?? true) {
             const optionsKey = module.optionsKey ?? module.name;
             themeTemplate = mergeDefaultsShallowOperations({ [optionsKey]: module.themeTemplate }, themeTemplate);
@@ -596,9 +604,9 @@ function getAxisThemeTemplate(axisType: string) {
     return themeTemplate;
 }
 
-function getSeriesThemeTemplate(seriesType: string) {
-    let themeTemplate = ModuleRegistry.getSeriesModule(seriesType)?.themeTemplate ?? {};
-    for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
+function getSeriesThemeTemplate(seriesType: string, moduleRegistry: ModuleScope) {
+    let themeTemplate = moduleRegistry.getSeriesModule(seriesType)?.themeTemplate ?? {};
+    for (const module of moduleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
         if (module.seriesTypes?.includes(seriesType) ?? true) {
             themeTemplate = mergeDefaultsShallowOperations(
                 { series: { [module.name]: module.themeTemplate } },
@@ -607,7 +615,7 @@ function getSeriesThemeTemplate(seriesType: string) {
         }
     }
 
-    for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
+    for (const module of moduleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
         themeTemplate = mergeDefaultsShallowOperations(
             { seriesArea: { [module.name]: module.themeTemplate } },
             themeTemplate

@@ -489,8 +489,8 @@
                 },
                 {
                     "type": "item",
-                    "title": "Quadrant Charts",
-                    "path": "quadrant-charts",
+                    "title": "Quadrant Chart",
+                    "path": "quadrant-chart",
                     "icon": "chartsQuadrant",
                     "isEnterprise": true
                 }

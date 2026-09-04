@@ -2,51 +2,57 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { Logger } from 'ag-charts-core';
 
-import { ValidationIssueCollector, severityAtOrAbove } from './validationIssueCollector';
+import { ValidationIssueCollector, type ValidationSeverity } from './validationIssueCollector';
 
 const errorIssue = { severity: 'error', message: 'runtime boom' } as const;
 const warningIssue = { severity: 'warning', message: 'bad option' } as const;
 const deprecationIssue = { severity: 'deprecation', message: 'deprecated thing' } as const;
 
 describe('ValidationIssueCollector', () => {
-    it('shows nothing when overlayLevel is none, regardless of issues', () => {
+    it('shows nothing by default, when no severities are selected, regardless of issues', () => {
         const collector = new ValidationIssueCollector();
         collector.setIssues([errorIssue, warningIssue]);
         expect(collector.hasVisibleIssues()).toBe(false);
     });
 
-    it('applies inclusive threshold semantics (level shows its severity and every louder one)', () => {
+    it('selects each severity independently, showing only the severities it lists', () => {
         const collector = new ValidationIssueCollector();
         collector.setIssues([errorIssue, warningIssue, deprecationIssue]);
 
-        collector.setOverlayLevel('error');
+        collector.setShowOverlayOn(['error']);
         expect(collector.getVisibleIssues()).toEqual({ error: [errorIssue], warning: [], deprecation: [] });
 
-        collector.setOverlayLevel('warning');
-        expect(collector.getVisibleIssues()).toEqual({
-            error: [errorIssue],
-            warning: [warningIssue],
-            deprecation: [],
-        });
+        collector.setShowOverlayOn(['warning']);
+        expect(collector.getVisibleIssues()).toEqual({ error: [], warning: [warningIssue], deprecation: [] });
 
-        collector.setOverlayLevel('deprecation');
-        expect(collector.getVisibleIssues()).toEqual({
-            error: [errorIssue],
-            warning: [warningIssue],
-            deprecation: [deprecationIssue],
-        });
+        collector.setShowOverlayOn(['deprecation']);
+        expect(collector.getVisibleIssues()).toEqual({ error: [], warning: [], deprecation: [deprecationIssue] });
     });
 
-    it('does not show a warning-only collection at the error threshold', () => {
+    it('treats a duplicated severity as if it had been listed once', () => {
         const collector = new ValidationIssueCollector();
-        collector.setOverlayLevel('error');
+        collector.setIssues([errorIssue, warningIssue, deprecationIssue]);
+        collector.setShowOverlayOn(['warning']);
+
+        const changes = vi.fn();
+        collector.addListener(changes);
+        collector.setShowOverlayOn(['warning', 'warning']);
+
+        expect(collector.getVisibleIssues()).toEqual({ error: [], warning: [warningIssue], deprecation: [] });
+        // Selection is a set, so the repeat is not a change - it must not re-show a dismissed overlay.
+        expect(changes).not.toHaveBeenCalled();
+    });
+
+    it('does not show a warning-only collection when only errors are selected', () => {
+        const collector = new ValidationIssueCollector();
+        collector.setShowOverlayOn(['error']);
         collector.setIssues([warningIssue]);
         expect(collector.hasVisibleIssues()).toBe(false);
     });
 
     it('captures a caught runtime error as an error-severity issue', () => {
         const collector = new ValidationIssueCollector();
-        collector.setOverlayLevel('error');
+        collector.setShowOverlayOn(['error']);
         collector.recordRuntimeError({ severity: 'error', message: 'update error', code: 'stack trace' });
         expect(collector.hasVisibleIssues()).toBe(true);
         expect(collector.getVisibleIssues().error).toHaveLength(1);
@@ -54,7 +60,7 @@ describe('ValidationIssueCollector', () => {
 
     it('de-duplicates an identical caught runtime error re-reported on every update pass', () => {
         const collector = new ValidationIssueCollector();
-        collector.setOverlayLevel('error');
+        collector.setShowOverlayOn(['error']);
         const runtimeError = { severity: 'error', message: 'update error', code: 'stack trace' } as const;
 
         // Each resize/layout pass re-runs the update, which re-throws and re-reports the same error.
@@ -67,7 +73,7 @@ describe('ValidationIssueCollector', () => {
 
     it('de-duplicates a re-reported runtime error even when only its code (stack trace) differs', () => {
         const collector = new ValidationIssueCollector();
-        collector.setOverlayLevel('error');
+        collector.setShowOverlayOn(['error']);
 
         collector.recordRuntimeError({ severity: 'error', message: 'update error', code: 'stack A' });
         collector.recordRuntimeError({ severity: 'error', message: 'update error', code: 'stack B' });
@@ -77,7 +83,7 @@ describe('ValidationIssueCollector', () => {
 
     it('keeps distinct caught runtime errors (different message)', () => {
         const collector = new ValidationIssueCollector();
-        collector.setOverlayLevel('error');
+        collector.setShowOverlayOn(['error']);
 
         collector.recordRuntimeError({ severity: 'error', message: 'boom one' });
         collector.recordRuntimeError({ severity: 'error', message: 'boom two' });
@@ -87,7 +93,7 @@ describe('ValidationIssueCollector', () => {
 
     it('keeps a dismissed runtime-error overlay dismissed when the same error re-reports next pass', () => {
         const collector = new ValidationIssueCollector();
-        collector.setOverlayLevel('error');
+        collector.setShowOverlayOn(['error']);
         const runtimeError = { severity: 'error', message: 'update error', code: 'stack trace' } as const;
 
         collector.recordRuntimeError(runtimeError);
@@ -103,7 +109,7 @@ describe('ValidationIssueCollector', () => {
 
     it('does not conflate a caught runtime error with an option issue that shares its severity and message', () => {
         const collector = new ValidationIssueCollector();
-        collector.setOverlayLevel('error');
+        collector.setShowOverlayOn(['error']);
         const shared = { severity: 'error', message: 'boom' } as const;
 
         collector.setIssues([shared]); // an option-validation error
@@ -115,7 +121,7 @@ describe('ValidationIssueCollector', () => {
 
     it('clears a caught runtime error when a fresh option-application cycle sets new issues', () => {
         const collector = new ValidationIssueCollector();
-        collector.setOverlayLevel('error');
+        collector.setShowOverlayOn(['error']);
         collector.recordRuntimeError({ severity: 'error', message: 'update error' });
         expect(collector.getVisibleIssues().error).toHaveLength(1);
 
@@ -126,7 +132,7 @@ describe('ValidationIssueCollector', () => {
 
     it('dismiss hides the overlay; an identical re-apply stays dismissed but a changed one re-shows', () => {
         const collector = new ValidationIssueCollector();
-        collector.setOverlayLevel('warning');
+        collector.setShowOverlayOn(['warning']);
         collector.setIssues([warningIssue]);
         expect(collector.hasVisibleIssues()).toBe(true);
 
@@ -142,7 +148,7 @@ describe('ValidationIssueCollector', () => {
 
     it('re-shows a dismissed issue when only its code changes', () => {
         const collector = new ValidationIssueCollector();
-        collector.setOverlayLevel('warning');
+        collector.setShowOverlayOn(['warning']);
         collector.setIssues([{ severity: 'warning', message: 'bad option', code: 'series[0].a' }]);
         expect(collector.hasVisibleIssues()).toBe(true);
 
@@ -156,7 +162,7 @@ describe('ValidationIssueCollector', () => {
 
     it('surfaces data-feed issues and clears them statelessly when the next cycle is clean', () => {
         const collector = new ValidationIssueCollector();
-        collector.setOverlayLevel('warning');
+        collector.setShowOverlayOn(['warning']);
         const dataIssue = { severity: 'warning', message: "the key 'xyz' was not found in any data element." } as const;
 
         collector.setDataIssues([dataIssue]);
@@ -169,7 +175,7 @@ describe('ValidationIssueCollector', () => {
 
     it('combines option-feed and data-feed issues in the overlay', () => {
         const collector = new ValidationIssueCollector();
-        collector.setOverlayLevel('warning');
+        collector.setShowOverlayOn(['warning']);
         collector.setIssues([warningIssue]);
         const dataIssue = { severity: 'warning', message: 'invalid value of type [object] ignored: [x]' } as const;
         collector.setDataIssues([dataIssue]);
@@ -179,7 +185,7 @@ describe('ValidationIssueCollector', () => {
 
     it('re-shows a dismissed overlay only when the data feed changes', () => {
         const collector = new ValidationIssueCollector();
-        collector.setOverlayLevel('warning');
+        collector.setShowOverlayOn(['warning']);
         const dataIssue = { severity: 'warning', message: 'bad key' } as const;
         collector.setDataIssues([dataIssue]);
         collector.dismiss();
@@ -194,7 +200,7 @@ describe('ValidationIssueCollector', () => {
 
     it('surfaces buffered callback errors as error issues, de-duplicated within a render cycle', () => {
         const collector = new ValidationIssueCollector();
-        collector.setOverlayLevel('error');
+        collector.setShowOverlayOn(['error']);
         const callbackError = {
             severity: 'error',
             message: 'Uncaught exception in user callback `series[0].itemStyler`: boom',
@@ -211,7 +217,7 @@ describe('ValidationIssueCollector', () => {
 
     it('clears callback errors statelessly when the next render cycle no longer throws', () => {
         const collector = new ValidationIssueCollector();
-        collector.setOverlayLevel('error');
+        collector.setShowOverlayOn(['error']);
         const callbackError = { severity: 'error', message: 'Uncaught exception in user callback: boom' } as const;
 
         collector.beginCallbackIssues();
@@ -227,7 +233,7 @@ describe('ValidationIssueCollector', () => {
 
     it('keeps a dismissed callback-error overlay dismissed when the same error re-commits next cycle', () => {
         const collector = new ValidationIssueCollector();
-        collector.setOverlayLevel('error');
+        collector.setShowOverlayOn(['error']);
         const callbackError = { severity: 'error', message: 'Uncaught exception in user callback: boom' } as const;
 
         collector.beginCallbackIssues();
@@ -245,7 +251,7 @@ describe('ValidationIssueCollector', () => {
 
     it('does not re-commit a committed callback error on a pass that buffered nothing new', () => {
         const collector = new ValidationIssueCollector();
-        collector.setOverlayLevel('error');
+        collector.setShowOverlayOn(['error']);
         const callbackError = { severity: 'error', message: 'Uncaught exception in user callback: boom' } as const;
 
         collector.beginCallbackIssues();
@@ -263,12 +269,12 @@ describe('ValidationIssueCollector', () => {
         expect(collector.hasPendingCallbackIssues()).toBe(true);
     });
 
-    it('notifies listeners when the collection or threshold changes', () => {
+    it('notifies listeners when the collection or the selected severities change', () => {
         const collector = new ValidationIssueCollector();
         const listener = vi.fn();
         collector.addListener(listener);
 
-        collector.setOverlayLevel('warning');
+        collector.setShowOverlayOn(['warning']);
         collector.setIssues([warningIssue]);
         collector.recordRuntimeError(errorIssue);
         collector.dismiss();
@@ -277,44 +283,62 @@ describe('ValidationIssueCollector', () => {
     });
 });
 
-describe('severityAtOrAbove', () => {
-    it.each<{
-        level: 'error' | 'warning' | 'deprecation' | 'none';
-        severity: 'error' | 'warning' | 'deprecation';
-        expected: boolean;
-    }>([
-        // error level admits only error
-        { level: 'error', severity: 'error', expected: true },
-        { level: 'error', severity: 'warning', expected: false },
-        { level: 'error', severity: 'deprecation', expected: false },
-        // warning level admits error and warning
-        { level: 'warning', severity: 'error', expected: true },
-        { level: 'warning', severity: 'warning', expected: true },
-        { level: 'warning', severity: 'deprecation', expected: false },
-        // deprecation level admits all three severities
-        { level: 'deprecation', severity: 'error', expected: true },
-        { level: 'deprecation', severity: 'warning', expected: true },
-        { level: 'deprecation', severity: 'deprecation', expected: true },
-        // none level admits nothing
-        { level: 'none', severity: 'error', expected: false },
-        { level: 'none', severity: 'warning', expected: false },
-        { level: 'none', severity: 'deprecation', expected: false },
-    ])('level=$level, severity=$severity => $expected', ({ level, severity, expected }) => {
-        expect(severityAtOrAbove(level, severity)).toBe(expected);
+describe('showOverlayOn membership', () => {
+    const allSeverities = ['error', 'warning', 'deprecation'] as const;
+
+    it.each<{ label: string; levels: ValidationSeverity[]; shown: ValidationSeverity[] }>([
+        { label: 'empty', levels: [], shown: [] },
+        { label: 'error', levels: ['error'], shown: ['error'] },
+        { label: 'warning', levels: ['warning'], shown: ['warning'] },
+        { label: 'deprecation', levels: ['deprecation'], shown: ['deprecation'] },
+        // Skipping the middle tier: nothing about a selection implies the severities around it.
+        { label: 'error+deprecation', levels: ['error', 'deprecation'], shown: ['error', 'deprecation'] },
+        { label: 'warning+deprecation', levels: ['warning', 'deprecation'], shown: ['warning', 'deprecation'] },
+        {
+            label: 'all three',
+            levels: ['error', 'warning', 'deprecation'],
+            shown: ['error', 'warning', 'deprecation'],
+        },
+    ])('showOverlayOn=[$label] shows exactly the severities it lists', ({ levels, shown }) => {
+        const collector = new ValidationIssueCollector();
+        collector.setShowOverlayOn(levels);
+        collector.setIssues([errorIssue, warningIssue, deprecationIssue]);
+
+        expect(collector.hasVisibleIssues()).toBe(shown.length > 0);
+        const visible = collector.getVisibleIssues();
+        for (const severity of allSeverities) {
+            expect(visible[severity]).toHaveLength(shown.includes(severity) ? 1 : 0);
+        }
+    });
+
+    // Every options pass hands over a freshly allocated array, so a reference guard would never fire
+    // and the overlay would be told the selection changed on each pass.
+    it('does not notify listeners when an equal-but-not-identical array is re-applied', () => {
+        const collector = new ValidationIssueCollector();
+        collector.setShowOverlayOn(['error', 'warning']);
+
+        const listener = vi.fn();
+        collector.addListener(listener);
+
+        collector.setShowOverlayOn(['error', 'warning']);
+        expect(listener).not.toHaveBeenCalled();
+
+        collector.setShowOverlayOn(['error']);
+        expect(listener).toHaveBeenCalledTimes(1);
     });
 });
 
 describe('ValidationIssueCollector - issue listener', () => {
-    it('dispatches { level, message } for each severity', () => {
+    it('dispatches { severity, message } for each severity', () => {
         const collector = new ValidationIssueCollector();
         const listener = vi.fn();
         collector.setIssueListener(listener);
 
         collector.setIssues([errorIssue, warningIssue, deprecationIssue]);
 
-        expect(listener).toHaveBeenNthCalledWith(1, { level: 'error', message: errorIssue.message });
-        expect(listener).toHaveBeenNthCalledWith(2, { level: 'warning', message: warningIssue.message });
-        expect(listener).toHaveBeenNthCalledWith(3, { level: 'deprecation', message: deprecationIssue.message });
+        expect(listener).toHaveBeenNthCalledWith(1, { severity: 'error', message: errorIssue.message });
+        expect(listener).toHaveBeenNthCalledWith(2, { severity: 'warning', message: warningIssue.message });
+        expect(listener).toHaveBeenNthCalledWith(3, { severity: 'deprecation', message: deprecationIssue.message });
         expect(listener).toHaveBeenCalledTimes(3);
     });
 
@@ -330,9 +354,9 @@ describe('ValidationIssueCollector - issue listener', () => {
         collector.commitCallbackIssues();
 
         expect(listener).toHaveBeenCalledTimes(3);
-        expect(listener).toHaveBeenNthCalledWith(1, { level: 'warning', message: warningIssue.message });
-        expect(listener).toHaveBeenNthCalledWith(2, { level: 'error', message: errorIssue.message });
-        expect(listener).toHaveBeenNthCalledWith(3, { level: 'deprecation', message: deprecationIssue.message });
+        expect(listener).toHaveBeenNthCalledWith(1, { severity: 'warning', message: warningIssue.message });
+        expect(listener).toHaveBeenNthCalledWith(2, { severity: 'error', message: errorIssue.message });
+        expect(listener).toHaveBeenNthCalledWith(3, { severity: 'deprecation', message: deprecationIssue.message });
     });
 
     it('does not re-dispatch a runtime error the catch site re-reports each failed pass', () => {
@@ -353,8 +377,8 @@ describe('ValidationIssueCollector - issue listener', () => {
 
         collector.setIssues([errorIssue, warningIssue]);
         expect(listener).toHaveBeenCalledTimes(2);
-        expect(listener).toHaveBeenNthCalledWith(1, { level: 'error', message: errorIssue.message });
-        expect(listener).toHaveBeenNthCalledWith(2, { level: 'warning', message: warningIssue.message });
+        expect(listener).toHaveBeenNthCalledWith(1, { severity: 'error', message: errorIssue.message });
+        expect(listener).toHaveBeenNthCalledWith(2, { severity: 'warning', message: warningIssue.message });
 
         listener.mockClear();
         collector.setIssues([errorIssue, warningIssue]);
@@ -362,14 +386,14 @@ describe('ValidationIssueCollector - issue listener', () => {
 
         collector.setIssues([errorIssue, warningIssue, deprecationIssue]);
         expect(listener).toHaveBeenCalledTimes(1);
-        expect(listener).toHaveBeenCalledWith({ level: 'deprecation', message: deprecationIssue.message });
+        expect(listener).toHaveBeenCalledWith({ severity: 'deprecation', message: deprecationIssue.message });
     });
 
-    it('dispatches regardless of overlay level and dismissal', () => {
+    it('dispatches regardless of showOverlayOn and dismissal', () => {
         const collector = new ValidationIssueCollector();
         const listener = vi.fn();
         collector.setIssueListener(listener);
-        collector.setOverlayLevel('none');
+        collector.setShowOverlayOn([]);
 
         collector.setIssues([errorIssue]);
         expect(listener).toHaveBeenCalledTimes(1);
@@ -378,7 +402,7 @@ describe('ValidationIssueCollector - issue listener', () => {
         listener.mockClear();
         collector.setDataIssues([warningIssue]);
         expect(listener).toHaveBeenCalledTimes(1);
-        expect(listener).toHaveBeenCalledWith({ level: 'warning', message: warningIssue.message });
+        expect(listener).toHaveBeenCalledWith({ severity: 'warning', message: warningIssue.message });
     });
 
     it('a throwing listener does not propagate out of the recording call', () => {
@@ -405,7 +429,7 @@ describe('ValidationIssueCollector - issue listener', () => {
         collector.setIssues([errorIssue]);
 
         expect(loggerError).toHaveBeenCalledTimes(1);
-        expect(loggerError).toHaveBeenCalledWith('validations.onDiagnosticRaised threw an error', expect.any(Error));
+        expect(loggerError).toHaveBeenCalledWith('validations.issueRaised threw an error', expect.any(Error));
     });
 
     it('a re-entrant listener does not recurse, and its issues are delivered after it returns', () => {
@@ -442,8 +466,8 @@ describe('ValidationIssueCollector - issue listener', () => {
         collector.setIssues([errorIssue, warningIssue]);
 
         expect(second).toHaveBeenCalledTimes(2);
-        expect(second).toHaveBeenNthCalledWith(1, { level: 'error', message: errorIssue.message });
-        expect(second).toHaveBeenNthCalledWith(2, { level: 'warning', message: warningIssue.message });
+        expect(second).toHaveBeenNthCalledWith(1, { severity: 'error', message: errorIssue.message });
+        expect(second).toHaveBeenNthCalledWith(2, { severity: 'warning', message: warningIssue.message });
         expect(first).toHaveBeenCalledTimes(2);
     });
 

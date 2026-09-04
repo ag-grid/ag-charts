@@ -16,6 +16,8 @@ import {
 import {
     FUNNEL_TO_BAR_PLACEMENT,
     funnelPlacementAxes,
+    funnelPlacementAxesList,
+    funnelValuePlacementAxes,
     resolveFunnelPlacements,
     toResolvedFunnelPlacement,
 } from './funnelLabelPlacement';
@@ -82,12 +84,18 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
     protected override resolveLabelPlacements(barAlongX: boolean) {
         const reportedPlacements = resolveFunnelPlacements(
             this.properties.label.placement,
-            this.defaultLabelPlacement()
+            this.defaultLabelPlacement(),
+            barAlongX,
+            this.ctx.domManager.isRtl
         );
         return {
             placements: reportedPlacements.map((placement) => FUNNEL_TO_BAR_PLACEMENT[placement]),
             reportedPlacements,
-            ...funnelPlacementAxes(barAlongX, this.getCategoryAxis()?.isReversed() === true),
+            axes: funnelPlacementAxesList(
+                reportedPlacements,
+                funnelPlacementAxes(barAlongX, this.getCategoryAxis()?.isReversed() === true),
+                funnelValuePlacementAxes(barAlongX)
+            ),
         };
     }
 

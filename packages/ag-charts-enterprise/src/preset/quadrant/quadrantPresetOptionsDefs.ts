@@ -102,6 +102,7 @@ export const quadrantOptionsDefs: OptionsDefs<AgQuadrantChartOptions> = {
     shape: defined,
     size: defined,
     sizeKey: defined,
+    sizeName: defined,
     stroke: defined,
     strokeOpacity: defined,
     strokeWidth: defined,

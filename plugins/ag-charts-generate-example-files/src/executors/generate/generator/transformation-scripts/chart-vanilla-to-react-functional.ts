@@ -106,6 +106,10 @@ function getComponentMetadata(bindings: any, id: string, property: any) {
 
     stateProperties.push(`const [${property.name}, set${toTitleCase(property.name)}] = useState(${property.value});`);
     componentAttributes.push(`options={${property.name}}`);
+    const modules = bindings.chartModules[property.name];
+    if (modules) {
+        componentAttributes.push(`modules={${modules}}`);
+    }
 
     Object.entries(bindings.chartAttributes[id]).forEach(([key, value]) => {
         if (key === 'style') {

@@ -429,6 +429,13 @@ export const ExpectedModules = new Map<string, ModulePlaceholder>(
             },
             {
                 type: 'plugin',
+                name: 'axis-dom-proxy',
+                chartType: 'cartesian',
+                enterprise: true,
+                moduleId: 'AxisInteractionModule',
+            },
+            {
+                type: 'plugin',
                 name: 'flashOnUpdate',
                 enterprise: true,
                 moduleId: 'FlashOnUpdateModule',
@@ -539,4 +546,12 @@ export const ExpectedModules = new Map<string, ModulePlaceholder>(
 export function getSeriesExpectedChartType(seriesName: string): string | undefined {
     const expectedModule = ExpectedModules.get(seriesName);
     return expectedModule?.type === ModuleType.Series ? expectedModule.chartType : undefined;
+}
+
+let expectedModuleNamesById: Map<string, string> | undefined;
+
+/** Resolves an exported module id such as `'LineSeriesModule'` to its registry name, if it is a known module. */
+export function findExpectedModuleName(moduleId: string): string | undefined {
+    expectedModuleNamesById ??= new Map(Array.from(ExpectedModules.values(), (m) => [m.moduleId, m.name]));
+    return expectedModuleNamesById.get(moduleId);
 }

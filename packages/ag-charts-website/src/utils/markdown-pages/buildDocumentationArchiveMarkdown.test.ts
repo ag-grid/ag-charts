@@ -18,14 +18,16 @@ describe('buildDocumentationArchiveMarkdown', () => {
 
     it('links each release to its archived docs and changelog', () => {
         // Charts always gets the /documentation suffix; the changelog carries the fixVersion.
-        expect(output).toContain('[14.1.0 Documentation](https://www.ag-grid.com/charts/archive/14.1.0/documentation)');
+        expect(output).toContain(
+            '[14.1.0 Documentation](https://www.ag-grid.com/charts/archive/14.1.0/documentation/)'
+        );
         expect(output).toContain('[Changelog](https://www.ag-grid.com/charts/changelog/?fixVersion=14.1.0)');
     });
 
     it('serves older majors from the legacy charts origin', () => {
         // Majors before 10.1 archive under charts.ag-grid.com rather than www.ag-grid.com/charts.
         expect(output).toContain('## Version 9');
-        expect(output).toContain('https://charts.ag-grid.com/archive/9.3.2/documentation');
+        expect(output).toContain('https://charts.ag-grid.com/archive/9.3.2/documentation/');
     });
 
     it('excludes versions flagged noDocs', () => {

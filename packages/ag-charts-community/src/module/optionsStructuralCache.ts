@@ -1,4 +1,12 @@
-import { type AxisID, type ChartModuleDefinition, Debug, LRUCache, ModuleRegistry, deepFreeze } from 'ag-charts-core';
+import {
+    type AxisID,
+    type ChartModuleDefinition,
+    Debug,
+    LRUCache,
+    type ModuleScope,
+    createScopedCache,
+    deepFreeze,
+} from 'ag-charts-core';
 import type { AgChartThemeParams } from 'ag-charts-types';
 
 import type { ValidationIssue } from '../chart/validation/validationIssueCollector';
@@ -21,8 +29,10 @@ export interface StructuralCacheEntry {
 }
 
 const STRUCTURAL_CACHE_MAX = 8;
-const structuralCache = new LRUCache<StructuralCacheEntry>(STRUCTURAL_CACHE_MAX);
-let structuralCacheRevision = -1;
+const structuralCaches = createScopedCache(
+    () => new LRUCache<StructuralCacheEntry>(STRUCTURAL_CACHE_MAX),
+    (cache) => cache.clear()
+);
 const structuralCacheDebug = Debug.create(true, 'perf', 'opts');
 
 // Per-instance keys excluded from the cache key. `document`/`window`/`styleContainer`
@@ -72,26 +82,17 @@ function describeDataShape(data: unknown): string {
     return typeof firstNonNull;
 }
 
-function invalidateIfRegistryChanged() {
-    structuralCacheRevision = ModuleRegistry.ifRegistryChanged(structuralCacheRevision, () => {
-        structuralCache.clear();
-    });
-}
-
-export function getStructuralCacheEntry(key: string): StructuralCacheEntry | undefined {
-    invalidateIfRegistryChanged();
-    const entry = structuralCache.get(key);
+export function getStructuralCacheEntry(key: string, moduleRegistry: ModuleScope): StructuralCacheEntry | undefined {
+    const entry = structuralCaches.for(moduleRegistry).get(key);
     structuralCacheDebug('[CACHE] StructuralOptions', entry ? 'hit' : 'miss');
     return entry;
 }
 
-export function setStructuralCacheEntry(key: string, value: StructuralCacheEntry) {
-    invalidateIfRegistryChanged();
-    structuralCache.set(key, deepFreeze(value));
+export function setStructuralCacheEntry(key: string, value: StructuralCacheEntry, moduleRegistry: ModuleScope) {
+    structuralCaches.for(moduleRegistry).set(key, deepFreeze(value));
 }
 
 /** Test-only: drop all cached entries so cases start from a known cold state. */
 export function __clearStructuralCacheForTests() {
-    structuralCache.clear();
-    structuralCacheRevision = -1;
+    structuralCaches.clear();
 }

@@ -6,6 +6,8 @@ import {
     AgCaptionListeners,
     AgChartInstance,
     AgChartLegendListeners,
+    AgChartModule,
+    AgChartParams,
     AgCharts as AgChartsAPI,
     AgContextMenuGetItemsCallback,
     AgContextMenuItem,
@@ -20,13 +22,15 @@ import {
 export abstract class AgChartsBase<Options extends {}> implements AfterViewInit, OnChanges, OnDestroy {
     public chart?: AgChartInstance;
     public abstract options: Options;
+    /** Modules registered for this chart only, in addition to any registered globally. Read when the chart is created. */
+    public abstract modules: AgChartModule[] | undefined;
     public abstract chartReady: EventEmitter<AgChartInstance>;
 
     protected _nativeElement: any;
     protected _initialised = false;
     protected ngZone!: NgZone;
 
-    protected abstract createChart(options: Options): any;
+    protected abstract createChart(options: Options, params: AgChartParams): any;
 
     /** The element name this component is used as, so an options error names the tag the author wrote. */
     protected abstract readonly selector: string;
@@ -34,7 +38,7 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
     ngAfterViewInit(): void {
         const options = this.patchChartOptions(this.options);
 
-        this.chart = this.runOutsideAngular(() => this.createChart(options));
+        this.chart = this.runOutsideAngular(() => this.createChart(options, { modules: this.modules }));
         this._initialised = true;
 
         (this.chart as any).chart.waitForUpdate().then(() => {
@@ -95,10 +99,10 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
         if (propsOptions.contextMenu) {
             patched.contextMenu = this.patchContextMenu(propsOptions.contextMenu);
         }
-        if (typeof propsOptions.validations?.onDiagnosticRaised === 'function') {
+        if (typeof propsOptions.validations?.issueRaised === 'function') {
             patched.validations = {
                 ...propsOptions.validations,
-                onDiagnosticRaised: this.wrapZoneAction(propsOptions.validations.onDiagnosticRaised),
+                issueRaised: this.wrapZoneAction(propsOptions.validations.issueRaised),
             };
         }
         patched.container ??= this._nativeElement;
