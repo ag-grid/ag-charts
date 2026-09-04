@@ -43,8 +43,8 @@ import {
     timeIntervalUnit,
     typeUnion,
     undocumented,
-    verticalAlign,
     union,
+    verticalAlign,
 } from 'ag-charts-core';
 import type {
     AgAxisBaseIntervalOptions,
