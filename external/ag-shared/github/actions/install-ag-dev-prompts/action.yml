@@ -35,4 +35,23 @@ runs:
               mkdir -p "$GITHUB_WORKSPACE/.ag-dev-prompts"
               cd "$GITHUB_WORKSPACE/.ag-dev-prompts"
               echo '{"name":"ag-dev-prompts-install","private":true}' > package.json
-              npm install --no-save --silent "@ag-grid/dev-prompts@${DEV_PROMPTS_CHANNEL}"
+
+              # npm.pkg.github.com occasionally stalls a request mid-flight (observed:
+              # zero output for 5+ minutes, no 4xx/5xx, just a hung DNS/connect phase)
+              # rather than failing fast. `timeout` bounds each attempt so a stall
+              # costs one retry instead of the whole job's timeout budget.
+              for attempt in 1 2 3; do
+                  if timeout 60 npm install --no-save --silent \
+                      --fetch-timeout=20000 \
+                      --fetch-retries=1 \
+                      --fetch-retry-mintimeout=2000 \
+                      --fetch-retry-maxtimeout=10000 \
+                      "@ag-grid/dev-prompts@${DEV_PROMPTS_CHANNEL}"; then
+                      exit 0
+                  fi
+                  echo "::warning::npm install of @ag-grid/dev-prompts@${DEV_PROMPTS_CHANNEL} attempt ${attempt} timed out or failed; retrying"
+                  sleep 5
+              done
+
+              echo "::error::npm install of @ag-grid/dev-prompts@${DEV_PROMPTS_CHANNEL} failed after 3 attempts"
+              exit 1
