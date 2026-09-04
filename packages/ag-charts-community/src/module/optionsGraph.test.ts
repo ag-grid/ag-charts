@@ -796,6 +796,19 @@ describe('OptionsGraph', () => {
             expect(options).not.toHaveProperty('six');
         });
 
+        it('should merge a theme-override into an object `$if` branch, keeping the keys it omits', () => {
+            const themeConfig = {
+                line: {
+                    label: { $if: [true, { style: { color: 'red', spacing: 4 } }, {}] },
+                },
+            };
+            const overrides = { line: { label: { style: { color: 'blue' } } } };
+            const options = new OptionsGraph(themeConfig, prepareOptions({}), undefined, {}, {}, overrides).resolve(
+                testLogger
+            );
+            expect(options.label).toStrictEqual({ style: { color: 'blue', spacing: 4 } });
+        });
+
         it('should resolve `$isType` operations', () => {
             const themeConfig = {
                 line: {
