@@ -105,7 +105,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
             placements: reportedPlacements.map((placement) => CONE_FUNNEL_TO_BAR_PLACEMENT[placement]),
             reportedPlacements,
             axes: reportedPlacements.map(() => axes),
-            // The divider has no thickness, so a `middle-*` region takes its cross extent from the plot.
+            // The divider has no thickness, so a `middle-*` region takes its cross extent from the series area.
             insideCrossRegion: this.getSeriesPlotRegion(),
         };
     }
