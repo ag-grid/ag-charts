@@ -354,12 +354,10 @@ export function createQuadrant(
 
     const series: (AgScatterSeriesOptions | AgBubbleSeriesOptions)[] = [];
 
-    if (options.sizeKey) {
+    if (options.sizeKey == null) {
         series.push({
-            minSize: options.size, // Default minSize to size
-            ...pick(options, bubbleSeriesKeys),
-            sizeKey: options.sizeKey, // Tell typescript that sizeKey is not undefined
-            type: 'bubble',
+            ...pick(options, scatterSeriesKeys),
+            type: 'scatter',
             context,
             itemStyler: composedItemStyler,
             tooltip: {
@@ -375,8 +373,10 @@ export function createQuadrant(
         });
     } else {
         series.push({
-            ...pick(options, scatterSeriesKeys),
-            type: 'scatter',
+            minSize: options.size, // Default minSize to size
+            ...pick(options, bubbleSeriesKeys),
+            sizeKey: options.sizeKey, // Tell typescript that sizeKey is not undefined
+            type: 'bubble',
             context,
             itemStyler: composedItemStyler,
             tooltip: {

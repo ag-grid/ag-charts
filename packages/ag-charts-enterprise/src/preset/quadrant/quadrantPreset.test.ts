@@ -5,7 +5,9 @@ import {
     type ChartTestCase,
     cartesianChartAssertions,
     compareImageSnapshot,
+    deproxy,
     expectNonBlank,
+    expectWarningsCalls,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -537,23 +539,37 @@ describe('Quadrant Preset label enabled default', () => {
     });
 });
 
-describe('AG-18413 quadrant sizeKey empty string', () => {
-    const resolveSeriesType = (options: Partial<AgQuadrantChartOptions>) => {
-        const { processedOptions } = new _ModuleSupport.ChartOptions(
-            { data: NUMERIC.data, xKey: 'x', yKey: 'y', ...options },
-            {},
-            {},
-            {},
-            { presetType: 'quadrant' }
-        ) as unknown as { processedOptions: { series: Record<string, any>[] } };
-        return processedOptions.series[0].type;
+describe('AG-18413 quadrant with a key naming no column', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: any;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const createQuadrantChart = async (overrides: Partial<AgQuadrantChartOptions>) => {
+        const options: AgQuadrantChartOptions = { ...NUMERIC, ...overrides };
+        prepareEnterpriseTestOptions(options as AgChartOptions);
+        chart = deproxy(AgCharts.createQuadrantChart(options) as any) as any;
+        await waitForChartStability(chart);
+        return chart.series[0];
     };
 
-    it.each([
-        ['no sizeKey resolves to scatter', {}, 'scatter'],
-        ['an empty sizeKey resolves to scatter (TC1)', { sizeKey: '' }, 'scatter'],
-        ['a sizeKey resolves to bubble', { sizeKey: 'size' }, 'bubble'],
-    ] as [string, Partial<AgQuadrantChartOptions>, string][])('%s', (_name, options, expected) => {
-        expect(resolveSeriesType(options)).toBe(expected);
+    it('renders nothing and warns for an empty sizeKey', async () => {
+        const series = await createQuadrantChart({ sizeKey: '' });
+
+        expect(series.getNodeData()).toEqual([]);
+        expect(series.hasData).toBe(false);
+        expectWarningsCalls().toEqual([[`AG Charts - the key '' was not found in any data element for ${series.id}.`]]);
+    });
+
+    it('keeps the series populated for a sizeKey that does name a column', async () => {
+        const series = await createQuadrantChart({ sizeKey: 'size' });
+
+        expect(series.getNodeData()).toHaveLength(NUMERIC.data!.length);
+        expectWarningsCalls().toEqual([]);
     });
 });

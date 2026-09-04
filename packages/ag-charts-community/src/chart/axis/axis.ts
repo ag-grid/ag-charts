@@ -634,7 +634,15 @@ export abstract class Axis<
         this.updatePosition();
         this.updateSelections();
 
-        this.gridLineGroup.visible = this.options.gridLine.enabled;
+        // Gridlines belong to data: a series holding rows that resolve to nothing renderable raises the
+        // chart's no-data overlay, and a grid drawn behind it reads as a populated series area (AG-18413).
+        // A series with no rows at all is a different case — an empty chart on a fixed axis domain is a
+        // deliberate configuration — so it keeps its grid.
+        // A series the user has switched off contributes nothing either way, so a chart with every series
+        // hidden keeps its grid.
+        const activeSeries = this.boundSeries.filter((s) => s.isEnabled());
+        const dataUnrenderable = activeSeries.some((s) => s.hasRowData) && !activeSeries.some((s) => s.hasData);
+        this.gridLineGroup.visible = this.options.gridLine.enabled && !dataUnrenderable;
 
         this.updateLabels();
         this.notifyAxisPlugins('onAxisUpdate');

@@ -9,6 +9,7 @@ import {
 import {
     assertTooltipPresentForAll,
     deproxy,
+    expectWarningsCalls,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
@@ -275,7 +276,7 @@ describe('colorScale partial options — theme fills survive user partials', () 
 });
 
 // `colorKey` is enterprise-gated, so an empty-string `colorKey` can only be exercised here.
-describe('AG-18413 empty-string colorKey - bubble/scatter', () => {
+describe('AG-18413 a colorKey naming no column - bubble/scatter', () => {
     setupMockConsole();
     setupMockCanvas();
 
@@ -288,35 +289,34 @@ describe('AG-18413 empty-string colorKey - bubble/scatter', () => {
         }
     });
 
-    const colorValues = (c: any) =>
-        (c.series[0] as unknown as { getNodeData(): Array<{ colorValue?: number }> })
-            .getNodeData()
-            .map((d) => d.colorValue);
-
     const createChartWith = async (series: AgBubbleSeriesOptions | AgScatterSeriesOptions) => {
         const options: AgChartOptions = prepareEnterpriseTestOptions({ data, series: [series] });
         chart = deproxy(AgCharts.create(options));
         await waitForChartStability(chart);
-        return colorValues(chart);
+        return chart.series[0];
     };
 
     it.each([
         ['bubble', { type: 'bubble' as const, xKey: 'x', yKey: 'y', sizeKey: 'size' }],
         ['scatter', { type: 'scatter' as const, xKey: 'x', yKey: 'y' }],
-    ])('%s falls back to the default fill when colorKey is an empty string (TC2)', async (_name, base) => {
-        const emptyKey = await createChartWith({ ...base, colorKey: '', colorScale: { fills } });
+    ])('%s renders nothing and warns for an empty colorKey (TC2)', async (_name, base) => {
+        const series = await createChartWith({ ...base, colorKey: '', colorScale: { fills } });
 
-        chart.destroy();
-        chart = undefined;
-        const omitted = await createChartWith({ ...base, colorScale: { fills } });
+        expect(series.getNodeData()).toEqual([]);
+        expect(series.hasData).toBe(false);
+        expectWarningsCalls().toEqual([[`AG Charts - the key '' was not found in any data element for ${series.id}.`]]);
+    });
 
-        chart.destroy();
-        chart = undefined;
-        const populated = await createChartWith({ ...base, colorKey: 'intensity', colorScale: { fills } });
+    it('keeps the series populated for a colorKey that does name a column', async () => {
+        const series = await createChartWith({
+            type: 'bubble',
+            xKey: 'x',
+            yKey: 'y',
+            sizeKey: 'size',
+            colorKey: 'intensity',
+            colorScale: { fills },
+        });
 
-        expect(emptyKey).toHaveLength(data.length);
-        expect(emptyKey.every((value) => value === undefined)).toBe(true);
-        expect(emptyKey).toEqual(omitted);
-        expect(populated.some((value) => value != null)).toBe(true);
+        expect(series.getNodeData()).toHaveLength(data.length);
     });
 });

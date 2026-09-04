@@ -144,6 +144,7 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
      */
     getHighlightPart(target: Node<unknown> | undefined): string | undefined;
     hasData: boolean;
+    hasRowData: boolean;
     update(opts: { seriesRect?: BBox }): Promise<void> | void;
     updatePlacedLabelData?(labels: PlacedLabel<TLabel>[]): void;
     fireNodeClickEvent(opts: FireNodeEventParams): boolean;

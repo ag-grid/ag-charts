@@ -405,10 +405,19 @@ export abstract class Series<
         return this.ctx.legendManager?.getSeriesEnabled(this.id) ?? this.properties.visible;
     }
 
-    get hasData() {
+    /**
+     * Whether the series was handed any rows at all, independently of whether those rows resolve
+     * against its keys. A series with rows but no renderable data is a misconfiguration; one with
+     * no rows is simply empty.
+     */
+    get hasRowData() {
         const dataSet = this.data;
         if (dataSet == null) return false;
         return dataSet.netSize() > 0;
+    }
+
+    get hasData() {
+        return this.hasRowData;
     }
 
     get tooltipEnabled() {
