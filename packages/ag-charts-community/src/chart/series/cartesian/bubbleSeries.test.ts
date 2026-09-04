@@ -1662,6 +1662,80 @@ describe('BubbleSeries', () => {
             );
         });
     });
+
+    describe('AG-18413 empty-string keys', () => {
+        type NodeDatum = { point: { size: number }; label?: { text?: string } };
+        const nodeData = (c: AgChartInstance) =>
+            (deproxy(c).series[0] as unknown as { getNodeData(): NodeDatum[] }).getNodeData();
+        const nodeSizes = (c: AgChartInstance) => nodeData(c).map((d) => d.point.size);
+        const labelTexts = (c: AgChartInstance) => nodeData(c).map((d) => d.label?.text);
+
+        const bubbleOptions = (seriesOverrides: object) => {
+            const options = {
+                data: [
+                    { x: 1, y: 1, s: 10, l: 'a' },
+                    { x: 2, y: 2, s: 20, l: 'b' },
+                    { x: 3, y: 3, s: 30, l: 'c' },
+                ],
+                series: [{ type: 'bubble', xKey: 'x', yKey: 'y', ...seriesOverrides }],
+                legend: { enabled: false },
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            } as AgCartesianChartOptions;
+            prepareTestOptions(options);
+            return options;
+        };
+
+        const createBubble = async (seriesOverrides: object) => {
+            chart = AgCharts.create(bubbleOptions(seriesOverrides));
+            await waitForChartStability(chart);
+        };
+
+        it('renders default-size markers when sizeKey is an empty string (TC1)', async () => {
+            await createBubble({ sizeKey: '' });
+
+            expect(nodeSizes(chart)).toEqual([7, 7, 7]);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+
+        it('keeps rendering when a sizeKey-less series is updated in place (TC1)', async () => {
+            await createBubble({ sizeKey: '' });
+
+            await chart.update(bubbleOptions({ sizeKey: '' }));
+            await waitForChartStability(chart);
+
+            expect(nodeSizes(chart)).toEqual([7, 7, 7]);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+
+        it('treats an empty labelKey as an omitted labelKey (TC3)', async () => {
+            await createBubble({ sizeKey: 's', labelKey: '' });
+            const emptyKeySizes = nodeSizes(chart);
+            const emptyKeyLabels = labelTexts(chart);
+
+            chart.destroy();
+            await createBubble({ sizeKey: 's' });
+
+            expect(emptyKeySizes).toEqual(nodeSizes(chart));
+            expect(emptyKeyLabels).toEqual(labelTexts(chart));
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+
+        it('falls back to the sizeKey value for label text when labels are enabled and labelKey is empty (TC3)', async () => {
+            await createBubble({ sizeKey: 's', labelKey: '', label: { enabled: true } });
+            const emptyKeyLabels = labelTexts(chart);
+
+            chart.destroy();
+            await createBubble({ sizeKey: 's', label: { enabled: true } });
+
+            expect(emptyKeyLabels).toEqual(labelTexts(chart));
+            expect(emptyKeyLabels).toEqual(['10', '20', '30']);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+    });
+
 });
 
 describe('BubbleSeries bigint size domain (AG-16608)', () => {

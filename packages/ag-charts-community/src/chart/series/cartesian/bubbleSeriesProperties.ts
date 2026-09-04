@@ -1,5 +1,11 @@
 import type { InternalAgColorType } from 'ag-charts-core';
-import { Property, ProxyProperty, SceneArrayChangeDetection, SceneChangeDetection } from 'ag-charts-core';
+import {
+    Property,
+    ProxyProperty,
+    SceneArrayChangeDetection,
+    SceneChangeDetection,
+    addTransformToInstanceProperty,
+} from 'ag-charts-core';
 import type {
     AgBubbleSeriesLabelFormatterParams,
     AgBubbleSeriesOptions,
@@ -24,6 +30,10 @@ import { PlacedSeriesLabel } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { makeSeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesProperties } from './cartesianSeries';
+
+const EmptyStringAsUndefined = addTransformToInstanceProperty((_target, _key, value) =>
+    value === '' ? undefined : value
+);
 
 class BubbleSeriesMarker extends SeriesMarker<AgBubbleSeriesOptionsKeys | AgScatterSeriesOptionsKeys> {
     /**
@@ -53,12 +63,15 @@ export class BubbleScatterSeriesProperties extends CartesianSeriesProperties<AgB
     yKey!: string;
 
     @Property
+    @EmptyStringAsUndefined
     sizeKey!: string;
 
     @Property
+    @EmptyStringAsUndefined
     labelKey?: string;
 
     @Property
+    @EmptyStringAsUndefined
     colorKey?: string;
 
     // WARNING! Cross-filtering only, which is neither documented nor supported, and is unrelated to the

@@ -354,7 +354,7 @@ export function createQuadrant(
 
     const series: (AgScatterSeriesOptions | AgBubbleSeriesOptions)[] = [];
 
-    if (options.sizeKey == null) {
+    if (!options.sizeKey) {
         series.push({
             ...pick(options, scatterSeriesKeys),
             type: 'scatter',
