@@ -1109,10 +1109,9 @@ export abstract class CartesianAxis<
         const { horizontal, tempText } = this;
         const sideFlag = getAxisLabelSideFlag(this.mirrored);
         const primaryEnabled = primaryLabel?.enabled ?? false;
-        // The computed baseline is `'middle'` exactly when the label pivots about its own anchor.
-        // `rotation` cannot stand in for it: an auto-rotated axis - the default once labels collide -
-        // still computes an edge baseline, and keying off rotation would mis-handle that case.
-        const anchorRotated = computedTextBaseline === 'middle';
+        // Only a rotated label can swing its glyphs across the axis line without the band flush
+        // below; an unrotated one is already placed by its own alignment.
+        const anchorRotated = rotation !== 0;
 
         // Each label tier occupies its own band, so a tier that leaves both options unset keeps
         // today's anchor.
