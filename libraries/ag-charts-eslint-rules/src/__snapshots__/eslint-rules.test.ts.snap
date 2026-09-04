@@ -278,9 +278,14 @@ exports[`aglint/validate-module-registration 1`] = `
   176:16  error  Module 'PieSeriesModule' is required for series type 'pie' but not registered                            aglint/validate-module-registration
   187:5   error  Module 'DataSourceModule' is required for option 'dataSource' but not registered                         aglint/validate-module-registration
   264:19  error  Module 'BackgroundRegionsModule' is required for seriesArea.backgroundRegions option but not registered  aglint/validate-module-registration
+  282:16  error  Module 'AreaSeriesModule' is required for series type 'area' but not registered                          aglint/validate-module-registration
+  285:46  error  Module 'ContextMenuModule' is registered but not used by chart options                                   aglint/validate-module-registration
+  295:45  error  Module 'ContextMenuModule' is registered but not used by chart options                                   aglint/validate-module-registration
+  301:16  error  Module 'AreaSeriesModule' is required for series type 'area' but not registered                          aglint/validate-module-registration
+  304:47  error  Module 'LineSeriesModule' is registered but not used by chart options                                    aglint/validate-module-registration
 
-✖ 11 problems (11 errors, 0 warnings)
-  11 errors and 0 warnings potentially fixable with the \`--fix\` option.
+✖ 16 problems (16 errors, 0 warnings)
+  16 errors and 0 warnings potentially fixable with the \`--fix\` option.
 
 ",
 }

@@ -244,6 +244,7 @@ export const enterpriseModules = new Set([
     // Plugins
     'AnimationModule',
     'AnnotationsModule',
+    'AxisInteractionModule',
     'BackgroundRegionsModule',
     'BandHighlightModule',
     'ChartToolbarModule',
@@ -581,6 +582,7 @@ export const validModuleIds = new Set([
     // Plugins
     'AnimationModule',
     'AnnotationsModule',
+    'AxisInteractionModule',
     'BackgroundRegionsModule',
     'BandHighlightModule',
     'ChartToolbarModule',

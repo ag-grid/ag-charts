@@ -1,4 +1,4 @@
-import { ModuleRegistry, jsonDiff } from 'ag-charts-core';
+import { type ModuleScope, jsonDiff } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import type { ISeries } from '../series/seriesTypes';
@@ -8,7 +8,8 @@ const DEFAULT_MATCHING_KEYS = ['direction', 'xKey', 'yKey', 'sizeKey', 'angleKey
 export function matchSeriesOptions<S extends ISeries<any, any, any>>(
     series: S[],
     optSeries: NonNullable<AgChartOptions['series']>,
-    oldOptsSeries?: AgChartOptions['series']
+    oldOptsSeries: AgChartOptions['series'] | undefined,
+    moduleRegistry: ModuleScope
 ) {
     const matchingKeysCache = new Map<string | undefined, string[]>();
     const getMatchingKeys = (type: string | undefined) => {
@@ -18,7 +19,7 @@ export function matchSeriesOptions<S extends ISeries<any, any, any>>(
 
         if (matchingKeysCache.has(type)) return matchingKeysCache.get(type)!;
 
-        const matchingKeys = ModuleRegistry.getSeriesModule(type)?.matchingKeys ?? DEFAULT_MATCHING_KEYS;
+        const matchingKeys = moduleRegistry.getSeriesModule(type)?.matchingKeys ?? DEFAULT_MATCHING_KEYS;
         matchingKeysCache.set(type, matchingKeys);
 
         return matchingKeys;

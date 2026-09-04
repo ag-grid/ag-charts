@@ -17,7 +17,6 @@ import {
     Color,
     Debug,
     type ModuleInstance,
-    ModuleRegistry,
     ModuleType,
     ZIndexMap,
     callWithContext,
@@ -486,6 +485,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             withDragInterpretation: options.optionMetadata.withDragInterpretation ?? true,
             syncManager: new SyncManager(this),
             logger: options.logger,
+            moduleRegistry: options.moduleRegistry,
             updateMutex: this.updateMutex,
             cssVariables: options.processedCSSVariables,
         }));
@@ -1572,7 +1572,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     private updateLegends(initialStateLegend?: AgInitialStateLegendOptions[]) {
-        for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
+        for (const module of this.ctx.moduleRegistry.listModulesByType(ModuleType.Plugin)) {
             switch (module.name) {
                 case 'legend':
                     this.setCategoryLegendData(initialStateLegend);
@@ -2085,7 +2085,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         const { type: chartType } = this.constructor as any;
 
         let modulesChanged = false;
-        for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
+        for (const module of this.ctx.moduleRegistry.listModulesByType(ModuleType.Plugin)) {
             const shouldBeEnabled = !module.chartType || module.chartType === chartType;
             if (shouldBeEnabled === this.modulesManager.isEnabled(module.name)) continue;
 
@@ -2113,7 +2113,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         const seriesAreaModuleContext = this.seriesArea.createModuleContext();
         const seriesAreaModuleMap = this.seriesArea.getModuleMap();
 
-        for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
+        for (const module of this.ctx.moduleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
             if (module.chartType && module.chartType !== chartType) continue;
 
             const pluginOptions = (options.seriesArea as any)[module.name];
@@ -2151,7 +2151,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             return 'no-change';
         }
 
-        const matchResult = matchSeriesOptions(chart.series, optSeries, oldOptSeries);
+        const matchResult = matchSeriesOptions(chart.series, optSeries, oldOptSeries, this.ctx.moduleRegistry);
         if (matchResult.status === 'no-overlap') {
             debug(`Chart.applySeries() - creating new series instances, status: ${matchResult.status}`, matchResult);
             const chartSeries = optSeries.map((opts) => this.createSeries(opts));
@@ -2255,7 +2255,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     private createSeries(seriesOptions: SeriesOptionsTypes): UnknownSeries {
-        const seriesModule = ModuleRegistry.getSeriesModule(seriesOptions.type);
+        const seriesModule = this.ctx.moduleRegistry.getSeriesModule(seriesOptions.type);
         const seriesInstance = seriesModule!.create(this.getModuleContext()) as UnknownSeries;
         this.applySeriesOptionModules(seriesInstance, seriesOptions);
         this.applySeriesValues(seriesInstance, seriesOptions);
@@ -2266,7 +2266,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         const moduleContext = series.createModuleContext();
         const moduleMap = series.getModuleMap();
 
-        for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
+        for (const module of this.ctx.moduleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
             if (module.name in options && (module.seriesTypes?.includes(series.type) ?? true)) {
                 moduleMap.addModule(module.name, module.create(moduleContext));
             }
@@ -2278,7 +2278,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { type, data, seriesGrouping, showInMiniChart, ...seriesOptions } = options as any;
 
-        for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
+        for (const module of this.ctx.moduleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
             if (module.name in seriesOptions) {
                 const moduleInstance: any = moduleMap.getModule(module.name);
                 if (moduleInstance) {
@@ -2313,11 +2313,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
         const moduleContext = this.getModuleContext();
 
         for (const [id, axisOptions] of entries(options)) {
-            const axis = ModuleRegistry.getAxisModule(axisOptions.type!)!.create(
-                moduleContext,
-                id as AxisID,
-                axisOptions
-            ) as ChartAxis;
+            const axis = this.ctx.moduleRegistry
+                .getAxisModule(axisOptions.type!)!
+                .create(moduleContext, id as AxisID, axisOptions) as ChartAxis;
             this.applyAxisModules(axis, axisOptions);
 
             newAxes.push(axis);
@@ -2333,7 +2331,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         const moduleMap = axis.getModuleMap();
         const { type: chartType } = this.constructor as any;
 
-        for (const module of ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
+        for (const module of this.ctx.moduleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
             if (module.chartType && module.chartType !== chartType) continue;
 
             const optionsKey = module.optionsKey ?? module.name;

@@ -25,6 +25,7 @@ import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverri
 import type { Chart } from './chart';
 import type { DataServiceRestoredData } from './data/dataService';
 import { deepCloneDataSet } from './data/dataSetUtil';
+import { findExpectedModuleName } from './factory/expectedModules';
 import { InteractionState } from './interaction/interactionManager';
 import type { UpdateZoomSourcing } from './interaction/zoomManager';
 import { LegendPaginationOriginator, findCategoryLegend } from './legend/legendPaginationOriginator';
@@ -44,7 +45,8 @@ export interface FactoryApi {
         processedOverrides?: Partial<AgChartOptions>,
         specialOverrides?: ChartSpecialOverrides,
         optionsMetadata?: ChartInternalOptionMetadata,
-        data?: DataServiceRestoredData
+        data?: DataServiceRestoredData,
+        licenseManager?: LicenseManager
     ): AgChartProxy;
     update(
         opts: AgChartOptions,
@@ -77,11 +79,11 @@ export class AgChartInstanceProxy implements AgChartProxy {
     })
     chart?: Chart;
     releaseChart?: () => void;
+    licenseManager?: LicenseManager;
 
     constructor(
         chart: Chart,
-        private readonly factoryApi: FactoryApi,
-        private readonly licenseManager?: LicenseManager
+        private readonly factoryApi: FactoryApi
     ) {
         this.chart = chart;
     }
@@ -247,6 +249,13 @@ export class AgChartInstanceProxy implements AgChartProxy {
         return this.chart?.setSelection(items);
     }
 
+    isModuleRegistered(moduleId: string): boolean {
+        if (!this.chart) throw new Error(DESTROYED_ERROR);
+
+        const moduleName = findExpectedModuleName(moduleId) ?? moduleId;
+        return this.chart.chartOptions.moduleRegistry.hasModule(moduleName);
+    }
+
     clearSelection(): void {
         return this.chart?.clearSelection();
     }
@@ -314,7 +323,8 @@ export class AgChartInstanceProxy implements AgChartProxy {
             processedOverrides,
             specialOverrides,
             optionsMetadata,
-            data
+            data,
+            this.licenseManager
         );
 
         if (state.legend) {

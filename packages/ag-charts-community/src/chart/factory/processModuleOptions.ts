@@ -3,10 +3,12 @@ import {
     Debug,
     type Logger,
     ModuleRegistry,
+    type ModuleScope,
     ModuleType,
     type PlainObject,
     type PluginModuleDefinition,
     type SeriesPluginModuleDefinition,
+    createScopedCache,
     deepClone,
     deepFreeze,
     groupBy,
@@ -22,14 +24,19 @@ import { ExpectedModules, type ModulePlaceholder } from './expectedModules';
 
 const SkippedModules = new Set<string>(['foreground']);
 
-let sanitizedThemeCache = new WeakMap<ChartTheme, ChartTheme>();
-let sanitizedThemeCacheRevision = -1;
+const sanitizedThemeCaches = createScopedCache(
+    () => ({ themes: new WeakMap<ChartTheme, ChartTheme>() }),
+    (cache) => {
+        cache.themes = new WeakMap();
+    }
+);
 const sanitizedThemeCacheDebug = Debug.create(true, 'perf', 'theme');
 
-export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
-    sanitizedThemeCacheRevision = ModuleRegistry.ifRegistryChanged(sanitizedThemeCacheRevision, () => {
-        sanitizedThemeCache = new WeakMap();
-    });
+export function sanitizeThemeModules(
+    theme: ChartTheme,
+    moduleRegistry: ModuleScope = ModuleRegistry.resolveModuleScope()
+): ChartTheme {
+    const { themes: sanitizedThemeCache } = sanitizedThemeCaches.for(moduleRegistry);
     const cached = sanitizedThemeCache.get(theme);
     if (cached !== undefined) {
         sanitizedThemeCacheDebug('[CACHE] SanitizedTheme', 'hit');
@@ -37,28 +44,27 @@ export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
     }
 
     sanitizedThemeCacheDebug('[CACHE] SanitizedTheme', 'miss');
-    const result = sanitizeThemeModulesUncached(theme);
+    const result = sanitizeThemeModulesUncached(theme, moduleRegistry);
     sanitizedThemeCache.set(theme, result);
     return result;
 }
 
 /** Test-only: drop all cached entries so cases start from a known cold state. */
 export function __clearSanitizedThemeCacheForTests() {
-    sanitizedThemeCache = new WeakMap();
-    sanitizedThemeCacheRevision = -1;
+    sanitizedThemeCaches.clear();
 }
 
-function sanitizeThemeModulesUncached(theme: ChartTheme): ChartTheme {
+function sanitizeThemeModulesUncached(theme: ChartTheme, moduleRegistry: ModuleScope): ChartTheme {
     const missingModules = new Map<string, Set<string>>();
 
     // Keys already covered by a registered axis-plugin module. A missing module must not prune a theme key
     // another registered module also owns (`CrossLinesModule` vs `PolarCrossLinesModule` share `crossLines`).
     const coveredAxisPluginKeys = new Set<string>(
-        [...ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)].map((m) => m.optionsKey ?? m.name)
+        [...moduleRegistry.listModulesByType(ModuleType.AxisPlugin)].map((m) => m.optionsKey ?? m.name)
     );
 
     for (const [name, { type, optionsKey }] of ExpectedModules) {
-        if (ModuleRegistry.hasModule(name)) continue;
+        if (moduleRegistry.hasModule(name)) continue;
 
         // For axis-plugin modules, store the optionsKey that would be pruned from
         // theme axis configs. Skip if another registered module already covers that key.
@@ -182,9 +188,12 @@ export function processModuleOptions<T extends Partial<AgChartOptions>>(
     chartType: string | undefined,
     options: T,
     additionalMissingModules: ModulePlaceholder[],
-    logger: Logger
+    logger: Logger,
+    moduleRegistry: ModuleScope
 ): ProcessModuleOptionsReport | undefined {
-    const missingModules = unique(removeUnregisteredModuleOptions(chartType, options).concat(additionalMissingModules));
+    const missingModules = unique(
+        removeUnregisteredModuleOptions(chartType, options, moduleRegistry).concat(additionalMissingModules)
+    );
 
     if (!missingModules.length) return undefined;
 
@@ -199,7 +208,12 @@ export function processModuleOptions<T extends Partial<AgChartOptions>>(
         message = umdMissingModulesMessage(missingOptions.enterprise ?? []);
         logger.warnOnce(message);
     } else {
-        message = bundlerMissingModulesMessage(missingModules, missingOptions, installationReferenceUrl);
+        message = bundlerMissingModulesMessage(
+            missingModules,
+            missingOptions,
+            installationReferenceUrl,
+            !ModuleRegistry.isGlobalScope(moduleRegistry)
+        );
         logger.errorOnce(message);
     }
 
@@ -223,13 +237,14 @@ function umdMissingModulesMessage(enterpriseModules: ModulePlaceholder[]): strin
 function bundlerMissingModulesMessage(
     missingModules: ModulePlaceholder[],
     missingOptions: Partial<Record<'enterprise' | 'community', ModulePlaceholder[]>>,
-    installationReferenceUrl: string
+    installationReferenceUrl: string,
+    instanceModules: boolean
 ): string {
     const packageName = ModuleRegistry.isEnterprise() || missingOptions.enterprise?.length ? 'enterprise' : 'community';
     return [
         'required modules are not registered. Check if you have registered the modules:',
         '',
-        createRegistrySnippet(missingModules.map(formatMissingModuleName), packageName),
+        createRegistrySnippet(missingModules.map(formatMissingModuleName), packageName, instanceModules),
         '',
         `See ${installationReferenceUrl} for more details.`,
     ].join('\n');
@@ -249,15 +264,20 @@ function formatImports(imports: string[], packageName: string) {
         : null;
 }
 
-function createRegistrySnippet(moduleNames: string[], packageName: string): string {
-    const imports = formatImports(['ModuleRegistry'].concat(moduleNames), packageName);
+function createRegistrySnippet(moduleNames: string[], packageName: string, instanceModules: boolean): string {
     const moduleList = moduleNames.map(formatImportItem).join('\n');
+    if (instanceModules) {
+        const imports = formatImports(['AgCharts'].concat(moduleNames), packageName);
+        return `${imports}\n\nAgCharts.create(options, {\n    modules: [\n${moduleList.replace(/^/gm, '    ')}\n    ],\n});`;
+    }
+    const imports = formatImports(['ModuleRegistry'].concat(moduleNames), packageName);
     return `${imports}\n\nModuleRegistry.registerModules([\n${moduleList}\n]);`;
 }
 
 export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions>>(
     chartType: string | undefined,
-    options: T
+    options: T,
+    moduleRegistry: ModuleScope
 ): ModulePlaceholder[] {
     const missingModules = new Map<string, ModulePlaceholder>();
     const optionsAxes = 'axes' in options && isObject(options.axes) ? options.axes : {};
@@ -273,7 +293,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
     }
 
     for (const module of ExpectedModules.values()) {
-        if (ModuleRegistry.hasModule(module.name)) continue;
+        if (moduleRegistry.hasModule(module.name)) continue;
         if (SkippedModules.has(module.name)) continue;
         // Ignore modules that don't match the current chart type
         if (chartType && module.chartType && chartType !== module.chartType) continue;
@@ -342,7 +362,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
         const expectedSeriesModule = ExpectedModules.get(seriesType);
         if (
             expectedSeriesModule?.type === ModuleType.Series &&
-            !ModuleRegistry.hasModule(expectedSeriesModule.name) &&
+            !moduleRegistry.hasModule(expectedSeriesModule.name) &&
             !missingModules.has(expectedSeriesModule.name)
         ) {
             options.series = (options.series as any[]).filter((series) => series.type !== expectedSeriesModule.name);
@@ -354,7 +374,8 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
 
 export function removeIncompatibleModuleOptions<T extends Partial<AgChartOptions>>(
     chartType: string | undefined,
-    options: T
+    options: T,
+    moduleRegistry: ModuleScope
 ): string[] {
     const hasAxesOptions = 'axes' in options && isObject(options.axes);
     const hasSeriesOptions = 'series' in options && isArray(options.series);
@@ -366,13 +387,13 @@ export function removeIncompatibleModuleOptions<T extends Partial<AgChartOptions
     // Axis-plugin modules can share an `optionsKey`, so only strip a key when no compatible axis-plugin
     // module claims it for the current chartType.
     const supportedAxisPluginKeys = new Set<string>();
-    for (const module of ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
+    for (const module of moduleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
         if (matchChartType(module)) {
             supportedAxisPluginKeys.add(module.optionsKey ?? module.name);
         }
     }
 
-    for (const module of ModuleRegistry.listModules()) {
+    for (const module of moduleRegistry.listModules()) {
         if (ModuleRegistry.isModuleType(ModuleType.Plugin, module)) {
             if (!matchChartType(module)) {
                 delete options[module.name as keyof AgChartOptions];
