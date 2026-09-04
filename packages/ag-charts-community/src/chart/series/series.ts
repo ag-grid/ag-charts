@@ -42,9 +42,9 @@ import {
 import type {
     AgActiveItemState,
     AgChartLabelFormatterParams,
-    AgClickParams,
     AgDrawingMode,
     AgInitialStateLegendOptions,
+    AgMatchedParams,
     AgNodeClickEvent,
     AgNodeClickParams,
     AgNodeContextMenuActionEvent,
@@ -1256,19 +1256,20 @@ export abstract class Series<
     }
 
     createNodeContextMenuActionEvent(opts: FireNodeEventParams): AgNodeContextMenuActionEvent {
-        const event = this.createNodeEvent('nodeContextMenuAction', opts);
-        // `delete` rather than a rest-spread, which would freeze the live `defaultPrevented` getter.
-        delete (event as { clickedOn?: unknown }).clickedOn;
-        return event;
+        return this.createNodeEvent('nodeContextMenuAction', opts);
     }
 
     // Do not override. Override createNodeParams instead.
     createNodeEvent<T extends NodeEventType>(type: T, opts: FireNodeEventParams) {
-        const { event, datums, winner, coordinates, otherClickParams } = opts;
-        const nodeParams: AgNodeClickParams<unknown>[] = datums.map((d) => d.series.createNodeParams(d));
-        // Series nodes lead, so `winner` still indexes `allClickParams`.
-        const allClickParams: AgClickParams<unknown>[] =
-            otherClickParams != null && otherClickParams.length > 0 ? [...nodeParams, ...otherClickParams] : nodeParams;
+        const { event, datums, winner, coordinates, otherHitParams } = opts;
+        // Each entry reports the event its own kind would deliver, so every series node takes this event's type.
+        const nodeParams: AgNodeClickParams<unknown>[] = datums.map((d) => ({
+            ...d.series.createNodeParams(d),
+            type,
+        }));
+        // Series nodes lead, so `winner` still indexes `allMatchedParams`.
+        const allMatchedParams: AgMatchedParams<unknown>[] =
+            otherHitParams != null && otherHitParams.length > 0 ? [...nodeParams, ...otherHitParams] : nodeParams;
 
         let defaultPrevented = false;
         return {
@@ -1276,7 +1277,7 @@ export abstract class Series<
             type,
             event,
             coordinates,
-            allClickParams,
+            allMatchedParams,
             get defaultPrevented() {
                 return defaultPrevented;
             },
@@ -1286,10 +1287,10 @@ export abstract class Series<
         };
     }
 
-    createNodeParams(datum: TDatum): AgNodeClickParams<unknown> {
+    // The caller brands these with the event type, so `type` is deliberately absent here.
+    createNodeParams(datum: TDatum): Omit<AgNodeClickParams<unknown>, 'type'> {
         const dataIdKey = this.data?.dataIdKey;
         return {
-            clickedOn: 'series-node',
             datum: datum.datum,
             datums: datum.datums,
             totalValue: datum.totalValue,

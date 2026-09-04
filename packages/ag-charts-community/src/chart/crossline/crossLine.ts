@@ -2,12 +2,12 @@ import type { BoxBounds, CanvasPoint, ChartAxisDirection, Forbid, RequireOptiona
 import { callWithContext } from 'ag-charts-core';
 import type {
     AgBaseCrossLineLabelOptions,
-    AgClickParams,
     AgCrossLineClickEvent,
     AgCrossLineClickParams,
     AgCrossLineDoubleClickEvent,
     AgCrossLineLabelPosition,
     AgCrossLineListeners,
+    AgMatchedParams,
     AgTimeInterval,
     AgTimeIntervalUnit,
 } from 'ag-charts-types';
@@ -33,11 +33,11 @@ interface PendingCallback {
 }
 
 export type PendingCrossLineCallbackParam =
-    | Forbid<AgCrossLineClickEvent, 'allClickParams'>
-    | Forbid<AgCrossLineDoubleClickEvent, 'allClickParams'>;
+    | Forbid<AgCrossLineClickEvent, 'allMatchedParams'>
+    | Forbid<AgCrossLineDoubleClickEvent, 'allMatchedParams'>;
 
 export interface PendingCrossLineCallbacks {
-    allClickParams: AgCrossLineClickParams[];
+    allMatchedParams: AgCrossLineClickParams[];
     chart?: PendingCallback;
     axes: Map<string, PendingCallback>;
     crossLines: Map<string, PendingCallback>;
@@ -67,25 +67,25 @@ export function validateCrossLineValue(crossLine: ICrossLine, scale: Scale<any, 
     }
 }
 
-function firePendingCrossLineCallback(allClickParams: AgClickParams<unknown>[], callback: PendingCallback): void {
+function firePendingCrossLineCallback(allMatchedParams: AgMatchedParams<unknown>[], callback: PendingCallback): void {
     const { callers, fn, params } = callback;
-    callWithContext(callers, fn, { ...params, allClickParams });
+    callWithContext(callers, fn, { ...params, allMatchedParams });
 }
 
 export function fireAllPendingCrossLineCallbacks(
     pending: PendingCrossLineCallbacks,
-    otherClickParams: AgClickParams<unknown>[]
+    otherHitParams: AgMatchedParams<unknown>[]
 ): void {
-    const allClickParams: AgClickParams<unknown>[] =
-        otherClickParams.length > 0 ? [...pending.allClickParams, ...otherClickParams] : pending.allClickParams;
+    const allMatchedParams: AgMatchedParams<unknown>[] =
+        otherHitParams.length > 0 ? [...pending.allMatchedParams, ...otherHitParams] : pending.allMatchedParams;
     for (const crossLine of pending.crossLines.values()) {
-        firePendingCrossLineCallback(allClickParams, crossLine);
+        firePendingCrossLineCallback(allMatchedParams, crossLine);
     }
     for (const axis of pending.axes.values()) {
-        firePendingCrossLineCallback(allClickParams, axis);
+        firePendingCrossLineCallback(allMatchedParams, axis);
     }
     if (pending.chart) {
-        firePendingCrossLineCallback(allClickParams, pending.chart);
+        firePendingCrossLineCallback(allMatchedParams, pending.chart);
     }
 }
 

@@ -6,6 +6,7 @@ import type {
     AgCartesianCrossLineLabelOptions,
     AgCartesianCrossLineOptions,
     AgCrossLineClickEvent,
+    AgCrossLineClickParams,
     AgCrossLineLabelPosition,
     AgCrossLineListeners,
 } from 'ag-charts-types';
@@ -778,14 +779,16 @@ describe('CrossLine', () => {
             expect(click).not.toHaveBeenCalled();
         });
 
-        describe('overlapping crosslines allClickParams', () => {
+        describe('overlapping crosslines allMatchedParams', () => {
             let chartClick: ViFn;
             let chartCrossLineClick: ViFn;
+            let chartCrossLineDoubleClick: ViFn;
             let chartSeriesNodeClick: ViFn;
             let seriesSeriesNodeClick: ViFn;
             beforeEach(async () => {
                 chartClick = vi.fn();
                 chartCrossLineClick = vi.fn();
+                chartCrossLineDoubleClick = vi.fn();
                 chartSeriesNodeClick = vi.fn();
                 seriesSeriesNodeClick = vi.fn();
                 chart = await createChart({
@@ -816,6 +819,7 @@ describe('CrossLine', () => {
                     listeners: {
                         click: chartClick,
                         crossLineClick: chartCrossLineClick,
+                        crossLineDoubleClick: chartCrossLineDoubleClick,
                         seriesNodeClick: chartSeriesNodeClick,
                     },
                 });
@@ -829,23 +833,23 @@ describe('CrossLine', () => {
                         direction: 'x',
                         value: 'May',
                         // TODO: add AG-17613 `coordinated`
-                        allClickParams: [
+                        allMatchedParams: [
                             expect.objectContaining({
-                                clickedOn: 'cross-line',
+                                type: 'crossLineClick',
                                 crossLineId: 'blue-line',
                                 axisId: 'myX',
                                 direction: 'x',
                                 value: 'May',
                             }),
                             expect.objectContaining({
-                                clickedOn: 'cross-line',
+                                type: 'crossLineClick',
                                 crossLineId: 'grey-range',
                                 axisId: 'myX',
                                 direction: 'x',
                                 range: ['Mar', 'Jul'],
                             }),
                             expect.objectContaining({
-                                clickedOn: 'cross-line',
+                                type: 'crossLineClick',
                                 crossLineId: 'CrossLine-3',
                                 axisId: 'myY',
                                 direction: 'y',
@@ -859,27 +863,42 @@ describe('CrossLine', () => {
                 expect(chartSeriesNodeClick).toHaveBeenCalledTimes(0);
                 expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(0);
             });
+            test('TC7: a double-click brands the root and every entry with the double-click type', async () => {
+                await doubleClickAction(505, 130)(chart);
+                expect(chartCrossLineDoubleClick).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        // Entries track `event.type`, so they read `crossLineDoubleClick` here, not `crossLineClick`.
+                        type: 'crossLineDoubleClick',
+                        crossLineId: 'blue-line',
+                        allMatchedParams: [
+                            expect.objectContaining({ type: 'crossLineDoubleClick', crossLineId: 'blue-line' }),
+                            expect.objectContaining({ type: 'crossLineDoubleClick', crossLineId: 'grey-range' }),
+                            expect.objectContaining({ type: 'crossLineDoubleClick', crossLineId: 'CrossLine-3' }),
+                        ],
+                    })
+                );
+            });
             test('AC4i: a cross-line win reports the series node it covers', async () => {
                 // The May bar sits under the blue line and inside the grey range band.
                 await clickAction(505, 470)(chart);
                 expect(chartCrossLineClick).toHaveBeenCalledWith(
                     expect.objectContaining({
                         // The cross line still wins the event, so it carries the root params.
-                        clickedOn: 'cross-line',
+                        type: 'crossLineClick',
                         crossLineId: 'blue-line',
-                        allClickParams: [
+                        allMatchedParams: [
                             expect.objectContaining({
-                                clickedOn: 'cross-line',
+                                type: 'crossLineClick',
                                 crossLineId: 'blue-line',
                                 value: 'May',
                             }),
                             expect.objectContaining({
-                                clickedOn: 'cross-line',
+                                type: 'crossLineClick',
                                 crossLineId: 'grey-range',
                                 range: ['Mar', 'Jul'],
                             }),
                             expect.objectContaining({
-                                clickedOn: 'series-node',
+                                type: 'seriesNodeClick',
                                 datum: { x: 'May', y: 3 },
                             }),
                         ],
@@ -976,20 +995,20 @@ describe('CrossLine', () => {
                 await clickAction(505, 470)(chart);
                 const expected = expect.objectContaining({
                     // The series node still wins the event, so it carries the root params.
-                    clickedOn: 'series-node',
+                    type: 'seriesNodeClick',
                     datum: { x: 'May', y: 3 },
-                    allClickParams: [
+                    allMatchedParams: [
                         expect.objectContaining({
-                            clickedOn: 'series-node',
+                            type: 'seriesNodeClick',
                             datum: { x: 'May', y: 3 },
                         }),
                         expect.objectContaining({
-                            clickedOn: 'cross-line',
+                            type: 'crossLineClick',
                             crossLineId: 'blue-line',
                             value: 'May',
                         }),
                         expect.objectContaining({
-                            clickedOn: 'cross-line',
+                            type: 'crossLineClick',
                             crossLineId: 'grey-range',
                             range: ['Mar', 'Jul'],
                         }),
@@ -997,13 +1016,18 @@ describe('CrossLine', () => {
                 });
                 expect(seriesSeriesNodeClick).toHaveBeenCalledWith(expected);
                 expect(chartSeriesNodeClick).toHaveBeenCalledWith(expected);
+                // TC7: no entry carries the old `clickedOn` discriminant.
+                const [event] = seriesSeriesNodeClick.mock.calls[0];
+                for (const params of [event, ...event.allMatchedParams]) {
+                    expect(params).not.toHaveProperty('clickedOn');
+                }
             });
             test('AC4ii: a series-node click clear of any cross line reports only itself', async () => {
                 await clickAction(140, 255)(chart);
                 const expected = expect.objectContaining({
-                    clickedOn: 'series-node',
+                    type: 'seriesNodeClick',
                     datum: { x: 'Jan', y: 8 },
-                    allClickParams: [expect.objectContaining({ clickedOn: 'series-node', datum: { x: 'Jan', y: 8 } })],
+                    allMatchedParams: [expect.objectContaining({ type: 'seriesNodeClick', datum: { x: 'Jan', y: 8 } })],
                 });
                 expect(seriesSeriesNodeClick).toHaveBeenCalledWith(expected);
                 expect(chartSeriesNodeClick).toHaveBeenCalledWith(expected);
@@ -1761,8 +1785,8 @@ describe('CrossLine', () => {
 
             expect(crossLineClick).toHaveBeenCalled();
             const [event] = crossLineClick.mock.lastCall as [AgCrossLineClickEvent];
-            return event.allClickParams
-                .filter((params) => params.clickedOn === 'cross-line')
+            return event.allMatchedParams
+                .filter((params): params is AgCrossLineClickParams => params.type === 'crossLineClick')
                 .map(({ crossLineId }) => crossLineId)
                 .sort((a, b) => a.localeCompare(b));
         };
