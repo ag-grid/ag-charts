@@ -15,11 +15,6 @@ const options: AgCartesianChartOptions = {
                             enabled: true,
                             stroke: 'red',
                         },
-                        tick: {
-                            enabled: true,
-                            size: 12,
-                            stroke: 'red',
-                        },
                         label: {
                             color: 'red',
                         },
