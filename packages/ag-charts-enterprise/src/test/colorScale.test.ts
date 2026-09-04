@@ -1,4 +1,4 @@
-import { afterEach, describe, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import {
     type AgBubbleSeriesOptions,
@@ -9,6 +9,7 @@ import {
 import {
     assertTooltipPresentForAll,
     deproxy,
+    expectWarningsCalls,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
@@ -271,5 +272,51 @@ describe('colorScale partial options — theme fills survive user partials', () 
         chart = AgCharts.create(options);
         await waitForChartStability(chart);
         assertColorScalePopulated();
+    });
+});
+
+// `colorKey` is enterprise-gated, so an empty-string `colorKey` can only be exercised here.
+describe('AG-18413 a colorKey naming no column - bubble/scatter', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: any;
+
+    afterEach(() => {
+        if (chart) {
+            chart.destroy();
+            chart = undefined;
+        }
+    });
+
+    const createChartWith = async (series: AgBubbleSeriesOptions | AgScatterSeriesOptions) => {
+        const options: AgChartOptions = prepareEnterpriseTestOptions({ data, series: [series] });
+        chart = deproxy(AgCharts.create(options));
+        await waitForChartStability(chart);
+        return chart.series[0];
+    };
+
+    it.each([
+        ['bubble', { type: 'bubble' as const, xKey: 'x', yKey: 'y', sizeKey: 'size' }],
+        ['scatter', { type: 'scatter' as const, xKey: 'x', yKey: 'y' }],
+    ])('%s renders nothing and warns for an empty colorKey (TC2)', async (_name, base) => {
+        const series = await createChartWith({ ...base, colorKey: '', colorScale: { fills } });
+
+        expect(series.getNodeData()).toEqual([]);
+        expect(series.hasData).toBe(false);
+        expectWarningsCalls().toEqual([[`AG Charts - the key '' was not found in any data element for ${series.id}.`]]);
+    });
+
+    it('keeps the series populated for a colorKey that does name a column', async () => {
+        const series = await createChartWith({
+            type: 'bubble',
+            xKey: 'x',
+            yKey: 'y',
+            sizeKey: 'size',
+            colorKey: 'intensity',
+            colorScale: { fills },
+        });
+
+        expect(series.getNodeData()).toHaveLength(data.length);
     });
 });

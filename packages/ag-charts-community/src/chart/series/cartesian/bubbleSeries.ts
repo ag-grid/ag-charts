@@ -402,15 +402,15 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 valueProperty(xKey, xScaleType, { id: `xValue`, allowNullKey }),
                 valueProperty(yKey, yScaleType, { id: `yValue`, allowNullKey }),
                 ...(selectedKey == null ? [] : [valueProperty(selectedKey, 'category', { id: `selectedValue` })]),
-                ...(sizeKey ? [valueProperty(sizeKey, sizeScaleType, { id: `sizeValue` })] : []),
-                ...(labelKey ? [valueProperty(labelKey, 'category', { id: `labelValue` })] : []),
-                ...(colorKey
-                    ? [valueProperty(colorKey, colorScaleType, { id: `colorValue`, invalidValue: undefined })]
-                    : []),
+                ...(sizeKey == null ? [] : [valueProperty(sizeKey, sizeScaleType, { id: `sizeValue` })]),
+                ...(labelKey == null ? [] : [valueProperty(labelKey, 'category', { id: `labelValue` })]),
+                ...(colorKey == null
+                    ? []
+                    : [valueProperty(colorKey, colorScaleType, { id: `colorValue`, invalidValue: undefined })]),
             ],
         });
 
-        const sizeKeyIdx = sizeKey ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`) : undefined;
+        const sizeKeyIdx = sizeKey == null ? undefined : dataModel.resolveProcessedDataIndexById(this, `sizeValue`);
         const mutableMarkerDomain: [AgNumericValue, AgNumericValue] | undefined = marker.sizeDomain
             ? [marker.sizeDomain[0], marker.sizeDomain[1]]
             : undefined;
@@ -418,7 +418,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             mutableMarkerDomain ?? (sizeKeyIdx == null ? undefined : processedData.domain.values[sizeKeyIdx]) ?? [];
 
         this.colorScaleValid = false;
-        if (colorKey) {
+        if (colorKey != null) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
             const rawDomain = processedData.domain.values[colorKeyIdx].filter((v: any) => v != null);
             const domain = extent(rawDomain);
@@ -548,7 +548,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const xRange = Math.abs(xAxis.range[1] - xAxis.range[0]);
         const yRange = Math.abs(yAxis.range[1] - yAxis.range[0]);
         const minSize = Math.max(markerSize, 1);
-        const maxSize = sizeKey ? Math.max(markerMaxSize, 1) : minSize;
+        const maxSize = sizeKey == null ? minSize : Math.max(markerMaxSize, 1);
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -633,9 +633,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             processedData.changeDescription != null && this.contextNodeData?.nodeData != null;
 
         let labelTextDomain: any[];
-        if (labelKey) {
-            labelTextDomain = [];
-        } else if (sizeKey) {
+        if (labelKey == null && sizeKey != null) {
             labelTextDomain = dataModel.getDomain(this, `sizeValue`, 'value', processedData).domain;
         } else {
             labelTextDomain = [];
@@ -726,6 +724,11 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
      * Strategy selection happens inside: simple or aggregation path.
      */
     protected override populateNodeData(ctx: BubbleSeriesNodeDatumContext): void {
+        // A key naming a column that no datum carries — including the empty string — leaves the series
+        // with nothing renderable, and the chart raises its no-data overlay. Markers drawn from the
+        // remaining columns would then sit under an overlay saying there is no data, so draw none.
+        if (!this.hasData) return;
+
         this.sizeScale.range = this.getSizeRange();
 
         // Pre-allocate scratch object for datum state
@@ -923,7 +926,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         let labelTextKey: string;
         let labelTextProperty: FormatterPropertyType;
 
-        if (ctx.labelKey && ctx.labelDataValues) {
+        if (ctx.labelKey != null && ctx.labelDataValues) {
             labelTextValue = ctx.labelDataValues[datumIndex];
             labelTextKey = ctx.labelKey;
             labelTextProperty = 'label';
@@ -1122,7 +1125,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
         const { sizeKey } = this.properties;
         let getId: ((datum: BubbleScatterNodeDatum) => string) | undefined;
-        if (sizeKey) {
+        if (sizeKey != null) {
             getId = (datum) =>
                 createDatumId(datum.xValue, datum.yValue, datum.sizeValue, toPlainText(datum.label.text));
         }

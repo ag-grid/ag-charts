@@ -30,6 +30,7 @@ import {
     compareImageSnapshot,
     createChart,
     createSceneGeometrySampler,
+    deproxy,
     expectAnimatedEndpointsMatchStatic,
     expectNoAnimation,
     expectSceneTrajectory,
@@ -1212,6 +1213,49 @@ describe('ScatterSeries', () => {
 
         it('should render the same markers when both axes are reversed and maxRenderedItems is exceeded', async () => {
             await expectSameMarkersWhenReversed({ x: true, y: true });
+        });
+    });
+    describe('AG-18413 a key naming no column', () => {
+        const nodeData = (c: AgChartInstance) =>
+            (deproxy(c).series[0] as unknown as { getNodeData(): unknown[] }).getNodeData();
+
+        const createScatter = async (seriesOverrides: object) => {
+            const options = {
+                data: [
+                    { x: 1, y: 10, l: 'a' },
+                    { x: 2, y: 20, l: 'b' },
+                    { x: 3, y: 30, l: 'c' },
+                ],
+                series: [{ type: 'scatter', xKey: 'x', yKey: 'y', ...seriesOverrides }],
+                legend: { enabled: false },
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            } as AgCartesianChartOptions;
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+        };
+
+        it.each([
+            ['an empty labelKey (TC3)', { labelKey: '', label: { enabled: true } }, `''`],
+            ['an unmatched labelKey', { labelKey: 'nope', label: { enabled: true } }, `'nope'`],
+        ] as [string, object, string][])('renders nothing and warns for %s', async (_name, overrides, key) => {
+            await createScatter(overrides);
+
+            expect(nodeData(chart)).toEqual([]);
+            expect(deproxy(chart).series[0].hasData).toBe(false);
+            expectWarningsCalls().toEqual([
+                [`AG Charts - the key ${key} was not found in any data element for ScatterSeries-1.`],
+            ]);
+        });
+
+        it('keeps the series populated for a labelKey that does name a column', async () => {
+            await createScatter({ labelKey: 'l', label: { enabled: true } });
+
+            expect(nodeData(chart)).toHaveLength(3);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
     });
 });
