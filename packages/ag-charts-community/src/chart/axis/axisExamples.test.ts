@@ -266,6 +266,32 @@ const EXAMPLES_LABEL_TEXT_ALIGN: Record<string, TestCase> = {
     },
 };
 
+// AG-18097. Three snapshots packing the whole matrix: banded and continuous scales, each in both
+// orientations, with a secondary axis in each orientation and every `verticalAlign` value used.
+const EXAMPLES_LABEL_VERTICAL_ALIGN: Record<string, TestCase> = {
+    AXIS_LABEL_VERTICAL_ALIGN: {
+        options: axesExamples.AXIS_LABEL_VERTICAL_ALIGN,
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
+            seriesTypes: ['bar', 'line'],
+        }),
+    },
+    AXIS_LABEL_VERTICAL_ALIGN_TRANSPOSED: {
+        options: axesExamples.AXIS_LABEL_VERTICAL_ALIGN_TRANSPOSED,
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'number', y: 'category', __AXIS_ID_2: 'number', __AXIS_ID_3: 'category' },
+            seriesTypes: ['bar', 'bar'],
+        }),
+    },
+    AXIS_LABEL_VERTICAL_ALIGN_ROTATED: {
+        options: applyRotation(axesExamples.AXIS_LABEL_VERTICAL_ALIGN, -30),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
+            seriesTypes: ['bar', 'line'],
+        }),
+    },
+};
+
 function mixinDerivedCases(baseCases: Record<string, TestCase>): Record<string, TestCase> {
     const result = { ...baseCases };
 
@@ -539,6 +565,20 @@ describe('Axis Examples', () => {
 
     describe('label text alignment cases', () => {
         for (const [exampleName, example] of Object.entries(EXAMPLES_LABEL_TEXT_ALIGN)) {
+            it(`for ${exampleName} it should create chart instance as expected`, async () => {
+                chart = await createChart(example.options);
+                await example.assertions(chart);
+            });
+
+            it(`for ${exampleName} it should render to canvas as expected`, async () => {
+                chart = await createChart(example.options);
+                await compare();
+            });
+        }
+    });
+
+    describe('label vertical alignment cases', () => {
+        for (const [exampleName, example] of Object.entries(EXAMPLES_LABEL_VERTICAL_ALIGN)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
                 chart = await createChart(example.options);
                 await example.assertions(chart);
