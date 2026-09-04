@@ -36,7 +36,7 @@ import {
     toTimeInterval,
     wrapTextOrSegments,
 } from 'ag-charts-core';
-import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle } from 'ag-charts-types';
+import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, VerticalAlign } from 'ag-charts-types';
 
 import { BandScale } from '../../scale/bandScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
@@ -558,7 +558,7 @@ export function getTextBaseline(
     labelRotation: number,
     sideFlag: ChartAxisLabelFlipFlag,
     parallelFlipFlag: ChartAxisLabelFlipFlag
-): CanvasTextBaseline {
+): VerticalAlign {
     if (parallel && !labelRotation) {
         return sideFlag * parallelFlipFlag === -1 ? 'top' : 'bottom';
     }

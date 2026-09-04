@@ -92,6 +92,40 @@ A collision is defined as labels coming within 10 pixels of each other. This min
 
 If `autoRotate` is enabled, rotation will be attempted before label skipping applies.
 
+## Alignment
+
+Axis labels are aligned within the space the axis reserves for them, using an alignment derived from the axis position and any label rotation. Both directions can be set explicitly.
+
+### Text Alignment
+
+Use `label.textAlign` to control the horizontal alignment of the labels, which is most useful on a vertical axis, where labels of differing width would otherwise be anchored individually.
+
+{% chartExampleRunner title="Axis Label Text Alignment" name="axis-label-text-align" type="generated" /%}
+
+```js format="snippet"
+{
+    label: {
+        textAlign: 'right',
+    },
+}
+```
+
+### Vertical Alignment
+
+Use `label.verticalAlign` to control the vertical alignment of the labels, which is most useful on a horizontal axis, where labels wrapping onto a differing number of lines would otherwise be anchored individually.
+
+{% chartExampleRunner title="Axis Label Vertical Alignment" name="axis-label-vertical-align" type="generated" /%}
+
+```js format="snippet"
+{
+    label: {
+        verticalAlign: 'bottom',
+    },
+}
+```
+
+Labels are aligned within the band the axis reserved for them, so neither option can move a label across the axis line and into the series area. Where the requested alignment is the one the axis already computes, the option has no effect - `verticalAlign: 'top'` on a bottom axis, for instance.
+
 ## Label Text Formatting
 
 The label text is taken directly from the data.
