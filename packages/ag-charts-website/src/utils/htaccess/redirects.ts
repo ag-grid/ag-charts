@@ -32,6 +32,10 @@ export const SITE_301_REDIRECTS: Redirect[] = [
     { from: '/react/toolbar/', to: '/react/financial-charts-toolbar/' },
     { from: '/react/line/', to: '/react/line-series/' },
 
+    // SE-186: this build only ever generates sitemap-0.xml; the conventional /sitemap.xml is
+    // never emitted, so crawlers probing it by convention (e.g. Bing) 404.
+    { from: '/sitemap.xml', to: '/sitemap-0.xml' },
+
     // Rules are base-relative; getRedirectRules() splices in the /charts base.
     // RedirectMatch is first-match-wins, so order is load-bearing: specific before broad.
 

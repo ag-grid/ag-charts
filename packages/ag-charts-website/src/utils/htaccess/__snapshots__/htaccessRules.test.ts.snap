@@ -71,6 +71,7 @@ RedirectMatch 301 "^/charts/angular/?$" "/charts/angular/quick-start/"
 Redirect 301 /charts/javascript/toolbar/ /charts/javascript/financial-charts-toolbar/
 Redirect 301 /charts/react/toolbar/ /charts/react/financial-charts-toolbar/
 Redirect 301 /charts/react/line/ /charts/react/line-series/
+Redirect 301 /charts/sitemap.xml /charts/sitemap-0.xml
 RedirectMatch 301 "^/charts/archive/?$" "/charts/documentation-archive/"
 RedirectMatch 410 "^/charts/privacy(/.*)?$"
 RedirectMatch 301 "^/charts/javascript-charts/javascript/(.+)$" "/charts/javascript/$1"
@@ -107,6 +108,7 @@ RedirectMatch 301 "^/charts/angular/?$" "/charts/angular/quick-start/"
 Redirect 301 /charts/javascript/toolbar/ /charts/javascript/financial-charts-toolbar/
 Redirect 301 /charts/react/toolbar/ /charts/react/financial-charts-toolbar/
 Redirect 301 /charts/react/line/ /charts/react/line-series/
+Redirect 301 /charts/sitemap.xml /charts/sitemap-0.xml
 RedirectMatch 301 "^/charts/archive/?$" "/charts/documentation-archive/"
 RedirectMatch 410 "^/charts/privacy(/.*)?$"
 RedirectMatch 301 "^/charts/javascript-charts/javascript/(.+)$" "/charts/javascript/$1"
@@ -195,6 +197,7 @@ RedirectMatch 301 "^/charts/angular/?$" "/charts/angular/quick-start/"
 Redirect 301 /charts/javascript/toolbar/ /charts/javascript/financial-charts-toolbar/
 Redirect 301 /charts/react/toolbar/ /charts/react/financial-charts-toolbar/
 Redirect 301 /charts/react/line/ /charts/react/line-series/
+Redirect 301 /charts/sitemap.xml /charts/sitemap-0.xml
 RedirectMatch 301 "^/charts/archive/?$" "/charts/documentation-archive/"
 RedirectMatch 410 "^/charts/privacy(/.*)?$"
 RedirectMatch 301 "^/charts/javascript-charts/javascript/(.+)$" "/charts/javascript/$1"
