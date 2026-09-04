@@ -1,7 +1,7 @@
 import { type BoxBounds, angleBetween, isBetweenAngles, normalizeAngle180, normalizeAngle360 } from 'ag-charts-core';
 
 import { BBox } from '../bbox';
-import { segmentIntersection } from '../intersection';
+import { boxCrossesSegment, segmentIntersection } from '../intersection';
 
 export interface SectorBoundaries {
     startAngle: number;
@@ -74,16 +74,7 @@ export function isBoxInSector(box: BoxBounds, sector: SectorBoundaries) {
 
 /** True when the sector edge at `angle`, from the centre out to `radius`, crosses `box`. */
 function edgeCrossesBox(box: BoxBounds, angle: number, radius: number) {
-    const x1 = box.x + box.width;
-    const y1 = box.y + box.height;
-    const ex = radius * Math.cos(angle);
-    const ey = radius * Math.sin(angle);
-    return (
-        segmentIntersection(0, 0, ex, ey, box.x, box.y, x1, box.y) === 1 ||
-        segmentIntersection(0, 0, ex, ey, x1, box.y, x1, y1) === 1 ||
-        segmentIntersection(0, 0, ex, ey, x1, y1, box.x, y1) === 1 ||
-        segmentIntersection(0, 0, ex, ey, box.x, y1, box.x, box.y) === 1
-    );
+    return boxCrossesSegment(box, 0, 0, radius * Math.cos(angle), radius * Math.sin(angle));
 }
 
 export function isPointInSector(x: number, y: number, sector: SectorBoundaries) {
@@ -178,6 +169,36 @@ function arcIntersections(
     return intersections;
 }
 
+/** The sector's two straight edges, as endpoint coordinates. Invariant while only the box moves. */
+export interface SectorEdges {
+    startX0: number;
+    startY0: number;
+    startX1: number;
+    startY1: number;
+    endX0: number;
+    endY0: number;
+    endX1: number;
+    endY1: number;
+}
+
+export function sectorEdges({ startAngle, endAngle, innerRadius, outerRadius }: SectorBoundaries): SectorEdges {
+    const sinStartAngle = Math.sin(startAngle);
+    const cosStartAngle = Math.cos(startAngle);
+    const sinEndAngle = Math.sin(endAngle);
+    const cosEndAngle = Math.cos(endAngle);
+
+    return {
+        startX0: innerRadius * cosStartAngle,
+        startY0: innerRadius * sinStartAngle,
+        startX1: outerRadius * cosStartAngle,
+        startY1: outerRadius * sinStartAngle,
+        endX0: innerRadius * cosEndAngle,
+        endY0: innerRadius * sinEndAngle,
+        endX1: outerRadius * cosEndAngle,
+        endY1: outerRadius * sinEndAngle,
+    };
+}
+
 /**
  * Tests whether an axis-aligned `box` overlaps the filled area of a `sector` (annular wedge).
  *
@@ -188,26 +209,13 @@ function arcIntersections(
  *
  * @returns `true` when `box` and the sector overlap; a shared edge or single touching point counts.
  */
-export function boxOverlapsSector(box: BoxBounds, sector: SectorBoundaries): boolean {
-    const { startAngle, endAngle, innerRadius, outerRadius } = sector;
+export function boxOverlapsSector(box: BoxBounds, sector: SectorBoundaries, edges = sectorEdges(sector)): boolean {
+    const { startAngle, endAngle, outerRadius, innerRadius } = sector;
+    const { startX0, startY0, startX1, startY1, endX0, endY0, endX1, endY1 } = edges;
     const top = box.y;
     const bottom = box.y + box.height;
     const left = box.x;
     const right = box.x + box.width;
-
-    const sinStartAngle = Math.sin(startAngle);
-    const cosStartAngle = Math.cos(startAngle);
-    const sinEndAngle = Math.sin(endAngle);
-    const cosEndAngle = Math.cos(endAngle);
-
-    const startX0 = innerRadius * cosStartAngle;
-    const startY0 = innerRadius * sinStartAngle;
-    const startX1 = outerRadius * cosStartAngle;
-    const startY1 = outerRadius * sinStartAngle;
-    const endX0 = innerRadius * cosEndAngle;
-    const endY0 = innerRadius * sinEndAngle;
-    const endX1 = outerRadius * cosEndAngle;
-    const endY1 = outerRadius * sinEndAngle;
 
     // Check if any corner of `sector` is in `box`:
     const pointInBox = (x: number, y: number): boolean => x >= left && x <= right && y >= top && y <= bottom;
