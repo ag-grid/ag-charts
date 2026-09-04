@@ -66,7 +66,7 @@ const options: AgQuadrantChartOptions = {
             stroke: '#9333ea',
             strokeOpacity: 0.4,
             strokeWidth: 1.5,
-            marker: { fill: '#a855f7', strokeWidth: 0, size: 18 },
+            marker: { fill: '#a855f7', strokeWidth: 0, size: 14 },
             label: {
                 text: 'Faster Warming, Wetter',
                 color: '#9333ea',

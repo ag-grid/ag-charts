@@ -3,7 +3,7 @@ title: 'AG Skills'
 description: 'Give coding agents the expertise to build and maintain your $framework charts using AG Charts official guidance.'
 ---
 
-Our [AI skills](https://github.com/ag-grid/skills) give coding agents such as Claude and Codex the expertise to build and maintain your AG Charts and AG Grid applications from our official guidance.
+Our [AI Skills](https://github.com/ag-grid/skills) give coding agents such as Claude and Codex the expertise to build and maintain your AG Charts and AG Grid applications from our official guidance.
 
 {% note %}
 We are actively developing and releasing new versions of our skills. Feedback is welcome - [open an issue](https://github.com/ag-grid/skills/issues) on GitHub.
@@ -37,14 +37,16 @@ We currently provide two skills. If there's something else you'd like to see, [o
 
 `ag-dev` is a general development assistant that helps agents write correct code on the first attempt.
 
-Coding harnesses like Claude Code and Codex will often automatically use it when planning or writing code that interacts with our libraries - simply installing the skill will improve the results you get during development. However, because automatic triggering is best-effort, for the most consistent results we recommend explicitly telling your agent to use the ag-dev skill, especially when working on complicated tasks:
+Coding harnesses like Claude Code and Codex will often automatically use it when planning or writing code that interacts with our libraries - simply installing the skill will improve the results you get during development.
 
-```bash
+However, because automatic triggering is best-effort, for the most consistent results we recommend explicitly telling your agent to use the `ag-dev` skill, especially when working on complicated tasks:
+
+```
 Create a custom theme that applies our brand palette and axis label
 formatting to every chart (use the ag-dev skill)
 ```
 
-It includes a list of rules for the agent to follow to avoid common LLM pitfalls, debugging guidance, and instructions for accessing version-matched documentation to ensure that your agent uses the APIs for the installed version of the library.
+It includes a list of rules for the agent to follow to avoid common LLM pitfalls, as well as debugging guidance, and instructions for accessing version-matched documentation to ensure that your agent uses the APIs for the installed version of the library.
 
 ### ag-update
 
@@ -52,22 +54,22 @@ Upgrading across major versions normally means reading every release's breaking 
 
 To let the skill detect everything for you, invoke it from your coding agent:
 
-```bash
+```
 Use the ag-update skill to upgrade my-app
 ```
 
 You can also tell it exactly what to update, down to individual projects and target versions.
 
-```bash
+```
 Use the ag-update skill to update all projects in this monorepo
 except apps/demo-app to AG Charts v14
 ```
 
-#### Example run
+### Example ag-update
 
 A typical run, updating a single project to AG Charts v14, looks like this:
 
-```bash
+```
 > Use the ag-update skill to update the dashboard/typescript project to AG Charts v14
 
 Determining scope → AG_UPDATE_SCOPE.md
@@ -87,9 +89,9 @@ Apply changes? yes
 Done — dashboard/typescript is on AG Charts 14.0.0.
 ```
 
-`AG_UPDATE_CHANGES.md` contains an entry for each change, grouped by product and version transition, labelled `BREAKING` or `BEHAVIOUR`, and paired with how to mitigate it:
+Now `AG_UPDATE_CHANGES.md` contains an entry for each change, grouped by product and version transition, labelled `BREAKING` or `BEHAVIOUR`, and paired with how to mitigate it:
 
-```bash
+```
 ## Charts v13.x -> v14.x
 
 ### BREAKING: Bubble Series size options renamed

@@ -4,7 +4,7 @@ description: 'Divide a $framework Quadrant Chart into four labelled, independent
 enterprise: true
 ---
 
-A Quadrant Chart displays data as a scatter or bubble series, divided into four labelled, independently styled regions around a pivot point.
+A Quadrant Chart displays data as a scatter or bubble series, divided into four independently styled regions around a pivot point.
 
 ## Simple Quadrant Chart
 
@@ -107,7 +107,7 @@ In this configuration:
 - `xAxis` and `yAxis` options can be used to set titles, labels and other axis features.
 - Marker labels are shown by default when `labelKey` or a `label` object is set, and hidden otherwise; set `label.enabled` to override either way.
 
-## Size
+## Marker Size
 
 To vary the size of the markers to visualise a third dimension, provide a `sizeKey`.
 
@@ -148,7 +148,8 @@ In this configuration:
 
 ## Regions
 
-The fill and stroke of each regions, as well as the style of their markers and labels is configured under the region specific properties within the `regions` options. There is also a `label` property on the top level which can be overridden on a per-region basis.
+The fill and stroke of each region, as well as the style of their markers and labels is configured under the region specific properties within the `regions` options.
+There is also a shared `regions.label` property which each region can override as necessary.
 
 Callbacks such as `itemStyler`, `tooltip.renderer` and label callbacks receive the region of each point to allow for region specific styling.
 
@@ -170,7 +171,7 @@ Callbacks such as `itemStyler`, `tooltip.renderer` and label callbacks receive t
 
 In this example:
 
-- Use the dropdown to change the `label.position`, moving a region label to any corner or edge of the region.
+- Use the dropdown to change the `label.position`, moving a region label to any corner, any edge or the center of each region.
 - All regions use the shared `label` option.
 - Each region has its own `label.text` to set the text for that region.
 
@@ -194,7 +195,7 @@ In this example:
         },
         topRight: {
             // ... other options
-            marker: { fill: '#a855f7', strokeWidth: 0, size: 18 },
+            marker: { fill: '#a855f7', strokeWidth: 0, size: 14 },
         },
         bottomLeft: {
             // ... other options
@@ -232,6 +233,12 @@ the edge of the chart.
         label: 'crossing',
         crosshairLabel: 'crossing',
     },
+    xAxis: {
+        title: { text: 'Effort' },
+    },
+    yAxis: {
+        title: { text: 'Impact' },
+    },
 }
 ```
 
@@ -240,7 +247,7 @@ In this configuration:
 - `alignAxesToPivot` toggles whether the axis lines to cross at the pivot point or remain at the edge.
 - `axisPlacement.title`, `.label` and `.crosshairLabel` each default to `'edge'`. Set any to `'crossing'` to move them
   to the pivot while `alignAxesToPivot` is `true`.
-- The `xAxis` and `yAxis` properties accept [number axis](./axes-types/#number) options.
+- The `xAxis` and `yAxis` properties allow customising the axes which are both [Number Axes](./axes-types/#number).
 
 ## API Reference
 
