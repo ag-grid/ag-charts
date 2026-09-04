@@ -50,6 +50,9 @@ import type { AgFunnelSeriesLabelPlacement, AgNumericValue } from 'ag-charts-typ
 import { FunnelConnector } from '../funnel/funnelConnector';
 import {
     FUNNEL_TO_BAR_PLACEMENT,
+    type PlacementAxes,
+    funnelPlacementAxesList,
+    funnelValuePlacementAxes,
     pyramidLabelBand,
     pyramidPlacementAxes,
     pyramidStageTrapezoid,
@@ -125,8 +128,8 @@ interface PyramidLabelContext {
     /** Bar-vocabulary placements, index-parallel with {@link reportedPlacements}. */
     placements: readonly _ModuleSupport.BarLabelPlacement[];
     reportedPlacements: readonly AgFunnelSeriesLabelPlacement[];
-    isVertical: boolean;
-    isUpward: boolean;
+    /** The bar axis flags each placement is positioned against, index-parallel with {@link placements}. */
+    axes: readonly PlacementAxes[];
     routesThroughEngine: boolean;
     plotRegion?: BoxBounds;
     labelFit?: LabelFit;
@@ -533,11 +536,20 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     private createLabelContext(horizontal: boolean): PyramidLabelContext {
         const { label } = this.properties;
-        const reportedPlacements = resolveFunnelPlacements(label.placement, 'inside-center');
+        const reportedPlacements = resolveFunnelPlacements(
+            label.placement,
+            'inside-center',
+            !horizontal,
+            this.ctx.domManager.isRtl
+        );
         return {
             placements: reportedPlacements.map((placement) => FUNNEL_TO_BAR_PLACEMENT[placement]),
             reportedPlacements,
-            ...pyramidPlacementAxes(horizontal),
+            axes: funnelPlacementAxesList(
+                reportedPlacements,
+                pyramidPlacementAxes(horizontal),
+                funnelValuePlacementAxes(!horizontal)
+            ),
             routesThroughEngine: this.routesThroughEngine(),
             plotRegion: this.resolveLabelPlotRegion(label.collision),
             labelFit: resolveLabelFit(label, !label.collision.alwaysShow),
@@ -588,8 +600,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const spanOf = (size: { width: number; height: number }) => (trapezoid.vertical ? size.height : size.width);
         const buildCandidates = (index: number, rect: BoxBounds) =>
             buildBarLabelCandidates<AgPyramidSeriesLabelFormatterParams, AgFunnelSeriesLabelPlacement>({
-                isUpward: labelContext.isUpward,
-                isVertical: labelContext.isVertical,
+                ...labelContext.axes[index],
                 placements: [labelContext.placements[index]],
                 reportedPlacements: [labelContext.reportedPlacements[index]],
                 orientations: ['horizontal'],
@@ -632,7 +643,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                           label,
                           this.labelStylerParams(),
                           undefined,
-                          (placement) => labelContext.reportedPlacements[labelContext.placements.indexOf(placement)]
+                          () => built.placement
                       )
                   );
         if (first != null) {

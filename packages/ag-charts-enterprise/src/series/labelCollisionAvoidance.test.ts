@@ -1058,6 +1058,11 @@ describe('label collision avoidance', () => {
                 ...chartOptions,
             });
 
+            const categoryAxes = (reverse: boolean) => ({
+                x: { type: 'number' },
+                y: { type: 'category', reverse },
+            });
+
             it('renders the theme default exactly as an explicit inside-center placement', async () => {
                 await expectPixelIdenticalAcrossUpdate(
                     ctx,
@@ -1067,15 +1072,15 @@ describe('label collision avoidance', () => {
                 );
             });
 
-            it('places inside-before and inside-after at opposite ends of the stage axis', async () => {
+            it('places inside-start and inside-end at opposite ends of the stage axis', async () => {
                 const centre = await anchors(options());
-                const before = await anchors(options({ placement: 'inside-before' }));
-                const after = await anchors(options({ placement: 'inside-after' }));
+                const start = await anchors(options({ placement: 'inside-start' }));
+                const end = await anchors(options({ placement: 'inside-end' }));
 
-                expect(before.map((label) => label.placement)).toEqual(stageData.map(() => 'inside-before'));
-                for (const [index, label] of before.entries()) {
+                expect(start.map((label) => label.placement)).toEqual(stageData.map(() => 'inside-start'));
+                for (const [index, label] of start.entries()) {
                     expect(label.y).toBeLessThan(centre[index].y);
-                    expect(after[index].y).toBeGreaterThan(centre[index].y);
+                    expect(end[index].y).toBeGreaterThan(centre[index].y);
                     expect(label.x).toBeCloseTo(centre[index].x, 5);
                 }
             });
@@ -1088,47 +1093,140 @@ describe('label collision avoidance', () => {
                 };
                 await render(
                     options({
-                        placement: ['outside-before', 'inside-center'],
+                        placement: ['outside-start', 'inside-center'],
                         collision: { alwaysShow: false },
                         itemStyler,
                     })
                 );
                 expect(captured.length).toBeGreaterThan(0);
                 for (const placement of captured) {
-                    expect(['outside-before', 'inside-center']).toContain(placement);
+                    expect(['outside-start', 'inside-center']).toContain(placement);
                 }
             });
 
             it('swaps the two sides when the category axis is reversed', async () => {
-                const axes = (reverse: boolean) => ({
-                    x: { type: 'number' },
-                    y: { type: 'category', reverse },
-                });
-                const centre = await anchors(options({}, {}, { axes: axes(false) }));
-                const before = await anchors(options({ placement: 'inside-before' }, {}, { axes: axes(false) }));
-                const reversedCentre = await anchors(options({}, {}, { axes: axes(true) }));
-                const reversedBefore = await anchors(options({ placement: 'inside-before' }, {}, { axes: axes(true) }));
+                const centre = await anchors(options({}, {}, { axes: categoryAxes(false) }));
+                const start = await anchors(options({ placement: 'inside-start' }, {}, { axes: categoryAxes(false) }));
+                const reversedCentre = await anchors(options({}, {}, { axes: categoryAxes(true) }));
+                const reversedStart = await anchors(
+                    options({ placement: 'inside-start' }, {}, { axes: categoryAxes(true) })
+                );
 
-                for (const [index, label] of before.entries()) {
+                for (const [index, label] of start.entries()) {
                     expect(label.y).toBeLessThan(centre[index].y);
-                    expect(reversedBefore[index].y).toBeGreaterThan(reversedCentre[index].y);
+                    expect(reversedStart[index].y).toBeGreaterThan(reversedCentre[index].y);
                 }
             });
 
             it('places along the horizontal axis for a horizontal funnel', async () => {
                 const centre = await anchors(options({}, { direction: 'horizontal' }));
-                const before = await anchors(options({ placement: 'inside-before' }, { direction: 'horizontal' }));
+                const start = await anchors(options({ placement: 'inside-start' }, { direction: 'horizontal' }));
 
-                for (const [index, label] of before.entries()) {
+                for (const [index, label] of start.entries()) {
                     expect(label.x).toBeLessThan(centre[index].x);
                     expect(label.y).toBeCloseTo(centre[index].y, 5);
+                }
+            });
+
+            const bars = (): { x: number; y: number; width: number; height: number }[] =>
+                chart.series[0].contextNodeData.nodeData;
+
+            it('places before and after either side of the bar, across the value axis', async () => {
+                const outsideBefore = await anchors(options({ placement: 'outside-before' }));
+                const insideBefore = await anchors(options({ placement: 'inside-before' }));
+                const insideAfter = await anchors(options({ placement: 'inside-after' }));
+                const outsideAfter = await anchors(options({ placement: 'outside-after' }));
+
+                expect(outsideBefore.map((label) => label.placement)).toEqual(stageData.map(() => 'outside-before'));
+                for (const [index, bar] of bars().entries()) {
+                    const left = bar.x;
+                    const right = bar.x + bar.width;
+                    const centreY = bar.y + bar.height / 2;
+                    expect(outsideBefore[index].x).toBeLessThan(left);
+                    expect(insideBefore[index].x).toBeGreaterThan(left);
+                    expect(insideBefore[index].x).toBeLessThan(bar.x + bar.width / 2);
+                    expect(insideAfter[index].x).toBeGreaterThan(bar.x + bar.width / 2);
+                    expect(insideAfter[index].x).toBeLessThan(right);
+                    expect(outsideAfter[index].x).toBeGreaterThan(right);
+                    for (const label of [outsideBefore, insideBefore, insideAfter, outsideAfter]) {
+                        expect(label[index].y).toBeCloseTo(centreY, 5);
+                    }
+                }
+            });
+
+            it('places before above and after below the bar on a horizontal funnel', async () => {
+                const before = await anchors(options({ placement: 'outside-before' }, { direction: 'horizontal' }));
+                const after = await anchors(options({ placement: 'outside-after' }, { direction: 'horizontal' }));
+
+                for (const [index, bar] of bars().entries()) {
+                    expect(before[index].y).toBeLessThan(bar.y);
+                    expect(after[index].y).toBeGreaterThan(bar.y + bar.height);
+                    expect(before[index].x).toBeCloseTo(bar.x + bar.width / 2, 5);
+                    expect(after[index].x).toBeCloseTo(bar.x + bar.width / 2, 5);
+                }
+            });
+
+            it('mirrors before and after under RTL on a vertical funnel, but not on a horizontal one', async () => {
+                const vertical = await anchors(options({ placement: 'outside-before' }, {}, { enableRtl: true }));
+                expect(vertical.map((label) => label.placement)).toEqual(stageData.map(() => 'outside-after'));
+                for (const [index, bar] of bars().entries()) {
+                    expect(vertical[index].x).toBeGreaterThan(bar.x + bar.width);
+                }
+
+                const horizontal = await anchors(
+                    options({ placement: 'outside-before' }, { direction: 'horizontal' }, { enableRtl: true })
+                );
+                expect(horizontal.map((label) => label.placement)).toEqual(stageData.map(() => 'outside-before'));
+                for (const [index, bar] of bars().entries()) {
+                    expect(horizontal[index].y).toBeLessThan(bar.y);
+                }
+            });
+
+            it('keeps before and after in place when the category axis is reversed', async () => {
+                const before = await anchors(
+                    options({ placement: 'outside-before' }, {}, { axes: categoryAxes(false) })
+                );
+                const reversed = await anchors(
+                    options({ placement: 'outside-before' }, {}, { axes: categoryAxes(true) })
+                );
+
+                expect(reversed.map((label) => label.placement)).toEqual(stageData.map(() => 'outside-before'));
+                for (const [index, label] of before.entries()) {
+                    expect(reversed[index].x).toBeCloseTo(label.x, 5);
+                }
+            });
+
+            it('positions each placement of a mixed cascade against its own axis', async () => {
+                const cascade = (formatter: () => string, seriesArea: boolean) =>
+                    options({
+                        placement: ['outside-before', 'inside-start'],
+                        formatter,
+                        collision: { alwaysShow: false, collideWith: { seriesArea } },
+                    });
+                // The widest stage spans the series area, so only ignoring that boundary keeps every label outside.
+                const fitting = await anchors(cascade(() => 'A', false));
+                const fittingBars = bars();
+                const overflowing = await anchors(cascade(() => 'A very long funnel stage label', true));
+                const overflowingBars = bars();
+
+                expect(fitting.map((label) => label.placement)).toEqual(stageData.map(() => 'outside-before'));
+                expect(overflowing.map((label) => label.placement)).toEqual(stageData.map(() => 'inside-start'));
+                for (const [index, label] of fitting.entries()) {
+                    expect(label.x).toBeLessThan(fittingBars[index].x);
+                    expect(label.y).toBeCloseTo(fittingBars[index].y + fittingBars[index].height / 2, 5);
+                }
+                for (const [index, label] of overflowing.entries()) {
+                    const bar = overflowingBars[index];
+                    expect(label.x).toBeCloseTo(bar.x + bar.width / 2, 5);
+                    expect(label.y).toBeLessThan(bar.y + bar.height / 2);
+                    expect(label.y).toBeGreaterThan(bar.y);
                 }
             });
 
             it('styles an inside placement differently from an outside one', async () => {
                 await render(options({ placement: 'inside-center' }));
                 const inside = labelNodes().map((node) => node.fill);
-                await render(options({ placement: 'outside-before' }));
+                await render(options({ placement: 'outside-start' }));
                 const outside = labelNodes().map((node) => node.fill);
 
                 expect(new Set(inside).size).toBe(1);
@@ -1139,7 +1237,7 @@ describe('label collision avoidance', () => {
             it('drops a hideable outside label overflowing the series area and keeps it when opted out', async () => {
                 const overflowing = (seriesArea: boolean) =>
                     options({
-                        placement: 'outside-before',
+                        placement: 'outside-start',
                         collision: { alwaysShow: false, collideWith: { seriesArea } },
                     });
 
@@ -1150,7 +1248,7 @@ describe('label collision avoidance', () => {
             it('hides colliding labels only while they are hideable', async () => {
                 const crowded = (alwaysShow: boolean) =>
                     options({
-                        placement: 'outside-after',
+                        placement: 'outside-end',
                         formatter: () => 'A very long funnel stage label',
                         collision: { alwaysShow },
                     });
@@ -1174,7 +1272,7 @@ describe('label collision avoidance', () => {
                 // Taller than the gap between stages, with seriesArea off: only the stage above is left.
                 const overlapping = (seriesItems?: boolean) =>
                     options({
-                        placement: 'outside-before',
+                        placement: 'outside-start',
                         formatter: () => 'A',
                         fontSize: 30,
                         collision: { alwaysShow: false, collideWith: { seriesArea: false, seriesItems } },
@@ -1185,11 +1283,11 @@ describe('label collision avoidance', () => {
             });
 
             it('cascades to the first placement that fits', async () => {
-                // `outside-before` on every stage collides with the neighbouring stage's bar, so the
+                // `outside-start` on every stage collides with the neighbouring stage's bar, so the
                 // cascade falls through to the inside candidate rather than dropping the label.
                 const cascaded = await anchors(
                     options({
-                        placement: ['outside-before', 'inside-center'],
+                        placement: ['outside-start', 'inside-center'],
                         formatter: () => 'A very long funnel stage label',
                         collision: { alwaysShow: false },
                     })
@@ -1313,7 +1411,7 @@ describe('label collision avoidance', () => {
         });
 
         describe('pyramid', () => {
-            const options = (label: object = {}, series: object = {}): any => ({
+            const options = (label: object = {}, series: object = {}, chartOptions: object = {}): any => ({
                 data: stageData,
                 legend: { enabled: false },
                 padding: { top: 40, right: 80, bottom: 40, left: 80 },
@@ -1326,6 +1424,7 @@ describe('label collision avoidance', () => {
                         ...series,
                     },
                 ],
+                ...chartOptions,
             });
 
             const stageLabels = (): { x: number; y: number; text: unknown }[] =>
@@ -1340,14 +1439,14 @@ describe('label collision avoidance', () => {
                 );
             });
 
-            it('places inside-before and inside-after at opposite ends of the stage axis', async () => {
+            it('places inside-start and inside-end at opposite ends of the stage axis', async () => {
                 const centre = await anchors(options());
-                const before = await anchors(options({ placement: 'inside-before' }));
-                const after = await anchors(options({ placement: 'inside-after' }));
+                const start = await anchors(options({ placement: 'inside-start' }));
+                const end = await anchors(options({ placement: 'inside-end' }));
 
-                for (const [index, label] of before.entries()) {
+                for (const [index, label] of start.entries()) {
                     expect(label.y).toBeLessThan(centre[index].y);
-                    expect(after[index].y).toBeGreaterThan(centre[index].y);
+                    expect(end[index].y).toBeGreaterThan(centre[index].y);
                 }
             });
 
@@ -1359,30 +1458,88 @@ describe('label collision avoidance', () => {
                 };
                 await render(
                     options({
-                        placement: ['outside-before', 'inside-center'],
+                        placement: ['outside-start', 'inside-center'],
                         collision: { alwaysShow: false },
                         itemStyler,
                     })
                 );
                 expect(captured.length).toBeGreaterThan(0);
                 for (const placement of captured) {
-                    expect(['outside-before', 'inside-center']).toContain(placement);
+                    expect(['outside-start', 'inside-center']).toContain(placement);
                 }
             });
 
             it('places along the horizontal axis for a horizontal pyramid', async () => {
                 const centre = await anchors(options({}, { direction: 'horizontal' }));
-                const before = await anchors(options({ placement: 'inside-before' }, { direction: 'horizontal' }));
+                const start = await anchors(options({ placement: 'inside-start' }, { direction: 'horizontal' }));
 
-                for (const [index, label] of before.entries()) {
+                for (const [index, label] of start.entries()) {
                     expect(label.x).toBeLessThan(centre[index].x);
+                }
+            });
+
+            const stageNodes = (): {
+                x: number;
+                y: number;
+                top: number;
+                right: number;
+                bottom: number;
+                left: number;
+            }[] => chart.series[0].contextNodeData.nodeData;
+
+            it('places before and after either side of the stage, across the value axis', async () => {
+                const outsideBefore = await anchors(options({ placement: 'outside-before' }));
+                const insideBefore = await anchors(options({ placement: 'inside-before' }));
+                const insideAfter = await anchors(options({ placement: 'inside-after' }));
+                const outsideAfter = await anchors(options({ placement: 'outside-after' }));
+
+                expect(outsideBefore.map((label) => label.placement)).toEqual(stageData.map(() => 'outside-before'));
+                for (const [index, stage] of stageNodes().entries()) {
+                    const halfWidth = Math.max(stage.top, stage.bottom) / 2;
+                    expect(outsideBefore[index].x).toBeLessThan(stage.x - halfWidth);
+                    expect(insideBefore[index].x).toBeGreaterThan(stage.x - halfWidth);
+                    expect(insideBefore[index].x).toBeLessThan(stage.x);
+                    expect(insideAfter[index].x).toBeGreaterThan(stage.x);
+                    expect(insideAfter[index].x).toBeLessThan(stage.x + halfWidth);
+                    expect(outsideAfter[index].x).toBeGreaterThan(stage.x + halfWidth);
+                    for (const label of [outsideBefore, insideBefore, insideAfter, outsideAfter]) {
+                        expect(label[index].y).toBeCloseTo(stage.y, 5);
+                    }
+                }
+            });
+
+            it('places before above and after below the stage on a horizontal pyramid', async () => {
+                const before = await anchors(options({ placement: 'outside-before' }, { direction: 'horizontal' }));
+                const after = await anchors(options({ placement: 'outside-after' }, { direction: 'horizontal' }));
+
+                for (const [index, stage] of stageNodes().entries()) {
+                    const halfHeight = Math.max(stage.left, stage.right) / 2;
+                    expect(before[index].y).toBeLessThan(stage.y - halfHeight);
+                    expect(after[index].y).toBeGreaterThan(stage.y + halfHeight);
+                    expect(before[index].x).toBeCloseTo(stage.x, 5);
+                }
+            });
+
+            it('mirrors before and after under RTL on a vertical pyramid, but not on a horizontal one', async () => {
+                const vertical = await anchors(options({ placement: 'outside-before' }, {}, { enableRtl: true }));
+                expect(vertical.map((label) => label.placement)).toEqual(stageData.map(() => 'outside-after'));
+                for (const [index, stage] of stageNodes().entries()) {
+                    expect(vertical[index].x).toBeGreaterThan(stage.x);
+                }
+
+                const horizontal = await anchors(
+                    options({ placement: 'outside-before' }, { direction: 'horizontal' }, { enableRtl: true })
+                );
+                expect(horizontal.map((label) => label.placement)).toEqual(stageData.map(() => 'outside-before'));
+                for (const [index, stage] of stageNodes().entries()) {
+                    expect(horizontal[index].y).toBeLessThan(stage.y);
                 }
             });
 
             it('styles an inside placement differently from an outside one', async () => {
                 await render(options({ placement: 'inside-center' }));
                 const inside = labelNodes().map((node) => node.fill);
-                await render(options({ placement: 'outside-after' }));
+                await render(options({ placement: 'outside-end' }));
                 const outside = labelNodes().map((node) => node.fill);
 
                 expect(inside[0]).not.toBe(outside[0]);
@@ -1412,7 +1569,7 @@ describe('label collision avoidance', () => {
             it('keeps the stage labels identical across value label placements', async () => {
                 await render(options({ placement: 'inside-center' }));
                 const centred = stageLabels().map(({ x, y, text }) => ({ x, y, text: String(text) }));
-                await render(options({ placement: 'outside-after', spacing: 40 }));
+                await render(options({ placement: 'outside-end', spacing: 40 }));
                 const outside = stageLabels().map(({ x, y, text }) => ({ x, y, text: String(text) }));
 
                 expect(outside).toEqual(centred);
