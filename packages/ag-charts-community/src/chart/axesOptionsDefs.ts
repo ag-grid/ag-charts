@@ -43,6 +43,7 @@ import {
     timeIntervalUnit,
     typeUnion,
     undocumented,
+    verticalAlign,
     union,
 } from 'ag-charts-core';
 import type {
@@ -183,6 +184,7 @@ export const commonAxisLabelOptionsDefs: OptionsDefs<AgBaseAxisLabelOptions> = {
     enabled: boolean,
     rotation: number,
     textAlign,
+    verticalAlign,
     avoidCollisions: boolean,
     minSpacing: positiveNumber,
     spacing: positiveNumber,
