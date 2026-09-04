@@ -143,6 +143,11 @@ fi
 
 npm config set cache ${project}/.npm-cache
 
+# The Playwright image ships npm 10.9, whose resolver crashes with "Cannot read properties of null
+# (reading 'edgesOut')" on the vitest 4.x peer set that `ng new` installs. npm 11 resolves it.
+echo ">>> npm i -g npm@11"
+npm i -g npm@11
+
 if [[ ${test_type} == "ssr" ]] ; then
     install_fw
     echo ">>> npm i ${ssr_test_deps}"
