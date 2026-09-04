@@ -11,6 +11,7 @@ export interface OptionsGraphInterface {
 
     addEdge(from: VertexInterface, to: VertexInterface, edge?: string): void;
     addVertex(value: unknown): VertexInterface;
+    mergeConditionalBranch(dest: VertexInterface, branch: VertexInterface): void;
     dangerouslyGetUserOption(path: Array<string>): unknown;
     dangerouslyGetThemeOverride(path: Array<string>): unknown;
     findNeighbour(vertex: VertexInterface, edge: string): unknown;
@@ -59,10 +60,8 @@ export const PATH_EDGE = 'path';
 export const PATH_ARRAY_EDGE = 'pathArray';
 
 // The edges that connect an option key to its potential values from different sources.
-export const DEFAULTS_EDGE = 'default';
-export const OVERRIDES_EDGE = 'override';
-export const USER_OPTIONS_EDGE = 'user';
-export const USER_PARTIAL_OPTIONS_EDGE = 'userPartial';
+export const SOURCE_EDGES = ['default', 'override', 'user', 'userPartial'] as const;
+export const [DEFAULTS_EDGE, OVERRIDES_EDGE, USER_OPTIONS_EDGE, USER_PARTIAL_OPTIONS_EDGE] = SOURCE_EDGES;
 
 // The edge that connects an option key, whose value is an operation, to its operation.
 export const OPERATION_EDGE = 'operation';

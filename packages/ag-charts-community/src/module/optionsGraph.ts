@@ -33,6 +33,7 @@ import {
     PATH_EDGE,
     PRUNE_EDGE,
     RESOLVED_TO_BRANCH,
+    SOURCE_EDGES,
     USER_OPTIONS_EDGE,
     USER_PARTIAL_OPTIONS_EDGE,
     getPathSafe,
@@ -400,6 +401,29 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             this.rollbackEdgesValue.push(edge);
         }
         super.addEdge(from, to, edge);
+    }
+
+    mergeConditionalBranch(dest: Vertex<unknown>, branch: Vertex<unknown>): void {
+        if (dest === branch) return;
+
+        // Add missing source edges to dest
+        for (const edge of SOURCE_EDGES) {
+            const branchValueVertex = this.findNeighbour(branch, edge);
+            if (branchValueVertex && !this.findNeighbour(dest, edge)) {
+                this.addEdge(dest, branchValueVertex, edge);
+            }
+        }
+
+        // Recursiveness:
+        for (const branchChild of this.neighboursWithEdgeValue(branch, PATH_EDGE) ?? []) {
+            const key = this.getVertexValue(branchChild);
+            const destChild = this.findNeighbourWithValue(dest, key, PATH_EDGE);
+            if (destChild) {
+                this.mergeConditionalBranch(destChild, branchChild);
+            } else {
+                this.addEdge(dest, branchChild, PATH_EDGE);
+            }
+        }
     }
 
     /**
