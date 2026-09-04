@@ -536,3 +536,24 @@ describe('Quadrant Preset label enabled default', () => {
         expect(resolveLabelEnabled(options)).toBe(expected);
     });
 });
+
+describe('AG-18413 quadrant sizeKey empty string', () => {
+    const resolveSeriesType = (options: Partial<AgQuadrantChartOptions>) => {
+        const { processedOptions } = new _ModuleSupport.ChartOptions(
+            { data: NUMERIC.data, xKey: 'x', yKey: 'y', ...options },
+            {},
+            {},
+            {},
+            { presetType: 'quadrant' }
+        ) as unknown as { processedOptions: { series: Record<string, any>[] } };
+        return processedOptions.series[0].type;
+    };
+
+    it.each([
+        ['no sizeKey resolves to scatter', {}, 'scatter'],
+        ['an empty sizeKey resolves to scatter (TC1)', { sizeKey: '' }, 'scatter'],
+        ['a sizeKey resolves to bubble', { sizeKey: 'size' }, 'bubble'],
+    ] as [string, Partial<AgQuadrantChartOptions>, string][])('%s', (_name, options, expected) => {
+        expect(resolveSeriesType(options)).toBe(expected);
+    });
+});
