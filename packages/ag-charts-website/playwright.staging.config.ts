@@ -36,6 +36,11 @@ export default defineConfig({
     use: {
         ignoreHTTPSErrors: true,
         trace: 'on-first-retry',
+        // Well under the 30s test timeout, so a navigation that really is stuck fails naming the
+        // URL that never committed rather than spending the whole test budget to report only
+        // "Test timeout of 30000ms exceeded". gotoUrl navigates on 'commit', so reaching this at
+        // all means the document itself never arrived - a genuine site failure, not a slow tag.
+        navigationTimeout: 20_000,
     },
     projects: [
         {
