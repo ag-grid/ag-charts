@@ -49,8 +49,10 @@ runs:
                       "@ag-grid/dev-prompts@${DEV_PROMPTS_CHANNEL}"; then
                       exit 0
                   fi
-                  echo "::warning::npm install of @ag-grid/dev-prompts@${DEV_PROMPTS_CHANNEL} attempt ${attempt} timed out or failed; retrying"
-                  sleep 5
+                  if [ "$attempt" -lt 3 ]; then
+                      echo "::warning::npm install of @ag-grid/dev-prompts@${DEV_PROMPTS_CHANNEL} attempt ${attempt} timed out or failed; retrying"
+                      sleep 5
+                  fi
               done
 
               echo "::error::npm install of @ag-grid/dev-prompts@${DEV_PROMPTS_CHANNEL} failed after 3 attempts"
