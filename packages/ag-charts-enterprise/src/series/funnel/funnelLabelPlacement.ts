@@ -9,17 +9,39 @@ import { toArray } from 'ag-charts-core';
 
 type BarLabelPlacement = _ModuleSupport.BarLabelPlacement;
 
+/** The bar axis flags a placement is positioned against. */
+export interface PlacementAxes {
+    isVertical: boolean;
+    isUpward: boolean;
+}
+
 /**
- * Funnel and pyramid `before`/`after` run along the category axis, which is the axis bar's
- * `start`/`end` placements run along once the axis flags are transposed (see {@link funnelPlacementAxes}).
+ * `start`/`end` run along the category axis under transposed bar flags ({@link funnelPlacementAxes});
+ * `before`/`after` cross the value axis under bar's own flags ({@link funnelValuePlacementAxes}).
  */
 export const FUNNEL_TO_BAR_PLACEMENT: Record<AgFunnelSeriesLabelPlacement, BarLabelPlacement> = {
     'inside-center': 'inside-center',
+    'inside-start': 'inside-start',
+    'inside-end': 'inside-end',
     'inside-before': 'inside-start',
     'inside-after': 'inside-end',
+    'outside-start': 'outside-start',
+    'outside-end': 'outside-end',
     'outside-before': 'outside-start',
     'outside-after': 'outside-end',
 };
+
+/** Mirrors the sides of a vertical funnel or pyramid, whose `before`/`after` lie on the horizontal axis. */
+const FUNNEL_RTL_SIDE_SWAP: Partial<Record<AgFunnelSeriesLabelPlacement, AgFunnelSeriesLabelPlacement>> = {
+    'inside-before': 'inside-after',
+    'inside-after': 'inside-before',
+    'outside-before': 'outside-after',
+    'outside-after': 'outside-before',
+};
+
+function isFunnelValuePlacement(placement: AgFunnelSeriesLabelPlacement): boolean {
+    return placement in FUNNEL_RTL_SIDE_SWAP;
+}
 
 /**
  * A cone funnel divider spans the value axis and its `start`/`end` sides lie on the cross axis, which
@@ -76,8 +98,16 @@ const CONE_FUNNEL_RTL_SWAP: Record<AgConeFunnelSeriesLabelPlacement, AgConeFunne
  * `before`/`after` live. `isUpward` then follows the category axis' direction, so a reversed axis swaps
  * the two sides.
  */
-export function funnelPlacementAxes(barAlongX: boolean, categoryReversed: boolean) {
+export function funnelPlacementAxes(barAlongX: boolean, categoryReversed: boolean): PlacementAxes {
     return { isVertical: barAlongX, isUpward: barAlongX === categoryReversed };
+}
+
+/**
+ * Bar's own axis flags for a funnel-family chart, placing a label across the **value** axis: `start` is
+ * the left side of a vertical chart's bar and the top of a horizontal one's, as `stageLabel` uses them.
+ */
+export function funnelValuePlacementAxes(barAlongX: boolean): PlacementAxes {
+    return { isVertical: !barAlongX, isUpward: barAlongX };
 }
 
 /**
@@ -85,8 +115,17 @@ export function funnelPlacementAxes(barAlongX: boolean, categoryReversed: boolea
  * direction of increasing datum index: downwards when vertical, rightwards when horizontal. `reverse`
  * only swaps which parallel edge of a stage is the wider one, so it does not enter here.
  */
-export function pyramidPlacementAxes(horizontal: boolean) {
+export function pyramidPlacementAxes(horizontal: boolean): PlacementAxes {
     return { isVertical: !horizontal, isUpward: horizontal };
+}
+
+/** The axis flags for each resolved funnel or pyramid placement, index-parallel with the placements. */
+export function funnelPlacementAxesList(
+    placements: readonly AgFunnelSeriesLabelPlacement[],
+    stageAxes: PlacementAxes,
+    valueAxes: PlacementAxes
+): PlacementAxes[] {
+    return placements.map((placement) => (isFunnelValuePlacement(placement) ? valueAxes : stageAxes));
 }
 
 /** The isosceles trapezoid a pyramid stage is drawn as, described along its stacking axis. */
@@ -133,12 +172,19 @@ function dedupe<T>(values: T[], fallback: T): T[] {
     return unique.length > 0 ? unique : [fallback];
 }
 
-/** The ordered placement list a funnel or pyramid label cascades through. */
+/**
+ * The ordered placement list a funnel or pyramid label cascades through. A right-to-left chart mirrors
+ * `before`/`after` when they lie on the horizontal axis, as `stageLabel.placement` does.
+ */
 export function resolveFunnelPlacements(
     placement: AgFunnelSeriesLabelPlacement | AgFunnelSeriesLabelPlacement[] | undefined,
-    fallback: AgFunnelSeriesLabelPlacement
+    fallback: AgFunnelSeriesLabelPlacement,
+    barAlongX: boolean,
+    isRtl: boolean
 ): AgFunnelSeriesLabelPlacement[] {
-    return dedupe(toArray(placement), fallback);
+    const swap = barAlongX && isRtl ? FUNNEL_RTL_SIDE_SWAP : undefined;
+    const resolved = toArray(placement).map((value) => swap?.[value] ?? value);
+    return dedupe(resolved, fallback);
 }
 
 /**

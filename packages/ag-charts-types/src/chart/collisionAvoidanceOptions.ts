@@ -51,16 +51,24 @@ export type AgBarSeriesLabelPlacement =
 /**
  * Where a funnel or pyramid value label is placed relative to its bar or stage.
  *
- * `inside-*` places the label within the shape, `outside-*` clear of it. `before`/`after` run along
- * the category axis, perpendicular to the value axis: on a vertical funnel they are above and below
- * the bar, on a horizontal one to its left and right. A reversed category axis swaps them, so the
- * placement always follows the axis rather than the screen. The same physical direction is spelt
- * `beside-before-center` / `beside-after-center` in {@link AgBarSeriesLabelPlacement}.
+ * `inside-*` places the label within the shape, `outside-*` clear of it.
+ *
+ * `start`/`end` run along the stage axis: on a vertical funnel they are above and below the bar, on a
+ * horizontal one to its left and right. A reversed stage axis swaps them, so the placement always
+ * follows the axis rather than the screen. The same physical direction is spelt `beside-before-center` /
+ * `beside-after-center` in {@link AgBarSeriesLabelPlacement}.
+ *
+ * `before`/`after` sit on the same sides as `stageLabel.placement`: on a vertical funnel they are left
+ * and right of the bar, mirrored in a right-to-left chart; on a horizontal one they are above and below it.
  */
 export type AgFunnelSeriesLabelPlacement =
     | 'inside-center'
+    | 'inside-start'
+    | 'inside-end'
     | 'inside-before'
     | 'inside-after'
+    | 'outside-start'
+    | 'outside-end'
     | 'outside-before'
     | 'outside-after';
 

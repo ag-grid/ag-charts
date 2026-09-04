@@ -84,13 +84,13 @@ In this configuration:
 
 ## Labels
 
-Each stage can show its value with `label`, positioned along the stage axis.
+Each stage can show its value with `label`, positioned inside or outside the stage.
 
 ```js format="snippet"
 {
     label: {
         enabled: true,
-        placement: ['inside-center', 'outside-after'],
+        placement: ['inside-center', 'outside-end'],
     },
 }
 ```
@@ -98,7 +98,10 @@ Each stage can show its value with `label`, positioned along the stage axis.
 In this configuration:
 
 - `inside-center` centres the label on the stage and limits its width to the part of the stage the text sits across, so a long label wraps more in a narrow stage than in a wide one.
+- `outside-end` places the label after the stage along the stage axis.
 - An outside placement is rejected when it would leave the series area, so it works best as a fallback. Use `aspectRatio` and `spacing` to make room for one.
+
+`start` and `end` run along the stage axis. `before` and `after` sit on the same sides as `stageLabel.placement`: left and right of a vertical pyramid's stage, mirrored in a right-to-left chart, and above and below a horizontal one's.
 
 See [Series Labels](./series-labels/) for the full set of label, placement and collision options.
 
