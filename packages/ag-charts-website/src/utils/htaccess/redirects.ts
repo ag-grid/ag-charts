@@ -1,4 +1,13 @@
-export type SimpleRedirectRule = { from: string; to: string };
+export type SimpleRedirectRule = {
+    from: string;
+    to: string;
+    /**
+     * Drop this redirect for archive builds. Archive builds omit the `sitemap()` integration
+     * entirely (they're noindex), so a redirect whose target only exists when that integration
+     * ran would 301 to a file the archive build never generates.
+     */
+    skipForArchive?: true;
+};
 export type RedirectMatchRule = { fromPattern: string; to: string };
 // A 410 Gone rule: permanently removed with no equivalent, so it carries no `to`.
 export type GoneRule = { from: string; gone: true } | { fromPattern: string; gone: true };
@@ -35,8 +44,9 @@ export const SITE_301_REDIRECTS: Redirect[] = [
     { from: '/react/line/', to: '/react/line-series/' },
 
     // SE-186: this build only ever generates sitemap-0.xml; the conventional /sitemap.xml is
-    // never emitted, so crawlers probing it by convention (e.g. Bing) 404.
-    { from: '/sitemap.xml', to: '/sitemap-0.xml' },
+    // never emitted, so crawlers probing it by convention (e.g. Bing) 404. Archive builds never
+    // generate sitemap-0.xml either (see skipForArchive doc), so this redirect is dropped there.
+    { from: '/sitemap.xml', to: '/sitemap-0.xml', skipForArchive: true },
 
     // Rules are base-relative; getRedirectRules() splices in the /charts base.
     // RedirectMatch is first-match-wins, so order is load-bearing: specific before broad.
