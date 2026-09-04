@@ -555,8 +555,12 @@ function resolveConditionalBranch(
     if (neighbours) {
         for (const neighbour of neighbours) {
             const key = graph.getVertexValue(neighbour);
-            if (graph.findNeighbourWithValue(vertex, key, PATH_EDGE)) continue;
-            graph.addEdge(vertex, neighbour, PATH_EDGE);
+            const existingVertex = graph.findNeighbourWithValue(vertex, key, PATH_EDGE);
+            if (existingVertex) {
+                graph.mergeConditionalBranch(existingVertex, neighbour);
+            } else {
+                graph.addEdge(vertex, neighbour, PATH_EDGE);
+            }
         }
     }
 
