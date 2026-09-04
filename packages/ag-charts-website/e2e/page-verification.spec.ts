@@ -238,7 +238,33 @@ test.describe('Page Verification', () => {
             const body = (await response.text()).replace('</head>', `<script>${CSP_SELF_CHECK_SCRIPT}</script></head>`);
             await route.fulfill({ response, body });
         });
-        await page.reload();
+        // 'commit' for the same reason gotoUrl uses it: the reloaded page carries the same
+        // third-party tags, and waiting for its load event puts a vendor back on the path.
+        await page.reload({ waitUntil: 'commit' });
+        // 'commit' resolves before the parser has reached the injected <script>, so wait for the
+        // document to finish parsing - readyState leaves 'loading' ahead of the deferred scripts
+        // that block DOMContentLoaded.
+        await page.waitForFunction(() => document.readyState !== 'loading');
+        // The violation and the hash hint arrive over an exposeBinding round-trip and a console
+        // message, so wait for both rather than assuming they landed as parsing finished.
+        await expect
+            .poll(
+                () => {
+                    const recorded = annotations
+                        .slice(beforeInjection)
+                        .filter(
+                            (annotation) =>
+                                annotation.type === CSP_VIOLATION_ANNOTATION ||
+                                annotation.type === CSP_HASH_HINT_ANNOTATION
+                        );
+                    return {
+                        violation: recorded.some((a) => a.type === CSP_VIOLATION_ANNOTATION),
+                        hashHint: recorded.some((a) => a.type === CSP_HASH_HINT_ANNOTATION),
+                    };
+                },
+                { message: 'the blocked inline script reported a violation and a hash hint' }
+            )
+            .toEqual({ violation: true, hashHint: true });
 
         // Only the injected reload's violations are synthetic; the first navigation's are real and
         // stay in the report.
