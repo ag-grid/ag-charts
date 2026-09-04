@@ -30,6 +30,7 @@ import {
     compareImageSnapshot,
     createChart,
     createSceneGeometrySampler,
+    deproxy,
     expectAnimatedEndpointsMatchStatic,
     expectNoAnimation,
     expectSceneTrajectory,
@@ -1212,6 +1213,46 @@ describe('ScatterSeries', () => {
 
         it('should render the same markers when both axes are reversed and maxRenderedItems is exceeded', async () => {
             await expectSameMarkersWhenReversed({ x: true, y: true });
+        });
+    });
+    describe('AG-18413 empty-string keys', () => {
+        type NodeDatum = { point: { size: number }; label?: { text?: string } };
+        const nodeData = (c: AgChartInstance) =>
+            (deproxy(c).series[0] as unknown as { getNodeData(): NodeDatum[] }).getNodeData();
+        const nodeSizes = (c: AgChartInstance) => nodeData(c).map((d) => d.point.size);
+        const labelTexts = (c: AgChartInstance) => nodeData(c).map((d) => d.label?.text);
+
+        const createScatter = async (seriesOverrides: object) => {
+            const options = {
+                data: [
+                    { x: 1, y: 10, l: 'a' },
+                    { x: 2, y: 20, l: 'b' },
+                    { x: 3, y: 30, l: 'c' },
+                ],
+                series: [{ type: 'scatter', xKey: 'x', yKey: 'y', ...seriesOverrides }],
+                legend: { enabled: false },
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            } as AgCartesianChartOptions;
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+        };
+
+        it('treats an empty labelKey as an omitted labelKey (TC3)', async () => {
+            await createScatter({ labelKey: '', label: { enabled: true } });
+            const emptyKeySizes = nodeSizes(chart);
+            const emptyKeyLabels = labelTexts(chart);
+
+            chart.destroy();
+            await createScatter({ label: { enabled: true } });
+
+            expect(emptyKeySizes).toEqual(nodeSizes(chart));
+            expect(emptyKeyLabels).toEqual(labelTexts(chart));
+            expect(emptyKeyLabels).toEqual(['10', '20', '30']);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
     });
 });

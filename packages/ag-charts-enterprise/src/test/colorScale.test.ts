@@ -1,4 +1,4 @@
-import { afterEach, describe, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import {
     type AgBubbleSeriesOptions,
@@ -271,5 +271,52 @@ describe('colorScale partial options — theme fills survive user partials', () 
         chart = AgCharts.create(options);
         await waitForChartStability(chart);
         assertColorScalePopulated();
+    });
+});
+
+// `colorKey` is enterprise-gated, so an empty-string `colorKey` can only be exercised here.
+describe('AG-18413 empty-string colorKey - bubble/scatter', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: any;
+
+    afterEach(() => {
+        if (chart) {
+            chart.destroy();
+            chart = undefined;
+        }
+    });
+
+    const colorValues = (c: any) =>
+        (c.series[0] as unknown as { getNodeData(): Array<{ colorValue?: number }> })
+            .getNodeData()
+            .map((d) => d.colorValue);
+
+    const createChartWith = async (series: AgBubbleSeriesOptions | AgScatterSeriesOptions) => {
+        const options: AgChartOptions = prepareEnterpriseTestOptions({ data, series: [series] });
+        chart = deproxy(AgCharts.create(options));
+        await waitForChartStability(chart);
+        return colorValues(chart);
+    };
+
+    it.each([
+        ['bubble', { type: 'bubble' as const, xKey: 'x', yKey: 'y', sizeKey: 'size' }],
+        ['scatter', { type: 'scatter' as const, xKey: 'x', yKey: 'y' }],
+    ])('%s falls back to the default fill when colorKey is an empty string (TC2)', async (_name, base) => {
+        const emptyKey = await createChartWith({ ...base, colorKey: '', colorScale: { fills } });
+
+        chart.destroy();
+        chart = undefined;
+        const omitted = await createChartWith({ ...base, colorScale: { fills } });
+
+        chart.destroy();
+        chart = undefined;
+        const populated = await createChartWith({ ...base, colorKey: 'intensity', colorScale: { fills } });
+
+        expect(emptyKey).toHaveLength(data.length);
+        expect(emptyKey.every((value) => value === undefined)).toBe(true);
+        expect(emptyKey).toEqual(omitted);
+        expect(populated.some((value) => value != null)).toBe(true);
     });
 });

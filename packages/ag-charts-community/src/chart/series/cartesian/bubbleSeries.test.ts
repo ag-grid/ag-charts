@@ -1735,7 +1735,6 @@ describe('BubbleSeries', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
     });
-
 });
 
 describe('BubbleSeries bigint size domain (AG-16608)', () => {
