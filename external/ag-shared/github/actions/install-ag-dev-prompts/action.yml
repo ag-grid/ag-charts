@@ -36,6 +36,13 @@ runs:
               cd "$GITHUB_WORKSPACE/.ag-dev-prompts"
               echo '{"name":"ag-dev-prompts-install","private":true}' > package.json
 
+              # The runner's bundled npm 10.9 crashes/hangs resolving certain peer-dependency
+              # graphs (Arborist "Cannot read properties of null (reading 'edgesOut')"), a bug
+              # that started biting once vitest 5.0.0 hit the registry on 3 Sept. npm 11
+              # resolves it (see e51fe6603f9's npm bump in the package-test container for the
+              # same underlying bug).
+              npm install --global --silent npm@11
+
               # npm.pkg.github.com occasionally stalls a request mid-flight (observed:
               # zero output for 5+ minutes, no 4xx/5xx, just a hung DNS/connect phase)
               # rather than failing fast. `timeout` bounds each attempt so a stall
