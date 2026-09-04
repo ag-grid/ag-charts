@@ -573,8 +573,8 @@
 .fin-watchlist-grid .ag-row.fin-grid-active,
 .fin-trending-grid .ag-row.fin-grid-active {
     box-shadow:
-        inset 4px 0 0 0 var(--fin-accent),
-        inset 0 0 0 1px var(--fin-accent);
+        inset 5px 0 0 0 var(--fin-accent),
+        inset 0 0 0 2px var(--fin-accent);
     background: rgba(68, 147, 248, 0.12);
 }
 /* :focus-visible so a mouse click, which also focuses a cell, leaves the row unringed. */
