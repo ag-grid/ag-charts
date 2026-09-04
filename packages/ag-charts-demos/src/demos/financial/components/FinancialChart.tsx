@@ -1,11 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
-import {
-    type AgChartInstance,
-    type AgContextMenuGetItemsCallback,
-    type AgFinancialChartOptions,
-    type AgZoomEvent,
-} from 'ag-charts-community';
+import { type AgChartInstance, type AgFinancialChartOptions, type AgZoomEvent } from 'ag-charts-community';
 import { AgFinancialCharts } from 'ag-charts-react';
 
 import { diffBars, toDatum } from '../barTransaction';
@@ -13,9 +8,9 @@ import { THEME } from '../chartTheme';
 import { BAR_INTERVAL_MS, type Bar } from '../data';
 import { type ChartDatum } from '../types';
 
-// Scoped to this chart: the preset omits `padding`, `zoom` and `contextMenu` from its option types,
-// so the theme is the only lever, and the other charts on the page keep the defaults.
-const financialTheme = (getItems: AgContextMenuGetItemsCallback<ChartDatum, never>) => ({
+// Scoped to this chart: the preset omits `padding` from its option types, so the theme is the
+// only lever, and the other charts on the page keep the default.
+const FINANCIAL_THEME = {
     ...THEME,
     overrides: {
         ...THEME.overrides,
@@ -25,24 +20,14 @@ const financialTheme = (getItems: AgContextMenuGetItemsCallback<ChartDatum, neve
                 top: 8,
                 right: 12,
             },
-            // The default view is itself a zoom, so a built-in reset always has something to undo and
-            // bounces off the full domain. Both of its entry points route to `resetToRange` instead.
-            zoom: {
-                enableDoubleClickToReset: false,
-            },
-            contextMenu: {
-                getItems,
-            },
         },
     },
-});
+};
 
 // Slack when pinning history, so the bar on the boundary is never the one the feed drops.
 const RETAIN_MARGIN_BARS = 2;
 // A view this close to the newest bar counts as watching the live edge.
 const LIVE_EDGE_RATIO = 1 - 1e-6;
-// Matches `contextMenuResetZoom`, the label on the item this chart replaces.
-const RESET_ZOOM_LABEL = 'Reset zoom';
 
 // eslint-disable-next-line no-console
 const logError = (e: unknown) => console.error(e);
@@ -61,6 +46,7 @@ function rangeStartTime(range: AgZoomEvent['rangeX']): number | undefined {
     return undefined;
 }
 
+/** Show the trailing `rangeMinutes`, and make it what a zoom reset restores. */
 function applyRange(chart: AgChartInstance, data: ChartDatum[], rangeMinutes: number) {
     return chart.setState({ ...chart.getState(), zoom: rangeStart(data, rangeMinutes) });
 }
@@ -78,12 +64,10 @@ function createFinancialOptions(
     data: ChartDatum[],
     chartType: AgFinancialChartOptions['chartType'],
     rangeMinutes: number,
-    onZoom: (event: AgZoomEvent) => void,
-    onDoubleClick: () => void,
-    getContextMenuItems: AgContextMenuGetItemsCallback<ChartDatum, never>
+    onZoom: (event: AgZoomEvent) => void
 ): AgFinancialChartOptions {
     return {
-        theme: financialTheme(getContextMenuItems),
+        theme: FINANCIAL_THEME,
         data,
         // Bars carry a stable epoch-ms `time`, so a tick appends single bars.
         dataIdKey: 'time',
@@ -98,7 +82,7 @@ function createFinancialOptions(
         rangeButtons: false,
         // The visible range is zoom state, not a data window, so streaming only ever appends.
         initialState: { zoom: rangeStart(data, rangeMinutes) },
-        listeners: { zoom: onZoom, doubleClick: onDoubleClick },
+        listeners: { zoom: onZoom },
     } as AgFinancialChartOptions;
 }
 
@@ -128,26 +112,18 @@ export function FinancialChart({ bars, rangeMinutes, ticker, onRetainFrom }: Fin
     // one re-derives the zoom and creeps the pinned bars by a fraction of a pixel.
     const liveRef = useRef(true);
     const flushRef = useRef(0);
-    const resetRangeRef = useRef(false);
-    // The oldest bar on screen, to tell the range view apart from any other view of it.
-    const viewStartRef = useRef<number>();
     // The zoom listener and the rAF flush both outlive the render that created them.
     const propsRef = useRef({ bars, rangeMinutes, onRetainFrom });
     propsRef.current = { bars, rangeMinutes, onRetainFrom };
 
-    const scheduleFlush = useCallback((reapplyRange: boolean) => {
-        resetRangeRef.current ||= reapplyRange;
+    const scheduleFlush = useCallback(() => {
         if (flushRef.current) return;
         // Out of the update cycle that raised the zoom event, so the catch-up is not re-entrant.
         flushRef.current = requestAnimationFrame(() => {
             flushRef.current = 0;
-            const reset = resetRangeRef.current;
-            resetRangeRef.current = false;
             const chart = chartRef.current;
             if (!chart) return;
-            syncData(chart, dataRef.current, propsRef.current.bars)
-                .then(() => (reset ? applyRange(chart, dataRef.current, propsRef.current.rangeMinutes) : undefined))
-                .catch(logError);
+            syncData(chart, dataRef.current, propsRef.current.bars).catch(logError);
         });
     }, []);
 
@@ -157,55 +133,18 @@ export function FinancialChart({ bars, rangeMinutes, ticker, onRetainFrom }: Fin
             const start = zoomedOut ? undefined : rangeStartTime(event.rangeX);
             propsRef.current.onRetainFrom(start == null ? undefined : start - RETAIN_MARGIN_BARS * BAR_INTERVAL_MS);
 
-            viewStartRef.current = start;
             const wasLive = liveRef.current;
             liveRef.current = zoomedOut || event.ratioX.end >= LIVE_EDGE_RATIO;
-            // Reset means "back to the live range" here: rendering the whole pinned history instead
-            // would snap back to the baseline window as soon as the feed evicted it.
-            const reset = zoomedOut && dataRef.current.length > propsRef.current.rangeMinutes;
-            if (reset || (liveRef.current && !wasLive)) scheduleFlush(reset);
+            if (liveRef.current && !wasLive) scheduleFlush();
         },
         [scheduleFlush]
-    );
-
-    // Whether the view is already the one the range buttons define, and so has nothing to reset to.
-    const isRangeView = useCallback(() => {
-        const data = dataRef.current;
-        const target = data[Math.max(0, data.length - propsRef.current.rangeMinutes)]?.time;
-        const showing = viewStartRef.current;
-        return liveRef.current && target != null && showing != null && Math.abs(showing - target) < BAR_INTERVAL_MS;
-    }, []);
-
-    const resetToRange = useCallback(() => {
-        if (isRangeView()) return;
-        liveRef.current = true;
-        scheduleFlush(true);
-    }, [isRangeView, scheduleFlush]);
-
-    // Swap the built-in reset for one that lands on the range view, keeping its label and its habit
-    // of greying out when the view it restores is already on screen.
-    const getContextMenuItems = useCallback<AgContextMenuGetItemsCallback<ChartDatum, never>>(
-        ({ defaultItems }) =>
-            defaultItems.map((item) =>
-                item === 'reset-zoom'
-                    ? { label: RESET_ZOOM_LABEL, enabled: !isRangeView(), action: resetToRange }
-                    : item
-            ),
-        [isRangeView, resetToRange]
     );
 
     // Seeded once so the options reference stays stable: re-running the slow options path would also
     // clobber the toolbar's live chart-type selection. Later bars stream in via the effect below.
     const options = useMemo(() => {
         dataRef.current = bars.map(toDatum);
-        return createFinancialOptions(
-            dataRef.current,
-            'candlestick',
-            rangeMinutes,
-            onZoom,
-            resetToRange,
-            getContextMenuItems
-        );
+        return createFinancialOptions(dataRef.current, 'candlestick', rangeMinutes, onZoom);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
