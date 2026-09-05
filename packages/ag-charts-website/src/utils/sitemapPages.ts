@@ -16,13 +16,13 @@ const getDocsExamplePaths = () => {
 
 const getInternalPages = () => {
     return [
-        urlWithBaseUrl('/*/*-test/'),
+        // SE-182: NOT /*/*-test/ or /demos/ — both carry their own page-level signal
+        // (self-canonical, noindex) that a Disallow would stop Google from ever reading,
+        // since it can't crawl the page to see it. Let the page signal do the work instead,
+        // same principle as the blog migration (SE-188).
         urlWithBaseUrl('/*/*-e2e/'),
         urlWithBaseUrl('/gallery-test'),
         urlWithBaseUrl('/*/benchmarks/'),
-        // Demo app examples: the routes and their built SPA assets are published but
-        // must stay out of search engines and AI crawlers.
-        urlWithBaseUrl('/demos/'),
         urlWithBaseUrl('/internal-demos/'),
     ];
 };
@@ -43,7 +43,9 @@ const getIgnoredPages = () => {
     return [
         urlWithBaseUrl('/404'),
         addTrailingSlash(urlWithBaseUrl('/gallery/examples')),
-        addTrailingSlash(urlWithBaseUrl('/archive')),
+        // SE-182: NOT /archive — it 301s to /charts/documentation-archive/, and a Disallow
+        // would hide that redirect from Google instead of letting it transfer. Same
+        // principle as the blog migration (SE-188).
         // Redirects
         addTrailingSlash(urlWithBaseUrl(`/${FRAMEWORK_REDIRECT_PATH}`)),
         // Release note stubs — minimal content, crawl waste
