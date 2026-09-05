@@ -23,6 +23,12 @@ function install_fw {
     # actually covers is unchanged.
     ng_new_opts=
     if [[ ${version} == "latest" ]] ; then
+        # The npm 10.x bundled with the Playwright image crashes in arborist
+        # ("Cannot read properties of null (reading 'edgesOut')") while installing the
+        # dependency tree of the current Angular scaffold, so upgrade npm first. Pinned to
+        # 11.x because npm 12.x requires a newer Node than the image provides.
+        echo ">>> npm i -g npm@11"
+        npm i -g npm@11
         echo ">>> npm i -g @angular/cli@latest"
         npm i -g @angular/cli
         ng_new_opts=--skip-install
