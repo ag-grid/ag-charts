@@ -1,3 +1,5 @@
+import type { BoxBounds } from 'ag-charts-core';
+
 import { cubicRoots } from './polyRoots';
 
 /**
@@ -30,6 +32,18 @@ export function segmentIntersection(
     }
 
     return 0; // The intersection point is outside either or both segments.
+}
+
+/** True when the segment crosses one of the box's edges. A segment wholly inside the box crosses none. */
+export function boxCrossesSegment(box: BoxBounds, x1: number, y1: number, x2: number, y2: number) {
+    const right = box.x + box.width;
+    const bottom = box.y + box.height;
+    return (
+        segmentIntersection(x1, y1, x2, y2, box.x, box.y, right, box.y) === 1 ||
+        segmentIntersection(x1, y1, x2, y2, right, box.y, right, bottom) === 1 ||
+        segmentIntersection(x1, y1, x2, y2, right, bottom, box.x, bottom) === 1 ||
+        segmentIntersection(x1, y1, x2, y2, box.x, bottom, box.x, box.y) === 1
+    );
 }
 
 /**

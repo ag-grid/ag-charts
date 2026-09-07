@@ -62,14 +62,14 @@ jobs:
             locale: ${{ steps.filter.outputs.locale }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v7
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   fetch-depth: 1
 
             - name: Detect file changes (PR only)
               id: filter
               if: github.event_name == 'pull_request'
-              uses: dorny/paths-filter@v4
+              uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
               with:
                   filters: |
                       code:
@@ -150,7 +150,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v7
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   fetch-depth: 1
 
@@ -286,7 +286,7 @@ jobs:
 
             - name: Persist build outputs
               if: always()
-              uses: actions/upload-artifact@v7
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
               with:
                   name: e2e-init-outputs
                   # Mostly minified JS — heavier compression buys little and costs
@@ -312,7 +312,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v7
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   fetch-depth: 1
 
@@ -360,7 +360,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v7
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   fetch-depth: 1
 
@@ -397,7 +397,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v7
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   fetch-depth: 1
 
@@ -430,7 +430,7 @@ jobs:
 
             - name: Upload UMD bundles for PR preview
               if: github.event_name == 'pull_request' && steps.build_umd.outcome == 'success'
-              uses: actions/upload-artifact@v7
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
               with:
                   name: pr-preview-umd
                   if-no-files-found: ignore
@@ -451,7 +451,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v7
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   fetch-depth: 1
 
@@ -504,13 +504,13 @@ jobs:
         steps:
             # Needed for the local shared action below; same-repo gate (job if) is the guard.
             - name: Checkout
-              uses: actions/checkout@v7
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   fetch-depth: 1
 
             - name: Download UMD artifact
               id: download
-              uses: actions/download-artifact@v8
+              uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
               continue-on-error: true
               with:
                   name: pr-preview-umd
@@ -594,11 +594,11 @@ jobs:
             contents: read
             pull-requests: write
         steps:
-            - uses: actions/checkout@v7
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   fetch-depth: 0
 
-            - uses: actions/setup-node@v7
+            - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
               with:
                   node-version: 22
 
@@ -654,7 +654,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v7
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   fetch-depth: 1
 
@@ -684,7 +684,7 @@ jobs:
 
             - name: Persist website build for staging deploy
               if: github.ref == 'refs/heads/latest' && steps.build.outcome == 'success'
-              uses: actions/upload-artifact@v7
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
               with:
                   name: website-staging-dist
                   path: dist/packages/ag-charts-website/
@@ -713,7 +713,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v7
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   fetch-depth: 1
 
@@ -758,7 +758,7 @@ jobs:
 
             - name: Persist test results
               if: always()
-              uses: actions/upload-artifact@v7
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
               with:
                   name: test-results-${{matrix.shard}}
                   path: |
@@ -803,7 +803,7 @@ jobs:
             - name: Restore Playwright Image Cache
               id: pw_cache
               if: steps.mirror_check.outputs.exists != 'true'
-              uses: actions/cache@v6
+              uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
               with:
                   path: /tmp/playwright-docker-image.tar
                   key: ${{ env.PLAYWRIGHT_CACHE_KEY }}
@@ -897,10 +897,10 @@ jobs:
 
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v7
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
             - name: Restore Init Build Outputs
-              uses: actions/download-artifact@v8
+              uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
               with:
                   name: e2e-init-outputs
 
@@ -952,7 +952,7 @@ jobs:
             - name: Restore Playwright Image Cache
               id: pw_tarball
               if: steps.await_image.outputs.pulled != 'true'
-              uses: actions/cache/restore@v6
+              uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
               with:
                   path: /tmp/playwright-docker-image.tar
                   key: playwright-image-v1.60.0-jammy-v1
@@ -1018,7 +1018,7 @@ jobs:
 
             - name: Persist test results
               if: always()
-              uses: actions/upload-artifact@v7
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
               with:
                   name: test-results-e2e-shard-${{matrix.shard}}
                   path: |
@@ -1076,10 +1076,10 @@ jobs:
 
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v7
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
             - name: Restore Init Build Outputs
-              uses: actions/download-artifact@v8
+              uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
               with:
                   name: e2e-init-outputs
 
@@ -1121,7 +1121,7 @@ jobs:
             - name: Restore Playwright Image Cache
               id: pw_tarball
               if: steps.await_image.outputs.pulled != 'true'
-              uses: actions/cache/restore@v6
+              uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
               with:
                   path: /tmp/playwright-docker-image.tar
                   key: playwright-image-v1.60.0-jammy-v1
@@ -1184,7 +1184,7 @@ jobs:
 
             - name: Persist test results
               if: always()
-              uses: actions/upload-artifact@v7
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
               with:
                   name: test-results-e2e-cross-browser
                   path: |
@@ -1229,12 +1229,12 @@ jobs:
 
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v7
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   fetch-depth: 1
 
             - name: Restore Init Build Outputs
-              uses: actions/download-artifact@v8
+              uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
               with:
                   name: e2e-init-outputs
 
@@ -1279,7 +1279,7 @@ jobs:
             - name: Restore Playwright Image Cache
               id: pw_tarball
               if: steps.await_image.outputs.pulled != 'true'
-              uses: actions/cache/restore@v6
+              uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
               with:
                   path: /tmp/playwright-docker-image.tar
                   key: playwright-image-v1.60.0-jammy-v1
@@ -1318,7 +1318,7 @@ jobs:
 
             - name: Persist test results
               if: always()
-              uses: actions/upload-artifact@v7
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
               with:
                   name: test-results-demos-e2e
                   path: |
@@ -1341,7 +1341,7 @@ jobs:
             - name: Checkout
               id: checkout
               if: matrix.framework != 'none'
-              uses: actions/checkout@v7
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   fetch-depth: 1
 
@@ -1422,7 +1422,7 @@ jobs:
             BUNDLE_TREESHAKE_SHARD: ${{ matrix.treeshake_shard }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v7
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   fetch-depth: 1
 
@@ -1479,7 +1479,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v7
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   fetch-depth: 1
 
@@ -1492,7 +1492,7 @@ jobs:
                   # branch has no success tag until its first green build.
                   git fetch origin --depth 1 tag "${BRANCH_NAME}-success" || true
 
-            - uses: actions/download-artifact@v8
+            - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
               with:
                   path: test-results/
 
@@ -1532,7 +1532,7 @@ jobs:
                   done)
 
             - name: Test Report
-              uses: dorny/test-reporter@v3
+              uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
               if: needs.test.result == 'success' || needs.test.result == 'failure' || needs.demos_e2e.result == 'success' || needs.demos_e2e.result == 'failure'
               id: testReport
               continue-on-error: true
@@ -1616,7 +1616,7 @@ jobs:
 
             - name: Restore Website Build for Staging Deploy
               if: github.ref == 'refs/heads/latest' && needs.website_build.outputs.build == 'success' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
-              uses: actions/download-artifact@v8
+              uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
               with:
                   name: website-staging-dist
                   path: dist/packages/ag-charts-website/
@@ -1699,14 +1699,14 @@ jobs:
               # Moving tag so the commit currently live on staging shows as an inline chip
               # in the commits list, with no status icon to hover.
               if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.deploy_to_staging.outcome == 'success'
-              uses: EndBug/latest-tag@latest
+              uses: EndBug/latest-tag@8fcae8848c1e23fd8212258f69a9619bc62cad67 # v1.6.3
               with:
                   ref: staging
                   description: Commit currently deployed to the staging website.
 
             - name: Tag Latest Successful Commit
               if: success() && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
-              uses: EndBug/latest-tag@latest
+              uses: EndBug/latest-tag@8fcae8848c1e23fd8212258f69a9619bc62cad67 # v1.6.3
               with:
                   ref: ${{ github.ref_name }}-success
                   description: Latest commit to pass GitHub Actions workflow on ${{ github.ref_name }} branch.
@@ -1714,7 +1714,7 @@ jobs:
             - name: Find matching workflow
               if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.deploy_to_staging.outcome == 'success'
               id: find_latest_sha
-              uses: SamhammerAG/last-successful-build-action@v4
+              uses: SamhammerAG/last-successful-build-action@1c368a27a90596574a71ac0ede422a897d0e8e84 # v4
               with:
                   branch: 'latest'
                   workflow: 'ci'
@@ -1858,7 +1858,7 @@ jobs:
 
             - name: Upload CI-failure Slack thread anchor
               if: always() && steps.ci_failure_alert.outcome == 'success' && hashFiles('ci-failure-slack.json') != ''
-              uses: actions/upload-artifact@v7
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
               with:
                   name: ci-failure-slack
                   path: ci-failure-slack.json
@@ -1903,7 +1903,7 @@ jobs:
             cancel-in-progress: false
         steps:
             - name: Checkout
-              uses: actions/checkout@v7
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   # Full history topology is needed for snapshot diffing, but blobs can be
                   # fetched lazily — a blob-less clone cuts checkout from ~80s to ~15s.
@@ -1987,7 +1987,7 @@ jobs:
 
             - name: Upload snapshot-review HTML reports
               if: steps.review.outputs.produced == 'true'
-              uses: actions/upload-artifact@v7
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
               with:
                   name: snapshot-review-html
                   path: ${{ steps.review.outputs.html_dir }}/*.html
@@ -2091,13 +2091,13 @@ jobs:
         if: vars.SONARCLOUD_ENABLED != 'false'
         runs-on: ubuntu-24.04
         steps:
-            - uses: actions/checkout@v7
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   # Disabling shallow clones is recommended for improving the relevancy of reporting
                   fetch-depth: 0
 
             - name: SonarQube Scan
-              uses: sonarsource/sonarqube-scan-action@master
+              uses: sonarsource/sonarqube-scan-action@5bc5285b684b9f0e940031dc8ddc4b6387a2f493 # master branch @ 2026-08-31
               with:
                   args: >
                       -Dsonar.qualitygate.wait=true

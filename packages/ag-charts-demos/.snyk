@@ -6,30 +6,30 @@ ignore:
         - vite@5.4.20:
               reason: >-
                   Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
+              expires: 2027-03-02T00:00:00.000Z
               created: 2026-07-27T10:28:54.257Z
     SNYK-JS-ROLLUP-15340920:
         - vite@5.4.20 > rollup@4.42.0:
               reason: >-
                   Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
+              expires: 2027-03-02T00:00:00.000Z
               created: 2026-07-27T10:28:20.653Z
     SNYK-JS-POSTCSS-18313038:
         - vite@5.4.20 > postcss@8.5.4:
               reason: >-
                   Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
+              expires: 2027-03-02T00:00:00.000Z
               created: 2026-07-27T10:17:20.142Z
     SNYK-JS-POSTCSS-18313036:
         - vite@5.4.20 > postcss@8.5.4:
               reason: >-
                   Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
+              expires: 2027-03-02T00:00:00.000Z
               created: 2026-07-27T10:16:26.684Z
     SNYK-JS-ESBUILD-17750822:
         - vite@5.4.20 > esbuild@0.21.5:
               reason: >-
                   Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
+              expires: 2027-03-02T00:00:00.000Z
               created: 2026-07-27T08:47:51.513Z
 patch: {}
