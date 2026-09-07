@@ -2825,6 +2825,23 @@ describe('CartesianAxis', () => {
                     series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
                 });
 
+                // The suite's verdicts are all "no collisions", which a probe that under-reports
+                // would satisfy for free - so prove the probe can see an overlap in exactly this
+                // geometry before trusting it to say there is none.
+                it('reports the overlaps the same axis has with collision avoidance off', async () => {
+                    const options = denseOptions('middle') as any;
+                    await renderChart({
+                        ...options,
+                        axes: {
+                            ...options.axes,
+                            x: { ...options.axes.x, label: { ...options.axes.x.label, avoidCollisions: false } },
+                        },
+                    });
+                    const nodes = getAxisLabelNodes(chart, 'bottom');
+                    expect(nodes.length).toBe(30);
+                    expect(collidingPairs(nodes)).toBeGreaterThan(0);
+                });
+
                 it.each(['top', 'middle', 'bottom'] as VerticalAlign[])(
                     'keeps rotated labels of differing sizes clear of each other under verticalAlign "%s"',
                     async (verticalAlign) => {
