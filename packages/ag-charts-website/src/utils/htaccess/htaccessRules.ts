@@ -34,12 +34,28 @@ AddCharset utf-8 .md
 # env-split, so the policy is generated per environment.
 ${getCspContent(env)}
 
-${getMarkdownNegotiationRules()}
+${env === 'production' ? `${getHostCanonicalizationRules()}\n\n` : ''}${getMarkdownNegotiationRules()}
 
 ${getRedirectRules()}
 
 Options -Indexes
 `;
+}
+
+// Charts is served from /charts nested under the main ag-grid.com vhost's docroot, as this file's
+// own .htaccess. mod_rewrite rules are not inherited across .htaccess boundaries, so the parent
+// site's apex(ag-grid.com)-to-www host swap never reaches requests under /charts, and the bare
+// apex domain ends up serving pages directly instead of redirecting to www.
+// Only production splits apex/www; staging's only host is charts-staging.ag-grid.com, so this is
+// only spliced in for production (see the call site above).
+function getHostCanonicalizationRules(): string {
+    return `<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Canonical host is www.ag-grid.com; the bare apex domain must not serve pages directly.
+    RewriteCond %{HTTP_HOST} ^ag-grid\\.com$ [NC]
+    RewriteRule ^ https://www.ag-grid.com%{REQUEST_URI} [R=301,L]
+</IfModule>`;
 }
 
 function getCspContent(env: HtaccessEnv): string {
