@@ -98,7 +98,10 @@ function toDay(value: unknown): Date | undefined {
 const selectionToDays = (items: Iterable<AgSelectionItem<unknown>>): Date[] => {
     const byDay = new Map<number, Date>();
     for (const { datum } of items) {
-        const day = startOfDay((datum as TrafficDatum).date);
+        // A rebuilt domain can leave selected items whose datum is gone.
+        const date = (datum as TrafficDatum | undefined)?.date;
+        if (!date) continue;
+        const day = startOfDay(date);
         byDay.set(day.getTime(), day);
     }
     return [...byDay.values()];
@@ -330,7 +333,12 @@ export function TrafficChart({
         onAddEventAt,
     ]);
 
+    // Signature of the day domain, not the values, so filter-driven re-aggregation is not a range change.
+    const domainKey =
+        daily.length > 0 ? `${daily[0].date.getTime()}:${daily.at(-1)!.date.getTime()}:${daily.length}` : '';
+
     // Driven from the shared source of truth; skips when already in sync, breaking the chart->state->chart loop.
+    // A rebuilt domain re-asserts it, since the redrawn series may not have kept the selection.
     useEffect(() => {
         const chart = chartRef.current;
         if (!chart) return;
@@ -340,20 +348,17 @@ export function TrafficChart({
         } else {
             chart.setSelection(selectedDays.map((d) => ({ seriesId: SERIES_ID, itemId: dayId(d) })));
         }
-    }, [selectedDays, metric]);
+    }, [selectedDays, metric, domainKey]);
 
-    // Signature of the day domain, not the values, so filter-driven re-aggregation is not a range change.
-    const domainKey =
-        daily.length > 0 ? `${daily[0].date.getTime()}:${daily.at(-1)!.date.getTime()}:${daily.length}` : '';
-
-    // Drop selections the rebuilt domain does not hold; skip the initial mount so the entry animation survives.
+    // Drop only the days the rebuilt domain no longer holds, so widening a range keeps the
+    // selection. Skips the initial mount so the entry animation survives.
     const mountedDomain = useRef(domainKey);
     useEffect(() => {
         if (mountedDomain.current === domainKey) return;
         mountedDomain.current = domainKey;
-        chartRef.current?.clearSelection();
-        onSelectionChange([]);
-    }, [domainKey, onSelectionChange]);
+        const domainDays = new Set(daily.map((d) => dayKey(d.date)));
+        onSelectionChange(selectedDays.filter((d) => domainDays.has(dayKey(d))));
+    }, [domainKey, daily, selectedDays, onSelectionChange]);
 
     return <AgCharts ref={chartRef} options={options} style={{ height: '100%', width: '100%' }} />;
 }
