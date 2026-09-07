@@ -80,6 +80,8 @@ export class AgChartInstanceProxy implements AgChartProxy {
     chart?: Chart;
     releaseChart?: () => void;
     licenseManager?: LicenseManager;
+    /** Read once at creation: a Studio chart stays exempt from licensing however it is later updated. */
+    withinStudio?: boolean;
 
     constructor(
         chart: Chart,

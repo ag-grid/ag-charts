@@ -500,8 +500,8 @@ class AgChartsInternal {
     private static licenseCheck(proxy: AgChartInstanceProxy, chartOptions: ChartOptions) {
         const { userOptions, processedOptions, moduleRegistry } = chartOptions;
         // Presets strip this undocumented flag from the processed options, so read it as the user gave it.
-        const withinStudio = (userOptions as { withinStudio?: boolean }).withinStudio;
-        if (proxy.licenseManager != null || withinStudio) return;
+        proxy.withinStudio ??= (userOptions as { withinStudio?: boolean }).withinStudio;
+        if (proxy.licenseManager != null || proxy.withinStudio) return;
 
         // A community-only scope is validated only when a key was supplied, and is never watermarked.
         const enterpriseScope = usesEnterpriseModules(moduleRegistry);
