@@ -733,3 +733,31 @@ describe('Background Regions on unsupported chart types', () => {
         ]);
     });
 });
+
+describe('Background Regions with the module registered', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: any;
+
+    afterEach(async () => {
+        if (chart) {
+            await waitForChartStability(chart);
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+    });
+
+    it('emits no missing-module message', async () => {
+        const options: AgCartesianChartOptions = {
+            ...NUMERIC,
+            seriesArea: { backgroundRegions: [{ fill: 'lightsalmon', xRange: { start: 20, end: 80 } }] },
+        };
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        expectWarningsCalls().toEqual([]);
+    });
+});
