@@ -4,11 +4,6 @@ import { fileURLToPath } from 'node:url';
 
 // getStaticPaths runs in isolation and cannot reference component-scope consts.
 export function getStaticPaths() {
-    // Archive builds are noindex and omit the sitemap, so demos have nothing to gain there.
-    if (import.meta.env.BASE_URL?.includes('archive')) {
-        return [];
-    }
-
     const demosDir = fileURLToPath(new URL('../../../../ag-charts-demos/src/demos', import.meta.url));
     const ids = readdirSync(demosDir, { withFileTypes: true })
         .filter((entry) => entry.isDirectory())
