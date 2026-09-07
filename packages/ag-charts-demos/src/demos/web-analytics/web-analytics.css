@@ -326,6 +326,13 @@
     min-height: 0;
 }
 
+.wa-grid-2-even {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
 .wa-grid-3 {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
