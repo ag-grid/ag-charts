@@ -4,7 +4,7 @@ import type { AgCartesianChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-react';
 
 import { PALETTE, THEME } from '../chartTheme';
-import { fmtDuration } from '../format';
+import { fmtDuration, fmtInt } from '../format';
 import type { Session } from '../types';
 
 interface DurationHistogramChartProps {
@@ -51,6 +51,9 @@ export function DurationHistogramChart({ sessions }: DurationHistogramChartProps
                     position: 'left',
                     nice: false,
                 },
+            },
+            formatter: {
+                y: ({ value }) => fmtInt(Number(value)),
             },
             legend: { enabled: false },
             padding: { top: 8, right: 0, bottom: 0, left: 0 },

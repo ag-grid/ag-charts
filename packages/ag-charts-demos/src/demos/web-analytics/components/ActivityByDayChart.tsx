@@ -4,6 +4,7 @@ import type { AgCartesianChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-react';
 
 import { PALETTE, THEME } from '../chartTheme';
+import { fmtInt } from '../format';
 import type { ActivityCell } from '../types';
 
 interface ActivityByDayChartProps {
@@ -63,6 +64,9 @@ export function ActivityByDayChart({ data }: ActivityByDayChartProps) {
             },
             legend: { enabled: false },
             padding: { top: 6, right: 52, bottom: 10, left: 38 },
+            formatter: {
+                y: ({ value }) => fmtInt(Number(value)),
+            },
         };
     }, [byDay]);
 

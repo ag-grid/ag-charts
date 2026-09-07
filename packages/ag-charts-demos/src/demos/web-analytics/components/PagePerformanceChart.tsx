@@ -4,7 +4,7 @@ import type { AgCartesianChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-react';
 
 import { PALETTE, THEME } from '../chartTheme';
-import { fmtCompact, fmtPct } from '../format';
+import { fmtInt, fmtPct } from '../format';
 import type { PageRow } from '../types';
 
 interface PagePerformanceChartProps {
@@ -62,7 +62,7 @@ export function PagePerformanceChart({ data }: PagePerformanceChartProps) {
                         spacing: 2,
                     },
                     label: {
-                        formatter: ({ value }) => fmtCompact(value),
+                        formatter: ({ value }) => fmtInt(value),
                         spacing: 2,
                         color: { ref: 'textColor', mix: 0.2, ontoColor: PALETTE[0] },
                     },
