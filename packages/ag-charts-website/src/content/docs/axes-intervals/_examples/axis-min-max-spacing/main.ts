@@ -35,14 +35,9 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setMinMaxSpacing(minSpacing: number, maxSpacing: number) {
+function spacingChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
     const axis = options.axes?.y as AgNumberAxisOptions;
-    axis.interval = { minSpacing, maxSpacing };
-    chart.update(options);
-}
-
-function reset() {
-    const axis = options.axes?.y as AgNumberAxisOptions;
-    axis.interval = {};
+    axis.interval = value === 'min-max' ? { minSpacing: 15, maxSpacing: 25 } : {};
     chart.update(options);
 }

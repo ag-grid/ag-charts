@@ -37,12 +37,8 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setTickValues(values: number[]) {
-    options.axes!.y!.interval!.values = values;
-    chart.update(options);
-}
-
-function reset() {
-    options.axes!.y!.interval!.values = undefined;
+function valuesChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    options.axes!.y!.interval!.values = value === 'custom' ? [50, 88, 100] : undefined;
     chart.update(options);
 }

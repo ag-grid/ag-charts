@@ -1,7 +1,23 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="setMinMaxSpacing(15, 25)">Set Spacing: Min = 15, Max = 25</button>
-        <button onclick="reset()">Reset</button>
+        <div class="button-group" role="group" aria-label="Interval Spacing">
+            <input
+                type="radio"
+                id="spacing-min-max"
+                name="interval-spacing"
+                value="min-max"
+                onchange="spacingChange(event)"
+            />
+            <label for="spacing-min-max">Set Spacing: Min = 15, Max = 25</label>
+            <input
+                type="radio"
+                id="spacing-none"
+                name="interval-spacing"
+                value="none"
+                onchange="spacingChange(event)"
+            />
+            <label for="spacing-none">Reset</label>
+        </div>
     </div>
 </div>
 <div class="resizable-container">

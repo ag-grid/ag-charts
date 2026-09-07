@@ -135,6 +135,16 @@ let seriesType: SeriesType = 'bar';
 let dataMode: DataMode = 'bigint-small';
 let stacking: Stacking = 'none';
 
+// `grouped` is only consumed by bar and the groupable radial series; every other stacking-aware
+// build path drops it, rendering unstacked.
+function groupingApplies(): boolean {
+    return seriesType === 'bar' || GROUPABLE_SERIES.has(seriesType);
+}
+
+function effectiveStacking(): Stacking {
+    return stacking === 'grouped' && !groupingApplies() ? 'none' : stacking;
+}
+
 function effectiveDataMode(): DataMode {
     if (dataMode === 'iso-datetime' && (NON_TIME_SERIES.has(seriesType) || NUMERIC_X_ONLY_SERIES.has(seriesType))) {
         return 'bigint-small';
@@ -346,9 +356,10 @@ function syncControls() {
     // Stacking is only consumed by the stackable series, and `grouped` only by bar and the groupable
     // radial series — the radial/area build paths drop it.
     (document.getElementById('stackingGroup') as HTMLFieldSetElement).disabled = !STACKABLE_SERIES.has(seriesType);
-    (document.getElementById('stacking-grouped') as HTMLOptionElement).disabled = !(
-        seriesType === 'bar' || GROUPABLE_SERIES.has(seriesType)
-    );
+    (document.getElementById('stacking-grouped') as HTMLOptionElement).disabled = !groupingApplies();
+    // Disabling the selected option would not deselect it, so show the mode being rendered while
+    // `stacking` keeps the user's choice for when they switch back to a series that groups.
+    (document.getElementById('stacking-select') as HTMLSelectElement).value = effectiveStacking();
 
     // ISO datetime x values do not apply to the polar/categorical/binned series, which fall back to
     // bigint data — so the data control shows the mode being rendered while `dataMode` keeps the intent.
