@@ -104,7 +104,7 @@ export class AgChartsServerSide {
             // Not getWatermarkForegroundConfigForBrowser(): SSR must always watermark when unlicensed,
             // including on localhost.
             let chartOptions: any = options;
-            const licenseManager = enterpriseRegistry.licenseManager?.({ document: env.document } as any);
+            const licenseManager = enterpriseRegistry.licenseManager?.(env.document);
             if (licenseManager) {
                 licenseManager.validateLicense();
                 const foreground = licenseManager.getWatermarkForegroundConfig();
