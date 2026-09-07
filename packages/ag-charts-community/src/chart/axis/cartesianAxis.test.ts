@@ -2978,6 +2978,78 @@ describe('CartesianAxis', () => {
             );
         });
 
+        // A vertical axis cannot flush `verticalAlign` away: the baseline moves each label by its
+        // own height, so a tall label below a short one overlaps it only when both hang from the bottom.
+        describe('collision avoidance on a vertical axis with unequal-height neighbours', () => {
+            // A number axis, so no band caps the label height; the lowest tick carries the tall label.
+            const unequalHeightOptions = (
+                verticalAlign?: VerticalAlign,
+                avoidCollisions = true
+            ): AgCartesianChartOptions => ({
+                data: [
+                    { x: 0, y: 0 },
+                    { x: 1, y: 10 },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: {
+                        type: 'number',
+                        position: 'left',
+                        label: {
+                            avoidCollisions,
+                            ...(verticalAlign ? { verticalAlign } : {}),
+                            formatter: ({ value, index }: { value: unknown; index: number }) => [
+                                { text: String(value), fontSize: index === 0 ? 100 : 10 },
+                            ],
+                        },
+                    },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            const nodesByPosition = (position: string) =>
+                getAxisLabelNodes(chart, position).sort((a, b) => a.datum.y - b.datum.y);
+
+            it('is the geometry the finding describes: a tall label one tick below a short one', async () => {
+                await renderChart(unequalHeightOptions('bottom', false));
+                const nodes = nodesByPosition('left');
+                expect(nodes.length).toBeGreaterThan(2);
+
+                const [tall, short] = nodes.slice(-2).reverse();
+                const tallHeight = Transformable.toCanvas(tall).height;
+                const shortHeight = Transformable.toCanvas(short).height;
+                expect(tallHeight).toBeGreaterThan(shortHeight + 20);
+
+                const spacing = tall.datum.y - short.datum.y;
+                // Clear of the shorter label's own height, so a tick-anchored check accepts the pair,
+                // yet inside the taller one's height, so hanging both from the bottom overlaps them.
+                expect(spacing).toBeGreaterThan(shortHeight + 10);
+                expect(spacing).toBeLessThan(tallHeight);
+                // Anti-vacuous: the verdicts below are about the check, not a layout that cannot collide.
+                expect(collidingPairs(nodes)).toBeGreaterThan(0);
+            });
+
+            it('keeps every label on the default baseline, where the same ticks are clear', async () => {
+                await renderChart(unequalHeightOptions(undefined, false));
+                const unchecked = nodesByPosition('left').map((n) => n.datum.tickId);
+
+                await renderChart(unequalHeightOptions());
+                const nodes = nodesByPosition('left');
+                expect(nodes.map((n) => n.datum.tickId)).toEqual(unchecked);
+                expect(collidingPairs(nodes)).toBe(0);
+            });
+
+            it.each(['top', 'middle', 'bottom'] as VerticalAlign[])(
+                'leaves no overlapping pair under verticalAlign "%s"',
+                async (verticalAlign) => {
+                    await renderChart(unequalHeightOptions(verticalAlign));
+                    const nodes = nodesByPosition('left');
+                    expect(nodes.length).toBeGreaterThan(1);
+                    expect(collidingPairs(nodes)).toBe(0);
+                }
+            );
+        });
+
         it.each(['baseline', 'centre'] as string[])(
             'warns for the unsupported value "%s" and keeps the computed alignment',
             async (unsupported) => {

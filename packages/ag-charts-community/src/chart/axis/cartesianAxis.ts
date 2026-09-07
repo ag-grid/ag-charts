@@ -403,6 +403,7 @@ export abstract class CartesianAxis<
             isVertical: this.direction === ChartAxisDirection.Y,
             sizeLimit: this.chartLayout?.sizeLimit,
             inRange: (translation: number) => this.inRange(translation, 0.001),
+            labelBaseline: label.verticalAlign,
             labelBandOffsets: this.bandFlushesLabels()
                 ? (ticks, rotation, textAlign, textBaseline) =>
                       this.measureLabelBandOffsets(ticks, { rotation, textAlign, textBaseline }, scrollbarThickness)

@@ -80,6 +80,13 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
     isVertical?: boolean;
     inRange?: (value: number) => boolean;
     /**
+     * A configured `label.verticalAlign`, replacing the computed baseline the labels would otherwise
+     * hang from. Collision avoidance measures each label's box from that baseline, so on a vertical
+     * axis - where the baseline acts along the axis - neighbours of differing height are checked
+     * where they will actually render.
+     */
+    labelBaseline?: VerticalAlign;
+    /**
      * Per-label displacement, across the axis, that the band flush for a configured
      * `label.verticalAlign` will apply once the ticks are laid out. Collision avoidance runs before
      * that flush, so without this the labels it approved can still be moved into each other - see
