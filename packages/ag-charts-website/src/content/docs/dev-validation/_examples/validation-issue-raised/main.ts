@@ -1,5 +1,6 @@
 import {
     AgCartesianChartOptions,
+    AgChartValidationIssueEvent,
     AgCharts,
     BarSeriesModule,
     CategoryAxisModule,
@@ -26,8 +27,6 @@ const options: AgCartesianChartOptions = {
             type: 'bar',
             xKey: 'day',
             yKey: 'sales',
-            // Invalid on purpose: opacity must be between 0 and 1, so this raises a validation warning.
-            fillOpacity: 2,
         },
     ],
     axes: {
@@ -35,8 +34,16 @@ const options: AgCartesianChartOptions = {
         y: { type: 'number' },
     },
     validations: {
-        showOverlayOn: ['warning'],
+        // Disabled so the only console output is the explicit log below, not also the default warning.
+        consoleOn: [],
+        issueRaised: (event: AgChartValidationIssueEvent) => console.log(event),
     },
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+// Invalid on purpose: opacity must be between 0 and 1, so this raises a validation warning.
+function applyInvalidOptions() {
+    options.series = [{ type: 'bar', xKey: 'day', yKey: 'sales', fillOpacity: 2 }];
+    chart.update(options);
+}
