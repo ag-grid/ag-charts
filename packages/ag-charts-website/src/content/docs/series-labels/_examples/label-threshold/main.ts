@@ -56,7 +56,7 @@ function setAlwaysShow(value: string) {
 /** inScope */
 function updateThresholdSlider() {
     const series = options.series![0] as AgBubbleSeriesOptions<DataType>;
-    (document.getElementById('thresholdSlider') as HTMLInputElement).disabled = Boolean(
+    (document.getElementById('thresholdGroup') as HTMLFieldSetElement).disabled = Boolean(
         series.label!.collision!.alwaysShow
     );
 }

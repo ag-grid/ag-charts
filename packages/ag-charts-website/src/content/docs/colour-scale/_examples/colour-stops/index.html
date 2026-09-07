@@ -1,12 +1,53 @@
 <div class="example-controls">
     <div class="controls-row">
-        Mode:
-        <button onclick="setMode('continuous')">Continuous</button>
-        <button onclick="setMode('discrete')">Discrete</button>
+        <span>Mode:</span>
+        <div class="button-group" role="group" aria-label="Mode">
+            <input
+                type="radio"
+                id="mode-continuous"
+                name="colour-scale-mode"
+                value="continuous"
+                checked
+                onchange="modeChange(event)"
+            />
+            <label for="mode-continuous">Continuous</label>
+            <input
+                type="radio"
+                id="mode-discrete"
+                name="colour-scale-mode"
+                value="discrete"
+                onchange="modeChange(event)"
+            />
+            <label for="mode-discrete">Discrete</label>
+        </div>
         <span class="gap-left">Fills:</span>
-        <button onclick="setFills('equal')">Equal</button>
-        <button onclick="setFills('stops')">Stops</button>
-        <button onclick="setFills('named')">Named Stops</button>
+        <div class="button-group" role="group" aria-label="Fills">
+            <input
+                type="radio"
+                id="fills-equal"
+                name="colour-scale-fills"
+                value="equal"
+                checked
+                onchange="fillsChange(event)"
+            />
+            <label for="fills-equal">Equal</label>
+            <input
+                type="radio"
+                id="fills-stops"
+                name="colour-scale-fills"
+                value="stops"
+                onchange="fillsChange(event)"
+            />
+            <label for="fills-stops">Stops</label>
+            <input
+                type="radio"
+                id="fills-named"
+                name="colour-scale-fills"
+                value="named"
+                onchange="fillsChange(event)"
+            />
+            <label for="fills-named">Named Stops</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

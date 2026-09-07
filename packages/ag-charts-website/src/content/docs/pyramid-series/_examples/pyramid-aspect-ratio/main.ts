@@ -39,12 +39,20 @@ const options: AgStandaloneChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setDirection(direction: 'horizontal' | 'vertical') {
+const ASPECT_RATIOS: Record<string, number> = {
+    '2-3': 2 / 3,
+    equilateral: 1.1547,
+    '3-2': 3 / 2,
+};
+
+function directionChange(event: Event) {
+    const direction = (event.target as HTMLInputElement).value as 'horizontal' | 'vertical';
     (options.series![0] as AgPyramidSeriesOptions).direction = direction;
     chart.update(options);
 }
 
-function setAspectRatio(aspectRatio: number) {
+function aspectRatioChange(event: Event) {
+    const aspectRatio = ASPECT_RATIOS[(event.target as HTMLInputElement).value];
     (options.series![0] as AgPyramidSeriesOptions).aspectRatio = aspectRatio;
     chart.update(options);
 }

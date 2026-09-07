@@ -1,7 +1,24 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="scatter()">Scatter</button>
-        <button onclick="line()">Line</button>
+        <div class="button-group gap-right" role="group" aria-label="Series Type">
+            <input
+                type="radio"
+                id="series-type-scatter"
+                name="series-type"
+                value="scatter"
+                checked
+                onchange="seriesTypeChange(event)"
+            />
+            <label for="series-type-scatter">Scatter</label>
+            <input
+                type="radio"
+                id="series-type-line"
+                name="series-type"
+                value="line"
+                onchange="seriesTypeChange(event)"
+            />
+            <label for="series-type-line">Line</label>
+        </div>
         <button onclick="randomiseData()">Randomise Data</button>
         <button onclick="randomiseErrors()">Randomise Errors</button>
         <button onclick="removeRandomElem()">Remove Random Point</button>

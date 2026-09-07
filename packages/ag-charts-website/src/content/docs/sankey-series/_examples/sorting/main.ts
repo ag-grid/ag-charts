@@ -68,22 +68,8 @@ const options: AgFlowProportionChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function sortData() {
-    (options.series![0] as AgSankeySeriesOptions).node!.sort = 'data';
-    chart.update(options);
-}
-
-function sortAscending() {
-    (options.series![0] as AgSankeySeriesOptions).node!.sort = 'ascending';
-    chart.update(options);
-}
-
-function sortDescending() {
-    (options.series![0] as AgSankeySeriesOptions).node!.sort = 'descending';
-    chart.update(options);
-}
-
-function sortAuto() {
-    (options.series![0] as AgSankeySeriesOptions).node!.sort = 'auto';
+function sortChange(event: Event) {
+    const sort = (event.target as HTMLInputElement).value as 'data' | 'ascending' | 'descending' | 'auto';
+    (options.series![0] as AgSankeySeriesOptions).node!.sort = sort;
     chart.update(options);
 }

@@ -1,8 +1,32 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="changeAggregation('mean')">Mean</button>
-        <button onclick="changeAggregation('count')">Count</button>
-        <button onclick="changeAggregation('sum')">Sum</button>
+        <div class="button-group" role="group" aria-label="Aggregation">
+            <input
+                type="radio"
+                id="aggregation-mean"
+                name="aggregation"
+                value="mean"
+                onchange="changeAggregation(event)"
+            />
+            <label for="aggregation-mean">Mean</label>
+            <input
+                type="radio"
+                id="aggregation-count"
+                name="aggregation"
+                value="count"
+                onchange="changeAggregation(event)"
+            />
+            <label for="aggregation-count">Count</label>
+            <input
+                type="radio"
+                id="aggregation-sum"
+                name="aggregation"
+                value="sum"
+                checked
+                onchange="changeAggregation(event)"
+            />
+            <label for="aggregation-sum">Sum</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

@@ -37,13 +37,15 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setMode(mode: 'continuous' | 'discrete') {
+function modeChange(event: Event) {
+    const mode = (event.target as HTMLInputElement).value as 'continuous' | 'discrete';
     const series = options.series![0] as AgHeatmapSeriesOptions;
     series.colorScale = { ...series.colorScale, mode };
     chart.update(options);
 }
 
-function setDomain(type: 'auto' | 'fixed') {
+function domainChange(event: Event) {
+    const type = (event.target as HTMLInputElement).value as 'auto' | 'fixed';
     const series = options.series![0] as AgHeatmapSeriesOptions;
     series.colorScale = {
         ...series.colorScale,

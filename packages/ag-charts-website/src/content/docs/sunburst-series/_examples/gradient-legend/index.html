@@ -1,8 +1,19 @@
 <div class="example-controls">
     <div class="controls-row">
-        Mode:
-        <button onclick="toggleMode('stops')">Named Stops</button>
-        <button onclick="toggleMode('gradient')">Gradient</button>
+        <span>Mode:</span>
+        <div class="button-group" role="group" aria-label="Mode">
+            <input type="radio" id="mode-stops" name="colour-mode" value="stops" onchange="modeChange(event)" />
+            <label for="mode-stops">Named Stops</label>
+            <input
+                type="radio"
+                id="mode-gradient"
+                name="colour-mode"
+                value="gradient"
+                checked
+                onchange="modeChange(event)"
+            />
+            <label for="mode-gradient">Gradient</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

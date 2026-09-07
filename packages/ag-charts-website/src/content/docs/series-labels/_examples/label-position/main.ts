@@ -69,9 +69,11 @@ function parsePlacement(value: string) {
         | AgBarSeriesLabelPlacement[];
 }
 
-function setSeriesType(seriesType: SeriesType) {
-    document.getElementById('bubblePlacementRow')!.style.display = seriesType === 'bubble' ? '' : 'none';
-    document.getElementById('barPlacementRow')!.style.display = seriesType === 'bubble' ? 'none' : '';
+function setSeriesType(event: Event) {
+    const seriesType = (event.target as HTMLInputElement).value as SeriesType;
+
+    (document.getElementById('bubblePlacementGroup') as HTMLFieldSetElement).disabled = seriesType !== 'bubble';
+    (document.getElementById('barPlacementGroup') as HTMLFieldSetElement).disabled = seriesType === 'bubble';
 
     if (seriesType === 'bubble') {
         options.title = { text: 'Weather Station Readings' };

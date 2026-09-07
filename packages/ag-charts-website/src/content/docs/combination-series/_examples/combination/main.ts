@@ -88,12 +88,8 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function barLine() {
-    options.series = BAR_AND_LINE;
-    chart.update(options);
-}
-
-function areaBar() {
-    options.series = AREA_AND_BAR;
+function combinationTypeChange(event: Event) {
+    const type = (event.target as HTMLInputElement).value as 'area-bar' | 'bar-line';
+    options.series = type === 'bar-line' ? BAR_AND_LINE : AREA_AND_BAR;
     chart.update(options);
 }
