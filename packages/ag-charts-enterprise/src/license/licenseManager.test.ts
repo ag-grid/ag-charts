@@ -30,11 +30,11 @@ describe('LicenseManager', () => {
     beforeEach(() => {
         vi.spyOn(console, 'error').mockImplementation(() => {});
         vi.spyOn(console, 'warn').mockImplementation(() => {});
-        LicenseManager.setLicenseKey(undefined);
+        LicenseManager.setLicenseKey();
     });
 
     afterEach(() => {
-        LicenseManager.setLicenseKey(undefined);
+        LicenseManager.setLicenseKey();
         vi.restoreAllMocks();
     });
 
@@ -74,7 +74,7 @@ describe('LicenseManager', () => {
         });
 
         it('watermarks when the manager has no document at all', () => {
-            const manager = new LicenseManager(undefined);
+            const manager = new LicenseManager();
             manager.validateLicense();
             expect(manager.isDisplayWatermark()).toBe(true);
         });
