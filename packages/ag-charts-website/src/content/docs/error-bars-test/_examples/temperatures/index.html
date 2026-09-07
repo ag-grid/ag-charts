@@ -1,7 +1,24 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="line()">Line</button>
-        <button onclick="bar()">Bar</button>
+        <div class="button-group gap-right" role="group" aria-label="Series Type">
+            <input
+                type="radio"
+                id="series-type-line"
+                name="series-type"
+                value="line"
+                checked
+                onchange="seriesTypeChange(event)"
+            />
+            <label for="series-type-line">Line</label>
+            <input
+                type="radio"
+                id="series-type-bar"
+                name="series-type"
+                value="bar"
+                onchange="seriesTypeChange(event)"
+            />
+            <label for="series-type-bar">Bar</label>
+        </div>
         <button onclick="removeOdds()">No Odd Months</button>
         <button onclick="removeOddsErrors()">No Odd Errors</button>
         <button onclick="randomiseData()">Randomise Data</button>

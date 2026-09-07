@@ -1,8 +1,25 @@
 <div class="example-controls">
     <div class="controls-row">
         Domain:
-        <button onclick="setDomain('fixed')">Fixed [1, 10]</button>
-        <button onclick="setDomain('auto')">Auto</button>
+        <div class="button-group" role="group" aria-label="Domain">
+            <input
+                type="radio"
+                id="colour-scale-domain-fixed"
+                name="colour-scale-domain"
+                value="fixed"
+                onchange="domainChange(event)"
+            />
+            <label for="colour-scale-domain-fixed">Fixed [1, 10]</label>
+            <input
+                type="radio"
+                id="colour-scale-domain-auto"
+                name="colour-scale-domain"
+                value="auto"
+                checked
+                onchange="domainChange(event)"
+            />
+            <label for="colour-scale-domain-auto">Auto</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>
