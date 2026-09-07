@@ -1028,6 +1028,15 @@ describe('fitLabelText bounded by a shape', () => {
         );
     });
 
+    it('places a rich-text block at the same offset as the plain text it wraps like', () => {
+        const fit: LabelFit = { region: splitRegion(40, 200), wrapping: 'on-space', regionAlign: 'start' };
+        const plain = fitLabelTextToRegion('AAAA BBBB', fit, font);
+        const rich = fitLabelTextToRegion([text('AAAA BBBB')], fit, font);
+        expect(plain.offsetY).toBeGreaterThan(0);
+        expect(rich.offsetY).toBe(plain.offsetY);
+        expect(rich.offsetX).toBe(plain.offsetX);
+    });
+
     it('wraps a block drawn from the anchor downwards to the bands below it', () => {
         // Same shape, but the label is drawn from a top baseline, so both lines sit in the 200px half and
         // the words share a line.

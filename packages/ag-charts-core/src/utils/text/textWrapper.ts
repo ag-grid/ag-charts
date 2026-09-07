@@ -322,7 +322,7 @@ function wrapTextToRegion(
 ): FittedRegionText {
     const limit = Math.min(options.maxHeight ?? Infinity, region.extentAbove + region.extentBelow);
     if (isArray(text)) {
-        return { text: refineSegmentsToRegion(text, options, region, align, limit), offsetX: 0, offsetY: 0 };
+        return refineSegmentsToRegion(text, options, region, align, limit);
     }
 
     // One line's height, not the measured block's: a source carrying its own line breaks would otherwise
@@ -375,8 +375,9 @@ function refineSegmentsToRegion(
     let height = measureText(text, options.font).height;
     let lines = 1;
     let result: NormalisedTextOrSegments = text;
+    let blockTop = 0;
     for (let i = 0; i < MAX_REGION_REFINEMENTS; i += 1) {
-        const blockTop = blockTopFor(align, Math.min(height, limit), region, limit);
+        blockTop = blockTopFor(align, Math.min(height, limit), region, limit);
         result = wrapTextOrSegments(text, {
             ...options,
             lineHeight: height / lines,
@@ -388,7 +389,8 @@ function refineSegmentsToRegion(
         if (next === height) break;
         height = next;
     }
-    return result;
+    // Segments are centred on the anchor's column, so the block only moves along the bands it was fitted to.
+    return { text: result, offsetX: 0, offsetY: blockTop + Math.min(height, limit) / 2 };
 }
 
 /** Attaches the shape a label is bounded by to its fit policy; see {@link LabelFit.region}. */
