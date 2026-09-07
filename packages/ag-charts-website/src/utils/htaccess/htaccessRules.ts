@@ -42,12 +42,7 @@ Options -Indexes
 `;
 }
 
-// Charts is served from /charts nested under the main ag-grid.com vhost's docroot, as this file's
-// own .htaccess. mod_rewrite rules are not inherited across .htaccess boundaries, so the parent
-// site's apex(ag-grid.com)-to-www host swap never reaches requests under /charts, and the bare
-// apex domain ends up serving pages directly instead of redirecting to www.
-// Only production splits apex/www; staging's only host is charts-staging.ag-grid.com, so this is
-// only spliced in for production (see the call site above).
+// The parent site's .htaccess apex-to-www swap isn't inherited into this nested .htaccess, so /charts needs its own (production only; staging has a single host).
 function getHostCanonicalizationRules(): string {
     return `<IfModule mod_rewrite.c>
     RewriteEngine On
