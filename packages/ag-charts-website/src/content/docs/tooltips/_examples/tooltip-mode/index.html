@@ -1,8 +1,32 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="setTooltipMode('single')">Single</button>
-        <button onclick="setTooltipMode('shared')">Shared</button>
-        <button onclick="setTooltipMode('compact')">Compact</button>
+        <div class="button-group" role="group" aria-label="Tooltip Mode">
+            <input
+                type="radio"
+                id="tooltip-mode-single"
+                name="tooltip-mode"
+                value="single"
+                checked
+                onchange="setTooltipMode(event)"
+            />
+            <label for="tooltip-mode-single">Single</label>
+            <input
+                type="radio"
+                id="tooltip-mode-shared"
+                name="tooltip-mode"
+                value="shared"
+                onchange="setTooltipMode(event)"
+            />
+            <label for="tooltip-mode-shared">Shared</label>
+            <input
+                type="radio"
+                id="tooltip-mode-compact"
+                name="tooltip-mode"
+                value="compact"
+                onchange="setTooltipMode(event)"
+            />
+            <label for="tooltip-mode-compact">Compact</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

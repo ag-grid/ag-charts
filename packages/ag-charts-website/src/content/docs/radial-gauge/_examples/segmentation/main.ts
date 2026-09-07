@@ -29,7 +29,17 @@ const options: AgRadialGaugeOptions = {
 
 const chart = AgCharts.createGauge(options);
 
-function setSegmentationInterval(interval: any) {
-    options.segmentation!.interval = interval;
+function setSegmentationInterval(event: Event) {
+    switch ((event.target as HTMLInputElement).value) {
+        case 'step':
+            options.segmentation!.interval = { step: 10 };
+            break;
+        case 'count':
+            options.segmentation!.interval = { count: 4 };
+            break;
+        case 'values':
+            options.segmentation!.interval = { values: [40, 50, 60] };
+            break;
+    }
     chart.update(options);
 }

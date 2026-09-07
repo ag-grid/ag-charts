@@ -1,10 +1,41 @@
 <div class="example-controls">
     <div class="controls-row">
         Legend Position:
-        <button onclick="updateLegendPosition('right')"><code>'right'</code></button>
-        <button onclick="updateLegendPosition('bottom')"><code>'bottom'</code></button>
-        <button onclick="updateLegendPosition('left')"><code>'left'</code></button>
-        <button onclick="updateLegendPosition('top')"><code>'top'</code></button>
+        <div class="button-group" role="group" aria-label="Legend Position">
+            <input
+                type="radio"
+                id="legend-position-right"
+                name="legend-position"
+                value="right"
+                onchange="updateLegendPosition(event)"
+            />
+            <label for="legend-position-right"><code>'right'</code></label>
+            <input
+                type="radio"
+                id="legend-position-bottom"
+                name="legend-position"
+                value="bottom"
+                checked
+                onchange="updateLegendPosition(event)"
+            />
+            <label for="legend-position-bottom"><code>'bottom'</code></label>
+            <input
+                type="radio"
+                id="legend-position-left"
+                name="legend-position"
+                value="left"
+                onchange="updateLegendPosition(event)"
+            />
+            <label for="legend-position-left"><code>'left'</code></label>
+            <input
+                type="radio"
+                id="legend-position-top"
+                name="legend-position"
+                value="top"
+                onchange="updateLegendPosition(event)"
+            />
+            <label for="legend-position-top"><code>'top'</code></label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

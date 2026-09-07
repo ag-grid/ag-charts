@@ -26,44 +26,78 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-document.getElementById('visible-always')!.addEventListener('click', () => {
+const visibilityRadios: Record<'auto' | 'always' | 'never', HTMLInputElement> = {
+    always: document.getElementById('visible-always') as HTMLInputElement,
+    never: document.getElementById('visible-never') as HTMLInputElement,
+    auto: document.getElementById('visible-auto') as HTMLInputElement,
+};
+
+const contentRadios: Record<string, HTMLInputElement> = {
+    customText: document.getElementById('custom-text') as HTMLInputElement,
+    renderer: document.getElementById('renderer') as HTMLInputElement,
+    emptyRenderer: document.getElementById('empty-renderer') as HTMLInputElement,
+    undefinedRenderer: document.getElementById('undefined-renderer') as HTMLInputElement,
+};
+
+const truncateButton = document.getElementById('truncate') as HTMLButtonElement;
+const resetButton = document.getElementById('reset') as HTMLButtonElement;
+
+function syncControls() {
+    const tooltip = options.title?.tooltip;
+    const visible = tooltip?.visible ?? (tooltip?.text != null || tooltip?.renderer != null ? 'always' : 'auto');
+    visibilityRadios[visible].checked = true;
+
+    if (tooltip == null) {
+        for (const radio of Object.values(contentRadios)) {
+            radio.checked = false;
+        }
+    }
+}
+
+visibilityRadios.always.addEventListener('change', () => {
     options.title!.tooltip = { visible: 'always' };
     options.subtitle!.tooltip = { visible: 'always' };
     chart.update(options);
+    syncControls();
 });
 
-document.getElementById('visible-never')!.addEventListener('click', () => {
+visibilityRadios.never.addEventListener('change', () => {
     options.title!.tooltip = { visible: 'never' };
     options.subtitle!.tooltip = { visible: 'never' };
     chart.update(options);
+    syncControls();
 });
 
-document.getElementById('visible-auto')!.addEventListener('click', () => {
+visibilityRadios.auto.addEventListener('change', () => {
     options.title!.tooltip = { visible: 'auto' };
     options.subtitle!.tooltip = { visible: 'auto' };
     chart.update(options);
+    syncControls();
 });
 
-document.getElementById('custom-text')!.addEventListener('click', () => {
+contentRadios.customText.addEventListener('change', () => {
     options.title!.tooltip = { text: 'Revenue in USD from internal CRM' };
     chart.update(options);
+    syncControls();
 });
 
-document.getElementById('renderer')!.addEventListener('click', () => {
+contentRadios.renderer.addEventListener('change', () => {
     options.title!.tooltip = {
         renderer: ({ text }) => `<b>${text}</b><br/>Source: Internal CRM`,
     };
     chart.update(options);
+    syncControls();
 });
 
-document.getElementById('empty-renderer')!.addEventListener('click', () => {
+contentRadios.emptyRenderer.addEventListener('change', () => {
     options.title!.tooltip = {
         renderer: () => '',
     };
     chart.update(options);
+    syncControls();
 });
 
-document.getElementById('undefined-renderer')!.addEventListener('click', () => {
+contentRadios.undefinedRenderer.addEventListener('change', () => {
     options.title!.tooltip = {
         visible: 'always',
         renderer: () => undefined,
@@ -74,17 +108,20 @@ document.getElementById('undefined-renderer')!.addEventListener('click', () => {
         renderer: () => undefined,
     };
     chart.update(options);
+    syncControls();
 });
 
-document.getElementById('truncate')!.addEventListener('click', () => {
+truncateButton.addEventListener('click', () => {
     options.title!.maxWidth = 200;
     options.title!.tooltip = undefined;
     chart.update(options);
+    syncControls();
 });
 
-document.getElementById('reset')!.addEventListener('click', () => {
+resetButton.addEventListener('click', () => {
     options.title!.tooltip = undefined;
     options.title!.maxWidth = undefined;
     options.subtitle!.tooltip = undefined;
     chart.update(options);
+    syncControls();
 });

@@ -1,11 +1,39 @@
 <div class="example-controls">
     <div class="controls-row">
         <span>Segmentation:</span>
-        <button onclick="setSegmentation(true)">Enable</button>
-        <button class="gap-right" onclick="setSegmentation(false)">Disable</button>
+        <div class="button-group gap-right" role="group" aria-label="Segmentation">
+            <input
+                type="radio"
+                id="segmentation-enabled"
+                name="segmentation-mode"
+                value="true"
+                onchange="setSegmentation(event)"
+            />
+            <label for="segmentation-enabled">Enable</label>
+            <input
+                type="radio"
+                id="segmentation-disabled"
+                name="segmentation-mode"
+                value="false"
+                checked
+                onchange="setSegmentation(event)"
+            />
+            <label for="segmentation-disabled">Disable</label>
+        </div>
         <span>Corners:</span>
-        <button onclick="setCornerMode('item')">Item</button>
-        <button onclick="setCornerMode('container')">Container</button>
+        <div class="button-group" role="group" aria-label="Corners">
+            <input type="radio" id="corner-mode-item" name="corner-mode" value="item" onchange="setCornerMode(event)" />
+            <label for="corner-mode-item">Item</label>
+            <input
+                type="radio"
+                id="corner-mode-container"
+                name="corner-mode"
+                value="container"
+                checked
+                onchange="setCornerMode(event)"
+            />
+            <label for="corner-mode-container">Container</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>
