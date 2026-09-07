@@ -1272,6 +1272,9 @@ describe('ScatterSeries', () => {
 
             expect(nodeData(chart)).toHaveLength(1);
             expect(deproxy(chart).series[0].hasUnmatchedKey).toBe(false);
+            // Proof of the overlap: hasData is false here, so gating the guard on it would have
+            // dropped the renderable row along with the two unresolvable ones.
+            expect(deproxy(chart).series[0].hasData).toBe(false);
         });
     });
 });
