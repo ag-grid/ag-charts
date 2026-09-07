@@ -322,6 +322,12 @@
                     "isEnterprise": true
                 },
                 {
+                    "moduleName": "BackgroundRegionsModule",
+                    "name": "Background Regions",
+                    "path": "background-regions",
+                    "isEnterprise": true
+                },
+                {
                     "moduleName": "ErrorBarsModule",
                     "name": "Error Bars",
                     "path": "error-bars",

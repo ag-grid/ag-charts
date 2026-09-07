@@ -507,6 +507,8 @@ export const ExpectedModules = new Map<string, ModulePlaceholder>(
             {
                 type: 'series-area:plugin',
                 name: 'backgroundRegions',
+                chartType: 'cartesian',
+                enterprise: true,
                 moduleId: 'BackgroundRegionsModule',
             },
 
