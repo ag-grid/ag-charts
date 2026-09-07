@@ -364,7 +364,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
                 break;
 
             case 'series-area:plugin': {
-                const seriesArea = options.seriesArea as PlainObject | undefined;
+                const seriesArea: PlainObject | undefined = options.seriesArea;
                 if (isObject(seriesArea) && seriesArea[module.name] != null) {
                     delete seriesArea[module.name];
                     addMissingModule(module);
