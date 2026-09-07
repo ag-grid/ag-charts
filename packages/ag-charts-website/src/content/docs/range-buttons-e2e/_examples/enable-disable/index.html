@@ -1,5 +1,11 @@
-<div id="controls">
-    <button id="disable">Disable Ranges</button>
-    <button id="enable">Enable Ranges</button>
+<div class="example-controls">
+    <div class="controls-row">
+        <div class="button-group" role="group" aria-label="Ranges">
+            <input type="radio" id="ranges-disabled" name="ranges" value="false" onchange="rangesChange(event)" />
+            <label for="ranges-disabled">Disable Ranges</label>
+            <input type="radio" id="ranges-enabled" name="ranges" value="true" checked onchange="rangesChange(event)" />
+            <label for="ranges-enabled">Enable Ranges</label>
+        </div>
+    </div>
 </div>
 <div id="myChart"></div>

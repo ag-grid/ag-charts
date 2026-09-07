@@ -1,20 +1,67 @@
 <div class="example-controls">
     <div class="controls-row">
-        <label for="enable-dragging">Axis Dragging:</label>
-        <select id="enable-dragging" onchange="enableAxisDragging(event.target.value)" class="gap-right">
-            <option value="on">Enabled</option>
-            <option value="off">Disabled</option>
-        </select>
-        <label for="dragging-mode">Axis Dragging Mode:</label>
-        <select id="dragging-mode" onchange="setAxisDragging(event.target.value)" class="gap-right">
-            <option value="zoom">Zoom</option>
-            <option value="pan">Pan</option>
-        </select>
-        <label for="enable-scrolling">Axis Scrolling:</label>
-        <select id="enable-scrolling" onchange="enableAxisScrolling(event.target.value)">
-            <option value="on">Enabled</option>
-            <option value="off">Disabled</option>
-        </select>
+        <span>Axis Dragging:</span>
+        <div class="button-group gap-right" role="group" aria-label="Axis Dragging">
+            <input
+                type="radio"
+                id="axis-dragging-enabled"
+                name="axis-dragging"
+                value="true"
+                checked
+                onchange="enableAxisDragging(event)"
+            />
+            <label for="axis-dragging-enabled">Enabled</label>
+            <input
+                type="radio"
+                id="axis-dragging-disabled"
+                name="axis-dragging"
+                value="false"
+                onchange="enableAxisDragging(event)"
+            />
+            <label for="axis-dragging-disabled">Disabled</label>
+        </div>
+        <fieldset id="axisDraggingModeGroup" class="control-group">
+            <span>Axis Dragging Mode:</span>
+            <div class="button-group gap-right" role="group" aria-label="Axis Dragging Mode">
+                <input
+                    type="radio"
+                    id="axis-dragging-mode-zoom"
+                    name="axis-dragging-mode"
+                    value="zoom"
+                    checked
+                    onchange="setAxisDragging(event)"
+                />
+                <label for="axis-dragging-mode-zoom">Zoom</label>
+                <input
+                    type="radio"
+                    id="axis-dragging-mode-pan"
+                    name="axis-dragging-mode"
+                    value="pan"
+                    onchange="setAxisDragging(event)"
+                />
+                <label for="axis-dragging-mode-pan">Pan</label>
+            </div>
+        </fieldset>
+        <span>Axis Scrolling:</span>
+        <div class="button-group" role="group" aria-label="Axis Scrolling">
+            <input
+                type="radio"
+                id="axis-scrolling-enabled"
+                name="axis-scrolling"
+                value="true"
+                checked
+                onchange="enableAxisScrolling(event)"
+            />
+            <label for="axis-scrolling-enabled">Enabled</label>
+            <input
+                type="radio"
+                id="axis-scrolling-disabled"
+                name="axis-scrolling"
+                value="false"
+                onchange="enableAxisScrolling(event)"
+            />
+            <label for="axis-scrolling-disabled">Disabled</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

@@ -1,11 +1,26 @@
 <div class="example-controls">
     <div class="controls-row">
-        Click mode:
-        <button onclick="setClickMode('single')"><code>'single'</code></button>
-        <button onclick="setClickMode('multiple')"><code>'multiple'</code></button>
-        &nbsp; Click-away to clear:
-        <button onclick="setClickAway(true)"><code>true</code></button>
-        <button onclick="setClickAway(false)"><code>false</code></button>
+        <span>Click mode:</span>
+        <div class="button-group gap-right" role="group" aria-label="Click mode">
+            <input
+                type="radio"
+                id="click-mode-single"
+                name="click-mode"
+                value="single"
+                checked
+                onchange="setClickMode(event)"
+            />
+            <label for="click-mode-single"><code>'single'</code></label>
+            <input
+                type="radio"
+                id="click-mode-multiple"
+                name="click-mode"
+                value="multiple"
+                onchange="setClickMode(event)"
+            />
+            <label for="click-mode-multiple"><code>'multiple'</code></label>
+        </div>
+        <button id="clickAwayToggle" aria-pressed="true" onclick="setClickAway()">Click-away to clear</button>
     </div>
 </div>
 <div id="myChart"></div>

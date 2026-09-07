@@ -36,27 +36,32 @@ function toggleAlignAxesToPivot() {
     alignAxesToPivot = !alignAxesToPivot;
     options.alignAxesToPivot = alignAxesToPivot;
     chart.update(options);
+    (document.getElementById('alignAxesToPivotToggle') as HTMLButtonElement).setAttribute(
+        'aria-pressed',
+        String(alignAxesToPivot)
+    );
     updatePlacementSelects();
 }
 
 /** inScope */
 function updatePlacementSelects() {
-    for (const id of ['title-placement', 'label-placement', 'crosshair-label-placement']) {
-        (document.getElementById(id) as HTMLSelectElement).disabled = !alignAxesToPivot;
-    }
+    (document.getElementById('placementGroup') as HTMLFieldSetElement).disabled = !alignAxesToPivot;
 }
 
-function updateTitlePlacement(placement: AgCartesianAxisCrossAtPlacement) {
+function updateTitlePlacement(event: Event) {
+    const placement = (event.target as HTMLInputElement).value as AgCartesianAxisCrossAtPlacement;
     options.axisPlacement = { ...options.axisPlacement, title: placement };
     chart.update(options);
 }
 
-function updateLabelPlacement(placement: AgCartesianAxisCrossAtPlacement) {
+function updateLabelPlacement(event: Event) {
+    const placement = (event.target as HTMLInputElement).value as AgCartesianAxisCrossAtPlacement;
     options.axisPlacement = { ...options.axisPlacement, label: placement };
     chart.update(options);
 }
 
-function updateCrosshairLabelPlacement(placement: AgCartesianAxisCrossAtPlacement) {
+function updateCrosshairLabelPlacement(event: Event) {
+    const placement = (event.target as HTMLInputElement).value as AgCartesianAxisCrossAtPlacement;
     options.axisPlacement = { ...options.axisPlacement, crosshairLabel: placement };
     chart.update(options);
 }

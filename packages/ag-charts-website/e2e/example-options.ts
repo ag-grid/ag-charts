@@ -122,4 +122,8 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
         'layout-inline': { frameworks: [] },
         'layout-matrix': { frameworks: [] },
     },
+    'zoom-test': {
+        // The x-axis type is applied by the next "Update Data" click, so selecting it repaints nothing.
+        'on-data-change': { skipCanvasUpdateCheck: true },
+    },
 };

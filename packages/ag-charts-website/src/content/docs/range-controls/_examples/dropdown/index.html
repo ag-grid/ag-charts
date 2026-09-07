@@ -1,11 +1,33 @@
 <div class="example-controls">
     <div class="controls-row">
-        <label>Dropdown:</label>
-        <select onchange="changeDropdown(event.target.value)">
-            <option value="auto" selected>Auto</option>
-            <option value="always">Always</option>
-            <option value="never">Never</option>
-        </select>
+        <span>Dropdown:</span>
+        <div class="button-group" role="group" aria-label="Dropdown">
+            <input
+                type="radio"
+                id="dropdown-auto"
+                name="dropdown-visible"
+                value="auto"
+                checked
+                onchange="changeDropdown(event)"
+            />
+            <label for="dropdown-auto">Auto</label>
+            <input
+                type="radio"
+                id="dropdown-always"
+                name="dropdown-visible"
+                value="always"
+                onchange="changeDropdown(event)"
+            />
+            <label for="dropdown-always">Always</label>
+            <input
+                type="radio"
+                id="dropdown-never"
+                name="dropdown-visible"
+                value="never"
+                onchange="changeDropdown(event)"
+            />
+            <label for="dropdown-never">Never</label>
+        </div>
     </div>
 </div>
 <div class="resizable-container">

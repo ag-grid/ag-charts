@@ -1,10 +1,25 @@
 <div class="example-controls">
     <div class="controls-row">
-        <label for="selectionChangeDropdown">Containment</label>
-        <select id="selectionChangeDropdown" onchange="onSelectionContainmentChange(event.target.value)">
-            <option value="any">any</option>
-            <option value="all">all</option>
-        </select>
+        <span>Containment:</span>
+        <div class="button-group gap-right" role="group" aria-label="Containment">
+            <input
+                type="radio"
+                id="containment-any"
+                name="containment"
+                value="any"
+                checked
+                onchange="onSelectionContainmentChange(event)"
+            />
+            <label for="containment-any">any</label>
+            <input
+                type="radio"
+                id="containment-all"
+                name="containment"
+                value="all"
+                onchange="onSelectionContainmentChange(event)"
+            />
+            <label for="containment-all">all</label>
+        </div>
         <button onclick="onGetSelectionClicked()">Get Selection</button>
     </div>
 </div>

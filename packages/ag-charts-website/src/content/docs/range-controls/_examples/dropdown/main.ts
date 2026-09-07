@@ -59,7 +59,8 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function changeDropdown(visible: 'auto' | 'always' | 'never') {
+function changeDropdown(event: Event) {
+    const visible = (event.target as HTMLInputElement).value as 'auto' | 'always' | 'never';
     options.ranges = {
         ...options.ranges,
         dropdown: { visible },
