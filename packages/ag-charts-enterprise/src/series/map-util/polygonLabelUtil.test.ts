@@ -209,6 +209,23 @@ describe('polygonFitRegion', () => {
         expect(region.spanAt(2, 4)).toEqual([-4, 6]);
     });
 
+    test('an anchor on a vertical edge has no room above or below it', () => {
+        const region = polygonFitRegion(
+            [
+                [
+                    [0, 0],
+                    [10, 0],
+                    [10, 10],
+                    [0, 10],
+                ],
+            ],
+            0,
+            5
+        );
+        expect(region.extentAbove).toBe(0);
+        expect(region.extentBelow).toBe(0);
+    });
+
     test('triangle narrows towards its apex', () => {
         // Apex at (5, 0), base from (0, 10) to (10, 10); anchored on the centre line.
         const region = polygonFitRegion(

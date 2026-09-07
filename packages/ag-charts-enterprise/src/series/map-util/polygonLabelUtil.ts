@@ -205,11 +205,11 @@ export function polygonFitRegion(polygons: Position[][], cx: number, cy: number)
         let [x0, y0] = polygon.at(-1)!;
         for (const [x1, y1] of polygon) {
             if (Math.min(x0, x1) <= cx && cx <= Math.max(x0, x1)) {
-                // A vertical edge on the anchor's own column bounds it at both its ends.
+                // A vertical edge on the anchor's own column bounds it at its nearer end on each side.
                 const yLo = x0 === x1 ? Math.min(y0, y1) : y0 + ((cx - x0) * (y1 - y0)) / (x1 - x0);
                 const yHi = x0 === x1 ? Math.max(y0, y1) : yLo;
-                if (yLo <= cy) extentAbove = Math.min(extentAbove, cy - yLo);
-                if (yHi >= cy) extentBelow = Math.min(extentBelow, yHi - cy);
+                if (yLo <= cy) extentAbove = Math.min(extentAbove, cy - Math.min(yHi, cy));
+                if (yHi >= cy) extentBelow = Math.min(extentBelow, Math.max(yLo, cy) - cy);
             }
             x0 = x1;
             y0 = y1;
