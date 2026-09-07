@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { getDocument } from 'ag-charts-core';
+import { getDocument, rotatePoint } from 'ag-charts-core';
 import type {
     AgBaseChartThemeOptions,
     AgCartesianAxisCrossAt,
@@ -2770,6 +2770,67 @@ describe('CartesianAxis', () => {
                         },
                     };
                 }
+            });
+
+            // The flush moves each label across the axis by a different amount, and under rotation a
+            // cross-axis move is partly along the label's own text direction - so collision
+            // avoidance has to run against the flushed geometry, not the anchor it starts from.
+            describe('collision avoidance', () => {
+                // Alternating short and long labels: a uniform tier flushes as one block, so only
+                // differing sizes can pull neighbours into each other.
+                const denseOptions = (verticalAlign?: VerticalAlign): AgCartesianChartOptions => ({
+                    data: Array.from({ length: 30 }, (_, i) => ({
+                        category: i % 2 === 0 ? `A${i}` : `ABCDE${i}`,
+                        value: i,
+                    })),
+                    width: 600,
+                    height: 400,
+                    axes: {
+                        x: {
+                            type: 'category',
+                            position: 'bottom',
+                            label: { rotation: 45, avoidCollisions: true, ...(verticalAlign ? { verticalAlign } : {}) },
+                        },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+                });
+
+                // The frame `axisLabelsOverlap` compares in: every label shares one rotation, so
+                // rotating the rendered anchor back by it leaves each glyph box axis-aligned.
+                const collidingPairs = (nodes: any[]) => {
+                    const boxes = nodes.map((node) => {
+                        const local = node.computeBBoxWithoutTransforms();
+                        const anchor = rotatePoint(node.x, node.y, -node.rotation);
+                        return { x: local.x + anchor.x, y: local.y + anchor.y, w: local.width, h: local.height };
+                    });
+                    let count = 0;
+                    for (let i = 0; i < boxes.length; i += 1) {
+                        for (let j = i + 1; j < boxes.length; j += 1) {
+                            const a = boxes[i];
+                            const b = boxes[j];
+                            if (a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h) count += 1;
+                        }
+                    }
+                    return count;
+                };
+
+                it.each(['top', 'middle', 'bottom'] as VerticalAlign[])(
+                    'keeps rotated labels of differing sizes clear of each other under verticalAlign "%s"',
+                    async (verticalAlign) => {
+                        await renderChart(denseOptions());
+                        const baseline = getAxisLabelNodes(chart, 'bottom');
+                        // Anti-vacuous: the unaligned axis must itself be collision-free and actually
+                        // be labelling something, otherwise the aligned run proves nothing.
+                        expect(baseline.length).toBeGreaterThan(1);
+                        expect(collidingPairs(baseline)).toBe(0);
+
+                        await renderChart(denseOptions(verticalAlign));
+                        const nodes = getAxisLabelNodes(chart, 'bottom');
+                        expect(nodes.length).toBeGreaterThan(1);
+                        expect(collidingPairs(nodes)).toBe(0);
+                    }
+                );
             });
         });
 

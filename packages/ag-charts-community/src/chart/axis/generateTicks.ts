@@ -59,7 +59,7 @@ const sunday = new Date(1970, 0, 4);
 export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
     options: GenerateTicksOptions<TScale, TDatum>
 ) {
-    const { label, parallel = false, domain, axisRotation, labelOffset, sideFlag } = options;
+    const { label, parallel = false, domain, axisRotation, labelOffset, sideFlag, labelBandOffsets } = options;
     const { defaultRotation, configuredRotation, parallelFlipFlag, regularFlipFlag } = calculateLabelRotation(
         label.rotation,
         parallel,
@@ -72,10 +72,22 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         const labelSpacing = label.minSpacing ?? (configuredRotation === 0 && rotation === 0 ? 10 : 0);
         const labelRotation = initialRotation + rotation;
         const labelPadding = expandLabelPadding(label);
+        // Where the band flush will leave each label, rather than where the anchor sits now. Rotated
+        // labels of differing size flush by differing amounts, which moves them along their own text
+        // direction - so a tick set that clears here without it can still overlap once rendered.
+        const bandOffsets = labelBandOffsets?.(
+            tickData.ticks,
+            labelRotation,
+            getTextAlign(parallel, configuredRotation, rotation, sideFlag, regularFlipFlag),
+            getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag)
+        );
 
         return (
             axisLabelsOverlap(createTimeLabelData(options, tickData, labelRotation), labelSpacing) ||
-            axisLabelsOverlap(createLabelData(tickData.ticks, labelOffset, labelRotation, labelPadding), labelSpacing)
+            axisLabelsOverlap(
+                createLabelData(tickData.ticks, labelOffset, labelRotation, labelPadding, bandOffsets),
+                labelSpacing
+            )
         );
     };
 
@@ -459,16 +471,21 @@ function createLabelData(
     tickData: TickDatum[],
     labelOffset: number,
     labelRotation: number,
-    labelPadding: Required<PaddingOptions>
+    labelPadding: Required<PaddingOptions>,
+    bandOffsets?: number[]
 ) {
     const labelData: BoxBounds[] = [];
     const xPadding = labelPadding.left + labelPadding.right;
     const yPadding = labelPadding.top + labelPadding.bottom;
 
-    for (const { tickLabel, textMetrics, translation } of tickData) {
+    for (let i = 0; i < tickData.length; i += 1) {
+        const { tickLabel, textMetrics, translation } = tickData[i];
         if (!tickLabel) continue;
 
-        const { x, y } = rotatePoint(labelOffset, translation, labelRotation);
+        // `labelOffset` runs outward from the axis line, the opposite sign to the datum's `y` that
+        // the flush moves, so the displacement is subtracted.
+        const crossOffset = labelOffset - (bandOffsets?.[i] ?? 0);
+        const { x, y } = rotatePoint(crossOffset, translation, labelRotation);
         const width = textMetrics.width + xPadding;
         const height = textMetrics.height + yPadding;
 

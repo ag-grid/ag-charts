@@ -403,6 +403,10 @@ export abstract class CartesianAxis<
             isVertical: this.direction === ChartAxisDirection.Y,
             sizeLimit: this.chartLayout?.sizeLimit,
             inRange: (translation: number) => this.inRange(translation, 0.001),
+            labelBandOffsets: this.bandFlushesLabels()
+                ? (ticks, rotation, textAlign, textBaseline) =>
+                      this.measureLabelBandOffsets(ticks, { rotation, textAlign, textBaseline }, scrollbarThickness)
+                : undefined,
             tickFormatter: (...args) => this.tickFormatter(...args),
         });
 
@@ -1074,6 +1078,33 @@ export abstract class CartesianAxis<
             rotationCenterY: y,
             range,
         };
+    }
+
+    /**
+     * Whether a configured `label.verticalAlign` will band-flush this axis's labels across the axis
+     * line. Only a horizontal axis flushes on `verticalAlign`; on a vertical one the option acts
+     * along the axis, where it cannot change the separation collision avoidance measures.
+     */
+    private bandFlushesLabels() {
+        return (
+            this.horizontal && (this.options.label.verticalAlign != null || this.primaryLabel?.verticalAlign != null)
+        );
+    }
+
+    /**
+     * How far the band flush will move each label across the axis, run on a throwaway copy of the
+     * label data so collision avoidance can measure the geometry it will actually render. Shares
+     * `alignLabelBands` rather than restating its band maths, so the two cannot drift apart.
+     */
+    private measureLabelBandOffsets(
+        ticks: TickDatum[],
+        tickGenerationResult: { rotation: number; textAlign: ResolvedTextAlign; textBaseline: VerticalAlign },
+        scrollbarThickness: number
+    ): number[] {
+        const labels = ticks.map((d) => this.getTickLabelProps(d, tickGenerationResult, scrollbarThickness));
+        const before = labels.map((l) => l.y);
+        this.alignLabelBands(ticks, labels, tickGenerationResult);
+        return labels.map((l, i) => l.y - before[i]);
     }
 
     /**

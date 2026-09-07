@@ -79,6 +79,20 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
     sizeLimit?: number;
     isVertical?: boolean;
     inRange?: (value: number) => boolean;
+    /**
+     * Per-label displacement, across the axis, that the band flush for a configured
+     * `label.verticalAlign` will apply once the ticks are laid out. Collision avoidance runs before
+     * that flush, so without this the labels it approved can still be moved into each other - see
+     * `CartesianAxis.alignLabelBands`. Only supplied when a flush is actually configured, so an axis
+     * that leaves the option unset pays nothing.
+     */
+    labelBandOffsets?: (
+        this: void,
+        ticks: TickDatum[],
+        rotation: number,
+        textAlign: ResolvedTextAlign,
+        textBaseline: VerticalAlign
+    ) => number[] | undefined;
 
     tickFormatter(
         this: void,
