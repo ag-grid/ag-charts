@@ -2225,6 +2225,57 @@ describe('CartesianAxis', () => {
                     1
                 );
             });
+
+            it('flushes segmented labels on an unrotated axis, leaving each segment on its own baseline', async () => {
+                const segmentedOptions = (label?: TextAlignLabelOptions) => {
+                    const options = wrappedBottomAxisOptions(label) as any;
+                    return {
+                        ...options,
+                        axes: {
+                            ...options.axes,
+                            x: {
+                                ...options.axes.x,
+                                label: {
+                                    ...options.axes.x.label,
+                                    formatter: ({ value }: { value: unknown }) => [
+                                        { text: String(value).slice(0, 2), fontSize: 18 },
+                                        { text: ` ${String(value)}`, fontSize: 10, verticalAlign: 'top' as const },
+                                    ],
+                                },
+                            },
+                        },
+                    } as AgCartesianChartOptions;
+                };
+
+                const naturalOptions = segmentedOptions();
+                prepareTestOptions(naturalOptions);
+                chart = AgCharts.create(naturalOptions);
+                await waitForChartStability(chart);
+                const naturalHeights = measuredHeights(getAxisLabelNodes(chart, 'bottom'));
+                expect(Math.max(...naturalHeights) - Math.min(...naturalHeights)).toBeGreaterThan(1);
+
+                chart.destroy();
+                (chart as unknown) = undefined;
+
+                const bottomOptions = segmentedOptions({ verticalAlign: 'bottom' });
+                prepareTestOptions(bottomOptions);
+                chart = AgCharts.create(bottomOptions);
+                await waitForChartStability(chart);
+                const nodes = getAxisLabelNodes(chart, 'bottom');
+                const boxes = nodes.map((n) => Transformable.toCanvas(n));
+                const bottomEdges = boxes.map((b) => b.y + b.height);
+                expect(Math.max(...bottomEdges) - Math.min(...bottomEdges)).toBeLessThanOrEqual(1);
+                expect(Math.max(...boxes.map((b) => b.y)) - Math.min(...boxes.map((b) => b.y))).toBeGreaterThan(1);
+
+                for (const node of nodes) {
+                    const segments = node.datum.text as { verticalAlign?: string }[];
+                    expect(segments.length).toBeGreaterThan(1);
+                    expect(segments[0].verticalAlign).toBeUndefined();
+                    for (const segment of segments.slice(1)) {
+                        expect(segment.verticalAlign).toBe('top');
+                    }
+                }
+            });
         });
 
         it.each(['bottom', 'top'] as const)(

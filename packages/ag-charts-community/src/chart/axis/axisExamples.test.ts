@@ -320,6 +320,13 @@ const EXAMPLES_LABEL_VERTICAL_ALIGN: Record<string, TestCase> = {
             seriesTypes: ['bar', 'line'],
         }),
     },
+    AXIS_LABEL_VERTICAL_ALIGN_SEGMENTS_UNROTATED: {
+        options: applyRichLabels(axesExamples.AXIS_LABEL_VERTICAL_ALIGN),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
+            seriesTypes: ['bar', 'line'],
+        }),
+    },
 };
 
 function mixinDerivedCases(baseCases: Record<string, TestCase>): Record<string, TestCase> {
