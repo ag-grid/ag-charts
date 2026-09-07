@@ -34,18 +34,23 @@ const options: AgCartesianChartOptions = {
     },
 };
 
-// Forward warnings written to the browser console into `console.log`, so they also appear in the
-// logger panel below this example.
-const originalWarn = console.warn.bind(console);
-console.warn = (...args: unknown[]) => {
-    originalWarn(...args);
-    console.log(...args);
-};
-
 const chart = AgCharts.create(options);
+
+let warningsForwardedToLog = false;
 
 // Invalid on purpose: opacity must be between 0 and 1, so this raises a validation warning.
 function applyInvalidOptions() {
+    // Forward warnings written to the browser console into `console.log` too, so they're visible
+    // without opening DevTools. Guarded so repeated clicks don't stack duplicate forwarding.
+    if (!warningsForwardedToLog) {
+        const originalWarn = console.warn.bind(console);
+        console.warn = (...args: unknown[]) => {
+            originalWarn(...args);
+            console.log(...args);
+        };
+        warningsForwardedToLog = true;
+    }
+
     const isWarningSelected = (document.getElementById('console-on-warning') as HTMLInputElement).checked;
     const consoleOn: ('error' | 'warning' | 'deprecation')[] = isWarningSelected ? ['warning'] : [];
     options.series = [{ type: 'bar', xKey: 'day', yKey: 'sales', fillOpacity: 2 }];

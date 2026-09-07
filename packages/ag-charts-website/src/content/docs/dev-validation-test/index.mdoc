@@ -1,0 +1,19 @@
+---
+title: Dev Validation Test
+---
+
+This is an internal page for examples that cannot be published to the public docs because they
+recreate the chart from a button handler, a pattern the framework example generator cannot
+translate to React, Angular, or Vue. See the public `dev-validation` page for the framework-compatible
+validation examples.
+
+## Throwing on Validation Issues
+
+What to test:
+
+- With `throwOn: ['warning']` selected, clicking "Apply Invalid Options" logs `threw: ...` and leaves
+  the chart container empty.
+- With `throwOn: []` selected, clicking "Apply Invalid Options" logs `chart created` and the chart
+  re-renders with the invalid option applied.
+
+{% chartExampleRunner title="Throwing on Validation Issues" name="validation-throw" /%}

@@ -58,8 +58,6 @@ In the above example:
 
 Use `validations.throwOn` to make the chart throw an exception and fail-fast, instead of warning and falling back to a default.
 
-{% chartExampleRunner title="Throwing on Validation Issues" name="validation-throw" type="generated" /%}
-
 ```js format="snippet"
 {
     validations: {
@@ -67,12 +65,6 @@ Use `validations.throwOn` to make the chart throw an exception and fail-fast, in
     },
 }
 ```
-
-In this example:
-
-- Recreating the chart with the invalid option and `throwOn: ['warning']` selected throws instead of creating the chart.
-- Recreating it with `throwOn: []` selected creates the chart without throwing.
-- `consoleOn` is disabled, so only the explicit log for each outcome is shown.
 
 ## Issue Raised Events
 
