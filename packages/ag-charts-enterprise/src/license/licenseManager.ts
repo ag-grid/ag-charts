@@ -98,6 +98,10 @@ export class LicenseManager {
         return { md5, license, version, isTrial, type };
     }
 
+    public hasLicenseKey(): boolean {
+        return !missingOrEmpty(LicenseManager.licenseKey);
+    }
+
     public getLicenseDetails(licenseKey: string, gridContext = false) {
         const currentLicenseType = 'CHARTS';
         if (missingOrEmpty(licenseKey)) {

@@ -104,13 +104,15 @@ function usesEnterpriseModules(moduleScope: ModuleScope): boolean {
 let pageLicenseManager: LicenseManager | undefined;
 let licenseChecked = false;
 // The licence is validated once per page; every chart that needs it shares the result.
-function validatedLicenseManager(options: AgChartOptions): LicenseManager | undefined {
-    if (!licenseChecked) {
-        // Enterprise may load lazily, so an absent manager must not consume the once-per-page check.
-        pageLicenseManager = enterpriseRegistry.licenseManager?.(options);
-        pageLicenseManager?.validateLicense();
-        licenseChecked = pageLicenseManager != null;
-    }
+function validatedLicenseManager(options: AgChartOptions, keyRequired: boolean): LicenseManager | undefined {
+    if (licenseChecked) return pageLicenseManager;
+
+    // Enterprise may load lazily, so an absent manager must not consume the once-per-page check.
+    pageLicenseManager ??= enterpriseRegistry.licenseManager?.(options);
+    if (pageLicenseManager == null || (keyRequired && !pageLicenseManager.hasLicenseKey())) return;
+
+    pageLicenseManager.validateLicense();
+    licenseChecked = true;
     return pageLicenseManager;
 }
 
@@ -488,9 +490,10 @@ class AgChartsInternal {
         const withinStudio = (userOptions as { withinStudio?: boolean }).withinStudio;
         if (proxy.licenseManager != null || withinStudio) return;
 
-        // Validated whenever enterprise is loaded; only a scope that uses enterprise modules is watermarked.
-        const licenseManager = validatedLicenseManager(processedOptions);
-        if (licenseManager == null || !usesEnterpriseModules(moduleRegistry)) return;
+        // A community-only scope is validated only when a key was supplied, and is never watermarked.
+        const enterpriseScope = usesEnterpriseModules(moduleRegistry);
+        const licenseManager = validatedLicenseManager(processedOptions, !enterpriseScope);
+        if (licenseManager == null || !enterpriseScope) return;
 
         proxy.licenseManager = licenseManager;
         if (licenseManager.isDisplayWatermark()) {

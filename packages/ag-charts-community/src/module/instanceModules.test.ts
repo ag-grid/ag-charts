@@ -167,8 +167,10 @@ describe('instance modules', () => {
                 create: () => ({}),
             };
             const validateLicense = vi.fn();
+            let licenseKeySupplied = true;
             const createLicenseManager = vi.fn(() => ({
                 validateLicense,
+                hasLicenseKey: () => licenseKeySupplied,
                 isDisplayWatermark: () => true,
                 getWatermarkMessage: () => 'watermark',
                 getWatermarkForegroundConfig: () => undefined,
@@ -189,7 +191,7 @@ describe('instance modules', () => {
             });
 
             // The key is validated once per page, so this must be the first chart created in this block.
-            it('reports the licence key for a community-only chart once enterprise is loaded', async () => {
+            it('validates a supplied key for a community-only chart once enterprise is loaded', async () => {
                 ModuleRegistry.registerModules(LINE_MODULES);
 
                 delete enterpriseRegistry.licenseManager;
@@ -199,9 +201,15 @@ describe('instance modules', () => {
                 unlicensedChart.destroy();
 
                 enterpriseRegistry.licenseManager = createLicenseManager;
+                licenseKeySupplied = false;
+                const keylessChart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }));
+                await waitForChartStability(keylessChart);
+                expect(validateLicense).not.toHaveBeenCalled();
+                keylessChart.destroy();
+
+                licenseKeySupplied = true;
                 chart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }));
                 await waitForChartStability(chart);
-                expect(createLicenseManager).toHaveBeenCalledTimes(1);
                 expect(validateLicense).toHaveBeenCalledTimes(1);
                 expect(injectWatermark).not.toHaveBeenCalled();
             });
