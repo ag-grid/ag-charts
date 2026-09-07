@@ -14,11 +14,11 @@ import {
     SAFE_STROKE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
-    communityModule,
 } from 'ag-charts-core';
 import type { AgLineSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
+import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
 import { LineSeries } from './lineSeries';

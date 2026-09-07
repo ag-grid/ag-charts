@@ -35,7 +35,6 @@ export * from './modules/enterpriseRegistry';
 export * as ModuleRegistry from './modules/moduleRegistry';
 export { ModuleScope, type RegistryRevision, type ScopedCache, createScopedCache } from './modules/moduleScope';
 export { AbstractModuleInstance } from './modules/moduleInstance';
-export { communityModule, isCommunityModule } from './modules/moduleIdentity';
 export { type DynamicContext, type DynamicContextApi, createDynamicContext } from './module/dynamicContext';
 
 // Scales

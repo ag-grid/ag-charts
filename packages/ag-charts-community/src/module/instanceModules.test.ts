@@ -277,6 +277,19 @@ describe('instance modules', () => {
                 expect(injectWatermark).not.toHaveBeenCalled();
             });
 
+            it('does not exempt a chart that claims the Studio flag after creation', async () => {
+                ModuleRegistry.registerModules([...LINE_MODULES, enterprisePlugin]);
+                chart = AgCharts.create(lineChart());
+                await waitForChartStability(chart);
+                expect(injectWatermark).toHaveBeenCalledTimes(1);
+                expect((chart as any).withinStudio).toBeUndefined();
+
+                validateLicense.mockClear();
+                await chart.update({ ...lineChart(), withinStudio: true } as any);
+                await waitForChartStability(chart);
+                expect(validateLicense).toHaveBeenCalled();
+            });
+
             it('licenses a community chart once an update resolves enterprise modules', async () => {
                 ModuleRegistry.registerModules(LINE_MODULES);
                 chart = AgCharts.create(lineChart());
@@ -309,6 +322,23 @@ describe('instance modules', () => {
                 expect(lastLicensedDocument()).toBe(hostDocument);
                 expect(validateLicense).toHaveBeenCalled();
                 expect(injectWatermark).toHaveBeenCalledTimes(1);
+            });
+
+            it('still licenses an enterprise chart after a keyless community chart seeded its document', async () => {
+                ModuleRegistry.registerModules(LINE_MODULES);
+
+                licenseKeySupplied = false;
+                const communityChart = AgCharts.create(lineChart());
+                await waitForChartStability(communityChart);
+                expect(createLicenseManager).toHaveBeenCalledTimes(1);
+                expect(validateLicense).not.toHaveBeenCalled();
+
+                chart = AgCharts.create(lineChart(), { modules: [enterprisePlugin] });
+                await waitForChartStability(chart);
+                expect(createLicenseManager).toHaveBeenCalledTimes(1);
+                expect(validateLicense).toHaveBeenCalled();
+                expect(injectWatermark).toHaveBeenCalledTimes(1);
+                communityChart.destroy();
             });
         });
 

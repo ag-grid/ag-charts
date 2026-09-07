@@ -4,7 +4,6 @@ import {
     and,
     boolean,
     colorOrRef,
-    communityModule,
     date,
     defined,
     greaterThan,
@@ -32,6 +31,7 @@ import type {
 import { areaSeriesOptionsDef } from '../../chart/series/cartesian/areaSeriesOptionsDef';
 import { barSeriesOptionsDef } from '../../chart/series/cartesian/barSeriesOptionsDef';
 import { lineSeriesOptionsDef } from '../../chart/series/cartesian/lineSeriesOptionsDef';
+import { communityModule } from '../../module/moduleIdentity';
 import { VERSION } from '../../version';
 import { sparkline, sparklineDataPreset } from './sparkline';
 import { sparklineThemeTemplate } from './sparklineTheme';

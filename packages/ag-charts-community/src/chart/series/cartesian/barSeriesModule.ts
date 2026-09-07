@@ -14,12 +14,12 @@ import {
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
-    communityModule,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { AgBarSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
+import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
 import { BarSeries } from './barSeries';

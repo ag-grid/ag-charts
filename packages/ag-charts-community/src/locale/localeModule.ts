@@ -1,6 +1,7 @@
-import { type PluginModuleDefinition, callbackOf, communityModule, object, string } from 'ag-charts-core';
+import { type PluginModuleDefinition, callbackOf, object, string } from 'ag-charts-core';
 import type { AgLocaleOptions } from 'ag-charts-types';
 
+import { communityModule } from '../module/moduleIdentity';
 import { VERSION } from '../version';
 import { Locale } from './locale';
 

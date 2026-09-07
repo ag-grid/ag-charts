@@ -3,12 +3,12 @@ import {
     FONT_SIZE_RATIO,
     LEGEND_CONTAINER_THEME,
     type PluginModuleDefinition,
-    communityModule,
     legendOptionsDefs,
 } from 'ag-charts-core';
 import type { AgChartLegendOptions } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
+import { communityModule } from '../../module/moduleIdentity';
 import { VERSION } from '../../version';
 import { Legend } from './legend';
 import { LegendManager } from './legendManager';

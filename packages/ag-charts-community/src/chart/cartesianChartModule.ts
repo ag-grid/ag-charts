@@ -1,13 +1,7 @@
-import {
-    type ChartModuleDefinition,
-    ValidationError,
-    communityModule,
-    isObject,
-    validate,
-    without,
-} from 'ag-charts-core';
+import { type ChartModuleDefinition, ValidationError, isObject, validate, without } from 'ag-charts-core';
 import type { AgCartesianChartOptions } from 'ag-charts-types';
 
+import { communityModule } from '../module/moduleIdentity';
 import type { ChartOptions } from '../module/optionsModule';
 import { VERSION } from '../version';
 import { CartesianChart } from './cartesianChart';

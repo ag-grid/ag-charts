@@ -1,7 +1,8 @@
-import { type DynamicContext, type SeriesModuleDefinition, communityModule } from 'ag-charts-core';
+import { type DynamicContext, type SeriesModuleDefinition } from 'ag-charts-core';
 import type { AgPieSeriesOptions } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
+import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
 import { PolarChartModule } from '../../polarChartModule';
 import { PieSeries } from './pieSeries';

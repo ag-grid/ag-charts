@@ -1,6 +1,7 @@
-import { type AxisPluginModuleDefinition, communityModule, undocumentedThemeOptions } from 'ag-charts-core';
+import { type AxisPluginModuleDefinition, undocumentedThemeOptions } from 'ag-charts-core';
 import type { AgBaseCrossLineOptions } from 'ag-charts-types';
 
+import { communityModule } from '../../module/moduleIdentity';
 import { VERSION } from '../../version';
 import { CartesianCrossLine } from './cartesianCrossLine';
 import { CrossLinesPlugin } from './crossLinesPlugin';

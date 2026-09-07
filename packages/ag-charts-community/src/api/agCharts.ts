@@ -8,7 +8,6 @@ import {
     deepClone,
     deepFreeze,
     enterpriseRegistry,
-    isCommunityModule,
     isPlainObject,
     jsonWalk,
     strictObjectKeys,
@@ -30,6 +29,7 @@ import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
 import type { DataServiceRestoredData } from '../chart/data/dataService';
 import { detectChartType } from '../chart/mapping/types';
 import { resolveInstanceModuleScope } from '../module/instanceModuleScope';
+import { isCommunityModule } from '../module/moduleIdentity';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import { Pool } from '../util/pool';
 import { VERSION } from '../version';
@@ -107,6 +107,8 @@ function usesEnterpriseModules(moduleScope: ModuleScope): boolean {
 // never reused by a chart in another. The manager itself validates once per key and latches the banner.
 const NO_DOCUMENT = {};
 const licenseManagers = new WeakMap<object, LicenseManager>();
+// Decided once at creation and kept off the instance, so a later update or a caller cannot exempt a chart.
+const studioCharts = new WeakMap<AgChartInstanceProxy, boolean>();
 
 function hostDocument(options: AgChartOptions): Document | undefined {
     return options.container?.ownerDocument ?? (typeof document === 'undefined' ? undefined : document);
@@ -498,9 +500,13 @@ class AgChartsInternal {
     // Re-run on every update: the scope may gain enterprise modules, or a key may have been set since.
     private static licenseCheck(proxy: AgChartInstanceProxy, chartOptions: ChartOptions) {
         const { userOptions, processedOptions, moduleRegistry } = chartOptions;
-        // Presets strip this undocumented flag from the processed options, so read it as the user gave it.
-        proxy.withinStudio ??= (userOptions as { withinStudio?: boolean }).withinStudio;
-        if (proxy.withinStudio) return;
+        let withinStudio = studioCharts.get(proxy);
+        if (withinStudio == null) {
+            // Presets strip this undocumented flag from the processed options, so read it as the user gave it.
+            withinStudio = (userOptions as { withinStudio?: boolean }).withinStudio === true;
+            studioCharts.set(proxy, withinStudio);
+        }
+        if (withinStudio) return;
 
         // A community-only scope is validated only when a key was supplied, and is never watermarked.
         const enterpriseScope = usesEnterpriseModules(moduleRegistry);

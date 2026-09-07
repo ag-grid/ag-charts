@@ -2,7 +2,6 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedCategoryAxisOptions,
-    communityModule,
     mergeDefaults,
 } from 'ag-charts-core';
 import type { AgCategoryAxisOptions } from 'ag-charts-types';
@@ -14,6 +13,7 @@ import { commonAxisThemeTemplate, titleAxisThemeTemplate } from '../../chart/the
 import { CategoryScale } from '../../scale/categoryScale';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
+import { communityModule } from '../moduleIdentity';
 
 export const CategoryAxisModule: AxisModuleDefinition<AgCategoryAxisOptions, CategoryAxis> =
     /* #__PURE__ */ communityModule({

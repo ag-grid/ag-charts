@@ -2,7 +2,6 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedTimeAxisOptions,
-    communityModule,
     mergeDefaults,
 } from 'ag-charts-core';
 import type { AgTimeAxisOptions } from 'ag-charts-types';
@@ -17,6 +16,7 @@ import {
 } from '../../chart/themes/axisThemeTemplate';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
+import { communityModule } from '../moduleIdentity';
 
 export const TimeAxisModule: AxisModuleDefinition<AgTimeAxisOptions, TimeAxis> = /* #__PURE__ */ communityModule({
     type: 'axis',

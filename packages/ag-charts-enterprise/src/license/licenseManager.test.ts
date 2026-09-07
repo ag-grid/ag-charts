@@ -81,6 +81,21 @@ describe('LicenseManager', () => {
     });
 
     describe('validateLicense', () => {
+        afterEach(() => {
+            LicenseManager.setGridContext(false);
+        });
+
+        it('re-validates when the grid context changes', () => {
+            const manager = new LicenseManager(documentIn(windowAt('app.example.com')));
+            const getLicenseDetails = vi.spyOn(manager, 'getLicenseDetails');
+
+            manager.validateLicense();
+            LicenseManager.setGridContext(true);
+            manager.validateLicense();
+            expect(getLicenseDetails).toHaveBeenCalledTimes(2);
+            expect(getLicenseDetails).toHaveBeenLastCalledWith(undefined, true);
+        });
+
         it('re-validates only when the key changes', () => {
             const manager = new LicenseManager(documentIn(windowAt('app.example.com')));
             const getLicenseDetails = vi.spyOn(manager, 'getLicenseDetails');

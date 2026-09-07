@@ -2,7 +2,6 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedGroupedCategoryAxisOptions,
-    communityModule,
     mergeDefaults,
 } from 'ag-charts-core';
 import type { AgGroupedCategoryAxisOptions } from 'ag-charts-types';
@@ -13,6 +12,7 @@ import { CartesianChartModule } from '../../chart/cartesianChartModule';
 import { commonAxisThemeTemplate, titleAxisThemeTemplate } from '../../chart/themes/axisThemeTemplate';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
+import { communityModule } from '../moduleIdentity';
 
 export const GroupedCategoryAxisModule: AxisModuleDefinition<AgGroupedCategoryAxisOptions, GroupedCategoryAxis> =
     /* #__PURE__ */ communityModule({

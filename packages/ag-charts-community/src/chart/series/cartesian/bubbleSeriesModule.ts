@@ -11,7 +11,6 @@ import {
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SERIES_SELECTION_THEME,
-    communityModule,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type {
@@ -24,6 +23,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
+import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
 import { BubbleSeries } from './bubbleSeries';

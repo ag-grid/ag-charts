@@ -26,6 +26,7 @@ export class LicenseManager {
     private static licenseOutputLogged = false;
     private watermarkMessage: string | undefined = undefined;
     private validatedKey: string | undefined = undefined;
+    private validatedGridContext = false;
     private validated = false;
 
     private readonly md5: MD5;
@@ -41,14 +42,15 @@ export class LicenseManager {
     }
 
     public validateLicense(): void {
-        const licenseKey = LicenseManager.licenseKey;
-        // A repeat check is a no-op until the key changes; a new key replaces the earlier verdict.
-        if (this.validated && this.validatedKey === licenseKey) return;
+        const { licenseKey, gridContext } = LicenseManager;
+        // A repeat check is a no-op until the key or grid context changes; a change replaces the earlier verdict.
+        if (this.validated && this.validatedKey === licenseKey && this.validatedGridContext === gridContext) return;
         this.validated = true;
         this.validatedKey = licenseKey;
+        this.validatedGridContext = gridContext;
         this.watermarkMessage = undefined;
 
-        const licenseDetails = this.getLicenseDetails(licenseKey!, LicenseManager.gridContext);
+        const licenseDetails = this.getLicenseDetails(licenseKey!, gridContext);
         const currentLicenseName = `AG ${
             licenseDetails.currentLicenseType === 'BOTH' ? 'Grid and ' : ''
         }Charts Enterprise`;
