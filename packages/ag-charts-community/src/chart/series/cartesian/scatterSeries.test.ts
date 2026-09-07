@@ -1240,17 +1240,29 @@ describe('ScatterSeries', () => {
             await waitForChartStability(chart);
         };
 
+        // An empty key is matched against the data exactly like a non-empty one, so both take the
+        // same route: the unmatched-key warning, with the markers still drawn and no label text.
         it.each([
             ['an empty labelKey (TC3)', { labelKey: '', label: { enabled: true } }, `''`],
             ['an unmatched labelKey', { labelKey: 'nope', label: { enabled: true } }, `'nope'`],
-        ] as [string, object, string][])('renders nothing and warns for %s', async (_name, overrides, key) => {
-            await createScatter(overrides);
+        ] as [string, object, string][])('draws unlabelled markers and warns for %s', async (_name, o, key) => {
+            await createScatter(o);
 
-            expect(nodeData(chart)).toEqual([]);
-            expect(deproxy(chart).series[0].hasData).toBe(false);
+            expect(nodeData(chart)).toHaveLength(3);
+            expect((nodeData(chart) as { label: { text: string } }[]).map((d) => d.label.text)).toEqual(['', '', '']);
             expectWarningsCalls().toEqual([
                 [`AG Charts - the key ${key} was not found in any data element for ScatterSeries-1.`],
             ]);
+        });
+
+        it('reads an empty labelKey the data does carry', async () => {
+            await createScatter({ labelKey: '', label: { enabled: true } }, [
+                { x: 1, y: 10, '': 'a' },
+                { x: 2, y: 20, '': 'b' },
+            ]);
+
+            expect((nodeData(chart) as { label: { text: string } }[]).map((d) => d.label.text)).toEqual(['a', 'b']);
+            expectWarningsCalls().toEqual([]);
         });
 
         it('keeps the series populated for a labelKey that does name a column', async () => {
@@ -1271,8 +1283,7 @@ describe('ScatterSeries', () => {
             ]);
 
             expect(nodeData(chart)).toHaveLength(1);
-            expect(deproxy(chart).series[0].hasUnmatchedKey).toBe(false);
-            // Proof of the overlap: hasData is false here, so gating the guard on it would have
+            // Proof of the overlap: hasData is false here, so gating rendering on it would have
             // dropped the renderable row along with the two unresolvable ones.
             expect(deproxy(chart).series[0].hasData).toBe(false);
         });

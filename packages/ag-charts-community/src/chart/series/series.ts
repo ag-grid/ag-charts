@@ -411,15 +411,6 @@ export abstract class Series<
         return dataSet.netSize() > 0;
     }
 
-    /**
-     * Whether one of the series' keys names a column the data does not carry — including the empty
-     * string, which matches nothing exactly like any other unmatched key. Such a series can render
-     * nothing at all, which is a misconfiguration rather than an empty chart (AG-18413).
-     */
-    get hasUnmatchedKey() {
-        return false;
-    }
-
     get tooltipEnabled() {
         return this.properties.tooltip?.enabled;
     }

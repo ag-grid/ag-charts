@@ -558,11 +558,12 @@ describe('AG-18413 quadrant with a key naming no column', () => {
         return chart.series[0];
     };
 
-    it('renders nothing and warns for an empty sizeKey', async () => {
+    // An empty key names a column like any other string, so it takes the unmatched-key warning and
+    // the markers are still drawn — at their default size, since no size column resolved.
+    it('draws default-size markers and warns for an empty sizeKey', async () => {
         const series = await createQuadrantChart({ sizeKey: '' });
 
-        expect(series.getNodeData()).toEqual([]);
-        expect(series.hasData).toBe(false);
+        expect(series.getNodeData()).toHaveLength(NUMERIC.data!.length);
         expectWarningsCalls().toEqual([[`AG Charts - the key '' was not found in any data element for ${series.id}.`]]);
     });
 

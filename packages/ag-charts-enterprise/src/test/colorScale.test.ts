@@ -299,11 +299,10 @@ describe('AG-18413 a colorKey naming no column - bubble/scatter', () => {
     it.each([
         ['bubble', { type: 'bubble' as const, xKey: 'x', yKey: 'y', sizeKey: 'size' }],
         ['scatter', { type: 'scatter' as const, xKey: 'x', yKey: 'y' }],
-    ])('%s renders nothing and warns for an empty colorKey (TC2)', async (_name, base) => {
+    ])('%s draws default-coloured markers and warns for an empty colorKey (TC2)', async (_name, base) => {
         const series = await createChartWith({ ...base, colorKey: '', colorScale: { fills } });
 
-        expect(series.getNodeData()).toEqual([]);
-        expect(series.hasData).toBe(false);
+        expect(series.getNodeData()).toHaveLength(data.length);
         expectWarningsCalls().toEqual([[`AG Charts - the key '' was not found in any data element for ${series.id}.`]]);
     });
 

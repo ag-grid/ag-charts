@@ -724,12 +724,6 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
      * Strategy selection happens inside: simple or aggregation path.
      */
     protected override populateNodeData(ctx: BubbleSeriesNodeDatumContext): void {
-        // A key naming a column that no datum carries — including the empty string — leaves the series
-        // with nothing renderable, and the chart raises its no-data overlay. Markers drawn from the
-        // remaining columns would then sit under an overlay saying there is no data, so draw none.
-        // Rows that merely fail to resolve individually are not this case and still draw.
-        if (this.hasUnmatchedKey) return;
-
         this.sizeScale.range = this.getSizeRange();
 
         // Pre-allocate scratch object for datum state

@@ -1664,21 +1664,24 @@ describe('BubbleSeries', () => {
     });
 
     describe('AG-18413 a key naming no column', () => {
-        type NodeDatum = { point: { size: number } };
+        type NodeDatum = { point: { size: number }; label: { text: string } };
         const nodeData = (c: AgChartInstance) =>
             (deproxy(c).series[0] as unknown as { getNodeData(): NodeDatum[] }).getNodeData();
-        const gridLinesVisible = (c: AgChartInstance) =>
-            (deproxy(c).axes as unknown as { gridLineGroup: { visible: boolean } }[]).map(
-                (axis) => axis.gridLineGroup.visible
-            );
 
-        const createBubble = async (seriesOverrides: object) => {
+        const defaultData = [
+            { x: 1, y: 1, s: 10, l: 'a' },
+            { x: 2, y: 2, s: 20, l: 'b' },
+            { x: 3, y: 3, s: 30, l: 'c' },
+        ];
+        const withEmptyColumn = [
+            { x: 1, y: 1, '': 10 },
+            { x: 2, y: 2, '': 20 },
+            { x: 3, y: 3, '': 30 },
+        ];
+
+        const createBubble = async (seriesOverrides: object, data: object[] = defaultData) => {
             const options = {
-                data: [
-                    { x: 1, y: 1, s: 10, l: 'a' },
-                    { x: 2, y: 2, s: 20, l: 'b' },
-                    { x: 3, y: 3, s: 30, l: 'c' },
-                ],
+                data,
                 series: [{ type: 'bubble', xKey: 'x', yKey: 'y', ...seriesOverrides }],
                 legend: { enabled: false },
                 axes: {
@@ -1691,41 +1694,60 @@ describe('BubbleSeries', () => {
             await waitForChartStability(chart);
         };
 
-        // An empty string is a key like any other: it names no column, so it warns and leaves the
-        // series empty, rather than being silently dropped or throwing.
+        // `''` is a property key like any other — `({ '': 2 })['']` is 2 — so an empty key names a
+        // column exactly as a non-empty string does, and takes the same route: the unmatched-key
+        // warning, with the rest of the series still drawn. Previously it was neither registered nor
+        // skipped consistently, so reading the column threw on every update pass.
         it.each([
             ['an empty sizeKey (TC1)', { sizeKey: '' }, `''`],
             ['an unmatched sizeKey', { sizeKey: 'nope' }, `'nope'`],
-            ['an empty labelKey (TC3)', { sizeKey: 's', labelKey: '', label: { enabled: true } }, `''`],
-            ['an unmatched labelKey', { sizeKey: 's', labelKey: 'nope', label: { enabled: true } }, `'nope'`],
-        ] as [string, object, string][])('renders nothing and warns for %s', async (_name, overrides, key) => {
-            await createBubble(overrides);
+        ] as [string, object, string][])('draws default-size markers and warns for %s', async (_name, o, key) => {
+            await createBubble(o);
 
-            expect(nodeData(chart)).toEqual([]);
-            expect(deproxy(chart).series[0].hasData).toBe(false);
+            expect(nodeData(chart).map((d) => d.point.size)).toEqual([7, 7, 7]);
             expectWarningsCalls().toEqual([
                 [`AG Charts - the key ${key} was not found in any data element for BubbleSeries-1.`],
             ]);
-            // The no-data overlay covers the series area; a grid behind it would read as a populated chart.
-            expect(gridLinesVisible(chart)).toEqual([false, false]);
+        });
+
+        it.each([
+            ['an empty labelKey (TC3)', { sizeKey: 's', labelKey: '', label: { enabled: true } }, `''`],
+            ['an unmatched labelKey', { sizeKey: 's', labelKey: 'nope', label: { enabled: true } }, `'nope'`],
+        ] as [string, object, string][])('draws unlabelled markers and warns for %s', async (_name, o, key) => {
+            await createBubble(o);
+
+            expect(nodeData(chart).map((d) => d.point.size)).toEqual([7, 18.5, 30]);
+            expect(nodeData(chart).map((d) => d.label.text)).toEqual(['', '', '']);
+            expectWarningsCalls().toEqual([
+                [`AG Charts - the key ${key} was not found in any data element for BubbleSeries-1.`],
+            ]);
+        });
+
+        it('sizes the markers from an empty key the data does carry', async () => {
+            await createBubble({ sizeKey: '' }, withEmptyColumn);
+
+            expect(nodeData(chart).map((d) => d.point.size)).toEqual([7, 18.5, 30]);
+            expectWarningsCalls().toEqual([]);
         });
 
         it('keeps the series populated for a key that does name a column', async () => {
             await createBubble({ sizeKey: 's' });
 
             expect(nodeData(chart).map((d) => d.point.size)).toEqual([7, 18.5, 30]);
-            expect(gridLinesVisible(chart)).toEqual([true, true]);
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
 
-        it('recovers when an empty sizeKey is replaced by a real one', async () => {
+        it('scales the markers once an empty sizeKey is replaced by a real one', async () => {
             await createBubble({ sizeKey: '' });
-            expect(nodeData(chart)).toEqual([]);
+            expect(nodeData(chart).map((d) => d.point.size)).toEqual([7, 7, 7]);
+            expectWarningsCalls().toEqual([
+                [`AG Charts - the key '' was not found in any data element for BubbleSeries-1.`],
+            ]);
 
             chart.destroy();
             await createBubble({ sizeKey: 's' });
 
-            expect(nodeData(chart)).toHaveLength(3);
+            expect(nodeData(chart).map((d) => d.point.size)).toEqual([7, 18.5, 30]);
         });
     });
 });
