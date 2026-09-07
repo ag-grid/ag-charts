@@ -1028,6 +1028,15 @@ describe('fitLabelText bounded by a shape', () => {
         );
     });
 
+    it('holds every line of a boxed label to the narrowest band its box spans', () => {
+        // 'AA BBBBBB' wraps to a 60px-wide block whose second line sits in the 200px band, but the box drawn
+        // round it reaches into the 40px band above, so the whole block has to fit the narrower of the two.
+        const fit: LabelFit = { region: splitRegion(40, 200), wrapping: 'on-space', overflowStrategy: 'hide' };
+        expect(fitLabelText('AA BBBBBB', fit, font)).toBe('AA\nBBBBBB');
+        expect(fitLabelText('AA BBBBBB', { ...fit, boxed: true }, font)).toBe('');
+        expect(fitLabelText('AA BBBBBB', { ...fit, boxed: true, regionAlign: 'start' }, font)).toBe('AA BBBBBB');
+    });
+
     it('places a rich-text block at the same offset as the plain text it wraps like', () => {
         const fit: LabelFit = { region: splitRegion(40, 200), wrapping: 'on-space', regionAlign: 'start' };
         const plain = fitLabelTextToRegion('AAAA BBBB', fit, font);

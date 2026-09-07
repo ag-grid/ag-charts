@@ -97,7 +97,7 @@ import {
     rangedValueProperty,
     valueProperty,
 } from '../../data/processors';
-import { Label, expandLabelBoxExtent } from '../../label';
+import { Label, expandLabelBoxExtent, labelHasBox } from '../../label';
 import {
     type BlockSize,
     fitLabelToContainer,
@@ -2272,7 +2272,7 @@ export class DonutSeries extends PolarSeries<
                         text.setBoxing(style);
                         const fitted = fitSectorLabelToWedge(
                             datum.sectorLabel.text,
-                            sectorFit,
+                            { ...sectorFit, boxed: labelHasBox(style) },
                             style,
                             anchor,
                             sectorBounds,

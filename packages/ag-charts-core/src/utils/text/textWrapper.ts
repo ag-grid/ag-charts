@@ -59,6 +59,11 @@ export interface LabelFit {
      * it. The shape offers different room at different heights, so this decides which room the text gets.
      */
     readonly regionAlign?: RegionAlign;
+    /**
+     * The label draws one rectangle round the whole block, so every line is held to the narrowest band
+     * the block spans rather than to the room its own row offers.
+     */
+    readonly boxed?: boolean;
 }
 
 /** Where a region-bounded block of text sits against its anchor; see {@link LabelFit.regionAlign}. */
@@ -159,7 +164,7 @@ export function fitLabelText(
     // A caller that can move the label as well calls {@link fitLabelTextToRegion} instead.
     return region == null
         ? wrapTextOrSegments(text, options)
-        : wrapTextToRegion(text, options, region, fit.regionAlign ?? 'center', true).text;
+        : wrapTextToRegion(text, options, region, fit.regionAlign ?? 'center', true, fit.boxed).text;
 }
 
 /**
@@ -188,7 +193,8 @@ export function fitLabelTextToRegion(
         },
         fit.region,
         fit.regionAlign ?? 'center',
-        anchored
+        anchored,
+        fit.boxed
     );
 }
 
@@ -252,16 +258,23 @@ function wrapBlockToRegion(
     limit: number,
     lineHeight: number,
     lines: number,
-    anchored: boolean
+    anchored: boolean,
+    boxed: boolean
 ) {
     const height = Math.min(lines * lineHeight, limit);
     const blockTop = blockTopFor(align, height, region, limit);
     const bands: (readonly [number, number])[] = [];
-    for (let i = 0; i < lines; i += 1) {
-        bands.push([blockTop + i * lineHeight, blockTop + (i + 1) * lineHeight] as const);
+    if (boxed) {
+        bands.push([blockTop, blockTop + height] as const);
+    } else {
+        for (let i = 0; i < lines; i += 1) {
+            bands.push([blockTop + i * lineHeight, blockTop + (i + 1) * lineHeight] as const);
+        }
     }
     const offsetX = anchored ? 0 : blockOffsetX(region, bands);
-    const widthAt = (top: number, bottom: number) => regionWidthAt(region, blockTop + top, blockTop + bottom, offsetX);
+    const widthAt = boxed
+        ? () => regionWidthAt(region, blockTop, blockTop + height, offsetX)
+        : (top: number, bottom: number) => regionWidthAt(region, blockTop + top, blockTop + bottom, offsetX);
     const wrapped = wrapTextOrSegments(text, {
         ...options,
         // The band a line occupies must be the one it will be drawn in, so the width the shape offers is
@@ -318,11 +331,12 @@ function wrapTextToRegion(
     options: WrapOptions,
     region: FitRegion,
     align: RegionAlign,
-    anchored = false
+    anchored = false,
+    boxed = false
 ): FittedRegionText {
     const limit = Math.min(options.maxHeight ?? Infinity, region.extentAbove + region.extentBelow);
     if (isArray(text)) {
-        return refineSegmentsToRegion(text, options, region, align, limit);
+        return refineSegmentsToRegion(text, options, region, align, limit, boxed);
     }
 
     // One line's height, not the measured block's: a source carrying its own line breaks would otherwise
@@ -337,7 +351,7 @@ function wrapTextToRegion(
     let best: { text: string; offsetX: number; offsetY: number; consistent: boolean } | undefined;
     let bestKept = 0;
     for (let lines = 1; lines <= maxLines; lines += 1) {
-        const candidate = wrapBlockToRegion(source, options, region, align, limit, lineHeight, lines, anchored);
+        const candidate = wrapBlockToRegion(source, options, region, align, limit, lineHeight, lines, anchored, boxed);
         const kept = survivingCharacters(candidate.text);
         if (isBetterCandidate(candidate.consistent, kept, best?.consistent, bestKept)) {
             bestKept = kept;
@@ -370,19 +384,23 @@ function refineSegmentsToRegion(
     options: WrapOptions,
     region: FitRegion,
     align: RegionAlign,
-    limit: number
+    limit: number,
+    boxed: boolean
 ) {
     let height = measureText(text, options.font).height;
     let lines = 1;
     let result: NormalisedTextOrSegments = text;
     let blockTop = 0;
     for (let i = 0; i < MAX_REGION_REFINEMENTS; i += 1) {
-        blockTop = blockTopFor(align, Math.min(height, limit), region, limit);
+        const blockHeight = Math.min(height, limit);
+        blockTop = blockTopFor(align, blockHeight, region, limit);
         result = wrapTextOrSegments(text, {
             ...options,
             lineHeight: height / lines,
             maxHeight: limit,
-            maxWidthAt: (top, bottom) => regionWidthAt(region, blockTop + top, blockTop + bottom),
+            maxWidthAt: boxed
+                ? () => regionWidthAt(region, blockTop, blockTop + blockHeight)
+                : (top, bottom) => regionWidthAt(region, blockTop + top, blockTop + bottom),
         });
         const next = measureText(result, options.font).height;
         lines = Math.max(1, Math.round(next / (height / lines)));

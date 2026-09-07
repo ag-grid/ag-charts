@@ -69,6 +69,7 @@ const {
     Text,
     PointerEvents,
     expandLabelBoxExtent,
+    labelHasBox,
     getLabelStyles,
 } = _ModuleSupport;
 
@@ -116,7 +117,7 @@ function resolveLabelFitting<P>(label: MapShapeSeriesLabel<P>, padding: number):
     const fit = resolveLabelFit({ maxWidth, maxHeight, wrapping, truncate, minimumFontSize }, true);
     const box = expandLabelBoxExtent(label);
     return {
-        fit: { ...fit, lineHeight },
+        fit: { ...fit, lineHeight, boxed: labelHasBox(label) },
         font: { fontFamily, fontStyle, fontWeight, fontSize },
         inset: {
             x: padding + Math.max(box.left, box.right),
