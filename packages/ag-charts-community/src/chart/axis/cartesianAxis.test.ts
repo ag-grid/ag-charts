@@ -2840,5 +2840,172 @@ describe('CartesianAxis', () => {
                 }
             }
         );
+
+        // `verticalAlign` has to behave identically when a label formatter returns rich-text
+        // segments, and it aligns the label as a whole - it never reaches inside the segments, which
+        // carry a `verticalAlign` of their own.
+        describe('AC1: rich-text (segmented) labels', () => {
+            // One plain text segment renders exactly the glyphs the unformatted label does, so any
+            // difference in placement is the segmented measurement path rather than the text.
+            const plainSegment = ({ value }: { value: unknown }) => [{ text: String(value) }];
+            // Deliberately mixed: a large leading segment and a small `verticalAlign`-carrying one
+            // make the label's own extents differ from any single segment's, which is what the
+            // segmented measurement has to get right.
+            const richSegment = ({ value }: { value: unknown }) => [
+                { text: String(value).slice(0, 2), fontSize: 20 },
+                { text: ` ${String(value)}`, fontSize: 10, verticalAlign: 'top' as const },
+            ];
+
+            const withFormatter = (
+                options: AgCartesianChartOptions,
+                axis: 'x' | 'y',
+                formatter: (params: { value: unknown }) => unknown
+            ): AgCartesianChartOptions => {
+                const axes = options.axes as any;
+                return {
+                    ...options,
+                    axes: { ...axes, [axis]: { ...axes[axis], label: { ...axes[axis].label, formatter } } },
+                } as AgCartesianChartOptions;
+            };
+
+            const plainText = (text: any): string =>
+                Array.isArray(text) ? text.map((segment: any) => segment.text ?? '').join('') : String(text);
+            const boxesByText = (nodes: any[]) =>
+                new Map(nodes.map((n) => [plainText(n.datum.text), Transformable.toCanvas(n)]));
+            // Anti-vacuous: the formatter must actually put the label on the segmented measurement
+            // path, otherwise every assertion below holds because nothing rich was ever rendered.
+            const expectSegmented = (nodes: any[]) => {
+                expect(nodes.length).toBeGreaterThan(0);
+                for (const node of nodes) expect(Array.isArray(node.datum.text)).toBe(true);
+            };
+
+            it.each(['top', 'middle', 'bottom'] as const)(
+                'places a "%s"-aligned segmented label where the equivalent plain-text label goes, on a horizontal axis',
+                async (verticalAlign) => {
+                    await renderChart(wrappedBottomAxisOptions({ verticalAlign }));
+                    const plain = boxesByText(getAxisLabelNodes(chart, 'bottom'));
+                    expect(plain.size).toBe(3);
+
+                    await renderChart(withFormatter(wrappedBottomAxisOptions({ verticalAlign }), 'x', plainSegment));
+                    const nodes = getAxisLabelNodes(chart, 'bottom');
+                    expectSegmented(nodes);
+                    const segmented = boxesByText(nodes);
+                    const byText = (a: string, b: string) => a.localeCompare(b);
+                    expect([...segmented.keys()].sort(byText)).toEqual([...plain.keys()].sort(byText));
+                    for (const [text, box] of segmented) {
+                        const expected = plain.get(text)!;
+                        expect(box.y).toBeCloseTo(expected.y, 1);
+                        expect(box.y + box.height).toBeCloseTo(expected.y + expected.height, 1);
+                    }
+                }
+            );
+
+            it.each(['top', 'middle', 'bottom'] as const)(
+                'places a "%s"-aligned segmented label where the equivalent plain-text label goes, on a banded vertical axis',
+                async (verticalAlign) => {
+                    await renderChart(rightAxisOptions({ verticalAlign }));
+                    const plain = boxesByText(getRightAxisLabelNodes(chart));
+                    expect(plain.size).toBe(3);
+
+                    await renderChart(withFormatter(rightAxisOptions({ verticalAlign }), 'y', plainSegment));
+                    const nodes = getRightAxisLabelNodes(chart);
+                    expectSegmented(nodes);
+                    const segmented = boxesByText(nodes);
+                    const byText = (a: string, b: string) => a.localeCompare(b);
+                    expect([...segmented.keys()].sort(byText)).toEqual([...plain.keys()].sort(byText));
+                    for (const [text, box] of segmented) {
+                        const expected = plain.get(text)!;
+                        expect(box.y).toBeCloseTo(expected.y, 1);
+                        expect(box.y + box.height).toBeCloseTo(expected.y + expected.height, 1);
+                    }
+                }
+            );
+
+            // A rotated label's glyph box is measured under the requested baseline and then rotated,
+            // so a baseline-blind measurement puts the two flushes in different bands - the failure
+            // this pins is `'bottom'` stopping short of the edge `'top'` measured the band from.
+            it.each([0, 45])(
+                'flushes rich segments to one band on a bottom axis rotated %s degrees',
+                async (rotation) => {
+                    await renderChart(
+                        withFormatter(bottomAxisOptions({ rotation, verticalAlign: 'top' }), 'x', richSegment)
+                    );
+                    const topNodes = getAxisLabelNodes(chart, 'bottom');
+                    expectSegmented(topNodes);
+                    const topBoxes = topNodes.map((n) => Transformable.toCanvas(n));
+                    const bandTop = Math.min(...topBoxes.map((b) => b.y));
+                    const bandDepth = Math.max(...topBoxes.map((b) => b.height));
+                    expect(Math.max(...topBoxes.map((b) => b.y)) - bandTop).toBeLessThanOrEqual(1);
+
+                    await renderChart(
+                        withFormatter(bottomAxisOptions({ rotation, verticalAlign: 'bottom' }), 'x', richSegment)
+                    );
+                    const bottomNodes = getAxisLabelNodes(chart, 'bottom');
+                    expectSegmented(bottomNodes);
+                    const bottomBoxes = bottomNodes.map((n) => Transformable.toCanvas(n));
+                    const bottomEdges = bottomBoxes.map((b) => b.y + b.height);
+                    expect(Math.max(...bottomEdges) - Math.min(...bottomEdges)).toBeLessThanOrEqual(1);
+                    expect(Math.max(...bottomEdges)).toBeCloseTo(bandTop + bandDepth, 0);
+                }
+            );
+
+            // On a vertical axis the alignment acts along the axis, so what has to hold across the
+            // three values is the column: the reserved width is sized for one placement only.
+            it('keeps rich segments in one column on a rotated right axis', async () => {
+                const columns: number[] = [];
+                for (const verticalAlign of ['top', 'middle', 'bottom'] as const) {
+                    await renderChart(
+                        withFormatter(rightAxisOptions({ rotation: 45, verticalAlign }), 'y', richSegment)
+                    );
+                    const nodes = getRightAxisLabelNodes(chart);
+                    expectSegmented(nodes);
+                    const boxes = nodes.map((n) => Transformable.toCanvas(n));
+                    const inner = Math.min(...boxes.map((b) => b.x));
+                    expect(Math.max(...boxes.map((b) => b.x)) - inner).toBeLessThanOrEqual(1);
+                    expect(inner).toBeGreaterThanOrEqual(getSeriesRect(chart).x + getSeriesRect(chart).width - 1);
+                    columns.push(inner);
+                }
+                for (const column of columns) expect(column).toBeCloseTo(columns[0], 0);
+            });
+
+            // Ido, 2026-09-07: unlike `fontSize`, this option is not a default the segments inherit -
+            // the segments keep aligning against their own line, and the label moves as one block.
+            // A banded vertical axis is the fixture where the three values genuinely separate: the
+            // band is far deeper than one label, so the anchor has somewhere to go.
+            it("moves the label as a block and leaves the segments' own alignment alone", async () => {
+                const segmentAligned = (segmentAlign: 'top' | 'bottom') => (params: { value: unknown }) => [
+                    { text: String(params.value).slice(0, 2), fontSize: 20 },
+                    { text: ` ${String(params.value)}`, fontSize: 10, verticalAlign: segmentAlign },
+                ];
+
+                const boxes: { x: number; y: number; width: number; height: number }[] = [];
+                for (const verticalAlign of ['top', 'middle', 'bottom'] as const) {
+                    await renderChart(withFormatter(rightAxisOptions({ verticalAlign }), 'y', segmentAligned('top')));
+                    const nodes = getRightAxisLabelNodes(chart);
+                    expectSegmented(nodes);
+                    for (const node of nodes) {
+                        // The label node still takes the axis alignment as its own baseline; what
+                        // must not happen is that value reaching the segments, which keep the
+                        // `verticalAlign` the formatter gave them - `'top'` here, not the axis's.
+                        expect(node.datum.textBaseline).toBe(verticalAlign);
+                        expect(node.datum.text.map((segment: any) => segment.verticalAlign)).toEqual([
+                            undefined,
+                            'top',
+                        ]);
+                    }
+                    boxes.push(Transformable.toCanvas(nodes[0]));
+                }
+                // Same glyphs laid out the same way, at three different offsets: the label is a rigid
+                // block that the alignment moves, not a container whose contents it re-flows.
+                for (const box of boxes) {
+                    expect(box.width).toBeCloseTo(boxes[0].width, 1);
+                    expect(box.height).toBeCloseTo(boxes[0].height, 1);
+                }
+                // Anti-vacuous: the three renders must actually differ, or an unchanged shape says
+                // nothing about whether the option reached the segments.
+                const [top, , bottom] = boxes;
+                expect(bottom.y).toBeGreaterThan(top.y + 1);
+            });
+        });
     });
 });

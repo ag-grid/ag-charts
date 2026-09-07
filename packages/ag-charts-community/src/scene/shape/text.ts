@@ -310,21 +310,6 @@ export class Text<D = unknown> extends Shape<D> {
         }
     }
 
-    override getBBox(): BBox {
-        const bbox = super.getBBox();
-        if (!this.textMap?.size || !isArray(this.text)) return bbox;
-
-        const { height, lineMetrics } = this.getSegmentMetrics(this.text);
-        const offsetTop = Text.calcSegmentedTopOffset(height, lineMetrics, this.textBaseline);
-        const y = this.y - offsetTop;
-        if (bbox.y === y && this.boxing == null) return bbox;
-
-        const segmentBBox = new BBox(bbox.x, y, bbox.width, bbox.height);
-        // Mirrors computeTextBBox so a boxed segment's bounds include the box, or its top is clipped.
-        if (this.boxing != null) segmentBBox.grow(this.boxPadding);
-        return segmentBBox;
-    }
-
     protected override computeBBox(): BBox {
         return this.computeTextBBox();
     }
@@ -336,10 +321,14 @@ export class Text<D = unknown> extends Shape<D> {
             return new BBox(this.x, this.y, 0, 0);
         }
         this.generateTextMap();
-        if (this.textMap?.size) {
+        if (this.textMap?.size && isArray(this.text)) {
             const bbox = BBox.merge(this.textMap.values());
+            const { height, lineMetrics } = this.getSegmentMetrics(this.text);
             bbox.x = this.x - Text.calcLeftOffset(bbox.width, this.textAlign, this.scene?.isRtl);
-            bbox.y = this.y;
+            // Segments are laid out from a top-left origin, so the anchor only coincides with the
+            // box top under a `'top'` baseline; every other baseline moves the block against it.
+            bbox.y = this.y - Text.calcSegmentedTopOffset(height, lineMetrics, this.textBaseline);
+            if (this.boxing != null) bbox.grow(this.boxPadding);
             return bbox;
         }
         const isRtl = this.scene?.isRtl;
