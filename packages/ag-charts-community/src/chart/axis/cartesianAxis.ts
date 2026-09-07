@@ -1136,6 +1136,9 @@ export abstract class CartesianAxis<
 
             const measured: { datum: LabelNodeDatum; glyphBox: LabelBox; extent: LabelExtent }[] = [];
             let maxLabelExtent = 0;
+            // The edge of the reserved band nearest the axis line, taken across the whole tier - see
+            // the band it is turned into below.
+            let bandInner: number | undefined;
             for (let i = 0; i < labels.length; i += 1) {
                 if ((ticks[i].isPrimary && primaryEnabled) !== primaryTier) continue;
 
@@ -1155,6 +1158,34 @@ export abstract class CartesianAxis<
                     height: box.height - padding.top - padding.bottom,
                 };
                 const extent = getRotatedLabelExtent(glyphBox, datum.x, datum.y, rotation);
+                if (horizontal && verticalAlign != null) {
+                    // Where the axis's own computed alignment would have put these glyphs, which is
+                    // the space the axis actually reserved. A rotated label swings on both
+                    // alignments, so both are restored: taking the baseline alone would derive the
+                    // band from a label still carrying a configured `textAlign`, and place it inside
+                    // the series area.
+                    const computedExtent = getRotatedLabelExtent(
+                        {
+                            ...glyphBox,
+                            x:
+                                textAlign == null
+                                    ? glyphBox.x
+                                    : glyphBox.x + getTextAlignShift(glyphBox.width, textAlign, computedTextAlign),
+                            y: glyphBox.y + getVerticalAlignShift(glyphBox.height, verticalAlign, computedTextBaseline),
+                        },
+                        datum.x,
+                        datum.y,
+                        rotation
+                    );
+                    // `getTickLabelProps` negates the label offset on `y`, so outward of the axis
+                    // line is `-sideFlag` here - the opposite sign to the vertical axis's `x` below.
+                    const labelInner = datum.y + (sideFlag === -1 ? computedExtent.y0 : computedExtent.y1);
+                    bandInner ??= labelInner;
+                    // One band per tier, not one per label: labels of differing size must flush to a
+                    // common edge, so the origin is the natural placement reaching nearest the axis
+                    // line - the same edge the axis sized its reservation from.
+                    bandInner = sideFlag === -1 ? Math.min(bandInner, labelInner) : Math.max(bandInner, labelInner);
+                }
                 measured.push({ datum, glyphBox, extent });
                 // The band runs across the axis, so its depth is the deepest label in that direction.
                 const labelExtent = horizontal ? extent.y1 - extent.y0 : extent.x1 - extent.x0;
@@ -1162,6 +1193,13 @@ export abstract class CartesianAxis<
             }
 
             if (maxLabelExtent <= 0) continue;
+
+            // The tier's shared band: `maxLabelExtent` deep, outward of the natural inner edge.
+            let band: { start: number; end: number } | undefined;
+            if (bandInner != null) {
+                const bandOuter = bandInner - sideFlag * maxLabelExtent;
+                band = { start: Math.min(bandInner, bandOuter), end: Math.max(bandInner, bandOuter) };
+            }
 
             for (const { datum, glyphBox, extent } of measured) {
                 if (correctsRotation) {
@@ -1189,33 +1227,14 @@ export abstract class CartesianAxis<
                     continue;
                 }
 
-                if (horizontal && verticalAlign != null) {
-                    // The band is the space the axis actually reserved, which is where the axis's own
-                    // computed baseline would have put these glyphs - measure that, so a rotated
-                    // label's alignment cannot claim depth the chart then refuses to grant.
-                    const computedExtent = getRotatedLabelExtent(
-                        {
-                            ...glyphBox,
-                            y: glyphBox.y + getVerticalAlignShift(glyphBox.height, verticalAlign, computedTextBaseline),
-                        },
-                        datum.x,
-                        datum.y,
-                        rotation
-                    );
-                    // `getTickLabelProps` negates the label offset on `y`, so outward of the axis line
-                    // is `-sideFlag` here - the opposite sign to the vertical axis's `x` below.
-                    const inner = datum.y + (sideFlag === -1 ? computedExtent.y0 : computedExtent.y1);
-                    const outer = inner - sideFlag * maxLabelExtent;
-                    const bandStart = Math.min(inner, outer);
-                    const bandEnd = Math.max(inner, outer);
-
+                if (band != null) {
                     let y;
                     if (verticalAlign === 'top') {
-                        y = bandStart - extent.y0;
+                        y = band.start - extent.y0;
                     } else if (verticalAlign === 'bottom') {
-                        y = bandEnd - extent.y1;
+                        y = band.end - extent.y1;
                     } else {
-                        y = (bandStart + bandEnd) / 2 - (extent.y0 + extent.y1) / 2;
+                        y = (band.start + band.end) / 2 - (extent.y0 + extent.y1) / 2;
                     }
 
                     datum.y = y;

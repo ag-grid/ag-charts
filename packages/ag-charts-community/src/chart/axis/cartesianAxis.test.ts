@@ -2662,6 +2662,59 @@ describe('CartesianAxis', () => {
             });
         });
 
+        // The band a rotated horizontal axis flushes into is reconstructed from where the axis's own
+        // computed alignment would have put the glyphs, so both of these are about that
+        // reconstruction rather than about the flush itself.
+        describe('the reserved band on a rotated horizontal axis', () => {
+            it('derives the band from the natural placement when textAlign is also set', async () => {
+                await renderChart(bottomAxisOptions({ rotation: 45, textAlign: 'right', verticalAlign: 'bottom' }));
+                const nodes = getAxisLabelNodes(chart, 'bottom');
+                expect(nodes.length).toBe(3);
+
+                const seriesRect = getSeriesRect(chart);
+                const seriesBottom = seriesRect.y + seriesRect.height;
+                for (const node of nodes) {
+                    // The rendered glyphs, not the anchor: a band derived from the overridden
+                    // horizontal alignment moves the whole box, which an anchor comparison misses.
+                    const box = Transformable.toCanvas(node);
+                    expect(box.y).toBeGreaterThanOrEqual(seriesBottom - 1);
+                }
+            });
+
+            it('flushes labels of differing heights to one common edge', async () => {
+                // A per-label font size is the cheapest way to get genuinely differing label heights
+                // under rotation, where the available width no longer forces a wrap.
+                const sizedLabel = ({ value }: { value: unknown }) => [
+                    { text: String(value), fontSize: String(value).length > 3 ? 36 : 12 },
+                ];
+
+                await renderChart(withRotatedFormatter('bottom'));
+                const nodes = getAxisLabelNodes(chart, 'bottom');
+                expect(nodes.length).toBe(3);
+                const boxes = nodes.map((n) => Transformable.toCanvas(n));
+                // Anti-vacuous: the labels must really differ in height, otherwise one common edge
+                // holds for any band origin.
+                const unrotatedHeights = nodes.map((n: any) =>
+                    Array.isArray(n.datum.text) ? n.datum.text[0].fontSize : 0
+                );
+                expect(Math.max(...unrotatedHeights) - Math.min(...unrotatedHeights)).toBeGreaterThan(1);
+
+                const bottomEdges = boxes.map((b) => b.y + b.height);
+                expect(Math.max(...bottomEdges) - Math.min(...bottomEdges)).toBeLessThanOrEqual(1);
+
+                function withRotatedFormatter(verticalAlign: VerticalAlign): AgCartesianChartOptions {
+                    const options = bottomAxisOptions({ rotation: 45, verticalAlign }) as any;
+                    return {
+                        ...options,
+                        axes: {
+                            ...options.axes,
+                            x: { ...options.axes.x, label: { ...options.axes.x.label, formatter: sizedLabel } },
+                        },
+                    };
+                }
+            });
+        });
+
         it.each(['baseline', 'centre'] as string[])(
             'warns for the unsupported value "%s" and keeps the computed alignment',
             async (unsupported) => {
