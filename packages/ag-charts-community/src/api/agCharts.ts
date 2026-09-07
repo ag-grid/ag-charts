@@ -485,10 +485,11 @@ class AgChartsInternal {
         const { userOptions, processedOptions, moduleRegistry } = chartOptions;
         // Presets strip this undocumented flag from the processed options, so read it as the user gave it.
         const withinStudio = (userOptions as { withinStudio?: boolean }).withinStudio;
-        if (proxy.licenseManager != null || withinStudio || !usesEnterpriseModules(moduleRegistry)) return;
+        if (proxy.licenseManager != null || withinStudio) return;
 
+        // Validated whenever enterprise is loaded; only a scope that uses enterprise modules is watermarked.
         const licenseManager = validatedLicenseManager(processedOptions);
-        if (licenseManager == null) return;
+        if (licenseManager == null || !usesEnterpriseModules(moduleRegistry)) return;
 
         proxy.licenseManager = licenseManager;
         if (licenseManager.isDisplayWatermark()) {
