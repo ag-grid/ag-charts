@@ -198,7 +198,7 @@ export class ChartTheme {
             },
             buttonBorderRadius: { $ref: 'borderRadius' },
             buttonFontWeight: 400,
-            buttonTextColor: { $ref: 'textColor' },
+            buttonTextColor: { $ref: 'chromeTextColor' },
 
             inputBackgroundColor: { $ref: 'backgroundColor' },
             inputBorder: {
