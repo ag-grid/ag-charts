@@ -103,5 +103,5 @@ const chart = AgCharts.create(options);
 
 function changePosition(event: Event) {
     options.ranges!.position = (event.target as HTMLInputElement).value as AgRangesPosition;
-    chart.update(options as any);
+    chart.update(options);
 }
