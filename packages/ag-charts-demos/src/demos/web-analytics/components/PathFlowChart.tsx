@@ -3,8 +3,9 @@ import { useMemo } from 'react';
 import type { AgChartOptions, AgSankeySeriesOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-react';
 
-import { NEUTRAL, PALETTE, THEME } from '../chartTheme';
-import { PAGE_TITLES, isTerminalNode } from '../data';
+import { NEUTRAL, THEME, pageColor } from '../chartTheme';
+import { isTerminalNode } from '../data';
+import { fmtInt } from '../format';
 import type { PathLink } from '../types';
 
 interface PathFlowChartProps {
@@ -17,12 +18,8 @@ const stripLevel = (label: string) => label.replace(/^\d+\.\s*/, '');
 
 const isTerminal = (label: string | undefined) => !!label && isTerminalNode(label);
 
-// One colour per page, held across every step column. Terminal nodes read grey, as
-// does any page past the palette — a tenth page never reuses slot 0.
-const pageColor = (label: string | undefined) => {
-    if (!label || isTerminal(label)) return NEUTRAL;
-    return PALETTE[PAGE_TITLES.indexOf(stripLevel(label))] ?? NEUTRAL;
-};
+// Sankey labels carry the level prefix and include terminal nodes, which read grey.
+const nodeColor = (label: string | undefined) => (!label || isTerminal(label) ? NEUTRAL : pageColor(stripLevel(label)));
 
 export function PathFlowChart({ data }: PathFlowChartProps) {
     const options = useMemo<AgChartOptions>(() => {
@@ -37,20 +34,19 @@ export function PathFlowChart({ data }: PathFlowChartProps) {
                 width: 12,
                 alignment: 'center',
                 sort: 'data',
-                itemStyler: ({ label }) => ({ fill: pageColor(label), stroke: pageColor(label) }),
+                itemStyler: ({ label }) => ({ fill: nodeColor(label), stroke: nodeColor(label) }),
                 cornerRadius: 3,
             },
             link: {
-                // Fade each link from its start-node colour to its end-node colour;
-                // links into a terminal node fade page-colour → grey (see pageColor).
+                // Fade each link from its start-node colour to its end-node colour.
                 itemStyler: ({ datum }) => {
                     const { from, to } = datum as Partial<PathLink>;
                     return {
                         fill: {
                             type: 'gradient',
                             colorStops: [
-                                { color: pageColor(from), stop: 0 },
-                                { color: pageColor(to), stop: 1 },
+                                { color: nodeColor(from), stop: 0 },
+                                { color: nodeColor(to), stop: 1 },
                             ],
                             // 90° runs the gradient left-to-right, matching link flow.
                             rotation: 90,
@@ -68,13 +64,13 @@ export function PathFlowChart({ data }: PathFlowChartProps) {
             },
         };
         return {
-            theme: {
-                ...THEME,
-                palette: { fills: [...PALETTE], strokes: [...PALETTE] },
-            },
+            theme: THEME,
             data,
             series: [series],
             padding: 0,
+            formatter: {
+                size: ({ value }) => fmtInt(Number(value)),
+            },
         };
     }, [data]);
 
