@@ -43,7 +43,7 @@ test.describe('caption tooltip', () => {
     });
 
     test('visible: always shows tooltip on hover', async ({ page }) => {
-        await page.locator('#visible-always').click();
+        await page.locator('label[for="visible-always"]').click();
         await hoverTitle(page);
         const tooltip = page.locator(SELECTORS.tooltip);
         await expect(tooltip).toBeVisible();
@@ -51,7 +51,7 @@ test.describe('caption tooltip', () => {
     });
 
     test('visible: always shows subtitle tooltip on hover', async ({ page }) => {
-        await page.locator('#visible-always').click();
+        await page.locator('label[for="visible-always"]').click();
         await hoverSubtitle(page);
         const tooltip = page.locator(SELECTORS.tooltip);
         await expect(tooltip).toBeVisible();
@@ -60,14 +60,14 @@ test.describe('caption tooltip', () => {
 
     test('visible: never hides tooltip even when truncated', async ({ page }) => {
         await page.locator('#truncate').click();
-        await page.locator('#visible-never').click();
+        await page.locator('label[for="visible-never"]').click();
         await hoverTitle(page);
         const tooltip = page.locator(SELECTORS.tooltip);
         await expect(tooltip).not.toBeVisible();
     });
 
     test('custom text shows on hover', async ({ page }) => {
-        await page.locator('#custom-text').click();
+        await page.locator('label[for="custom-text"]').click();
         await hoverTitle(page);
         const tooltip = page.locator(SELECTORS.tooltip);
         await expect(tooltip).toBeVisible();
@@ -75,7 +75,7 @@ test.describe('caption tooltip', () => {
     });
 
     test('renderer shows HTML content', async ({ page }) => {
-        await page.locator('#renderer').click();
+        await page.locator('label[for="renderer"]').click();
         await hoverTitle(page);
         const tooltip = page.locator(SELECTORS.tooltip);
         await expect(tooltip).toBeVisible();
@@ -83,14 +83,14 @@ test.describe('caption tooltip', () => {
     });
 
     test('empty renderer hides tooltip', async ({ page }) => {
-        await page.locator('#empty-renderer').click();
+        await page.locator('label[for="empty-renderer"]').click();
         await hoverTitle(page);
         const tooltip = page.locator(SELECTORS.tooltip);
         await expect(tooltip).not.toBeVisible();
     });
 
     test('renderer returning undefined falls back to caption text', async ({ page }) => {
-        await page.locator('#undefined-renderer').click();
+        await page.locator('label[for="undefined-renderer"]').click();
         await hoverTitle(page);
         const tooltip = page.locator(SELECTORS.tooltip);
         await expect(tooltip).toBeVisible();
@@ -98,7 +98,7 @@ test.describe('caption tooltip', () => {
     });
 
     test('renderer returning undefined falls back to tooltip text when set', async ({ page }) => {
-        await page.locator('#undefined-renderer').click();
+        await page.locator('label[for="undefined-renderer"]').click();
         await hoverSubtitle(page);
         const tooltip = page.locator(SELECTORS.tooltip);
         await expect(tooltip).toBeVisible();
@@ -114,7 +114,7 @@ test.describe('caption tooltip', () => {
     });
 
     test('tooltip hides when mouse leaves caption', async ({ page }) => {
-        await page.locator('#visible-always').click();
+        await page.locator('label[for="visible-always"]').click();
         await hoverTitle(page);
         const tooltip = page.locator(SELECTORS.tooltip);
         await expect(tooltip).toBeVisible();
