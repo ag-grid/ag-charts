@@ -189,11 +189,18 @@ describe('instance modules', () => {
             });
 
             // The key is validated once per page, so this must be the first chart created in this block.
-            it('reports the licence key for a community-only chart without watermarking it', async () => {
+            it('reports the licence key for a community-only chart once enterprise is loaded', async () => {
                 ModuleRegistry.registerModules(LINE_MODULES);
+
+                delete enterpriseRegistry.licenseManager;
+                const unlicensedChart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }));
+                await waitForChartStability(unlicensedChart);
+                expect(createLicenseManager).not.toHaveBeenCalled();
+                unlicensedChart.destroy();
+
+                enterpriseRegistry.licenseManager = createLicenseManager;
                 chart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }));
                 await waitForChartStability(chart);
-
                 expect(createLicenseManager).toHaveBeenCalledTimes(1);
                 expect(validateLicense).toHaveBeenCalledTimes(1);
                 expect(injectWatermark).not.toHaveBeenCalled();

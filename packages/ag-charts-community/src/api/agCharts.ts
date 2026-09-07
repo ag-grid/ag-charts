@@ -106,9 +106,10 @@ let licenseChecked = false;
 // The licence is validated once per page; every chart that needs it shares the result.
 function validatedLicenseManager(options: AgChartOptions): LicenseManager | undefined {
     if (!licenseChecked) {
+        // Enterprise may load lazily, so an absent manager must not consume the once-per-page check.
         pageLicenseManager = enterpriseRegistry.licenseManager?.(options);
         pageLicenseManager?.validateLicense();
-        licenseChecked = true;
+        licenseChecked = pageLicenseManager != null;
     }
     return pageLicenseManager;
 }
