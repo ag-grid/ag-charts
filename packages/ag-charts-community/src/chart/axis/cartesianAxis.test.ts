@@ -2720,6 +2720,25 @@ describe('CartesianAxis', () => {
             });
         });
 
+        // The frame `axisLabelsOverlap` compares in: every label shares one rotation, so rotating
+        // the rendered anchor back by it leaves each glyph box axis-aligned.
+        const collidingPairs = (nodes: any[]) => {
+            const boxes = nodes.map((node) => {
+                const local = node.computeBBoxWithoutTransforms();
+                const anchor = rotatePoint(node.x, node.y, -node.rotation);
+                return { x: local.x + anchor.x, y: local.y + anchor.y, w: local.width, h: local.height };
+            });
+            let count = 0;
+            for (let i = 0; i < boxes.length; i += 1) {
+                for (let j = i + 1; j < boxes.length; j += 1) {
+                    const a = boxes[i];
+                    const b = boxes[j];
+                    if (a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h) count += 1;
+                }
+            }
+            return count;
+        };
+
         // The band a rotated horizontal axis flushes into is reconstructed from where the axis's own
         // computed alignment would have put the glyphs, so both of these are about that
         // reconstruction rather than about the flush itself.
@@ -2796,25 +2815,6 @@ describe('CartesianAxis', () => {
                     series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
                 });
 
-                // The frame `axisLabelsOverlap` compares in: every label shares one rotation, so
-                // rotating the rendered anchor back by it leaves each glyph box axis-aligned.
-                const collidingPairs = (nodes: any[]) => {
-                    const boxes = nodes.map((node) => {
-                        const local = node.computeBBoxWithoutTransforms();
-                        const anchor = rotatePoint(node.x, node.y, -node.rotation);
-                        return { x: local.x + anchor.x, y: local.y + anchor.y, w: local.width, h: local.height };
-                    });
-                    let count = 0;
-                    for (let i = 0; i < boxes.length; i += 1) {
-                        for (let j = i + 1; j < boxes.length; j += 1) {
-                            const a = boxes[i];
-                            const b = boxes[j];
-                            if (a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h) count += 1;
-                        }
-                    }
-                    return count;
-                };
-
                 it.each(['top', 'middle', 'bottom'] as VerticalAlign[])(
                     'keeps rotated labels of differing sizes clear of each other under verticalAlign "%s"',
                     async (verticalAlign) => {
@@ -2832,6 +2832,60 @@ describe('CartesianAxis', () => {
                     }
                 );
             });
+        });
+
+        // The offsets collision avoidance measures are read off the label nodes, which carry the
+        // rotation the axis RENDERS with - not the frame the overlap check compares in, which a
+        // parallel axis lays out a quarter turn from it. An unrotated horizontal axis flushes purely
+        // across the row, so it cannot change the separation along the row: the tick set has to be
+        // the one the unaligned axis produces, and measuring the wrong frame turns differing label
+        // WIDTHS into band depths and invents a flush that is not there.
+        describe('collision avoidance on an unrotated horizontal axis', () => {
+            // Alternating short and long labels, so any width-derived offset differs per label.
+            const unequalWidthOptions = (verticalAlign?: VerticalAlign): AgCartesianChartOptions => ({
+                data: Array.from({ length: 12 }, (_, i) => ({
+                    category: i % 2 === 0 ? `A${i}` : `Category ${i} with a much longer label`,
+                    value: i,
+                })),
+                width: 600,
+                height: 400,
+                axes: {
+                    x: {
+                        type: 'category',
+                        position: 'bottom',
+                        label: {
+                            avoidCollisions: true,
+                            autoRotate: false,
+                            ...(verticalAlign ? { verticalAlign } : {}),
+                        },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            });
+
+            it.each(['top', 'middle', 'bottom'] as VerticalAlign[])(
+                'reduces to the same tick set as the unaligned axis under verticalAlign "%s"',
+                async (verticalAlign) => {
+                    await renderChart(unequalWidthOptions());
+                    const baseline = getAxisLabelNodes(chart, 'bottom');
+                    // Anti-vacuous: the axis must be unrotated, labelling, and itself clean -
+                    // otherwise the aligned run below proves nothing.
+                    expect(baseline.length).toBeGreaterThan(1);
+                    for (const node of baseline) {
+                        expect(node.datum.rotation).toBe(0);
+                    }
+                    expect(collidingPairs(baseline)).toBe(0);
+                    // Anti-vacuous: collision avoidance must actually be dropping labels, so a
+                    // spurious offset has room to drop a different number of them.
+                    expect(baseline.length).toBeLessThan(12);
+
+                    await renderChart(unequalWidthOptions({ verticalAlign }));
+                    const nodes = getAxisLabelNodes(chart, 'bottom');
+                    expect(nodes.map((n) => n.datum.text)).toEqual(baseline.map((n) => n.datum.text));
+                    expect(collidingPairs(nodes)).toBe(0);
+                }
+            );
         });
 
         it.each(['baseline', 'centre'] as string[])(
