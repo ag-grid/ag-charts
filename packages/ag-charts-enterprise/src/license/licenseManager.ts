@@ -186,7 +186,7 @@ export class LicenseManager {
     public isDisplayWatermark(): boolean {
         return (
             this.isForceWatermark() ||
-            (!this.isLocalhost() && !this.isE2ETest() && !this.isWebsiteUrl() && !missingOrEmpty(this.watermarkMessage))
+            (!this.isLocalhost() && !this.isWebsiteUrl() && !missingOrEmpty(this.watermarkMessage))
         );
     }
 
@@ -227,19 +227,27 @@ export class LicenseManager {
         };
     }
 
-    private getHostname(): string {
-        if (!this.document) {
-            return 'localhost';
-        }
-        const win = this.document.defaultView ?? globalThis;
-        if (!win) {
-            return 'localhost';
-        }
+    // Fails closed: an unknown host is neither localhost nor a website URL, so it is watermarked.
+    private getHostname(): string | undefined {
+        const win = this.document?.defaultView;
+        if (!win) return undefined;
+
+        const hostname = LicenseManager.readHostname(win);
+        if (hostname !== '') return hostname;
+
+        // An about:blank or srcdoc frame has no host of its own, so it answers for its top-level document.
         try {
-            const hostname = win.location?.hostname ?? '';
-            return hostname || 'localhost';
+            return win.top != null && win.top !== win ? LicenseManager.readHostname(win.top) : '';
         } catch {
-            return 'localhost';
+            return undefined;
+        }
+    }
+
+    private static readHostname(win: Window): string | undefined {
+        try {
+            return win.location?.hostname ?? '';
+        } catch {
+            return undefined;
         }
     }
 
@@ -257,7 +265,7 @@ export class LicenseManager {
     }
 
     private isWebsiteUrl(): boolean {
-        const hostname = this.getHostname();
+        const hostname = this.getHostname() ?? '';
         return (
             /^((?:[\w-]+\.)?ag-grid\.com)$/.exec(hostname) !== null ||
             /^((?:[\w-]+\.)?bryntum\.com)$/.exec(hostname) !== null
@@ -265,13 +273,8 @@ export class LicenseManager {
     }
 
     private isLocalhost(): boolean {
-        const hostname = this.getHostname();
+        const hostname = this.getHostname() ?? '';
         return /^(?:127\.0\.0\.1|localhost)$/.exec(hostname) !== null;
-    }
-
-    private isE2ETest(): boolean {
-        const hostname = this.getHostname();
-        return /^(?:172\.17\.0\.1|host\.docker\.internal)$/.exec(hostname) !== null;
     }
 
     private static formatDate(date: any): string {
