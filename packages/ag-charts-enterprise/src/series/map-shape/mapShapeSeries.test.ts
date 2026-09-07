@@ -257,8 +257,10 @@ describe('MapShapeSeries', () => {
                 return (chart.series[0].contextNodeData?.labelData ?? []).map((d: { text: string }) => d.text);
             };
 
+            const resolvedTruncate = () => chart.series[0].properties.label.truncate;
+
             it('warns and maps `ellipsis` onto `truncate`', async () => {
-                const texts = await render({ wrapping: 'never', overflowStrategy: 'ellipsis' });
+                const texts = await render({ overflowStrategy: 'ellipsis' });
                 expectWarningsCalls().toMatchInlineSnapshot(`
                   [
                     [
@@ -266,7 +268,21 @@ describe('MapShapeSeries', () => {
                     ],
                   ]
                 `);
+                expect(resolvedTruncate()).toBe(true);
                 expect(texts.some((text: string) => text.includes('…'))).toBe(true);
+            });
+
+            it('keeps `hide` when another fit option would otherwise default `truncate` on', async () => {
+                const texts = await render({ overflowStrategy: 'hide', minimumFontSize: 8 });
+                expectWarningsCalls().toMatchInlineSnapshot(`
+                  [
+                    [
+                      "AG Charts - Option \`series[0].label.overflowStrategy\` is deprecated. Use \`truncate\` instead.",
+                    ],
+                  ]
+                `);
+                expect(resolvedTruncate()).toBe(false);
+                expect(texts.some((text: string) => text.includes('…'))).toBe(false);
             });
 
             it('lets an explicit `truncate` win over the deprecated value', async () => {
@@ -278,6 +294,7 @@ describe('MapShapeSeries', () => {
                     ],
                   ]
                 `);
+                expect(resolvedTruncate()).toBe(false);
                 expect(texts.some((text: string) => text.includes('…'))).toBe(false);
             });
         });

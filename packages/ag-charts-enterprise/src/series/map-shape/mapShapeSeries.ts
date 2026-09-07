@@ -109,11 +109,10 @@ interface LabelFitting {
 }
 
 // The shape always bounds the label, so overflow control is always on: a label that does not fit is hidden
-// unless `truncate` (or the deprecated `overflowStrategy: 'ellipsis'`) asks for an ellipsis instead.
+// unless `truncate` asks for an ellipsis instead. The theme maps the deprecated `overflowStrategy` onto it.
 function resolveLabelFitting<P>(label: MapShapeSeriesLabel<P>, padding: number): LabelFitting {
-    const { maxWidth, maxHeight, wrapping, minimumFontSize, lineHeight, fontFamily, fontStyle, fontWeight, fontSize } =
-        label;
-    const truncate = label.truncate ?? label.overflowStrategy === 'ellipsis';
+    const { maxWidth, maxHeight, wrapping, truncate, minimumFontSize, lineHeight } = label;
+    const { fontFamily, fontStyle, fontWeight, fontSize } = label;
     const fit = resolveLabelFit({ maxWidth, maxHeight, wrapping, truncate, minimumFontSize }, true);
     const box = expandLabelBoxExtent(label);
     return {

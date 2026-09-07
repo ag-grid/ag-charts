@@ -17,7 +17,7 @@ export class MapShapeSeriesLabel<FormatterParams> extends Label<FormatterParams>
     @Property
     lineHeight?: number;
 
-    /** @deprecated Mapped onto `truncate` when that is unset. */
+    /** @deprecated The theme maps it onto `truncate`. */
     @Property
     overflowStrategy?: OverflowStrategy;
 }

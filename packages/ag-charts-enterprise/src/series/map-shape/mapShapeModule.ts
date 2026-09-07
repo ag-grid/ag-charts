@@ -62,6 +62,13 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
                 ...LABEL_OVERFLOW_DEFAULTS,
                 // The shape always bounds the label, so wrapping is on regardless of the shared triggers.
                 wrapping: 'on-space',
+                truncate: {
+                    $isUserOption: [
+                        './overflowStrategy',
+                        { $eq: [{ $path: './overflowStrategy' }, 'ellipsis'] },
+                        LABEL_OVERFLOW_DEFAULTS.truncate,
+                    ],
+                },
                 enabled: true,
                 color: { $ref: 'chartBackgroundColor' },
                 fontFamily: { $ref: 'fontFamily' },
