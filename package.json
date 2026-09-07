@@ -89,7 +89,7 @@
     "html-minifier-terser": "^7.2.0",
     "jscodeshift": "^0.16.1",
     "jsdom": "~22.1.0",
-    "junit-report-merger": "^6.0.2",
+    "junit-report-merger": "^9.0.4",
     "madge": "8.0.0",
     "nanostores": "^0.9.3",
     "npm-run-all": "^4.1.5",
@@ -179,8 +179,9 @@
     "@modelcontextprotocol/sdk": "1.26.0",
     "@nx/devkit/**/ejs": "3.1.10",
     "@nx/devkit/**/ejs/jake": "10.9.4",
-    "@nx/devkit/**/brace-expansion": "2.0.2",
-    "@svgr/**/lru-cache": "5.1.1"
+    "@nx/devkit/**/brace-expansion": "2.1.4",
+    "@svgr/**/lru-cache": "5.1.1",
+    "rulesync/js-yaml": "4.3.2"
   },
   "lavamoat": {
     "allowScripts": {
