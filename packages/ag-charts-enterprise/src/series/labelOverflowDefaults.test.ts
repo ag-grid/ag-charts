@@ -87,10 +87,11 @@ describe('label overflow defaults (enterprise)', () => {
         const resolveLabel = (label: object) =>
             resolveSeries({ type: 'map-shape', idKey: 'id', labelKey: 'label', label }).label as SeriesLabel;
 
-        it('wraps on space by default and truncates once `maxWidth` is set', () => {
+        it('wraps on space and hides overflow whatever fit options are set', () => {
             expect(resolveLabel({ enabled: true })).toMatchObject({ wrapping: 'on-space' });
             expect(resolveLabel({ enabled: true })).not.toHaveProperty('truncate');
-            expect(resolveLabel({ maxWidth: 80 })).toMatchObject({ wrapping: 'on-space', truncate: true });
+            expect(resolveLabel({ maxWidth: 80, minimumFontSize: 8 })).toMatchObject({ wrapping: 'on-space' });
+            expect(resolveLabel({ maxWidth: 80, minimumFontSize: 8 })).not.toHaveProperty('truncate');
         });
 
         it('keeps an explicit `wrapping` and `truncate`', () => {
