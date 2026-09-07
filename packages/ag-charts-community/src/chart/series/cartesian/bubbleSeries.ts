@@ -925,14 +925,14 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             labelTextValue = ctx.labelDataValues[datumIndex];
             labelTextKey = ctx.labelKey;
             labelTextProperty = 'label';
-        } else if (ctx.sizeKey) {
-            labelTextValue = sizeValue;
-            labelTextKey = ctx.sizeKey;
-            labelTextProperty = 'size';
-        } else {
+        } else if (ctx.sizeKey == null) {
             labelTextValue = yDatum;
             labelTextKey = ctx.yKey;
             labelTextProperty = 'y';
+        } else {
+            labelTextValue = sizeValue;
+            labelTextKey = ctx.sizeKey;
+            labelTextProperty = 'size';
         }
 
         const labelText = this.getLabelText<AgBubbleSeriesLabelFormatterParams>(

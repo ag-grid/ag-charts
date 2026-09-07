@@ -1723,6 +1723,30 @@ describe('BubbleSeries', () => {
             ]);
         });
 
+        // With no labelKey the label comes from the size column, chosen on the same nullish test the
+        // column is registered and read with — a truthy test sent `''` to the y-values instead.
+        it.each([
+            ['an empty sizeKey', { sizeKey: '' }, `''`],
+            ['an unmatched sizeKey', { sizeKey: 'nope' }, `'nope'`],
+        ] as [string, object, string][])(
+            'labels the markers from the size column, not y, for %s',
+            async (_name, o, key) => {
+                await createBubble({ ...o, label: { enabled: true } });
+
+                expect(nodeData(chart).map((d) => d.label.text)).toEqual(['', '', '']);
+                expectWarningsCalls().toEqual([
+                    [`AG Charts - the key ${key} was not found in any data element for BubbleSeries-1.`],
+                ]);
+            }
+        );
+
+        it('labels the markers from an empty sizeKey the data does carry', async () => {
+            await createBubble({ sizeKey: '', label: { enabled: true } }, withEmptyColumn);
+
+            expect(nodeData(chart).map((d) => d.label.text)).toEqual(['10', '20', '30']);
+            expectWarningsCalls().toEqual([]);
+        });
+
         it('sizes the markers from an empty key the data does carry', async () => {
             await createBubble({ sizeKey: '' }, withEmptyColumn);
 
