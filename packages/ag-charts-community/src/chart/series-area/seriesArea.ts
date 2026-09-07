@@ -79,6 +79,10 @@ export class SeriesArea extends BaseProperties {
         };
     }
 
+    applyOptions() {
+        // Overridden by the enterprise series area to apply its enterprise-only option subtrees.
+    }
+
     update(seriesRect: BBox, clipRect: BBox | undefined) {
         // The overlay/underlay groups are translated to the series rect origin, so the clip rect has
         // to be rebased into that space rather than passed through in chart coordinates.

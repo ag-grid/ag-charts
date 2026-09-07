@@ -28,10 +28,8 @@ export class SeriesArea extends _ModuleSupport.SeriesArea {
         });
     }
 
-    override set(properties: object) {
-        const result = super.set(properties);
+    override applyOptions() {
         this.applyRegionOptions(this.backgroundRegions);
-        return result;
     }
 
     protected override onUpdate(clipRect: _ModuleSupport.BBox | undefined): void {

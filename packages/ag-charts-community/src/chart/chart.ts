@@ -1856,6 +1856,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
             forceNodeDataRefresh = true;
         }
 
+        // Applied after the axes so that the enterprise series area can resolve them.
+        this.seriesArea.applyOptions();
+
         // Apply the series area modules after the axes to ensure the axes are available for these modules.
 
         // Only reset data if the user explicitly passed 'data' in their delta.
