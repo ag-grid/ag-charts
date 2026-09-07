@@ -84,15 +84,32 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function formatChange(event: Event) {
-    const value = (event.target as HTMLInputElement).value;
+function crosshairLabelFormat() {
+    const crosshair = options.axes!.x!.crosshair! as AgUnitTimeAxisOptions;
+    crosshair.label = {
+        format: `%d %b '%y`,
+    };
+    chart.update(options);
+}
+
+function axisLabelFormat() {
     const axesX = options.axes!.x! as AgUnitTimeAxisOptions;
-    delete axesX.label?.format;
-    delete axesX.crosshair?.label?.format;
-    if (value === 'crosshair') {
-        axesX.crosshair!.label = { format: `%d %b '%y` };
-    } else if (value === 'axis') {
-        axesX.label = { format: `%b %Y` };
+    const crosshair = axesX.crosshair!;
+    if (crosshair.label && crosshair.label.format) {
+        delete crosshair.label.format;
+    }
+    axesX.label = { format: `%b %Y` };
+    chart.update(options);
+}
+
+function defaultFormat() {
+    const axesX = options.axes!.x! as AgUnitTimeAxisOptions;
+    const crosshair = axesX.crosshair!;
+    if (crosshair.label && crosshair.label.format) {
+        delete crosshair.label.format;
+    }
+    if (axesX.label && axesX.label.format) {
+        delete axesX.label!.format;
     }
     chart.update(options);
 }

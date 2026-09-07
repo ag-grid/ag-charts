@@ -35,9 +35,11 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
+// 'step' restores the interval the chart was created with, so the checked segment always names the
+// interval actually applied.
 function spacingChange(event: Event) {
     const value = (event.target as HTMLInputElement).value;
     const axis = options.axes?.y as AgNumberAxisOptions;
-    axis.interval = value === 'min-max' ? { minSpacing: 15, maxSpacing: 25 } : {};
+    axis.interval = value === 'min-max' ? { minSpacing: 15, maxSpacing: 25 } : { step: 20 };
     chart.update(options);
 }

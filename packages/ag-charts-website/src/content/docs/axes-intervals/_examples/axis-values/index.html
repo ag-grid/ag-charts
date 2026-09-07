@@ -1,10 +1,18 @@
 <div class="example-controls">
     <div class="controls-row">
+        <span>Tick Values:</span>
         <div class="button-group" role="group" aria-label="Tick Values">
+            <input
+                type="radio"
+                id="values-default"
+                name="tick-values"
+                value="default"
+                checked
+                onchange="valuesChange(event)"
+            />
+            <label for="values-default">0, 20, 40, 60, 80, 100</label>
             <input type="radio" id="values-custom" name="tick-values" value="custom" onchange="valuesChange(event)" />
-            <label for="values-custom">Set Tick Values [50, 88, 100]</label>
-            <input type="radio" id="values-none" name="tick-values" value="none" onchange="valuesChange(event)" />
-            <label for="values-none">Reset</label>
+            <label for="values-custom">50, 88, 100</label>
         </div>
     </div>
 </div>

@@ -37,8 +37,10 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
+// 'default' restores the values the chart was created with, so the checked segment always names the
+// values actually applied.
 function valuesChange(event: Event) {
     const value = (event.target as HTMLInputElement).value;
-    options.axes!.y!.interval!.values = value === 'custom' ? [50, 88, 100] : undefined;
+    options.axes!.y!.interval!.values = value === 'custom' ? [50, 88, 100] : [0, 20, 40, 60, 80, 100];
     chart.update(options);
 }

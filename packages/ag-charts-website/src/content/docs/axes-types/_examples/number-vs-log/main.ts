@@ -22,6 +22,11 @@ const options: AgCartesianChartOptions = {
             yKey: 'share',
         },
     ],
+    // The created axes match the checked 'Number axis' segment below, so the group opens showing the
+    // option actually applied.
+    axes: {
+        y: { type: 'number', label: { format: '.0f' } },
+    },
 };
 
 const chart = AgCharts.create(options);

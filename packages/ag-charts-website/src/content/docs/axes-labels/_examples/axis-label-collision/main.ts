@@ -44,30 +44,13 @@ function reset() {
     delete categoryAxis.label!.autoRotate;
     delete categoryAxis.label!.avoidCollisions;
     delete categoryAxis.label!.truncate;
-    delete categoryAxis.label!.wrapping;
     delete numberAxis.label!.rotation;
     delete numberAxis.label!.autoRotate;
     delete numberAxis.label!.avoidCollisions;
     delete numberAxis.label!.truncate;
-    delete numberAxis.label!.wrapping;
 
     (options.series![0] as AgBarSeriesOptions).xKey = 'year';
     chart.update(options);
-
-    // The chart is back in its created state, so re-sync every control to the option it was created with.
-    (document.getElementById('avoidance-select') as HTMLSelectElement).value = 'enabled';
-    (document.getElementById('label-select') as HTMLSelectElement).value = 'year';
-    (document.getElementById('truncation-select') as HTMLSelectElement).value = 'disabled';
-    (document.getElementById('rotation-select') as HTMLSelectElement).value = 'auto';
-    (document.getElementById('wrap-select') as HTMLSelectElement).value = 'on-space';
-    setAvoidanceDependentControls(true);
-}
-
-// Truncation and wrapping are only applied while collision avoidance is enabled, so their controls are
-// gated on it.
-function setAvoidanceDependentControls(enabled: boolean) {
-    (document.getElementById('truncationGroup') as HTMLFieldSetElement).disabled = !enabled;
-    (document.getElementById('wrappingGroup') as HTMLFieldSetElement).disabled = !enabled;
 }
 
 function rotationChange(e: Event) {
@@ -108,6 +91,9 @@ function truncationChange(e: Event) {
     const categoryAxis = options.axes!.x! as AgCategoryAxisOptions;
     const numberAxis = options.axes!.y! as AgNumberAxisOptions;
 
+    delete categoryAxis.label!.rotation;
+    delete numberAxis.label!.rotation;
+
     const value = (e.target as HTMLInputElement).value;
     const enabled = value === 'enabled';
 
@@ -120,12 +106,14 @@ function avoidanceChange(e: Event) {
     const categoryAxis = options.axes!.x! as AgCategoryAxisOptions;
     const numberAxis = options.axes!.y! as AgNumberAxisOptions;
 
+    delete categoryAxis.label!.rotation;
+    delete numberAxis.label!.rotation;
+
     const value = (e.target as HTMLInputElement).value;
     const enabled = value === 'enabled';
 
     categoryAxis.label!.avoidCollisions = enabled;
     numberAxis.label!.avoidCollisions = enabled;
-    setAvoidanceDependentControls(enabled);
     chart.update(options);
 }
 

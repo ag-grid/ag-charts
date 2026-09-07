@@ -1,6 +1,16 @@
 <div class="example-controls">
     <div class="controls-row">
-        <div class="button-group" role="group" aria-label="Interval Spacing">
+        <span>Interval:</span>
+        <div class="button-group" role="group" aria-label="Interval">
+            <input
+                type="radio"
+                id="spacing-step"
+                name="interval-spacing"
+                value="step"
+                checked
+                onchange="spacingChange(event)"
+            />
+            <label for="spacing-step">Step = 20</label>
             <input
                 type="radio"
                 id="spacing-min-max"
@@ -8,15 +18,7 @@
                 value="min-max"
                 onchange="spacingChange(event)"
             />
-            <label for="spacing-min-max">Set Spacing: Min = 15, Max = 25</label>
-            <input
-                type="radio"
-                id="spacing-none"
-                name="interval-spacing"
-                value="none"
-                onchange="spacingChange(event)"
-            />
-            <label for="spacing-none">Reset</label>
+            <label for="spacing-min-max">Min Spacing = 15, Max Spacing = 25</label>
         </div>
     </div>
 </div>
