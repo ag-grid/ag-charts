@@ -639,8 +639,7 @@ export abstract class Axis<
         // (AG-18413). An empty chart is a different case — a fixed axis domain with no rows is a
         // deliberate configuration — so it keeps its grid, as does a chart whose every series is hidden.
         const activeSeries = this.boundSeries.filter((s) => s.isEnabled());
-        const dataUnrenderable =
-            activeSeries.some((s) => s.hasUnmatchedKey) && !activeSeries.some((s) => s.hasData);
+        const dataUnrenderable = activeSeries.some((s) => s.hasUnmatchedKey) && !activeSeries.some((s) => s.hasData);
         this.gridLineGroup.visible = this.options.gridLine.enabled && !dataUnrenderable;
 
         this.updateLabels();
