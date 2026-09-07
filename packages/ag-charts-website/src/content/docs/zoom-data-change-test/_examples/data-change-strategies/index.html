@@ -1,27 +1,13 @@
 <div class="example-controls">
     <div class="controls-row">
-        <span>Strategy:</span>
-        <div class="button-group gap-right" role="group" aria-label="Strategy">
-            <input
-                type="radio"
-                id="strategy-preserveDomain"
-                name="strategy"
-                value="preserveDomain"
-                checked
-                onchange="strategyChange(event)"
-            />
-            <label for="strategy-preserveDomain">preserveDomain</label>
-            <input
-                type="radio"
-                id="strategy-preserveRatios"
-                name="strategy"
-                value="preserveRatios"
-                onchange="strategyChange(event)"
-            />
-            <label for="strategy-preserveRatios">preserveRatios</label>
-            <input type="radio" id="strategy-reset" name="strategy" value="reset" onchange="strategyChange(event)" />
-            <label for="strategy-reset">reset</label>
-        </div>
+        <label>
+            Strategy:
+            <select onchange="setStrategy(this.value)">
+                <option value="preserveDomain" selected>preserveDomain</option>
+                <option value="preserveRatios">preserveRatios</option>
+                <option value="reset">reset</option>
+            </select>
+        </label>
     </div>
     <div class="controls-row">
         <button onclick="addDataAtStart()">Add at Start</button>

@@ -48,8 +48,7 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setStrategy(event: Event) {
-    const strategy = (event.target as HTMLInputElement).value as AgZoomOnDataChangeStrategy;
+function setStrategy(strategy: AgZoomOnDataChangeStrategy) {
     options.zoom!.onDataChange = { strategy };
     chart.update(options);
 }

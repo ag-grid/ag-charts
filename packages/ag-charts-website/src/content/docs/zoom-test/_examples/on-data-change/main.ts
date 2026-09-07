@@ -43,6 +43,6 @@ function onUpdateData(): void {
     chart.update(options);
 }
 
-function onXAxisTypeChange(event: Event): void {
-    options.axes!.x!.type = (event.target as HTMLInputElement).value as 'number' | 'category';
+function onXAxisTypeChange(value: 'number' | 'category'): void {
+    options.axes!.x!.type = value;
 }

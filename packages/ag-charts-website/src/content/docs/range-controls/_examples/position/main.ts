@@ -41,10 +41,10 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function changePosition(event: Event) {
+function changePosition(position: AgRangesPosition) {
     options.ranges = {
         ...options.ranges,
-        position: (event.target as HTMLInputElement).value as AgRangesPosition,
+        position,
     };
     chart.update(options);
 }

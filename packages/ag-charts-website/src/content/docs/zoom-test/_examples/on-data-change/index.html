@@ -2,26 +2,11 @@
     <div class="example-controls">
         <div class="controls-row">
             <button onclick="onUpdateData()">Update Data</button>
-            <span>X Axis Type:</span>
-            <div class="button-group" role="group" aria-label="X Axis Type">
-                <input
-                    type="radio"
-                    id="xAxisType-number"
-                    name="x-axis-type"
-                    value="number"
-                    checked
-                    onchange="onXAxisTypeChange(event)"
-                />
-                <label for="xAxisType-number">number</label>
-                <input
-                    type="radio"
-                    id="xAxisType-category"
-                    name="x-axis-type"
-                    value="category"
-                    onchange="onXAxisTypeChange(event)"
-                />
-                <label for="xAxisType-category">category</label>
-            </div>
+            <label for="xAxisType">X Axis Type:</label>
+            <select id="xAxisType" onchange="onXAxisTypeChange(event.target.value)">
+                <option value="number">number</option>
+                <option value="category">category</option>
+            </select>
         </div>
         <div class="data-table-container">
             <table class="data-table" id="dataTable">

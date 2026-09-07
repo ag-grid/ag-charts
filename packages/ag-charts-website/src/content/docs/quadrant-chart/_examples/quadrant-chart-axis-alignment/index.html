@@ -3,68 +3,21 @@
         <button id="alignAxesToPivotToggle" aria-pressed="true" onclick="toggleAlignAxesToPivot()">
             Align Axes to Pivot
         </button>
-        <fieldset id="placementGroup" class="control-group">
-            <span>Title:</span>
-            <div class="button-group gap-right" role="group" aria-label="Title Placement">
-                <input
-                    type="radio"
-                    id="title-edge"
-                    name="title-placement"
-                    value="edge"
-                    checked
-                    onchange="updateTitlePlacement(event)"
-                />
-                <label for="title-edge">edge</label>
-                <input
-                    type="radio"
-                    id="title-crossing"
-                    name="title-placement"
-                    value="crossing"
-                    onchange="updateTitlePlacement(event)"
-                />
-                <label for="title-crossing">crossing</label>
-            </div>
-            <span>Label:</span>
-            <div class="button-group gap-right" role="group" aria-label="Label Placement">
-                <input
-                    type="radio"
-                    id="label-edge"
-                    name="label-placement"
-                    value="edge"
-                    checked
-                    onchange="updateLabelPlacement(event)"
-                />
-                <label for="label-edge">edge</label>
-                <input
-                    type="radio"
-                    id="label-crossing"
-                    name="label-placement"
-                    value="crossing"
-                    onchange="updateLabelPlacement(event)"
-                />
-                <label for="label-crossing">crossing</label>
-            </div>
-            <span>Crosshair Label:</span>
-            <div class="button-group" role="group" aria-label="Crosshair Label Placement">
-                <input
-                    type="radio"
-                    id="crosshair-edge"
-                    name="crosshair-label-placement"
-                    value="edge"
-                    checked
-                    onchange="updateCrosshairLabelPlacement(event)"
-                />
-                <label for="crosshair-edge">edge</label>
-                <input
-                    type="radio"
-                    id="crosshair-crossing"
-                    name="crosshair-label-placement"
-                    value="crossing"
-                    onchange="updateCrosshairLabelPlacement(event)"
-                />
-                <label for="crosshair-crossing">crossing</label>
-            </div>
-        </fieldset>
+        <label for="title-placement">Title:</label>
+        <select id="title-placement" onchange="updateTitlePlacement(event.target.value)">
+            <option value="edge" selected>edge</option>
+            <option value="crossing">crossing</option>
+        </select>
+        <label for="label-placement">Label:</label>
+        <select id="label-placement" onchange="updateLabelPlacement(event.target.value)">
+            <option value="edge" selected>edge</option>
+            <option value="crossing">crossing</option>
+        </select>
+        <label for="crosshair-label-placement">Crosshair Label:</label>
+        <select id="crosshair-label-placement" onchange="updateCrosshairLabelPlacement(event.target.value)">
+            <option value="edge" selected>edge</option>
+            <option value="crossing">crossing</option>
+        </select>
     </div>
 </div>
 <div id="myChart"></div>
