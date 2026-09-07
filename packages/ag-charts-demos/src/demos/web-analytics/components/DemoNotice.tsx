@@ -1,4 +1,4 @@
-import * as RTooltip from '@radix-ui/react-tooltip';
+import * as RPopover from '@radix-ui/react-popover';
 
 function InfoIcon() {
     return (
@@ -10,22 +10,19 @@ function InfoIcon() {
     );
 }
 
-/* Hover/focus-driven notice at the far right of the top bar. */
 export function DemoNotice() {
     return (
-        <RTooltip.Provider delayDuration={200}>
-            <RTooltip.Root>
-                <RTooltip.Trigger className="wa-notice-trigger" aria-label="About this demo">
-                    <InfoIcon />
-                </RTooltip.Trigger>
-                <RTooltip.Portal>
-                    <RTooltip.Content className="wa-portal wa-notice-tip" side="bottom" align="end" sideOffset={6}>
-                        This is a sample application showcasing AG Charts and AG Grid features. All data shown is
-                        synthetic and randomly generated for demonstration purposes only.
-                        <RTooltip.Arrow className="wa-notice-arrow" width={10} height={5} />
-                    </RTooltip.Content>
-                </RTooltip.Portal>
-            </RTooltip.Root>
-        </RTooltip.Provider>
+        <RPopover.Root>
+            <RPopover.Trigger className="wa-notice-trigger" aria-label="About this demo">
+                <InfoIcon />
+            </RPopover.Trigger>
+            <RPopover.Portal>
+                <RPopover.Content className="wa-portal wa-notice-tip" side="bottom" align="end" sideOffset={6}>
+                    This is a sample application showcasing AG Charts and AG Grid features. All data shown is synthetic
+                    and randomly generated for demonstration purposes only.
+                    <RPopover.Arrow className="wa-notice-arrow" width={10} height={5} />
+                </RPopover.Content>
+            </RPopover.Portal>
+        </RPopover.Root>
     );
 }

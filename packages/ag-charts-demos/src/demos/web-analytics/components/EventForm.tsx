@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { AnnotationType } from '../types';
 
@@ -18,9 +18,6 @@ export interface FormAnchor {
     y: number;
 }
 
-/** Keeps an anchored form clear of the viewport edges. */
-const MARGIN = 8;
-
 const TYPES: { value: AnnotationType; label: string }[] = [
     { value: 'marketing', label: 'Marketing' },
     { value: 'product', label: 'Product' },
@@ -29,48 +26,28 @@ const TYPES: { value: AnnotationType; label: string }[] = [
 interface EventFormProps {
     /** Day the form opens on: the right-clicked point, or the end of the range. */
     date: Date;
-    /** Days outside the plotted domain would add an event the chart cannot show. */
+    /** Days outside the chart's date domain would add an event the chart cannot show. */
     minDate: Date;
     maxDate: Date;
     onSubmit: (date: Date, label: string, type: AnnotationType) => void;
     onCancel: () => void;
-    /** Set when opened from the context menu; otherwise the form sits under its button. */
-    anchor?: FormAnchor;
 }
 
 /** Popover form for adding an event annotation, opened from the toolbar or the context menu. */
-export function EventForm({ date, minDate, maxDate, onSubmit, onCancel, anchor }: EventFormProps) {
+export function EventForm({ date, minDate, maxDate, onSubmit, onCancel }: EventFormProps) {
     const [dateValue, setDateValue] = useState(() => toInputValue(date));
     const [label, setLabel] = useState('');
     const [type, setType] = useState<AnnotationType>('marketing');
     const labelRef = useRef<HTMLInputElement>(null);
-    const formRef = useRef<HTMLFormElement>(null);
-    const [position, setPosition] = useState(anchor);
 
     useEffect(() => labelRef.current?.focus(), []);
 
-    // Placed before paint, from the rendered size, so the form never opens off-screen.
-    useLayoutEffect(() => {
-        const form = formRef.current;
-        if (!anchor || !form) return;
-        const { width, height } = form.getBoundingClientRect();
-        setPosition({
-            x: Math.max(MARGIN, Math.min(anchor.x, window.innerWidth - width - MARGIN)),
-            y: Math.max(MARGIN, Math.min(anchor.y, window.innerHeight - height - MARGIN)),
-        });
-    }, [anchor]);
-
     return (
         <form
-            ref={formRef}
-            className={anchor ? 'wa-event-form wa-event-form--anchored' : 'wa-event-form'}
-            style={position && { left: position.x, top: position.y }}
+            className="wa-event-form"
             onSubmit={(e) => {
                 e.preventDefault();
                 onSubmit(fromInputValue(dateValue), label.trim(), type);
-            }}
-            onKeyDown={(e) => {
-                if (e.key === 'Escape') onCancel();
             }}
         >
             <label className="wa-field">

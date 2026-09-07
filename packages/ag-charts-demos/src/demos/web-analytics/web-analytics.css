@@ -435,10 +435,6 @@
     gap: 8px;
 }
 .wa-event-form {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    z-index: 40;
     width: 260px;
     display: flex;
     flex-direction: column;
@@ -450,11 +446,6 @@
     box-shadow: var(--wa-shadow-popover);
 }
 /* Opened from the context menu: placed at the click point in viewport space. */
-.wa-event-form--anchored {
-    position: fixed;
-    right: auto;
-    bottom: auto;
-}
 .wa-field {
     display: flex;
     flex-direction: column;
@@ -637,6 +628,15 @@
     justify-content: flex-start;
     align-items: center;
     gap: 4px;
+}
+
+.wa-app .wa-traffic-tooltip .ag-charts-tooltip-label {
+    /* The default `flex: 1` stretches the label away from its symbol. */
+    flex: 0 1 auto;
+}
+
+.wa-app .wa-traffic-tooltip .ag-charts-tooltip-value {
+    font-weight: bold;
     /* Sit against the row's right edge whatever the label width, so values line up. */
     margin-inline-start: auto;
     padding-inline-start: 16px;
@@ -661,19 +661,10 @@
     font-size: 12px;
 }
 
-.wa-app .wa-traffic-tooltip .ag-charts-tooltip-label {
-    /* The default `flex: 1` stretches the label away from its symbol. */
-    flex: 0 1 auto;
-    .wa-grid-2-even,
-}
-
-.wa-app .wa-traffic-tooltip .ag-charts-tooltip-value {
-    font-weight: bold;
-}
-
 /* ---- responsive: stack multi-column layouts, keep everything readable ---- */
 @media (max-width: 1100px) {
     .wa-grid-2,
+    .wa-grid-2-even,
     .wa-grid-3 {
         grid-template-columns: 1fr;
     }

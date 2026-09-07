@@ -1,3 +1,4 @@
+import * as RPopover from '@radix-ui/react-popover';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 import type { DailyPoint } from '../data';
@@ -42,12 +43,12 @@ export function OverviewView({
     const [selectedDays, setSelectedDays] = useState<Date[]>([]);
     // Reported back by the grid; feeds the card's count and never reaches the chart.
     const [filterModel, setFilterModel] = useState<Record<string, unknown>>({});
-    const gridRef = useRef<SessionsGridHandle>(null);
     const [displayedRowCount, setDisplayedRowCount] = useState(0);
     const onGridStateChange = useCallback((model: Record<string, unknown>, rowCount: number) => {
         setFilterModel(model);
         setDisplayedRowCount(rowCount);
     }, []);
+    const gridRef = useRef<SessionsGridHandle>(null);
     // Clicked annotation, and the day the add-event form is open on (null = closed).
     const [selectedAnnotationId, setSelectedAnnotationId] = useState<string | null>(null);
     const [formDay, setFormDay] = useState<Date | null>(null);
@@ -78,6 +79,15 @@ export function OverviewView({
         setFormDay(day);
         setFormAnchor(anchor);
     }, []);
+
+    // A right-click opens the form at the pointer; the toolbar button anchors it itself.
+    const pointAnchor = useMemo(
+        () =>
+            formAnchor && {
+                current: { getBoundingClientRect: () => new DOMRect(formAnchor.x, formAnchor.y, 0, 0) },
+            },
+        [formAnchor]
+    );
 
     const addEvent = useCallback(
         (date: Date, label: string, type: AnnotationType) => {
@@ -134,26 +144,36 @@ export function OverviewView({
                                 Remove &ldquo;{selectedAnnotation.label}&rdquo;
                             </button>
                         )}
-                        <button
-                            className="wa-btn wa-btn--secondary"
-                            disabled={!lastDay}
-                            aria-expanded={formDay != null}
-                            onClick={() => (formDay == null && lastDay ? openEventForm(lastDay) : setFormDay(null))}
+                        <RPopover.Root
+                            open={formDay != null}
+                            onOpenChange={(open) => (open && lastDay ? openEventForm(lastDay) : setFormDay(null))}
                         >
-                            Add event
-                        </button>
-                        {formDay != null && firstDay && lastDay && (
-                            <EventForm
-                                // Reopening on another day starts the form afresh.
-                                key={formDay.getTime()}
-                                date={formDay}
-                                minDate={firstDay}
-                                maxDate={lastDay}
-                                anchor={formAnchor}
-                                onSubmit={addEvent}
-                                onCancel={() => setFormDay(null)}
-                            />
-                        )}
+                            {pointAnchor && <RPopover.Anchor virtualRef={pointAnchor} />}
+                            <RPopover.Trigger className="wa-btn wa-btn--secondary" disabled={!lastDay}>
+                                Add event
+                            </RPopover.Trigger>
+                            <RPopover.Portal>
+                                <RPopover.Content
+                                    className="wa-portal"
+                                    side="bottom"
+                                    align="end"
+                                    sideOffset={6}
+                                    collisionPadding={8}
+                                >
+                                    {formDay != null && firstDay && lastDay && (
+                                        <EventForm
+                                            // Reopening on another day starts the form afresh.
+                                            key={formDay.getTime()}
+                                            date={formDay}
+                                            minDate={firstDay}
+                                            maxDate={lastDay}
+                                            onSubmit={addEvent}
+                                            onCancel={() => setFormDay(null)}
+                                        />
+                                    )}
+                                </RPopover.Content>
+                            </RPopover.Portal>
+                        </RPopover.Root>
                     </div>
                 </div>
                 <div className="wa-chart-box-lg" role="tabpanel" aria-labelledby={kpiTabId(metric)}>
