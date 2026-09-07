@@ -1,8 +1,8 @@
 import { ModuleRegistry, enterpriseRegistry } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
-import { Background } from './features/background/background';
 import { backgroundRegionsTheme } from './features/background-regions/backgroundRegionsTheme';
+import { Background } from './features/background/background';
 import { Foreground } from './features/foreground/foreground';
 import { SeriesArea } from './features/series-area/seriesArea';
 import { LicenseManager } from './license/licenseManager';

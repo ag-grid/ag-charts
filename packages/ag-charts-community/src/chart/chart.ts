@@ -1,8 +1,4 @@
-import type {
-    CanvasPoint,
-    DynamicContext,
-    NormalisedTextOrSegments,
-} from 'ag-charts-core';
+import type { CanvasPoint, DynamicContext, NormalisedTextOrSegments } from 'ag-charts-core';
 import {
     ActionOnSet,
     AgDocument,
