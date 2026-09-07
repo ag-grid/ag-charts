@@ -1,3 +1,5 @@
+import { type KeyboardEvent, useRef } from 'react';
+
 import type { DailyPoint, summary } from '../data';
 import { fmtDelta } from '../format';
 import { METRICS, type MetricKey } from '../metrics';
@@ -19,8 +21,6 @@ export interface KpiDef {
     formatValue: (value: number) => string;
 }
 
-// Build the KPI set from the current summary, its daily breakdown, and an optional
-// comparison summary.
 export function buildKpis(current: Summary, daily: DailyPoint[], previous: Summary): KpiDef[] {
     return METRICS.map((metric) => {
         const before = metric.value(previous);
@@ -53,8 +53,36 @@ export function kpiTabId(key: MetricKey) {
  * the selected one drives the chart beneath it.
  */
 export function KpiTiles({ kpis, activeKey, onSelect }: KpiTilesProps) {
+    const tabsRef = useRef<HTMLDivElement>(null);
+
+    // Selection follows focus, so the roving tabIndex below always lands on the active tab.
+    const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+        const last = kpis.length - 1;
+        const current = kpis.findIndex((kpi) => kpi.key === activeKey);
+        let next: number;
+        switch (event.key) {
+            case 'ArrowRight':
+                next = current === last ? 0 : current + 1;
+                break;
+            case 'ArrowLeft':
+                next = current === 0 ? last : current - 1;
+                break;
+            case 'Home':
+                next = 0;
+                break;
+            case 'End':
+                next = last;
+                break;
+            default:
+                return;
+        }
+        event.preventDefault();
+        onSelect(kpis[next].key);
+        tabsRef.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
+    };
+
     return (
-        <div className="wa-kpi-tabs" role="tablist" aria-label="Traffic metric">
+        <div className="wa-kpi-tabs" role="tablist" aria-label="Traffic metric" ref={tabsRef} onKeyDown={onKeyDown}>
             {kpis.map((kpi) => {
                 const up = (kpi.delta ?? 0) >= 0;
                 const active = kpi.key === activeKey;
@@ -66,8 +94,7 @@ export function KpiTiles({ kpis, activeKey, onSelect }: KpiTilesProps) {
                         role="tab"
                         className={active ? 'wa-kpi is-active' : 'wa-kpi'}
                         aria-selected={active}
-                        // Only the selected tab is in the tab order; arrow keys are not
-                        // wired up, so leave the rest reachable by clicking.
+                        // Roving tab order: Tab reaches the strip, arrow keys move within it.
                         tabIndex={active ? 0 : -1}
                         // Resolves `currentcolor` for the active tab's underline.
                         style={active ? { color: kpi.color } : undefined}

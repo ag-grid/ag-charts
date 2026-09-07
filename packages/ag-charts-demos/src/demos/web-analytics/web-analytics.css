@@ -210,7 +210,9 @@
 }
 .wa-kpi-tabs {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    /* Always one row, however many KPIs there are. */
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
     margin: 0 -20px 16px;
     border-bottom: 1px solid var(--wa-border);
     background: var(--wa-panel-2);
