@@ -2,6 +2,7 @@
 import { getEntry, type CollectionEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import { Icon, IconName } from '@ag-website-shared/components/icon/Icon';
+import { LinkIcon } from '@ag-website-shared/components/link-icon/LinkIcon';
 import { getPageHashUrl } from '@components/gallery/utils/urlPaths';
 import type { GalleryData, GalleryExample, GalleryExampleChartType } from '@ag-grid-types';
 import { GalleryExampleLink } from '@components/gallery/components/GalleryExampleLink';
@@ -31,19 +32,18 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
 >
     <div class={styles.toolbar} data-gallery-toolbar>
         <div class:list={[styles.toolbarInner, 'layout-page-max-width']}>
-            <div class={styles.toolbarTitleGroup}>
-                <span class={styles.toolbarTitle}>AG Charts Gallery</span>
-                <div class={styles.toolbarCtas}>
-                    {
-                        GALLERY_CTAS.map((cta) => (
-                            <a id={cta.id} href={urlWithBaseUrl(cta.url)} class="button-tertiary">
-                                {cta.title} <Icon name="chevronRight" />
-                            </a>
-                        ))
-                    }
-                </div>
+            <div class={styles.toolbarCtas}>
+                {
+                    GALLERY_CTAS.map((cta) => (
+                        <a id={cta.id} href={urlWithBaseUrl(cta.url)} class="button-tertiary">
+                            {cta.title} <Icon name="chevronRight" />
+                        </a>
+                    ))
+                }
             </div>
-            <GalleryExampleThemeDropdown client:only="react" />
+            <div class={styles.toolbarThemeDropdown}>
+                <GalleryExampleThemeDropdown client:only="react" />
+            </div>
         </div>
     </div>
 
@@ -86,6 +86,7 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
                                     <>
                                         <h2 id={seriesName} class="gallery-list-title">
                                             {galleryFamilyHeading(familyTitle)}
+                                            <LinkIcon client:visible href={`#${seriesName}`} />
                                         </h2>
                                         {examples
                                             .filter(({ hidden }) => !hidden)
@@ -130,7 +131,7 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
             return; // Not the gallery page.
         }
 
-        const navAnchors = document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]');
+        const navAnchors = document.querySelectorAll<HTMLAnchorElement>('.menu a[href^="#"]');
         const headings = [] as MarkdownHeading[];
 
         navAnchors.forEach((anchor) => {
@@ -297,7 +298,6 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
     }
 
     .intro {
-        max-width: 70ch;
         margin-bottom: $spacing-size-4;
     }
 

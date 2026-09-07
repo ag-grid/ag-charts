@@ -37,28 +37,17 @@
 .toolbarInner {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     height: 100%;
 }
 
-// A label rather than a heading: the page's H1 is in the scrolling content below.
-.toolbarTitle {
-    // At the full 2xl size the title overflows the toolbar band once it competes with
-    // the theme dropdown for width (below ~430px).
-    font-size: clamp(20px, 5vw, var(--text-fs-2xl));
-    line-height: var(--text-lh-2xl);
-    font-weight: var(--text-bold);
-    color: var(--color-fg-primary);
+// Held right by a margin rather than `space-between`: the CTAs are dropped below the
+// gallery breakpoint, leaving the dropdown as the only child.
+.toolbarThemeDropdown {
+    margin-left: auto;
 }
 
-.toolbarTitleGroup {
-    display: flex;
-    align-items: center;
-    gap: $spacing-size-6;
-}
-
-// Dropped below the gallery breakpoint, where the title and theme dropdown already fill
-// the fixed-height toolbar band.
+// Dropped below the gallery breakpoint, where the theme dropdown already fills the
+// fixed-height toolbar band.
 .toolbarCtas {
     display: none;
 

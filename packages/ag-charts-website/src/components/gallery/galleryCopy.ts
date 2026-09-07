@@ -7,7 +7,7 @@
 /** Copy for the `/gallery/` hub, shared with its `.md` twin. */
 export const GALLERY_HUB_COPY = {
     title: 'AG Charts Gallery - 100+ JavaScript Chart Examples | AG Charts',
-    h1: 'AG Charts Gallery - JavaScript Chart Examples',
+    h1: 'AG Charts Gallery',
     description:
         'Browse 100+ interactive chart examples built with AG Charts: bar, line, pie, area, financial, hierarchical and more. View the live demos and copy the code.',
     intro: 'The AG Charts gallery contains over 100 live, interactive chart examples - from bar, line, pie and area charts to financial, statistical, hierarchical and specialised types. Every example runs in the browser and comes with copy-ready code for JavaScript, React, Angular and Vue.',
