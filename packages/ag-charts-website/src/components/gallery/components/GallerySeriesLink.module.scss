@@ -2,9 +2,7 @@
 
 .seriesLink {
     position: relative;
-    width: 100%;
     font-weight: var(--text-regular);
-    top: 5px;
 
     &:hover .arrowIcon {
         --icon-color: var(--color-link-hover);

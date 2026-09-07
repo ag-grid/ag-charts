@@ -62,6 +62,26 @@
     }
 }
 
+// A carousel slide: fixed width so a partly-visible neighbour signals more to scroll to.
+.layout-thumbnail {
+    flex: 0 0 auto;
+    width: 240px;
+    scroll-snap-align: start;
+
+    .image {
+        padding: $spacing-size-3;
+    }
+}
+
+// Sized entirely by its container, for a card grid that sets its own track widths.
+.layout-fill {
+    width: 100%;
+
+    .image {
+        padding: $spacing-size-3;
+    }
+}
+
 .modifiedIndicator {
     color: var(--color-brand-primary);
     margin-left: $spacing-size-1;

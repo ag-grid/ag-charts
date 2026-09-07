@@ -4,9 +4,9 @@ import Layout from '@layouts/Layout.astro';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import GalleryExampleRunner from '@components/gallery/components/GalleryExampleRunner.astro';
 import { getGalleryPages } from '@components/gallery/utils/pageData';
-import { GalleryExampleLink } from '@components/gallery/components/GalleryExampleLink';
+import { GalleryExampleCarousel } from '@components/gallery/components/GalleryExampleCarousel';
 import { GallerySeriesLink } from '@components/gallery/components/GallerySeriesLink';
-import { galleryFamilyHeading, resolveGallerySeo } from '@components/gallery/utils/gallerySeo';
+import { resolveGallerySeo } from '@components/gallery/utils/gallerySeo';
 import { relatedExamplesHeading } from '@components/gallery/utils/relatedExamples';
 import { GALLERY_FRAMEWORK_LINKS } from '@components/gallery/galleryFrameworkLinks';
 import { GALLERY_IMAGE_DPR_ENHANCEMENT } from '@constants';
@@ -30,18 +30,17 @@ const relatedHeading = relatedExamplesHeading({ seriesTitle: page.seriesTitle, r
     <div class="gallery-page-container layout-max-width-small text-base">
         <div class="title-container">
             <h1>{seo.h1}</h1>
-            <div class="chart-link-item">
-                <span>
-                    {
-                        page.enterprise && (
-                            <span class="enterpriseIcon">
-                                <Icon client:only="react" name="enterprise" />
-                            </span>
-                        )
-                    }
-                </span>
-                <GallerySeriesLink client:only="react" series={page.seriesTitle} link={page.seriesLink} />
-            </div>
+            {
+                page.enterprise && (
+                    <span class="enterpriseIcon">
+                        <Icon client:only="react" name="enterprise" />
+                    </span>
+                )
+            }
+        </div>
+
+        <div class="seriesDocsLink text-secondary">
+            <GallerySeriesLink client:only="react" series={page.seriesTitle} link={page.seriesLink} />
         </div>
 
         <p class="intro">{seo.intro}</p>
@@ -68,19 +67,15 @@ const relatedHeading = relatedExamplesHeading({ seriesTitle: page.seriesTitle, r
                     <h2 class="moreExampleLabel">{relatedHeading}</h2>
 
                     <p class="moreExampleHubLink text-secondary">
-                        <a href={page.galleryHubUrl}>View all {galleryFamilyHeading(page.seriesTitle)}</a>
+                        <a href={page.galleryHubUrl}>View All Examples</a>
                     </p>
 
-                    <div class="moreExamples">
-                        {relatedExamples.map(({ label, name }) => (
-                            <GalleryExampleLink
-                                client:visible
-                                label={label}
-                                exampleName={name}
-                                enableDprScaling={GALLERY_IMAGE_DPR_ENHANCEMENT}
-                            />
-                        ))}
-                    </div>
+                    <GalleryExampleCarousel
+                        client:visible
+                        examples={relatedExamples}
+                        enableDprScaling={GALLERY_IMAGE_DPR_ENHANCEMENT}
+                        label={relatedHeading}
+                    />
                 </Fragment>
             )
         }
@@ -104,17 +99,18 @@ const relatedHeading = relatedExamplesHeading({ seriesTitle: page.seriesTitle, r
         align-items: center;
         flex-wrap: wrap;
         gap: 0 $spacing-size-2;
-        padding-bottom: $spacing-size-5;
+        padding-bottom: $spacing-size-2;
     }
 
-    .chart-link-item {
-        display: flex;
-        align-items: center;
+    // Sits directly under the title, styled as the framework links below the intro.
+    .seriesDocsLink {
+        margin-bottom: $spacing-size-4;
+        font-size: var(--text-fs-sm);
     }
 
     .intro {
-        max-width: 70ch;
         margin-bottom: $spacing-size-2;
+        font-size: var(--text-fs-sm);
     }
 
     .frameworkLinks {
@@ -144,13 +140,6 @@ const relatedHeading = relatedExamplesHeading({ seriesTitle: page.seriesTitle, r
     .moreExampleHubLink {
         margin-bottom: $spacing-size-6;
         text-align: center;
-    }
-
-    .moreExamples {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: $spacing-size-6;
     }
 </style>
 
