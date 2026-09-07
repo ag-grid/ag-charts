@@ -463,6 +463,210 @@ describe('DataSource', () => {
             expect(windowStart).toEqual(new Date('2024-01-22 00:00:00'));
             expect(windowEnd).toEqual(new Date('2024-02-12 00:00:00'));
         });
+
+        it('keeps the visible window when a response changes the point count', async () => {
+            const WEEKLY = [
+                { time: new Date('2024-01-01 00:00:00'), price: 0 },
+                { time: new Date('2024-01-08 00:00:00'), price: 50 },
+                { time: new Date('2024-01-15 00:00:00'), price: 25 },
+                { time: new Date('2024-01-22 00:00:00'), price: 75 },
+                { time: new Date('2024-01-29 00:00:00'), price: 50 },
+                { time: new Date('2024-02-05 00:00:00'), price: 25 },
+                { time: new Date('2024-02-12 00:00:00'), price: 50 },
+            ];
+
+            // A denser response inside the requested window, as a real server sends when the window
+            // narrows: the same range then holds more bands, which a stored ratio no longer addresses.
+            const withDailyDetail = (windowStart: unknown, windowEnd: unknown) => {
+                if (!isDate(windowStart) || !isDate(windowEnd)) return WEEKLY;
+                const daily: typeof WEEKLY = [];
+                for (let time = windowStart.getTime(); time <= windowEnd.getTime(); time += 24 * 3600 * 1000) {
+                    daily.push({ time: new Date(time), price: 40 });
+                }
+                return [...WEEKLY.filter(({ time }) => time < windowStart || time > windowEnd), ...daily];
+            };
+
+            const calls: Array<{ windowStart: unknown; windowEnd: unknown }> = [];
+            const ranges: Array<{ start?: unknown; end?: unknown }> = [];
+            await prepareChart(
+                {
+                    getData: ({ windowStart, windowEnd }) => {
+                        calls.push({ windowStart, windowEnd });
+                        return delay(1).then(() => withDailyDetail(windowStart, windowEnd));
+                    },
+                },
+                {
+                    ...ORDINAL_TIME_OPTIONS,
+                    listeners: { zoom: (event) => ranges.push({ ...event.rangeX }) },
+                }
+            );
+            await waitForChartStability(chart);
+
+            calls.length = 0;
+            await scrollAction(cx, cy, -1)(chart);
+            await settleUntil(() => calls.length > 0, 'the zoomed data request');
+            // The window the load itself moves is only requested a frame or two later, so asserting a
+            // single request means waiting past the point where a second one would have arrived.
+            for (let i = 0; i < 10; i++) {
+                await waitForChartStability(chart);
+            }
+
+            expect(calls).toHaveLength(1);
+            expect(ranges.at(-1)?.start).toEqual(calls[0].windowStart);
+        });
+    });
+
+    describe('initial zoom state', () => {
+        const TIME_RESPONSE = [
+            { time: new Date('2024-01-01 00:00:00'), price: 0 },
+            { time: new Date('2024-01-08 00:00:00'), price: 50 },
+            { time: new Date('2024-01-15 00:00:00'), price: 25 },
+            { time: new Date('2024-01-22 00:00:00'), price: 75 },
+            { time: new Date('2024-01-29 00:00:00'), price: 50 },
+            { time: new Date('2024-02-05 00:00:00'), price: 25 },
+            { time: new Date('2024-02-12 00:00:00'), price: 50 },
+        ];
+
+        const NUMERIC_RESPONSE = [
+            { x: 1, y: 0 },
+            { x: 2, y: 50 },
+            { x: 3, y: 25 },
+            { x: 4, y: 75 },
+            { x: 5, y: 50 },
+            { x: 6, y: 25 },
+            { x: 7, y: 50 },
+        ];
+
+        const CATEGORY_RESPONSE = [
+            { x: 'one', y: 0 },
+            { x: 'two', y: 50 },
+            { x: 'three', y: 25 },
+            { x: 'four', y: 75 },
+            { x: 'five', y: 50 },
+            { x: 'six', y: 25 },
+            { x: 'seven', y: 50 },
+        ];
+
+        const serialisableDate = (value: string) => ({ __type: 'date' as const, value: new Date(value).toISOString() });
+
+        let windows: Array<{ windowStart: unknown; windowEnd: unknown }>;
+
+        async function prepareWithWindowCapture(
+            baseOptions: AgCartesianChartOptions,
+            data: unknown[],
+            initialState: AgChartOptions['initialState']
+        ) {
+            windows = [];
+            await prepareChart(
+                {
+                    getData: ({ windowStart, windowEnd }) => {
+                        windows.push({ windowStart, windowEnd });
+                        return Promise.resolve(data);
+                    },
+                },
+                { ...baseOptions, initialState }
+            );
+            // A second, window-corrected request lands a frame or two after the first response, so
+            // asserting a single request means waiting past the point where it would have arrived.
+            for (let i = 0; i < 10; i++) {
+                await waitForChartStability(chart);
+                await delay(5);
+            }
+        }
+
+        // A `rangeX` request is already stated in data space, so it needs no domain to interpret and
+        // must be honoured by the very first request rather than after a corrective round-trip.
+        describe('rangeX', () => {
+            const timeRange = {
+                start: serialisableDate('2024-01-22 00:00:00'),
+                end: serialisableDate('2024-02-12 00:00:00'),
+            };
+
+            it.each([
+                ['time', TIME_OPTIONS, timeRange, new Date('2024-01-22 00:00:00'), new Date('2024-02-12 00:00:00')],
+                [
+                    'unit-time',
+                    UNIT_TIME_OPTIONS,
+                    timeRange,
+                    new Date('2024-01-22 00:00:00'),
+                    new Date('2024-02-12 00:00:00'),
+                ],
+                [
+                    'ordinal-time',
+                    ORDINAL_TIME_OPTIONS,
+                    timeRange,
+                    new Date('2024-01-22 00:00:00'),
+                    new Date('2024-02-12 00:00:00'),
+                ],
+                ['number', NUMERIC_OPTIONS, { start: 4, end: 7 }, 4, 7],
+            ] as const)('requests the range once on a %s axis', async (type, options, range, start, end) => {
+                const data = type === 'number' ? NUMERIC_RESPONSE : TIME_RESPONSE;
+                await prepareWithWindowCapture(options, data, { zoom: { rangeX: range } });
+
+                expect(windows).toEqual([{ windowStart: start, windowEnd: end }]);
+            });
+
+            it('restores the same zoom as it would from static data', async () => {
+                await prepareWithWindowCapture(NUMERIC_OPTIONS, NUMERIC_RESPONSE, {
+                    zoom: { rangeX: { start: 4, end: 7 } },
+                });
+
+                expect(chart.getState().zoom.ratioX).toEqual({ start: 0.5, end: 1 });
+            });
+
+            // A range may state only one of its bounds, in which case the other is the domain edge —
+            // which is exactly what an omitted window bound already means to the data source.
+            it.each([
+                ['start', { start: 4 }, { windowStart: 4, windowEnd: undefined }],
+                ['end', { end: 7 }, { windowStart: undefined, windowEnd: 7 }],
+            ] as const)('requests a %s-only range once', async (_bound, range, expected) => {
+                await prepareWithWindowCapture(NUMERIC_OPTIONS, NUMERIC_RESPONSE, { zoom: { rangeX: range } });
+
+                expect(windows).toEqual([expected]);
+            });
+
+            it('requests the range once for a grouping-valued range', async () => {
+                await prepareWithWindowCapture(CATEGORY_OPTIONS, CATEGORY_RESPONSE, {
+                    zoom: {
+                        rangeX: {
+                            start: { value: 'four', groupPercentage: 0 },
+                            end: { value: 'seven', groupPercentage: 1 },
+                        },
+                    },
+                });
+
+                expect(windows).toEqual([{ windowStart: 'four', windowEnd: 'seven' }]);
+            });
+        });
+
+        // A `ratioX` request cannot be resolved without the domain, so an axis that does not know its
+        // bounds up front has to ask once to learn them. A bounded axis has no such excuse.
+        describe('ratioX', () => {
+            it('requests the ratio once when the axis is bounded', async () => {
+                await prepareWithWindowCapture(TIME_OPTIONS, TIME_RESPONSE, {
+                    zoom: { ratioX: { start: 0.5, end: 1 } },
+                });
+
+                expect(windows).toHaveLength(1);
+                expect(windows[0].windowEnd).toEqual(new Date('2024-01-07 00:00:00'));
+            });
+
+            it('omits the window rather than sending an unresolvable one when the axis is unbounded', async () => {
+                const unbounded: AgCartesianChartOptions = {
+                    ...BASE_OPTIONS,
+                    axes: {
+                        y: { type: 'number', position: 'left', crosshair: { enabled: false } },
+                        x: { type: 'time', position: 'bottom', crosshair: { enabled: false } },
+                    },
+                    series: [{ type: 'line', xKey: 'time', yKey: 'price' }],
+                };
+                await prepareWithWindowCapture(unbounded, TIME_RESPONSE, {
+                    zoom: { ratioX: { start: 0.5, end: 1 } },
+                });
+
+                expect(windows[0]).toEqual({ windowStart: undefined, windowEnd: undefined });
+            });
+        });
     });
 
     describe('source parameter', () => {

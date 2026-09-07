@@ -134,6 +134,7 @@ export type {
     ZoomChangeState,
     ZoomEventSourceDetail,
     ZoomLoadMementoEvent,
+    ZoomMementoRange,
     ZoomPanStartEvent,
     ZoomSaveMementoEvent,
 } from './core/eventsHub';

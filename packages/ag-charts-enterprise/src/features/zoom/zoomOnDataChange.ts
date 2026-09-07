@@ -9,7 +9,7 @@ import type {
 } from 'ag-charts-core';
 import { ChartAxisDirection, clamp, definedZoomState, isNumericValue, toNumber } from 'ag-charts-core';
 
-const { userInteraction } = _ModuleSupport;
+const { BandScale, userInteraction } = _ModuleSupport;
 
 type ZoomChangeState = _ModuleSupport.ZoomChangeState;
 
@@ -17,10 +17,13 @@ type ZoomChangeState = _ModuleSupport.ZoomChangeState;
 // preserveDomain interpolates ratios in that space: `toVisibleMinMax` on data change, `fromVisibleMinMax` after.
 type DomainMinMax = { domainMin: number; domainMax: number };
 type VisibleMinMax = { axisId: AxisID; visibleMin: number; visibleMax: number };
+// A band-positioned time scale addresses its domain by ordinal, so the ratios spanning a value range
+// depend on how many points it holds; those axes snapshot the range and re-convert it through the scale.
+type VisibleRange = { axisId: AxisID; range: _ModuleSupport.ZoomMementoRange };
 
 type DesiredDomains = {
     type: 'domain';
-    domains: VisibleMinMax[];
+    domains: (VisibleMinMax | VisibleRange)[];
 };
 
 type DesiredStickToEnd = {
@@ -147,6 +150,13 @@ export class ZoomOnDataChange {
             case 'domain': {
                 const changes: { [K in AxisID]: Readonly<ZoomMinMaxDirection> } = {};
                 for (const entry of desiredChanges.domains) {
+                    if ('range' in entry) {
+                        const ratios = this.ctx.zoomManager.rangeToRatio(entry.axisId, entry.range);
+                        if (ratios) {
+                            changes[entry.axisId] = { direction: 'x', ...ratios };
+                        }
+                        continue;
+                    }
                     const domainMinMax: DomainMinMax | undefined = this.computeDomainMinMax(entry.axisId);
                     if (domainMinMax) {
                         changes[entry.axisId] = fromVisibleMinMax(domainMinMax, entry);
@@ -206,12 +216,24 @@ export class ZoomOnDataChange {
             // Skip fully zoomed-out axes — avoids snapshotting a placeholder [0,1] domain on a
             // freshly-recreated axis and collapsing the zoom when re-interpolated against the real domain.
             if (ratios.min === 0 && ratios.max === 1) continue;
-            const domainMinMax: DomainMinMax | undefined = this.computeDomainMinMax(axisId);
-            if (domainMinMax) {
-                const entry = toVisibleMinMax(axisId, domainMinMax, ratios);
+            const entry = this.snapshotVisible(axisId, ratios);
+            if (entry) {
                 this.desiredChanges.domains.push(entry);
             }
         }
+    }
+
+    private snapshotVisible(axisId: AxisID, ratios: ZoomMinMax): VisibleMinMax | VisibleRange | undefined {
+        const axisCtx = this.ctx.axisManager.getAxisIdContext(axisId);
+
+        if (axisCtx?.continuous && BandScale.is(axisCtx.scale)) {
+            const range = this.ctx.zoomManager.getRange(axisId, ratios);
+            // A half-stated range would re-anchor to a domain edge, so both bounds must be known.
+            return range?.start != null && range.end != null ? { axisId, range } : undefined;
+        }
+
+        const domainMinMax: DomainMinMax | undefined = this.computeDomainMinMax(axisId);
+        return domainMinMax && toVisibleMinMax(axisId, domainMinMax, ratios);
     }
 
     private performStickToEnd(): void {
