@@ -2720,13 +2720,23 @@ describe('CartesianAxis', () => {
             });
         });
 
-        // The frame `axisLabelsOverlap` compares in: every label shares one rotation, so rotating
-        // the rendered anchor back by it leaves each glyph box axis-aligned.
+        // The frame `axisLabelsOverlap` compares in: every label shares one rotation, and each is
+        // rotated about its own anchor, so rotating the whole layout back by that rotation leaves
+        // every glyph box axis-aligned again. Backing a rendered box out of the shared rotation
+        // gives `glyph - anchor + rotate(anchor, -rotation)`, so the glyph box has to be taken
+        // RELATIVE to its anchor - `computeBBoxWithoutTransforms()` is measured at `node.x`/`node.y`
+        // and already carries it, and adding the rotated anchor without subtracting it counts the
+        // anchor twice and reports rotated neighbours as clear.
         const collidingPairs = (nodes: any[]) => {
             const boxes = nodes.map((node) => {
                 const local = node.computeBBoxWithoutTransforms();
                 const anchor = rotatePoint(node.x, node.y, -node.rotation);
-                return { x: local.x + anchor.x, y: local.y + anchor.y, w: local.width, h: local.height };
+                return {
+                    x: local.x - node.x + anchor.x,
+                    y: local.y - node.y + anchor.y,
+                    w: local.width,
+                    h: local.height,
+                };
             });
             let count = 0;
             for (let i = 0; i < boxes.length; i += 1) {
