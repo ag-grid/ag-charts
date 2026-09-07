@@ -1,10 +1,16 @@
 <div class="example-controls">
     <div class="controls-row">
-        Scale:
-        <button id="scale-btn-100" class="active">100</button>
-        <button id="scale-btn-1000">1K</button>
-        <button id="scale-btn-10000">10K</button>
-        <button id="scale-btn-100000">100K</button>
+        <span>Scale:</span>
+        <div class="button-group" role="group" aria-label="Scale">
+            <input type="radio" id="scale-100" name="scale" value="100" checked onchange="scaleChange(event)" />
+            <label for="scale-100">100</label>
+            <input type="radio" id="scale-1000" name="scale" value="1000" onchange="scaleChange(event)" />
+            <label for="scale-1000">1K</label>
+            <input type="radio" id="scale-10000" name="scale" value="10000" onchange="scaleChange(event)" />
+            <label for="scale-10000">10K</label>
+            <input type="radio" id="scale-100000" name="scale" value="100000" onchange="scaleChange(event)" />
+            <label for="scale-100000">100K</label>
+        </div>
         <span id="scale-status" style="margin-left: 1em; font-style: italic"></span>
     </div>
 </div>

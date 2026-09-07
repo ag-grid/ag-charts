@@ -26,6 +26,7 @@ const options: AgStandaloneChartOptions = {
             idKey: 'id',
             parentIdKey: 'parentId',
             direction: 'horizontal',
+            reverse: false,
             node: {
                 clickToExpand: false,
                 image: {
@@ -52,13 +53,16 @@ const options: AgStandaloneChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function changeDirection(direction: 'horizontal' | 'vertical') {
+function directionChange(event: Event) {
+    const direction = (event.target as HTMLInputElement).value as 'horizontal' | 'vertical';
     (options.series![0] as AgOrganizationSeriesOptions).direction = direction;
     chart.update(options);
 }
 
 function toggleReverse() {
-    (options.series![0] as AgOrganizationSeriesOptions).reverse = !(options.series![0] as AgOrganizationSeriesOptions)
-        .reverse;
+    const series = options.series![0] as AgOrganizationSeriesOptions;
+    series.reverse = !series.reverse;
+    const button = document.getElementById('reverseToggle') as HTMLButtonElement;
+    button.setAttribute('aria-pressed', String(series.reverse));
     chart.update(options);
 }

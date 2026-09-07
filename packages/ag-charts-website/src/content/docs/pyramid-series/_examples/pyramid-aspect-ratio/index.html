@@ -1,12 +1,53 @@
 <div class="example-controls">
     <div class="controls-row">
         <span>Direction:</span>
-        <button onclick="setDirection('horizontal')">Horizontal</button>
-        <button class="gap-right" onclick="setDirection('vertical')">Vertical</button>
+        <div class="button-group gap-right" role="group" aria-label="Direction">
+            <input
+                type="radio"
+                id="direction-horizontal"
+                name="direction"
+                value="horizontal"
+                onchange="directionChange(event)"
+            />
+            <label for="direction-horizontal">Horizontal</label>
+            <input
+                type="radio"
+                id="direction-vertical"
+                name="direction"
+                value="vertical"
+                checked
+                onchange="directionChange(event)"
+            />
+            <label for="direction-vertical">Vertical</label>
+        </div>
         <span>Aspect Ratio:</span>
-        <button onclick="setAspectRatio(2 / 3)">2 / 3</button>
-        <button onclick="setAspectRatio(1.1547)">Equilateral</button>
-        <button onclick="setAspectRatio(3 / 2)">3 / 2</button>
+        <div class="button-group" role="group" aria-label="Aspect Ratio">
+            <input
+                type="radio"
+                id="aspect-ratio-2-3"
+                name="aspect-ratio"
+                value="2-3"
+                onchange="aspectRatioChange(event)"
+            />
+            <label for="aspect-ratio-2-3">2 / 3</label>
+            <input
+                type="radio"
+                id="aspect-ratio-equilateral"
+                name="aspect-ratio"
+                value="equilateral"
+                onchange="aspectRatioChange(event)"
+            />
+            <label for="aspect-ratio-equilateral">Equilateral</label>
+            <input
+                type="radio"
+                id="aspect-ratio-3-2"
+                name="aspect-ratio"
+                value="3-2"
+                checked
+                onchange="aspectRatioChange(event)"
+            />
+            <label for="aspect-ratio-3-2">3 / 2</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

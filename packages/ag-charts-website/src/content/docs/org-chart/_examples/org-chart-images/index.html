@@ -1,10 +1,23 @@
 <div class="example-controls">
     <div class="controls-row">
         Position:
-        <button onclick="changePosition('top')">Top</button>
-        <button onclick="changePosition('right')">Right</button>
-        <button onclick="changePosition('bottom')">Bottom</button>
-        <button onclick="changePosition('left')">Left</button>
+        <div class="button-group" role="group" aria-label="Position">
+            <input type="radio" id="position-top" name="position" value="top" onchange="changePosition(event)" />
+            <label for="position-top">Top</label>
+            <input type="radio" id="position-right" name="position" value="right" onchange="changePosition(event)" />
+            <label for="position-right">Right</label>
+            <input type="radio" id="position-bottom" name="position" value="bottom" onchange="changePosition(event)" />
+            <label for="position-bottom">Bottom</label>
+            <input
+                type="radio"
+                id="position-left"
+                name="position"
+                value="left"
+                checked
+                onchange="changePosition(event)"
+            />
+            <label for="position-left">Left</label>
+        </div>
         <span class="gap-left">
             Corner Radius:
             <input
