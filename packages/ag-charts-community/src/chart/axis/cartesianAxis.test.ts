@@ -2613,6 +2613,7 @@ describe('CartesianAxis', () => {
             it('lets each option own its own direction on a horizontal axis', async () => {
                 await renderChart(bottomAxisOptions({ rotation: 45, verticalAlign: 'bottom' }));
                 const verticalOnly = captureAnchorsByText(getAxisLabelNodes(chart, 'bottom'));
+                const verticalOnlyBoxes = canvasBoxesByText('bottom');
 
                 await renderChart(bottomAxisOptions({ rotation: 45, textAlign: 'right' }));
                 const horizontalOnly = captureAnchorsByText(getAxisLabelNodes(chart, 'bottom'));
@@ -2623,11 +2624,17 @@ describe('CartesianAxis', () => {
                 for (const node of nodes) {
                     const alongAxis = horizontalOnly.get(node.datum.text);
                     const acrossAxis = verticalOnly.get(node.datum.text);
+                    const acrossAxisBox = verticalOnlyBoxes.get(node.datum.text);
                     expect(alongAxis).toBeDefined();
                     expect(acrossAxis).toBeDefined();
+                    expect(acrossAxisBox).toBeDefined();
 
                     expect(node.datum.x).toBeCloseTo(alongAxis!.x, 5);
-                    expect(node.datum.y).toBeCloseTo(acrossAxis!.y, 5);
+                    // The flush is a statement about the glyphs, and `textAlign` moves those
+                    // relative to the anchor, so the rendered edge is what has to survive the
+                    // second option - an anchor comparison cannot see the box move.
+                    const box = Transformable.toCanvas(node);
+                    expect(box.y + box.height).toBeCloseTo(acrossAxisBox!.y + acrossAxisBox!.height, 1);
                     // Anti-vacuous: neither single-option layout already produces the combined one,
                     // so the two coordinates come from different sources.
                     expect(node.datum.y).not.toBeCloseTo(alongAxis!.y, 1);
