@@ -15,6 +15,9 @@ interface EnterpriseRegistryOptions {
     injectWatermark?: (domManager: any, text: string) => void;
     createBackground?: (ctx: any) => any;
     createForeground?: (ctx: any) => any;
+    createSeriesArea?: (ctx: any) => any;
+    /** Theme template for the enterprise-only `seriesArea` options, merged under `seriesArea`. */
+    seriesAreaThemeTemplate?: object;
 }
 
 export const enterpriseRegistry: EnterpriseRegistryOptions = {};

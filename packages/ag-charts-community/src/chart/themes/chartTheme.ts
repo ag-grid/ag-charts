@@ -26,6 +26,7 @@ import {
     ModuleRegistry,
     type ModuleScope,
     ModuleType,
+    enterpriseRegistry,
     PALETTE_ALT_DOWN_FILL,
     PALETTE_ALT_DOWN_STROKE,
     PALETTE_ALT_NEUTRAL_FILL,
@@ -615,9 +616,9 @@ function getSeriesThemeTemplate(seriesType: string, moduleRegistry: ModuleScope)
         }
     }
 
-    for (const module of moduleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
+    if (enterpriseRegistry.seriesAreaThemeTemplate != null) {
         themeTemplate = mergeDefaultsShallowOperations(
-            { seriesArea: { [module.name]: module.themeTemplate } },
+            { seriesArea: enterpriseRegistry.seriesAreaThemeTemplate },
             themeTemplate
         );
     }

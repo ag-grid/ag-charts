@@ -1,7 +1,6 @@
 import {
     AgCartesianChartOptions,
     AgCharts,
-    BackgroundRegionsModule,
     BarSeriesModule,
     LegendModule,
     LineSeriesModule,
@@ -13,7 +12,6 @@ import {
 import { getData } from './data';
 
 ModuleRegistry.registerModules([
-    BackgroundRegionsModule,
     BarSeriesModule,
     LegendModule,
     LineSeriesModule,

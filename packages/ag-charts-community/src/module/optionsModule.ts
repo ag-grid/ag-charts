@@ -115,6 +115,8 @@ function withoutIgnoredClause(message: string): string {
  */
 const MAX_DISPATCH_DEPTH = 32;
 
+const CARTESIAN_ONLY_SERIES_AREA_OPTIONS = ['backgroundRegions'];
+
 /** The `validations` subtree of options that are not yet known to be valid: public keys, unknown values. */
 type UnvalidatedValidations = { [K in keyof AgChartValidationsOptions]?: unknown };
 
@@ -1043,17 +1045,17 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private removeIncompatibleSeriesAreaOptions(options: T) {
         const chartType = this.chartDef?.name;
         const seriesArea = options.seriesArea as Record<string, unknown> | undefined;
-        if (chartType == null || seriesArea == null) return;
+        if (seriesArea == null || chartType == null || chartType === 'cartesian') return;
 
-        for (const module of this.moduleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
-            if (!module.chartType || module.chartType === chartType || seriesArea[module.name] == null) continue;
+        for (const optionsKey of CARTESIAN_ONLY_SERIES_AREA_OPTIONS) {
+            if (seriesArea[optionsKey] == null) continue;
 
-            delete seriesArea[module.name];
+            delete seriesArea[optionsKey];
 
             const seriesTypeMessage =
                 options.series?.at(0)?.type == null ? 'this series type' : `\`${options.series?.at(0)?.type}\` series`;
             this.recordValidationMessage(
-                `Option \`seriesArea.${module.name}\` is not supported by ${seriesTypeMessage}, ignoring.`
+                `Option \`seriesArea.${optionsKey}\` is not supported by ${seriesTypeMessage}, ignoring.`
             );
         }
     }
