@@ -218,7 +218,22 @@ describe('instance modules', () => {
                 licenseKeySupplied = true;
                 chart = AgCharts.create(lineChart());
                 await waitForChartStability(chart);
-                expect(validateLicense).toHaveBeenCalledTimes(1);
+                expect(validateLicense).toHaveBeenCalled();
+                expect(injectWatermark).not.toHaveBeenCalled();
+            });
+
+            it('re-checks the key on update, so one supplied after creation is validated', async () => {
+                ModuleRegistry.registerModules(LINE_MODULES);
+
+                licenseKeySupplied = false;
+                chart = AgCharts.create(lineChart());
+                await waitForChartStability(chart);
+                expect(validateLicense).not.toHaveBeenCalled();
+
+                licenseKeySupplied = true;
+                await chart.update(lineChart());
+                await waitForChartStability(chart);
+                expect(validateLicense).toHaveBeenCalled();
                 expect(injectWatermark).not.toHaveBeenCalled();
             });
 
@@ -227,13 +242,12 @@ describe('instance modules', () => {
 
                 const enterpriseChart = AgCharts.create(lineChart(), { modules: [enterprisePlugin] });
                 await waitForChartStability(enterpriseChart);
-                expect(validateLicense).toHaveBeenCalledTimes(1);
+                expect(validateLicense).toHaveBeenCalled();
                 expect(injectWatermark).toHaveBeenCalledTimes(1);
                 enterpriseChart.destroy();
 
                 chart = AgCharts.create(lineChart());
                 await waitForChartStability(chart);
-                expect(validateLicense).toHaveBeenCalledTimes(1);
                 expect(injectWatermark).toHaveBeenCalledTimes(1);
                 expect(chart.isModuleRegistered('enterprise-plugin')).toBe(false);
             });
@@ -245,7 +259,7 @@ describe('instance modules', () => {
                 const forgedPlugin = { ...enterprisePlugin, enterprise: false };
                 chart = AgCharts.create(lineChart(), { modules: [forgedPlugin] });
                 await waitForChartStability(chart);
-                expect(validateLicense).toHaveBeenCalledTimes(1);
+                expect(validateLicense).toHaveBeenCalled();
                 expect(injectWatermark).toHaveBeenCalledTimes(1);
             });
 
@@ -293,7 +307,7 @@ describe('instance modules', () => {
                 chart = AgCharts.create(lineChart(), { modules: [enterprisePlugin] });
                 await waitForChartStability(chart);
                 expect(lastLicensedDocument()).toBe(hostDocument);
-                expect(validateLicense).toHaveBeenCalledTimes(1);
+                expect(validateLicense).toHaveBeenCalled();
                 expect(injectWatermark).toHaveBeenCalledTimes(1);
             });
         });

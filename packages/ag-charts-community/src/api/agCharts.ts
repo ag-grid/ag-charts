@@ -104,10 +104,9 @@ function usesEnterpriseModules(moduleScope: ModuleScope): boolean {
 }
 
 // The watermark decision depends on the hosting document, so a manager built for one document is
-// never reused by a chart in another. The console banner is latched once per page by the manager itself.
+// never reused by a chart in another. The manager itself validates once per key and latches the banner.
 const NO_DOCUMENT = {};
 const licenseManagers = new WeakMap<object, LicenseManager>();
-const validatedLicenseManagers = new WeakSet<LicenseManager>();
 
 function hostDocument(options: AgChartOptions): Document | undefined {
     return options.container?.ownerDocument ?? (typeof document === 'undefined' ? undefined : document);
@@ -123,11 +122,9 @@ function validatedLicenseManager(options: AgChartOptions, keyRequired: boolean):
         if (licenseManager == null) return;
         licenseManagers.set(cacheKey, licenseManager);
     }
-    if (validatedLicenseManagers.has(licenseManager)) return licenseManager;
     if (keyRequired && !licenseManager.hasLicenseKey()) return;
 
     licenseManager.validateLicense();
-    validatedLicenseManagers.add(licenseManager);
     return licenseManager;
 }
 
@@ -498,17 +495,17 @@ class AgChartsInternal {
         return proxy;
     }
 
-    // Re-run on every update: a community chart's scope gains enterprise modules registered after it was created.
+    // Re-run on every update: the scope may gain enterprise modules, or a key may have been set since.
     private static licenseCheck(proxy: AgChartInstanceProxy, chartOptions: ChartOptions) {
         const { userOptions, processedOptions, moduleRegistry } = chartOptions;
         // Presets strip this undocumented flag from the processed options, so read it as the user gave it.
         proxy.withinStudio ??= (userOptions as { withinStudio?: boolean }).withinStudio;
-        if (proxy.licenseManager != null || proxy.withinStudio) return;
+        if (proxy.withinStudio) return;
 
         // A community-only scope is validated only when a key was supplied, and is never watermarked.
         const enterpriseScope = usesEnterpriseModules(moduleRegistry);
         const licenseManager = validatedLicenseManager(processedOptions, !enterpriseScope);
-        if (licenseManager == null || !enterpriseScope) return;
+        if (licenseManager == null || !enterpriseScope || proxy.licenseManager != null) return;
 
         proxy.licenseManager = licenseManager;
         if (licenseManager.isDisplayWatermark()) {
