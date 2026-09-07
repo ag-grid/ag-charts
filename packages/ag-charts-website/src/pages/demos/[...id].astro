@@ -5,12 +5,6 @@ import { fileURLToPath } from 'node:url';
 // Astro hoists getStaticPaths and runs it in isolation, so it cannot reference
 // component-scope consts — resolve paths from import.meta.url inline instead.
 export function getStaticPaths() {
-    // Archive builds are fully noindex and omit the sitemap; there is nothing to
-    // gain from carrying the demos into them.
-    if (import.meta.env.BASE_URL?.includes('archive')) {
-        return [];
-    }
-
     const demosDir = fileURLToPath(new URL('../../../../ag-charts-demos/src/demos', import.meta.url));
     const ids = readdirSync(demosDir, { withFileTypes: true })
         .filter((entry) => entry.isDirectory())
