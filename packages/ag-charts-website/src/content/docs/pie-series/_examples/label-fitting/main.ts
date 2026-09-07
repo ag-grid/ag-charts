@@ -72,8 +72,8 @@ function setWrapping(wrapping: string) {
     refresh();
 }
 
-function setTruncate(truncate: boolean) {
-    fit.truncate = truncate;
+function setTruncate(event: Event) {
+    fit.truncate = (event.target as HTMLInputElement).value === 'true';
     refresh();
 }
 

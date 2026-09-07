@@ -39,9 +39,11 @@
                 <option value="6">6</option>
             </select>
         </div>
-        <div>
-            <button onclick="setTruncate(true)">Truncate</button>
-            <button onclick="setTruncate(false)">Hide</button>
+        <div class="button-group" role="group" aria-label="Truncate">
+            <input type="radio" id="truncate-show" name="truncate" value="true" checked onchange="setTruncate(event)" />
+            <label for="truncate-show">Truncate</label>
+            <input type="radio" id="truncate-hide" name="truncate" value="false" onchange="setTruncate(event)" />
+            <label for="truncate-hide">Hide</label>
         </div>
     </div>
 </div>

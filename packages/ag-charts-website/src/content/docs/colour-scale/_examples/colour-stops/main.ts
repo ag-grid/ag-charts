@@ -28,8 +28,6 @@ const namedFills: AgColorScaleColorStop[] = [
     { color: 'seagreen', name: 'Promoter' },
 ];
 
-let currentMode: 'continuous' | 'discrete' = 'continuous';
-
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -68,8 +66,8 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setMode(mode: 'continuous' | 'discrete') {
-    currentMode = mode;
+function modeChange(event: Event) {
+    const mode = (event.target as HTMLInputElement).value as 'continuous' | 'discrete';
     const series = options.series![0] as AgHeatmapSeriesOptions;
     const discrete = mode === 'discrete';
     series.colorScale = { ...series.colorScale, mode };
@@ -78,7 +76,8 @@ function setMode(mode: 'continuous' | 'discrete') {
     chart.update(options);
 }
 
-function setFills(type: 'equal' | 'stops' | 'named') {
+function fillsChange(event: Event) {
+    const type = (event.target as HTMLInputElement).value as 'equal' | 'stops' | 'named';
     const series = options.series![0] as AgHeatmapSeriesOptions;
     const fills = type === 'named' ? namedFills : type === 'stops' ? stopFills : equalFills;
     series.colorScale = { ...series.colorScale, fills };

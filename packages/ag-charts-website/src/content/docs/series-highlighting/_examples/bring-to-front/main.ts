@@ -18,6 +18,7 @@ const options: AgCartesianChartOptions = {
             yName: 'Subscriptions',
             fillOpacity: 1,
             strokeWidth: 4,
+            highlight: { bringToFront: true },
         },
         {
             type: 'area',
@@ -26,6 +27,7 @@ const options: AgCartesianChartOptions = {
             yName: 'Services',
             fillOpacity: 1,
             strokeWidth: 4,
+            highlight: { bringToFront: true },
         },
         {
             type: 'area',
@@ -34,22 +36,17 @@ const options: AgCartesianChartOptions = {
             yName: 'Products',
             fillOpacity: 1,
             strokeWidth: 4,
+            highlight: { bringToFront: true },
         },
     ],
 };
 
 const chart = AgCharts.create(options);
 
-function enableBringToFront() {
+function bringToFrontChange(event: Event) {
+    const bringToFront = (event.target as HTMLInputElement).value === 'true';
     options.series!.forEach((series) => {
-        (series as AgAreaSeriesOptions).highlight = { bringToFront: true };
-    });
-    chart.update(options);
-}
-
-function disableBringToFront() {
-    options.series!.forEach((series) => {
-        (series as AgAreaSeriesOptions).highlight = { bringToFront: false };
+        (series as AgAreaSeriesOptions).highlight = { bringToFront };
     });
     chart.update(options);
 }

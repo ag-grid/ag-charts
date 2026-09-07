@@ -1,8 +1,25 @@
 <div class="example-controls">
     <div class="controls-row">
         Missing Data Fill:
-        <button onclick="setMissingFill(true)">On</button>
-        <button onclick="setMissingFill(false)">Off</button>
+        <div class="button-group" role="group" aria-label="Missing Data Fill">
+            <input
+                type="radio"
+                id="missing-data-fill-on"
+                name="missing-data-fill"
+                value="true"
+                checked
+                onchange="missingFillChange(event)"
+            />
+            <label for="missing-data-fill-on">On</label>
+            <input
+                type="radio"
+                id="missing-data-fill-off"
+                name="missing-data-fill"
+                value="false"
+                onchange="missingFillChange(event)"
+            />
+            <label for="missing-data-fill-off">Off</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

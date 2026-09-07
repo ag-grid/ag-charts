@@ -58,19 +58,11 @@ const options: AgCartesianChartOptions<DataType> = {
 
 const chart = AgCharts.create(options);
 
-function scatter() {
+function seriesTypeChange(event: Event) {
+    const seriesType = (event.target as HTMLInputElement).value as 'scatter' | 'line';
     if (options.series !== undefined) {
         for (const series of options.series) {
-            series.type = 'scatter';
-        }
-    }
-    chart.update(options);
-}
-
-function line() {
-    if (options.series !== undefined) {
-        for (const series of options.series) {
-            series.type = 'line';
+            series.type = seriesType;
         }
     }
     chart.update(options);

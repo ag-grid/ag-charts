@@ -122,4 +122,14 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
         'layout-inline': { frameworks: [] },
         'layout-matrix': { frameworks: [] },
     },
+    'org-chart-test': {
+        // The 100K segment opens a confirm() dialog; Playwright auto-dismisses it, so the
+        // handler cancels and nothing is redrawn.
+        'org-chart-zoom-scale': { skipCanvasUpdateCheck: ['100K'] },
+    },
+    'range-area-series-e2e': {
+        // The Low/High segment destroys and re-creates the chart, so the new wrapper's
+        // render counter restarts at 0 and can never exceed the old one.
+        'shared-low-high-match': { skipCanvasUpdateCheck: ['Low/High'], frameworks: ['vanilla'] },
+    },
 };

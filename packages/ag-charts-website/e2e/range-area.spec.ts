@@ -14,10 +14,10 @@ test.describe('range-area', () => {
         // Check that the initialisation of the two charts match
         test.describe('init', () => {
             test('shared', async ({ page }) => {
-                await page.getByText('Shared').click();
+                await page.getByText('Shared', { exact: true }).click();
             });
             test('lowhigh', async ({ page }) => {
-                await page.getByText('Low/High').click();
+                await page.getByText('Low/High', { exact: true }).click();
             });
             test.afterEach(async ({ page }) => {
                 const canvas = page.locator(SELECTORS.canvasCenter);
