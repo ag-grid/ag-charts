@@ -45,9 +45,7 @@ function toggleAlignAxesToPivot() {
 
 /** inScope */
 function updatePlacementSelects() {
-    for (const id of ['title-placement', 'label-placement', 'crosshair-label-placement']) {
-        (document.getElementById(id) as HTMLSelectElement).disabled = !alignAxesToPivot;
-    }
+    (document.getElementById('placementGroup') as HTMLFieldSetElement).disabled = !alignAxesToPivot;
 }
 
 function updateTitlePlacement(placement: AgCartesianAxisCrossAtPlacement) {
