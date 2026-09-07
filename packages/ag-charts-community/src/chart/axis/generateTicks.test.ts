@@ -4,7 +4,7 @@ import type { AgNumericValue } from 'ag-charts-types';
 
 import { LinearScale } from '../../scale/linearScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
-import { estimateScaleTickCount } from './generateTicks';
+import { estimateScaleTickCount, generateTicks } from './generateTicks';
 import { withTemporaryDomain } from './generateTicksUtils';
 
 // A minTickCount close to tickCount makes buildTickData's overlap loop iterate linearly instead of
@@ -64,5 +64,46 @@ describe('withTemporaryDomain', () => {
         const p7 = scale.convert(lo + 7n);
         expect(p5).toBeLessThan(p6);
         expect(p6).toBeLessThan(p7);
+    });
+});
+
+// The band flush is measured off the label nodes, which carry the rotation the axis renders with,
+// while `createLabelData` compares in a frame that adds `defaultRotation` - so handing the callback
+// the latter measures a layout a quarter turn from the one that will be applied.
+describe('labelBandOffsets', () => {
+    it('is asked for the rotation the axis renders with, not the collision-check frame', () => {
+        const scale = new LinearScale();
+        scale.domain = [0, 100];
+        scale.range = [0, 600];
+
+        const requested: number[] = [];
+        const result = generateTicks({
+            label: { enabled: true, fontSize: 12, avoidCollisions: true, autoRotate: false } as any,
+            // A horizontal axis, where `defaultRotation` is a quarter turn and a `verticalAlign`
+            // flush applies.
+            parallel: true,
+            axisRotation: Math.PI / -2,
+            scale,
+            domain: [0, 100],
+            range: [0, 600],
+            visibleRange: [0, 1],
+            niceMode: [],
+            reverse: false,
+            primaryTickCount: undefined,
+            defaultTickMinSpacing: 50,
+            labelOffset: 0,
+            sideFlag: -1,
+            interval: undefined,
+            labelBandOffsets: (_ticks: unknown, rotation: number) => {
+                requested.push(rotation);
+                return undefined;
+            },
+            tickFormatter: () => (value: any) => String(value),
+        } as any);
+
+        expect(requested.length).toBeGreaterThan(0);
+        for (const rotation of requested) {
+            expect(rotation).toBe(result.rotation);
+        }
     });
 });

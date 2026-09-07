@@ -72,16 +72,10 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         const labelSpacing = label.minSpacing ?? (configuredRotation === 0 && rotation === 0 ? 10 : 0);
         const labelRotation = initialRotation + rotation;
         const labelPadding = expandLabelPadding(label);
-        // Where the band flush will leave each label, rather than where the anchor sits now. Rotated
-        // labels of differing size flush by differing amounts, which moves them along their own text
-        // direction - so a tick set that clears here without it can still overlap once rendered.
-        //
-        // The rotation handed over is the one the axis will RENDER with, not `labelRotation`:
-        // `defaultRotation` is the frame `createLabelData` compares in (a parallel axis lays its
-        // labels out along the axis line), while the flush is measured from the label nodes, whose
-        // `rotation` is `configuredRotation + autoRotation`. Passing `labelRotation` here measures a
-        // layout a quarter turn from the rendered one, which invents offsets on axes that flush by
-        // nothing at all.
+        // Where the band flush will leave each label, rather than where the anchor sits now: rotated
+        // labels of differing size flush by differing amounts, along their own text direction.
+        // The flush is measured off the label nodes, so it needs the rendered rotation - not
+        // `labelRotation`, whose `defaultRotation` is only the frame `createLabelData` compares in.
         const bandOffsets = labelBandOffsets?.(
             tickData.ticks,
             configuredRotation + rotation,

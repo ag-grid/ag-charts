@@ -2880,7 +2880,7 @@ describe('CartesianAxis', () => {
                     // spurious offset has room to drop a different number of them.
                     expect(baseline.length).toBeLessThan(12);
 
-                    await renderChart(unequalWidthOptions({ verticalAlign }));
+                    await renderChart(unequalWidthOptions(verticalAlign));
                     const nodes = getAxisLabelNodes(chart, 'bottom');
                     expect(nodes.map((n) => n.datum.text)).toEqual(baseline.map((n) => n.datum.text));
                     expect(collidingPairs(nodes)).toBe(0);
