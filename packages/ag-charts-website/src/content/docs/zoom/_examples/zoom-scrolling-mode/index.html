@@ -1,7 +1,25 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="setScrollingMode('zoom')">Zoom</button>
-        <button onclick="setScrollingMode('pan')">Pan</button>
+        <span>Scrolling Mode:</span>
+        <div class="button-group" role="group" aria-label="Scrolling Mode">
+            <input
+                type="radio"
+                id="scrolling-zoom"
+                name="scrolling-mode"
+                value="zoom"
+                checked
+                onchange="setScrollingMode(event)"
+            />
+            <label for="scrolling-zoom">Zoom</label>
+            <input
+                type="radio"
+                id="scrolling-pan"
+                name="scrolling-mode"
+                value="pan"
+                onchange="setScrollingMode(event)"
+            />
+            <label for="scrolling-pan">Pan</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

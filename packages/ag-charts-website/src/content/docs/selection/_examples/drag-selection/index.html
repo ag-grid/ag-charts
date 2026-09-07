@@ -1,8 +1,25 @@
 <div class="example-controls">
     <div class="controls-row">
-        Drag containment:
-        <button onclick="setContainment('any')"><code>'any'</code></button>
-        <button onclick="setContainment('all')"><code>'all'</code></button>
+        <span>Drag containment:</span>
+        <div class="button-group" role="group" aria-label="Drag containment">
+            <input
+                type="radio"
+                id="containment-any"
+                name="containment"
+                value="any"
+                checked
+                onchange="containmentChange(event)"
+            />
+            <label for="containment-any"><code>'any'</code></label>
+            <input
+                type="radio"
+                id="containment-all"
+                name="containment"
+                value="all"
+                onchange="containmentChange(event)"
+            />
+            <label for="containment-all"><code>'all'</code></label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

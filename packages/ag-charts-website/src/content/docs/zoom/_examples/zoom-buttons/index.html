@@ -1,8 +1,21 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="changeVisible('always')">Always</button>
-        <button onclick="changeVisible('zoomed')">Zoomed</button>
-        <button onclick="changeVisible('hover')">Hover Region</button>
+        <span>Visible:</span>
+        <div class="button-group" role="group" aria-label="Visible">
+            <input type="radio" id="visible-always" name="visible" value="always" onchange="changeVisible(event)" />
+            <label for="visible-always">Always</label>
+            <input type="radio" id="visible-zoomed" name="visible" value="zoomed" onchange="changeVisible(event)" />
+            <label for="visible-zoomed">Zoomed</label>
+            <input
+                type="radio"
+                id="visible-hover"
+                name="visible"
+                value="hover"
+                checked
+                onchange="changeVisible(event)"
+            />
+            <label for="visible-hover">Hover Region</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

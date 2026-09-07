@@ -36,14 +36,16 @@ function toggleAlignAxesToPivot() {
     alignAxesToPivot = !alignAxesToPivot;
     options.alignAxesToPivot = alignAxesToPivot;
     chart.update(options);
+    (document.getElementById('alignAxesToPivotToggle') as HTMLButtonElement).setAttribute(
+        'aria-pressed',
+        String(alignAxesToPivot)
+    );
     updatePlacementSelects();
 }
 
 /** inScope */
 function updatePlacementSelects() {
-    for (const id of ['title-placement', 'label-placement', 'crosshair-label-placement']) {
-        (document.getElementById(id) as HTMLSelectElement).disabled = !alignAxesToPivot;
-    }
+    (document.getElementById('placementGroup') as HTMLFieldSetElement).disabled = !alignAxesToPivot;
 }
 
 function updateTitlePlacement(placement: AgCartesianAxisCrossAtPlacement) {
