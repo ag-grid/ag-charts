@@ -21,16 +21,17 @@ export class SeriesArea extends _ModuleSupport.SeriesArea {
         this.underlayGroup.appendChild(this.regionGroup);
         this.overlayGroup.appendChild(this.labelGroup);
 
-        this.cleanup.register(
-            ctx.chartState.observe((get) => {
-                this.applyRegionOptions(get('options', 'seriesArea')?.backgroundRegions);
-            }),
-            () => {
-                this.detachInstances();
-                this.regionGroup.remove();
-                this.labelGroup.remove();
-            }
-        );
+        this.cleanup.register(() => {
+            this.detachInstances();
+            this.regionGroup.remove();
+            this.labelGroup.remove();
+        });
+    }
+
+    override set(properties: object) {
+        const result = super.set(properties);
+        this.applyRegionOptions(this.backgroundRegions);
+        return result;
     }
 
     protected override onUpdate(clipRect: _ModuleSupport.BBox | undefined): void {
