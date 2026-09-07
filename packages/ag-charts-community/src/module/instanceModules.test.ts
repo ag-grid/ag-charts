@@ -238,6 +238,17 @@ describe('instance modules', () => {
                 expect(chart.isModuleRegistered('enterprise-plugin')).toBe(false);
             });
 
+            it('licenses by module identity, not by the enterprise flag on the definition', async () => {
+                ModuleRegistry.registerModules(LINE_MODULES);
+
+                // A copy of an enterprise module with the flag stripped is still not a community module.
+                const forgedPlugin = { ...enterprisePlugin, enterprise: false };
+                chart = AgCharts.create(lineChart(), { modules: [forgedPlugin] });
+                await waitForChartStability(chart);
+                expect(validateLicense).toHaveBeenCalledTimes(1);
+                expect(injectWatermark).toHaveBeenCalledTimes(1);
+            });
+
             it('skips the licence check for a chart hosted within Studio', async () => {
                 ModuleRegistry.registerModules([...LINE_MODULES, enterprisePlugin]);
                 chart = AgCharts.create({ ...lineChart(), withinStudio: true } as any);

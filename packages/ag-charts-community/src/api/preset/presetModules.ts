@@ -4,6 +4,7 @@ import {
     and,
     boolean,
     colorOrRef,
+    communityModule,
     date,
     defined,
     greaterThan,
@@ -112,7 +113,7 @@ commonSparklineOptionsDef.overrideDevicePixelRatio = undocumented(number);
 // @ts-expect-error undocumented option
 commonSparklineOptionsDef.foreground = undocumented(defined);
 
-export const SparklinePresetModule: PresetModuleDefinition<AgSparklineOptions> = {
+export const SparklinePresetModule: PresetModuleDefinition<AgSparklineOptions> = /* #__PURE__ */ communityModule({
     type: 'preset',
     name: 'sparkline',
     version: VERSION,
@@ -139,4 +140,4 @@ export const SparklinePresetModule: PresetModuleDefinition<AgSparklineOptions> =
     processData: sparklineDataPreset,
 
     themeTemplate: sparklineThemeTemplate,
-};
+});

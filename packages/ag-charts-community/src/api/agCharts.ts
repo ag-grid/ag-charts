@@ -8,6 +8,7 @@ import {
     deepClone,
     deepFreeze,
     enterpriseRegistry,
+    isCommunityModule,
     isPlainObject,
     jsonWalk,
     strictObjectKeys,
@@ -93,10 +94,11 @@ function takeOptionsArgumentIssue<O>(options: O, methodName: string): { options:
     return { options: rest as O, issue: issue as string };
 }
 
-// A chart is licensed by the modules it can use, not by which package happens to be loaded on the page.
+// A chart is licensed by the modules it can use, and only definitions the community package marked
+// count as community: the `enterprise` flag is caller-writable, so it decides nothing here.
 function usesEnterpriseModules(moduleScope: ModuleScope): boolean {
     for (const module of moduleScope.listModules()) {
-        if (module.enterprise) return true;
+        if (!isCommunityModule(module)) return true;
     }
     return false;
 }

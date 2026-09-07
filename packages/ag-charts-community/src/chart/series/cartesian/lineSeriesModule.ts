@@ -14,6 +14,7 @@ import {
     SAFE_STROKE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    communityModule,
 } from 'ag-charts-core';
 import type { AgLineSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -80,7 +81,7 @@ const themeTemplate: ExtensibleSeriesTheme<'line'> = {
     },
 };
 
-export const LineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions> = {
+export const LineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions> = /* #__PURE__ */ communityModule({
     type: 'series',
     name: 'line',
     chartType: 'cartesian',
@@ -104,4 +105,4 @@ export const LineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions> = {
     themeTemplate,
 
     create: (ctx: DynamicContext<ChartRegistry>) => new LineSeries(ctx),
-};
+});

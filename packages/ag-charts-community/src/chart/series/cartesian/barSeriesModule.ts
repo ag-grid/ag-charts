@@ -14,6 +14,7 @@ import {
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
+    communityModule,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { AgBarSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -73,7 +74,7 @@ const themeTemplate: ExtensibleSeriesTheme<'bar'> = {
     },
 };
 
-export const BarSeriesModule: SeriesModuleDefinition<AgBarSeriesOptions> = {
+export const BarSeriesModule: SeriesModuleDefinition<AgBarSeriesOptions> = /* #__PURE__ */ communityModule({
     type: 'series',
     name: 'bar',
     chartType: 'cartesian',
@@ -90,4 +91,4 @@ export const BarSeriesModule: SeriesModuleDefinition<AgBarSeriesOptions> = {
     themeTemplate,
 
     create: (ctx: DynamicContext<ChartRegistry>) => new BarSeries(ctx),
-};
+});

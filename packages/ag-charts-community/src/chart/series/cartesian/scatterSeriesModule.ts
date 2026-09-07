@@ -11,6 +11,7 @@ import {
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SERIES_SELECTION_THEME,
+    communityModule,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { AgScatterSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -70,7 +71,7 @@ const themeTemplate: ExtensibleSeriesTheme<'scatter'> = {
     gradientLegend: BUBBLE_SCATTER_GRADIENT_LEGEND_THEME,
 };
 
-export const ScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions> = {
+export const ScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions> = /* #__PURE__ */ communityModule({
     type: 'series',
     name: 'scatter',
     chartType: 'cartesian',
@@ -93,4 +94,4 @@ export const ScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions>
     themeTemplate,
 
     create: (ctx: DynamicContext<ChartRegistry>) => new ScatterSeries(ctx),
-};
+});

@@ -11,6 +11,7 @@ import {
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SERIES_SELECTION_THEME,
+    communityModule,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type {
@@ -106,7 +107,7 @@ const themeTemplate: ExtensibleSeriesTheme<'bubble'> = {
     gradientLegend: BUBBLE_SCATTER_GRADIENT_LEGEND_THEME,
 };
 
-export const BubbleSeriesModule: SeriesModuleDefinition<AgBubbleSeriesOptions> = {
+export const BubbleSeriesModule: SeriesModuleDefinition<AgBubbleSeriesOptions> = /* #__PURE__ */ communityModule({
     type: 'series',
     name: 'bubble',
     chartType: 'cartesian',
@@ -129,4 +130,4 @@ export const BubbleSeriesModule: SeriesModuleDefinition<AgBubbleSeriesOptions> =
     themeTemplate,
 
     create: (ctx: DynamicContext<ChartRegistry>) => new BubbleSeries(ctx),
-};
+});

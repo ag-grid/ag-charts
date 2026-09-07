@@ -15,6 +15,7 @@ import {
     MARKER_SERIES_HIGHLIGHT_STYLE,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    communityModule,
 } from 'ag-charts-core';
 import type { AgAreaSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -93,7 +94,7 @@ const themeTemplate: ExtensibleSeriesTheme<'area'> = {
     },
 };
 
-export const AreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions> = {
+export const AreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions> = /* #__PURE__ */ communityModule({
     type: 'series',
     name: 'area',
     chartType: 'cartesian',
@@ -117,4 +118,4 @@ export const AreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions> = {
     themeTemplate,
 
     create: (ctx: DynamicContext<ChartRegistry>) => new AreaSeries(ctx),
-};
+});

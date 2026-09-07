@@ -1,10 +1,10 @@
-import { type PluginModuleDefinition, callbackOf, object, string } from 'ag-charts-core';
+import { type PluginModuleDefinition, callbackOf, communityModule, object, string } from 'ag-charts-core';
 import type { AgLocaleOptions } from 'ag-charts-types';
 
 import { VERSION } from '../version';
 import { Locale } from './locale';
 
-export const LocaleModule: PluginModuleDefinition<AgLocaleOptions> = {
+export const LocaleModule: PluginModuleDefinition<AgLocaleOptions> = /* #__PURE__ */ communityModule({
     type: 'plugin',
     name: 'locale',
     version: VERSION,
@@ -15,4 +15,4 @@ export const LocaleModule: PluginModuleDefinition<AgLocaleOptions> = {
     },
 
     create: (ctx) => new Locale(ctx),
-};
+});
