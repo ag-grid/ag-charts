@@ -113,6 +113,23 @@ test.describe('caption tooltip', () => {
         await expect(tooltip).toContainText('Quarterly Revenue');
     });
 
+    test('a visibility option clears the content selection', async ({ page }) => {
+        await page.locator('label[for="custom-text"]').click();
+        await expect(page.locator('#custom-text')).toBeChecked();
+
+        // Never replaces the tooltip with a visibility-only object, so no content option applies.
+        await page.locator('label[for="visible-never"]').click();
+        await expect(page.locator('#custom-text')).not.toBeChecked();
+
+        // Custom Text is re-selectable because the radio was cleared.
+        await page.locator('label[for="custom-text"]').click();
+        await expect(page.locator('#custom-text')).toBeChecked();
+        await hoverTitle(page);
+        const tooltip = page.locator(SELECTORS.tooltip);
+        await expect(tooltip).toBeVisible();
+        await expect(tooltip).toContainText('Revenue in USD from internal CRM');
+    });
+
     test('tooltip hides when mouse leaves caption', async ({ page }) => {
         await page.locator('label[for="visible-always"]').click();
         await hoverTitle(page);

@@ -47,7 +47,8 @@ function syncControls() {
     const visible = tooltip?.visible ?? (tooltip?.text != null || tooltip?.renderer != null ? 'always' : 'auto');
     visibilityRadios[visible].checked = true;
 
-    if (tooltip == null) {
+    // A visibility-only tooltip carries no content, so no content option is applied.
+    if (tooltip?.text == null && tooltip?.renderer == null) {
         for (const radio of Object.values(contentRadios)) {
             radio.checked = false;
         }
