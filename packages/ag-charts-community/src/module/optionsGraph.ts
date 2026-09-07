@@ -123,6 +123,13 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
     private static readonly GRAFT_EDGE = DEFAULTS_EDGE;
 
+    private static readonly SOURCE_EDGES = [
+        DEFAULTS_EDGE,
+        OVERRIDES_EDGE,
+        USER_OPTIONS_EDGE,
+        USER_PARTIAL_OPTIONS_EDGE,
+    ];
+
     // These keys must be excluded when building the graph, they are instead resolved separately since they are objects
     // that must be applied to arrays.
     private static readonly COMPLEX_KEYS = ['annotations', 'axes', 'series'];
@@ -400,6 +407,29 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             this.rollbackEdgesValue.push(edge);
         }
         super.addEdge(from, to, edge);
+    }
+
+    mergeConditionalBranch(dest: Vertex<unknown>, branch: Vertex<unknown>): void {
+        if (dest === branch) return;
+
+        // Add missing source edges to dest
+        for (const edge of OptionsGraph.SOURCE_EDGES) {
+            const branchValueVertex = this.findNeighbour(branch, edge);
+            if (branchValueVertex && !this.findNeighbour(dest, edge)) {
+                this.addEdge(dest, branchValueVertex, edge);
+            }
+        }
+
+        // Recursiveness:
+        for (const branchChild of this.neighboursWithEdgeValue(branch, PATH_EDGE) ?? []) {
+            const key = this.getVertexValue(branchChild);
+            const destChild = this.findNeighbourWithValue(dest, key, PATH_EDGE);
+            if (destChild) {
+                this.mergeConditionalBranch(destChild, branchChild);
+            } else {
+                this.addEdge(dest, branchChild, PATH_EDGE);
+            }
+        }
     }
 
     /**

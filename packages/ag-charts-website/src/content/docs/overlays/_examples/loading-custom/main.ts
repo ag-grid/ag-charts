@@ -34,8 +34,8 @@ const options: AgChartOptions = {
             renderer: () => {
                 const container = document.createElement('div');
                 container.style.display = 'flex';
-                container.style.alignItems = 'flex-end';
-                container.style.justifyContent = 'flex-start';
+                container.style.justifyContent = 'center';
+                container.style.alignItems = 'center';
                 container.style.flexDirection = 'column';
                 container.style.height = '100%';
                 container.style.boxSizing = 'border-box';
@@ -43,8 +43,8 @@ const options: AgChartOptions = {
                 container.style.animation = 'loading 250ms linear 50ms both';
 
                 const spinner = document.createElement('div');
-                spinner.style.width = '20px';
-                spinner.style.height = '20px';
+                spinner.style.width = '100px';
+                spinner.style.height = '100px';
                 spinner.style.backgroundImage = [
                     'linear-gradient(#333, #333)',
                     'linear-gradient(#999, #999)',

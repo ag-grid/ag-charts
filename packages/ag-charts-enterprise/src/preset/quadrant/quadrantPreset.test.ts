@@ -5,7 +5,9 @@ import {
     type ChartTestCase,
     cartesianChartAssertions,
     compareImageSnapshot,
+    deproxy,
     expectNonBlank,
+    expectWarningsCalls,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -534,5 +536,41 @@ describe('Quadrant Preset label enabled default', () => {
 
     it.each(cases)('%s', (_name, options, expected) => {
         expect(resolveLabelEnabled(options)).toBe(expected);
+    });
+});
+
+describe('AG-18413 quadrant with a key naming no column', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: any;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const createQuadrantChart = async (overrides: Partial<AgQuadrantChartOptions>) => {
+        const options: AgQuadrantChartOptions = { ...NUMERIC, ...overrides };
+        prepareEnterpriseTestOptions(options as AgChartOptions);
+        chart = deproxy(AgCharts.createQuadrantChart(options) as any) as any;
+        await waitForChartStability(chart);
+        return chart.series[0];
+    };
+
+    // An empty key names a column like any other string, so it takes the unmatched-key warning and
+    // the markers are still drawn — at their default size, since no size column resolved.
+    it('draws default-size markers and warns for an empty sizeKey', async () => {
+        const series = await createQuadrantChart({ sizeKey: '' });
+
+        expect(series.getNodeData()).toHaveLength(NUMERIC.data!.length);
+        expectWarningsCalls().toEqual([[`AG Charts - the key '' was not found in any data element for ${series.id}.`]]);
+    });
+
+    it('keeps the series populated for a sizeKey that does name a column', async () => {
+        const series = await createQuadrantChart({ sizeKey: 'size' });
+
+        expect(series.getNodeData()).toHaveLength(NUMERIC.data!.length);
+        expectWarningsCalls().toEqual([]);
     });
 });

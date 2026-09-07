@@ -5,10 +5,9 @@
 /* Also applied to portalled content: Radix menus mount at document.body, outside .fin-container. */
 .fin-container,
 .fin-portal {
-    /* Lightness order is inverted against a light scheme: --fin-panel is the recessed working
-       area, --fin-panel-2 the raised card. */
+    /* Lightness order is inverted against a light scheme: --fin-panel is the recessed working area. */
     --fin-bg: #0e0f11;
-    --fin-panel: #17181a;
+    --fin-panel: #070708;
     /* Above the card: controls and floating menus. */
     --fin-elevated: #212327;
     --fin-elevated-hover: #2b2e34;
@@ -115,8 +114,19 @@
     font-size: 14px;
     font-weight: 650;
     letter-spacing: -0.1px;
-    /* Deliberately ink, not accent — the header carries no brand colour. */
+    /* Deliberately ink, not accent — the wordmark stays neutral; only the mark carries colour. */
     color: var(--fin-text);
+}
+
+.fin-brand-mark {
+    flex: 0 0 auto;
+}
+.fin-brand-mark-badge {
+    fill: var(--fin-accent-strong);
+}
+/* Knocked out to the header tone rather than white, so the badge reads as cut rather than drawn. */
+.fin-brand-mark-glyph {
+    fill: var(--fin-bg);
 }
 
 .fin-up {
@@ -146,34 +156,15 @@
     font-size: 13px;
 }
 
-/* ---- demo notice banner ---- */
-.fin-banner {
+/* ---- demo notice ---- */
+/* Anchor for the tooltip; the toolbar row itself must not grow to fit it. */
+.fin-info {
     position: relative;
-    display: flex;
-    gap: 10px;
-    margin: 8px 12px;
-    padding: 8px 40px 8px 12px;
-    background: var(--fin-notice);
-    color: #fff;
-    font-size: 12px;
-    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
 }
 
-.fin-banner-icon {
-    flex: none;
-    color: #fff;
-}
-
-.fin-banner-text {
-    flex: 0 1 auto;
-    font-weight: 600;
-}
-
-.fin-banner-dismiss {
-    position: absolute;
-    top: 50%;
-    right: 9px;
-    transform: translateY(-50%);
+.fin-info-trigger {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -181,24 +172,36 @@
     height: 22px;
     padding: 0;
     border: none;
+    border-radius: 3px;
     background: transparent;
-    color: #fff;
-    font: inherit;
-    line-height: 1;
+    color: var(--fin-muted);
     cursor: pointer;
-    opacity: 0.85;
 }
-.fin-banner-dismiss:hover {
-    opacity: 1;
+.fin-info-trigger:hover,
+.fin-info-trigger:focus-visible {
+    color: var(--fin-text);
 }
-.fin-banner-dismiss:focus-visible {
-    outline: 1px solid #fff;
+.fin-info-trigger:focus-visible {
+    outline: 1px solid var(--fin-accent);
     outline-offset: 1px;
 }
 
-.fin-clock {
-    color: var(--fin-muted);
-    font-variant-numeric: tabular-nums;
+.fin-info-tooltip {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 10;
+    /* Wide enough to hold the notice on two or three lines, narrow enough to stay on a phone. */
+    width: max-content;
+    max-width: min(320px, calc(100vw - 24px));
+    padding: 8px 10px;
+    background: var(--fin-notice);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 45%);
+    pointer-events: none;
 }
 
 /* ---- layout ---- */
@@ -431,8 +434,7 @@
     min-height: 0;
 }
 
-/* Cards that hold a chart or a gauge share the same panel framing: a raised surface
-   on the recessed working area, with no outline. */
+/* Cards that hold a chart or a gauge share the same panel framing */
 .fin-detail-card {
     background: var(--fin-panel);
     padding: 12px;
@@ -571,8 +573,8 @@
 .fin-watchlist-grid .ag-row.fin-grid-active,
 .fin-trending-grid .ag-row.fin-grid-active {
     box-shadow:
-        inset 4px 0 0 0 var(--fin-accent),
-        inset 0 0 0 1px var(--fin-accent);
+        inset 5px 0 0 0 var(--fin-accent),
+        inset 0 0 0 2px var(--fin-accent);
     background: rgba(68, 147, 248, 0.12);
 }
 /* :focus-visible so a mouse click, which also focuses a cell, leaves the row unringed. */

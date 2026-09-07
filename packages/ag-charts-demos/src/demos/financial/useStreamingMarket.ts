@@ -58,6 +58,8 @@ export function useStreamingMarket() {
     // Ticks advance the model synchronously but flush state through one animation frame, so setters
     // never outpace paint.
     const flushRef = useRef(0);
+    // The oldest bar the chart still displays; the selected feed keeps everything newer.
+    const retainFromRef = useRef<number>();
     if (!feedsRef.current || !peerFeedRef.current || !trendingFeedRef.current || !mostActiveFeedRef.current) {
         const now = Date.now();
         feedsRef.current = new Map(ALL_INSTRUMENTS.map((inst) => [inst.ticker, new MarketFeed(inst, now)]));
@@ -82,15 +84,19 @@ export function useStreamingMarket() {
     // Bumped on every tick so consumers of the (mutable) peer feed recompute.
     const [peerTick, setPeerTick] = useState(0);
 
+    const setRetainFrom = useCallback((time?: number) => {
+        retainFromRef.current = time;
+    }, []);
+
     // Select an instrument, catching a lazily-ticked mover feed up to the current time first so its
     // series looks live rather than frozen at the moment it was seeded.
     const selectTicker = useCallback((next: string) => {
         const feeds = feedsRef.current!;
         const feedTicks = feedTickRef.current!;
-        for (let behind = tickCountRef.current - feedTicks.get(next)!; behind > 0; behind--) {
-            feeds.get(next)!.tick();
-        }
+        feeds.get(next)!.catchUp(tickCountRef.current - feedTicks.get(next)!);
         feedTicks.set(next, tickCountRef.current);
+        // The outgoing chart's floor cannot apply to a feed that never retained those bars.
+        retainFromRef.current = undefined;
         tickerRef.current = next;
         setActive(readInstrument(feeds, next));
     }, []);
@@ -102,11 +108,12 @@ export function useStreamingMarket() {
             const feeds = feedsRef.current!;
             const feedTicks = feedTickRef.current!;
             const count = ++tickCountRef.current;
+            const selected = tickerRef.current;
             const advance = (feedTicker: string) => {
-                feeds.get(feedTicker)!.tick();
+                // Only the on-screen feed has a display floor; the rest keep the baseline window.
+                feeds.get(feedTicker)!.tick(feedTicker === selected ? retainFromRef.current : undefined);
                 feedTicks.set(feedTicker, count);
             };
-            const selected = tickerRef.current;
             WATCHLIST_TICKERS.forEach(advance);
             if (!WATCHLIST_TICKERS.has(selected)) advance(selected);
             peerFeedRef.current!.tick();
@@ -143,6 +150,7 @@ export function useStreamingMarket() {
         peerTick,
         ticker,
         selectTicker,
+        setRetainFrom,
         running,
         setRunning,
         speedMs,

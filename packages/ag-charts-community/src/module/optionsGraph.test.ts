@@ -796,6 +796,32 @@ describe('OptionsGraph', () => {
             expect(options).not.toHaveProperty('six');
         });
 
+        it('should merge a theme-override into an object `$if` branch, keeping the keys it omits', () => {
+            const themeConfig = {
+                line: {
+                    label: { $if: [true, { style: { color: 'red', spacing: 4 } }, {}] },
+                },
+            };
+            const overrides = { line: { label: { style: { color: 'blue' } } } };
+            const options = new OptionsGraph(themeConfig, prepareOptions({}), undefined, {}, {}, overrides).resolve(
+                testLogger
+            );
+            expect(options.label).toStrictEqual({ style: { color: 'blue', spacing: 4 } });
+        });
+
+        it('should merge a theme-override into a nested object `$if` branch, keeping the keys it omits', () => {
+            const themeConfig = {
+                line: {
+                    label: { $if: [true, { style: { color: 'red', spacing: { unit: 'px', amount: 4 } } }, {}] },
+                },
+            };
+            const overrides = { line: { label: { style: { color: 'blue', spacing: { amount: 8 } } } } };
+            const options = new OptionsGraph(themeConfig, prepareOptions({}), undefined, {}, {}, overrides).resolve(
+                testLogger
+            );
+            expect(options.label).toStrictEqual({ style: { color: 'blue', spacing: { unit: 'px', amount: 8 } } });
+        });
+
         it('should resolve `$isType` operations', () => {
             const themeConfig = {
                 line: {
@@ -1312,6 +1338,47 @@ describe('OptionsGraph', () => {
                 expect(options.regions[1]).toStrictEqual({
                     label: { text: 'two', padding: { top: 0, right: 0, bottom: 0, left: 0 } },
                 });
+            });
+
+            it('should apply a per-element user option of a single number over an object theme-override', () => {
+                const themeConfig = {
+                    line: {
+                        regions: {
+                            $apply: [
+                                {
+                                    label: {
+                                        padding: {
+                                            $applyPadding: {
+                                                $if: [
+                                                    { $path: './border/enabled' },
+                                                    { left: 12, right: 12, top: 8, bottom: 8 },
+                                                    5,
+                                                ],
+                                            },
+                                        },
+                                    },
+                                },
+                                undefined,
+                                ['line', 'regions'],
+                            ],
+                        },
+                    },
+                };
+                const userOptions = prepareOptions({
+                    regions: [{ label: { text: 'one', padding: 0 } }, { label: { text: 'two' } }],
+                });
+                const overrides = {
+                    line: {
+                        regions: {
+                            label: { border: { enabled: true }, padding: { top: 8, right: 32, bottom: 8, left: 12 } },
+                        },
+                    },
+                };
+                const options = new OptionsGraph(themeConfig, userOptions, undefined, {}, {}, overrides).resolve(
+                    testLogger
+                );
+                expect(options.regions[0].label.padding).toStrictEqual({ top: 0, right: 0, bottom: 0, left: 0 });
+                expect(options.regions[1].label.padding).toStrictEqual({ top: 8, right: 32, bottom: 8, left: 12 });
             });
 
             it('should apply a per-element user option of a single number', () => {

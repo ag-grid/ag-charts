@@ -1,6 +1,5 @@
 import { getDocsPages } from '@components/docs/utils/pageData';
 import { getExamplePageUrl } from '@components/docs/utils/urlPaths';
-import { FRAMEWORK_REDIRECT_PATH } from '@constants';
 import { getCollection } from 'astro:content';
 
 import { getDebugPageUrls } from './pages';
@@ -44,8 +43,11 @@ const getIgnoredPages = () => {
         urlWithBaseUrl('/404'),
         addTrailingSlash(urlWithBaseUrl('/gallery/examples')),
         addTrailingSlash(urlWithBaseUrl('/archive')),
-        // Redirects
-        addTrailingSlash(urlWithBaseUrl(`/${FRAMEWORK_REDIRECT_PATH}`)),
+
+        // NOTE: /r/ framework redirect pages are deliberately NOT disallowed: they are
+        // crawlable so their static links to the framework pages can be followed for SEO. They
+        // are still excluded from the sitemap (see sitemap.ts `isRedirectPage`).
+
         // Release note stubs — minimal content, crawl waste
         addTrailingSlash(urlWithBaseUrl('/changelog/releases')),
         // Contact form result pages — post-submission confirmations, nothing to index

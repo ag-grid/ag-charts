@@ -196,6 +196,19 @@ export default defineConfig({
     integrations: [
         react(),
         markdoc(),
+        // Publish the built (base-relative) ag-charts-demos SPA alongside the site at
+        // /internal-demos/. The demos route references these assets under the site base;
+        // the dev server serves the same output via agDemosStatic instead. Archive builds
+        // carry the demo routes too, so this must run for them as well.
+        {
+            name: 'ag-demos-publish',
+            hooks: {
+                'astro:build:done': async ({ dir }) => {
+                    const demosDist = fileURLToPath(new URL('../ag-charts-demos/dist', import.meta.url));
+                    await cp(demosDist, join(fileURLToPath(dir), 'internal-demos'), { recursive: true });
+                },
+            },
+        },
         // Archive builds are fully noindex — omit sitemap generation and remove the /sitemap page.
         ...(!PUBLIC_BASE_URL?.includes('archive')
             ? [
@@ -203,18 +216,6 @@ export default defineConfig({
                   agSitemapFilterNoindex({ enabled: PRODUCTION_SITE_URLS.includes(PUBLIC_SITE_URL) }),
                   agSitemapLastmod(),
                   agCacheSitemap({ cacheFolder: SITEMAP_CACHE_DIR }),
-                  // Publish the built (base-relative) ag-charts-demos SPA alongside the site at
-                  // /internal-demos/. The demos route references these assets under the site base;
-                  // the dev server serves the same output via agDemosStatic instead.
-                  {
-                      name: 'ag-demos-publish',
-                      hooks: {
-                          'astro:build:done': async ({ dir }) => {
-                              const demosDist = fileURLToPath(new URL('../ag-charts-demos/dist', import.meta.url));
-                              await cp(demosDist, join(fileURLToPath(dir), 'internal-demos'), { recursive: true });
-                          },
-                      },
-                  },
               ]
             : [
                   {

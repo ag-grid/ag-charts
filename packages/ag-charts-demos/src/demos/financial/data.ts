@@ -256,7 +256,12 @@ export class MoverFeed {
 
 export const BAR_INTERVAL_MS = 60_000; // one-minute bars
 const HISTORY_BARS = 240;
-const MAX_BARS = 480;
+// Baseline retention: the widest range button (240 bars) plus headroom.
+export const MAX_BARS = 480;
+// Ceiling for a range that pins history (see `tick`). It also bounds the catch-up the chart applies
+// in one go when the view returns to the live edge, so it trades the far edge of a very long pinned
+// session (~1.4h at the default speed) against that flush staying cheap.
+export const MAX_RETAINED_BARS = 10_000;
 const VOLUME_BASE = 1_800;
 
 // --- synthetic price generation ----------------------------------------------
@@ -309,8 +314,8 @@ function seedHistory(instrument: Instrument, now: number): Bar[] {
 }
 
 /**
- * A live feed for a single instrument. Holds a rolling window of bars, appending
- * a fresh bar on each `tick()`.
+ * A live feed for a single instrument. Appends a fresh bar on each `tick()` and retains a rolling
+ * window of them — the baseline window, extended to cover whatever the UI reports as on screen.
  */
 export class MarketFeed {
     readonly instrument: Instrument;
@@ -365,8 +370,12 @@ export class MarketFeed {
         return { last: last.close, change, changePct: (change / this.openPrice) * 100 };
     }
 
-    /** Advance the feed one step: append a fresh bar and return the new window. */
-    tick(): Bar[] {
+    /**
+     * Advance the feed one step, appending a fresh bar. Bars newer than `retainFrom` (epoch ms, the
+     * oldest bar the UI has on screen) are kept however far back they go, so a viewer zoomed into a
+     * time range never has it emptied out underneath them. Read the window with `snapshot()`.
+     */
+    tick(retainFrom?: number): void {
         const prev = this.bars[this.bars.length - 1];
         const { volatility } = this.instrument;
         const open = prev.close;
@@ -374,11 +383,42 @@ export class MarketFeed {
         const bar = makeBar(prev.time + BAR_INTERVAL_MS, open, close, volatility);
 
         this.bars.push(bar);
-        if (this.bars.length > MAX_BARS) this.bars.shift();
+        this.evict(retainFrom);
 
         this.driftMetrics();
+    }
 
-        return this.snapshot();
+    /**
+     * Catch a lazily-ticked feed up to `ticks` steps behind the live ones. Only the retained window
+     * survives eviction, so simulating every missed step would burn thousands of iterations on the
+     * click that selects the feed; the skipped steps still advance the shared time grid.
+     */
+    catchUp(ticks: number): void {
+        if (ticks <= 0) return;
+        const simulated = Math.min(ticks, MAX_BARS);
+        const skipped = ticks - simulated;
+        if (skipped > 0) {
+            // Carry the last close forward so the price series stays continuous across the jump.
+            const last = this.bars[this.bars.length - 1];
+            this.bars.splice(0, this.bars.length, { ...last, time: last.time + skipped * BAR_INTERVAL_MS });
+        }
+        for (let i = 0; i < simulated; i++) {
+            this.tick();
+        }
+    }
+
+    /** Drop leading bars that are neither within the baseline window nor on screen. */
+    private evict(retainFrom?: number): void {
+        const latest = this.bars[this.bars.length - 1].time;
+        // The older of the two floors wins, so a displayed range only ever retains more, never less.
+        const floor = Math.min(retainFrom ?? Infinity, latest - (MAX_BARS - 1) * BAR_INTERVAL_MS);
+
+        let drop = 0;
+        while (drop < this.bars.length - 1 && this.bars[drop].time < floor) {
+            drop++;
+        }
+        drop = Math.max(drop, this.bars.length - MAX_RETAINED_BARS);
+        if (drop > 0) this.bars.splice(0, drop);
     }
 }
 

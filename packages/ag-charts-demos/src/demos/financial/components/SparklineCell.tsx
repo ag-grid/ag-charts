@@ -40,6 +40,9 @@ function sparklineOptions(container: HTMLElement, points: SparkPoint[], baseline
             key: 'y',
             segments: [{ stop: baseline, stroke: DOWN }],
         },
+        tooltip: {
+            enabled: false,
+        },
     };
 }
 

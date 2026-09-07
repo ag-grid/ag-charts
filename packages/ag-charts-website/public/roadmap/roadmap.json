@@ -97,43 +97,43 @@
             "id": "AG-16578",
             "title": "Series Label Collision Avoidance",
             "q": 3,
-            "status": "in-progress",
+            "status": "shipped",
             "why": "Maintains label legibility in high-volume, data-dense charts.",
             "desc": "Automatically detect and resolve overlapping series labels for cleaner presentation of dense data.",
-            "link": null
+            "link": "./series-labels/#collision-avoidance"
         },
         {
             "id": "AG-16574",
             "title": "Additional Event Callbacks",
             "q": 3,
-            "status": "in-progress",
+            "status": "shipped",
             "why": "Enables host applications to respond to a wider range of chart interactions and user actions.",
             "desc": "Broader event coverage with additional callbacks across chart interactions.",
-            "link": null
+            "link": "./events/"
         },
         {
             "id": "AG-16576",
             "title": "Quadrant Chart",
             "q": 3,
-            "status": "in-progress",
+            "status": "shipped",
             "why": "Expands AG Charts into analytical and data-comparison use cases.",
             "desc": "A new quadrant chart for comparing items across two dimensions.",
-            "link": null
+            "link": "./quadrant-chart/"
         },
         {
             "id": "AG-17827",
             "title": "Validation Feedback",
             "q": 3,
-            "status": "in-progress",
+            "status": "shipped",
             "why": "Helps developers configure charts correctly from the outset, including when working with AI coding assistants.",
             "desc": "Stronger dev-time validation of chart options, with clearer errors and control of warning levels.",
-            "link": null
+            "link": "./dev-validation/"
         },
         {
             "id": "AG-17826",
             "title": "Accessibility Improvements",
             "q": 4,
-            "status": "planned",
+            "status": "in-progress",
             "why": "Supports compliance and inclusive design for enterprise and public-sector applications.",
             "desc": "Improved keyboard navigation and screen reader support, with greater control over accessibility behaviour.",
             "link": null
@@ -169,10 +169,10 @@
             "id": "AG-17948",
             "title": "AI Coding Skill",
             "q": 3,
-            "status": "in-progress",
+            "status": "shipped",
             "why": "Supports developers using AI coding assistants, keeping generated code aligned with the latest AG Charts APIs.",
             "desc": "A lightweight, installable skill that gives AI coding assistants up-to-date guidance for building with AG Charts.",
-            "link": null
+            "link": "./skills/"
         }
     ]
 }

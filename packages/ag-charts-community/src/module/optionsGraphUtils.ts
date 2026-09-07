@@ -11,6 +11,7 @@ export interface OptionsGraphInterface {
 
     addEdge(from: VertexInterface, to: VertexInterface, edge?: string): void;
     addVertex(value: unknown): VertexInterface;
+    mergeConditionalBranch(dest: VertexInterface, branch: VertexInterface): void;
     dangerouslyGetUserOption(path: Array<string>): unknown;
     dangerouslyGetThemeOverride(path: Array<string>): unknown;
     findNeighbour(vertex: VertexInterface, edge: string): unknown;
