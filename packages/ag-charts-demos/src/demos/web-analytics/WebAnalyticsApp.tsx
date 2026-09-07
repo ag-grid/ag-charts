@@ -99,7 +99,6 @@ export function WebAnalyticsApp() {
     const pathData = useMemo(() => pathLinks(range), [range]);
     const pageData = useMemo(() => pageRows(range), [range]);
     const sessions = useMemo(() => sessionsInRange(range), [range]);
-    const prevSessions = useMemo(() => sessionsInRange(prevRange), [prevRange]);
 
     const currentSummary = useMemo(() => summary(range), [range]);
     const prevSummary = useMemo(() => summary(prevRange), [prevRange]);
@@ -155,7 +154,6 @@ export function WebAnalyticsApp() {
                         daily={daily}
                         dailyPrevious={dailyPrev}
                         sessions={sessions}
-                        prevSessions={prevSessions}
                         annotations={visibleAnnotations}
                         kpis={kpis}
                         metric={metric}

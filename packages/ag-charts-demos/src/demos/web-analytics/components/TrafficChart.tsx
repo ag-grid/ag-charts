@@ -16,9 +16,38 @@ import { fmtDate } from '../format';
 import { METRIC_BY_KEY, type MetricKey } from '../metrics';
 import type { Annotation } from '../types';
 import type { FormAnchor } from './EventForm';
-import { sameDaySet, startOfDay } from './dateFilter';
+import { dayKey, sameDaySet, startOfDay } from './dateFilter';
 
-/** The datum shape plotted by both area series. */
+function trafficTooltip({
+    color,
+    dashed,
+    date,
+    value,
+    footer,
+}: {
+    color: string;
+    dashed?: boolean;
+    date: Date;
+    value: string;
+    footer?: string[];
+}) {
+    const dash = dashed ? ' stroke-dasharray="4 4" stroke-opacity="0.45"' : '';
+    const footerRows = (footer ?? [])
+        .map((text) => `<span class="ag-charts-tooltip-footer-text">${text}</span>`)
+        .join('');
+    return `<div class="ag-charts-tooltip-content wa-traffic-tooltip">
+                <div class="ag-charts-tooltip-row">
+                    <span class="ag-charts-tooltip-symbol"><svg width="20" height="2" viewBox="0 0 20 2">
+                        <line x1="0" y1="1" x2="20" y2="1" stroke="${color}" stroke-width="2"${dash} />
+                    </svg></span>
+                    <span class="ag-charts-tooltip-label">${fmtDate(date)}</span>
+                    <span class="ag-charts-tooltip-value">${value}</span>
+                </div>
+                ${footerRows ? `<div class="ag-charts-tooltip-footer">${footerRows}</div>` : ''}
+            </div>`;
+}
+
+/** The datum shape shared by both area series. */
 interface TrafficDatum {
     date: Date;
     id: string;
@@ -31,7 +60,7 @@ const dayId = (d: Date) => String(d.getTime());
 const SERIES_ID = 'traffic';
 
 interface TrafficChartProps {
-    /** The metric to plot, driven by the selected KPI tile. */
+    /** The metric shown, driven by the selected KPI tile. */
     metric: MetricKey;
     daily: DailyPoint[];
     /** Previous-period series, aligned by index to `daily`. */
@@ -76,7 +105,16 @@ const selectionToDays = (items: Iterable<AgSelectionItem<unknown>>): Date[] => {
 };
 
 function crossLinesFor(annotations: Annotation[], selectedId: string | null): AgCartesianCrossLineOptions<Date>[] {
-    return annotations.map((annotation) => {
+    // Cross-lines paint in array order, so the selected one goes last to sit above its neighbours.
+    const ordered =
+        selectedId == null
+            ? annotations
+            : [
+                  ...annotations.filter((a) => a.annotationId !== selectedId),
+                  ...annotations.filter((a) => a.annotationId === selectedId),
+              ];
+
+    return ordered.map((annotation) => {
         const selected = annotation.annotationId === selectedId;
         return {
             type: 'line',
@@ -87,11 +125,16 @@ function crossLinesFor(annotations: Annotation[], selectedId: string | null): Ag
             strokeWidth: selected ? 2 : 1,
             label: {
                 text: annotation.label,
-                position: annotation.type === 'product' ? 'bottom' : 'top',
-                fontSize: 11,
-                fontStyle: 'italic',
+                position: 'top',
+                fontSize: 12,
+                padding: 4,
                 fontWeight: selected ? 'bold' : 'normal',
-                color: ANNOTATION_COLOR[annotation.type],
+                color: { ref: 'textColor', mix: 0.3, ontoColor: ANNOTATION_COLOR[annotation.type] },
+                fill: { ref: 'chartBackgroundColor', mix: 0.9, ontoColor: ANNOTATION_COLOR[annotation.type] },
+                border: {
+                    stroke: ANNOTATION_COLOR[annotation.type],
+                    strokeWidth: selected ? 2 : 1,
+                },
             },
         };
     });
@@ -110,10 +153,6 @@ export function TrafficChart({
     onAddEventAt,
 }: TrafficChartProps) {
     const chartRef = useRef<AgChartInstance | null>(null);
-    // A click on an annotation also reaches the chart-level `click` listener; holding the
-    // native event lets that listener tell the two apart instead of relying on their order.
-    const annotationClickEvent = useRef<Event | null>(null);
-
     const options = useMemo<AgCartesianChartOptions>(() => {
         const def = METRIC_BY_KEY[metric];
         const data = daily.map((d, i) => ({
@@ -122,7 +161,7 @@ export function TrafficChart({
             id: dayId(d.date),
             value: def.daily(d),
             value_prev: dailyPrevious[i] ? def.daily(dailyPrevious[i]) : undefined,
-            // The previous series plots against the current x, so keep its real date for the tooltip.
+            // The previous series is drawn against the current x, so keep its real date for the tooltip.
             date_prev: dailyPrevious[i]?.date,
         }));
 
@@ -149,15 +188,13 @@ export function TrafficChart({
                     enabled: false,
                 },
                 tooltip: {
-                    renderer: ({ datum, yKey }) => ({
-                        heading: '',
-                        data: [
-                            {
-                                label: fmtDate(datum.date_prev),
-                                value: `${def.formatValue(datum[yKey])}`,
-                            },
-                        ],
-                    }),
+                    renderer: ({ datum, yKey }) =>
+                        trafficTooltip({
+                            color: def.color,
+                            dashed: true,
+                            date: datum.date_prev,
+                            value: def.formatValue(datum[yKey]),
+                        }),
                 },
             },
             {
@@ -194,15 +231,13 @@ export function TrafficChart({
                     },
                 },
                 tooltip: {
-                    renderer: ({ datum, xKey, yKey }) => ({
-                        heading: '',
-                        data: [
-                            {
-                                label: fmtDate(datum[xKey]),
-                                value: `${def.formatValue(datum[yKey])}`,
-                            },
-                        ],
-                    }),
+                    renderer: ({ datum, xKey, yKey }) =>
+                        trafficTooltip({
+                            color: def.color,
+                            date: datum[xKey],
+                            value: def.formatValue(datum[yKey]),
+                            footer: ['Click on marker to view sessions.', 'Right-click to add an event.'],
+                        }),
                 },
             },
         ];
@@ -255,8 +290,6 @@ export function TrafficChart({
                                 label: `Remove "${annotation.label}"`,
                                 action: () => onAnnotationRemove(annotation.annotationId),
                             },
-                            'separator',
-                            'defaults',
                         ];
                         return items;
                     }
@@ -270,7 +303,7 @@ export function TrafficChart({
                     const addItem: AgContextMenuItem = node
                         ? { showOn: 'series-node', label, action: (ev) => onAddEventAt(day, anchorOf(ev.event)) }
                         : { showOn: 'series-area', label, action: (ev) => onAddEventAt(day, anchorOf(ev.event)) };
-                    return [addItem, 'separator', 'defaults'];
+                    return [addItem];
                 },
             },
             listeners: {
@@ -279,14 +312,10 @@ export function TrafficChart({
                     if (source === 'api-call') return;
                     onSelectionChange(selectionToDays(chartRef.current?.getSelection() ?? []));
                 },
-                crossLineClick: ({ crossLineId, event }) => {
-                    annotationClickEvent.current = event;
-                    onAnnotationSelect(crossLineId);
-                },
-                click: ({ event }) => {
-                    if (event === annotationClickEvent.current) return;
-                    onAnnotationSelect(null);
-                },
+                crossLineClick: ({ crossLineId }) => onAnnotationSelect(crossLineId),
+                // A cross-line click never reaches here: the engine fires its cross-line
+                // callbacks and returns before the chart-level listeners.
+                click: () => onAnnotationSelect(null),
             },
         };
     }, [

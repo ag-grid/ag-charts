@@ -5,7 +5,7 @@ import firefox from './assets/browsers/firefox.svg';
 import safari from './assets/browsers/safari.svg';
 import type { Browser } from './types';
 
-// The "Other" bucket has no icon by design and falls through to undefined.
+// The "Other" bucket has no icon.
 const ICON_BY_BROWSER: Partial<Record<Browser, string>> = {
     Chrome: chrome,
     Edge: edge,

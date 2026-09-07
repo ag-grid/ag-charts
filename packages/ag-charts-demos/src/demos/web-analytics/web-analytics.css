@@ -158,6 +158,10 @@
     margin: 0 auto;
 }
 
+.wa-view--overview {
+    min-width: 750px;
+}
+
 /* ---- cards ---- */
 .wa-card {
     background: var(--wa-panel);
@@ -415,6 +419,14 @@
     background: var(--wa-panel);
 }
 
+/* Buttons inside cards sit beside 13-14px card text, so they run smaller than the
+   top-bar controls. */
+.wa-card .wa-btn {
+    height: 28px;
+    padding: 0 10px;
+    font-size: 13px;
+}
+
 /* ---- event annotations: card toolbar and its add-event popover ---- */
 .wa-card-actions {
     position: relative;
@@ -604,7 +616,58 @@
     width: 100%;
 }
 
-.wa-app .ag-charts-tooltip-value {
+/* ---- traffic chart tooltip (scoped via the class its renderers emit) ---- */
+.wa-app .wa-traffic-tooltip {
+    /* Tighter than the 8px default: every row is a single line. */
+    --tooltip-row-spacing: 2px;
+}
+
+/* One content block per series, each with 8px of vertical padding: collapse the
+   doubled padding where two of them meet. */
+.wa-app .wa-traffic-tooltip:has(+ .wa-traffic-tooltip) {
+    padding-bottom: 4px;
+}
+
+.wa-app .wa-traffic-tooltip + .wa-traffic-tooltip {
+    padding-top: 2px;
+}
+
+.wa-app .wa-traffic-tooltip .ag-charts-tooltip-row {
+    /* Keep the symbol and label together on the left; the value is pushed right below. */
+    justify-content: flex-start;
+    align-items: center;
+    gap: 4px;
+    /* Sit against the row's right edge whatever the label width, so values line up. */
+    margin-inline-start: auto;
+    padding-inline-start: 16px;
+    text-align: right;
+}
+
+.wa-app .wa-traffic-tooltip .ag-charts-tooltip-symbol {
+    display: flex;
+    margin: 0;
+    padding: 0;
+}
+
+.wa-app .wa-traffic-tooltip .ag-charts-tooltip-footer {
+    border-top: 1px solid var(--wa-border);
+    padding-top: 8px;
+    margin-top: 8px;
+    text-align: left;
+}
+
+.wa-app .wa-traffic-tooltip .ag-charts-tooltip-footer-text {
+    display: block;
+    font-size: 12px;
+}
+
+.wa-app .wa-traffic-tooltip .ag-charts-tooltip-label {
+    /* The default `flex: 1` stretches the label away from its symbol. */
+    flex: 0 1 auto;
+    .wa-grid-2-even,
+}
+
+.wa-app .wa-traffic-tooltip .ag-charts-tooltip-value {
     font-weight: bold;
 }
 
@@ -617,16 +680,10 @@
     .wa-grid-4 {
         grid-template-columns: repeat(2, 1fr);
     }
-    .wa-kpi-tabs {
-        grid-template-columns: repeat(3, 1fr);
-    }
 }
 @media (max-width: 640px) {
     .wa-grid-4 {
         grid-template-columns: 1fr;
-    }
-    .wa-kpi-tabs {
-        grid-template-columns: repeat(2, 1fr);
     }
     .wa-body {
         padding: 16px 14px 32px;

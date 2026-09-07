@@ -1,7 +1,5 @@
-// Flag images are bundled with the demo rather than pulled from the website's
-// public assets: the demos app is built base-relative (DEMOS_BASE_PATH=./) and
-// also runs standalone, so an absolute site path would not resolve in either
-// case. Importing them lets Vite emit hashed copies alongside the entry chunk.
+// Bundled rather than served from the website's public assets: the demos app builds
+// base-relative (DEMOS_BASE_PATH=./) and also runs standalone, so a site path resolves in neither.
 import aus from './assets/flags/aus.png';
 import bra from './assets/flags/bra.png';
 import can from './assets/flags/can.png';
@@ -15,8 +13,7 @@ import nld from './assets/flags/nld.png';
 import swe from './assets/flags/swe.png';
 import usa from './assets/flags/usa.png';
 
-// Keyed by the country names used in the session data. The "Unknown" bucket has
-// no flag by design and falls through to undefined.
+// Keyed by the country names in the session data; the "Unknown" bucket has no flag.
 const FLAG_BY_COUNTRY: Record<string, string> = {
     Australia: aus,
     Brazil: bra,

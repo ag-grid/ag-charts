@@ -189,7 +189,7 @@ const EVENT_OFFSET = {
     outage: fromEnd(59),
     springLaunch: fromEnd(27),
     creatorCollab: fromEnd(15),
-    release: fromEnd(14),
+    release: fromEnd(12),
 };
 
 // Aligned with the seeded annotations so a campaign launch visibly lifts traffic.

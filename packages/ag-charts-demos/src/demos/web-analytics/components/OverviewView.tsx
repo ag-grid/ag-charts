@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 
-import { type DailyPoint, dailyFromSessions } from '../data';
+import type { DailyPoint } from '../data';
 import { fmtInt } from '../format';
 import type { MetricKey } from '../metrics';
 import type { Annotation, AnnotationType, Session } from '../types';
@@ -10,15 +10,12 @@ import { type KpiDef, KpiTiles, kpiTabId } from './KpiTiles';
 import { SessionsGrid, type SessionsGridHandle } from './SessionsGrid';
 import { TrafficChart } from './TrafficChart';
 import { dayKey, sameDaySet } from './dateFilter';
-import { sessionsPassingNonWhenFilters } from './sessionFilter';
 
 interface OverviewViewProps {
     daily: DailyPoint[];
     dailyPrevious: DailyPoint[];
     /** Every session in the selected range — feeds the sessions grid. */
     sessions: Session[];
-    /** Every session in the previous range — filtered alongside the current period. */
-    prevSessions: Session[];
     annotations: Annotation[];
     kpis: KpiDef[];
     /** The metric currently driving the traffic chart. */
@@ -33,7 +30,6 @@ export function OverviewView({
     daily,
     dailyPrevious,
     sessions,
-    prevSessions,
     annotations,
     kpis,
     metric,
@@ -44,20 +40,22 @@ export function OverviewView({
 }: OverviewViewProps) {
     // Days selected on the traffic chart narrow the sessions grid; empty = whole range.
     const [selectedDays, setSelectedDays] = useState<Date[]>([]);
-    // The grid's column filter model (colId → model). Both chart series re-aggregate
-    // over the sessions passing it, excluding the When column.
+    // Reported back by the grid; feeds the card's count and never reaches the chart.
     const [filterModel, setFilterModel] = useState<Record<string, unknown>>({});
     const gridRef = useRef<SessionsGridHandle>(null);
-    // The annotation the user clicked on the chart, and the day the add-event form is
-    // open on (null = closed).
+    const [displayedRowCount, setDisplayedRowCount] = useState(0);
+    const onGridStateChange = useCallback((model: Record<string, unknown>, rowCount: number) => {
+        setFilterModel(model);
+        setDisplayedRowCount(rowCount);
+    }, []);
+    // Clicked annotation, and the day the add-event form is open on (null = closed).
     const [selectedAnnotationId, setSelectedAnnotationId] = useState<string | null>(null);
     const [formDay, setFormDay] = useState<Date | null>(null);
     // Where the form opens: the right-clicked point, or under the toolbar button.
     const [formAnchor, setFormAnchor] = useState<FormAnchor | undefined>();
 
-    // Only annotations still on the chart can be selected, so a removed one drops out here.
     const selectedAnnotation = annotations.find((a) => a.annotationId === selectedAnnotationId);
-    // The plotted day domain, which also bounds the form's date field.
+    // The charted day domain, which also bounds the form's date field.
     const firstDay = daily[0]?.date;
     const lastDay = daily.at(-1)?.date;
 
@@ -89,65 +87,43 @@ export function OverviewView({
         [onAnnotationAdd]
     );
 
-    // The day selection is represented by `selectedDays`, and the grid mirrors it onto
-    // the When column, so exclude that column here or it counts twice.
-    const activeFilterCount = useMemo(
-        () => Object.keys(filterModel).filter((key) => key !== 'timestamp').length + (selectedDays.length > 0 ? 1 : 0),
-        [filterModel, selectedDays]
-    );
+    const activeFilterCount = useMemo(() => Object.keys(filterModel).length, [filterModel]);
 
-    // Clears the grid's column filters (including When) and the chart selection.
-    const clearFilters = useCallback(() => {
-        gridRef.current?.clearFilters();
-        setSelectedDays([]);
-        setFilterModel({});
-    }, []);
+    // Only the column filters; the chart selection is cleared by clicking empty chart space.
+    const clearFilters = useCallback(() => gridRef.current?.clearFilters(), []);
 
-    // Re-aggregate both series over their original day domains, so the x-axis stays
-    // fixed while only the values reflect the active column filters.
-    const chartDaily = useMemo(
-        () =>
-            dailyFromSessions(
-                sessionsPassingNonWhenFilters(sessions, filterModel),
-                daily.map((d) => d.date.getTime())
-            ),
-        [sessions, filterModel, daily]
-    );
-    const chartDailyPrev = useMemo(
-        () =>
-            dailyFromSessions(
-                sessionsPassingNonWhenFilters(prevSessions, filterModel),
-                dailyPrevious.map((d) => d.date.getTime())
-            ),
-        [prevSessions, filterModel, dailyPrevious]
-    );
-
-    // Both the chart and the grid feed selected days here; ignore no-op updates so
-    // a round-trip (chart→grid or grid→chart) settles instead of looping.
+    // Ignore no-op updates so re-selecting the same days does not churn the grid's row data.
     const setDays = useCallback(
         (days: Date[]) => setSelectedDays((prev) => (sameDaySet(prev, days) ? prev : days)),
         []
     );
 
-    // The rows the grid actually shows: column filters plus the day selection, which
-    // the grid applies as a When filter. Keeps the header count honest.
-    const gridSessions = useMemo(() => {
-        const passing = sessionsPassingNonWhenFilters(sessions, filterModel);
-        if (selectedDays.length === 0) return passing;
+    // The grid's row data, which its column filters then narrow.
+    const daySessions = useMemo(() => {
+        if (selectedDays.length === 0) return [];
         const keys = new Set(selectedDays.map(dayKey));
-        return passing.filter((s) => keys.has(dayKey(new Date(s.timestamp))));
-    }, [sessions, filterModel, selectedDays]);
+        return sessions.filter((s) => keys.has(dayKey(new Date(s.timestamp))));
+    }, [sessions, selectedDays]);
+
+    const gridSummary = useMemo(() => {
+        if (selectedDays.length === 0) {
+            return `No days selected.`;
+        }
+        const days = `${selectedDays.length} selected ${selectedDays.length === 1 ? 'day' : 'days'}`;
+        if (activeFilterCount === 0) return `${fmtInt(daySessions.length)} sessions on ${days}`;
+        return (
+            `${fmtInt(displayedRowCount)} out of ${fmtInt(daySessions.length)} sessions on ${days} ` +
+            `(${activeFilterCount} ${activeFilterCount === 1 ? 'filter' : 'filters'} applied)`
+        );
+    }, [selectedDays, activeFilterCount, daySessions, displayedRowCount]);
 
     return (
-        <div className="wa-view">
+        <div className="wa-view wa-view--overview">
             <section className="wa-card wa-card--tabbed">
                 <KpiTiles kpis={kpis} activeKey={metric} onSelect={onMetricSelect} />
                 <div className="wa-card-head">
                     <div>
-                        <span className="wa-card-sub">
-                            Right-click for event action · click or drag across points to filter the sessions below ·
-                            click empty space to clear
-                        </span>
+                        <h2 className="wa-card-title">Traffic over time</h2>
                     </div>
                     <div className="wa-card-actions">
                         {selectedAnnotation && (
@@ -184,8 +160,8 @@ export function OverviewView({
                     {hasData ? (
                         <TrafficChart
                             metric={metric}
-                            daily={chartDaily}
-                            dailyPrevious={chartDailyPrev}
+                            daily={daily}
+                            dailyPrevious={dailyPrevious}
                             annotations={annotations}
                             selectedDays={selectedDays}
                             onSelectionChange={setDays}
@@ -204,25 +180,14 @@ export function OverviewView({
                 <div className="wa-card-head">
                     <div>
                         <h2 className="wa-card-title">Sessions</h2>
-                        <span className="wa-card-sub">
-                            {activeFilterCount === 0
-                                ? `${fmtInt(sessions.length)} sessions in last ${daily.length} days`
-                                : `${fmtInt(gridSessions.length)} out of ${fmtInt(sessions.length)} sessions ` +
-                                  `(${activeFilterCount} ${activeFilterCount === 1 ? 'filter' : 'filters'} applied)`}
-                        </span>
+                        <span className="wa-card-sub">{gridSummary}</span>
                     </div>
                     <button className="wa-btn" onClick={clearFilters} disabled={activeFilterCount === 0}>
                         Clear filters
                     </button>
                 </div>
                 {hasData ? (
-                    <SessionsGrid
-                        ref={gridRef}
-                        sessions={sessions}
-                        selectedDays={selectedDays}
-                        onFilterDaysChange={setDays}
-                        onColumnFiltersChange={setFilterModel}
-                    />
+                    <SessionsGrid ref={gridRef} sessions={daySessions} onGridStateChange={onGridStateChange} />
                 ) : (
                     <EmptyState message="No sessions in this date range" hint="Try widening the range." />
                 )}
