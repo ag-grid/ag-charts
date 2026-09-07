@@ -70,7 +70,9 @@ const options: AgCartesianChartOptions<DataType> = {
 
 const chart = AgCharts.create(options);
 
-function changeBandAlignment(alignment: AgBandAlignment) {
+function alignmentChange(event: Event) {
+    const alignment = (event.target as HTMLInputElement).value as AgBandAlignment;
+
     (options.axes!.x! as AgCategoryAxisOptions).bandAlignment = alignment;
     chart.update(options);
 }

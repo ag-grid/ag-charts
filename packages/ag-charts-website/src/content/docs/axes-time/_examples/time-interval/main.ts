@@ -57,21 +57,19 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setOneWeekInterval() {
-    (options.axes!.x as AgUnitTimeAxisThemeOptions).interval!.step = {
-        unit: 'day',
-        step: 7,
-        epoch: new Date('2025-01-01'),
-    };
-    chart.update(options);
-}
+function intervalChange(event: Event) {
+    const axis = options.axes!.x as AgUnitTimeAxisThemeOptions;
 
-function setOneMonthInterval() {
-    (options.axes!.x as AgUnitTimeAxisThemeOptions).interval!.step = 'month';
-    chart.update(options);
-}
-
-function setTwoMonthInterval() {
-    (options.axes!.x as AgUnitTimeAxisThemeOptions).interval!.step = { unit: 'month', step: 2 };
+    switch ((event.target as HTMLInputElement).value) {
+        case 'month':
+            axis.interval!.step = 'month';
+            break;
+        case 'two-months':
+            axis.interval!.step = { unit: 'month', step: 2 };
+            break;
+        default:
+            axis.interval!.step = { unit: 'day', step: 7, epoch: new Date('2025-01-01') };
+            break;
+    }
     chart.update(options);
 }

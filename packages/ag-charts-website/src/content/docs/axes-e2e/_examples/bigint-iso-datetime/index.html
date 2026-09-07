@@ -28,20 +28,22 @@
     </div>
     <div class="controls-row">
         <code>data:</code>
-        <select onchange="onDataModeChange(event.target.value)">
+        <select id="data-select" onchange="onDataModeChange(event.target.value)">
             <option value="bigint-small">bigint-small</option>
             <option value="bigint-large">bigint-large</option>
-            <option value="iso-datetime">iso-datetime</option>
+            <option id="data-iso-datetime" value="iso-datetime">iso-datetime</option>
         </select>
     </div>
     <div class="controls-row">
-        <code>stacking:</code>
-        <select onchange="onStackingChange(event.target.value)">
-            <option value="none">none</option>
-            <option value="stacked">stacked</option>
-            <option value="grouped">grouped</option>
-            <option value="normalized">100%-stacked</option>
-        </select>
+        <fieldset id="stackingGroup" class="control-group">
+            <code>stacking:</code>
+            <select onchange="onStackingChange(event.target.value)">
+                <option value="none">none</option>
+                <option value="stacked">stacked</option>
+                <option id="stacking-grouped" value="grouped">grouped</option>
+                <option value="normalized">100%-stacked</option>
+            </select>
+        </fieldset>
     </div>
 </div>
 <div id="myChart"></div>

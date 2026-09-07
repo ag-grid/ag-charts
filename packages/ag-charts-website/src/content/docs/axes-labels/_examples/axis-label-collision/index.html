@@ -17,13 +17,15 @@
         <button class="push-right" onclick="reset()">Reset</button>
     </div>
     <div class="controls-row">
-        <div class="gap-right">
-            <label for="truncation-select">Truncation: </label>
-            <select id="truncation-select" onchange="truncationChange(event)">
-                <option value="disabled">Disabled (default)</option>
-                <option value="enabled">Enabled</option>
-            </select>
-        </div>
+        <fieldset id="truncationGroup" class="control-group">
+            <div class="gap-right">
+                <label for="truncation-select">Truncation: </label>
+                <select id="truncation-select" onchange="truncationChange(event)">
+                    <option value="disabled">Disabled (default)</option>
+                    <option value="enabled">Enabled</option>
+                </select>
+            </div>
+        </fieldset>
         <div class="gap-right">
             <label for="rotation-select">Rotation: </label>
             <select id="rotation-select" onchange="rotationChange(event)">
@@ -32,15 +34,17 @@
                 <option value="fixed">Fixed rotation</option>
             </select>
         </div>
-        <div>
-            <label for="wrap-select">Wrapping: </label>
-            <select id="wrap-select" onchange="wrapChange(event)">
-                <option value="on-space">on-space (default)</option>
-                <option value="always">always</option>
-                <option value="hyphenate">hyphenate</option>
-                <option value="never">never</option>
-            </select>
-        </div>
+        <fieldset id="wrappingGroup" class="control-group">
+            <div>
+                <label for="wrap-select">Wrapping: </label>
+                <select id="wrap-select" onchange="wrapChange(event)">
+                    <option value="on-space">on-space (default)</option>
+                    <option value="always">always</option>
+                    <option value="hyphenate">hyphenate</option>
+                    <option value="never">never</option>
+                </select>
+            </div>
+        </fieldset>
     </div>
 </div>
 <div class="resizable-container">

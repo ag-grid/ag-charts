@@ -42,42 +42,45 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setGridStyle1() {
-    var gridStyle = [
-        {
-            stroke: 'gray',
-            lineDash: [10, 5],
-        },
-        {
-            stroke: 'lightgray',
-            lineDash: [5, 5],
-        },
-    ];
-    options.axes!.x!.gridLine!.style = gridStyle;
-    options.axes!.y!.gridLine!.style = gridStyle;
-    chart.update(options);
-}
-
-function setGridStyle2() {
-    var xGridStyle = [
-        {
-            stroke: 'red',
-            lineDash: [3, 3],
-        },
-    ];
-    var yGridStyle = [
-        {
-            stroke: 'green',
-            lineDash: [8, 3, 3, 3],
-        },
-    ];
-    options.axes!.x!.gridLine!.style = xGridStyle;
-    options.axes!.y!.gridLine!.style = yGridStyle;
-    chart.update(options);
-}
-
-function setDefaultGridStyle() {
-    delete options.axes!.x!.gridLine!.style;
-    delete options.axes!.y!.gridLine!.style;
+function styleChange(event: Event) {
+    switch ((event.target as HTMLInputElement).value) {
+        case '1': {
+            const gridStyle = [
+                {
+                    stroke: 'gray',
+                    lineDash: [10, 5],
+                },
+                {
+                    stroke: 'lightgray',
+                    lineDash: [5, 5],
+                },
+            ];
+            options.axes!.x!.gridLine!.style = gridStyle;
+            options.axes!.y!.gridLine!.style = gridStyle;
+            break;
+        }
+        case '2': {
+            const xGridStyle = [
+                {
+                    stroke: 'red',
+                    lineDash: [3, 3],
+                },
+            ];
+            const yGridStyle = [
+                {
+                    stroke: 'green',
+                    lineDash: [8, 3, 3, 3],
+                },
+            ];
+            options.axes!.x!.gridLine!.style = xGridStyle;
+            options.axes!.y!.gridLine!.style = yGridStyle;
+            break;
+        }
+        default: {
+            delete options.axes!.x!.gridLine!.style;
+            delete options.axes!.y!.gridLine!.style;
+            break;
+        }
+    }
     chart.update(options);
 }

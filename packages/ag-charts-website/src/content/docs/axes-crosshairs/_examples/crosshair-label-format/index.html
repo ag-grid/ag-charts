@@ -1,8 +1,20 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="crosshairLabelFormat()">Set crosshair.label.format</button>
-        <button onclick="axisLabelFormat()">Set axis.label.format</button>
-        <button onclick="defaultFormat()">Remove formats</button>
+        <span>Label Format:</span>
+        <div class="button-group" role="group" aria-label="Label Format">
+            <input
+                type="radio"
+                id="format-crosshair"
+                name="label-format"
+                value="crosshair"
+                onchange="formatChange(event)"
+            />
+            <label for="format-crosshair">crosshair.label.format</label>
+            <input type="radio" id="format-axis" name="label-format" value="axis" onchange="formatChange(event)" />
+            <label for="format-axis">axis.label.format</label>
+            <input type="radio" id="format-none" name="label-format" value="none" onchange="formatChange(event)" />
+            <label for="format-none">None</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

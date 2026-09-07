@@ -45,7 +45,9 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setPlacement(placement: 'on' | 'between') {
+function placementChange(event: Event) {
+    const placement = (event.target as HTMLInputElement).value as 'on' | 'between';
+
     (options.axes!.x! as AgCategoryAxisOptions).interval!.placement = placement;
     (options.axes!.x! as AgCategoryAxisOptions).title!.text = `placement: '${placement}'`;
     chart.update(options);
