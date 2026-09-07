@@ -28,7 +28,8 @@ export interface GalleryFamilyExamples {
     title: string;
     /** The family's section on the gallery hub. */
     hubUrl: string;
-    examples: { label: string; url: string }[];
+    /** `name` is the example's key, which the card's thumbnail is resolved from. */
+    examples: { label: string; name: string; url: string }[];
 }
 
 /** Fewest links a strip carries: three families hold one example, so siblings alone leave them empty. */
@@ -139,6 +140,7 @@ export function getFamilyExamples({
         hubUrl: getPageHashUrl({ chartSeriesName: family.seriesName }),
         examples: visibleExamples(family).map((example) => ({
             label: resolveGalleryH1(example),
+            name: example.name,
             url: getPageUrl(example.name),
         })),
     };
