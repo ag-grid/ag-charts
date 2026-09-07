@@ -2915,6 +2915,69 @@ describe('CartesianAxis', () => {
             );
         });
 
+        // The exact geometry the r12 review raised: a long label followed by a short one, at a tick
+        // spacing where the flush displacement is comparable to the gap. The claim was that
+        // subtracting the flush from the cross-axis offset before applying the rotation lets a
+        // colliding pair through; the frame the overlap check compares in is what decides.
+        describe('collision avoidance with one long label beside one short one', () => {
+            // 24 bands across 600px puts the ticks ~30px apart, and the ~10-vs-3 character
+            // alternation makes neighbouring labels differ in width by tens of pixels: measured
+            // 30.6px spacings against label widths of 62.7px and 14.7px.
+            const longBesideShortOptions = (
+                verticalAlign?: VerticalAlign,
+                avoidCollisions = true
+            ): AgCartesianChartOptions => ({
+                data: Array.from({ length: 24 }, (_, i) => ({
+                    category: i % 2 === 0 ? `LongLabel${i}` : `S${i}`,
+                    value: i,
+                })),
+                width: 600,
+                height: 400,
+                axes: {
+                    x: {
+                        type: 'category',
+                        position: 'bottom',
+                        label: {
+                            rotation: 45,
+                            avoidCollisions,
+                            ...(verticalAlign ? { verticalAlign } : {}),
+                        },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            });
+
+            it('is the geometry the finding describes: ~30px ticks, widths differing by tens of px', async () => {
+                await renderChart(longBesideShortOptions('bottom', false));
+                const nodes = getAxisLabelNodes(chart, 'bottom');
+                expect(nodes.length).toBe(24);
+
+                const spacings = nodes
+                    .slice(1)
+                    .map((node, i) => Math.abs(node.datum.x - nodes[i].datum.x))
+                    .filter((d) => d > 0);
+                expect(Math.min(...spacings)).toBeGreaterThan(25);
+                expect(Math.max(...spacings)).toBeLessThan(36);
+
+                const widths = nodes.map((node: any) => node.computeBBoxWithoutTransforms().width);
+                expect(Math.max(...widths) - Math.min(...widths)).toBeGreaterThan(40);
+                // Anti-vacuous: with avoidance off this geometry really does overlap, so the
+                // verdicts below are about the check and not about a layout that cannot collide.
+                expect(collidingPairs(nodes)).toBeGreaterThan(0);
+            });
+
+            it.each(['top', 'middle', 'bottom'] as VerticalAlign[])(
+                'leaves no overlapping pair under verticalAlign "%s"',
+                async (verticalAlign) => {
+                    await renderChart(longBesideShortOptions(verticalAlign));
+                    const nodes = getAxisLabelNodes(chart, 'bottom');
+                    expect(nodes.length).toBeGreaterThan(1);
+                    expect(collidingPairs(nodes)).toBe(0);
+                }
+            );
+        });
+
         it.each(['baseline', 'centre'] as string[])(
             'warns for the unsupported value "%s" and keeps the computed alignment',
             async (unsupported) => {
