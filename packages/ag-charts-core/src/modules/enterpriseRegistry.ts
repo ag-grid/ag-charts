@@ -1,5 +1,3 @@
-import type { AgChartOptions } from 'ag-charts-types';
-
 export interface LicenseManager {
     validateLicense: () => void;
     hasLicenseKey: () => boolean;
@@ -12,7 +10,7 @@ export interface LicenseManager {
 
 interface EnterpriseRegistryOptions {
     styles?: string;
-    licenseManager?: (options: AgChartOptions) => LicenseManager;
+    licenseManager?: (document?: Document) => LicenseManager;
     injectWatermark?: (domManager: any, text: string) => void;
     createBackground?: (ctx: any) => any;
     createForeground?: (ctx: any) => any;

@@ -101,19 +101,32 @@ function usesEnterpriseModules(moduleScope: ModuleScope): boolean {
     return false;
 }
 
-let pageLicenseManager: LicenseManager | undefined;
-let licenseChecked = false;
-// The licence is validated once per page; every chart that needs it shares the result.
+// The watermark decision depends on the hosting document, so a manager built for one document is
+// never reused by a chart in another. The console banner is latched once per page by the manager itself.
+const NO_DOCUMENT = {};
+const licenseManagers = new WeakMap<object, LicenseManager>();
+const validatedLicenseManagers = new WeakSet<LicenseManager>();
+
+function hostDocument(options: AgChartOptions): Document | undefined {
+    return options.container?.ownerDocument ?? (typeof document === 'undefined' ? undefined : document);
+}
+
 function validatedLicenseManager(options: AgChartOptions, keyRequired: boolean): LicenseManager | undefined {
-    if (licenseChecked) return pageLicenseManager;
+    const chartDocument = hostDocument(options);
+    const cacheKey = chartDocument ?? NO_DOCUMENT;
+    let licenseManager = licenseManagers.get(cacheKey);
+    if (licenseManager == null) {
+        // Enterprise may load lazily, so an absent manager must not be cached.
+        licenseManager = enterpriseRegistry.licenseManager?.(chartDocument);
+        if (licenseManager == null) return;
+        licenseManagers.set(cacheKey, licenseManager);
+    }
+    if (validatedLicenseManagers.has(licenseManager)) return licenseManager;
+    if (keyRequired && !licenseManager.hasLicenseKey()) return;
 
-    // Enterprise may load lazily, so an absent manager must not consume the once-per-page check.
-    pageLicenseManager ??= enterpriseRegistry.licenseManager?.(options);
-    if (pageLicenseManager == null || (keyRequired && !pageLicenseManager.hasLicenseKey())) return;
-
-    pageLicenseManager.validateLicense();
-    licenseChecked = true;
-    return pageLicenseManager;
+    licenseManager.validateLicense();
+    validatedLicenseManagers.add(licenseManager);
+    return licenseManager;
 }
 
 /**
@@ -139,7 +152,7 @@ export abstract class AgCharts {
     }
 
     public static getLicenseDetails(licenseKey: string) {
-        return enterpriseRegistry.licenseManager?.({}).getLicenseDetails(licenseKey);
+        return enterpriseRegistry.licenseManager?.().getLicenseDetails(licenseKey);
     }
 
     /**

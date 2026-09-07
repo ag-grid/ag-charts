@@ -168,7 +168,7 @@ describe('instance modules', () => {
             };
             const validateLicense = vi.fn();
             let licenseKeySupplied = true;
-            const createLicenseManager = vi.fn(() => ({
+            const createLicenseManager = vi.fn((_document?: Document) => ({
                 validateLicense,
                 hasLicenseKey: () => licenseKeySupplied,
                 isDisplayWatermark: () => true,
@@ -252,6 +252,26 @@ describe('instance modules', () => {
 
                 await chart.update(prepareTestOptions({ ...LINE_CHART }));
                 await waitForChartStability(chart);
+                expect(injectWatermark).toHaveBeenCalledTimes(1);
+            });
+
+            it('licenses a chart against the document hosting it', async () => {
+                ModuleRegistry.registerModules(LINE_MODULES);
+                const frameDocument = document.implementation.createHTMLDocument();
+                const hostDocument = document.implementation.createHTMLDocument();
+                const lastLicensedDocument = () => createLicenseManager.mock.lastCall?.[0];
+
+                licenseKeySupplied = false;
+                const frameChart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }, frameDocument.body));
+                await waitForChartStability(frameChart);
+                expect(lastLicensedDocument()).toBe(frameDocument);
+                frameChart.destroy();
+
+                chart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }, hostDocument.body), {
+                    modules: [enterprisePlugin],
+                });
+                await waitForChartStability(chart);
+                expect(lastLicensedDocument()).toBe(hostDocument);
                 expect(injectWatermark).toHaveBeenCalledTimes(1);
             });
         });
