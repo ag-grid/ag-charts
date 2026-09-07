@@ -1129,6 +1129,34 @@ describe('fitLabelText bounded by a shape', () => {
         ).toBe('AAAA\nBBBBBBBB');
     });
 
+    it("hides a 'hide' label whose word was dropped by a band with no room, not only a truncated one", () => {
+        // The second row has no width, so the word that wraps onto it is dropped without an ellipsis.
+        const region: FitRegion = {
+            spanAt: (_top, bottom) => (bottom <= LINE_HEIGHT ? [-45, 45] : [0, 0]),
+            extentAbove: 0,
+            extentBelow: 2 * LINE_HEIGHT,
+        };
+        const fit = { region, regionAlign: 'start', wrapping: 'on-space', overflowStrategy: 'hide' } as const;
+        expect(fitLabelText('AAAAA BBBBB', fit, font)).toBe('');
+        expect(fitLabelText('AAAAA', fit, font)).toBe('AAAAA');
+    });
+
+    it('keeps a block that wrapped shorter than it was measured for where a movable label can draw it', () => {
+        // Wide above the anchor, narrow at and below it: centred on the anchor a single line has no room,
+        // and a two-line block is pushed up into the wide rows, where the text fits on one line after all.
+        const region: FitRegion = {
+            spanAt: (_top, bottom) => (bottom <= 0 ? [-50, 50] : [-10, 10]),
+            extentAbove: 3 * LINE_HEIGHT,
+            extentBelow: LINE_HEIGHT,
+        };
+        const fit = { region, wrapping: 'on-space', overflowStrategy: 'hide' } as const;
+        const fitted = fitLabelTextToRegion('AAAA BBBB', fit, font);
+        expect(fitted.text).toBe('AAAA BBBB');
+        expect(fitted.offsetY).toBe(-LINE_HEIGHT / 2);
+        // A caller drawing at the anchor cannot take that layout, so for it the label stays hidden.
+        expect(fitLabelText('AAAA BBBB', fit, font)).toBe('');
+    });
+
     it('fits a lopsided shape at the anchor for a caller that cannot move the label', () => {
         // The same region, through the API that returns text alone: an offset it cannot report must not be
         // taken, or the text is fitted to room the label is never drawn in.

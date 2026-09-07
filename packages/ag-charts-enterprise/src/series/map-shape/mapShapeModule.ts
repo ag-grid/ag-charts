@@ -4,6 +4,7 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
+    LABEL_OVERFLOW_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SAFE_RANGE2_OPERATION,
     SERIES_SELECTION_THEME,
@@ -58,12 +59,14 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
             padding: 2,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
+                ...LABEL_OVERFLOW_DEFAULTS,
+                // The shape always bounds the label, so wrapping is on regardless of the shared triggers.
+                wrapping: 'on-space',
                 enabled: true,
                 color: { $ref: 'chartBackgroundColor' },
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },
                 fontWeight: 'bold',
-                overflowStrategy: 'hide',
             },
             highlight: applyMapPalette(MULTI_SERIES_HIGHLIGHT_STYLE),
             selection: SERIES_SELECTION_THEME,

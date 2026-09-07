@@ -1,4 +1,4 @@
-import type { Position } from 'ag-charts-core';
+import type { FitRegion, Position } from 'ag-charts-core';
 
 import { polygonPointSearch } from './polygonPointSearch';
 
@@ -156,9 +156,21 @@ export function xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
     cy: number,
     height: number
 ) {
-    const ry0 = cy - height / 2;
-    const ry1 = cy + height / 2;
+    return xExtentsOfBandToLineSegment(into, a, b, cx, cy - height / 2, cy + height / 2);
+}
 
+/**
+ * Narrows `into` (offsets from `cx`) to the horizontal room a rect spanning the band `[ry0, ry1]` has before
+ * it meets the edge `a`-`b`. The band is assumed to lie inside the polygon at `cx`.
+ */
+function xExtentsOfBandToLineSegment(
+    into: { minX: number; maxX: number },
+    a: Position,
+    b: Position,
+    cx: number,
+    ry0: number,
+    ry1: number
+) {
     const [ax, ay] = a;
     const [bx, by] = b;
 
@@ -194,25 +206,50 @@ export function xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
     return into;
 }
 
-export function maxWidthInPolygonForRectOfHeight(polygons: Position[][], cx: number, cy: number, height: number) {
-    const result = {
-        minX: -Infinity,
-        maxX: Infinity,
-    };
-
+/**
+ * The room a polygon offers a label anchored at `(cx, cy)`, which must lie inside it, as a {@link FitRegion}.
+ * Spans are exact, taken from the edges each band meets, and memoised as wrapping asks per candidate word.
+ */
+export function polygonFitRegion(polygons: Position[][], cx: number, cy: number): FitRegion {
+    let extentAbove = Infinity;
+    let extentBelow = Infinity;
     for (const polygon of polygons) {
-        let p0 = polygon.at(-1)!;
-
-        for (const p1 of polygon) {
-            xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(result, p0, p1, cx, cy, height);
-            p0 = p1;
+        let [x0, y0] = polygon.at(-1)!;
+        for (const [x1, y1] of polygon) {
+            if (Math.min(x0, x1) <= cx && cx <= Math.max(x0, x1)) {
+                // A vertical edge on the anchor's own column bounds it at both its ends.
+                const yLo = x0 === x1 ? Math.min(y0, y1) : y0 + ((cx - x0) * (y1 - y0)) / (x1 - x0);
+                const yHi = x0 === x1 ? Math.max(y0, y1) : yLo;
+                if (yLo <= cy) extentAbove = Math.min(extentAbove, cy - yLo);
+                if (yHi >= cy) extentBelow = Math.min(extentBelow, yHi - cy);
+            }
+            x0 = x1;
+            y0 = y1;
         }
     }
 
-    const { minX, maxX } = result;
-    if (Number.isFinite(minX) && Number.isFinite(maxX)) {
-        return { x: cx + (minX + maxX) / 2, width: maxX - minX };
-    } else {
-        return { x: cx, width: 0 };
-    }
+    const spans = new Map<string, readonly [number, number]>();
+    const spanAt = (top: number, bottom: number): readonly [number, number] => {
+        const key = `${top},${bottom}`;
+        let span = spans.get(key);
+        if (span == null) {
+            const into = { minX: -Infinity, maxX: Infinity };
+            for (const polygon of polygons) {
+                let p0 = polygon.at(-1)!;
+                for (const p1 of polygon) {
+                    xExtentsOfBandToLineSegment(into, p0, p1, cx, cy + top, cy + bottom);
+                    p0 = p1;
+                }
+            }
+            span = Number.isFinite(into.minX) && Number.isFinite(into.maxX) ? [into.minX, into.maxX] : [0, 0];
+            spans.set(key, span);
+        }
+        return span;
+    };
+
+    return {
+        spanAt,
+        extentAbove: Number.isFinite(extentAbove) ? extentAbove : 0,
+        extentBelow: Number.isFinite(extentBelow) ? extentBelow : 0,
+    };
 }

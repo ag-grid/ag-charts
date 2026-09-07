@@ -80,4 +80,24 @@ describe('label overflow defaults (enterprise)', () => {
             expect(label).not.toHaveProperty('truncate');
         });
     });
+
+    // Map shape labels are always bounded by their shape, so wrapping is on by default and only `truncate`
+    // follows the shared trigger set; there is no collision object to couple to.
+    describe('map-shape', () => {
+        const resolveLabel = (label: object) =>
+            resolveSeries({ type: 'map-shape', idKey: 'id', labelKey: 'label', label }).label as SeriesLabel;
+
+        it('wraps on space by default and truncates once `maxWidth` is set', () => {
+            expect(resolveLabel({ enabled: true })).toMatchObject({ wrapping: 'on-space' });
+            expect(resolveLabel({ enabled: true })).not.toHaveProperty('truncate');
+            expect(resolveLabel({ maxWidth: 80 })).toMatchObject({ wrapping: 'on-space', truncate: true });
+        });
+
+        it('keeps an explicit `wrapping` and `truncate`', () => {
+            expect(resolveLabel({ wrapping: 'never', truncate: false, maxWidth: 80 })).toMatchObject({
+                wrapping: 'never',
+                truncate: false,
+            });
+        });
+    });
 });
