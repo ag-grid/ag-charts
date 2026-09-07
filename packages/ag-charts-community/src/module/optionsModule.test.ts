@@ -681,7 +681,7 @@ describe('ChartOptions', () => {
                 )
             ).toBe(true);
             expect(ambientWarnOnce).not.toHaveBeenCalled();
-            expect(processedOptions.seriesArea?.backgroundRegions).toBeUndefined();
+            expect(processedOptions.seriesArea?.backgroundRegions).toBeNull();
         });
 
         it('leaves the community `seriesArea` options alongside it untouched', () => {
@@ -691,7 +691,7 @@ describe('ChartOptions', () => {
             } as AgCartesianChartOptions);
 
             expect(processedOptions.seriesArea?.clip).toBe(true);
-            expect(processedOptions.seriesArea?.backgroundRegions).toBeUndefined();
+            expect(processedOptions.seriesArea?.backgroundRegions).toBeNull();
         });
 
         it('stays silent when `backgroundRegions` appears only as a theme override', () => {
