@@ -441,7 +441,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     private resolveScaledSize(index: number): number {
         const { properties, sizeScale } = this;
         const { sizeKey, marker } = properties;
-        if (sizeKey == null) return marker.size;
+        // Truthy, not `!= null` — `processData` only declares the `sizeValue` column for a truthy
+        // `sizeKey`, so `sizeKey: ''` must fall back to the static marker size (AG-18383).
+        if (!sizeKey) return marker.size;
         const sizeValues = this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!, 'number');
         const sizeValue = sizeValues[index];
         return sizeValue == null ? this.getSizeRange()[0] : sizeScale.convertClamped(sizeValue);
@@ -531,7 +533,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             dataModel,
             processedData,
             this.sizeScale,
-            this.properties.sizeKey != null,
+            // Truthy: `hasSizeKey` gates a `sizeValue` column resolve, and the column only exists
+            // for a truthy `sizeKey` (AG-18383).
+            Boolean(this.properties.sizeKey),
             this
         );
     }
@@ -653,16 +657,23 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             xValues: xDataValues, // Base interface field
             xDataValues, // BubbleSeries-specific alias
             yDataValues: dataModel.resolveColumnById(this, `yValue`, processedData, 'object'),
-            sizeDataValues:
-                sizeKey == null ? undefined : dataModel.resolveColumnById(this, `sizeValue`, processedData, 'number'),
-            labelDataValues:
-                labelKey == null ? undefined : dataModel.resolveColumnById(this, `labelValue`, processedData, 'object'),
+            // Truthiness, not `!= null`, on every optional key below: `processData` above declares
+            // each column under a truthy guard (`sizeKey ?`, `labelKey ?`, `colorKey ?`), so a
+            // falsy-but-present key (e.g. `''`) has no column to resolve and `resolveColumnById`
+            // throws "didn't find property definition", blanking the chart (AG-18383).
+            sizeDataValues: sizeKey
+                ? dataModel.resolveColumnById(this, `sizeValue`, processedData, 'number')
+                : undefined,
+            labelDataValues: labelKey
+                ? dataModel.resolveColumnById(this, `labelValue`, processedData, 'object')
+                : undefined,
             crossFilterSelectedDataValues:
                 selectedKey == null
                     ? undefined
                     : dataModel.resolveColumnById(this, `selectedValue`, processedData, 'boolean'),
-            colorDataValues:
-                colorKey == null ? undefined : dataModel.resolveColumnById(this, `colorValue`, processedData, 'number'),
+            colorDataValues: colorKey
+                ? dataModel.resolveColumnById(this, `colorValue`, processedData, 'number')
+                : undefined,
 
             // Scales
             xScale,
@@ -1166,7 +1177,10 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         if (ctx.colorScaleValid && datum.colorValue != null) {
             stylerStyle.fill = series.colorScale.convert(datum.colorValue);
         } else if (
-            ctx.colorKey != null &&
+            // Truthy, not `!= null` — `processData` only declares the `colorValue` column for a
+            // truthy `colorKey`, so `colorKey: ''` must not be treated as a present colour key and
+            // paint every datum with `missingDataFill` (AG-18383).
+            ctx.colorKey &&
             datum.colorValue == null &&
             series.properties.colorScale.missingDataFill != null
         ) {
@@ -1210,7 +1224,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             return;
         }
 
-        // colorKey forces cacheable=false: applyPerDatumStyle mutates stylerStyle.fill per datum.
+        // A truthy colorKey forces cacheable=false: applyPerDatumStyle mutates stylerStyle.fill per datum.
         this.runMarkerStylePass<
             BubbleStylerPassCtx,
             BubbleScatterNodeDatum,
@@ -1221,7 +1235,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             isHighlight,
             { marker, params, isHighlight, colorScaleValid, colorKey },
             {
-                cacheable: colorKey == null,
+                cacheable: !colorKey,
                 compute: BubbleSeries.computePerDatumStylerStyle,
                 apply: BubbleSeries.applyPerDatumStyle,
             }
@@ -1548,7 +1562,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
         const data: TooltipContentDataRow[] = [];
 
-        if (this.isLabelEnabled() && labelKey != null) {
+        // Truthiness for the same reason as `labelDataValues` above — the column only exists when
+        // `labelKey` is truthy, and `label.enabled` can be true independently of `labelKey`.
+        if (this.isLabelEnabled() && labelKey) {
             const value = dataModel.resolveColumnById<string | number | Date>(
                 this,
                 `labelValue`,
@@ -1612,12 +1628,12 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             return value;
         };
 
-        if (sizeKey != null) {
+        if (sizeKey) {
             addValueRow('sizeValue', sizeKey, sizeName, 'size');
         }
 
         let resolvedColorFill: string | undefined;
-        if (colorKey != null && this.isColorScaleValid()) {
+        if (colorKey && this.isColorScaleValid()) {
             const colorValue = addValueRow('colorValue', colorKey, colorName, 'color');
             if (colorValue != null) {
                 resolvedColorFill = colorScale.convert(colorValue);

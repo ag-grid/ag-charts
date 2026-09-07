@@ -273,3 +273,61 @@ describe('colorScale partial options — theme fills survive user partials', () 
         assertColorScalePopulated();
     });
 });
+
+// `colorKey: ''` declares no `colorValue` column (bubbleSeries.ts `processData`), so every datum's
+// `colorValue` is undefined. `applyPerDatumStyle` must treat the empty key as absent — a `!= null`
+// check there paints every marker with `missingDataFill` (AG-18383).
+describe('AG-18383 empty-string colorKey does not trigger missingDataFill', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: any;
+
+    afterEach(() => {
+        if (chart) {
+            chart.destroy();
+            chart = undefined;
+        }
+    });
+
+    const missingDataFill = 'tomato';
+
+    const buildOptions = (colorKey: string) => {
+        const capturedFills: unknown[] = [];
+        const series: AgScatterSeriesOptions = {
+            type: 'scatter',
+            xKey: 'x',
+            yKey: 'y',
+            colorKey,
+            colorScale: { fills, missingDataFill },
+            // The per-datum styler pass is only taken when an itemStyler (or a valid colour scale)
+            // is present, so the styler is what makes the guard reachable — and what observes it.
+            itemStyler: (params) => {
+                capturedFills.push(params.fill);
+                return {};
+            },
+        };
+        return { options: prepareEnterpriseTestOptions({ data, series: [series] }), capturedFills };
+    };
+
+    it('leaves marker fills untouched for colorKey: ""', async () => {
+        const { options, capturedFills } = buildOptions('');
+
+        chart = deproxy(AgCharts.create(options));
+        await waitForChartStability(chart);
+
+        expect(capturedFills.length).toBeGreaterThan(0);
+        expect(capturedFills).not.toContain(missingDataFill);
+        expect(new Set(capturedFills).size).toBe(1);
+    });
+
+    // Anti-vacuity: with a real colorKey the missing-colour datums still get missingDataFill.
+    it('still applies missingDataFill for a present colorKey', async () => {
+        const { options, capturedFills } = buildOptions('intensity');
+
+        chart = deproxy(AgCharts.create(options));
+        await waitForChartStability(chart);
+
+        expect(capturedFills).toContain(missingDataFill);
+    });
+});
