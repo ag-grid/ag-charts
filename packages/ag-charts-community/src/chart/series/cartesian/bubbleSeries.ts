@@ -727,7 +727,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         // A key naming a column that no datum carries — including the empty string — leaves the series
         // with nothing renderable, and the chart raises its no-data overlay. Markers drawn from the
         // remaining columns would then sit under an overlay saying there is no data, so draw none.
-        if (!this.hasData) return;
+        // Rows that merely fail to resolve individually are not this case and still draw.
+        if (this.hasUnmatchedKey) return;
 
         this.sizeScale.range = this.getSizeRange();
 

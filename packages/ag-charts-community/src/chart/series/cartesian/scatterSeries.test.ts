@@ -1219,13 +1219,15 @@ describe('ScatterSeries', () => {
         const nodeData = (c: AgChartInstance) =>
             (deproxy(c).series[0] as unknown as { getNodeData(): unknown[] }).getNodeData();
 
-        const createScatter = async (seriesOverrides: object) => {
+        const defaultData = [
+            { x: 1, y: 10, l: 'a' },
+            { x: 2, y: 20, l: 'b' },
+            { x: 3, y: 30, l: 'c' },
+        ];
+
+        const createScatter = async (seriesOverrides: object, data: object[] = defaultData) => {
             const options = {
-                data: [
-                    { x: 1, y: 10, l: 'a' },
-                    { x: 2, y: 20, l: 'b' },
-                    { x: 3, y: 30, l: 'c' },
-                ],
+                data,
                 series: [{ type: 'scatter', xKey: 'x', yKey: 'y', ...seriesOverrides }],
                 legend: { enabled: false },
                 axes: {
@@ -1256,6 +1258,20 @@ describe('ScatterSeries', () => {
 
             expect(nodeData(chart)).toHaveLength(3);
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+
+        it('still draws the renderable rows when individual rows are invalid or incomplete', async () => {
+            // The label column exists, so no key is unmatched. One row has an invalid x and the other
+            // has no label, which between them make the inherited hasData getter — it subtracts the
+            // invalid and missing tallies separately, though they count different rows — read false.
+            // The first row is fully renderable regardless and must still draw its marker.
+            await createScatter({ labelKey: 'l', label: { enabled: true } }, [
+                { x: 1, y: 10, l: 'a' },
+                { x: null, y: 20 },
+            ]);
+
+            expect(nodeData(chart)).toHaveLength(1);
+            expect(deproxy(chart).series[0].hasUnmatchedKey).toBe(false);
         });
     });
 });

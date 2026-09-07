@@ -76,6 +76,10 @@ export abstract class DataModelSeries<
         return Math.max(0, this.dataCount() - this.invalidDataCount() - this.missingDataCount()) > 0;
     }
 
+    override get hasUnmatchedKey() {
+        return this.dataModel?.resolveHasUnmatchedKey(this, this.dataCount()) ?? false;
+    }
+
     protected getScaleInformation({
         xScale,
         yScale,

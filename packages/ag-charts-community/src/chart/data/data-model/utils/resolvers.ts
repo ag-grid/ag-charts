@@ -79,6 +79,22 @@ export class DataModelResolvers<D extends object, K extends keyof D & string> {
         return missingDataCount;
     }
 
+    /**
+     * Whether any of the scope's keys or values names a column that no row carries — the same
+     * condition `warnDataMissingProperties` warns about. An empty-string key matches nothing like
+     * any other unmatched key, so it lands here too (AG-18413).
+     */
+    resolveHasUnmatchedKey(scope: ScopeProvider, rowCount: number): boolean {
+        if (rowCount === 0) return false;
+        for (const key of this.ctx.keys) {
+            if ((key.missing.get(scope.id) ?? 0) >= rowCount) return true;
+        }
+        for (const value of this.ctx.values) {
+            if ((value.missing.get(scope.id) ?? 0) >= rowCount) return true;
+        }
+        return false;
+    }
+
     resolveProcessedDataDefById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
         const def = this.ctx.scopeCache.get(scope.id)?.get(searchId);
 

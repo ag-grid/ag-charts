@@ -296,6 +296,10 @@ export class DataModel<
         return this.resolvers.resolveMissingDataCount(scope);
     }
 
+    resolveHasUnmatchedKey(scope: ScopeProvider, rowCount: number): boolean {
+        return this.resolvers.resolveHasUnmatchedKey(scope, rowCount);
+    }
+
     /**
      * Iterates over the original source rows belonging to a DataGroup. Unlike {@link forEachGroupDatum}
      * (extracted column values), this yields the full user-supplied datum objects.

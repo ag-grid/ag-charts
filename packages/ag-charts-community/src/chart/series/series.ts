@@ -405,19 +405,19 @@ export abstract class Series<
         return this.ctx.legendManager?.getSeriesEnabled(this.id) ?? this.properties.visible;
     }
 
-    /**
-     * Whether the series was handed any rows at all, independently of whether those rows resolve
-     * against its keys. A series with rows but no renderable data is a misconfiguration; one with
-     * no rows is simply empty.
-     */
-    get hasRowData() {
+    get hasData() {
         const dataSet = this.data;
         if (dataSet == null) return false;
         return dataSet.netSize() > 0;
     }
 
-    get hasData() {
-        return this.hasRowData;
+    /**
+     * Whether one of the series' keys names a column the data does not carry — including the empty
+     * string, which matches nothing exactly like any other unmatched key. Such a series can render
+     * nothing at all, which is a misconfiguration rather than an empty chart (AG-18413).
+     */
+    get hasUnmatchedKey() {
+        return false;
     }
 
     get tooltipEnabled() {
