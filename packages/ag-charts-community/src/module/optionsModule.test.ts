@@ -18,7 +18,6 @@ import type {
 import { sanitizeThemeModules } from '../chart/factory/processModuleOptions';
 import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import * as examples from '../chart/test/examples';
-import { prepareProcessedOptions } from '../chart/test/prepareOptions';
 import { ChartTheme } from '../chart/themes/chartTheme';
 import { VERSION } from '../version';
 import { CategoryAxisModule } from './axis-modules/categoryAxisModule';
@@ -668,55 +667,31 @@ describe('ChartOptions', () => {
                 seriesArea: { backgroundRegions: [{ xRange: { start: 0, end: 1 } }] },
             }) as AgCartesianChartOptions;
 
-        it('reports the module when `seriesArea.backgroundRegions` is used without BackgroundRegionsModule', () => {
+        it('warns and drops `seriesArea.backgroundRegions` outside enterprise', () => {
             const logger = new Logger();
-            const instanceErrorOnce = vi.spyOn(logger, 'errorOnce');
-            const ambientErrorOnce = vi.spyOn(ambientLogger, 'errorOnce');
+            const instanceWarnOnce = vi.spyOn(logger, 'warnOnce');
+            const ambientWarnOnce = vi.spyOn(ambientLogger, 'warnOnce');
 
-            prepareOptions(backgroundRegionsOptions(), logger);
+            const processedOptions = prepareOptions(backgroundRegionsOptions(), logger);
 
-            const errors = (console.error as Mock).mock.calls.map(([m]) => String(m));
-            expect(errors.some((m) => m.includes('required modules are not registered'))).toBe(true);
-            expect(errors.some((m) => m.includes('BackgroundRegionsModule'))).toBe(true);
-            expect(errors.some((m) => m.includes("from 'ag-charts-enterprise'"))).toBe(true);
-
-            const instanceMessages = instanceErrorOnce.mock.calls.map(([m]) => String(m));
-            expect(instanceMessages.some((m) => m.includes('BackgroundRegionsModule'))).toBe(true);
-            expect(ambientErrorOnce).not.toHaveBeenCalled();
+            const warnings = instanceWarnOnce.mock.calls.map(([m]) => String(m));
+            expect(
+                warnings.some((m) =>
+                    m.includes('Option `seriesArea.backgroundRegions` is an AG Charts Enterprise feature')
+                )
+            ).toBe(true);
+            expect(ambientWarnOnce).not.toHaveBeenCalled();
+            expect(processedOptions.seriesArea?.backgroundRegions).toBeUndefined();
         });
 
-        it('warns with a CDN-friendly message for `seriesArea.backgroundRegions` in UMD mode', () => {
-            ModuleRegistry.setRegistryMode(ModuleRegistry.RegistryMode.UMD);
-            try {
-                const logger = new Logger();
-                const instanceWarnOnce = vi.spyOn(logger, 'warnOnce');
-                const ambientWarnOnce = vi.spyOn(ambientLogger, 'warnOnce');
+        it('leaves the community `seriesArea` options alongside it untouched', () => {
+            const processedOptions = prepareOptions({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                seriesArea: { clip: true, backgroundRegions: [{ xRange: { start: 0, end: 1 } }] },
+            } as AgCartesianChartOptions);
 
-                prepareOptions(backgroundRegionsOptions(), logger);
-
-                const warnings = (console.warn as Mock).mock.calls.map(([m]) => String(m));
-                expect(
-                    warnings.some((m) =>
-                        m.includes(
-                            "unable to use these enterprise features as 'ag-charts-enterprise' has not been loaded"
-                        )
-                    )
-                ).toBe(true);
-                expect(warnings.some((m) => m.includes('has not been loaded:\n\nbackgroundRegions'))).toBe(true);
-                expect(warnings.every((m) => !m.includes('import {'))).toBe(true);
-
-                const instanceWarnings = instanceWarnOnce.mock.calls.map(([m]) => String(m));
-                expect(instanceWarnings.some((m) => m.includes('backgroundRegions'))).toBe(true);
-                expect(ambientWarnOnce).not.toHaveBeenCalled();
-            } finally {
-                ModuleRegistry.clearRegistryModes();
-            }
-        });
-
-        it('strips `seriesArea.backgroundRegions` when BackgroundRegionsModule is not registered', () => {
-            const { processedOptions } = prepareProcessedOptions(backgroundRegionsOptions());
-
-            expect((processedOptions as AgCartesianChartOptions).seriesArea?.backgroundRegions).toBeUndefined();
+            expect(processedOptions.seriesArea?.clip).toBe(true);
+            expect(processedOptions.seriesArea?.backgroundRegions).toBeUndefined();
         });
 
         it('stays silent when `backgroundRegions` appears only as a theme override', () => {
@@ -728,8 +703,7 @@ describe('ChartOptions', () => {
             const messages = (console.error as Mock).mock.calls
                 .concat((console.warn as Mock).mock.calls)
                 .map(([m]) => String(m));
-            expect(messages.every((m) => !m.includes('required modules are not registered'))).toBe(true);
-            expect(messages.every((m) => !m.includes('unable to use these enterprise features'))).toBe(true);
+            expect(messages.every((m) => !m.includes('AG Charts Enterprise feature'))).toBe(true);
         });
     });
 

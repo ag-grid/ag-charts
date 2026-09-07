@@ -2327,28 +2327,6 @@ describe('AG-17830 QA — validations.issueRaised', () => {
         errorMock.mockClear();
     });
 
-    it('fires for a dropped seriesArea.backgroundRegions that trips throwOn', () => {
-        const issueRaised = vi.fn();
-
-        expect(() =>
-            AgCharts.create({
-                container: document.body,
-                data: [{ x: 'A', y: 10 }],
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                seriesArea: { backgroundRegions: [{ xRange: { start: 0, end: 1 } }] },
-                validations: { throwOn: ['error'], issueRaised },
-            })
-        ).toThrow(/validations.throwOn: error/);
-
-        const errorMock = console.error as Mock;
-        expect(issueRaised).toHaveBeenCalledWith({
-            severity: 'error',
-            message: expect.stringContaining('required modules are not registered'),
-        });
-        expect(errorMock).toHaveBeenCalledTimes(1);
-        errorMock.mockClear();
-    });
-
     it('fires on update() for an issue that also trips throwOn', async () => {
         const issueRaised = vi.fn();
         const options: AgCartesianChartOptions = {

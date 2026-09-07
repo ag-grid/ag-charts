@@ -734,7 +734,7 @@ describe('Background Regions on unsupported chart types', () => {
     });
 });
 
-describe('Background Regions with the module registered', () => {
+describe('Background Regions under the enterprise registry', () => {
     setupMockConsole();
     setupMockCanvas();
 
@@ -748,7 +748,7 @@ describe('Background Regions with the module registered', () => {
         }
     });
 
-    it('emits no missing-module message', async () => {
+    it('emits no enterprise-feature warning', async () => {
         const options: AgCartesianChartOptions = {
             ...NUMERIC,
             seriesArea: { backgroundRegions: [{ fill: 'lightsalmon', xRange: { start: 20, end: 80 } }] },

@@ -100,14 +100,6 @@ function sanitizeThemeModulesUncached(theme: ChartTheme, moduleRegistry: ModuleS
         }
     }
 
-    function pruneSeriesAreaPlugins(target?: PlainObject) {
-        const missingSeriesAreaPlugins = missingModules.get(ModuleType.SeriesAreaPlugin);
-        if (!isObject(target) || !missingSeriesAreaPlugins) return;
-        for (const pluginName of missingSeriesAreaPlugins) {
-            delete target[pluginName];
-        }
-    }
-
     function pruneAxisPlugins(target?: PlainObject) {
         const missingAxisPlugins = missingModules.get(ModuleType.AxisPlugin);
         if (!isObject(target) || !missingAxisPlugins) return;
@@ -134,7 +126,6 @@ function sanitizeThemeModulesUncached(theme: ChartTheme, moduleRegistry: ModuleS
         pruneAxes(entry.axes as PlainObject);
         prunePlugins(entry);
         pruneSeriesPlugins(entry.series as PlainObject);
-        pruneSeriesAreaPlugins(entry.seriesArea as PlainObject);
     }
 
     const config = deepClone(theme.config);
@@ -362,15 +353,6 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
                     }
                 }
                 break;
-
-            case 'series-area:plugin': {
-                const seriesArea: PlainObject | undefined = options.seriesArea;
-                if (isObject(seriesArea) && seriesArea[module.name] != null) {
-                    delete seriesArea[module.name];
-                    addMissingModule(module);
-                }
-                break;
-            }
         }
     }
 
