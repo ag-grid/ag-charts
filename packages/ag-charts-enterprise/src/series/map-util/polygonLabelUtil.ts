@@ -1,4 +1,4 @@
-import type { FitRegion, Position } from 'ag-charts-core';
+import { type FitRegion, type Position, memoiseByBand } from 'ag-charts-core';
 
 import { polygonPointSearch } from './polygonPointSearch';
 
@@ -156,21 +156,9 @@ export function xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
     cy: number,
     height: number
 ) {
-    return xExtentsOfBandToLineSegment(into, a, b, cx, cy - height / 2, cy + height / 2);
-}
+    const ry0 = cy - height / 2;
+    const ry1 = cy + height / 2;
 
-/**
- * Narrows `into` (offsets from `cx`) to the horizontal room a rect spanning the band `[ry0, ry1]` has before
- * it meets the edge `a`-`b`. The band is assumed to lie inside the polygon at `cx`.
- */
-function xExtentsOfBandToLineSegment(
-    into: { minX: number; maxX: number },
-    a: Position,
-    b: Position,
-    cx: number,
-    ry0: number,
-    ry1: number
-) {
     const [ax, ay] = a;
     const [bx, by] = b;
 
@@ -228,27 +216,27 @@ export function polygonFitRegion(polygons: Position[][], cx: number, cy: number)
         }
     }
 
-    const spans = new Map<string, readonly [number, number]>();
     const spanAt = (top: number, bottom: number): readonly [number, number] => {
-        const key = `${top},${bottom}`;
-        let span = spans.get(key);
-        if (span == null) {
-            const into = { minX: -Infinity, maxX: Infinity };
-            for (const polygon of polygons) {
-                let p0 = polygon.at(-1)!;
-                for (const p1 of polygon) {
-                    xExtentsOfBandToLineSegment(into, p0, p1, cx, cy + top, cy + bottom);
-                    p0 = p1;
-                }
+        const into = { minX: -Infinity, maxX: Infinity };
+        for (const polygon of polygons) {
+            let p0 = polygon.at(-1)!;
+            for (const p1 of polygon) {
+                xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
+                    into,
+                    p0,
+                    p1,
+                    cx,
+                    cy + (top + bottom) / 2,
+                    bottom - top
+                );
+                p0 = p1;
             }
-            span = Number.isFinite(into.minX) && Number.isFinite(into.maxX) ? [into.minX, into.maxX] : [0, 0];
-            spans.set(key, span);
         }
-        return span;
+        return Number.isFinite(into.minX) && Number.isFinite(into.maxX) ? [into.minX, into.maxX] : [0, 0];
     };
 
     return {
-        spanAt,
+        spanAt: memoiseByBand(spanAt),
         extentAbove: Number.isFinite(extentAbove) ? extentAbove : 0,
         extentBelow: Number.isFinite(extentBelow) ? extentBelow : 0,
     };

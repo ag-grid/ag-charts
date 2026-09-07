@@ -427,7 +427,6 @@ describe('series label fit', () => {
         });
         const mapShapeLabels = (): { text: unknown; fontSize: number }[] =>
             (chart.series[0].contextNodeData?.labelData ?? []) as { text: unknown; fontSize: number }[];
-        const mapShapeTexts = () => mapShapeLabels().map((d) => d.text);
         // Every drawn line box must sit inside its shape, which is the contract the region fit makes.
         const everyLineInsideItsShape = () => {
             const series = chart.series[0];
@@ -454,15 +453,15 @@ describe('series label fit', () => {
 
         it('wraps labels within their shape by default', async () => {
             await renderAndSnapshot(ukSeries({ fontSize: 10 }));
-            expect(someWrapped(mapShapeTexts())).toBe(true);
+            expect(someWrapped(flatLabelTexts())).toBe(true);
             expect(everyLineInsideItsShape()).toBeGreaterThan(1);
         });
 
         // Setting `wrapping` is one of the shared triggers that turns `truncate` on, so it is disabled again here.
         it('hides a label that does not fit at all rather than truncating it', async () => {
             await renderAndSnapshot(ukSeries({ fontSize: 14, wrapping: 'never', truncate: false }));
-            expect(someTruncated(mapShapeTexts())).toBe(false);
-            expect(mapShapeTexts().length).toBeLessThan(4);
+            expect(someTruncated(flatLabelTexts())).toBe(false);
+            expect(flatLabelTexts().length).toBeLessThan(4);
         });
 
         it('truncates within an explicit maxWidth/maxHeight', async () => {
@@ -471,7 +470,7 @@ describe('series label fit', () => {
             chart.series[0].labelSelection.each((text: any) => boxes.push(...text.getLineBoxes()));
             expect(boxes.length).toBeGreaterThan(0);
             expect(boxes.every((box) => box.width <= 40 + 1)).toBe(true);
-            expect(someTruncated(mapShapeTexts())).toBe(true);
+            expect(someTruncated(flatLabelTexts())).toBe(true);
         });
 
         it('shrinks labels to minimumFontSize before wrapping or hiding them', async () => {
@@ -482,7 +481,7 @@ describe('series label fit', () => {
             expect(labels.length).toBe(4);
             expect(labels.some((label) => label.fontSize < 14)).toBe(true);
             expect(labels.every((label) => label.fontSize >= 6)).toBe(true);
-            expect(someTruncated(mapShapeTexts())).toBe(false);
+            expect(someTruncated(flatLabelTexts())).toBe(false);
             expect(everyLineInsideItsShape()).toBe(labels.length);
         });
     });
