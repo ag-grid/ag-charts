@@ -34,7 +34,7 @@ export const GALLERY_EXAMPLE_COPY: Record<string, GalleryExampleCopy> = {
         h1: 'Bar Chart Example',
         description:
             'An interactive bar chart built with AG Charts: compare categories with customisable axes, tooltips and labels. Explore the live JavaScript example and copy the code.',
-        intro: 'This example shows a bar chart built with AG Charts, comparing values across categories. Customise the axes, series colours, tooltips and labels, then build the same chart in JavaScript, React, Angular or Vue.',
+        intro: 'This example shows a bar chart built with AG Charts, comparing values across categories. Customise the axes, series colours, [tooltips](/r/tooltips/) and labels, then build the same chart in JavaScript, React, Angular or Vue.',
     },
     'grouped-stacked-bar': {
         title: 'Grouped Stacked Bar Chart Example | AG Charts',

@@ -1,3 +1,4 @@
+import { readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import galleryData from '../../../content/gallery/data.json';
@@ -70,6 +71,22 @@ describe('resolveGallerySeo', () => {
     it('resolves distinct titles per page, so no two pages compete for the same result', () => {
         const titles = RESOLVED.map(({ seo }) => seo.title);
         expect(new Set(titles).size).toBe(titles.length);
+    });
+
+    it('links intros only through /r/, to docs pages that exist', () => {
+        const docsPages = new Set(
+            readdirSync(new URL('../../../content/docs', import.meta.url), { withFileTypes: true })
+                .filter((entry) => entry.isDirectory())
+                .map((entry) => entry.name)
+        );
+        const problems = RESOLVED.flatMap(({ exampleName, seo }) =>
+            [...seo.intro.matchAll(/\]\(([^)]+)\)/g)]
+                .map(([, href]) => href)
+                // `/r/` keeps the link framework-agnostic, as the gallery itself is.
+                .filter((href) => !/^\/r\/[^/]+\/$/.test(href) || !docsPages.has(href.split('/')[2]))
+                .map((href) => `${exampleName} -> ${href}`)
+        );
+        expect(problems).toEqual([]);
     });
 
     it('throws when an example has no copy row', () => {

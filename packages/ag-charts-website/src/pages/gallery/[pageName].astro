@@ -5,6 +5,7 @@ import { Icon } from '@ag-website-shared/components/icon/Icon';
 import GalleryExampleRunner from '@components/gallery/components/GalleryExampleRunner.astro';
 import { getGalleryPages } from '@components/gallery/utils/pageData';
 import { GalleryExampleCarousel } from '@components/gallery/components/GalleryExampleCarousel';
+import { GalleryIntro } from '@components/gallery/components/GalleryIntro';
 import { GallerySeriesLink } from '@components/gallery/components/GallerySeriesLink';
 import { resolveGallerySeo } from '@components/gallery/utils/gallerySeo';
 import { relatedExamplesHeading } from '@components/gallery/utils/relatedExamples';
@@ -43,7 +44,7 @@ const relatedHeading = relatedExamplesHeading({ seriesTitle: page.seriesTitle, r
             <GallerySeriesLink client:only="react" series={page.seriesTitle} link={page.seriesLink} />
         </div>
 
-        <p class="intro">{seo.intro}</p>
+        <p class="intro"><GalleryIntro intro={seo.intro} /></p>
 
         <p class="frameworkLinks text-secondary">
             {/* Array children are concatenated verbatim, so indentation cannot add stray spaces. */}

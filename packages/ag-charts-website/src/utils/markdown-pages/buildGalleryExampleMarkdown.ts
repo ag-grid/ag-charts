@@ -5,6 +5,7 @@ import { galleryFamilyHeading, resolveGallerySeo } from '@components/gallery/uti
 import { type GalleryRelatedExample, relatedExamplesHeading } from '@components/gallery/utils/relatedExamples';
 import { getExampleFileUrl, getExampleUrl, getPageUrl } from '@components/gallery/utils/urlPaths';
 import { toTitle } from '@utils/toTitle';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 import GithubSlugger from 'github-slugger';
 
@@ -30,6 +31,17 @@ export interface BuildGalleryExampleMarkdownOptions {
     /** The related examples the page's strip links, in the same order. */
     relatedExamples: GalleryRelatedExample[];
     siteRoot?: string;
+}
+
+/** Site-relative markdown link, as an intro carries: `[tooltips](/r/tooltips/)`. */
+const INTRO_LINK = /\]\((\/[^)]*)\)/g;
+
+/**
+ * Absolute-ise the inline links an intro carries, as every other link in the document is: the
+ * `.md` is read out of context, where a root-relative href resolves against the wrong origin.
+ */
+function withAbsoluteIntroLinks(intro: string, siteRoot?: string): string {
+    return intro.replace(INTRO_LINK, (_match, href: string) => `](${toAbsoluteUrl(urlWithBaseUrl(href), siteRoot)})`);
 }
 
 /** Matches GallerySeriesLink: an explicit `seriesLink`, else the chart type's default docs slug. */
@@ -65,7 +77,7 @@ export async function buildGalleryExampleMarkdown({
             description: seo.description,
         }),
         `# ${seo.h1}`,
-        seo.intro,
+        withAbsoluteIntroLinks(seo.intro, siteRoot),
     ];
 
     const chartType = page.enterprise ? `${page.seriesTitle} (Enterprise)` : page.seriesTitle;
