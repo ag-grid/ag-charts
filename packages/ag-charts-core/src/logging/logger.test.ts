@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Logger, reset, warn, warnOnce } from './logger';
+import { type LogIssue, Logger, reset, warn, warnOnce } from './logger';
 
 describe('Logger', () => {
     beforeEach(() => {
@@ -155,6 +155,85 @@ describe('Logger', () => {
             logger.setEnabledLevels(['error', 'warning', 'deprecation']);
             logger.deprecationOnce('y');
             expect(console.warn).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('onIssue', () => {
+        it('reports every warn, error and deprecation at the severity of its console channel', () => {
+            const logger = new Logger();
+            const issues: LogIssue[] = [];
+            logger.onIssue((issue) => issues.push(issue));
+
+            logger.warn('w');
+            logger.error('e');
+            logger.deprecation('d');
+
+            expect(issues).toEqual([
+                { severity: 'warning', message: 'w' },
+                { severity: 'error', message: 'e' },
+                { severity: 'deprecation', message: 'd' },
+            ]);
+        });
+
+        it('reports a message the enabled levels keep off the console', () => {
+            const logger = new Logger();
+            const listener = vi.fn();
+            logger.onIssue(listener);
+            logger.setEnabledLevels([]);
+
+            logger.warn('silenced');
+
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(listener).toHaveBeenCalledWith({ severity: 'warning', message: 'silenced' });
+        });
+
+        it('reports every call of a *Once message, the once-cache gating the console only', () => {
+            const logger = new Logger();
+            const listener = vi.fn();
+            logger.onIssue(listener);
+
+            logger.warnOnce('repeat');
+            logger.warnOnce('repeat');
+
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            expect(listener).toHaveBeenCalledTimes(2);
+        });
+
+        it('derives message, detail and cause from a logged Error', () => {
+            const logger = new Logger();
+            const listener = vi.fn();
+            logger.onIssue(listener);
+            const error = new Error('boom');
+
+            logger.error(error);
+
+            expect(listener).toHaveBeenCalledWith({
+                severity: 'error',
+                message: 'boom',
+                detail: error.stack,
+                cause: error,
+            });
+        });
+
+        it('writes the console record before a throwing subscriber unwinds the logging call', () => {
+            const logger = new Logger();
+            logger.onIssue(() => {
+                throw new Error('fail fast');
+            });
+
+            expect(() => logger.warn('problem')).toThrow('fail fast');
+            expect(console.warn).toHaveBeenCalledWith('AG Charts - problem');
+        });
+
+        it('stops reporting once unsubscribed', () => {
+            const logger = new Logger();
+            const listener = vi.fn();
+            const stop = logger.onIssue(listener);
+
+            stop();
+            logger.warn('unheard');
+
+            expect(listener).not.toHaveBeenCalled();
         });
     });
 

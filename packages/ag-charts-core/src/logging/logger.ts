@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import { EventEmitter } from '../structures/eventEmitter';
 
 export const LOG_LEVELS = ['error', 'warning', 'deprecation'] as const;
 
@@ -8,6 +9,20 @@ export type LogLevel = (typeof LOG_LEVELS)[number];
 /** Derived from the level tuple, so a new level cannot be missed here. */
 export function isLogLevel(value: unknown): value is LogLevel {
     return typeof value === 'string' && (LOG_LEVELS as readonly string[]).includes(value);
+}
+
+/**
+ * One console emission, as reported to {@link Logger.onIssue} subscribers. The severity is the console
+ * channel the message went to, so nothing downstream can classify a problem differently from the console.
+ */
+export interface LogIssue {
+    severity: LogLevel;
+    /** The console text after the `AG Charts - ` prefix; an Error's own message when one was logged. */
+    message: string;
+    /** A logged Error's stack. */
+    detail?: string;
+    /** A logged Error, so a subscriber that throws can chain it. */
+    cause?: unknown;
 }
 
 interface LogGroup {
@@ -28,6 +43,19 @@ export class Logger {
     private warningEnabled = true;
     private deprecationEnabled = true;
 
+    private readonly issues = new EventEmitter<{ issue: LogIssue }>();
+    private hasIssueListeners = false;
+
+    /**
+     * Subscribes to every `error`, `warn` and `deprecation` call, whether or not the console showed it:
+     * `setEnabledLevels` and the `*Once` caches gate the console only. A subscriber may throw, and the
+     * throw unwinds out of the logging call itself.
+     */
+    onIssue(listener: (issue: LogIssue) => void) {
+        this.hasIssueListeners = true;
+        return this.issues.on('issue', listener);
+    }
+
     /** Replaces the enabled severities on a live Logger, which the chart's options lifecycle drives. */
     setEnabledLevels(levels: readonly LogLevel[]) {
         this.errorEnabled = levels.includes('error');
@@ -43,32 +71,43 @@ export class Logger {
     /**
      * Deprecation notices. Emitted on the same console channel as `warn`, but a tier of its own that
      * is enabled and disabled independently of it.
-     *
-     * Returns whether the message was emitted, so `guardOnce` can avoid caching a suppressed message.
      */
     deprecation(message: any, ...logContent: any[]) {
-        if (!this.deprecationEnabled) return false;
-        this.openGroups();
-        console.warn(`AG Charts - ${message}`, ...logContent);
-        return true;
+        if (this.deprecationEnabled) {
+            this.openGroups();
+            console.warn(`AG Charts - ${message}`, ...logContent);
+        }
+        this.emitIssue('deprecation', message);
     }
 
     warn(message: any, ...logContent: any[]) {
-        if (!this.warningEnabled) return false;
-        this.openGroups();
-        console.warn(`AG Charts - ${message}`, ...logContent);
-        return true;
+        if (this.warningEnabled) {
+            this.openGroups();
+            console.warn(`AG Charts - ${message}`, ...logContent);
+        }
+        this.emitIssue('warning', message);
     }
 
     error(message: any, ...logContent: any[]) {
-        if (!this.errorEnabled) return false;
-        this.openGroups();
-        if (typeof message === 'object') {
-            console.error(`AG Charts error`, message, ...logContent);
-        } else {
-            console.error(`AG Charts - ${message}`, ...logContent);
+        if (this.errorEnabled) {
+            this.openGroups();
+            if (typeof message === 'object') {
+                console.error(`AG Charts error`, message, ...logContent);
+            } else {
+                console.error(`AG Charts - ${message}`, ...logContent);
+            }
         }
-        return true;
+        this.emitIssue('error', message);
+    }
+
+    // Console first, then subscribers: a subscriber that throws must not lose the console record.
+    private emitIssue(severity: LogLevel, message: unknown) {
+        if (!this.hasIssueListeners) return;
+        const issue: LogIssue =
+            message instanceof Error
+                ? { severity, message: message.message, detail: message.stack, cause: message }
+                : { severity, message: String(message) };
+        this.issues.emit('issue', issue);
     }
 
     table(...logContent: any[]) {
@@ -76,7 +115,7 @@ export class Logger {
         console.table(...logContent);
     }
 
-    private guardOnce<T>(messageOrError: T, prefix: string, cb: (message: T) => boolean) {
+    private guardOnce<T>(messageOrError: T, severity: LogLevel, cb: (message: T) => void) {
         let message: string;
         if (messageOrError instanceof Error) {
             message = messageOrError.message;
@@ -87,25 +126,35 @@ export class Logger {
         } else {
             message = String(messageOrError);
         }
-        const cacheKey = `${prefix}: ${message}`;
-        if (this.doOnceCache.has(cacheKey)) return;
-        // Only remember a message the severity gate actually let through: the enabled levels are
-        // mutable, so caching a suppressed message would swallow it permanently once it is enabled.
-        if (cb(messageOrError)) {
+        const cacheKey = `${severity}: ${message}`;
+        if (this.doOnceCache.has(cacheKey)) {
+            this.emitIssue(severity, messageOrError);
+            return;
+        }
+        // Only remember a message the severity gate lets through: the enabled levels are mutable, so
+        // caching a suppressed message would swallow it permanently once it is enabled.
+        if (this.isEnabled(severity)) {
             this.doOnceCache.add(cacheKey);
         }
+        cb(messageOrError);
+    }
+
+    private isEnabled(severity: LogLevel) {
+        if (severity === 'error') return this.errorEnabled;
+        if (severity === 'warning') return this.warningEnabled;
+        return this.deprecationEnabled;
     }
 
     deprecationOnce(messageOrError: unknown, ...logContent: any[]) {
-        this.guardOnce(messageOrError, 'Logger.deprecation', (message) => this.deprecation(message, ...logContent));
+        this.guardOnce(messageOrError, 'deprecation', (message) => this.deprecation(message, ...logContent));
     }
 
     warnOnce(messageOrError: unknown, ...logContent: any[]) {
-        this.guardOnce(messageOrError, 'Logger.warn', (message) => this.warn(message, ...logContent));
+        this.guardOnce(messageOrError, 'warning', (message) => this.warn(message, ...logContent));
     }
 
     errorOnce(messageOrError: unknown, ...logContent: any[]) {
-        this.guardOnce(messageOrError, 'Logger.error', (message) => this.error(message, ...logContent));
+        this.guardOnce(messageOrError, 'error', (message) => this.error(message, ...logContent));
     }
 
     reset() {
@@ -114,6 +163,8 @@ export class Logger {
 
     destroy() {
         this.doOnceCache.clear();
+        this.issues.clear();
+        this.hasIssueListeners = false;
     }
 
     logGroup<T>(name: string, cb: () => T): T {
