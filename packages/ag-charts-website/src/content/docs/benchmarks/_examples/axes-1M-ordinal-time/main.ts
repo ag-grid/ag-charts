@@ -62,7 +62,8 @@ const container = document.getElementById('myChart')!;
 const seriesCount = options.series!.length;
 const data = getData();
 
-function setParentLevel(enabled: boolean) {
+function setParentLevel(event: Event) {
+    const enabled = (event.target as HTMLInputElement).value === 'true';
     (options.axes!.x! as AgOrdinalTimeAxisOptions).parentLevel = { enabled };
     chartRef.current?.update(options);
 }
