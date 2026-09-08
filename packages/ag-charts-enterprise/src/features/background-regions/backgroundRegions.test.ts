@@ -737,12 +737,6 @@ describe('Background Regions removal', () => {
 
 type DerivedAnchor = { regionH: number; regionV: number; labelH: number; labelV: number };
 
-/**
- * The naming contract: for an outside position the first token is the side of the region the label
- * sits on (so on that axis the label is pushed out of the region) and the second is its alignment
- * along that side (so on the other axis the label matches the region). An `inside` label is flush
- * to both named edges.
- */
 function axisDirection(position: string, negative: string, positive: string): number {
     if (position.includes(negative)) {
         return -1;
@@ -753,6 +747,12 @@ function axisDirection(position: string, negative: string, positive: string): nu
     return 0;
 }
 
+/**
+ * The naming contract: for an outside position the first token is the side of the region the label
+ * sits on (so on that axis the label is pushed out of the region) and the second is its alignment
+ * along that side (so on the other axis the label matches the region). An `inside` label is flush
+ * to both named edges.
+ */
 function deriveAnchor(position: string): DerivedAnchor {
     const regionH = axisDirection(position, 'left', 'right');
     const regionV = axisDirection(position, 'top', 'bottom');
