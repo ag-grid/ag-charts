@@ -163,13 +163,9 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function useDefaultTheme() {
-    options.theme = defaultTheme;
-    chart.update(options);
-}
-
-function usePaperTheme() {
-    options.theme = paperTheme;
+function themeChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    options.theme = value === 'default' ? defaultTheme : paperTheme;
     chart.update(options);
 }
 

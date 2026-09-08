@@ -70,10 +70,13 @@ function rotateLegend() {
     chart.updateDelta({ legend: { position: newPosition } });
 }
 
-function changeTheme() {
+function changeTheme(event: Event) {
     const theme = chart.getOptions()?.theme as AgChartTheme;
     const markersEnabled = theme?.overrides?.area?.series?.marker?.enabled ?? false;
     chart.updateDelta({
         theme: { overrides: { area: { series: { marker: { enabled: !markersEnabled } } } } },
     });
+
+    const button = event.currentTarget as HTMLButtonElement;
+    button.setAttribute('aria-pressed', String(!markersEnabled));
 }

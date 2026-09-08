@@ -20,4 +20,5 @@ const chart = AgCharts.createFinancialChart(options);
 function toggleFeature(type: 'navigator' | 'toolbar' | 'rangeButtons' | 'volume' | 'statusBar' | 'zoom') {
     options[type] = !options[type];
     chart.update(options);
+    document.getElementById(`toggle-${type}`)?.setAttribute('aria-pressed', String(options[type]));
 }
