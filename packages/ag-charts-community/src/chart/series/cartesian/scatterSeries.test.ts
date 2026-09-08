@@ -1241,15 +1241,16 @@ describe('ScatterSeries', () => {
         };
 
         // An empty key is matched against the data exactly like a non-empty one, so both take the
-        // same route: the unmatched-key warning, with the markers still drawn and no label text.
+        // same route: the unmatched-key warning, and no markers under the no-data overlay the
+        // unresolvable series raises.
         it.each([
             ['an empty labelKey (TC3)', { labelKey: '', label: { enabled: true } }, `''`],
             ['an unmatched labelKey', { labelKey: 'nope', label: { enabled: true } }, `'nope'`],
-        ] as [string, object, string][])('draws unlabelled markers and warns for %s', async (_name, o, key) => {
+        ] as [string, object, string][])('draws no markers and warns for %s', async (_name, o, key) => {
             await createScatter(o);
 
-            expect(nodeData(chart)).toHaveLength(3);
-            expect((nodeData(chart) as { label: { text: string } }[]).map((d) => d.label.text)).toEqual(['', '', '']);
+            expect(nodeData(chart)).toEqual([]);
+            expect(deproxy(chart).series[0].hasData).toBe(false);
             expectWarningsCalls().toEqual([
                 [`AG Charts - the key ${key} was not found in any data element for ScatterSeries-1.`],
             ]);

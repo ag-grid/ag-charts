@@ -1696,49 +1696,35 @@ describe('BubbleSeries', () => {
 
         // `''` is a property key like any other — `({ '': 2 })['']` is 2 — so an empty key names a
         // column exactly as a non-empty string does, and takes the same route: the unmatched-key
-        // warning, with the rest of the series still drawn. Previously it was neither registered nor
-        // skipped consistently, so reading the column threw on every update pass.
+        // warning. Nothing in the series is renderable, and the chart raises its no-data overlay,
+        // so no markers are drawn under it.
         it.each([
             ['an empty sizeKey (TC1)', { sizeKey: '' }, `''`],
             ['an unmatched sizeKey', { sizeKey: 'nope' }, `'nope'`],
-        ] as [string, object, string][])('draws default-size markers and warns for %s', async (_name, o, key) => {
-            await createBubble(o);
-
-            expect(nodeData(chart).map((d) => d.point.size)).toEqual([7, 7, 7]);
-            expectWarningsCalls().toEqual([
-                [`AG Charts - the key ${key} was not found in any data element for BubbleSeries-1.`],
-            ]);
-        });
-
-        it.each([
             ['an empty labelKey (TC3)', { sizeKey: 's', labelKey: '', label: { enabled: true } }, `''`],
             ['an unmatched labelKey', { sizeKey: 's', labelKey: 'nope', label: { enabled: true } }, `'nope'`],
-        ] as [string, object, string][])('draws unlabelled markers and warns for %s', async (_name, o, key) => {
+        ] as [string, object, string][])('draws no markers and warns for %s', async (_name, o, key) => {
             await createBubble(o);
 
-            expect(nodeData(chart).map((d) => d.point.size)).toEqual([7, 18.5, 30]);
-            expect(nodeData(chart).map((d) => d.label.text)).toEqual(['', '', '']);
+            expect(nodeData(chart)).toEqual([]);
+            expect(deproxy(chart).series[0].hasData).toBe(false);
             expectWarningsCalls().toEqual([
                 [`AG Charts - the key ${key} was not found in any data element for BubbleSeries-1.`],
             ]);
         });
 
-        // With no labelKey the label comes from the size column, chosen on the same nullish test the
-        // column is registered and read with — a truthy test sent `''` to the y-values instead.
-        it.each([
-            ['an empty sizeKey', { sizeKey: '' }, `''`],
-            ['an unmatched sizeKey', { sizeKey: 'nope' }, `'nope'`],
-        ] as [string, object, string][])(
-            'labels the markers from the size column, not y, for %s',
-            async (_name, o, key) => {
-                await createBubble({ ...o, label: { enabled: true } });
+        it('still draws the renderable rows when individual rows are invalid or incomplete', async () => {
+            // Every key names a column here, so the series is only partly unresolvable: the invalid
+            // and missing tallies overlap enough to make the inherited hasData getter read false,
+            // and the renderable row must survive that.
+            await createBubble({ sizeKey: 's', labelKey: 'l', label: { enabled: true } }, [
+                { x: 1, y: 1, s: 10, l: 'a' },
+                { x: null, y: 2, s: 20 },
+            ]);
 
-                expect(nodeData(chart).map((d) => d.label.text)).toEqual(['', '', '']);
-                expectWarningsCalls().toEqual([
-                    [`AG Charts - the key ${key} was not found in any data element for BubbleSeries-1.`],
-                ]);
-            }
-        );
+            expect(nodeData(chart)).toHaveLength(1);
+            expect(deproxy(chart).series[0].hasData).toBe(false);
+        });
 
         it('labels the markers from an empty sizeKey the data does carry', async () => {
             await createBubble({ sizeKey: '', label: { enabled: true } }, withEmptyColumn);
@@ -1763,7 +1749,7 @@ describe('BubbleSeries', () => {
 
         it('scales the markers once an empty sizeKey is replaced by a real one', async () => {
             await createBubble({ sizeKey: '' });
-            expect(nodeData(chart).map((d) => d.point.size)).toEqual([7, 7, 7]);
+            expect(nodeData(chart)).toEqual([]);
             expectWarningsCalls().toEqual([
                 [`AG Charts - the key '' was not found in any data element for BubbleSeries-1.`],
             ]);
