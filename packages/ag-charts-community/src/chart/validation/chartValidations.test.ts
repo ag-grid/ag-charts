@@ -724,13 +724,7 @@ describe('ChartValidations - chart integration', () => {
         );
 
         const issues: LogIssue[] = chart.ctx.validations.issues;
-        expect(issues).toEqual([
-            {
-                severity: 'warning',
-                message: expect.stringContaining('series[0].strokeWidth'),
-                detail: 'series[0].strokeWidth',
-            },
-        ]);
+        expect(issues).toEqual([{ severity: 'warning', message: expect.stringContaining('series[0].strokeWidth') }]);
         expect(issueRaised).toHaveBeenCalledTimes(1);
         expectWarningsCalls().toHaveLength(1);
     });

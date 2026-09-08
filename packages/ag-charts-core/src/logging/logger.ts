@@ -19,19 +19,10 @@ export interface LogIssue {
     severity: LogLevel;
     /** The console text after the `AG Charts - ` prefix; an Error's own message when one was logged. */
     message: string;
-    /** A logged Error's stack, a logged object's own `detail`, then any further console arguments. */
+    /** A logged Error's stack, then any further console arguments, one per line. */
     detail?: string;
     /** A logged Error, so a subscriber that throws can chain it. */
     cause?: unknown;
-}
-
-/** A logged object can supply a detail line for issue subscribers; a `ValidationError` supplies its option path. */
-export interface LogDetail {
-    readonly detail: string | undefined;
-}
-
-function hasLogDetail(value: unknown): value is LogDetail {
-    return typeof value === 'object' && value != null && typeof (value as LogDetail).detail === 'string';
 }
 
 function stringifyLogContent(value: unknown): string {
@@ -122,11 +113,7 @@ export class Logger {
             message instanceof Error
                 ? { severity, message: message.message, cause: message }
                 : { severity, message: String(message) };
-        if (message instanceof Error) {
-            details.unshift(message.stack ?? '');
-        } else if (hasLogDetail(message)) {
-            details.unshift(message.detail ?? '');
-        }
+        if (message instanceof Error && message.stack) details.unshift(message.stack);
         const detail = details.filter((part) => part !== '').join('\n');
         if (detail !== '') issue.detail = detail;
         this.issues.emit('issue', issue);

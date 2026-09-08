@@ -8,7 +8,6 @@ import {
     Debug,
     type DeepPartial,
     type FontOptions,
-    type LogDetail,
     type LogIssue,
     Logger,
     ModuleRegistry,
@@ -784,16 +783,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private replay({ severity, message, detail }: LogIssue) {
-        const replayed: LogDetail & { toString(): string } = { detail, toString: () => message };
+        const logContent = detail == null ? [] : [detail];
         switch (severity) {
             case 'error':
-                this.logger.error(replayed);
+                this.logger.error(message, ...logContent);
                 break;
             case 'warning':
-                this.logger.warn(replayed);
+                this.logger.warn(message, ...logContent);
                 break;
             case 'deprecation':
-                this.logger.deprecation(replayed);
+                this.logger.deprecation(message, ...logContent);
                 break;
         }
     }
