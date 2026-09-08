@@ -1251,6 +1251,12 @@ describe('ScatterSeries', () => {
 
             expect(nodeData(chart)).toEqual([]);
             expect(deproxy(chart).series[0].hasData).toBe(false);
+            // The no-data overlay stands alone over the axes: no markers, and no gridlines behind it.
+            expect(
+                (deproxy(chart).axes as unknown as { gridLineGroup: { visible: boolean } }[]).map(
+                    (a) => a.gridLineGroup.visible
+                )
+            ).toEqual([false, false]);
             expectWarningsCalls().toEqual([
                 [`AG Charts - the key ${key} was not found in any data element for ScatterSeries-1.`],
             ]);

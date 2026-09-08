@@ -565,6 +565,11 @@ describe('AG-18413 quadrant with a key naming no column', () => {
 
         expect(series.getNodeData()).toEqual([]);
         expect(series.hasData).toBe(false);
+        // The no-data overlay stands alone over the axes: no markers, and no gridlines behind it.
+        expect(chart.axes.map((a: { gridLineGroup: { visible: boolean } }) => a.gridLineGroup.visible)).toEqual([
+            false,
+            false,
+        ]);
         expectWarningsCalls().toEqual([[`AG Charts - the key '' was not found in any data element for ${series.id}.`]]);
     });
 

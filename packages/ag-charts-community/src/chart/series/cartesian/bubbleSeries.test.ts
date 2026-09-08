@@ -1679,6 +1679,11 @@ describe('BubbleSeries', () => {
             { x: 3, y: 3, '': 30 },
         ];
 
+        const gridLinesVisible = (c: AgChartInstance) =>
+            (deproxy(c).axes as unknown as { gridLineGroup: { visible: boolean } }[]).map(
+                (a) => a.gridLineGroup.visible
+            );
+
         const createBubble = async (seriesOverrides: object, data: object[] = defaultData) => {
             const options = {
                 data,
@@ -1708,6 +1713,8 @@ describe('BubbleSeries', () => {
 
             expect(nodeData(chart)).toEqual([]);
             expect(deproxy(chart).series[0].hasData).toBe(false);
+            // The no-data overlay stands alone over the axes: no markers, and no gridlines behind it.
+            expect(gridLinesVisible(chart)).toEqual([false, false]);
             expectWarningsCalls().toEqual([
                 [`AG Charts - the key ${key} was not found in any data element for BubbleSeries-1.`],
             ]);
@@ -1744,6 +1751,8 @@ describe('BubbleSeries', () => {
             await createBubble({ sizeKey: 's' });
 
             expect(nodeData(chart).map((d) => d.point.size)).toEqual([7, 18.5, 30]);
+            // Anti-vacuous control for the gridline assertion above: a resolvable series keeps its grid.
+            expect(gridLinesVisible(chart)).toEqual([true, true]);
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
 

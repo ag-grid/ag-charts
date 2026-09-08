@@ -634,7 +634,7 @@ export abstract class Axis<
         this.updatePosition();
         this.updateSelections();
 
-        this.gridLineGroup.visible = this.options.gridLine.enabled;
+        this.gridLineGroup.visible = this.options.gridLine.enabled && !this.hasNoSeriesData();
 
         this.updateLabels();
         this.notifyAxisPlugins('onAxisUpdate');
@@ -1168,6 +1168,22 @@ export abstract class Axis<
 
     hasVisibleSeries() {
         return this.boundSeries.some((s) => s.isEnabled());
+    }
+
+    /**
+     * Whether every series the user has switched on resolves to nothing renderable — the state the
+     * chart raises its no-data overlay in, so gridlines drawn behind it would contradict it.
+     * Switched-off series are excluded deliberately: a chart with every series hidden on a fixed axis
+     * domain is an empty chart, not a misconfigured one, and keeps its grid.
+     */
+    private hasNoSeriesData() {
+        let enabledCount = 0;
+        for (const series of this.boundSeries) {
+            if (!series.isEnabled()) continue;
+            if (series.hasData) return false;
+            enabledCount++;
+        }
+        return enabledCount > 0;
     }
 
     clipTickLines(x: number, y: number, width: number, height: number) {
