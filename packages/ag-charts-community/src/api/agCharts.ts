@@ -601,8 +601,10 @@ class AgChartsInternal {
         AgChartsInternal.skippedChartOptions.add(chartOptions);
         chart.queuedUserOptions.push(chartOptions.userOptions);
         chart.queuedChartOptions.push(chartOptions);
-        // No `applyOptions()` follows, so the pass hands its issues over here.
-        chart.ctx.validations.beginCycle(chartOptions.issues, chartOptions.validations);
+        // No `applyOptions()` follows, so a revalidated pass hands its issues over here.
+        if (chartOptions.revalidated) {
+            chart.ctx.validations.beginCycle(chartOptions.issues, chartOptions.validations);
+        }
     }
 
     private static requestFactoryUpdate(chart: Chart, chartOptions: ChartOptions) {

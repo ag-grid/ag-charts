@@ -355,6 +355,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const stopCapture = this.logger.onIssue((issue) => this.issues.push(issue));
         // A CSS-variable refresh re-constructs from a DOM `transitionend` handler with no caller to throw to.
         const resumeFailFast = refreshCSSVariables ? this.validations.suspendFailFast() : undefined;
+        let rejected = false;
         try {
             this.findSeriesWithUserVisiblity(newUserOptions, deltaOptions);
 
@@ -390,7 +391,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 // The fast path doesn't re-extract fonts, so carry them forward to keep waiting for them.
                 fonts = baseChartOptions.fonts;
                 // The fast path doesn't re-validate, so carry forward the issues from the previous options.
-                this.issues = [...baseChartOptions.issues];
+                this.issues.push(...baseChartOptions.issues);
                 this.revalidated = false;
             } else {
                 ChartOptions.perfDebug(`ChartOptions.slowSetup()`);
@@ -406,16 +407,17 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 } = this.slowSetup(processedOverrides, deltaOptions, stripSymbols));
             }
         } catch (error) {
-            // A rejected pass must not leave its `validations` settings on the chart that keeps its old options.
-            if (baseChartOptions != null) {
-                this.validations.configure(getValidations(baseChartOptions.processedOptions));
-            }
-            // An error raised while processing (a throwing datum getter, a callback invoked during
-            // validation) escapes ahead of the update loop's catch, so it is reported here instead.
+            rejected = true;
+            // An error raised while processing (a throwing datum getter, a callback invoked during validation)
+            // escapes ahead of the update loop's catch, so it is reported here, under the failed pass's settings.
             rethrowFailFast(error);
             this.logger.error(error);
             throw error;
         } finally {
+            // A rejected pass must not leave its `validations` settings on the chart that keeps its old options.
+            if (rejected && baseChartOptions != null) {
+                this.validations.configure(getValidations(baseChartOptions.processedOptions));
+            }
             resumeFailFast?.();
             stopCapture();
         }

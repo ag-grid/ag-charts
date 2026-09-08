@@ -57,6 +57,7 @@ export class DataController {
 
     private readonly requested: RequestedProcessing<any, any, any>[] = [];
     private status: 'setup' | 'executed' = 'setup';
+    reprocessedIncrementally = false;
 
     public constructor(
         private readonly mode: ChartMode,
@@ -165,6 +166,7 @@ export class DataController {
                 this.debug('DataController.execute() - reprocessing data', processedData, dataSet);
 
                 // Run incremental update
+                this.reprocessedIncrementally = true;
                 dataModel.reprocessData(processedData, dataSets, changeDescriptionListener);
 
                 // DEBUG: Compare incremental update with full reprocess baseline

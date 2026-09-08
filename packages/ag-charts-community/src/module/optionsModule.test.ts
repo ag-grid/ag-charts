@@ -4768,6 +4768,93 @@ describe('ChartOptions', () => {
             ).toThrow();
         });
 
+        // A rejected pass hands the chart back its previous `validations`, but the failure belongs to the
+        // pass that was attempted, so it is reported under that pass's settings.
+        describe('a processing failure on a warm update', () => {
+            const throwingDataOptions = (validations?: object): AgChartOptions => {
+                const data = [
+                    {
+                        x: 'A',
+                        get y() {
+                            throw new Error('datum boom');
+                        },
+                    },
+                ];
+                return { data, series: [{ type: 'line', xKey: 'x', yKey: 'y' }], validations } as AgChartOptions;
+            };
+            const validOptions = (): AgChartOptions =>
+                ({ data: [{ x: 'A', y: 1 }], series: [{ type: 'line', xKey: 'x', yKey: 'y' }] }) as AgChartOptions;
+
+            it("throws the fail-fast error when the rejected pass armed `['error']`, then restores the previous settings", () => {
+                const runtime = createProvisionalRuntime(new Logger());
+                const base = new ChartOptions(
+                    validOptions(),
+                    {} as AgChartOptions,
+                    {},
+                    {},
+                    {},
+                    undefined,
+                    false,
+                    false,
+                    undefined,
+                    runtime
+                );
+
+                expect(
+                    () =>
+                        new ChartOptions(
+                            base,
+                            throwingDataOptions({ throwOn: ['error'] }),
+                            {},
+                            {},
+                            {},
+                            undefined,
+                            false,
+                            false,
+                            undefined,
+                            runtime
+                        )
+                ).toThrow(/^AG Charts - validations\.throwOn: error - datum boom/);
+
+                expect(() => runtime.logger.error('later error')).not.toThrow();
+            });
+
+            it('tells the `issueRaised` listener the rejected pass supplied', () => {
+                const runtime = createProvisionalRuntime(new Logger());
+                const base = new ChartOptions(
+                    validOptions(),
+                    {} as AgChartOptions,
+                    {},
+                    {},
+                    {},
+                    undefined,
+                    false,
+                    false,
+                    undefined,
+                    runtime
+                );
+                const issueRaised = vi.fn();
+
+                expect(
+                    () =>
+                        new ChartOptions(
+                            base,
+                            throwingDataOptions({ issueRaised }),
+                            {},
+                            {},
+                            {},
+                            undefined,
+                            false,
+                            false,
+                            undefined,
+                            runtime
+                        )
+                ).toThrow('datum boom');
+
+                expect(issueRaised).toHaveBeenCalledWith({ severity: 'error', message: 'datum boom' });
+            });
+        });
+
         it('does not throw when fail-fast is suppressed for the CSS-refresh re-construction', () => {
             expect(
                 () =>

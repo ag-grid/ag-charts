@@ -25,9 +25,15 @@ export interface LogIssue {
     cause?: unknown;
 }
 
+// A logged value can be anything a user callback threw, so serialisation must not be the thing that throws.
 function stringifyLogContent(value: unknown): string {
     if (value instanceof Error || typeof value !== 'object' || value == null) return String(value);
-    return JSON.stringify(value);
+    if (value.toString !== Object.prototype.toString) return String(value);
+    try {
+        return JSON.stringify(value);
+    } catch {
+        return String(value);
+    }
 }
 
 interface LogGroup {
@@ -37,6 +43,7 @@ interface LogGroup {
 
 export class Logger {
     private readonly doOnceCache = new Set<string>();
+    private readonly onceIssues = new Map<string, LogIssue>();
 
     // Groups this logger is inside, outermost first. An entry is only `opened` on the console once a
     // message has actually been emitted within it.
@@ -49,7 +56,6 @@ export class Logger {
     private deprecationEnabled = true;
 
     private readonly issues = new EventEmitter<{ issue: LogIssue }>();
-    private hasIssueListeners = false;
 
     /**
      * Subscribes to every `error`, `warn` and `deprecation` call, whether or not the console showed it:
@@ -57,7 +63,6 @@ export class Logger {
      * throw unwinds out of the logging call itself.
      */
     onIssue(listener: (issue: LogIssue) => void) {
-        this.hasIssueListeners = true;
         return this.issues.on('issue', listener);
     }
 
@@ -106,16 +111,22 @@ export class Logger {
     }
 
     // Console first, then subscribers: a subscriber that throws must not lose the console record.
-    private emitIssue(severity: LogLevel, message: unknown, logContent: unknown[]) {
-        if (!this.hasIssueListeners) return;
+    private emitIssue(severity: LogLevel, message: unknown, logContent: unknown[], cacheKey?: string) {
+        if (!this.issues.hasListeners('issue')) return;
+        const memoised = cacheKey == null ? undefined : this.onceIssues.get(cacheKey);
+        if (memoised) {
+            this.issues.emit('issue', memoised);
+            return;
+        }
         const details = logContent.map(stringifyLogContent);
         const issue: LogIssue =
             message instanceof Error
                 ? { severity, message: message.message, cause: message }
-                : { severity, message: String(message) };
+                : { severity, message: stringifyLogContent(message) };
         if (message instanceof Error && message.stack) details.unshift(message.stack);
         const detail = details.filter((part) => part !== '').join('\n');
         if (detail !== '') issue.detail = detail;
+        if (cacheKey != null) this.onceIssues.set(cacheKey, issue);
         this.issues.emit('issue', issue);
     }
 
@@ -131,13 +142,14 @@ export class Logger {
         } else if (typeof messageOrError === 'string') {
             message = messageOrError;
         } else if (typeof messageOrError === 'object') {
-            message = JSON.stringify(messageOrError);
+            message = stringifyLogContent(messageOrError);
         } else {
             message = String(messageOrError);
         }
         const cacheKey = `${severity}: ${message}`;
+        // A repeat is emitted with the first call's issue: `handleInvalidValue` reaches here once per invalid datum.
         if (this.doOnceCache.has(cacheKey)) {
-            this.emitIssue(severity, messageOrError, logContent);
+            this.emitIssue(severity, messageOrError, logContent, cacheKey);
             return;
         }
         // Only remember a message the severity gate lets through: the enabled levels are mutable, so
@@ -170,12 +182,12 @@ export class Logger {
 
     reset() {
         this.doOnceCache.clear();
+        this.onceIssues.clear();
     }
 
     destroy() {
-        this.doOnceCache.clear();
+        this.reset();
         this.issues.clear();
-        this.hasIssueListeners = false;
     }
 
     logGroup<T>(name: string, cb: () => T): T {

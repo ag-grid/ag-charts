@@ -34,6 +34,10 @@ export class EventEmitter<EventMap extends object> {
         }
     }
 
+    hasListeners<K extends keyof EventMap>(eventName: K) {
+        return this.events.has(eventName);
+    }
+
     /**
      * Emits an event to all registered listeners.
      * @param eventName The name of the event to emit.

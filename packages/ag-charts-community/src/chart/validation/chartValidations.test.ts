@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { EventEmitter, type LogIssue, Logger } from 'ag-charts-core';
-import type { AgBarSeriesOptions, AgCartesianChartOptions } from 'ag-charts-types';
+import { ChartUpdateType, EventEmitter, type LogIssue, Logger } from 'ag-charts-core';
+import type { AgBarSeriesOptions, AgCartesianChartOptions, AgLineSeriesOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
 import type { EventsHub, EventsHubMap } from '../../core/eventsHub';
@@ -172,6 +172,129 @@ describe('ChartValidations', () => {
         });
     });
 
+    describe('passes', () => {
+        it("a pass drops the issues of its phase that it did not re-raise, keeping the cycle's and other phases'", () => {
+            const { logger, validations } = build();
+            validations.setShowOverlayOn(['warning']);
+            validations.beginCycle([warningIssue]);
+
+            validations.beginPass('update');
+            validations.beginPass('data');
+            logger.warnOnce('missing key');
+            validations.endPass('data');
+            logger.warnOnce('callback threw');
+            validations.endPass('update');
+            expect(validations.getVisibleIssues().warning).toHaveLength(3);
+
+            validations.beginPass('data');
+            validations.endPass('data');
+            expect(validations.getVisibleIssues().warning.map((issue) => issue.message)).toEqual([
+                'bad option',
+                'callback threw',
+            ]);
+
+            validations.beginPass('update');
+            validations.endPass('update');
+            expect(validations.getVisibleIssues().warning).toEqual([warningIssue]);
+        });
+
+        it('a pass keeps an issue of its phase that it re-raises', () => {
+            const { logger, validations, changes } = build();
+            validations.setShowOverlayOn(['warning']);
+            validations.beginPass('data');
+            logger.warnOnce('missing key');
+            validations.endPass('data');
+            changes.mockClear();
+
+            validations.beginPass('data');
+            logger.warnOnce('missing key');
+            validations.endPass('data');
+
+            expect(validations.getVisibleIssues().warning).toHaveLength(1);
+            expect(changes).not.toHaveBeenCalled();
+        });
+
+        it('an issue raised outside any pass is kept until the next cycle, whatever passes run', () => {
+            const { logger, validations } = build();
+            validations.setShowOverlayOn(['warning']);
+            logger.warnOnce('tooltip renderer threw');
+
+            validations.beginPass('update');
+            validations.beginPass('data');
+            validations.endPass('data');
+            validations.endPass('update');
+            expect(validations.getVisibleIssues().warning).toHaveLength(1);
+
+            validations.beginCycle([]);
+            expect(validations.hasVisibleIssues()).toBe(false);
+        });
+
+        it('a retired issue that comes back is told to the listener again', () => {
+            const { logger, validations } = build();
+            const listener = vi.fn();
+            validations.configure({ issueRaised: listener });
+            validations.beginPass('data');
+            logger.warnOnce('missing key');
+            validations.endPass('data');
+            validations.beginPass('data');
+            validations.endPass('data');
+
+            validations.beginPass('data');
+            logger.warnOnce('missing key');
+            validations.endPass('data');
+
+            expect(listener).toHaveBeenCalledTimes(2);
+        });
+
+        it('a pass never drops an issue the cycle installed, even one it re-raised', () => {
+            const { logger, validations } = build();
+            validations.setShowOverlayOn(['warning']);
+            validations.beginCycle([warningIssue]);
+
+            validations.beginPass('data');
+            logger.warn(warningIssue.message);
+            validations.endPass('data');
+            validations.beginPass('data');
+            validations.endPass('data');
+
+            expect(validations.getVisibleIssues().warning).toEqual([warningIssue]);
+        });
+
+        it('an aborted pass keeps the issues it did not get to re-raise', () => {
+            const { logger, validations } = build();
+            validations.setShowOverlayOn(['warning']);
+            validations.beginPass('data');
+            logger.warnOnce('missing key');
+            validations.endPass('data');
+
+            validations.beginPass('data');
+            validations.endPass('data', false);
+            expect(validations.getVisibleIssues().warning).toHaveLength(1);
+
+            validations.beginPass('data');
+            validations.endPass('data');
+            expect(validations.hasVisibleIssues()).toBe(false);
+        });
+
+        it('emits validation:change once when a pass drops issues, and not when it drops nothing', () => {
+            const { logger, validations, changes } = build();
+            validations.setShowOverlayOn(['warning']);
+            validations.beginPass('data');
+            logger.warn('one');
+            logger.warn('two');
+            validations.endPass('data');
+            changes.mockClear();
+
+            validations.beginPass('data');
+            validations.endPass('data');
+            expect(changes).toHaveBeenCalledTimes(1);
+
+            validations.beginPass('data');
+            validations.endPass('data');
+            expect(changes).toHaveBeenCalledTimes(1);
+        });
+    });
+
     describe('showOverlayOn membership', () => {
         const allSeverities = ['error', 'warning', 'deprecation'] as const;
 
@@ -333,6 +456,23 @@ describe('ChartValidations', () => {
 
             expect(listener).toHaveBeenCalledTimes(5);
             expect(depths).toEqual([1, 1, 1, 1, 1]);
+        });
+
+        it('an issue another chart raises while a shared listener is running is told on its next raise', () => {
+            const shared = vi.fn();
+            const first = build();
+            const second = build();
+            first.validations.configure({ issueRaised: shared });
+            second.validations.configure({ issueRaised: shared });
+            shared.mockImplementation(({ message }) => {
+                if (message === 'first') second.logger.warn('second');
+            });
+
+            first.logger.warn('first');
+            expect(shared).not.toHaveBeenCalledWith({ severity: 'warning', message: 'second' });
+
+            second.logger.warn('second');
+            expect(shared).toHaveBeenCalledWith({ severity: 'warning', message: 'second' });
         });
 
         it('a listener replaced from inside a callback does not receive the rest of that batch', () => {
@@ -661,6 +801,131 @@ describe('ChartValidations - chart integration', () => {
             message: expect.stringContaining('itemStyler'),
         });
         expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
+        expectWarningsCalls().toHaveLength(1);
+    });
+
+    it('drops an invalid data value warning once a same-length data update supplies a valid value', async () => {
+        const series: AgLineSeriesOptions = { type: 'line', xKey: 'x', yKey: 'y' };
+        const proxy = AgCharts.create(
+            options({
+                data: [
+                    { x: null, y: 10 },
+                    { x: 'B', y: 20 },
+                ],
+                series: [series],
+                validations: { showOverlayOn: ['warning'] },
+            })
+        ) as AgChartProxy;
+        chart = deproxy(proxy);
+        await proxy.waitForUpdate();
+        expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(2);
+
+        await proxy.update(options({ data, series: [series], validations: { showOverlayOn: ['warning'] } }));
+
+        expect(chart.ctx.validations.hasVisibleIssues()).toBe(false);
+        expectWarningsCalls().toHaveLength(2);
+    });
+
+    it('keeps a cached itemStyler issue across a data pass that does not clear the callback cache', async () => {
+        chart = await createChart(
+            options({
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', itemStyler: () => ({ fill: 123 as any }) }],
+                validations: { showOverlayOn: ['warning'] },
+            })
+        );
+        expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
+
+        chart.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
+        await waitForChartStability(chart);
+
+        expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
+        expectWarningsCalls().toHaveLength(1);
+    });
+
+    it('keeps a tooltip renderer issue across an update, since no pass re-runs the renderer', async () => {
+        const series: AgBarSeriesOptions = {
+            type: 'bar',
+            xKey: 'x',
+            yKey: 'y',
+            tooltip: {
+                renderer: () => {
+                    throw new Error('renderer boom');
+                },
+            },
+        };
+        const proxy = AgCharts.create(
+            options({ series: [series], validations: { showOverlayOn: ['warning'] } })
+        ) as AgChartProxy;
+        chart = deproxy(proxy);
+        await proxy.waitForUpdate();
+        await hoverAction(600, 400)(chart);
+        await waitForChartStability(chart);
+        expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
+
+        await proxy.update(options({ data: [...data], series: [series], validations: { showOverlayOn: ['warning'] } }));
+
+        expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
+        expectWarningsCalls().toHaveLength(1);
+    });
+
+    it('keeps a missing-key warning across an incremental data transaction, which cannot re-check keys', async () => {
+        const proxy = AgCharts.create(
+            options({ data: [{ x: 'A' }, { x: 'B' }], validations: { showOverlayOn: ['warning'] } })
+        ) as AgChartProxy;
+        chart = deproxy(proxy);
+        await proxy.waitForUpdate();
+        expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
+
+        await chart.applyTransaction({ add: [{ x: 'C' }] });
+        await waitForChartStability(chart);
+
+        expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
+        expectWarningsCalls().toHaveLength(1);
+    });
+
+    it('drops a data warning once a same-length data update supplies the key', async () => {
+        const proxy = AgCharts.create(
+            options({ data: [{ x: 'A' }, { x: 'B' }], validations: { showOverlayOn: ['warning'] } })
+        ) as AgChartProxy;
+        chart = deproxy(proxy);
+        await proxy.waitForUpdate();
+        expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
+
+        await proxy.update(options({ validations: { showOverlayOn: ['warning'] } }));
+
+        expect(chart.ctx.validations.hasVisibleIssues()).toBe(false);
+        expectWarningsCalls().toHaveLength(1);
+    });
+
+    it('drops a callback warning once a same-length data update stops the callback throwing', async () => {
+        const series: AgBarSeriesOptions = {
+            type: 'bar',
+            xKey: 'x',
+            yKey: 'y',
+            label: {
+                formatter: ({ value }) => {
+                    if (value < 0) throw new Error('negative');
+                    return String(value);
+                },
+            },
+        };
+        const proxy = AgCharts.create(
+            options({
+                data: [
+                    { x: 'A', y: -10 },
+                    { x: 'B', y: 20 },
+                ],
+                series: [series],
+                validations: { showOverlayOn: ['warning'] },
+            })
+        ) as AgChartProxy;
+        chart = deproxy(proxy);
+        await proxy.waitForUpdate();
+        expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
+
+        await proxy.update(options({ series: [series], validations: { showOverlayOn: ['warning'] } }));
+
+        expect(chart.ctx.validations.hasVisibleIssues()).toBe(false);
         expectWarningsCalls().toHaveLength(1);
     });
 

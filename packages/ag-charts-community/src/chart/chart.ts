@@ -983,24 +983,28 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     private async tryPerformUpdate(count: number) {
+        // Datum callbacks re-run only when node data regenerates with a cleared callback cache.
+        const reEvaluatesCallbacks =
+            this.clearCallbackCacheOnUpdate && this.performUpdateType <= ChartUpdateType.PROCESS_DATA;
+        this.ctx.validations.beginPass('update');
+        let completed = false;
         this.pendingFailFastError = undefined;
         try {
             const status = `${ChartUpdateType[this.performUpdateType]} ${this.updateShortcutCount > 0 ? '⚠️ redo #' + this.updateShortcutCount + ' ⚠️ ' : ''}`;
             await this.debug.group(`Chart.performUpdate() ${status}`, async () => {
                 await this.performUpdate(count);
             });
+            completed = reEvaluatesCallbacks && this.updateShortcutCount === 0;
         } catch (error) {
             this.reportAsyncError(error);
             this.runningUpdateType = ChartUpdateType.NONE;
             this._performUpdateNotify.notify();
+        } finally {
+            this.ctx.validations.endPass('update', completed);
         }
     }
 
-    /**
-     * Reports a failure the update loop caught. Nothing on the stack can throw to the API caller, so a
-     * fail-fast throw, whether it arrived here or is raised by reporting the failure, is held for the
-     * proxy's next `takeFailFastError()`.
-     */
+    /** Nothing here can throw to the API caller, so a fail-fast throw is held for the proxy's next `takeFailFastError()`. */
     private reportAsyncError(error: unknown) {
         if (error instanceof FailFastError) {
             this.pendingFailFastError = error;
@@ -1474,16 +1478,24 @@ export abstract class Chart implements ModuleInstance, ChartService {
         );
 
         const promises: Promise<void>[] = [];
-        for (const series of this.series) {
-            promises.push(series.processData(dataController) ?? Promise.resolve());
-        }
-        for (const module of this.modulesManager.modules()) {
-            if (module?.processData) {
-                promises.push(module.processData(dataController) ?? Promise.resolve());
+        // A full reprocess raises every data-key and invalid-value warning that still holds; an incremental one cannot.
+        this.ctx.validations.beginPass('data');
+        let completed = false;
+        try {
+            for (const series of this.series) {
+                promises.push(series.processData(dataController) ?? Promise.resolve());
             }
-        }
+            for (const module of this.modulesManager.modules()) {
+                if (module?.processData) {
+                    promises.push(module.processData(dataController) ?? Promise.resolve());
+                }
+            }
 
-        this._cachedData = dataController.execute(this._cachedData, this.ctx.dataSelectionService);
+            this._cachedData = dataController.execute(this._cachedData, this.ctx.dataSelectionService);
+            completed = !dataController.reprocessedIncrementally;
+        } finally {
+            this.ctx.validations.endPass('data', completed);
+        }
 
         this.updateSplits('🏭');
         await Promise.all(promises);

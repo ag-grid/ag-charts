@@ -14,6 +14,11 @@ export type ValidationSeverity = LogLevel;
 export type ValidationIssue = LogIssue;
 export type GroupedValidationIssues = Record<ValidationSeverity, ValidationIssue[]>;
 export type ValidationIssueListener = (event: AgChartValidationIssueEvent) => void;
+/**
+ * The phase of an update that re-raises a live issue if it still holds: `data` for data processing, `update`
+ * for everything else in a pass that re-evaluates callbacks. An issue raised outside any pass is `update`.
+ */
+export type ValidationPass = 'data' | 'update';
 
 /** The order the overlay renders its severity sections in. */
 export const SEVERITY_ORDER: ValidationSeverity[] = ['error', 'warning', 'deprecation'];
@@ -80,6 +85,10 @@ export class ChartValidations {
     private readonly cleanup: (() => void)[] = [];
 
     private readonly collection = new Map<string, LogIssue>();
+    /** The phase each live-raised issue belongs to; issues a cycle installed have no entry and outlive passes. */
+    private readonly passOf = new Map<string, ValidationPass>();
+    private readonly raisedInPass = new Set<string>();
+    private readonly openPasses: ValidationPass[] = [];
     private showOverlayMask = 0;
     private throwMask = 0;
     private failFastSuppressed = 0;
@@ -157,6 +166,8 @@ export class ChartValidations {
             for (const key of handledBy.told) this.told.add(key);
         }
         this.collection.clear();
+        this.passOf.clear();
+        this.raisedInPass.clear();
         const fresh: LogIssue[] = [];
         for (const issue of issues) {
             const key = keyOf(issue);
@@ -169,6 +180,31 @@ export class ChartValidations {
             this.eventsHub.emit('validation:change', null);
         }
         this.dispatch(fresh);
+    }
+
+    /** Opens a phase that re-raises every issue of its kind that still holds; `endPass` drops the rest. */
+    beginPass(pass: ValidationPass) {
+        this.openPasses.push(pass);
+        for (const [key, owner] of this.passOf) {
+            if (owner === pass) this.raisedInPass.delete(key);
+        }
+    }
+
+    /** Closes the phase. A completed pass retires the issues it owns that it did not raise again; an aborted one keeps them. */
+    endPass(pass: ValidationPass, completed = true) {
+        const index = this.openPasses.lastIndexOf(pass);
+        if (index !== -1) this.openPasses.splice(index, 1);
+        if (!completed) return;
+
+        let dropped = false;
+        for (const [key, owner] of this.passOf) {
+            if (owner !== pass || this.raisedInPass.has(key)) continue;
+            this.passOf.delete(key);
+            this.collection.delete(key);
+            this.told.delete(key);
+            dropped = true;
+        }
+        if (dropped) this.eventsHub.emit('validation:change', null);
     }
 
     dismiss() {
@@ -210,11 +246,15 @@ export class ChartValidations {
         const key = keyOf(issue);
         if (!this.collection.has(key)) {
             this.collection.set(key, issue);
+            // An issue raised by interaction has no pass to re-raise it, so no pass retires it.
+            const pass = this.openPasses.at(-1);
+            if (pass != null) this.passOf.set(key, pass);
             this.dismissed = false;
             if ((this.showOverlayMask & SEVERITY_BIT[issue.severity]) !== 0) {
                 this.eventsHub.emit('validation:change', null);
             }
         }
+        if (this.passOf.has(key)) this.raisedInPass.add(key);
         if (!this.told.has(key)) this.dispatch([issue]);
 
         if (this.failFastSuppressed > 0 || (this.throwMask & SEVERITY_BIT[issue.severity]) === 0) return;
@@ -227,7 +267,6 @@ export class ChartValidations {
 
     // Never gated by severity or dismissal. Issues raised re-entrantly from the listener queue behind it.
     private dispatch(issues: LogIssue[]) {
-        for (const issue of issues) this.told.add(keyOf(issue));
         const listener = this.listener;
         if (listener == null || issues.length === 0) return;
         this.pendingDispatch.push(...issues);
@@ -242,7 +281,9 @@ export class ChartValidations {
         dispatchDepth++;
         try {
             while (this.pendingDispatch.length > 0) {
-                const { severity, message } = this.pendingDispatch.shift()!;
+                const issue = this.pendingDispatch.shift()!;
+                const { severity, message } = issue;
+                this.told.add(keyOf(issue));
                 try {
                     listener({ severity, message });
                 } catch (error) {
