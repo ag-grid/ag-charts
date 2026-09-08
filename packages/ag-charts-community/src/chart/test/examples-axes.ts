@@ -1,5 +1,5 @@
 import { mapValues, mergeDefaults } from 'ag-charts-core';
-import type { AgCartesianChartOptions, TextAlign } from 'ag-charts-types';
+import type { AgCartesianChartOptions, TextAlign, VerticalAlign } from 'ag-charts-types';
 
 import { DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY_EXTENDED } from './data';
 import * as data from './data-axes';
@@ -411,6 +411,27 @@ export const AXIS_LABEL_VERTICAL_ALIGN_TRANSPOSED: AgCartesianChartOptions = {
         },
     ],
 };
+
+// AG-18097 r2. A narrow bottom category axis whose labels differ wildly in length, rotated 45
+// degrees: the band flush has to reserve the deepest rotated glyph box and keep every label inside
+// the chart's bounds, whichever `verticalAlign` names the edge they flush to.
+export function axisLabelVerticalAlignRotatedBand(verticalAlign: VerticalAlign): AgCartesianChartOptions {
+    return {
+        data: [
+            { category: 'A', value: 10 },
+            { category: 'A very long category label indeed', value: 20 },
+            { category: 'CCC', value: 15 },
+        ],
+        width: 320,
+        height: 380,
+        legend: { enabled: false },
+        axes: {
+            x: { type: 'category', position: 'bottom', label: { rotation: 45, verticalAlign } },
+            y: { type: 'number', position: 'left' },
+        },
+        series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+    };
+}
 
 export const COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES_FIXED_DOMAIN: AgCartesianChartOptions = {
     ...COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES,

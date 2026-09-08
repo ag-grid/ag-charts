@@ -327,6 +327,21 @@ const EXAMPLES_LABEL_VERTICAL_ALIGN: Record<string, TestCase> = {
             seriesTypes: ['bar', 'line'],
         }),
     },
+    // AG-18097 r2. Labels of wildly differing length, rotated, on a narrow banded bottom axis: one
+    // case per `verticalAlign` value, because the reported loss was value-specific - `'top'` flushed
+    // correctly while the other two dropped labels or drew them out of position.
+    ...Object.fromEntries(
+        (['top', 'middle', 'bottom'] as const).map((verticalAlign) => [
+            `AXIS_LABEL_VERTICAL_ALIGN_ROTATED_BAND_${verticalAlign.toUpperCase()}`,
+            {
+                options: axesExamples.axisLabelVerticalAlignRotatedBand(verticalAlign),
+                assertions: cartesianChartAssertions({
+                    axisTypes: { x: 'category', y: 'number' },
+                    seriesTypes: ['bar'],
+                }),
+            },
+        ])
+    ),
 };
 
 function mixinDerivedCases(baseCases: Record<string, TestCase>): Record<string, TestCase> {
