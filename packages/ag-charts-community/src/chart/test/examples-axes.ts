@@ -377,8 +377,8 @@ export const AXIS_LABEL_VERTICAL_ALIGN: AgCartesianChartOptions = {
     legend: { enabled: false },
     axes: {
         x: { type: 'category', position: 'bottom', label: { wrapping: 'always', verticalAlign: 'bottom' } },
-        y: { type: 'number', position: 'left', label: { verticalAlign: 'top' } },
-        ySecondary: { type: 'number', position: 'right', label: { verticalAlign: 'bottom' } },
+        y: { type: 'number', position: 'left', label: { verticalAlign: 'bottom' } },
+        ySecondary: { type: 'number', position: 'right', label: { verticalAlign: 'top' } },
     },
     series: [
         { type: 'bar', xKey: 'category', yKey: 'value' },
