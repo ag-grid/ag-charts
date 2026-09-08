@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 
 import { ChartAxisDirection, ChartUpdateType, ambientLogger } from 'ag-charts-core';
-import { Caster, classCast, testLogger } from 'ag-charts-test';
+import { Caster, classCast } from 'ag-charts-test';
 import type {
     AgCartesianChartOptions,
     AgChartValidationsOptions,
@@ -733,9 +733,9 @@ describe('Chart', () => {
                     },
                 ],
             });
-            expect(chart.data).toEqual(DataSet.wrap(moreData, testLogger));
-            expect(chart.series[0].data).toEqual(DataSet.wrap(moreData, testLogger));
-            expect(chart.series[1].data).toEqual(DataSet.wrap(lessData, testLogger));
+            expect(chart.data).toEqual(DataSet.wrap(moreData, chart.ctx.logger));
+            expect(chart.series[0].data).toEqual(DataSet.wrap(moreData, chart.ctx.logger));
+            expect(chart.series[1].data).toEqual(DataSet.wrap(lessData, chart.ctx.logger));
 
             await updateChart(chartProxy, {
                 data: moreData,
@@ -754,9 +754,9 @@ describe('Chart', () => {
                 ],
             });
 
-            expect(chart.data).toEqual(DataSet.wrap(moreData, testLogger));
-            expect(chart.series[0].data).toEqual(DataSet.wrap(lessData, testLogger));
-            expect(chart.series[1].data).toEqual(DataSet.wrap(moreData, testLogger));
+            expect(chart.data).toEqual(DataSet.wrap(moreData, chart.ctx.logger));
+            expect(chart.series[0].data).toEqual(DataSet.wrap(lessData, chart.ctx.logger));
+            expect(chart.series[1].data).toEqual(DataSet.wrap(moreData, chart.ctx.logger));
 
             await updateChart(chartProxy, {
                 data: moreData,
@@ -2153,10 +2153,10 @@ describe('validations.throwOn — runtime errors', () => {
 
         const errorCalls = drainErrorLog();
         expect(errorCalls).toHaveLength(1);
-        expect(String(errorCalls[0][0])).toContain('update error');
+        expect(errorCalls[0].some((arg) => String(arg).includes(RUNTIME_ERROR_MESSAGE))).toBe(true);
 
-        expect(chart.validationCollector.hasVisibleIssues()).toBe(true);
-        const visible = chart.validationCollector.getVisibleIssues();
+        expect(chart.ctx.validations.hasVisibleIssues()).toBe(true);
+        const visible = chart.ctx.validations.getVisibleIssues();
         expect(visible.error.some((issue) => issue.message.includes(RUNTIME_ERROR_MESSAGE))).toBe(true);
     });
 
@@ -2303,8 +2303,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
         expectWarningsCalls().toHaveLength(1);
     });
 
-    // The dropped-module issue is reported to the console by `processModuleOptions`, so it never
-    // enters `validationIssues` — the throw path has to dispatch the issue that tripped it.
+    // The dropped-module issue is reported to the console by `processModuleOptions` alone.
     it('fires for a dropped-module error that trips throwOn', () => {
         const issueRaised = vi.fn();
 
@@ -2496,8 +2495,6 @@ describe('AG-17830 QA — validations.issueRaised', () => {
         (console.error as Mock).mockClear();
     });
 
-    // The callbacks run in the render pass that a first-render update-type shortcut restarted, which
-    // no longer counts as re-evaluating them — so the buffered error was never committed.
     it('reports a callback that throws on the first render to both the overlay and the listener', async () => {
         const issueRaised = vi.fn();
 
@@ -2517,16 +2514,16 @@ describe('AG-17830 QA — validations.issueRaised', () => {
                     },
                 },
             ],
-            validations: { showOverlayOn: ['error'], issueRaised },
+            validations: { showOverlayOn: ['warning'], issueRaised },
         }) as AgChartProxy;
         chart = deproxy(proxy);
         await waitForChartStability(chart);
 
         expect(issueRaised).toHaveBeenCalledWith({
-            severity: 'error',
-            message: expect.stringContaining('itemStyler boom'),
+            severity: 'warning',
+            message: expect.stringContaining('Uncaught exception in user callback'),
         });
-        expect(chart.validationCollector.hasVisibleIssues()).toBe(true);
+        expect(chart.ctx.validations.hasVisibleIssues()).toBe(true);
         expectWarningsCalls().toHaveLength(1);
     });
 });

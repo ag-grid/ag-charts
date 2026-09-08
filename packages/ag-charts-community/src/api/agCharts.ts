@@ -360,7 +360,7 @@ class AgChartsInternal {
                 stripSymbols,
                 false,
                 apiStartTime,
-                chart?.ctx.logger
+                chart?.ctx
             );
         } catch (e) {
             // Options processing can throw (`validations.throwOn`), and a chart already taken out of
@@ -385,10 +385,9 @@ class AgChartsInternal {
         }
 
         // A pooled chart keeps its own Logger, so adopt it to keep console output and `warnOnce` dedup unified.
-        chartOptions.adoptLogger(chart.ctx.logger);
-        chartOptions.adoptValidationSink((issue) => chart.validationCollector.recordCallbackIssue(issue));
+        chartOptions.adopt(chart.ctx);
 
-        // After `adoptLogger`, so the report goes to the Logger the chart actually keeps.
+        // After `adopt`, so the report goes to the Logger the chart actually keeps.
         if (argumentIssue != null) {
             chartOptions.recordOptionsArgumentError(argumentIssue);
         }
@@ -462,7 +461,7 @@ class AgChartsInternal {
                 stripSymbols,
                 true,
                 Debug.check('scene:stats', 'scene:stats:verbose') ? performance.now() : undefined,
-                chart.ctx.logger
+                chart.ctx
             );
             // Re-derived per refresh, so registering the module later recovers.
             if (refreshedChartOptions.unusableLeadSeriesType != null) return;
@@ -579,6 +578,8 @@ class AgChartsInternal {
         AgChartsInternal.skippedChartOptions.add(chartOptions);
         chart.queuedUserOptions.push(chartOptions.userOptions);
         chart.queuedChartOptions.push(chartOptions);
+        // No `applyOptions()` follows, so the pass hands its issues over here.
+        chart.ctx.validations.beginCycle(chartOptions.issues, chartOptions.validations);
     }
 
     private static requestFactoryUpdate(chart: Chart, chartOptions: ChartOptions) {

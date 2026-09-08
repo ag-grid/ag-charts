@@ -463,10 +463,10 @@ describe('AgCharts', () => {
         it('records the error as a validation issue the overlay can show', () => {
             chart = AgCharts.create(undefined as any);
             expectErrorCalls().toHaveLength(1);
-            const { validationCollector } = deproxy(chart);
-            validationCollector.setShowOverlayOn(['error']);
-            expect(validationCollector.hasVisibleIssues()).toBe(true);
-            expect(validationCollector.getVisibleIssues().error).toEqual([
+            const { validations } = deproxy(chart).ctx;
+            validations.setShowOverlayOn(['error']);
+            expect(validations.hasVisibleIssues()).toBe(true);
+            expect(validations.getVisibleIssues().error).toEqual([
                 { severity: 'error', message: expect.stringMatching(/^AgCharts\.create\(\) requires a non-empty/) },
             ]);
         });

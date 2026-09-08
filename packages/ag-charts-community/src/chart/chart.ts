@@ -30,7 +30,6 @@ import type {
     AgBaseAxisOptions,
     AgChartInstance,
     AgChartOptions,
-    AgChartValidationSeverity,
     AgColorType,
     AgCoordinates,
     AgDataTransaction,
@@ -50,6 +49,7 @@ import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
 import { DebugSelectors } from '../scene/sceneDebug';
+import { FailFastError } from '../util/failFastError';
 import { Mutex } from '../util/mutex';
 import { debouncedCallback } from '../util/render';
 import { Background } from './background/background';
@@ -87,8 +87,6 @@ import { Tooltip, type TooltipContent } from './tooltip/tooltip';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
-import { DEFAULT_CONSOLE_ON, DEFAULT_SHOW_OVERLAY_ON, DEFAULT_THROW_ON } from './validation/validationDefaults';
-import { ValidationIssueCollector, type ValidationIssueListener } from './validation/validationIssueCollector';
 
 const debug = Debug.create(true, 'opts');
 
@@ -272,7 +270,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
     readonly tooltip: Tooltip;
     readonly overlays: ChartOverlays;
-    readonly validationCollector = new ValidationIssueCollector();
     readonly highlight: ChartHighlight;
     private readonly sharedCategoryGroup = new SharedCategoryGroup();
     readonly background: Background;
@@ -529,8 +526,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
             getValidationOverlay({
                 agDocument: ctx.agDocument,
                 localeManager: ctx.localeManager,
-                grouped: this.validationCollector.getVisibleIssues(),
-                onDismiss: () => this.validationCollector.dismiss(),
+                grouped: ctx.validations.getVisibleIssues(),
+                onDismiss: () => ctx.validations.dismiss(),
             });
 
         this.processors = [
@@ -543,7 +540,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 ctx.localeManager,
                 ctx.animationManager,
                 ctx.domManager,
-                this.validationCollector
+                ctx.validations
             ),
         ];
 
@@ -579,26 +576,14 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 const opts = get('options', 'overlays');
                 if (opts != null) this.overlays.set(opts);
             }),
-            ctx.chartState.observe((get) => {
-                this.validationCollector.setShowOverlayOn(
-                    get('options', 'validations')?.showOverlayOn ?? DEFAULT_SHOW_OVERLAY_ON
-                );
-            }),
             // A tooltip is painted in the browser's top layer (a `popover`), so no z-index can place it
             // beneath the validation overlay. Hold tooltips back while the overlay is shown so it stays legible.
-            this.validationCollector.addListener(() => {
-                if (this.validationCollector.hasVisibleIssues()) {
+            ctx.eventsHub.on('validation:change', () => {
+                if (ctx.validations.hasVisibleIssues()) {
                     ctx.tooltipManager.suppressTooltip('validation-overlay');
                 } else {
                     ctx.tooltipManager.unsuppressTooltip('validation-overlay');
                 }
-            }),
-            ctx.chartState.observe((get) => {
-                ctx.logger.setEnabledLevels(get('options', 'validations')?.consoleOn ?? DEFAULT_CONSOLE_ON);
-            }),
-            ctx.chartState.observe((get) => {
-                this.throwOnSeverities = get('options', 'validations')?.throwOn ?? DEFAULT_THROW_ON;
-                this.setIssueListener(get('options', 'validations')?.issueRaised);
             }),
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
                 e.layoutBox.shrink(ctx.chartState.getValue('options', 'padding'));
@@ -841,7 +826,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         // (e.g. clear `series.chart`) mid-render-cycle.
         this.updateMutex
             .acquire(() => this.performTeardown(!!keepTransferableResources))
-            .catch((e) => this.ctx.logger.errorOnce(e));
+            .catch((e) => this.reportAsyncError(e));
 
         return result;
     }
@@ -891,7 +876,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
                     }
                 }
             })
-            .catch((e) => this.ctx.logger.errorOnce(e));
+            .catch((e) => this.reportAsyncError(e));
     }
 
     private clearCallbackCache() {
@@ -913,12 +898,11 @@ export abstract class Chart implements ModuleInstance, ChartService {
     private readonly updateMutex = new Mutex();
     private clearCallbackCacheOnUpdate: boolean = false;
     private updateRequestors: Record<string, ChartUpdateType> = {};
-    private throwOnSeverities: readonly AgChartValidationSeverity[] = DEFAULT_THROW_ON;
     private pendingFailFastError?: Error;
 
     private readonly performUpdateTrigger = debouncedCallback(({ count }) => {
         if (this.destroyed) return;
-        this.updateMutex.acquire(this.tryPerformUpdate.bind(this, count)).catch((e) => this.ctx.logger.errorOnce(e));
+        this.updateMutex.acquire(this.tryPerformUpdate.bind(this, count)).catch((e) => this.reportAsyncError(e));
     });
     public update(type = ChartUpdateType.FULL, opts?: UpdateOpts) {
         if (this.destroyed) return;
@@ -999,42 +983,34 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     private async tryPerformUpdate(count: number) {
-        // On a cache-hit redraw the callbacks never re-run, so the committed callback-error set stays
-        // authoritative and must not be wiped by an empty cycle.
-        const callbacksReEvaluated = this.clearCallbackCacheOnUpdate;
-        if (callbacksReEvaluated) this.validationCollector.beginCallbackIssues();
         this.pendingFailFastError = undefined;
         try {
             const status = `${ChartUpdateType[this.performUpdateType]} ${this.updateShortcutCount > 0 ? '⚠️ redo #' + this.updateShortcutCount + ' ⚠️ ' : ''}`;
             await this.debug.group(`Chart.performUpdate() ${status}`, async () => {
                 await this.performUpdate(count);
             });
-        } catch (error: any) {
-            this.ctx.logger.error('update error', error, error.stack);
-            this.validationCollector.recordRuntimeError({
-                severity: 'error',
-                message: String(error?.message ?? error),
-                code: typeof error?.stack === 'string' ? error.stack : undefined,
-            });
+        } catch (error) {
+            this.reportAsyncError(error);
             this.runningUpdateType = ChartUpdateType.NONE;
             this._performUpdateNotify.notify();
-            if (this.throwOnSeverities.includes('error')) {
-                this.pendingFailFastError = new Error(
-                    `AG Charts - validations.throwOn: error - ${String(error?.message ?? error)}`
-                );
-            }
-        } finally {
-            // `performUpdate()` consumes `clearCallbackCacheOnUpdate` before it renders, so when an
-            // update-type shortcut restarts the pass, the pass that actually invokes the callbacks sees
-            // `callbacksReEvaluated === false` — gating the commit on that flag alone stranded a
-            // first-render callback failure in the buffer until an unrelated redraw happened to
-            // re-evaluate the callbacks. The buffer check is what commits it. Both conditions are needed:
-            // dropping the flag would let a pass that shortcut out before the callbacks ran commit an
-            // empty buffer over a still-live callback error, and dropping the buffer check reinstates the
-            // bug. A pass that re-evaluated callbacks and legitimately found none must still clear.
-            if (callbacksReEvaluated || this.validationCollector.hasPendingCallbackIssues()) {
-                this.validationCollector.commitCallbackIssues();
-            }
+        }
+    }
+
+    /**
+     * Reports a failure the update loop caught. Nothing on the stack can throw to the API caller, so a
+     * fail-fast throw, whether it arrived here or is raised by reporting the failure, is held for the
+     * proxy's next `takeFailFastError()`.
+     */
+    private reportAsyncError(error: unknown) {
+        if (error instanceof FailFastError) {
+            this.pendingFailFastError = error;
+            return;
+        }
+        try {
+            this.ctx.logger.error(error);
+        } catch (failFast) {
+            if (!(failFast instanceof FailFastError)) throw failFast;
+            this.pendingFailFastError = failFast;
         }
     }
 
@@ -1508,7 +1484,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
         }
 
         this._cachedData = dataController.execute(this._cachedData, this.ctx.dataSelectionService);
-        this.validationCollector.setDataIssues(dataController.validationIssues);
 
         this.updateSplits('🏭');
         await Promise.all(promises);
@@ -1777,23 +1752,10 @@ export abstract class Chart implements ModuleInstance, ChartService {
         return series?.filter((s) => s.showInMiniChart !== false);
     }
 
-    /**
-     * Always set, never conditionally skipped: a pooled chart reuses a live collector, so leaving a
-     * previous tenant's listener in place would hand it this chart's issues. This can also run before
-     * the option's validator has, hence the coercion rather than trusting the value.
-     */
-    private setIssueListener(issueRaised: unknown) {
-        this.validationCollector.setIssueListener(
-            typeof issueRaised === 'function' ? (issueRaised as ValidationIssueListener) : undefined,
-            this.ctx.logger
-        );
-    }
-
     applyOptions(newChartOptions: ChartOptions) {
-        // Registered from the same options object in the same statement pair, so this pass's issues
-        // reach the listener this pass declared without depending on when chartState observers flush.
-        this.setIssueListener(newChartOptions.processedOptions.validations?.issueRaised);
-        this.validationCollector.setIssues(newChartOptions.validationIssues);
+        if (newChartOptions.revalidated) {
+            this.ctx.validations.beginCycle(newChartOptions.issues, newChartOptions.validations);
+        }
 
         if (newChartOptions.seriesWithUserVisibility) {
             this.refreshSeriesUserVisibility(this.chartOptions, newChartOptions.seriesWithUserVisibility);

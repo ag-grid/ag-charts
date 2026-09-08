@@ -6,7 +6,7 @@ import {
     SEVERITY_ORDER,
     type ValidationIssue,
     type ValidationSeverity,
-} from '../validation/validationIssueCollector';
+} from '../validation/chartValidations';
 
 const BASE = 'ag-charts-validation-overlay';
 
@@ -61,7 +61,7 @@ function diagnosticText(grouped: GroupedValidationIssues): string {
     for (const severity of SEVERITY_ORDER) {
         for (const issue of grouped[severity]) {
             lines.push(`[${severity}] ${issue.message}`);
-            if (issue.code) lines.push(issue.code);
+            if (issue.detail) lines.push(issue.detail);
         }
     }
     return lines.join('\n');
@@ -74,9 +74,9 @@ function createEntry(agDocument: AgDocument, issue: ValidationIssue, severity: V
     appendMessage(agDocument, message, issue.message);
     entry.appendChild(message);
 
-    if (issue.code) {
+    if (issue.detail) {
         const code = agDocument.createElement('pre', `${BASE}__code`);
-        code.textContent = issue.code;
+        code.textContent = issue.detail;
         entry.appendChild(code);
     }
 

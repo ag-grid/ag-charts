@@ -8,6 +8,7 @@ import {
     Debug,
     type DeepPartial,
     type FontOptions,
+    type LogIssue,
     Logger,
     ModuleRegistry,
     type ModuleScope,
@@ -26,11 +27,9 @@ import {
     hasRequiredInPath,
     isArray,
     isKeyOf,
-    isLogLevel,
     isNumericValue,
     isObject,
     isObjectLike,
-    isObjectWithProperty,
     isPlainObject,
     isSymbol,
     joinFormatted,
@@ -51,8 +50,6 @@ import {
     type AgChartModule,
     type AgChartOptions,
     type AgChartThemeParams,
-    type AgChartValidationSeverity,
-    type AgChartValidationsOptions,
     type AgMiniChartSeriesOptions,
     type AgPresetOptions,
     type AgPresetOverrides,
@@ -71,8 +68,13 @@ import {
 import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
 import { ChartTheme } from '../chart/themes/chartTheme';
-import { DEFAULT_CONSOLE_ON, DEFAULT_THROW_ON } from '../chart/validation/validationDefaults';
-import type { ValidationIssue, ValidationIssueListener } from '../chart/validation/validationIssueCollector';
+import {
+    type ChartValidations,
+    type ValidationsRuntime,
+    createProvisionalRuntime,
+    getValidations,
+} from '../chart/validation/chartValidations';
+import { rethrowFailFast } from '../util/failFastError';
 import { resolveInstanceModuleScope } from './instanceModuleScope';
 import {
     type OptionsGraphAccessor,
@@ -89,42 +91,7 @@ import {
 } from './optionsStructuralCache';
 import type { SeriesGrouping } from './seriesGrouping';
 
-/**
- * A `validations.throwOn` fail-fast throw. Marks the error as already prefixed and already written to
- * the console, so a wrapper further out re-reports neither.
- */
-class FailFastError extends Error {}
-
-/**
- * Drops the trailing `, ignoring.` clause a shared validation message ends with. Accurate for the
- * warn-and-default path that message was written for, and false under an armed `validations.throwOn`
- * — nothing was ignored there, the pass aborted (AG-17831 TC2). Applied to the *thrown* copy only:
- * the console record is written for armed and unarmed charts alike and must stay byte-identical.
- *
- * A message with no such tail is returned unchanged, so an unrecognised wording is a no-op.
- */
-function withoutIgnoredClause(message: string): string {
-    return message.replace(/[,;]? ignoring\.$/i, '');
-}
-
-/**
- * Runaway backstop for {@link ChartOptions.dispatchIssuesBeforeThrow}. Deliberately far above any
- * nesting a consumer could mean: no chain of callbacks each legitimately constructing a further chart
- * gets near this, so crossing it is unbounded recursion rather than depth, and unwinding there beats
- * overflowing the stack. It is not a cycle detector — listener identity is (see the call site).
- */
-const MAX_DISPATCH_DEPTH = 32;
-
 const CARTESIAN_ONLY_SERIES_AREA_OPTIONS = ['backgroundRegions'];
-
-/** The `validations` subtree of options that are not yet known to be valid: public keys, unknown values. */
-type UnvalidatedValidations = { [K in keyof AgChartValidationsOptions]?: unknown };
-
-function getValidations(options: unknown): UnvalidatedValidations | undefined {
-    if (!isObjectWithProperty(options, 'validations')) return undefined;
-    const { validations } = options;
-    return isObject(validations) ? validations : undefined;
-}
 
 interface FontAccumulator {
     /** Google font families to load from the CDN (gated by `loadGoogleFonts`). */
@@ -293,38 +260,21 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     };
     userDeltaKeys?: Set<string>;
     processedCSSVariables?: Record<string, string>;
-    validationIssues: ValidationIssue[] = [];
+    /** Every issue the Logger reported while this pass ran; the chart starts its validation cycle from them. */
+    issues: LogIssue[] = [];
+    /** False when the fast path or the structural cache carried the previous pass's issues forward unvalidated. */
+    revalidated = true;
     // Provide the unmapped axis keys for error logging & callbacks.
     unmappedAxisKeys: Map<string, string> = new Map();
 
-    // Validation runs in this constructor, before a chart exists; the chart then adopts this
-    // instance as `ctx.logger`.
+    // Validation runs in this constructor, before a chart exists; a new chart adopts this instance as
+    // `ctx.logger`, and an existing one supplied its own.
     logger: Logger;
 
-    // Callbacks are wrapped before the chart exists, so their error sink is read at invocation time
-    // rather than captured, making the adopt order irrelevant.
-    private validationSink?: (issue: ValidationIssue) => void;
-
-    private throwOn: readonly AgChartValidationSeverity[] = DEFAULT_THROW_ON;
-
-    // `validations.issueRaised`, resolved here rather than read off the chart because a fail-fast
-    // throw aborts this constructor: the chart never adopts these issues, so this is the only
-    // reference to the listener that survives to report them. See `dispatchIssuesBeforeThrow`.
-    private issueListener?: ValidationIssueListener;
-
-    // CSS-refresh re-construction runs from a DOM `transitionend` handler with no caller to throw to.
-    private readonly suppressFailFast: boolean;
+    /** The subscriber this pass reported through: the chart's own, or a provisional stand-in. */
+    validations: ChartValidations;
 
     private static readonly debug = Debug.create(true, 'opts');
-
-    /**
-     * Re-entrancy guard for {@link ChartOptions.dispatchIssuesBeforeThrow}, keyed by listener rather
-     * than global; see its comment.
-     */
-    private static readonly dispatchingListeners = new Set<ValidationIssueListener>();
-
-    /** Runaway backstop only, not a cycle key; see {@link MAX_DISPATCH_DEPTH}. */
-    private static dispatchDepth = 0;
 
     constructor(
         currentUserOptions: T | ChartOptions<T> | undefined,
@@ -336,16 +286,17 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         stripSymbols = false,
         refreshCSSVariables = false,
         apiStartTime?: number,
-        logger?: Logger
+        runtime?: ValidationsRuntime
     ) {
-        this.logger = logger ?? new Logger();
+        runtime ??= createProvisionalRuntime(new Logger());
+        this.logger = runtime.logger;
+        this.validations = runtime.validations;
         this.optionMetadata = metadata ?? {};
         this.moduleRegistry =
             currentUserOptions instanceof ChartOptions
                 ? currentUserOptions.moduleRegistry
                 : resolveInstanceModuleScope(this.optionMetadata.modules);
         this.processedOverrides = processedOverrides ?? {};
-        this.suppressFailFast = refreshCSSVariables;
 
         let baseChartOptions: ChartOptions<T> | null = null;
         if (currentUserOptions instanceof ChartOptions) {
@@ -384,26 +335,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             });
             this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
         }
-        // Must precede `slowSetup()`'s first validation pass so a user-supplied `[]` suppresses the
-        // first warning. Keyed on presence, not nullishness, so an explicit `null` still warns.
-        const userValidations = getValidations(this.userOptions);
-        this.applyConsoleOn(
-            isObjectWithProperty(userValidations, 'consoleOn')
-                ? userValidations.consoleOn
-                : getValidations(this.processedOverrides)?.consoleOn
-        );
-        this.applyThrowOn(
-            isObjectWithProperty(userValidations, 'throwOn')
-                ? userValidations.throwOn
-                : getValidations(this.processedOverrides)?.throwOn
-        );
-        // Armed before the first validation pass for the same reason as `throwOn`: an issue raised
-        // during `slowSetup()` can abort it, and the listener must already be known to be told.
-        this.applyIssueListener(
-            isObjectWithProperty(userValidations, 'issueRaised')
-                ? userValidations.issueRaised
-                : getValidations(this.processedOverrides)?.issueRaised
-        );
+        // Must precede the first validation pass, which can be silenced, aborted or listened to by these
+        // options. A user key wins over the override's by presence, so an explicit `null` still warns.
+        this.validations.configure({
+            ...getValidations(this.processedOverrides),
+            ...getValidations(this.userOptions),
+        });
 
         let activeTheme,
             processedOptions,
@@ -415,6 +352,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             optionsGraph,
             remappedAxisKeys;
 
+        const stopCapture = this.logger.onIssue((issue) => this.issues.push(issue));
+        // A CSS-variable refresh re-constructs from a DOM `transitionend` handler with no caller to throw to.
+        const resumeFailFast = refreshCSSVariables ? this.validations.suspendFailFast() : undefined;
         try {
             this.findSeriesWithUserVisiblity(newUserOptions, deltaOptions);
 
@@ -442,10 +382,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 baseChartOptions != null &&
                 // The base carries no chart-level defaults, so the fast path would skip re-deriving them.
                 baseChartOptions.unusableLeadSeriesType == null &&
-                !dataChangedLength &&
-                // An armed `throwOn` must re-validate on every pass — the fast path carries `validationIssues`
-                // forward without calling the `record*` methods that throw.
-                this.throwOn.length === 0
+                !dataChangedLength
             ) {
                 ({ activeTheme, processedOptions, fastDelta } = this.fastSetup(deltaOptions, baseChartOptions));
                 themeParameters = baseChartOptions.themeParameters;
@@ -453,7 +390,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 // The fast path doesn't re-extract fonts, so carry them forward to keep waiting for them.
                 fonts = baseChartOptions.fonts;
                 // The fast path doesn't re-validate, so carry forward the issues from the previous options.
-                this.validationIssues = baseChartOptions.validationIssues;
+                this.issues = [...baseChartOptions.issues];
+                this.revalidated = false;
             } else {
                 ChartOptions.perfDebug(`ChartOptions.slowSetup()`);
                 ({
@@ -468,17 +406,20 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 } = this.slowSetup(processedOverrides, deltaOptions, stripSymbols));
             }
         } catch (error) {
-            throw this.decorateOptionsProcessingFailure(error);
+            // An error raised while processing (a throwing datum getter, a callback invoked during
+            // validation) escapes ahead of the update loop's catch, so it is reported here instead.
+            rethrowFailFast(error);
+            this.logger.error(error);
+            throw error;
+        } finally {
+            resumeFailFast?.();
+            stopCapture();
         }
 
         this.activeTheme = activeTheme;
         this.processedOptions = processedOptions;
         // Re-apply from the merged result so a value arriving via a theme or preset also takes effect.
-        this.applyConsoleOn(getValidations(this.processedOptions)?.consoleOn);
-        // State consistency only: this runs after every `record*` call, so it arms nothing this pass.
-        this.applyThrowOn(getValidations(this.processedOptions)?.throwOn);
-        // As above: re-applied from the merged result so a theme- or preset-supplied listener also counts.
-        this.applyIssueListener(getValidations(this.processedOptions)?.issueRaised);
+        this.validations.configure(getValidations(this.processedOptions));
         this.fastDelta = fastDelta ?? undefined;
         this.themeParameters = themeParameters;
         this.annotationThemes = annotationThemes;
@@ -557,12 +498,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private slowSetup(processedOverrides: Partial<T>, deltaOptions?: DeepPartial<T> | null, stripSymbols = false) {
-        this.validationIssues = [];
-
         // Minimal-mode structural-output cache fast path.
         const cacheKey = this.computeStructuralCacheKeyForSlowSetup(deltaOptions, stripSymbols);
-        // As above: an armed `throwOn` must re-validate, and a cache hit skips every `record*` call.
-        if (cacheKey !== undefined && this.throwOn.length === 0) {
+        if (cacheKey !== undefined) {
             const cached = getStructuralCacheEntry(cacheKey, this.moduleRegistry);
             if (cached) {
                 return this.slowSetupCached(cached);
@@ -604,7 +542,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const presetTheme = presetSubType == null ? undefined : activeTheme.presets[presetSubType];
 
             const { cleared, invalid } = validatePreset(presetParams, presetDef.options, '', this.validateParams);
-            this.recordValidationErrors(invalid);
+            this.logValidationErrors(invalid);
 
             presetOptions = cleared ?? undefined;
 
@@ -648,7 +586,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             // Without the preset's option defs every preset option reads as unknown; the
             // missing-module report below is the accurate diagnostic.
             if (missingPresetModule == null) {
-                this.recordValidationErrors(invalid);
+                this.logValidationErrors(invalid);
             }
             options = cleared as T;
         }
@@ -691,18 +629,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const processedOptions = mergeDefaults(processedOverrides, resolvedOptions);
 
         removeIncompatibleModuleOptions(this.chartDef.name, processedOptions, this.moduleRegistry);
-        const reportedMissingModules = processModuleOptions(
+        processModuleOptions(
             this.chartDef.name,
             processedOptions,
             missingSeriesModules.concat(missingAxesModules, missingPresetModule ?? []),
             this.logger,
             this.moduleRegistry
         );
-        // A dropped series/axis/plugin option is error-severity under fail-fast, thrown only after
-        // `processModuleOptions` has already written its console record above.
-        if (reportedMissingModules != null) {
-            this.throwIfFailFast({ severity: 'error', message: reportedMissingModules.message });
-        }
 
         // Second-pass validation runs after `removeDisabledOptions`, so disabled nodes have been
         // stripped to `{ enabled: false }`; skip their required-field/discriminant warnings.
@@ -710,7 +643,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             skipDisabledNodeValidation: true,
             silentAdvisories: true,
             logger: this.logger,
-            onCallbackError: (error, errorPath) => this.reportCallbackError(error, errorPath),
         };
 
         this.validateSeriesOptions(processedOptions, secondPassParams);
@@ -744,7 +676,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     fonts: fonts.size > 0 ? new Set(fonts) : undefined,
                     annotationThemes,
                     chartDef: this.chartDef,
-                    validationIssues: this.validationIssues,
+                    issues: [...this.issues],
                     remappedAxisKeys,
                 },
                 this.moduleRegistry
@@ -789,8 +721,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         );
         this.chartDef = cached.chartDef;
 
-        // A cache hit skips the loops that populate `validationIssues`, so replay the captured issues.
-        this.validationIssues = [...cached.validationIssues];
+        // A cache hit skips the validation loops, so their console output is replayed: the `*Once` cache
+        // keeps a chart that populated the entry quiet, and every `validations` option sees the issue.
+        for (const issue of cached.issues) {
+            this.replay(issue);
+        }
 
         // Re-run the preset's data transform on this chart's data — the cached
         // processedOptions has `data` stripped to prevent aliasing.
@@ -832,214 +767,49 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     /**
-     * Point these options at the Logger of the chart that ended up owning them, which is not knowable
-     * until the chart type is resolved and the pool consulted.
+     * Points these options at the chart that ended up owning them, which is not knowable until the type is
+     * resolved and the pool consulted. `validations` stays the instance that handled the pass, so the chart
+     * can tell what it already reported.
      */
-    adoptLogger(logger: Logger) {
-        this.logger = logger;
-        // A pooled chart adopts a different Logger after validation, so the severities must be re-applied.
-        this.applyConsoleOn(getValidations(this.processedOptions)?.consoleOn);
-        // Likewise for the throw severities and the issue listener.
-        this.applyThrowOn(getValidations(this.processedOptions)?.throwOn);
-        this.applyIssueListener(getValidations(this.processedOptions)?.issueRaised);
+    adopt(runtime: ValidationsRuntime) {
+        this.logger = runtime.logger;
+        // The chart keeps the provisional Logger, so its stand-in subscriber must stop listening or both report.
+        if (this.validations !== runtime.validations) this.validations.destroy();
+        runtime.validations.configure(getValidations(this.processedOptions));
     }
 
-    /** Point wrapped user callbacks at the owning chart's validation sink, so a swallowed throw surfaces. */
-    adoptValidationSink(sink: (issue: ValidationIssue) => void) {
-        this.validationSink = sink;
-    }
-
-    private reportCallbackError(error: unknown, errorPath: string) {
-        const location = errorPath ? ` \`${errorPath}\`` : '';
-        const detail = error instanceof Error ? error.message : String(error);
-        this.validationSink?.({
-            severity: 'error',
-            message: `Uncaught exception in user callback${location}: ${detail}`,
-        });
-    }
-
-    /**
-     * Points the Logger at the requested severities, falling back to the default for anything unusable.
-     * The fallback is load-bearing: this runs before the array validator has, so an invalid value must
-     * not silence the very warning that reports it.
-     */
-    private applyConsoleOn(severities: unknown) {
-        // Rejected whole on any unrecognised element, matching the strict validator that runs later.
-        // Honouring the recognised remainder of `['error', 'loud']` would leave `warn` disabled, and the
-        // rejection of that same array is itself reported through `warn`. An explicit `[]` is honoured —
-        // it is a request for silence, not a bad value.
-        const consoleOn: readonly AgChartValidationSeverity[] =
-            isArray(severities) && severities.every(isLogLevel) ? severities : DEFAULT_CONSOLE_ON;
-        this.logger.setEnabledLevels(consoleOn);
-    }
-
-    /**
-     * Resolves `validations.throwOn`, falling back to throwing on nothing for anything unusable. The
-     * fallback direction is the opposite of `applyConsoleOn`'s deliberately: this runs before the array
-     * validator has, and an invalid value must not make the chart throw about itself — nor turn
-     * fail-fast on for a consumer who never asked for it.
-     */
-    private applyThrowOn(severities: unknown) {
-        // Reuses `isLogLevel` so a new severity cannot be missed by either union. Any bad element
-        // rejects the whole array, matching the strict option validator: a partially-valid
-        // `['error', 'loud']` must not arm `error` for the pass whose validator rejects it.
-        this.throwOn = isArray(severities) && severities.every(isLogLevel) ? severities : DEFAULT_THROW_ON;
-    }
-
-    /**
-     * Resolves `validations.issueRaised`. This runs before the union validator has, hence the
-     * coercion rather than trusting the value.
-     */
-    private applyIssueListener(listener: unknown) {
-        this.issueListener = typeof listener === 'function' ? (listener as ValidationIssueListener) : undefined;
-    }
-
-    /**
-     * Reports every issue this pass produced — the accumulated ones plus the `trigger` that armed the
-     * throw — to `validations.issueRaised` immediately before a fail-fast throw. AC 3: the
-     * listener is never gated by severity, and `throwOn` is a severity selection — but the throw
-     * unwinds out of this constructor, so `Chart.applyOptions()` never runs
-     * and the collector that normally dispatches never receives these issues. Delivering here is what
-     * makes the two independent. Ordering is the listener first, then the throw.
-     */
-    private dispatchIssuesBeforeThrow(trigger: ValidationIssue) {
-        const listener = this.issueListener;
-        if (listener == null) return;
-        // Static, unlike the collector's instance-level guard: a consumer that re-applies options from
-        // its callback re-enters through a *new* `ChartOptions`, so nothing on `this` can see the
-        // recursion. Without this a handler that re-applies the same failing options recurses until the
-        // stack overflows, and the fail-fast error the caller is owed never surfaces.
-        //
-        // Listener identity is the whole cycle detector, and it is exact in both directions: a consumer
-        // re-applying failing options from its own callback re-enters through this same function and is
-        // stopped, while a callback that legitimately builds a *further* chart still gets that chart's
-        // own listener called, however deep the chain goes.
-        //
-        // Nothing weaker than identity can stand in for it. A consumer whose listener identity changes
-        // per pass — the Angular zone wrapper allocates a fresh closure every time — is indistinguishable
-        // here from a genuinely new chart, and every proxy for identity is worse than none: source text
-        // is shared by every closure a single factory produces, and the trigger issue is shared by two
-        // independent charts misconfigured the same way. Both would silence a listener that is owed its
-        // event, which is the failure this guard must not cause. So that case falls to the depth
-        // backstop below, set far enough out that only runaway recursion reaches it.
-        if (ChartOptions.dispatchingListeners.has(listener) || ChartOptions.dispatchDepth >= MAX_DISPATCH_DEPTH) {
-            return;
-        }
-        // Cleared first: `recordOptionsArgumentError` can throw from a second call site after this
-        // one, and a consumer must not be told the same issue twice for a single options pass.
-        // The dropped-module call site trips fail-fast with an issue it never adds to the collection —
-        // `processModuleOptions` is what writes that one to the console — so append it by identity.
-        const recorded = this.validationIssues;
-        const issues = recorded.includes(trigger) ? recorded : [...recorded, trigger];
-        this.validationIssues = [];
-        ChartOptions.dispatchingListeners.add(listener);
-        ChartOptions.dispatchDepth++;
-        try {
-            for (const issue of issues) {
-                try {
-                    listener({ severity: issue.severity, message: issue.message });
-                } catch (error) {
-                    // A throwing consumer must not displace the fail-fast error the caller is about to get.
-                    this.logger.error('validations.issueRaised threw an error', error);
-                }
-            }
-        } finally {
-            ChartOptions.dispatchingListeners.delete(listener);
-            ChartOptions.dispatchDepth--;
+    private replay(issue: LogIssue) {
+        switch (issue.severity) {
+            case 'error':
+                this.logger.error(issue.message);
+                break;
+            case 'warning':
+                this.logger.warn(issue.message);
+                break;
+            case 'deprecation':
+                this.logger.deprecation(issue.message);
+                break;
         }
     }
 
     private get validateParams(): ValidateParams {
-        return {
-            logger: this.logger,
-            onCallbackError: (error, errorPath) => this.reportCallbackError(error, errorPath),
-            onDeprecation: (message, path) => this.recordDeprecation(message, path),
-        };
+        return { logger: this.logger };
     }
 
-    private recordDeprecation(message: string, path: string) {
-        const issue: ValidationIssue = { severity: 'deprecation', message, code: path || undefined };
-        this.validationIssues.push(issue);
-        this.throwIfFailFast(issue);
-    }
-
-    // Every option-validation error goes to both the console log and the per-chart overlay collector.
-
-    private recordValidationErrors(invalid: ValidationError[]) {
+    private logValidationErrors(invalid: ValidationError[]) {
         for (const error of invalid) {
             this.logger.warn(error);
-            let path = error.path;
-            if (error.key) {
-                path = path ? `${path}.${error.key}` : error.key;
-            }
-            const issue: ValidationIssue = { severity: 'warning', message: error.toString(), code: path || undefined };
-            this.validationIssues.push(issue);
-            this.throwIfFailFast(issue);
         }
     }
 
     /**
-     * Report an argument that could not be options at all (`create(undefined)`, `create(3)`, an empty
-     * object) through the same feed as any option-validation error, so it reaches the console log, the
-     * `validations.showOverlayOn` overlay, `validations.issueRaised` and `validations.throwOn`. Raised
-     * at `error` severity - unlike a per-option problem, nothing of the caller's intent survives it.
-     *
-     * Pushed as a new array: the unchanged-options fast path aliases `validationIssues` to the base
-     * options' array, which must not gain this chart's issue.
+     * Reports an argument that could not be options at all (`create(undefined)`, `create(3)`) at `error`
+     * severity: unlike a per-option problem, nothing of the caller's intent survives it. Raised after
+     * construction, so it joins this pass's issues by hand.
      */
     recordOptionsArgumentError(message: string) {
+        this.issues = [...this.issues, { severity: 'error', message }];
         this.logger.error(message);
-        const issue: ValidationIssue = { severity: 'error', message };
-        this.validationIssues = [...this.validationIssues, issue];
-        this.throwIfFailFast(issue);
-    }
-
-    private recordValidationMessage(message: string) {
-        this.logger.warn(message);
-        const issue: ValidationIssue = { severity: 'warning', message };
-        this.validationIssues.push(issue);
-        this.throwIfFailFast(issue);
-    }
-
-    /**
-     * Throws for the first issue whose severity `validations.throwOn` selects — never called before the
-     * console record and the overlay push above have already happened, and never before this pass's
-     * issues have reached `validations.issueRaised`.
-     */
-    private throwIfFailFast(issue: ValidationIssue): void {
-        if (this.suppressFailFast || !this.throwOn.includes(issue.severity)) return;
-        this.dispatchIssuesBeforeThrow(issue);
-        const location = issue.code ? `\`${issue.code}\`: ` : '';
-        throw new FailFastError(
-            `AG Charts - validations.throwOn: ${issue.severity} - ${location}${withoutIgnoredClause(issue.message)}`
-        );
-    }
-
-    /**
-     * An error raised *while* options are processed — a throwing datum getter, a user callback invoked
-     * during validation — escapes this constructor synchronously, ahead of the update loop's own catch
-     * in `Chart.tryPerformUpdate()`. Arming `throwOn` is what makes that reachable on a warm update: it
-     * forces the slow path, so the read happens during option processing rather than during the update.
-     *
-     * With `'error'` selected that escape *is* the fail-fast delivery, so it must carry the
-     * same console record and the same prefix as every other one (AG-17831 TC1). A `record*` fail-fast
-     * throw already has both, and the CSS-refresh re-construction has no caller to throw to, so both
-     * pass through untouched.
-     */
-    private decorateOptionsProcessingFailure(error: unknown): unknown {
-        if (error instanceof FailFastError) return error;
-        if (this.suppressFailFast || !this.throwOn.includes('error')) return error;
-
-        // Console record first, and worded exactly as the unarmed update-loop catch words it, so the
-        // two paths read identically in the console.
-        this.logger.error('update error', error, error instanceof Error ? error.stack : undefined);
-        // Then `validations.issueRaised`, for the same reason the `record*` path dispatches before its
-        // throw (AG-17830 AC 3): this escape bypasses the update loop's catch, so the collector that
-        // normally reports a caught runtime error never sees this one. The message is the raw error's,
-        // matching both the thrown copy and what the collector would have reported unarmed.
-        const message = String(error instanceof Error ? error.message : error);
-        this.dispatchIssuesBeforeThrow({ severity: 'error', message });
-        return new FailFastError(`AG Charts - validations.throwOn: error - ${message}`);
     }
 
     private removeIncompatibleSeriesAreaOptions(options: T) {
@@ -1054,9 +824,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
             const seriesTypeMessage =
                 options.series?.at(0)?.type == null ? 'this series type' : `\`${options.series?.at(0)?.type}\` series`;
-            this.recordValidationMessage(
-                `Option \`seriesArea.${optionsKey}\` is not supported by ${seriesTypeMessage}, ignoring.`
-            );
+            this.logger.warn(`Option \`seriesArea.${optionsKey}\` is not supported by ${seriesTypeMessage}, ignoring.`);
         }
     }
 
@@ -1069,7 +837,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 (!pluginDef.chartType || pluginDef.chartType === this.chartDef?.name)
             ) {
                 const { cleared, invalid } = validate(options[pluginKey], pluginDef.options, pluginDef.name, params);
-                this.recordValidationErrors(invalid);
+                this.logValidationErrors(invalid);
                 options[pluginKey] = cleared as T[keyof T];
             }
         }
@@ -1126,14 +894,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     continue;
                 }
 
-                this.recordValidationMessage(
+                this.logger.warn(
                     seriesOptions.type == null
                         ? `Option \`${keyPath}.type\` is required and has not been provided; expecting ${validSeriesTypes}, ignoring.`
                         : `Unknown type \`${seriesOptions.type}\` at \`${keyPath}.type\`; expecting ${validSeriesTypes}, ignoring.`
                 );
                 continue;
             } else if (chartType && seriesDef.chartType !== chartType) {
-                this.recordValidationMessage(
+                this.logger.warn(
                     `Series type \`${seriesDef.name}\` at \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
                 );
                 continue;
@@ -1147,7 +915,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const { validate: validateSeries = validate } = seriesDef;
             const { cleared, invalid } = validateSeries(seriesOptions, seriesDef.options, keyPath, params);
 
-            this.recordValidationErrors(invalid);
+            this.logValidationErrors(invalid);
 
             if (!hasRequiredInPath(invalid, keyPath)) {
                 validatedSeriesOptions.push(cleared);
@@ -1199,12 +967,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     stringFormat
                 );
 
-                this.recordValidationMessage(
+                this.logger.warn(
                     `Unknown type \`${axisOptions.type}\` at \`${keyPath}.type\`; expecting one of ${validAxesTypes}, ignoring.`
                 );
                 continue;
             } else if (axisDef.chartType !== chartType) {
-                this.recordValidationMessage(
+                this.logger.warn(
                     `Axis type \`${axisDef.name}\` at  \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
                 );
                 break;
@@ -1213,7 +981,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const { validate: validateAxis = validate } = axisDef;
             const { cleared, invalid } = validateAxis(axisOptions, axisDef.options, keyPath, params);
 
-            this.recordValidationErrors(invalid);
+            this.logValidationErrors(invalid);
 
             if (!hasRequiredInPath(invalid, keyPath)) {
                 validatedAxesOptions[key] = cleared;

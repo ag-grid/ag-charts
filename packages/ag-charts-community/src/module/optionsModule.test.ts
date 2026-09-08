@@ -19,14 +19,30 @@ import { sanitizeThemeModules } from '../chart/factory/processModuleOptions';
 import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import * as examples from '../chart/test/examples';
 import { ChartTheme } from '../chart/themes/chartTheme';
+import { createProvisionalRuntime } from '../chart/validation/chartValidations';
 import { VERSION } from '../version';
 import { CategoryAxisModule } from './axis-modules/categoryAxisModule';
 import { NumberAxisModule } from './axis-modules/numberAxisModule';
 import { ChartOptions } from './optionsModule';
 import { __clearStructuralCacheForTests } from './optionsStructuralCache';
 
+function runtimeFor(logger?: Logger) {
+    return logger == null ? undefined : createProvisionalRuntime(logger);
+}
+
 function prepareOptions<T extends AgChartOptions>(userOptions: T, logger?: Logger): T {
-    const chartOptions = new ChartOptions(userOptions, {} as T, {}, {}, {}, undefined, false, false, undefined, logger);
+    const chartOptions = new ChartOptions(
+        userOptions,
+        {} as T,
+        {},
+        {},
+        {},
+        undefined,
+        false,
+        false,
+        undefined,
+        runtimeFor(logger)
+    );
     return chartOptions.processedOptions;
 }
 
@@ -43,7 +59,7 @@ function prepareSparklineOptions(userOptions: AgSparklineOptions, logger?: Logge
         false,
         false,
         undefined,
-        logger
+        runtimeFor(logger)
     );
     return chartOptions.processedOptions;
 }
@@ -61,7 +77,7 @@ function prepareGaugeOptions(userOptions: AgGaugeOptions, logger?: Logger): AgCh
         false,
         false,
         undefined,
-        logger
+        runtimeFor(logger)
     );
     return chartOptions.processedOptions;
 }
@@ -486,12 +502,12 @@ describe('ChartOptions', () => {
                 ).length;
 
             const first = new ChartOptions(invalidOptions(), {} as AgChartOptions, {}, {}, { domMode: 'minimal' });
-            expect(first.validationIssues.length).toBeGreaterThan(0);
+            expect(first.issues.length).toBeGreaterThan(0);
             expect(cacheProbe('miss')).toBe(1);
 
             const second = new ChartOptions(invalidOptions(), {} as AgChartOptions, {}, {}, { domMode: 'minimal' });
             expect(cacheProbe('hit')).toBe(1);
-            expect(second.validationIssues).toEqual(first.validationIssues);
+            expect(second.issues).toEqual(first.issues);
         });
     });
 
@@ -4257,7 +4273,7 @@ describe('ChartOptions', () => {
                 false,
                 false,
                 undefined,
-                logger
+                runtimeFor(logger)
             );
 
             chartOptions.processCSSVariablesPartial({ foregroundColor: 'var(--bad)' }, container);
@@ -4469,16 +4485,16 @@ describe('ChartOptions', () => {
             );
 
             expect(console.warn).not.toHaveBeenCalled();
-            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+            expect(chartOptions.issues.length).toBeGreaterThan(0);
             // An empty selection is a usable value, so it is honoured rather than defaulted away.
-            expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.consoleOn')).toBe(false);
+            expect(chartOptions.issues.some((issue) => issue.message.includes('validations.consoleOn'))).toBe(false);
         });
 
         it('warns for the same invalid options without a consoleOn override', () => {
             const chartOptions = new ChartOptions(invalidOptions(), {} as AgChartOptions, {}, {}, {});
 
             expect(console.warn).toHaveBeenCalled();
-            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+            expect(chartOptions.issues.length).toBeGreaterThan(0);
         });
 
         it("silences warning-severity output when set to `['error']`", () => {
@@ -4491,7 +4507,7 @@ describe('ChartOptions', () => {
             );
 
             expect(console.warn).not.toHaveBeenCalled();
-            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+            expect(chartOptions.issues.length).toBeGreaterThan(0);
         });
 
         it('treats a duplicated severity as if it had been listed once, without reporting it', () => {
@@ -4505,9 +4521,9 @@ describe('ChartOptions', () => {
 
             // A repeat is not an invalid value: the array is accepted whole, and `['error', 'error']`
             // selects exactly what `['error']` does - warning-severity output stays silenced.
-            expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.consoleOn')).toBe(false);
+            expect(chartOptions.issues.some((issue) => issue.message.includes('validations.consoleOn'))).toBe(false);
             expect(console.warn).not.toHaveBeenCalled();
-            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+            expect(chartOptions.issues.length).toBeGreaterThan(0);
         });
 
         it('reports an invalid consoleOn value rather than silencing logging with it', () => {
@@ -4519,7 +4535,7 @@ describe('ChartOptions', () => {
                 {}
             );
 
-            expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.consoleOn')).toBe(true);
+            expect(chartOptions.issues.some((issue) => issue.message.includes('validations.consoleOn'))).toBe(true);
             const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
             expect(messages.some((m) => m.includes('validations.consoleOn'))).toBe(true);
             expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
@@ -4542,9 +4558,7 @@ describe('ChartOptions', () => {
                     {}
                 );
 
-                expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.consoleOn')).toBe(
-                    true
-                );
+                expect(chartOptions.issues.some((issue) => issue.message.includes('validations.consoleOn'))).toBe(true);
                 const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
                 expect(messages.some((m) => m.includes('validations.consoleOn'))).toBe(true);
                 // `['error', 'loud']` filtered to `['error']` would leave warnings off and lose both messages.
@@ -4563,7 +4577,7 @@ describe('ChartOptions', () => {
 
             const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
             expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
-            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+            expect(chartOptions.issues.length).toBeGreaterThan(0);
         });
 
         it('returns to default logging once a delta update removes an empty-array override', () => {
@@ -4579,7 +4593,7 @@ describe('ChartOptions', () => {
             const updated = new ChartOptions(base, invalidOptions(), {}, {}, {});
 
             expect(console.warn).toHaveBeenCalled();
-            expect(updated.validationIssues.length).toBeGreaterThan(0);
+            expect(updated.issues.length).toBeGreaterThan(0);
         });
     });
 
@@ -4588,7 +4602,7 @@ describe('ChartOptions', () => {
             const chartOptions = new ChartOptions(invalidOptions(), {} as AgChartOptions, {}, {}, {});
 
             expect(console.warn).toHaveBeenCalled();
-            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+            expect(chartOptions.issues.length).toBeGreaterThan(0);
         });
 
         it('honours an explicit `[]`, which never throws and is not reported as unusable', () => {
@@ -4604,7 +4618,7 @@ describe('ChartOptions', () => {
             }).not.toThrow();
 
             expect(console.warn).toHaveBeenCalled();
-            expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.throwOn')).toBe(false);
+            expect(chartOptions.issues.some((issue) => issue.message.includes('validations.throwOn'))).toBe(false);
         });
 
         // A bad element rejects the whole array, so the key is dropped and the default (off) applies -
@@ -4628,7 +4642,7 @@ describe('ChartOptions', () => {
                 );
             }).not.toThrow();
 
-            expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.throwOn')).toBe(true);
+            expect(chartOptions.issues.some((issue) => issue.message.includes('validations.throwOn'))).toBe(true);
             const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
             expect(messages.some((m) => m.includes('validations.throwOn'))).toBe(true);
         });
@@ -4643,7 +4657,9 @@ describe('ChartOptions', () => {
                         {},
                         {}
                     )
-            ).toThrowError(/^AG Charts - validations\.throwOn: warning - `series\[0\]\.strokeWidth`: /);
+            ).toThrowError(
+                /^AG Charts - validations\.throwOn: warning - Option `series\[0\]\.strokeWidth` cannot be set/
+            );
         });
 
         it('writes the console record before throwing (AC2)', () => {
@@ -4680,7 +4696,7 @@ describe('ChartOptions', () => {
             expect(thrown).toBeDefined();
             expect(thrown.message).not.toMatch(/ignoring/i);
             expect(thrown.message).toMatch(
-                /^AG Charts - validations\.throwOn: warning - `series\[0\]\.strokeWidth`: .*expecting a number greater than or equal to 0$/
+                /^AG Charts - validations\.throwOn: warning - Option `series\[0\]\.strokeWidth` cannot be set .*expecting a number greater than or equal to 0$/
             );
 
             // AC2: the console record is untouched by fail-fast, trailing clause included.
@@ -4735,7 +4751,7 @@ describe('ChartOptions', () => {
             }).not.toThrow();
 
             expect(console.warn).toHaveBeenCalled();
-            expect(chartOptions.validationIssues.some((issue) => issue.severity === 'warning')).toBe(true);
+            expect(chartOptions.issues.some((issue) => issue.severity === 'warning')).toBe(true);
         });
 
         it('re-validates and throws again on a warm update, rather than carrying validation issues forward (S6/D4)', () => {
@@ -4834,17 +4850,16 @@ describe('ChartOptions', () => {
                 validations,
             }) as unknown as AgChartOptions;
 
-        // `issueRaised` is wired up on the `Chart`, absent at this level, so assert on
-        // `validationIssues`, the array the listener is fed from.
+        // `issueRaised` is wired up on the `Chart`, absent at this level, so assert on `issues`, the
+        // Logger capture the listener is fed from.
         it('records an issue whose message matches the console warning content', () => {
             const chartOptions = new ChartOptions(badStrokeWidthOptions(), {} as AgChartOptions, {}, {}, {});
 
             const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
-            expect(chartOptions.validationIssues).toContainEqual({
+            expect(chartOptions.issues).toContainEqual({
                 severity: 'warning',
                 message:
                     'Option `series[0].strokeWidth` cannot be set to `"notanumber"`; expecting a number greater than or equal to 0, ignoring.',
-                code: 'series[0].strokeWidth',
             });
             expect(messages).toContain(
                 'AG Charts - Option `series[0].strokeWidth` cannot be set to `"notanumber"`; expecting a number greater than or equal to 0, ignoring.'
@@ -4861,11 +4876,10 @@ describe('ChartOptions', () => {
             );
 
             expect(console.warn).not.toHaveBeenCalled();
-            expect(chartOptions.validationIssues).toContainEqual({
+            expect(chartOptions.issues).toContainEqual({
                 severity: 'warning',
                 message:
                     'Option `series[0].strokeWidth` cannot be set to `"notanumber"`; expecting a number greater than or equal to 0, ignoring.',
-                code: 'series[0].strokeWidth',
             });
         });
 
@@ -4884,11 +4898,10 @@ describe('ChartOptions', () => {
                 );
             }).not.toThrow();
 
-            expect(chartOptions!.validationIssues).toContainEqual({
+            expect(chartOptions!.issues).toContainEqual({
                 severity: 'warning',
                 message:
                     'Option `validations.issueRaised` cannot be set to `"not-a-function"`; expecting a function, ignoring.',
-                code: 'validations.issueRaised',
             });
         });
     });
