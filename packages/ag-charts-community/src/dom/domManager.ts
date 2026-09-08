@@ -148,7 +148,9 @@ const globalListenerRegistry = createPerWindowRegistry<GlobalListenerSubscriber,
 export class DOMManager extends BaseManager {
     static readonly className = 'DOMManager';
     private static readonly batchedUpdateContainer: DOMManager[] = [];
-    private static readonly headStyles = new Set<string>();
+    // Head styles are shared per document: a chart in an iframe must not stop a chart in the main document
+    // from getting its own copy.
+    private static readonly headStyles = new WeakMap<HTMLHeadElement, Set<string>>();
 
     readonly anchorName = `--${createId(this)}`;
 
@@ -876,11 +878,19 @@ export class DOMManager extends BaseManager {
             // Add to our DOM tree as we don't know if this is a shadow DOM case or not, or even necessarily
             // which Document we might be attached to.
             styleElement = this.addChild('styles', id);
-        } else if (this.shadowDocumentRoot == null && !DOMManager.headStyles.has(id)) {
+        } else if (this.shadowDocumentRoot == null) {
             // Add to document head as failsafe fallback.
-            styleElement = addStyleElement(this.agDocument.head);
-            DOMManager.headStyles.add(id);
-        } else if (this.shadowDocumentRoot != null) {
+            const { head } = this.agDocument;
+            let headStyles = DOMManager.headStyles.get(head);
+            if (headStyles == null) {
+                headStyles = new Set();
+                DOMManager.headStyles.set(head, headStyles);
+            }
+            if (!headStyles.has(id)) {
+                styleElement = addStyleElement(head);
+                headStyles.add(id);
+            }
+        } else {
             // Add to our DOM tree to avoid contaminating outside of the shadow DOM.
             styleElement = this.addChild('styles', id);
         }
