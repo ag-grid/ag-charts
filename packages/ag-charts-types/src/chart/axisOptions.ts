@@ -275,6 +275,8 @@ export interface AgBaseAxisLabelOptions<TContext = ContextDefault> extends AgBas
      *
      * On a horizontal axis, labels align within the space reserved for them, never over the series area. On a vertical axis, `'top'` places each label above its tick (or at the top of its band) and `'bottom'` below.
      *
+     * Honoured on cartesian axes (`number`, `category`, `time`, `log`, `ordinal-time`). Ignored on grouped-category, angle and radius axes, and on funnel / cone-funnel `stageLabel`.
+     *
      * Default: `undefined`
      */
     verticalAlign?: VerticalAlign;
