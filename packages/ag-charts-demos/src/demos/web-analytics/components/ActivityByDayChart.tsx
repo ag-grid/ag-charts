@@ -28,10 +28,6 @@ export function ActivityByDayChart({ data }: ActivityByDayChartProps) {
     }, [data]);
 
     const options = useMemo<AgCartesianChartOptions>(() => {
-        const values = byDay.map((d) => d.sessions);
-        const max = Math.max(...values);
-        const min = Math.min(...values);
-
         return {
             theme: THEME,
             data: byDay,
@@ -42,25 +38,13 @@ export function ActivityByDayChart({ data }: ActivityByDayChartProps) {
                     xKey: 'day',
                     yKey: 'sessions',
                     yName: 'Sessions',
-                    cornerRadius: 8,
-                    fill: PALETTE[0],
+                    cornerRadius: 6,
+                    fill: { ref: 'chartBackgroundColor', mix: 0.2, ontoColor: PALETTE[0] },
                     strokeWidth: 0,
                     stroke: PALETTE[0],
                     label: {
-                        enabled: true,
-                        placement: 'outside-end',
-                        spacing: 4,
-                        fontWeight: 'bold',
-                        // Only annotate the busiest and quietest weekday.
-                        formatter: ({ datum }) =>
-                            datum.sessions === max || datum.sessions === min ? fmtInt(datum.sessions) : '',
-                    },
-                    highlight: {
                         enabled: false,
                     },
-                    itemStyler: ({ datum }) => ({
-                        fillOpacity: datum.sessions === max || datum.sessions === min ? 1 : 0.2,
-                    }),
                 },
             ],
             axes: {
@@ -79,7 +63,10 @@ export function ActivityByDayChart({ data }: ActivityByDayChartProps) {
                 },
             },
             legend: { enabled: false },
-            padding: { top: 16, right: 52, bottom: 12, left: 40 },
+            padding: { top: 6, right: 52, bottom: 10, left: 38 },
+            formatter: {
+                y: ({ value }) => fmtInt(Number(value)),
+            },
         };
     }, [byDay]);
 

@@ -1,96 +1,92 @@
-import type { ColDef, FilterChangedEvent, GridApi, GridReadyEvent } from 'ag-grid-community';
+import type { ColDef, GridApi, GridReadyEvent, ModelUpdatedEvent, OverlayComponentUserParams } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
+import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
 
+import { browserIconUrl } from '../browsers';
+import { deviceIconUrl } from '../devices';
+import { flagUrl } from '../flags';
 import { fmtCurrency, fmtDateTime, fmtDuration } from '../format';
 import type { Session } from '../types';
-import { buildDateFilterModel, dateFilterModelToDays, sameDaySet, startOfDay } from './dateFilter';
 import { baseColDef, gridTheme } from './grid';
 
+// The icon is decorative: the name beside it carries the meaning. Buckets with no
+// icon ("Unknown" country, "Other" browser) render as text alone.
+const iconCell =
+    (iconUrl: (value: string) => string | undefined, imgClass = 'wa-cell-icon') =>
+    ({ value }: { value?: string }) => {
+        if (!value) return null;
+        const src = iconUrl(value);
+        return (
+            <span className="wa-icon-cell">
+                {src && <img className={imgClass} src={src} alt="" aria-hidden="true" loading="lazy" />}
+                {value}
+            </span>
+        );
+    };
+
+const CountryCell = iconCell(flagUrl, 'wa-flag');
+const DeviceCell = iconCell(deviceIconUrl);
+const BrowserCell = iconCell(browserIconUrl);
+
+// No selection means no rows at all, so the grid shows `noRows`; `noMatchingRows`
+// needs rows that the column filters then exclude.
+const overlayComponentParams: OverlayComponentUserParams = {
+    noRows: { overlayText: 'Click or drag across chart above to display matching sessions.' },
+    noMatchingRows: { overlayText: 'No sessions match the current filters. Try adjusting your filters.' },
+};
+
 interface SessionsGridProps {
+    /**
+     * The rows to show: the sessions on the days selected on the traffic chart, already
+     * narrowed by the caller. Empty means nothing is selected, which is the grid's
+     * starting state and puts the prompt above in place of the rows.
+     */
     sessions: Session[];
-    /** Days selected on the traffic chart, applied as a filter on the When column. */
-    selectedDays: Date[];
-    /** Called when the user edits the When column filter, with the days it now selects. */
-    onFilterDaysChange: (days: Date[]) => void;
-    /** Called with the grid's column filter model (colId → model) whenever it changes. */
-    onColumnFiltersChange: (filterModel: Record<string, unknown>) => void;
+    /**
+     * Called whenever the grid's model settles, with its column filter model (colId →
+     * model) and the number of rows those filters leave displayed.
+     */
+    onGridStateChange: (filterModel: Record<string, unknown>, displayedRowCount: number) => void;
 }
 
 export interface SessionsGridHandle {
-    /** Clears every column filter, including the When column driving the chart selection. */
+    /** Clears every column filter. The chart selection is not a filter and is left alone. */
     clearFilters: () => void;
 }
 
-// The When column filter and the traffic chart selection are kept in sync via the shared `selectedDays`.
+// The chart selection supplies row data, not a filter model, so the column filters
+// narrow those rows and never feed back to the chart.
 export const SessionsGrid = forwardRef<SessionsGridHandle, SessionsGridProps>(function SessionsGrid(
-    { sessions, selectedDays, onFilterDaysChange, onColumnFiltersChange },
+    { sessions, onGridStateChange },
     ref
 ) {
     const apiRef = useRef<GridApi<Session> | null>(null);
-    // Guards the filter-change handler from reacting to our own programmatic writes.
-    const applyingFilter = useRef(false);
     const defaultColDef = useMemo(() => baseColDef<Session>(), []);
 
-    // Emit the filter model so the traffic chart re-aggregates both series on the sessions that pass it.
-    const emitFilterModel = useCallback(
-        (api: GridApi<Session>) => onColumnFiltersChange(api.getFilterModel()),
-        [onColumnFiltersChange]
+    const emitGridState = useCallback(
+        (api: GridApi<Session>) => onGridStateChange(api.getFilterModel(), api.getDisplayedRowCount()),
+        [onGridStateChange]
     );
-
-    // Skips when the filter already selects those days, which breaks the filter->chart->filter loop.
-    const applyDateFilter = useCallback((api: GridApi<Session>, days: Date[]) => {
-        const current = dateFilterModelToDays(api.getColumnFilterModel('timestamp'));
-        if (current && sameDaySet(current, days)) return;
-        applyingFilter.current = true;
-        void api
-            .setColumnFilterModel('timestamp', buildDateFilterModel(days))
-            .then(() => api.onFilterChanged())
-            // A latched guard would silently stop the grid from ever driving the chart selection again.
-            .finally(() => {
-                applyingFilter.current = false;
-            });
-    }, []);
 
     useImperativeHandle(
         ref,
         () => ({
-            clearFilters: () => {
-                const api = apiRef.current;
-                if (!api) return;
-                applyingFilter.current = true;
-                api.setFilterModel(null);
-                applyingFilter.current = false;
-                onFilterDaysChange([]);
-                emitFilterModel(api);
-            },
+            // The resulting filter change emits the new state on its own.
+            clearFilters: () => apiRef.current?.setFilterModel(null),
         }),
-        [onFilterDaysChange, emitFilterModel]
+        []
     );
 
     const onGridReady = useCallback(
         ({ api }: GridReadyEvent<Session>) => {
             apiRef.current = api;
-            applyDateFilter(api, selectedDays);
-            emitFilterModel(api);
+            emitGridState(api);
         },
-        [applyDateFilter, selectedDays, emitFilterModel]
+        [emitGridState]
     );
 
-    useEffect(() => {
-        if (apiRef.current) applyDateFilter(apiRef.current, selectedDays);
-    }, [applyDateFilter, selectedDays]);
-
-    // Mirror the When filter onto the chart selection and re-emit the non-When-filtered sessions.
-    const onFilterChanged = useCallback(
-        ({ api }: FilterChangedEvent<Session>) => {
-            if (applyingFilter.current) return;
-            const days = dateFilterModelToDays(api.getColumnFilterModel('timestamp'));
-            if (days && !sameDaySet(days, selectedDays)) onFilterDaysChange(days);
-            emitFilterModel(api);
-        },
-        [onFilterDaysChange, selectedDays, emitFilterModel]
-    );
+    // Fires for filter changes and new row data alike, so one handler covers both.
+    const onModelUpdated = useCallback(({ api }: ModelUpdatedEvent<Session>) => emitGridState(api), [emitGridState]);
 
     const columnDefs = useMemo<ColDef<Session>[]>(
         () => [
@@ -98,23 +94,33 @@ export const SessionsGrid = forwardRef<SessionsGridHandle, SessionsGridProps>(fu
                 field: 'timestamp',
                 headerName: 'When',
                 minWidth: 140,
-                sort: 'desc',
-                filter: 'agDateColumnFilter',
-                filterParams: {
-                    // Only the operators the chart selection can round-trip to days.
-                    filterOptions: ['equals', 'inRange'],
-                    // Allow one OR-condition per selected day; the default cap is 2.
-                    maxNumConditions: 60,
-                    inRangeInclusive: true,
-                },
-                // Filter by calendar day (midnight) so day-granular chart selections match.
-                filterValueGetter: ({ data }) => (data ? startOfDay(new Date(data.timestamp)) : null),
+                // `initialSort`, not `sort`, so the user's own sorting is not overridden.
+                initialSort: 'desc',
+                filter: false,
                 valueFormatter: ({ value }) => (value == null ? '' : fmtDateTime(new Date(value))),
             },
             { field: 'channel', headerName: 'Channel', minWidth: 100, filter: 'agSetColumnFilter' },
-            { field: 'deviceCategory', headerName: 'Device', minWidth: 100, filter: 'agSetColumnFilter' },
-            { field: 'browser', headerName: 'Browser', minWidth: 100, filter: 'agSetColumnFilter' },
-            { field: 'country', headerName: 'Country', minWidth: 130, filter: 'agSetColumnFilter' },
+            {
+                field: 'deviceCategory',
+                headerName: 'Device',
+                minWidth: 120,
+                filter: 'agSetColumnFilter',
+                cellRenderer: DeviceCell,
+            },
+            {
+                field: 'browser',
+                headerName: 'Browser',
+                minWidth: 120,
+                filter: 'agSetColumnFilter',
+                cellRenderer: BrowserCell,
+            },
+            {
+                field: 'country',
+                headerName: 'Country',
+                minWidth: 150,
+                filter: 'agSetColumnFilter',
+                cellRenderer: CountryCell,
+            },
             {
                 colId: 'visitor',
                 headerName: 'Visitor',
@@ -128,6 +134,7 @@ export const SessionsGrid = forwardRef<SessionsGridHandle, SessionsGridProps>(fu
             {
                 field: 'pageviewsCount',
                 headerName: 'Page views',
+                type: 'rightAligned',
                 minWidth: 100,
                 filter: 'agNumberColumnFilter',
                 filterParams: {
@@ -138,6 +145,7 @@ export const SessionsGrid = forwardRef<SessionsGridHandle, SessionsGridProps>(fu
             {
                 field: 'sessionDuration',
                 headerName: 'Duration',
+                type: 'rightAligned',
                 minWidth: 100,
                 filter: 'agNumberColumnFilter',
                 filterParams: {
@@ -156,6 +164,7 @@ export const SessionsGrid = forwardRef<SessionsGridHandle, SessionsGridProps>(fu
             {
                 field: 'conversionValue',
                 headerName: 'Value',
+                type: 'rightAligned',
                 minWidth: 100,
                 filter: 'agNumberColumnFilter',
                 filterParams: {
@@ -176,7 +185,8 @@ export const SessionsGrid = forwardRef<SessionsGridHandle, SessionsGridProps>(fu
                 columnDefs={columnDefs}
                 defaultColDef={defaultColDef}
                 onGridReady={onGridReady}
-                onFilterChanged={onFilterChanged}
+                onModelUpdated={onModelUpdated}
+                overlayComponentParams={overlayComponentParams}
                 rowHeight={36}
                 headerHeight={38}
                 domLayout="autoHeight"

@@ -4,7 +4,7 @@ import type { AgCartesianChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-react';
 
 import { PALETTE, THEME } from '../chartTheme';
-import { fmtCompact, fmtPct } from '../format';
+import { fmtInt, fmtPct } from '../format';
 import type { PageRow } from '../types';
 
 interface PagePerformanceChartProps {
@@ -26,11 +26,11 @@ export function PagePerformanceChart({ data }: PagePerformanceChartProps) {
                     direction: 'horizontal',
                     xKey: 'pageTitle',
                     yKey: 'pageviews',
-                    yName: 'Pageviews',
+                    yName: 'Page views',
                     xKeyAxis: 'page',
                     yKeyAxis: 'views',
                     fill: PALETTE[0],
-                    cornerRadius: 4,
+                    cornerRadius: 2,
                 },
                 {
                     type: 'bar',
@@ -41,11 +41,17 @@ export function PagePerformanceChart({ data }: PagePerformanceChartProps) {
                     xKeyAxis: 'page',
                     yKeyAxis: 'rate',
                     fill: PALETTE[1],
-                    cornerRadius: 4,
+                    cornerRadius: 2,
                 },
             ],
             axes: {
-                page: { type: 'category', position: 'left' },
+                page: {
+                    type: 'category',
+                    position: 'left',
+                    label: {
+                        truncate: true,
+                    },
+                },
                 views: {
                     type: 'number',
                     position: 'bottom',
@@ -56,7 +62,7 @@ export function PagePerformanceChart({ data }: PagePerformanceChartProps) {
                         spacing: 2,
                     },
                     label: {
-                        formatter: ({ value }) => fmtCompact(value),
+                        formatter: ({ value }) => fmtInt(value),
                         spacing: 2,
                         color: { ref: 'textColor', mix: 0.2, ontoColor: PALETTE[0] },
                     },
