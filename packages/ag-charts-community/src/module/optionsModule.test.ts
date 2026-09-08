@@ -3009,6 +3009,36 @@ describe('ChartOptions', () => {
             ]);
         });
 
+        it('should resolve axis label verticalAlign from a theme override, with a per-axis inline value taking precedence', () => {
+            const options: AgCartesianChartOptions = {
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'y' },
+                    { type: 'line', xKey: 'x', yKey: 'y2', yKeyAxis: 'y2' },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    y2: { type: 'number', position: 'right', label: { verticalAlign: 'bottom' } },
+                },
+                theme: {
+                    overrides: {
+                        line: {
+                            axes: {
+                                number: { label: { verticalAlign: 'top' } },
+                            },
+                        },
+                    },
+                },
+            };
+
+            const preparedOptions = prepareOptions(options);
+
+            expect((preparedOptions.axes?.y as AgNumberAxisOptions | undefined)?.label?.verticalAlign).toBe('top');
+            expect((preparedOptions.axes?.__AXIS_ID_2 as AgNumberAxisOptions | undefined)?.label?.verticalAlign).toBe(
+                'bottom'
+            );
+        });
+
         it('should drop unregistered theme overrides before processing', () => {
             const warnSpy = vi.spyOn(console, 'warn');
             const theme: AgChartTheme = {
