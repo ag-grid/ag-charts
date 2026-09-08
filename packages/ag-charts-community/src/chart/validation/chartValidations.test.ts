@@ -1,7 +1,7 @@
-import { type Mock, afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { EventEmitter, type LogIssue, Logger } from 'ag-charts-core';
-import type { AgCartesianChartOptions } from 'ag-charts-types';
+import type { AgBarSeriesOptions, AgCartesianChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
 import type { EventsHub, EventsHubMap } from '../../core/eventsHub';
@@ -11,6 +11,7 @@ import {
     type AgChartProxy,
     createChart,
     deproxy,
+    expectErrorsCalls,
     expectWarningsCalls,
     hoverAction,
     prepareTestOptions,
@@ -288,6 +289,16 @@ describe('ChartValidations', () => {
             expect(listener.mock.calls).toEqual([[errorIssue], [warningIssue]]);
         });
 
+        it('is told once about a live issue that a later cycle drops and a data pass re-raises', () => {
+            const { logger, validations, listener } = withListener();
+
+            logger.warnOnce('missing key');
+            validations.beginCycle([warningIssue]);
+            logger.warnOnce('missing key');
+
+            expect(listener).toHaveBeenCalledTimes(2);
+        });
+
         it('a throwing listener does not propagate out of the logging call, and is reported through the logger', () => {
             const { logger, listener } = withListener();
             const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
@@ -383,6 +394,16 @@ describe('ChartValidations', () => {
             expect(listener).toHaveBeenCalledTimes(1);
         });
 
+        it('unwinds through a listener that raises an armed issue, rather than blaming the listener', () => {
+            const { logger, validations } = build();
+            const listener = vi.fn((event) => {
+                if (event.message === 'outer') logger.warn('inner');
+            });
+            validations.configure({ throwOn: ['warning'], issueRaised: listener });
+
+            expect(() => logger.warn('outer')).toThrow('AG Charts - validations.throwOn: warning - inner');
+        });
+
         it('arms each severity independently', () => {
             const { logger, validations } = build();
             validations.configure({ throwOn: ['error', 'deprecation'] });
@@ -457,12 +478,16 @@ describe('ChartValidations - chart integration', () => {
         { x: 'B', y: 20 },
     ];
 
-    function expectErrorsCalls() {
-        const mock = console.error as Mock;
-        const calls = mock.mock.calls;
-        mock.mockClear();
-        return expect(calls);
-    }
+    const throwingFormatterSeries: AgBarSeriesOptions = {
+        type: 'bar',
+        xKey: 'x',
+        yKey: 'y',
+        label: {
+            formatter: () => {
+                throw new Error('formatter boom');
+            },
+        },
+    };
 
     function options(extra: Partial<AgCartesianChartOptions>): AgCartesianChartOptions {
         return prepareTestOptions({
@@ -478,18 +503,7 @@ describe('ChartValidations - chart integration', () => {
         const issueRaised = vi.fn();
         chart = await createChart(
             options({
-                series: [
-                    {
-                        type: 'bar',
-                        xKey: 'x',
-                        yKey: 'y',
-                        label: {
-                            formatter: () => {
-                                throw new Error('formatter boom');
-                            },
-                        },
-                    },
-                ],
+                series: [throwingFormatterSeries],
                 validations: { showOverlayOn: ['warning'], issueRaised },
             })
         );
@@ -531,18 +545,7 @@ describe('ChartValidations - chart integration', () => {
     it('keeps a callback issue on the overlay across a hover', async () => {
         chart = await createChart(
             options({
-                series: [
-                    {
-                        type: 'bar',
-                        xKey: 'x',
-                        yKey: 'y',
-                        label: {
-                            formatter: () => {
-                                throw new Error('formatter boom');
-                            },
-                        },
-                    },
-                ],
+                series: [throwingFormatterSeries],
                 validations: { showOverlayOn: ['warning'] },
             })
         );
@@ -584,6 +587,46 @@ describe('ChartValidations - chart integration', () => {
             message: expect.stringContaining('tooltip.renderer'),
         });
         expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
+        expectWarningsCalls().toHaveLength(1);
+    });
+
+    it('throws out of the hover that raised a tooltip renderer exception when throwOn selects warning', async () => {
+        const proxy = AgCharts.create(
+            options({
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        tooltip: {
+                            renderer: () => {
+                                throw new Error('renderer boom');
+                            },
+                        },
+                    },
+                ],
+                validations: { throwOn: ['warning'] },
+            })
+        ) as AgChartProxy;
+        chart = deproxy(proxy);
+        await proxy.waitForUpdate();
+
+        const uncaught: unknown[] = [];
+        const onError = (event: ErrorEvent) => {
+            uncaught.push(event.error);
+            event.preventDefault();
+        };
+        globalThis.addEventListener('error', onError);
+        try {
+            await hoverAction(600, 400)(chart);
+            await expect(proxy.waitForUpdate()).rejects.toThrow(
+                /^AG Charts - validations\.throwOn: warning - Uncaught exception in user callback `series\[0\]\.tooltip\.renderer`/
+            );
+        } finally {
+            globalThis.removeEventListener('error', onError);
+        }
+        expect(uncaught).toHaveLength(1);
+        expect(uncaught[0]).toBeInstanceOf(FailFastError);
         expectWarningsCalls().toHaveLength(1);
     });
 

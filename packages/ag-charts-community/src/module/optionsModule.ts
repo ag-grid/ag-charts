@@ -406,6 +406,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 } = this.slowSetup(processedOverrides, deltaOptions, stripSymbols));
             }
         } catch (error) {
+            // A rejected pass must not leave its `validations` settings on the chart that keeps its old options.
+            if (baseChartOptions != null) {
+                this.validations.configure(getValidations(baseChartOptions.processedOptions));
+            }
             // An error raised while processing (a throwing datum getter, a callback invoked during
             // validation) escapes ahead of the update loop's catch, so it is reported here instead.
             rethrowFailFast(error);
@@ -721,8 +725,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         );
         this.chartDef = cached.chartDef;
 
-        // A cache hit skips the validation loops, so their console output is replayed: the `*Once` cache
-        // keeps a chart that populated the entry quiet, and every `validations` option sees the issue.
+        // A cache hit skips the validation loops, so what they logged is replayed for this chart's console
+        // and `validations` options.
         for (const issue of cached.issues) {
             this.replay(issue);
         }

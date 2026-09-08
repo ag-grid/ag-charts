@@ -86,8 +86,8 @@ export class ChartValidations {
     private dismissed = false;
 
     private listener?: ValidationIssueListener;
-    /** Keys already told to `listener`, so a re-raised issue is told once per cycle, as `warnOnce` prints once. */
-    private told = new Set<string>();
+    /** Keys already told to `listener`, so a re-raised issue is told once per listener, as `warnOnce` prints once. */
+    private readonly told = new Set<string>();
     private readonly pendingDispatch: LogIssue[] = [];
     private dispatching = false;
     private reportingListenerError = false;
@@ -149,25 +149,21 @@ export class ChartValidations {
 
     /**
      * Replaces the collection with what a re-validating pass raised. `handledBy` is the instance the pass
-     * reported through; what it already told the same listener is not told again.
+     * reported through; what it or this instance already told the same listener is not told again.
      */
     beginCycle(issues: readonly LogIssue[], handledBy: ChartValidations = this) {
         const previous = new Set(this.collection.keys());
-        const inherited = handledBy !== this && handledBy.listener === this.listener ? handledBy.told : undefined;
+        if (handledBy !== this && handledBy.listener === this.listener) {
+            for (const key of handledBy.told) this.told.add(key);
+        }
         this.collection.clear();
-        const told = new Set<string>();
         const fresh: LogIssue[] = [];
         for (const issue of issues) {
             const key = keyOf(issue);
             if (this.collection.has(key)) continue;
             this.collection.set(key, issue);
-            if (this.told.has(key) || inherited?.has(key)) {
-                told.add(key);
-            } else {
-                fresh.push(issue);
-            }
+            if (!this.told.has(key)) fresh.push(issue);
         }
-        this.told = told;
         if (!this.sameKeys(previous)) {
             this.dismissed = false;
             this.eventsHub.emit('validation:change', null);
@@ -215,13 +211,16 @@ export class ChartValidations {
         if (!this.collection.has(key)) {
             this.collection.set(key, issue);
             this.dismissed = false;
-            this.eventsHub.emit('validation:change', null);
+            if ((this.showOverlayMask & SEVERITY_BIT[issue.severity]) !== 0) {
+                this.eventsHub.emit('validation:change', null);
+            }
         }
         if (!this.told.has(key)) this.dispatch([issue]);
 
         if (this.failFastSuppressed > 0 || (this.throwMask & SEVERITY_BIT[issue.severity]) === 0) return;
         throw new FailFastError(
             `AG Charts - validations.throwOn: ${issue.severity} - ${withoutIgnoredClause(issue.message)}`,
+            this,
             { cause: issue.cause }
         );
     }
@@ -247,10 +246,13 @@ export class ChartValidations {
                 try {
                     listener({ severity, message });
                 } catch (error) {
+                    // This chart's own fail-fast throw is owed to the caller; another chart's is the listener's to handle.
+                    if (error instanceof FailFastError && error.source === this) throw error;
                     this.reportListenerError(error);
                 }
             }
         } finally {
+            this.pendingDispatch.length = 0;
             dispatchDepth--;
             dispatchingListeners.delete(listener);
             this.dispatching = false;

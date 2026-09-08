@@ -397,7 +397,7 @@ export interface AgChartValidationsOptions {
     /**
      * The severities that cause the chart to throw instead of warning and falling back to a default. Console output is never suppressed by this option.
      *
-     * An issue raised while options are applied throws from `create()` or `update()`; one raised during a chart update rejects the pending `update()` or `waitForUpdate()` promise instead.
+     * An issue raised while options are applied throws from `create()` or `update()`; one raised during a chart update rejects the pending `update()` or `waitForUpdate()` promise instead; one raised by an interaction, such as a `tooltip.renderer` exception on hover, throws from that interaction's event handler.
      *
      * Default: `[]`
      */
