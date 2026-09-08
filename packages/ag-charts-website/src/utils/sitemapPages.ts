@@ -15,13 +15,10 @@ const getDocsExamplePaths = () => {
 
 const getInternalPages = () => {
     return [
-        urlWithBaseUrl('/*/*-test/'),
+        // SE-182: NOT /*/*-test/ or /demos/ — a Disallow would hide their own noindex/canonical signal.
         urlWithBaseUrl('/*/*-e2e/'),
         urlWithBaseUrl('/gallery-test'),
         urlWithBaseUrl('/*/benchmarks/'),
-        // Demo app examples: the routes and their built SPA assets are published but
-        // must stay out of search engines and AI crawlers.
-        urlWithBaseUrl('/demos/'),
         urlWithBaseUrl('/internal-demos/'),
     ];
 };
@@ -42,7 +39,7 @@ const getIgnoredPages = () => {
     return [
         urlWithBaseUrl('/404'),
         addTrailingSlash(urlWithBaseUrl('/gallery/examples')),
-        addTrailingSlash(urlWithBaseUrl('/archive')),
+        // SE-182: NOT /archive — a Disallow would hide its redirect to /charts/documentation-archive/.
 
         // NOTE: /r/ framework redirect pages are deliberately NOT disallowed: they are
         // crawlable so their static links to the framework pages can be followed for SEO. They
