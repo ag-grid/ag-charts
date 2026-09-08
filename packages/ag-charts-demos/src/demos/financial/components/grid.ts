@@ -62,8 +62,12 @@ export const baseColDef = <T>(): ColDef<T> => ({
     sortable: true,
     resizable: false,
     suppressMovable: true,
-    // The grid's own Space handler toggles the row, which would drop a highlight the app owns.
-    suppressKeyboardEvent: ({ event }) => event.key === ' ',
+    // Stops the grid's Space handler toggling the row, standing in for the preventDefault it would run.
+    suppressKeyboardEvent: ({ event }) => {
+        if (event.key !== ' ') return false;
+        event.preventDefault();
+        return true;
+    },
 });
 
 export const getRowId = <T extends { ticker: string }>({ data }: GetRowIdParams<T>) => data.ticker;
