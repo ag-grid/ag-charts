@@ -48,21 +48,13 @@ function severities(value: unknown, fallback: readonly AgChartValidationSeverity
     return isArray(value) && value.every(isLogLevel) ? value : fallback;
 }
 
-/**
- * Drops the trailing `, ignoring.` clause a validation message ends with: under an armed `throwOn` nothing
- * was ignored, the pass aborted. The console record keeps the original wording.
- */
+// Under an armed `throwOn` nothing was ignored, the pass aborted; the console record keeps the wording.
 function withoutIgnoredClause(message: string): string {
     return message.replace(/[,;]? ignoring\.$/i, '');
 }
 
-/**
- * Listeners mid-dispatch, keyed by identity across every instance: a consumer that re-applies failing
- * options from its own callback re-enters through a *new* options pass and a new provisional instance,
- * so nothing instance-level can see the recursion. Identity is exact in both directions: the re-applying
- * consumer is stopped, while a callback that legitimately builds a further chart still has that chart's
- * own listener called. A closure re-allocated per pass falls to the depth backstop.
- */
+// Module-level: a listener that re-applies failing options re-enters through a new options pass and a new
+// provisional instance, so only listener identity can see the recursion. A per-pass closure hits the depth cap.
 const dispatchingListeners = new Set<ValidationIssueListener>();
 let dispatchDepth = 0;
 const MAX_DISPATCH_DEPTH = 32;
@@ -70,10 +62,7 @@ const MAX_DISPATCH_DEPTH = 32;
 /** The three services a validations pass needs; a chart context supplies them, and so does a provisional set. */
 export type ValidationsRuntime = Pick<ChartRegistry, 'logger' | 'eventsHub' | 'validations'>;
 
-/**
- * Options are validated before the chart that will own them exists, so the pass runs against a stand-in
- * set that reports exactly as the chart's would; `Chart.applyOptions()` then adopts what it collected.
- */
+/** For an options pass that runs before the chart owning it exists; `ChartOptions.adopt()` hands over. */
 export function createProvisionalRuntime(logger: Logger): ValidationsRuntime {
     const eventsHub: EventsHub = new EventEmitter<EventsHubMap>();
     const validations = new ChartValidations({ logger, eventsHub });
@@ -123,9 +112,8 @@ export class ChartValidations {
     }
 
     /**
-     * Applies a `validations` subtree that may not have been validated yet, so every value is coerced and
-     * an unusable one falls back: `consoleOn` to everything, since it must not silence the warning that
-     * reports it, and the other three to nothing.
+     * Accepts an unvalidated `validations` subtree. An unusable value falls back: `consoleOn` to everything,
+     * so it cannot silence the warning that reports it, and the other three to nothing.
      */
     configure(raw: unknown) {
         const options = isObject(raw) ? (raw as UnvalidatedValidations) : undefined;
@@ -160,10 +148,8 @@ export class ChartValidations {
     }
 
     /**
-     * Starts a cycle from the issues a re-validating options pass raised, dropping everything the previous
-     * cycle collected. `handledBy` is the instance the pass reported through; when it is another one, what
-     * it already told the same listener is not told again. A dismissed overlay stays dismissed while the
-     * key set is unchanged.
+     * Replaces the collection with what a re-validating pass raised. `handledBy` is the instance the pass
+     * reported through; what it already told the same listener is not told again.
      */
     beginCycle(issues: readonly LogIssue[], handledBy: ChartValidations = this) {
         const previous = new Set(this.collection.keys());
@@ -240,11 +226,7 @@ export class ChartValidations {
         );
     }
 
-    /**
-     * Tells `validations.issueRaised` about newly collected issues, ahead of any severity or dismissal
-     * filtering. A listener that synchronously re-applies options re-enters through the issues that pass
-     * raises; those queue and are delivered once the callback has returned.
-     */
+    // Never gated by severity or dismissal. Issues raised re-entrantly from the listener queue behind it.
     private dispatch(issues: LogIssue[]) {
         for (const issue of issues) this.told.add(keyOf(issue));
         const listener = this.listener;
