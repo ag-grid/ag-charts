@@ -2,10 +2,10 @@ import {
     type CellKeyDownEvent,
     type ColDef,
     type FullWidthCellKeyDownEvent,
-    type RowClassRules,
+    type RowSelectionOptions,
 } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { baseColDef, getRowId, gridTheme, rowValuesEqual } from './grid';
 
@@ -17,6 +17,9 @@ interface TickerGridProps<T extends { ticker: string }> {
     activeTicker: string;
     onSelect: (ticker: string) => void;
 }
+
+// Selection carries the active highlight, so moving it must never tear down a row's cell renderers.
+const rowSelection: RowSelectionOptions = { mode: 'singleRow', checkboxes: false };
 
 // A titled watchlist-style grid: a fixed row set whose values stream in place,
 // with the active ticker highlighted and rows selectable.
@@ -48,15 +51,17 @@ export function TickerGrid<T extends { ticker: string }>({
         if (update.length > 0) api.applyTransactionAsync({ update });
     }, [rowData]);
 
-    // rowClassRules close over activeTicker; redraw so the highlight follows a
-    // selection made elsewhere.
-    const rowClassRules = useMemo<RowClassRules<T>>(
-        () => ({ 'fin-grid-active': ({ data }) => data?.ticker === activeTicker }),
-        [activeTicker]
-    );
-    useEffect(() => {
-        gridRef.current?.api?.redrawRows();
+    const syncSelection = useCallback(() => {
+        const api = gridRef.current?.api;
+        if (!api) return;
+        const node = api.getRowNode(activeTicker);
+        // A ticker belongs to one list, so the lists without it clear theirs and one row stays selected.
+        if (node) api.setNodesSelected({ nodes: [node], newValue: true });
+        else api.deselectAll();
     }, [activeTicker]);
+    useEffect(() => {
+        syncSelection();
+    }, [syncSelection]);
 
     const onCellKeyDown = ({ event, data }: CellKeyDownEvent<T> | FullWidthCellKeyDownEvent<T>) => {
         if (!data || !(event instanceof KeyboardEvent)) return;
@@ -77,7 +82,7 @@ export function TickerGrid<T extends { ticker: string }>({
                     getRowId={getRowId}
                     columnDefs={columnDefs}
                     defaultColDef={defaultColDef}
-                    rowClassRules={rowClassRules}
+                    rowSelection={rowSelection}
                     domLayout="autoHeight"
                     rowHeight={28}
                     headerHeight={30}

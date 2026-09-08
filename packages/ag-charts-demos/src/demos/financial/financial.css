@@ -524,7 +524,7 @@
 }
 /* On the accent-filled selected row a blue-ish badge would sink into the fill, so ring
    it — that keeps every slot separated without giving up its identity colour. */
-.fin-grid-active .fin-ticker-badge {
+.ag-row-selected .fin-ticker-badge {
     box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.9);
 }
 /* Tuned for identity at a glance, not text contrast: the initial is decorative and aria-hidden. */
@@ -570,8 +570,8 @@
 .fin-trending-grid .ag-row {
     cursor: pointer;
 }
-.fin-watchlist-grid .ag-row.fin-grid-active,
-.fin-trending-grid .ag-row.fin-grid-active {
+.fin-watchlist-grid .ag-row.ag-row-selected,
+.fin-trending-grid .ag-row.ag-row-selected {
     box-shadow:
         inset 5px 0 0 0 var(--fin-accent),
         inset 0 0 0 2px var(--fin-accent);
@@ -590,8 +590,8 @@
 .fin-trending-grid .ag-cell:first-child {
     padding-left: 8px;
 }
-.fin-watchlist-grid .fin-grid-active .ag-cell:first-child,
-.fin-trending-grid .fin-grid-active .ag-cell:first-child {
+.fin-watchlist-grid .ag-row-selected .ag-cell:first-child,
+.fin-trending-grid .ag-row-selected .ag-cell:first-child {
     color: var(--fin-accent);
 }
 /* Reuse the terminal up/down colours inside grid cells. */

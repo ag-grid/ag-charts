@@ -29,7 +29,8 @@ export const gridTheme = themeQuartz.withPart(colorSchemeDark).withParams({
     // `ref`/`mix` resolves to a color-mix() against the accent param, so tints follow --fin-accent.
     rowHoverColor: { ref: 'accentColor', mix: 0.08 },
     accentColor: 'var(--fin-accent)',
-    selectedRowBackgroundColor: { ref: 'accentColor', mix: 0.14 },
+    // The active row's fill is painted in financial.css; a theme fill would composite over it.
+    selectedRowBackgroundColor: 'transparent',
     // Picks up the container's monospace stack.
     fontFamily: 'inherit',
     fontSize: 11,
@@ -61,6 +62,8 @@ export const baseColDef = <T>(): ColDef<T> => ({
     sortable: true,
     resizable: false,
     suppressMovable: true,
+    // The grid's own Space handler toggles the row, which would drop a highlight the app owns.
+    suppressKeyboardEvent: ({ event }) => event.key === ' ',
 });
 
 export const getRowId = <T extends { ticker: string }>({ data }: GetRowIdParams<T>) => data.ticker;
