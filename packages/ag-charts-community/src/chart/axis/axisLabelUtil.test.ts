@@ -5,6 +5,7 @@ import {
     getTextAlignShift,
     getTickLabelEdgeOffsets,
     getVerticalAlignShift,
+    getVerticalAxisLabelBaseline,
     getVerticalBandEdgeOffset,
 } from './axisLabelUtil';
 
@@ -171,5 +172,26 @@ describe('getTextAlignShift', () => {
 
     it('has nowhere to slide a zero-width box', () => {
         expect(getTextAlignShift(0, 'left', 'right')).toBeCloseTo(0, 10);
+    });
+});
+
+describe('getVerticalAxisLabelBaseline', () => {
+    it.each(['top', 'middle', 'bottom'] as const)(
+        'anchors %s within the band a banded scale reserves',
+        (verticalAlign) => {
+            expect(getVerticalAxisLabelBaseline(24, verticalAlign)).toBe(verticalAlign);
+        }
+    );
+
+    it.each([
+        ['top', 'bottom'],
+        ['bottom', 'top'],
+    ] as const)('hangs %s from the opposite edge where the scale has no band', (verticalAlign, expected) => {
+        expect(getVerticalAxisLabelBaseline(0, verticalAlign)).toBe(expected);
+    });
+
+    it('leaves a centred label centred either way', () => {
+        expect(getVerticalAxisLabelBaseline(0, 'middle')).toBe('middle');
+        expect(getVerticalAxisLabelBaseline(24, 'middle')).toBe('middle');
     });
 });

@@ -95,6 +95,26 @@ export function getVerticalBandEdgeOffset(bandwidth: number, verticalAlign: Vert
     return VERTICAL_BAND_EDGE_FRACTION[verticalAlign] * Math.abs(bandwidth);
 }
 
+const OPPOSITE_VERTICAL_ALIGN: Record<VerticalAlign, VerticalAlign> = {
+    top: 'bottom',
+    middle: 'middle',
+    bottom: 'top',
+};
+
+/**
+ * Baseline a configured `verticalAlign` anchors a tick label from, on an axis where the option acts
+ * along the axis - a vertical one.
+ *
+ * `verticalAlign` names where the LABEL sits, not which of its edges holds the anchor. A banded
+ * scale reserves a band per tick, so aligning within it puts `'top'`'s glyphs against the band's
+ * top edge and the alignment is the baseline as it stands. A scale with no bands reserves nothing:
+ * the anchor is the tick's own gridline, so `'top'` has to hang the label from its BOTTOM edge to
+ * leave it above that line rather than draped across it.
+ */
+export function getVerticalAxisLabelBaseline(bandwidth: number, verticalAlign: VerticalAlign): VerticalAlign {
+    return bandwidth ? verticalAlign : OPPOSITE_VERTICAL_ALIGN[verticalAlign];
+}
+
 /** Offset of a text box's top edge from its anchor, as a fraction of the box's height. */
 const ANCHOR_OFFSET_FRACTION_Y: Record<VerticalAlign, number> = { top: 0, middle: 0.5, bottom: 1 };
 

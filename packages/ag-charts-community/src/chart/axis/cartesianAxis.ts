@@ -58,6 +58,7 @@ import {
     getTextAlignShift,
     getTickLabelEdgeOffsets,
     getVerticalAlignShift,
+    getVerticalAxisLabelBaseline,
     getVerticalBandEdgeOffset,
 } from './axisLabelUtil';
 import type {
@@ -269,6 +270,16 @@ export abstract class CartesianAxis<
         return textAlign == null ? undefined : resolveTextAlign(textAlign, this.moduleCtx.domManager.isRtl);
     }
 
+    /**
+     * Baseline a configured `label.verticalAlign` actually anchors from on this axis. A horizontal
+     * axis aligns across itself, where the option is the baseline as it stands; a vertical one
+     * aligns along itself, where a scale with no band flips it - see `getVerticalAxisLabelBaseline`.
+     */
+    private resolveLabelVerticalAlign(verticalAlign: VerticalAlign | undefined): VerticalAlign | undefined {
+        if (verticalAlign == null || this.horizontal) return verticalAlign;
+        return getVerticalAxisLabelBaseline(this.scale.bandwidth ?? 0, verticalAlign);
+    }
+
     protected override onGridVisibilityChange(): void {
         // Do nothing, the grid lines and fills are updated in the update method.
     }
@@ -403,7 +414,7 @@ export abstract class CartesianAxis<
             isVertical: this.direction === ChartAxisDirection.Y,
             sizeLimit: this.chartLayout?.sizeLimit,
             inRange: (translation: number) => this.inRange(translation, 0.001),
-            labelBaseline: label.verticalAlign,
+            labelBaseline: this.resolveLabelVerticalAlign(label.verticalAlign),
             labelBandOffsets: this.bandFlushesLabels()
                 ? (ticks, rotation, textAlign, textBaseline) =>
                       this.measureLabelBandOffsets(ticks, { rotation, textAlign, textBaseline }, scrollbarThickness)
@@ -1037,8 +1048,10 @@ export abstract class CartesianAxis<
         const labelTextAlign = this.resolveLabelTextAlign(label.textAlign);
         const textAlign = labelTextAlign ?? tickGenerationResult.textAlign;
         // `label.verticalAlign` is the vertical counterpart, and `VerticalAlign` is a subset of
-        // `CanvasTextBaseline`, so the configured value is the baseline as it stands.
-        const textBaseline = label.verticalAlign ?? tickGenerationResult.textBaseline;
+        // `CanvasTextBaseline` - but only where the option aligns across the axis is it the baseline
+        // as it stands, so the resolution goes through `resolveLabelVerticalAlign`.
+        const labelVerticalAlign = this.resolveLabelVerticalAlign(label.verticalAlign);
+        const textBaseline = labelVerticalAlign ?? tickGenerationResult.textBaseline;
         const { range } = scale;
         const sideFlag = getAxisLabelSideFlag(this.mirrored);
         let labelOffset =
@@ -1150,7 +1163,7 @@ export abstract class CartesianAxis<
         for (const primaryTier of [false, true]) {
             const tierLabel = primaryTier ? primaryLabel : leafLabel;
             const textAlign = this.resolveLabelTextAlign(tierLabel?.textAlign);
-            const verticalAlign = tierLabel?.verticalAlign;
+            const verticalAlign = this.resolveLabelVerticalAlign(tierLabel?.verticalAlign);
 
             // Whether this tier needs geometry at all, decided before anything is measured: this
             // runs twice per layout per axis, so a tier the anchor already places correctly must not
