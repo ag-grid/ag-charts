@@ -65,7 +65,9 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setBounds(mode: string) {
+function boundsChange(event: Event) {
+    const mode = (event.target as HTMLInputElement).value;
+
     const region = options.seriesArea!.backgroundRegions![0];
 
     region.xRange = bounds[mode].xRange;
