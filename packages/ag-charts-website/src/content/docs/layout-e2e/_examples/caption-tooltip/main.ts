@@ -1,5 +1,5 @@
 // @ag-skip-fws
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCaptionTooltipOptions, AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -42,10 +42,20 @@ const contentRadios: Record<string, HTMLInputElement> = {
 const truncateButton = document.getElementById('truncate') as HTMLButtonElement;
 const resetButton = document.getElementById('reset') as HTMLButtonElement;
 
+// Mirrors how the chart resolves visibility: content with no explicit option shows always.
+function effectiveVisible(tooltip: AgCaptionTooltipOptions | undefined) {
+    return tooltip?.visible ?? (tooltip?.text != null || tooltip?.renderer != null ? 'always' : 'auto');
+}
+
 function syncControls() {
     const tooltip = options.title?.tooltip;
-    const visible = tooltip?.visible ?? (tooltip?.text != null || tooltip?.renderer != null ? 'always' : 'auto');
-    visibilityRadios[visible].checked = true;
+    // Each visibility option applies to both captions, so the group only shows one as applied
+    // while the two agree - a content option changes the title's effective visibility alone.
+    const titleVisible = effectiveVisible(tooltip);
+    const subtitleVisible = effectiveVisible(options.subtitle?.tooltip);
+    for (const [option, radio] of Object.entries(visibilityRadios)) {
+        radio.checked = titleVisible === subtitleVisible && option === titleVisible;
+    }
 
     // A visibility-only tooltip carries no content, so no content option is applied.
     if (tooltip?.text == null && tooltip?.renderer == null) {
@@ -55,21 +65,23 @@ function syncControls() {
     }
 }
 
-visibilityRadios.always.addEventListener('change', () => {
+// Listen for clicks rather than changes: a content option can leave a visibility segment checked
+// while the captions no longer match it, and an already-checked radio emits no change event.
+visibilityRadios.always.addEventListener('click', () => {
     options.title!.tooltip = { visible: 'always' };
     options.subtitle!.tooltip = { visible: 'always' };
     chart.update(options);
     syncControls();
 });
 
-visibilityRadios.never.addEventListener('change', () => {
+visibilityRadios.never.addEventListener('click', () => {
     options.title!.tooltip = { visible: 'never' };
     options.subtitle!.tooltip = { visible: 'never' };
     chart.update(options);
     syncControls();
 });
 
-visibilityRadios.auto.addEventListener('change', () => {
+visibilityRadios.auto.addEventListener('click', () => {
     options.title!.tooltip = { visible: 'auto' };
     options.subtitle!.tooltip = { visible: 'auto' };
     chart.update(options);

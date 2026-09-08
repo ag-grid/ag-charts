@@ -130,6 +130,25 @@ test.describe('caption tooltip', () => {
         await expect(tooltip).toContainText('Revenue in USD from internal CRM');
     });
 
+    test('the Always option still applies after a content option', async ({ page }) => {
+        await page.locator('label[for="visible-never"]').click();
+        await page.locator('label[for="custom-text"]').click();
+
+        // Custom Text applies to the title only, so the captions no longer share a visibility option.
+        await expect(page.locator('#visible-never')).not.toBeChecked();
+        await expect(page.locator('#visible-always')).not.toBeChecked();
+
+        await page.locator('label[for="visible-always"]').click();
+        await expect(page.locator('#visible-always')).toBeChecked();
+        await expect(page.locator('#custom-text')).not.toBeChecked();
+
+        // Both captions are visible again, including the subtitle left on 'never'.
+        await hoverSubtitle(page);
+        const tooltip = page.locator(SELECTORS.tooltip);
+        await expect(tooltip).toBeVisible();
+        await expect(tooltip).toContainText('Fiscal Year 2025');
+    });
+
     test('tooltip hides when mouse leaves caption', async ({ page }) => {
         await page.locator('label[for="visible-always"]').click();
         await hoverTitle(page);
