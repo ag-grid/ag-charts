@@ -275,9 +275,9 @@ export interface AgBaseAxisLabelOptions<TContext = ContextDefault> extends AgBas
      *
      * On a horizontal axis this aligns each label within the label band the axis reserved for it, outward of the axis line, so a label is never drawn over the series area; on a vertical axis it aligns each label around its own anchor point.
      *
-     * On a vertical axis with a banded scale (`category`, `ordinal-time`) the labels align to the edges of the band each tick belongs to, rather than to the middle of the band where the tick sits.
+     * On a vertical axis with a banded scale (`category`, `ordinal-time`) the labels align to the edges of the band each tick belongs to, rather than to the middle of the band where the tick sits. A vertical axis with a continuous scale (`number`, `time`, `log`) reserves no band, so each label aligns against its own tick instead: `'top'` places it above its gridline and `'bottom'` below.
      *
-     * Alignment is in canvas space, so `'top'` places the glyphs below the anchor point. Where the labels are rotated, the alignment is relative to the rotated label's own bounding box.
+     * Where the labels are rotated, the alignment is relative to the rotated label's own bounding box.
      *
      * Honoured on cartesian axes (`number`, `category`, `time`, `log`, `ordinal-time`). Ignored on grouped-category, angle and radius axes, and on funnel / cone-funnel `stageLabel`.
      *
