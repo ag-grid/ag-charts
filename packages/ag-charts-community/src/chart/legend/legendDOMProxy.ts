@@ -122,9 +122,6 @@ export class LegendDOMProxy {
                     ? itemListener.onHover(ev.sourceEvent, markerLabel, true)
                     : itemListener.onLeave()
             );
-            // A `Widget` only attaches its 'touchstart' listener (which drives long-taps) when it has a 'drag-*'
-            // listener, so a dummy 'drag-start' enables touch long-tap context menus on legend buttons.
-            button.addListener('drag-start', () => {});
         });
         this.dirty = false;
     }
