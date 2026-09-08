@@ -20,9 +20,12 @@ ModuleRegistry.registerModules([
     NumberAxisModule,
 ]);
 
-function logClick(prefix: string, ev: { datum: DataType; seriesId?: string }): void {
-    const { datum, seriesId } = ev;
-    console.log(`[${prefix}] ${seriesId}, ${datum.month} `, datum);
+function toString(ev: { datum: DataType; seriesId: string }) {
+    const celsius = new Intl.NumberFormat('en-US', { style: 'unit', unit: 'celsius', unitDisplay: 'short' });
+    const mean = celsius.format(ev.datum.mean);
+    const low = celsius.format(ev.datum.low);
+    const high = celsius.format(ev.datum.high);
+    return `${ev.seriesId}, mean: ${mean}, low: ${low}, high: ${high}`;
 }
 
 const options: AgCartesianChartOptions<DataType> = {
@@ -64,8 +67,8 @@ const options: AgCartesianChartOptions<DataType> = {
             yHighKey: 'high',
             yName: 'This year high/low',
             listeners: {
-                seriesNodeClick: (ev) => logClick('bar click', ev),
-                seriesNodeDoubleClick: (ev) => logClick('bar double click', ev),
+                seriesNodeClick: (ev) => console.log('[bar click]', toString(ev)),
+                seriesNodeDoubleClick: (ev) => console.log('[bar double click]', toString(ev)),
             },
         },
         {
@@ -74,14 +77,14 @@ const options: AgCartesianChartOptions<DataType> = {
             yKey: 'mean',
             yName: 'Year-on-year average',
             listeners: {
-                seriesNodeClick: (ev) => logClick('line click', ev),
-                seriesNodeDoubleClick: (ev) => logClick('line double click', ev),
+                seriesNodeClick: (ev) => console.log('[line click]', toString(ev)),
+                seriesNodeDoubleClick: (ev) => console.log('[line double click]', toString(ev)),
             },
         },
     ],
     listeners: {
-        seriesNodeClick: (ev) => logClick('chart click', ev),
-        seriesNodeDoubleClick: (ev) => logClick('chart double click', ev),
+        seriesNodeClick: (ev) => console.log('[chart click]', toString(ev)),
+        seriesNodeDoubleClick: (ev) => console.log('[chart double click]', toString(ev)),
     },
 };
 

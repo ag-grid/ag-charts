@@ -169,23 +169,23 @@ The contents of the event object passed to the listener will depend on the type 
         {
             type: 'range-bar',
             listeners: {
-                seriesNodeClick: (ev) => logClick('bar click', ev),
-                seriesNodeDoubleClick: (ev) => logClick('bar double click', ev),
+                seriesNodeClick: (ev) => console.log('[bar click]', toString(ev)),
+                seriesNodeDoubleClick: (ev) => console.log('[bar double click]', toString(ev)),
             },
             // ...
         },
         {
             type: 'line',
             listeners: {
-                seriesNodeClick: (ev) => logClick('line click', ev),
-                seriesNodeDoubleClick: (ev) => logClick('line double click', ev),
+                seriesNodeClick: (ev) => console.log('[line click]', toString(ev)),
+                seriesNodeDoubleClick: (ev) => console.log('[line double click]', toString(ev)),
             },
             // ...
         },
     ],
     listeners: {
-        seriesNodeClick: (ev) => logClick('chart click', ev),
-        seriesNodeDoubleClick: (ev) => logClick('chart double click', ev),
+        seriesNodeClick: (ev) => console.log('[chart click]', toString(ev)),
+        seriesNodeDoubleClick: (ev) => console.log('[chart double click]', toString(ev)),
     },
 }
 ```
