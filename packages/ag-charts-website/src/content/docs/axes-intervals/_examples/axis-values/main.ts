@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, AgNumberAxisOptions, LegendModule } from 'ag-charts-community';
 import { BarSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
 ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
@@ -28,19 +28,21 @@ const options: AgCartesianChartOptions = {
             title: {
                 text: 'Market Share (%)',
             },
-            interval: {
-                values: [0, 20, 40, 60, 80, 100],
-            },
         },
     },
 };
 
 const chart = AgCharts.create(options);
 
-// 'default' restores the values the chart was created with, so the checked segment always names the
-// values actually applied.
+// 'default' deletes the interval so the axis falls back to its automatically calculated tick values,
+// which is the state the chart is created in — so the checked segment always names what is applied.
 function valuesChange(event: Event) {
     const value = (event.target as HTMLInputElement).value;
-    options.axes!.y!.interval!.values = value === 'custom' ? [50, 88, 100] : [0, 20, 40, 60, 80, 100];
+    const axis = options.axes?.y as AgNumberAxisOptions;
+    if (value === 'custom') {
+        axis.interval = { values: [50, 88, 100] };
+    } else {
+        delete axis.interval;
+    }
     chart.update(options);
 }
