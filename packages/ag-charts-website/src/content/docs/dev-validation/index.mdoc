@@ -9,7 +9,7 @@ AG Charts reports option misconfiguration and caught runtime errors. Reports go 
 
 Each validation issue is reported as one of three severities: `error`, `warning`, or `deprecation`.
 
-All validation options take an array of one or more of these severities, and apply only to the ones listed. An empty array disables that option entirely.
+`consoleOn`, `showOverlayOn` and `throwOn` each take an array of one or more of these severities, and apply only to the ones listed. An empty array disables that option entirely.
 
 The `issueRaised` event reports every issue and includes a `severity` property in the parameters.
 
@@ -29,7 +29,7 @@ The overlay is opt-in and intended for development. Enable it by using `validati
 
 In this example:
 
-- Errors and warnings are shown in the overlay, but deprecations are not.
+- Any errors or warnings present would be shown in the overlay, but deprecations would not, since `showOverlayOn` only lists `'error'` and `'warning'`.
 - Issues are grouped and sorted by severity, with a count in each group's heading.
 - Each issue shows a message and the relevant code block.
 - There is a Copy button for pasting into a bug report and dismissing the overlay hides it without suppressing future issues.
@@ -56,7 +56,7 @@ In the above example:
 
 ## Throwing on Validation Issues
 
-Use `validations.throwOn` to make the chart throw an exception and fail-fast, instead of warning and falling back to a default.
+Use `validations.throwOn` to make the chart throw an exception and fail-fast, instead of warning and falling back to a default. Console output still follows `consoleOn` and is never suppressed by this option.
 
 ```js format="snippet"
 {

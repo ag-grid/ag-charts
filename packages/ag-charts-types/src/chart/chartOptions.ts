@@ -395,11 +395,15 @@ export interface AgChartValidationsOptions {
      */
     showOverlayOn?: AgChartValidationSeverity[];
     /**
-     * The severities that cause the chart to throw instead of warning and falling back to a default.
+     * The severities that cause the chart to throw instead of warning and falling back to a default. Console output is never suppressed by this option.
      *
      * Default: `[]`
      */
     throwOn?: AgChartValidationSeverity[];
-    /** Called for each validation issue the chart raises. */
+    /**
+     * Called for each validation issue the chart raises.
+     *
+     * Default: `undefined`
+     */
     issueRaised?: (event: AgChartValidationIssueEvent) => void;
 }

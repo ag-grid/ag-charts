@@ -40,7 +40,12 @@ const options: AgCartesianChartOptions = {
     },
 };
 
-let chart: ReturnType<typeof AgCharts.create> | undefined = AgCharts.create(options);
+let chart: ReturnType<typeof AgCharts.create> | undefined;
+try {
+    chart = AgCharts.create(options);
+} catch (e) {
+    console.log(`threw: ${(e as Error).message}`);
+}
 
 // Invalid on purpose: opacity must be between 0 and 1, so this raises a validation warning, which
 // `throwOn` can turn into a thrown error instead of a console warning.
