@@ -36,7 +36,7 @@ In this example:
 - The RTL text in the title and subtitle wrap and truncate on the left.
 - The legend layout is mirrored as is the series order in the chart.
 - The tooltip and context menu layout are mirrored.
-- Both series have negative values in some months, and those values keep their sign on the left, rendering as `-30` rather than `30-`. This applies to the sign, the decimal and group separators, and any unit attached to the value, such as `-12.5 kg`.
+- Both series have negative values in some months, and those values keep their sign on the left, rendering as `-30` rather than `30-`. This applies to the sign, the decimal and group separators, and any unit attached to the value, such as `-12.5kg`.
 - The "Sales Growth" series uses the default tooltip which correctly displays the negative values.
 - The "Net Profit" series uses a custom `renderer`. As the returned HTML is inserted exactly as supplied, the numbers are wrapped with `U+202A` and `U+202C` to ensure the negative sign renders in the correct position.
 

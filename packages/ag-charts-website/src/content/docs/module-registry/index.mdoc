@@ -20,9 +20,9 @@ Alternatively, if you are not concerned about bundle size and you want access to
 
 ## Registering AG Charts Modules
 
-Every module must be registered before a chart can use it, either [globally](#registering-globally) via `ModuleRegistry` or [per chart](#registering-per-chart) when that chart is created.
+Every module must be registered before a chart can use it, either [globally](#registering-globally) via `ModuleRegistry` or [per chart](#registering-per-chart) when that chart is created. These approaches can be mixed — register some modules globally and others per chart.
 
-Global registration must run **before** any chart is created.
+For simplicity, register modules globally before creating any charts.
 
 {% note %}
 `ModuleRegistry.registerModules` is idempotent: registering the same module again is ignored unless a different version is detected.
@@ -68,7 +68,7 @@ ModuleRegistry.registerModules([AllCommunityModule, HeatmapSeriesModule, Animati
 
 ### Registering Globally
 
-Add the `ModuleRegistry.registerModules` call near the bootstrap of your application so it runs exactly once.
+Add the `ModuleRegistry.registerModules` call near the bootstrap of your application — this is the simplest approach, though registering additional modules later is also supported (see the idempotent note above).
 
 The example below registers the minimum set of Community modules required for a cartesian line chart:
 
