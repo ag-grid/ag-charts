@@ -64,6 +64,9 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
     'range-bar-series': {
         'range-bar-missing-data': { ignoreConsoleWarnings: true },
     },
+    'series-highlighting': {
+        'highlight-mode': { skipCanvasUpdateCheck: true },
+    },
     themes: {
         'advanced-theme': { frameworks: [] },
     },
