@@ -100,6 +100,10 @@ In this example:
 
 ## Collision Avoidance
 
+{% note %}
+Series label collision avoidance is separate from [axis label collision avoidance](./axes-labels/#collision-avoidance), which is configured independently on each axis.
+{% /note %}
+
 As well as using [fallback placement](#placement) and [fallback orientation](#orientation) options, labels can also wrap, truncate or be hidden when they collide with other elements or don't fit within provided `maxWidth`/`maxHeight` values.
 
 {% chartExampleRunner title="Label Fitting" name="label-fitting" type="generated" /%}
@@ -128,9 +132,41 @@ In this example:
 - `wrapping` (`'on-space'`, `'always'`, `'hyphenate'`, `'never'`) controls how overflowing text wraps within the provided size or bar boundary.
 - `truncate` truncates whatever still doesn't fit, appending an ellipsis.
 
-Pie and Donut Series configure these options on `calloutLabel` and `sectorLabel` rather than on `label`. See [Pie Series Label Fitting](./pie-series/#label-fitting) for an example.
+**Pie and Donut**
 
-Series label collision avoidance is separate from [axis label collision avoidance](./axes-labels/#collision-avoidance), which is configured independently on each axis.
+These series configure the same fitting options on `calloutLabel` and `sectorLabel` rather than on `label`.
+
+{% chartExampleRunner title="Pie Chart with Fitted Labels" name="pie-label-fitting" type="generated" /%}
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'pie',
+            angleKey: 'terawattHours',
+            calloutLabelKey: 'source',
+            sectorLabelKey: 'share',
+            calloutLabel: {
+                maxWidth: 70,
+                wrapping: 'on-space',
+                truncate: true,
+            },
+            sectorLabel: {
+                wrapping: 'on-space',
+                truncate: true,
+                minimumFontSize: 8,
+            },
+        },
+    ],
+}
+```
+
+In this example:
+
+- `maxWidth` and `maxHeight` cap the label size in pixels. A sector label is capped by its wedge as well.
+- Use the controls and resize the container to see how the labels wrap, truncate or are hidden when they don't fit.
+- `minimumFontSize` lets the label shrink to fit before it is truncated or hidden. Switch it on to see the labels render in full at a smaller size.
+- When a `calloutLabel` doesn't fit around the chart, the pie or donut shrinks to make room for it, rather than fitting the label around a fixed radius.
 
 ### Reducing the Font Size
 
