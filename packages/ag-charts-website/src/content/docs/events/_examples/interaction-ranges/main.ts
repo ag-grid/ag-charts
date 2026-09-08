@@ -33,7 +33,7 @@ const chart = AgCharts.create(options);
 
 function nodeClickRangeChange(event: Event) {
     const value = (event.target as HTMLInputElement).value;
-    const nodeClickRange = value === 'distance' ? 10 : value;
+    const nodeClickRange = value === 'distance' ? 10 : (value as 'exact' | 'nearest');
 
     options.series = options.series!.map((series) => ({
         ...series,

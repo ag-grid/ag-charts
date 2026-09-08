@@ -20,7 +20,7 @@ const options: AgCartesianChartOptions = {
             fill: {
                 type: 'image',
                 url: '${baseWWWUrl}/example-assets/docs-images/map.png',
-                fit: 'stretch', // Default
+                fit: 'stretch',
             },
         },
     ],
