@@ -2603,9 +2603,12 @@ describe('CartesianAxis', () => {
                 expect(node.datum).toMatchObject(natural!);
             }
 
-            for (const [verticalAlign, direction] of [
-                ['top', 1],
-                ['bottom', -1],
+            // A continuous scale reserves no band, so `verticalAlign` names the side of the tick the
+            // label sits on and the baseline is the opposite edge: `'top'` hangs the label from its
+            // bottom edge, moving the box UP off the gridline.
+            for (const [verticalAlign, baseline, direction] of [
+                ['top', 'bottom', -1],
+                ['bottom', 'top', 1],
             ] as const) {
                 await renderChart(leftAxisOptions({ verticalAlign }));
                 const nodes = getAxisLabelNodes(chart, 'left');
@@ -2616,7 +2619,7 @@ describe('CartesianAxis', () => {
                     expect(naturalBox).toBeDefined();
                     // The anchor stays on the tick; only the baseline the glyphs hang from changes.
                     expect(node.datum.y).toBeCloseTo(natural!.y, 5);
-                    expect(node.datum.textBaseline).toBe(verticalAlign);
+                    expect(node.datum.textBaseline).toBe(baseline);
 
                     const box = Transformable.toCanvas(node);
                     expect(box.y).toBeCloseTo(naturalBox!.y + (direction * naturalBox!.height) / 2, 1);
@@ -3011,7 +3014,9 @@ describe('CartesianAxis', () => {
                 getAxisLabelNodes(chart, position).sort((a, b) => a.datum.y - b.datum.y);
 
             it('is the geometry the finding describes: a tall label one tick below a short one', async () => {
-                await renderChart(unequalHeightOptions('bottom', false));
+                // `'top'` is the value that hangs both labels from their bottom edge on a scale with
+                // no band, which is the pairing that overlaps them.
+                await renderChart(unequalHeightOptions('top', false));
                 const nodes = nodesByPosition('left');
                 expect(nodes.length).toBeGreaterThan(2);
 
@@ -3022,7 +3027,7 @@ describe('CartesianAxis', () => {
 
                 const spacing = tall.datum.y - short.datum.y;
                 // Clear of the shorter label's own height, so a tick-anchored check accepts the pair,
-                // yet inside the taller one's height, so hanging both from the bottom overlaps them.
+                // yet inside the taller one's height, so hanging both from one edge overlaps them.
                 expect(spacing).toBeGreaterThan(shortHeight + 10);
                 expect(spacing).toBeLessThan(tallHeight);
                 // Anti-vacuous: the verdicts below are about the check, not a layout that cannot collide.
@@ -3217,7 +3222,13 @@ describe('CartesianAxis', () => {
 
                     const nodes = getAxisLabelNodes(chart, position);
                     expect(nodes.length).toBeGreaterThan(1);
-                    expect(nodes[0].datum.textBaseline).toBe(verticalAlign);
+                    // A band is what the alignment aligns within; with none, the baseline is the
+                    // edge opposite the requested side - see `getVerticalAxisLabelBaseline`.
+                    const axis = (deproxy(chart as any) as any).axes.find((a: any) => a.position === position);
+                    const flipped = { top: 'bottom', middle: 'middle', bottom: 'top' } as const;
+                    expect(nodes[0].datum.textBaseline).toBe(
+                        axis.scale.bandwidth ? verticalAlign : flipped[verticalAlign]
+                    );
                     for (const node of nodes) {
                         const box = Transformable.toCanvas(node);
                         expect(box.y).toBeGreaterThanOrEqual(0);
