@@ -802,7 +802,22 @@ describe('Background Region label position validation', () => {
             chart.destroy();
         }
 
-        expectWarningsCalls().toMatchInlineSnapshot();
+        expectWarningsCalls().toMatchInlineSnapshot(`
+          [
+            [
+              "AG Charts - Option \`seriesArea.backgroundRegions[0].label.position\` cannot be set to \`"top-left-above"\`; expecting a keyword such as 'top', 'left', 'right', 'bottom', 'left-top', 'right-top', 'left-bottom', 'right-bottom', 'inside', 'inside-left', 'inside-right', 'inside-top', 'inside-bottom', 'inside-top-left', 'inside-bottom-left', 'inside-top-right', 'inside-bottom-right', 'top-left', 'top-right', 'bottom-left' or 'bottom-right', ignoring.",
+            ],
+            [
+              "AG Charts - Option \`seriesArea.backgroundRegions[0].label.position\` cannot be set to \`"top-right-above"\`; expecting a keyword such as 'top', 'left', 'right', 'bottom', 'left-top', 'right-top', 'left-bottom', 'right-bottom', 'inside', 'inside-left', 'inside-right', 'inside-top', 'inside-bottom', 'inside-top-left', 'inside-bottom-left', 'inside-top-right', 'inside-bottom-right', 'top-left', 'top-right', 'bottom-left' or 'bottom-right', ignoring.",
+            ],
+            [
+              "AG Charts - Option \`seriesArea.backgroundRegions[0].label.position\` cannot be set to \`"bottom-left-below"\`; expecting a keyword such as 'top', 'left', 'right', 'bottom', 'left-top', 'right-top', 'left-bottom', 'right-bottom', 'inside', 'inside-left', 'inside-right', 'inside-top', 'inside-bottom', 'inside-top-left', 'inside-bottom-left', 'inside-top-right', 'inside-bottom-right', 'top-left', 'top-right', 'bottom-left' or 'bottom-right', ignoring.",
+            ],
+            [
+              "AG Charts - Option \`seriesArea.backgroundRegions[0].label.position\` cannot be set to \`"bottom-right-below"\`; expecting a keyword such as 'top', 'left', 'right', 'bottom', 'left-top', 'right-top', 'left-bottom', 'right-bottom', 'inside', 'inside-left', 'inside-right', 'inside-top', 'inside-bottom', 'inside-top-left', 'inside-bottom-left', 'inside-top-right', 'inside-bottom-right', 'top-left', 'top-right', 'bottom-left' or 'bottom-right', ignoring.",
+            ],
+          ]
+        `);
     });
 });
 
