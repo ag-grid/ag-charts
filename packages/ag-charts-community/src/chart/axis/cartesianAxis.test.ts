@@ -2663,6 +2663,58 @@ describe('CartesianAxis', () => {
             expect(new Set([...anchorsByAlign.values()].map((x) => Math.round(x))).size).toBe(3);
         });
 
+        // A label too deep for `maxThicknessRatio` reaches past the axis area, so the band it would
+        // flush within is deeper than the space the chart reserved.
+        it('TC2: a label deeper than the axis area cannot push the others out of the canvas', async () => {
+            const data = [
+                { category: 'A', value: 10 },
+                { category: 'A very long category label indeed', value: 20 },
+                { category: 'CCC', value: 15 },
+            ];
+            const overflowingOptions = (verticalAlign?: VerticalAlign): AgCartesianChartOptions => ({
+                data,
+                axes: {
+                    x: { type: 'category', position: 'bottom', label: { rotation: 45, verticalAlign } },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            });
+            const renderNarrow = async (verticalAlign?: VerticalAlign) => {
+                if (chart != null) {
+                    chart.destroy();
+                    (chart as unknown) = undefined;
+                }
+                const options = overflowingOptions(verticalAlign);
+                prepareTestOptions(options);
+                options.width = 320;
+                options.height = 380;
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+                return canvasBoxesByText('bottom');
+            };
+
+            const naturalBoxes = await renderNarrow();
+            const naturalInnerEdge = Math.min(...[...naturalBoxes.values()].map((b) => b.y));
+            // Anti-vacuous: the fixture only exercises the clamp while the longest label is deeper
+            // than the reserved axis area, which starts at its own inner edge.
+            const deepest = Math.max(...[...naturalBoxes.values()].map((b) => b.height));
+            expect(deepest).toBeGreaterThan(380 - naturalInnerEdge);
+
+            for (const verticalAlign of ['top', 'middle', 'bottom'] as const) {
+                const boxes = await renderNarrow(verticalAlign);
+                for (const text of ['A', 'CCC']) {
+                    const box = boxes.get(text);
+                    expect(box, `"${text}" under "${verticalAlign}"`).toBeDefined();
+                    // The short labels fit the reservation, so no alignment may cost them the canvas.
+                    expect(box!.y + box!.height, `"${text}" under "${verticalAlign}"`).toBeLessThanOrEqual(380);
+                }
+                for (const [text, box] of boxes) {
+                    // Nor may one reach back inward, where the series paints over it.
+                    expect(box.y, `"${text}" under "${verticalAlign}"`).toBeGreaterThanOrEqual(naturalInnerEdge - 1);
+                }
+            }
+        });
+
         describe('TC1: textAlign and verticalAlign set together on a rotated axis', () => {
             it('lets each option own its own direction on a horizontal axis', async () => {
                 await renderChart(bottomAxisOptions({ rotation: 45, verticalAlign: 'bottom' }));
