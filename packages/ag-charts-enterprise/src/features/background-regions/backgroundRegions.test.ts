@@ -743,9 +743,19 @@ type DerivedAnchor = { regionH: number; regionV: number; labelH: number; labelV:
  * along that side (so on the other axis the label matches the region). An `inside` label is flush
  * to both named edges.
  */
+function axisDirection(position: string, negative: string, positive: string): number {
+    if (position.includes(negative)) {
+        return -1;
+    }
+    if (position.includes(positive)) {
+        return 1;
+    }
+    return 0;
+}
+
 function deriveAnchor(position: string): DerivedAnchor {
-    const regionH = position.includes('left') ? -1 : position.includes('right') ? 1 : 0;
-    const regionV = position.includes('top') ? -1 : position.includes('bottom') ? 1 : 0;
+    const regionH = axisDirection(position, 'left', 'right');
+    const regionV = axisDirection(position, 'top', 'bottom');
 
     if (position.startsWith('inside')) {
         return { regionH, regionV, labelH: regionH, labelV: regionV };
