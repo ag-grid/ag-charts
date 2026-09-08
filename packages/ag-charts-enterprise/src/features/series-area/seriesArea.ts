@@ -29,7 +29,9 @@ export class SeriesArea extends _ModuleSupport.SeriesArea {
     }
 
     override applyOptions() {
-        this.applyRegionOptions(this.backgroundRegions);
+        // Read from chart state rather than the retained property: `set()` leaves a property untouched
+        // when a full update omits it, which would keep stale regions alive.
+        this.applyRegionOptions(this.ctx.chartState.getValue('options', 'seriesArea')?.backgroundRegions);
     }
 
     protected override onUpdate(clipRect: _ModuleSupport.BBox | undefined): void {
