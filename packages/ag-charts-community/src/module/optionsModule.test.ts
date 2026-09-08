@@ -4860,6 +4860,7 @@ describe('ChartOptions', () => {
                 severity: 'warning',
                 message:
                     'Option `series[0].strokeWidth` cannot be set to `"notanumber"`; expecting a number greater than or equal to 0, ignoring.',
+                detail: 'series[0].strokeWidth',
             });
             expect(messages).toContain(
                 'AG Charts - Option `series[0].strokeWidth` cannot be set to `"notanumber"`; expecting a number greater than or equal to 0, ignoring.'
@@ -4880,6 +4881,7 @@ describe('ChartOptions', () => {
                 severity: 'warning',
                 message:
                     'Option `series[0].strokeWidth` cannot be set to `"notanumber"`; expecting a number greater than or equal to 0, ignoring.',
+                detail: 'series[0].strokeWidth',
             });
         });
 
@@ -4902,6 +4904,7 @@ describe('ChartOptions', () => {
                 severity: 'warning',
                 message:
                     'Option `validations.issueRaised` cannot be set to `"not-a-function"`; expecting a function, ignoring.',
+                detail: 'validations.issueRaised',
             });
         });
     });

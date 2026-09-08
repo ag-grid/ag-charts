@@ -215,6 +215,42 @@ describe('Logger', () => {
             });
         });
 
+        it('takes detail from a logged object that supplies one', () => {
+            const logger = new Logger();
+            const listener = vi.fn();
+            logger.onIssue(listener);
+
+            logger.warn({ detail: 'series[0].fillOpacity', toString: () => 'out of range' });
+
+            expect(listener).toHaveBeenCalledWith({
+                severity: 'warning',
+                message: 'out of range',
+                detail: 'series[0].fillOpacity',
+            });
+        });
+
+        it('appends further console arguments to detail, on repeats too', () => {
+            const logger = new Logger();
+            const listener = vi.fn();
+            logger.onIssue(listener);
+            const error = new Error('callback failed');
+
+            logger.warnOnce('Uncaught exception', error);
+            logger.warnOnce('Uncaught exception', error);
+            logger.warn('Invalid value', '[abc]', { key: 1 });
+
+            expect(listener).toHaveBeenNthCalledWith(2, {
+                severity: 'warning',
+                message: 'Uncaught exception',
+                detail: 'Error: callback failed',
+            });
+            expect(listener).toHaveBeenLastCalledWith({
+                severity: 'warning',
+                message: 'Invalid value',
+                detail: '[abc]\n{"key":1}',
+            });
+        });
+
         it('writes the console record before a throwing subscriber unwinds the logging call', () => {
             const logger = new Logger();
             logger.onIssue(() => {

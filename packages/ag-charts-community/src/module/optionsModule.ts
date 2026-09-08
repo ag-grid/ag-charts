@@ -8,6 +8,7 @@ import {
     Debug,
     type DeepPartial,
     type FontOptions,
+    type LogDetail,
     type LogIssue,
     Logger,
     ModuleRegistry,
@@ -782,16 +783,17 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         runtime.validations.configure(getValidations(this.processedOptions));
     }
 
-    private replay(issue: LogIssue) {
-        switch (issue.severity) {
+    private replay({ severity, message, detail }: LogIssue) {
+        const replayed: LogDetail & { toString(): string } = { detail, toString: () => message };
+        switch (severity) {
             case 'error':
-                this.logger.error(issue.message);
+                this.logger.error(replayed);
                 break;
             case 'warning':
-                this.logger.warn(issue.message);
+                this.logger.warn(replayed);
                 break;
             case 'deprecation':
-                this.logger.deprecation(issue.message);
+                this.logger.deprecation(replayed);
                 break;
         }
     }

@@ -19,10 +19,24 @@ export interface LogIssue {
     severity: LogLevel;
     /** The console text after the `AG Charts - ` prefix; an Error's own message when one was logged. */
     message: string;
-    /** A logged Error's stack. */
+    /** A logged Error's stack, a logged object's own `detail`, then any further console arguments. */
     detail?: string;
     /** A logged Error, so a subscriber that throws can chain it. */
     cause?: unknown;
+}
+
+/** A logged object can supply a detail line for issue subscribers; a `ValidationError` supplies its option path. */
+export interface LogDetail {
+    readonly detail: string | undefined;
+}
+
+function hasLogDetail(value: unknown): value is LogDetail {
+    return typeof value === 'object' && value != null && typeof (value as LogDetail).detail === 'string';
+}
+
+function stringifyLogContent(value: unknown): string {
+    if (value instanceof Error || typeof value !== 'object' || value == null) return String(value);
+    return JSON.stringify(value);
 }
 
 interface LogGroup {
@@ -77,7 +91,7 @@ export class Logger {
             this.openGroups();
             console.warn(`AG Charts - ${message}`, ...logContent);
         }
-        this.emitIssue('deprecation', message);
+        this.emitIssue('deprecation', message, logContent);
     }
 
     warn(message: any, ...logContent: any[]) {
@@ -85,7 +99,7 @@ export class Logger {
             this.openGroups();
             console.warn(`AG Charts - ${message}`, ...logContent);
         }
-        this.emitIssue('warning', message);
+        this.emitIssue('warning', message, logContent);
     }
 
     error(message: any, ...logContent: any[]) {
@@ -97,16 +111,24 @@ export class Logger {
                 console.error(`AG Charts - ${message}`, ...logContent);
             }
         }
-        this.emitIssue('error', message);
+        this.emitIssue('error', message, logContent);
     }
 
     // Console first, then subscribers: a subscriber that throws must not lose the console record.
-    private emitIssue(severity: LogLevel, message: unknown) {
+    private emitIssue(severity: LogLevel, message: unknown, logContent: unknown[]) {
         if (!this.hasIssueListeners) return;
+        const details = logContent.map(stringifyLogContent);
         const issue: LogIssue =
             message instanceof Error
-                ? { severity, message: message.message, detail: message.stack, cause: message }
+                ? { severity, message: message.message, cause: message }
                 : { severity, message: String(message) };
+        if (message instanceof Error) {
+            details.unshift(message.stack ?? '');
+        } else if (hasLogDetail(message)) {
+            details.unshift(message.detail ?? '');
+        }
+        const detail = details.filter((part) => part !== '').join('\n');
+        if (detail !== '') issue.detail = detail;
         this.issues.emit('issue', issue);
     }
 
@@ -115,7 +137,7 @@ export class Logger {
         console.table(...logContent);
     }
 
-    private guardOnce<T>(messageOrError: T, severity: LogLevel, cb: (message: T) => void) {
+    private guardOnce<T>(messageOrError: T, severity: LogLevel, logContent: unknown[], cb: (message: T) => void) {
         let message: string;
         if (messageOrError instanceof Error) {
             message = messageOrError.message;
@@ -128,7 +150,7 @@ export class Logger {
         }
         const cacheKey = `${severity}: ${message}`;
         if (this.doOnceCache.has(cacheKey)) {
-            this.emitIssue(severity, messageOrError);
+            this.emitIssue(severity, messageOrError, logContent);
             return;
         }
         // Only remember a message the severity gate lets through: the enabled levels are mutable, so
@@ -146,15 +168,17 @@ export class Logger {
     }
 
     deprecationOnce(messageOrError: unknown, ...logContent: any[]) {
-        this.guardOnce(messageOrError, 'deprecation', (message) => this.deprecation(message, ...logContent));
+        this.guardOnce(messageOrError, 'deprecation', logContent, (message) =>
+            this.deprecation(message, ...logContent)
+        );
     }
 
     warnOnce(messageOrError: unknown, ...logContent: any[]) {
-        this.guardOnce(messageOrError, 'warning', (message) => this.warn(message, ...logContent));
+        this.guardOnce(messageOrError, 'warning', logContent, (message) => this.warn(message, ...logContent));
     }
 
     errorOnce(messageOrError: unknown, ...logContent: any[]) {
-        this.guardOnce(messageOrError, 'error', (message) => this.error(message, ...logContent));
+        this.guardOnce(messageOrError, 'error', logContent, (message) => this.error(message, ...logContent));
     }
 
     reset() {

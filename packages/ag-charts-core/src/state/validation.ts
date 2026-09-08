@@ -158,6 +158,12 @@ export class ValidationError {
         }
     }
 
+    /** The option path, for issue subscribers such as the validation overlay. */
+    get detail(): string | undefined {
+        const { path, key } = this;
+        return (key ? extendPath(path, key) : path) || undefined;
+    }
+
     getPrefix(): string {
         const { altPath: path = this.path, key } = this;
         if (!path && !key) return 'Value';
