@@ -724,6 +724,11 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
      * Strategy selection happens inside: simple or aggregation path.
      */
     protected override populateNodeData(ctx: BubbleSeriesNodeDatumContext): void {
+        // A column missing from every row leaves nothing renderable, and the chart raises its
+        // no-data overlay — markers drawn under it would contradict it.
+        const dataCount = this.dataCount();
+        if (dataCount > 0 && this.missingDataCount() >= dataCount) return;
+
         this.sizeScale.range = this.getSizeRange();
 
         // Pre-allocate scratch object for datum state
