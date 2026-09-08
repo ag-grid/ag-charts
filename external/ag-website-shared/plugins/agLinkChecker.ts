@@ -28,6 +28,33 @@ const HREF_PATTERNS_TO_IGNORE = [
     '#manage_cookies', // Footer link to open cookies management
 ];
 
+// Attribute values are read out of the raw HTML, so character references are
+// still encoded. They have to be decoded before the href is picked apart, or the
+// `#` of a reference such as `&#38;` (the `&` between query parameters) reads as
+// a fragment marker.
+const NAMED_HTML_ENTITIES: Record<string, string> = {
+    amp: '&',
+    apos: "'",
+    gt: '>',
+    lt: '<',
+    nbsp: '\u00a0',
+    quot: '"',
+};
+
+const decodeHtmlEntities = (value: string): string =>
+    value.replace(/&(#x[0-9a-f]+|#\d+|[a-z][a-z0-9]*);/gi, (reference, body: string) => {
+        if (!body.startsWith('#')) {
+            return NAMED_HTML_ENTITIES[body.toLowerCase()] ?? reference;
+        }
+        const isHex = body[1].toLowerCase() === 'x';
+        const codePoint = parseInt(isHex ? body.slice(2) : body.slice(1), isHex ? 16 : 10);
+        // Lone surrogates and out-of-range values would throw; leave them as they were.
+        if (!Number.isInteger(codePoint) || codePoint > 0x10ffff || (codePoint >= 0xd800 && codePoint <= 0xdfff)) {
+            return reference;
+        }
+        return String.fromCodePoint(codePoint);
+    });
+
 // Keeps any fragment after the query, so anchor checks still see it.
 const stripQueryString = (href: string): string => {
     const queryIndex = href.indexOf('?');
@@ -195,7 +222,7 @@ const checkLinks = async (dir: string, files: string[], options: Options) => {
 
                 const hrefMatch = /(?:^|\s)href=(["'])(.*?)\1/i.exec(tag);
                 if (hrefMatch) {
-                    recordUsage(hrefMatch[2]);
+                    recordUsage(decodeHtmlEntities(hrefMatch[2]));
                 }
             }
         };
