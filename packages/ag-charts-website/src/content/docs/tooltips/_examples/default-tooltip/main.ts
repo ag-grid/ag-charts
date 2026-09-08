@@ -15,23 +15,17 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function removeYNames() {
-    for (const series of options.series ?? []) {
-        (series as AgBarSeriesOptions).yName = undefined;
-    }
+function yNamesChange(event: Event) {
+    const yNames = ['Sweaters Made', 'Hats Made', 'Gloves Made', 'Socks Made', 'Sunglasses Made'];
+    const add = (event.target as HTMLInputElement).value === 'add';
+    options.series?.forEach((series, index) => {
+        (series as AgBarSeriesOptions).yName = add ? yNames[index] : undefined;
+    });
     chart.update(options);
 }
 
-function addYNames() {
-    (options.series![0] as AgBarSeriesOptions).yName = 'Sweaters Made';
-    if (options.series![1]) (options.series![1] as AgBarSeriesOptions).yName = 'Hats Made';
-    if (options.series![2]) (options.series![2] as AgBarSeriesOptions).yName = 'Gloves Made';
-    if (options.series![3]) (options.series![3] as AgBarSeriesOptions).yName = 'Socks Made';
-    if (options.series![4]) (options.series![4] as AgBarSeriesOptions).yName = 'Sunglasses Made';
-    chart.update(options);
-}
-
-function showNumSeries(num: number) {
+function showNumSeries(event: Event) {
+    const num = Number((event.target as HTMLInputElement).value);
     const hasYNames = (options.series![0] as AgBarSeriesOptions).yName != null;
     if (num === 1) {
         options.series = [{ type: 'bar', xKey: 'month', stacked: true, yKey: 'value1', yName: 'Sweaters Made' }];

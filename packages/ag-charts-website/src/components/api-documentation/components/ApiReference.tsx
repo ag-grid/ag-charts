@@ -47,6 +47,7 @@ import {
     processMembers,
     resolveAliasedUnion,
     resolveReferenceType,
+    resolveUnionAliases,
 } from '../apiReferenceHelpers';
 import { navigateToSelection, useApiReferenceLocation } from '../apiReferenceRouting';
 import { SelectionContext } from './OptionsNavigation';
@@ -639,6 +640,7 @@ function useMemberAdditionalDetails(member: MemberNode): MemberAdditionalDetails
                 signature: reference ? formatUnionSignature(member.type, undefined, reference) : undefined,
             };
         }
+        return resolveUnionAliases(member.type, reference);
     }
 }
 

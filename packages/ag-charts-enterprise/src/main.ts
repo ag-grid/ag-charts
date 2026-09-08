@@ -1,8 +1,9 @@
 import { ModuleRegistry, enterpriseRegistry } from 'ag-charts-core';
-import type { AgChartOptions } from 'ag-charts-types';
 
+import { backgroundRegionsTheme } from './features/background-regions/backgroundRegionsTheme';
 import { Background } from './features/background/background';
 import { Foreground } from './features/foreground/foreground';
+import { SeriesArea } from './features/series-area/seriesArea';
 import { LicenseManager } from './license/licenseManager';
 import { injectWatermark } from './license/watermark';
 import styles from './styles.css';
@@ -20,7 +21,6 @@ export { AnimationModule } from './features/animation/animationModule';
 export { AnnotationsModule } from './features/annotations/annotationsModule';
 export { AxisDOMProxyModule as AxisInteractionModule } from './features/axis-dom-proxy/axisDomProxyModule';
 export { BandHighlightModule } from './features/band-highlight/bandHighlightModule';
-export { BackgroundRegionsModule } from './features/background-regions/backgroundRegionsModule';
 export { ChartToolbarModule } from './features/chart-toolbar/chartToolbarModule';
 export { ContextMenuModule } from './features/context-menu/contextMenuModule';
 export { CrosshairModule } from './features/crosshair/crosshairModule';
@@ -78,8 +78,9 @@ export { AllMapSeriesModule } from './module-bundles/topology';
 ModuleRegistry.setRegistryMode(ModuleRegistry.RegistryMode.Enterprise);
 
 enterpriseRegistry.styles = styles;
-enterpriseRegistry.licenseManager = (options: AgChartOptions) =>
-    new LicenseManager(options.container?.ownerDocument ?? (typeof document === 'undefined' ? undefined : document));
+enterpriseRegistry.licenseManager = (document) => new LicenseManager(document);
 enterpriseRegistry.injectWatermark = injectWatermark;
 enterpriseRegistry.createBackground = (ctx) => new Background(ctx);
 enterpriseRegistry.createForeground = (ctx) => new Foreground(ctx);
+enterpriseRegistry.createSeriesArea = (ctx) => new SeriesArea(ctx);
+enterpriseRegistry.seriesAreaThemeTemplate = { backgroundRegions: backgroundRegionsTheme };

@@ -23,7 +23,8 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setMode(mode: string) {
+function setMode(event: Event) {
+    const mode = (event.target as HTMLInputElement).value;
     switch (mode) {
         case 'auto':
             options.legend = { item: { label: { maxLength: 5 }, tooltip: { visible: 'auto' } } };

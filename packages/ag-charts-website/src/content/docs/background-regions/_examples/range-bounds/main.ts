@@ -2,7 +2,6 @@ import {
     AgCartesianChartOptions,
     AgCharts,
     AgSeriesAreaBackgroundRegion,
-    BackgroundRegionsModule,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
@@ -11,7 +10,7 @@ import {
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([BackgroundRegionsModule, LineSeriesModule, NumberAxisModule, UnitTimeAxisModule]);
+ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule, UnitTimeAxisModule]);
 
 const bounds: Record<string, AgSeriesAreaBackgroundRegion> = {
     closed: {
@@ -66,7 +65,9 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setBounds(mode: string) {
+function boundsChange(event: Event) {
+    const mode = (event.target as HTMLInputElement).value;
+
     const region = options.seriesArea!.backgroundRegions![0];
 
     region.xRange = bounds[mode].xRange;

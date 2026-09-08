@@ -120,7 +120,8 @@ function setMaxVisibleItems(maxRenderedItems: number) {
     chart.update(options);
 }
 
-function setData(points: number) {
+function setData(event: Event) {
+    const points = Number((event.target as HTMLInputElement).value);
     options.data = getData(points);
     chart.update(options);
 }

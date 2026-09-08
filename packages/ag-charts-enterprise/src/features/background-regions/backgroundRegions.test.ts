@@ -5,6 +5,7 @@ import {
     type CartesianTestCase,
     cartesianChartAssertions,
     compareImageSnapshot,
+    deproxy,
     expectWarningsCalls,
     setupMockCanvas,
     setupMockConsole,
@@ -698,6 +699,41 @@ describe('Background Regions', () => {
     );
 });
 
+describe('Background Regions removal', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: any;
+
+    afterEach(async () => {
+        if (chart) {
+            await waitForChartStability(chart);
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+    });
+
+    it('removes the regions when a full update omits backgroundRegions', async () => {
+        const options: AgCartesianChartOptions = {
+            ...NUMERIC,
+            seriesArea: { backgroundRegions: [{ fill: 'lightsalmon', xRange: { start: 20, end: 80 } }] },
+        };
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        const seriesArea = deproxy(chart).seriesArea as any;
+        expect(seriesArea.instances).toHaveLength(1);
+
+        await chart.update({ ...options, seriesArea: { clip: true } });
+        await waitForChartStability(chart);
+
+        expect(seriesArea.instances).toHaveLength(0);
+        expectWarningsCalls().toEqual([]);
+    });
+});
+
 describe('Background Regions on unsupported chart types', () => {
     setupMockConsole();
     setupMockCanvas();
@@ -731,5 +767,33 @@ describe('Background Regions on unsupported chart types', () => {
         expectWarningsCalls().toEqual([
             ['AG Charts - Option `seriesArea.backgroundRegions` is not supported by `pie` series, ignoring.'],
         ]);
+    });
+});
+
+describe('Background Regions under the enterprise registry', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: any;
+
+    afterEach(async () => {
+        if (chart) {
+            await waitForChartStability(chart);
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+    });
+
+    it('emits no enterprise-feature warning', async () => {
+        const options: AgCartesianChartOptions = {
+            ...NUMERIC,
+            seriesArea: { backgroundRegions: [{ fill: 'lightsalmon', xRange: { start: 20, end: 80 } }] },
+        };
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        expectWarningsCalls().toEqual([]);
     });
 });

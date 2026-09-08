@@ -1,6 +1,6 @@
 ---
 title: 'Module Registry'
-description: 'Register AG Charts modules to enable chart types and features before creating charts.'
+description: 'Register $framework AG Charts modules to enable chart types and features before creating $framework charts.'
 ---
 
 Reduce bundle size by importing only the AG Chart modules required by your application, with treeshaking support.
@@ -20,9 +20,13 @@ Alternatively, if you are not concerned about bundle size and you want access to
 
 ## Registering AG Charts Modules
 
-Every module must be registered with the global `ModuleRegistry` **_*before*_** calling any AG Charts APIs such as `AgCharts.create`.
+Every module must be registered before a chart can use it, either [globally](#registering-globally) via `ModuleRegistry` or [per chart](#registering-per-chart) when that chart is created. These approaches can be mixed — register some modules globally and others per chart.
 
-Add your registration call near the bootstrap of your application so it runs exactly once.
+For simplicity, register modules globally before creating any charts.
+
+{% note %}
+`ModuleRegistry.registerModules` is idempotent: registering the same module again is ignored unless a different version is detected.
+{% /note %}
 
 ### Importing the Module Registry
 
@@ -62,26 +66,33 @@ import { AnimationModule, HeatmapSeriesModule } from 'ag-charts-enterprise';
 ModuleRegistry.registerModules([AllCommunityModule, HeatmapSeriesModule, AnimationModule]);
 ```
 
-### Registering Modules
+### Registering Globally
+
+Add the `ModuleRegistry.registerModules` call near the bootstrap of your application — this is the simplest approach, though registering additional modules later is also supported (see the idempotent note above).
 
 The example below registers the minimum set of Community modules required for a cartesian line chart:
 
 {% chartExampleRunner title="Minimal Line Chart Registration" name="minimal-line-registration" type="generated" /%}
 
 ```js
-import { AgCharts, ModuleRegistry } from 'ag-charts-community';
-import { CategoryAxisModule, LineSeriesModule, NumberAxisModule } from 'ag-charts-community';
+import {
+    AgCharts,
+    CategoryAxisModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
 
 ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule, CategoryAxisModule]);
 ```
 
-{% note %}
-`ModuleRegistry.registerModules` is idempotent: registering the same module again is ignored unless a newer version is detected.
-{% /note %}
+### Registering per Chart
 
-## Registering Modules per Chart
+Modules can also be registered for a single chart instance. This is useful when different charts on a page use different features, or when an application prefers not to rely on a global registry.
 
-Modules can also be registered for a single chart instance by passing them in the second argument to `AgCharts.create`. This is useful when different charts on a page use different features, or when an application prefers not to rely on a global registry.
+{% if isFramework("javascript") %}
+
+Pass the modules in the second argument to `AgCharts.create`:
 
 ```js
 import { AgCharts, CategoryAxisModule, LineSeriesModule, NumberAxisModule } from 'ag-charts-community';
@@ -91,15 +102,10 @@ AgCharts.create(options, {
 });
 ```
 
-Modules passed to a chart are added to any registered globally, so a common baseline can be registered with `ModuleRegistry.registerModules` and extras supplied per chart. They stay registered for the lifetime of that chart, including across `update` calls, and are not visible to other charts.
-
-{% chartExampleRunner title="Per-Chart Registration" name="per-chart-registration" type="generated" /%}
-
-`AgCharts.createFinancialChart`, `AgCharts.createGauge` and `AgCharts.createQuadrantChart` accept the same second argument.
-
-The modules are read once, when the chart is created. Changing them afterwards, including through a framework property, has no effect on an existing chart.
+{% /if %}
 
 {% if isFramework("react") %}
+
 Pass the modules through the `modules` prop:
 
 ```jsx format="reactHooks"
@@ -109,6 +115,7 @@ Pass the modules through the `modules` prop:
 {% /if %}
 
 {% if isFramework("angular") %}
+
 Pass the modules through the `modules` input:
 
 ```html
@@ -118,6 +125,7 @@ Pass the modules through the `modules` input:
 {% /if %}
 
 {% if isFramework("vue") %}
+
 Pass the modules through the `modules` prop:
 
 ```html
@@ -126,9 +134,24 @@ Pass the modules through the `modules` prop:
 
 {% /if %}
 
-Use `chart.isModuleRegistered('LineSeriesModule')` to check whether a module is available to a chart, whether it was registered globally or passed to the chart.
+{% chartExampleRunner title="Per-Chart Registration" name="per-chart-registration" type="generated" /%}
 
-A chart is licensed by the modules available to it. A chart whose modules, global and per chart, are all from AG Charts Community is not licence checked and shows no watermark, even when AG Charts Enterprise is loaded on the same page.
+In this example:
+
+- The `CategoryAxisModule` and `NumberAxisModule` are registered globally, so they are available to both charts.
+- The `LineSeriesModule` and `BarSeriesModule` are registered per chart, so each chart only has the series it needs.
+- Per-chart modules stay registered for the lifetime of that chart, including across `update` calls, and are not visible to other charts.
+- The modules are read once, when the chart is created. Changing them afterwards, including through a framework property, has no effect on an existing chart.
+
+### Checking Registered Modules
+
+Use `chart.isModuleRegistered` to check whether a module is available to a chart, whether it was registered globally or passed to the chart.
+
+```js
+const chart = AgCharts.create(options);
+
+const isRegistered = chart.isModuleRegistered('LineSeriesModule');
+```
 
 ## Bundles
 

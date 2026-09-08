@@ -64,7 +64,12 @@ function updateLegendPlacement(value: AgChartLegendPlacement) {
     chart.update(options);
 }
 
-function setLegendEnabled(enabled: boolean) {
+function legendChange(event: Event) {
+    const enabled = (event.target as HTMLInputElement).value === 'show';
+
+    const legendPlacementGroup = document.getElementById('legendPlacementGroup') as HTMLFieldSetElement;
+    legendPlacementGroup.disabled = !enabled;
+
     options.legend!.enabled = enabled;
     chart.update(options);
 }

@@ -41,7 +41,8 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setContainment(value: AgSelectionContainment) {
-    options.selection = { ...options.selection, containment: value };
+function containmentChange(event: Event) {
+    const containment = (event.target as HTMLInputElement).value as AgSelectionContainment;
+    options.selection = { ...options.selection, containment };
     chart.update(options);
 }

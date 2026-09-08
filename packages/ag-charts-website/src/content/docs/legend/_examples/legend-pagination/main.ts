@@ -100,7 +100,8 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function updateLegendPosition(value: AgChartLegendPosition) {
+function updateLegendPosition(event: Event) {
+    const value = (event.target as HTMLInputElement).value as AgChartLegendPosition;
     options.legend!.position = value;
     switch (value) {
         case 'top':

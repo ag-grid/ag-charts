@@ -18,6 +18,7 @@ import {
 import type { AgLineSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
+import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
 import { LineSeries } from './lineSeries';
@@ -80,7 +81,7 @@ const themeTemplate: ExtensibleSeriesTheme<'line'> = {
     },
 };
 
-export const LineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions> = {
+export const LineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions> = /* #__PURE__ */ communityModule({
     type: 'series',
     name: 'line',
     chartType: 'cartesian',
@@ -104,4 +105,4 @@ export const LineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions> = {
     themeTemplate,
 
     create: (ctx: DynamicContext<ChartRegistry>) => new LineSeries(ctx),
-};
+});

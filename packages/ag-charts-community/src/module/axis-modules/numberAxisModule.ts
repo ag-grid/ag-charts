@@ -12,8 +12,9 @@ import { CartesianChartModule } from '../../chart/cartesianChartModule';
 import { commonAxisThemeTemplate, titleAxisThemeTemplate } from '../../chart/themes/axisThemeTemplate';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
+import { communityModule } from '../moduleIdentity';
 
-export const NumberAxisModule: AxisModuleDefinition<AgNumberAxisOptions, NumberAxis> = {
+export const NumberAxisModule: AxisModuleDefinition<AgNumberAxisOptions, NumberAxis> = /* #__PURE__ */ communityModule({
     type: 'axis',
     name: 'number',
     chartType: 'cartesian',
@@ -32,4 +33,4 @@ export const NumberAxisModule: AxisModuleDefinition<AgNumberAxisOptions, NumberA
 
     create: (ctx: DynamicContext<ChartRegistry>, id, options) =>
         new NumberAxis(ctx, id, undefined, options as NormalisedNumberAxisOptions),
-};
+});

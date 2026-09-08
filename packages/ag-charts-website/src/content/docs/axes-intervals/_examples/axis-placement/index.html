@@ -1,7 +1,24 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="setPlacement('on')"><code>placement: 'on'</code></button>
-        <button onclick="setPlacement('between')"><code>placement: 'between'</code></button>
+        <div class="button-group" role="group" aria-label="Interval Placement">
+            <input
+                type="radio"
+                id="placement-on"
+                name="interval-placement"
+                value="on"
+                onchange="placementChange(event)"
+            />
+            <label for="placement-on"><code>placement: 'on'</code></label>
+            <input
+                type="radio"
+                id="placement-between"
+                name="interval-placement"
+                value="between"
+                checked
+                onchange="placementChange(event)"
+            />
+            <label for="placement-between"><code>placement: 'between'</code></label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

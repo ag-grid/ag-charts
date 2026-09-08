@@ -166,8 +166,11 @@ describe('instance modules', () => {
                 enterprise: true,
                 create: () => ({}),
             };
-            const createLicenseManager = vi.fn(() => ({
-                validateLicense: () => {},
+            const validateLicense = vi.fn();
+            let licenseKeySupplied = true;
+            const createLicenseManager = vi.fn((_document?: Document) => ({
+                validateLicense,
+                hasLicenseKey: () => licenseKeySupplied,
                 isDisplayWatermark: () => true,
                 getWatermarkMessage: () => 'watermark',
                 getWatermarkForegroundConfig: () => undefined,
@@ -175,8 +178,17 @@ describe('instance modules', () => {
                 getLicenseDetails: () => ({}),
             }));
             const injectWatermark = vi.fn();
+            const lastLicensedDocument = () => createLicenseManager.mock.lastCall?.[0];
+
+            // Licences are cached per document, so a fresh document isolates each test from the others.
+            let hostDocument: Document;
+            const lineChart = (container = hostDocument.body) => prepareTestOptions({ ...LINE_CHART }, container);
 
             beforeEach(() => {
+                hostDocument = document.implementation.createHTMLDocument();
+                licenseKeySupplied = true;
+                validateLicense.mockClear();
+                createLicenseManager.mockClear();
                 injectWatermark.mockClear();
                 enterpriseRegistry.licenseManager = createLicenseManager;
                 enterpriseRegistry.injectWatermark = injectWatermark;
@@ -187,45 +199,146 @@ describe('instance modules', () => {
                 delete enterpriseRegistry.injectWatermark;
             });
 
+            it('validates a supplied key for a community-only chart once enterprise is loaded', async () => {
+                ModuleRegistry.registerModules(LINE_MODULES);
+
+                delete enterpriseRegistry.licenseManager;
+                const unlicensedChart = AgCharts.create(lineChart());
+                await waitForChartStability(unlicensedChart);
+                expect(createLicenseManager).not.toHaveBeenCalled();
+                unlicensedChart.destroy();
+
+                enterpriseRegistry.licenseManager = createLicenseManager;
+                licenseKeySupplied = false;
+                const keylessChart = AgCharts.create(lineChart());
+                await waitForChartStability(keylessChart);
+                expect(validateLicense).not.toHaveBeenCalled();
+                keylessChart.destroy();
+
+                licenseKeySupplied = true;
+                chart = AgCharts.create(lineChart());
+                await waitForChartStability(chart);
+                expect(validateLicense).toHaveBeenCalled();
+                expect(injectWatermark).not.toHaveBeenCalled();
+            });
+
+            it('re-checks the key on update, so one supplied after creation is validated', async () => {
+                ModuleRegistry.registerModules(LINE_MODULES);
+
+                licenseKeySupplied = false;
+                chart = AgCharts.create(lineChart());
+                await waitForChartStability(chart);
+                expect(validateLicense).not.toHaveBeenCalled();
+
+                licenseKeySupplied = true;
+                await chart.update(lineChart());
+                await waitForChartStability(chart);
+                expect(validateLicense).toHaveBeenCalled();
+                expect(injectWatermark).not.toHaveBeenCalled();
+            });
+
             it('licenses a chart by the modules in its own scope', async () => {
                 ModuleRegistry.registerModules(LINE_MODULES);
 
-                const enterpriseChart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }), {
-                    modules: [enterprisePlugin],
-                });
+                const enterpriseChart = AgCharts.create(lineChart(), { modules: [enterprisePlugin] });
                 await waitForChartStability(enterpriseChart);
-                expect(createLicenseManager).toHaveBeenCalledTimes(1);
+                expect(validateLicense).toHaveBeenCalled();
                 expect(injectWatermark).toHaveBeenCalledTimes(1);
                 enterpriseChart.destroy();
 
-                chart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }));
+                chart = AgCharts.create(lineChart());
                 await waitForChartStability(chart);
                 expect(injectWatermark).toHaveBeenCalledTimes(1);
                 expect(chart.isModuleRegistered('enterprise-plugin')).toBe(false);
             });
 
+            it('licenses by module identity, not by the enterprise flag on the definition', async () => {
+                ModuleRegistry.registerModules(LINE_MODULES);
+
+                // A copy of an enterprise module with the flag stripped is still not a community module.
+                const forgedPlugin = { ...enterprisePlugin, enterprise: false };
+                chart = AgCharts.create(lineChart(), { modules: [forgedPlugin] });
+                await waitForChartStability(chart);
+                expect(validateLicense).toHaveBeenCalled();
+                expect(injectWatermark).toHaveBeenCalledTimes(1);
+            });
+
             it('skips the licence check for a chart hosted within Studio', async () => {
                 ModuleRegistry.registerModules([...LINE_MODULES, enterprisePlugin]);
-                chart = AgCharts.create(prepareTestOptions({ ...LINE_CHART, withinStudio: true } as any));
+                chart = AgCharts.create({ ...lineChart(), withinStudio: true } as any);
                 await waitForChartStability(chart);
+                expect(validateLicense).not.toHaveBeenCalled();
                 expect(injectWatermark).not.toHaveBeenCalled();
+
+                // A full update replaces the options, so the flag must not need repeating.
+                await chart.update(lineChart());
+                await waitForChartStability(chart);
+                expect(validateLicense).not.toHaveBeenCalled();
+                expect(injectWatermark).not.toHaveBeenCalled();
+            });
+
+            it('does not exempt a chart that claims the Studio flag after creation', async () => {
+                ModuleRegistry.registerModules([...LINE_MODULES, enterprisePlugin]);
+                chart = AgCharts.create(lineChart());
+                await waitForChartStability(chart);
+                expect(injectWatermark).toHaveBeenCalledTimes(1);
+                expect((chart as any).withinStudio).toBeUndefined();
+
+                validateLicense.mockClear();
+                await chart.update({ ...lineChart(), withinStudio: true } as any);
+                await waitForChartStability(chart);
+                expect(validateLicense).toHaveBeenCalled();
             });
 
             it('licenses a community chart once an update resolves enterprise modules', async () => {
                 ModuleRegistry.registerModules(LINE_MODULES);
-                chart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }));
+                chart = AgCharts.create(lineChart());
                 await waitForChartStability(chart);
                 expect(injectWatermark).not.toHaveBeenCalled();
 
                 ModuleRegistry.registerModules([enterprisePlugin]);
-                await chart.update(prepareTestOptions({ ...LINE_CHART }));
+                await chart.update(lineChart());
                 await waitForChartStability(chart);
                 expect(chart.isModuleRegistered('enterprise-plugin')).toBe(true);
                 expect(injectWatermark).toHaveBeenCalledTimes(1);
 
-                await chart.update(prepareTestOptions({ ...LINE_CHART }));
+                await chart.update(lineChart());
                 await waitForChartStability(chart);
                 expect(injectWatermark).toHaveBeenCalledTimes(1);
+            });
+
+            it('licenses a chart against the document hosting it', async () => {
+                ModuleRegistry.registerModules(LINE_MODULES);
+                const frameDocument = document.implementation.createHTMLDocument();
+
+                licenseKeySupplied = false;
+                const frameChart = AgCharts.create(lineChart(frameDocument.body));
+                await waitForChartStability(frameChart);
+                expect(lastLicensedDocument()).toBe(frameDocument);
+                frameChart.destroy();
+
+                chart = AgCharts.create(lineChart(), { modules: [enterprisePlugin] });
+                await waitForChartStability(chart);
+                expect(lastLicensedDocument()).toBe(hostDocument);
+                expect(validateLicense).toHaveBeenCalled();
+                expect(injectWatermark).toHaveBeenCalledTimes(1);
+            });
+
+            it('still licenses an enterprise chart after a keyless community chart seeded its document', async () => {
+                ModuleRegistry.registerModules(LINE_MODULES);
+
+                licenseKeySupplied = false;
+                const communityChart = AgCharts.create(lineChart());
+                await waitForChartStability(communityChart);
+                expect(createLicenseManager).toHaveBeenCalledTimes(1);
+                expect(validateLicense).not.toHaveBeenCalled();
+
+                chart = AgCharts.create(lineChart(), { modules: [enterprisePlugin] });
+                await waitForChartStability(chart);
+                expect(createLicenseManager).toHaveBeenCalledTimes(1);
+                expect(validateLicense).toHaveBeenCalled();
+                expect(injectWatermark).toHaveBeenCalledTimes(1);
+                communityChart.destroy();
             });
         });
 

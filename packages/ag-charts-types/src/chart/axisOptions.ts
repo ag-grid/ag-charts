@@ -14,6 +14,7 @@ import type {
     Ratio,
     TextAlign,
     TextWrap,
+    VerticalAlign,
 } from './types';
 
 export type AgGroupedCategoryValue = (string | null)[];
@@ -269,6 +270,20 @@ export interface AgBaseAxisLabelOptions<TContext = ContextDefault> extends AgBas
      * Default: `undefined`
      */
     textAlign?: TextAlign;
+    /**
+     * The vertical alignment of the axis labels. If unset, the alignment is derived from the axis position and the label rotation.
+     *
+     * On a horizontal axis this aligns each label within the label band the axis reserved for it, outward of the axis line, so a label is never drawn over the series area; on a vertical axis it aligns each label around its own anchor point.
+     *
+     * On a vertical axis with a banded scale (`category`, `ordinal-time`) the labels align to the edges of the band each tick belongs to, rather than to the middle of the band where the tick sits.
+     *
+     * Alignment is in canvas space, so `'top'` places the glyphs below the anchor point. Where the labels are rotated, the alignment is relative to the rotated label's own bounding box.
+     *
+     * Honoured on cartesian axes (`number`, `category`, `time`, `log`, `ordinal-time`). Ignored on grouped-category, angle and radius axes, and on funnel / cone-funnel `stageLabel`.
+     *
+     * Default: `undefined`
+     */
+    verticalAlign?: VerticalAlign;
     /** Avoid axis label collision by automatically reducing the number of ticks displayed. If set to `false`, axis labels may collide. */
     avoidCollisions?: boolean;
     /** Minimum gap in pixels between the axis labels before being removed to avoid collisions. */

@@ -33,6 +33,27 @@ function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(
     };
 }
 
+/**
+ * Formats every axis label as two text segments of differing size, the trailing one carrying its own
+ * `verticalAlign`. The label is then measured as a block whose extents match no single segment's,
+ * while the segments keep aligning against their own line.
+ */
+function applyRichLabels<T extends AgCartesianChartOptions>(opts: T): T {
+    return {
+        ...opts,
+        axes: mapValues(opts.axes ?? {}, (axis) => ({
+            ...axis,
+            label: {
+                ...axis.label,
+                formatter: ({ value }: { value: unknown }) => [
+                    { text: String(value).slice(0, 2), fontSize: 18 },
+                    { text: ` ${String(value)}`, fontSize: 10, verticalAlign: 'top' as const },
+                ],
+            },
+        })),
+    };
+}
+
 function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
     const positionFlip = (position?: AgCartesianAxisPosition) => {
         switch (position) {
@@ -262,6 +283,48 @@ const EXAMPLES_LABEL_TEXT_ALIGN: Record<string, TestCase> = {
         assertions: cartesianChartAssertions({
             axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
             seriesTypes: ['bar', 'bar', 'line'],
+        }),
+    },
+};
+
+// AG-18097. Three snapshots packing the whole matrix: banded and continuous scales, each in both
+// orientations, with a secondary axis in each orientation and every `verticalAlign` value used.
+const EXAMPLES_LABEL_VERTICAL_ALIGN: Record<string, TestCase> = {
+    AXIS_LABEL_VERTICAL_ALIGN: {
+        options: axesExamples.AXIS_LABEL_VERTICAL_ALIGN,
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
+            seriesTypes: ['bar', 'line'],
+        }),
+    },
+    AXIS_LABEL_VERTICAL_ALIGN_TRANSPOSED: {
+        options: axesExamples.AXIS_LABEL_VERTICAL_ALIGN_TRANSPOSED,
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'number', y: 'category', __AXIS_ID_2: 'number', __AXIS_ID_3: 'category' },
+            seriesTypes: ['bar', 'bar'],
+        }),
+    },
+    AXIS_LABEL_VERTICAL_ALIGN_ROTATED: {
+        options: applyRotation(axesExamples.AXIS_LABEL_VERTICAL_ALIGN, -30),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
+            seriesTypes: ['bar', 'line'],
+        }),
+    },
+    // Rich-text labels take a different measurement path to plain text, and the rotated case is the
+    // one where a baseline-blind measurement moved the flush off the band edge.
+    AXIS_LABEL_VERTICAL_ALIGN_SEGMENTS: {
+        options: applyRichLabels(applyRotation(axesExamples.AXIS_LABEL_VERTICAL_ALIGN, -30)),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
+            seriesTypes: ['bar', 'line'],
+        }),
+    },
+    AXIS_LABEL_VERTICAL_ALIGN_SEGMENTS_UNROTATED: {
+        options: applyRichLabels(axesExamples.AXIS_LABEL_VERTICAL_ALIGN),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
+            seriesTypes: ['bar', 'line'],
         }),
     },
 };
@@ -539,6 +602,20 @@ describe('Axis Examples', () => {
 
     describe('label text alignment cases', () => {
         for (const [exampleName, example] of Object.entries(EXAMPLES_LABEL_TEXT_ALIGN)) {
+            it(`for ${exampleName} it should create chart instance as expected`, async () => {
+                chart = await createChart(example.options);
+                await example.assertions(chart);
+            });
+
+            it(`for ${exampleName} it should render to canvas as expected`, async () => {
+                chart = await createChart(example.options);
+                await compare();
+            });
+        }
+    });
+
+    describe('label vertical alignment cases', () => {
+        for (const [exampleName, example] of Object.entries(EXAMPLES_LABEL_VERTICAL_ALIGN)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
                 chart = await createChart(example.options);
                 await example.assertions(chart);

@@ -89,7 +89,15 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function toggleEnabled(value: boolean) {
-    options.navigator!.enabled = value;
+let navigatorEnabled = true;
+
+function toggleEnabled() {
+    navigatorEnabled = !navigatorEnabled;
+    (document.getElementById('navigatorToggle') as HTMLButtonElement).setAttribute(
+        'aria-pressed',
+        String(navigatorEnabled)
+    );
+
+    options.navigator!.enabled = navigatorEnabled;
     chart.update(options);
 }

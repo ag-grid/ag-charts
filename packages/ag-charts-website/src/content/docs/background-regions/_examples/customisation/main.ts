@@ -1,7 +1,6 @@
 import {
     AgCartesianChartOptions,
     AgCharts,
-    BackgroundRegionsModule,
     LegendModule,
     ModuleRegistry,
     NumberAxisModule,
@@ -10,7 +9,7 @@ import {
 
 import { penguinSeries } from './data';
 
-ModuleRegistry.registerModules([BackgroundRegionsModule, LegendModule, NumberAxisModule, ScatterSeriesModule]);
+ModuleRegistry.registerModules([LegendModule, NumberAxisModule, ScatterSeriesModule]);
 
 function quantileSorted(sorted: number[], p: number) {
     const i = (sorted.length - 1) * p;

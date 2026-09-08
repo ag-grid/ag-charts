@@ -355,6 +355,63 @@ export const AXIS_LABEL_TEXT_ALIGN: AgCartesianChartOptions = {
     },
 };
 
+// Labels of deliberately unequal height, so that a band flush on a horizontal axis moves the short
+// labels and leaves the tallest one where the axis's own baseline put it.
+const VERTICAL_ALIGN_DATA = [
+    { category: 'Elephant', secondaryCategory: 'Ant', value: 10, exports: 42 },
+    { category: 'Elephant Rhinoceros Buffalo', secondaryCategory: 'Ant Beetle', value: 20, exports: 61 },
+    {
+        category: 'Elephant Rhinoceros Buffalo Salamander',
+        secondaryCategory: 'Ant Beetle Cricket',
+        value: 15,
+        exports: 33,
+    },
+];
+
+// A banded horizontal axis plus two continuous vertical axes, one of them secondary. Each override
+// differs from the baseline its axis side computes, so no column can move for a reason other than
+// `verticalAlign`.
+export const AXIS_LABEL_VERTICAL_ALIGN: AgCartesianChartOptions = {
+    data: VERTICAL_ALIGN_DATA,
+    width: 400,
+    legend: { enabled: false },
+    axes: {
+        x: { type: 'category', position: 'bottom', label: { wrapping: 'always', verticalAlign: 'bottom' } },
+        y: { type: 'number', position: 'left', label: { verticalAlign: 'top' } },
+        ySecondary: { type: 'number', position: 'right', label: { verticalAlign: 'bottom' } },
+    },
+    series: [
+        { type: 'bar', xKey: 'category', yKey: 'value' },
+        { type: 'line', xKey: 'category', yKey: 'exports', yKeyAxis: 'ySecondary' },
+    ],
+};
+
+// The transpose of the case above: the banded axes are now vertical and the continuous ones
+// horizontal, so each option acts in the opposite direction. Both banded sides are covered, since
+// the flush is signed by the axis side, and the rotation on the value axes is what gives their
+// labels differing depth to flush within.
+export const AXIS_LABEL_VERTICAL_ALIGN_TRANSPOSED: AgCartesianChartOptions = {
+    data: VERTICAL_ALIGN_DATA,
+    legend: { enabled: false },
+    axes: {
+        x: { type: 'number', position: 'bottom', label: { rotation: -30, verticalAlign: 'middle' } },
+        xSecondary: { type: 'number', position: 'top', label: { rotation: -30, verticalAlign: 'top' } },
+        y: { type: 'category', position: 'left', label: { verticalAlign: 'top' } },
+        ySecondary: { type: 'category', position: 'right', label: { verticalAlign: 'bottom' } },
+    },
+    series: [
+        { type: 'bar', direction: 'horizontal', xKey: 'category', yKey: 'value' },
+        {
+            type: 'bar',
+            direction: 'horizontal',
+            xKey: 'secondaryCategory',
+            yKey: 'exports',
+            xKeyAxis: 'ySecondary',
+            yKeyAxis: 'xSecondary',
+        },
+    ],
+};
+
 export const COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES_FIXED_DOMAIN: AgCartesianChartOptions = {
     ...COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES,
     axes: mapValues(COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES.axes ?? {}, (a) => {

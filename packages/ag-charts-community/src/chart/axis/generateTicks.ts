@@ -14,7 +14,7 @@ import {
     normalizeAngle360FromDegrees,
     rotatePoint,
 } from 'ag-charts-core';
-import type { PaddingOptions } from 'ag-charts-types';
+import type { PaddingOptions, VerticalAlign } from 'ag-charts-types';
 
 import { CategoryScale } from '../../scale/categoryScale';
 import { ContinuousScale } from '../../scale/continuousScale';
@@ -24,6 +24,7 @@ import { TimeScale } from '../../scale/timeScale';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
 import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { expandLabelPadding } from '../label';
+import { getVerticalAlignShift } from './axisLabelUtil';
 import type { TickInterval } from './axisTick';
 import { NiceMode, type TickDatum } from './axisUtil';
 import {
@@ -59,7 +60,16 @@ const sunday = new Date(1970, 0, 4);
 export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
     options: GenerateTicksOptions<TScale, TDatum>
 ) {
-    const { label, parallel = false, domain, axisRotation, labelOffset, sideFlag } = options;
+    const {
+        label,
+        parallel = false,
+        domain,
+        axisRotation,
+        labelOffset,
+        sideFlag,
+        labelBaseline,
+        labelBandOffsets,
+    } = options;
     const { defaultRotation, configuredRotation, parallelFlipFlag, regularFlipFlag } = calculateLabelRotation(
         label.rotation,
         parallel,
@@ -72,10 +82,31 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         const labelSpacing = label.minSpacing ?? (configuredRotation === 0 && rotation === 0 ? 10 : 0);
         const labelRotation = initialRotation + rotation;
         const labelPadding = expandLabelPadding(label);
+        // Where the band flush will leave each label, rather than where the anchor sits now: rotated
+        // labels of differing size flush by differing amounts, along their own text direction.
+        // The flush is measured off the label nodes, so it needs the rendered rotation - not
+        // `labelRotation`, whose `defaultRotation` is only the frame `createLabelData` compares in.
+        const computedBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
+        const bandOffsets = labelBandOffsets?.(
+            tickData.ticks,
+            configuredRotation + rotation,
+            getTextAlign(parallel, configuredRotation, rotation, sideFlag, regularFlipFlag),
+            computedBaseline
+        );
 
         return (
             axisLabelsOverlap(createTimeLabelData(options, tickData, labelRotation), labelSpacing) ||
-            axisLabelsOverlap(createLabelData(tickData.ticks, labelOffset, labelRotation, labelPadding), labelSpacing)
+            axisLabelsOverlap(
+                createLabelData(
+                    tickData.ticks,
+                    labelOffset,
+                    labelRotation,
+                    labelPadding,
+                    labelBaseline ?? computedBaseline,
+                    bandOffsets
+                ),
+                labelSpacing
+            )
         );
     };
 
@@ -459,20 +490,29 @@ function createLabelData(
     tickData: TickDatum[],
     labelOffset: number,
     labelRotation: number,
-    labelPadding: Required<PaddingOptions>
+    labelPadding: Required<PaddingOptions>,
+    textBaseline: VerticalAlign,
+    bandOffsets?: number[]
 ) {
     const labelData: BoxBounds[] = [];
     const xPadding = labelPadding.left + labelPadding.right;
     const yPadding = labelPadding.top + labelPadding.bottom;
 
-    for (const { tickLabel, textMetrics, translation } of tickData) {
+    for (let i = 0; i < tickData.length; i += 1) {
+        const { tickLabel, textMetrics, translation } = tickData[i];
         if (!tickLabel) continue;
 
-        const { x, y } = rotatePoint(labelOffset, translation, labelRotation);
+        // `labelOffset` runs outward from the axis line, the opposite sign to the datum's `y` that
+        // the flush moves, so the displacement is subtracted.
+        const crossOffset = labelOffset - (bandOffsets?.[i] ?? 0);
+        const { x, y } = rotatePoint(crossOffset, translation, labelRotation);
         const width = textMetrics.width + xPadding;
         const height = textMetrics.height + yPadding;
+        // The boxes are compared in the label's own frame, where the anchor sits on the baseline:
+        // a taller label hangs further above a bottom baseline than a shorter one does.
+        const top = y + getVerticalAlignShift(textMetrics.height, 'top', textBaseline) - labelPadding.top;
 
-        labelData.push({ x, y, width, height });
+        labelData.push({ x, y: top, width, height });
     }
 
     return labelData;

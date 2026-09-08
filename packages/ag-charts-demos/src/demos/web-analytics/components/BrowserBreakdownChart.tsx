@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import type { AgCartesianChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-react';
 
+import { browserIconUrl } from '../browsers';
 import { PALETTE, THEME } from '../chartTheme';
 import { fmtInt } from '../format';
 import type { Browser } from '../types';
@@ -56,6 +57,16 @@ export function BrowserBreakdownChart({ data }: BrowserBreakdownChartProps) {
                 y: {
                     type: 'category',
                     position: 'left',
+                    label: {
+                        formatter: ({ value }) => {
+                            const url = browserIconUrl(String(value));
+                            if (!url) return String(value);
+                            return [
+                                { type: 'image', url, width: 14, height: 14, verticalAlign: 'middle' },
+                                { text: `  ${value}` },
+                            ];
+                        },
+                    },
                 },
                 x: {
                     type: 'number',

@@ -1,8 +1,10 @@
 import * as RTabs from '@radix-ui/react-tabs';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { AudienceView } from './components/AudienceView';
 import { BehaviorView } from './components/BehaviorView';
+import { BrandMark } from './components/BrandMark';
+import { DemoNotice } from './components/DemoNotice';
 import { buildKpis } from './components/KpiTiles';
 import { OverviewView } from './components/OverviewView';
 import { startOfDay } from './components/dateFilter';
@@ -23,7 +25,7 @@ import {
     visitorBreakdown,
 } from './data';
 import type { MetricKey } from './metrics';
-import type { DateRange } from './types';
+import type { Annotation, AnnotationType, DateRange } from './types';
 import { Select } from './ui';
 
 const RANGE_OPTIONS = [
@@ -44,6 +46,9 @@ function buildRange(days: number): DateRange {
     return { start, end };
 }
 
+// Ids only need to be unique within a session; the seeded annotations carry their own.
+let nextEventId = 1;
+
 function previousRange(range: DateRange, days: number): DateRange {
     const end = new Date(range.start.getTime() - 1);
     const start = startOfDay(new Date(end.getTime() - (days - 1) * DAY_MS));
@@ -55,6 +60,29 @@ export function WebAnalyticsApp() {
     const [rangeKey, setRangeKey] = useState('30');
     // The KPI tile currently driving the traffic chart.
     const [metric, setMetric] = useState<MetricKey>('sessions');
+    // Seeded events plus any the user adds from the traffic chart.
+    const [annotations, setAnnotations] = useState<Annotation[]>(SEED_ANNOTATIONS);
+
+    const addAnnotation = useCallback(
+        (date: Date, label: string, type: AnnotationType) =>
+            setAnnotations((prev) => [
+                ...prev,
+                {
+                    annotationId: `event-${nextEventId++}`,
+                    date,
+                    label,
+                    description: '',
+                    type,
+                    createdBy: 'you',
+                },
+            ]),
+        []
+    );
+
+    const removeAnnotation = useCallback(
+        (annotationId: string) => setAnnotations((prev) => prev.filter((a) => a.annotationId !== annotationId)),
+        []
+    );
 
     const days = Number(rangeKey);
     const range = useMemo(() => buildRange(days), [days]);
@@ -71,7 +99,6 @@ export function WebAnalyticsApp() {
     const pathData = useMemo(() => pathLinks(range), [range]);
     const pageData = useMemo(() => pageRows(range), [range]);
     const sessions = useMemo(() => sessionsInRange(range), [range]);
-    const prevSessions = useMemo(() => sessionsInRange(prevRange), [prevRange]);
 
     const currentSummary = useMemo(() => summary(range), [range]);
     const prevSummary = useMemo(() => summary(prevRange), [prevRange]);
@@ -82,10 +109,10 @@ export function WebAnalyticsApp() {
     // Annotations that fall within the range overlay the traffic chart.
     const visibleAnnotations = useMemo(
         () =>
-            SEED_ANNOTATIONS.filter(
+            annotations.filter(
                 (a) => a.date.getTime() >= range.start.getTime() && a.date.getTime() <= range.end.getTime()
             ),
-        [range]
+        [annotations, range]
     );
 
     const hasData = currentSummary.sessions > 0;
@@ -94,7 +121,7 @@ export function WebAnalyticsApp() {
         <RTabs.Root className="wa-app" value={view} onValueChange={setView}>
             <header className="wa-topbar">
                 <span className="wa-brand">
-                    <span className="wa-brand-dot" aria-hidden="true" />
+                    <BrandMark />
                     Pulse Analytics
                 </span>
                 <RTabs.List className="wa-tabs-list" aria-label="Analytics views">
@@ -118,6 +145,7 @@ export function WebAnalyticsApp() {
                         options={RANGE_OPTIONS}
                     />
                 </div>
+                <DemoNotice />
             </header>
 
             <div className="wa-body">
@@ -126,12 +154,13 @@ export function WebAnalyticsApp() {
                         daily={daily}
                         dailyPrevious={dailyPrev}
                         sessions={sessions}
-                        prevSessions={prevSessions}
                         annotations={visibleAnnotations}
                         kpis={kpis}
                         metric={metric}
                         hasData={hasData}
                         onMetricSelect={setMetric}
+                        onAnnotationAdd={addAnnotation}
+                        onAnnotationRemove={removeAnnotation}
                     />
                 </RTabs.Content>
                 <RTabs.Content className="wa-tab-content" value="audience">

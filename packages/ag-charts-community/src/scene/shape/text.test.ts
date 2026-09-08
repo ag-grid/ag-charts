@@ -1044,5 +1044,37 @@ describe('Text', () => {
             expect(rotated.width).toBeCloseTo(upright.width);
             expect(rotated.height).toBeCloseTo(upright.height);
         });
+
+        // Segments are laid out from a top-left origin, so the measured box only coincides with the
+        // anchor under a `'top'` baseline. Reporting that box for every baseline makes the measure
+        // baseline-blind, and a consumer that re-anchors from it - `axis.label.verticalAlign` - then
+        // aligns against a box the glyphs are not in.
+        it('tracks the textBaseline for a segmented label', () => {
+            const measure = (textBaseline: CanvasTextBaseline) => {
+                const node = Object.assign(new Text(), {
+                    ...BASE_OPTIONS,
+                    textBaseline,
+                    text: [
+                        { text: 'Ag', fontSize: 24 },
+                        { text: ' segments', fontSize: 12 },
+                    ],
+                    x: 100,
+                    y: 60,
+                });
+                node.setScene(mockScene);
+                return node.getTextMeasureBBox();
+            };
+
+            const top = measure('top');
+            const middle = measure('middle');
+            const bottom = measure('bottom');
+
+            expect(top.height).toBeGreaterThan(0);
+            expect(middle.height).toBeCloseTo(top.height);
+            expect(bottom.height).toBeCloseTo(top.height);
+            // The same glyphs slide along their own height as the baseline moves the anchor.
+            expect(middle.y).toBeCloseTo(top.y - top.height / 2);
+            expect(bottom.y).toBeCloseTo(top.y - top.height);
+        });
     });
 });

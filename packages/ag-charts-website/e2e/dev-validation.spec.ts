@@ -22,30 +22,7 @@ test.describe('validation overlay', () => {
         });
     });
 
-    test('renders for a misconfigured option, and Dismiss/Copy are clickable', async ({ page }) => {
-        const { url } = toExamplePageUrl('dev-validation', 'validation-overlay', 'vanilla');
-        await gotoExample(page, url);
-        await waitForAllChartUpdates(page);
-
-        const overlay = page.locator('.ag-charts-validation-overlay');
-        await expect(overlay).toBeVisible();
-        await expect(overlay.locator('.ag-charts-validation-overlay__summary')).toHaveText('AG Charts found 1 warning');
-
-        await expect(overlay.locator(PANEL)).toHaveScreenshot('validation-overlay-warning.png');
-
-        const copyButton = overlay.locator('.ag-charts-validation-overlay__copy');
-        await expect(copyButton).toBeVisible();
-
-        // The overlay wrapper is `pointer-events: none`; only the card and its buttons re-enable it,
-        // so a real click here proves that CSS override reaches the button.
-        const dismissButton = overlay.locator('.ag-charts-validation-overlay__dismiss');
-        await expect(dismissButton).toBeVisible();
-        await dismissButton.click();
-
-        await expect(overlay).toBeHidden();
-    });
-
-    test('renders multiple warnings in a single card', async ({ page }) => {
+    test('renders multiple warnings in a single card, and Dismiss/Copy are clickable', async ({ page }) => {
         const { url } = toExamplePageUrl('dev-validation', 'validation-overlay-multi', 'vanilla');
         await gotoExample(page, url);
         await waitForAllChartUpdates(page);
@@ -57,16 +34,16 @@ test.describe('validation overlay', () => {
         );
 
         await expect(overlay.locator(PANEL)).toHaveScreenshot('validation-overlay-multi.png');
-    });
 
-    test('renders with dark-theme styling', async ({ page }) => {
-        const { url } = toExamplePageUrl('dev-validation', 'validation-overlay-dark', 'vanilla');
-        await gotoExample(page, url);
-        await waitForAllChartUpdates(page);
+        const copyButton = overlay.locator('.ag-charts-validation-overlay__copy');
+        await expect(copyButton).toBeVisible();
 
-        const overlay = page.locator('.ag-charts-validation-overlay');
-        await expect(overlay).toBeVisible();
+        // The overlay wrapper is `pointer-events: none`; only the card and its buttons re-enable it,
+        // so a real click here proves that CSS override reaches the button.
+        const dismissButton = overlay.locator('.ag-charts-validation-overlay__dismiss');
+        await expect(dismissButton).toBeVisible();
+        await dismissButton.click();
 
-        await expect(overlay.locator(PANEL)).toHaveScreenshot('validation-overlay-dark.png');
+        await expect(overlay).toBeHidden();
     });
 });

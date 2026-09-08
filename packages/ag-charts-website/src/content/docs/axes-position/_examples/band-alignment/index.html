@@ -1,9 +1,40 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="changeBandAlignment('justify')">Justify</button>
-        <button onclick="changeBandAlignment('start')">Start</button>
-        <button onclick="changeBandAlignment('center')">Center</button>
-        <button onclick="changeBandAlignment('end')">End</button>
+        <div class="button-group" role="group" aria-label="Band Alignment">
+            <input
+                type="radio"
+                id="alignment-justify"
+                name="band-alignment"
+                value="justify"
+                onchange="alignmentChange(event)"
+            />
+            <label for="alignment-justify">Justify</label>
+            <input
+                type="radio"
+                id="alignment-start"
+                name="band-alignment"
+                value="start"
+                checked
+                onchange="alignmentChange(event)"
+            />
+            <label for="alignment-start">Start</label>
+            <input
+                type="radio"
+                id="alignment-center"
+                name="band-alignment"
+                value="center"
+                onchange="alignmentChange(event)"
+            />
+            <label for="alignment-center">Center</label>
+            <input
+                type="radio"
+                id="alignment-end"
+                name="band-alignment"
+                value="end"
+                onchange="alignmentChange(event)"
+            />
+            <label for="alignment-end">End</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

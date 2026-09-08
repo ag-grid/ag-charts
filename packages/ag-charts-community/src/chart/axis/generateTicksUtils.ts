@@ -36,7 +36,7 @@ import {
     toTimeInterval,
     wrapTextOrSegments,
 } from 'ag-charts-core';
-import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle } from 'ag-charts-types';
+import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, VerticalAlign } from 'ag-charts-types';
 
 import { BandScale } from '../../scale/bandScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
@@ -79,6 +79,27 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
     sizeLimit?: number;
     isVertical?: boolean;
     inRange?: (value: number) => boolean;
+    /**
+     * A configured `label.verticalAlign`, replacing the computed baseline the labels would otherwise
+     * hang from. Collision avoidance measures each label's box from that baseline, so on a vertical
+     * axis - where the baseline acts along the axis - neighbours of differing height are checked
+     * where they will actually render.
+     */
+    labelBaseline?: VerticalAlign;
+    /**
+     * Per-label displacement, across the axis, that the band flush for a configured
+     * `label.verticalAlign` will apply once the ticks are laid out. Collision avoidance runs before
+     * that flush, so without this the labels it approved can still be moved into each other - see
+     * `CartesianAxis.alignLabelBands`. Only supplied when a flush is actually configured, so an axis
+     * that leaves the option unset pays nothing.
+     */
+    labelBandOffsets?: (
+        this: void,
+        ticks: TickDatum[],
+        rotation: number,
+        textAlign: ResolvedTextAlign,
+        textBaseline: VerticalAlign
+    ) => number[] | undefined;
 
     tickFormatter(
         this: void,
@@ -558,7 +579,7 @@ export function getTextBaseline(
     labelRotation: number,
     sideFlag: ChartAxisLabelFlipFlag,
     parallelFlipFlag: ChartAxisLabelFlipFlag
-): CanvasTextBaseline {
+): VerticalAlign {
     if (parallel && !labelRotation) {
         return sideFlag * parallelFlipFlag === -1 ? 'top' : 'bottom';
     }

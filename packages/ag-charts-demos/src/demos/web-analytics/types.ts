@@ -5,7 +5,7 @@ export type Channel = 'Organic' | 'Paid' | 'Direct' | 'Referral' | 'Social';
 export type DeviceCategory = 'Desktop' | 'Mobile' | 'Tablet';
 export type Browser = 'Chrome' | 'Safari' | 'Edge' | 'Firefox' | 'Other';
 export type VisitorType = 'New' | 'Returning';
-export type AnnotationType = 'deploy' | 'campaign_launch';
+export type AnnotationType = 'marketing' | 'product';
 
 /** A single visit. The raw record every aggregate in the demo is derived from. */
 export interface Session {

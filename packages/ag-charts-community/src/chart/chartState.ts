@@ -4,6 +4,7 @@ import type {
     NormalisedLegendOptions,
     NormalisedPaddingOptions,
     NormalisedSelectionOptions,
+    NormalisedSeriesAreaBackgroundRegion,
     NormalisedZoomOptions,
     ZoomState,
 } from 'ag-charts-core';
@@ -29,6 +30,7 @@ import type {
     AgScrollbarThumbStyle,
     AgScrollbarTrackStyle,
     AgScrollbarVerticalOrientationOptions,
+    AgSeriesAreaOptions,
     AgTouchOptions,
 } from 'ag-charts-types';
 
@@ -133,6 +135,10 @@ export type NormalisedScrollbarOptions = AgScrollbarOptions & {
     vertical: NormalisedScrollbarOrientationOptions;
 };
 
+export type NormalisedSeriesAreaOptions = AgSeriesAreaOptions & {
+    backgroundRegions?: NormalisedSeriesAreaBackgroundRegion[];
+};
+
 export type ResolvedChartOptions = Omit<
     AgChartOptions,
     | 'animation'
@@ -149,6 +155,7 @@ export type ResolvedChartOptions = Omit<
     | 'ranges'
     | 'scrollbar'
     | 'selection'
+    | 'seriesArea'
     | 'subtitle'
     | 'suppressFieldDotNotation'
     | 'sync'
@@ -169,6 +176,7 @@ export type ResolvedChartOptions = Omit<
     ranges?: NormalisedRangesOptions;
     scrollbar?: NormalisedScrollbarOptions;
     selection: NormalisedSelectionOptions | undefined;
+    seriesArea?: NormalisedSeriesAreaOptions;
     subtitle?: NormalisedChartCaptionOptions;
     suppressFieldDotNotation: boolean;
     sync?: NormalisedChartSyncOptions;

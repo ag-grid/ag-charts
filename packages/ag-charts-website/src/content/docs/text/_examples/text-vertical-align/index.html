@@ -1,9 +1,40 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="setVerticalAlign('baseline')">Baseline</button>
-        <button onclick="setVerticalAlign('top')">Top</button>
-        <button onclick="setVerticalAlign('middle')">Middle</button>
-        <button onclick="setVerticalAlign('bottom')">Bottom</button>
+        <div class="button-group" role="group" aria-label="Vertical Align">
+            <input
+                type="radio"
+                id="vertical-align-baseline"
+                name="text-vertical-align"
+                value="baseline"
+                checked
+                onchange="setVerticalAlign(event)"
+            />
+            <label for="vertical-align-baseline">Baseline</label>
+            <input
+                type="radio"
+                id="vertical-align-top"
+                name="text-vertical-align"
+                value="top"
+                onchange="setVerticalAlign(event)"
+            />
+            <label for="vertical-align-top">Top</label>
+            <input
+                type="radio"
+                id="vertical-align-middle"
+                name="text-vertical-align"
+                value="middle"
+                onchange="setVerticalAlign(event)"
+            />
+            <label for="vertical-align-middle">Middle</label>
+            <input
+                type="radio"
+                id="vertical-align-bottom"
+                name="text-vertical-align"
+                value="bottom"
+                onchange="setVerticalAlign(event)"
+            />
+            <label for="vertical-align-bottom">Bottom</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

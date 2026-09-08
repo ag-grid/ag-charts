@@ -57,7 +57,7 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setScrollingMode(mode: 'zoom' | 'pan') {
-    options.zoom!.scrollingMode = mode;
+function setScrollingMode(event: Event) {
+    options.zoom!.scrollingMode = (event.target as HTMLInputElement).value as 'zoom' | 'pan';
     chart.update(options);
 }

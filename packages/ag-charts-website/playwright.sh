@@ -109,11 +109,13 @@ function stop_astro {
 }
 
 export $(cat .env.test:e2e.docker | grep -v '^#' | xargs)
-EXTRA_DOCKER_ARGS=
-if [ "${CI:-}" != "" ] ; then
-    export PUBLIC_SITE_URL=http://172.17.0.1:4601
-else
-    EXTRA_DOCKER_ARGS="-p 8080:8080 -p 9323:9323"
+# The container reaches the host's dev server under an ag-grid.com name so the licence check treats the
+# pages as the website, instead of the library shipping an allowlist of test hostnames.
+e2e_host=e2e.ag-grid.com
+export PUBLIC_SITE_URL=http://${e2e_host}:${astro_port}
+EXTRA_DOCKER_ARGS="--add-host=${e2e_host}:host-gateway"
+if [ "${CI:-}" == "" ] ; then
+    EXTRA_DOCKER_ARGS="${EXTRA_DOCKER_ARGS} -p 8080:8080 -p 9323:9323"
 fi
 
 # Pre-start mode, used by CI so the dev server's boot and first-request compile

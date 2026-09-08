@@ -57,35 +57,38 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setContinuousTimeAxis() {
-    options.axes = {
-        x: {
-            type: 'time',
-            title: { text: 'Continuous Time Axis' },
-        },
-    };
-    chart.update(options);
-}
+function axisTypeChange(event: Event) {
+    const axisType = (event.target as HTMLInputElement).value as 'unit-time' | 'ordinal-time' | 'time';
 
-function setUnitTimeAxis() {
-    options.axes = {
-        x: {
-            type: 'unit-time',
-            title: { text: 'Unit Time Axis' },
-        },
-    };
-    chart.update(options);
-}
+    switch (axisType) {
+        case 'unit-time':
+            options.axes = {
+                x: {
+                    type: 'unit-time',
+                    title: { text: 'Unit Time Axis' },
+                },
+            };
+            break;
+        case 'ordinal-time':
+            options.axes = {
+                x: {
+                    type: 'ordinal-time',
+                    interval: {
+                        step: 'month',
+                    },
+                    title: { text: 'Ordinal Time Axis' },
+                },
+            };
+            break;
+        case 'time':
+            options.axes = {
+                x: {
+                    type: 'time',
+                    title: { text: 'Continuous Time Axis' },
+                },
+            };
+            break;
+    }
 
-function setOrdinalTimeAxis() {
-    options.axes = {
-        x: {
-            type: 'ordinal-time',
-            interval: {
-                step: 'month',
-            },
-            title: { text: 'Ordinal Time Axis' },
-        },
-    };
     chart.update(options);
 }

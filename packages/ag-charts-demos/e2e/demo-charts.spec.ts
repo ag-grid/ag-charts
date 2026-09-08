@@ -23,9 +23,6 @@ interface DemoCase {
 }
 
 const DEMOS: DemoCase[] = [
-    { id: 'starter', population: { structural: 1 } },
-    { id: 'line', population: { structural: 1 } },
-    { id: 'pie', population: { structural: 1 } },
     {
         id: 'financial',
         // The ticker grids virtualise, so their sparkline cell count tracks the viewport and only gets a floor.

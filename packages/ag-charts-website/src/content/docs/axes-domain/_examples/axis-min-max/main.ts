@@ -34,20 +34,14 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setAxisMinMax() {
+function domainChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
     const numberAxisOptions = options.axes!.y! as AgNumberAxisOptions;
-    numberAxisOptions.min = -50;
-    numberAxisOptions.max = 150;
-    chart.update(options);
-}
-
-function resetAxisDomain() {
-    const numberAxisOptions = options.axes!.y! as AgNumberAxisOptions;
-    if (numberAxisOptions.min) {
-        delete numberAxisOptions.min;
-    }
-    if (numberAxisOptions.max) {
-        delete numberAxisOptions.max;
+    delete numberAxisOptions.min;
+    delete numberAxisOptions.max;
+    if (value === 'min-max') {
+        numberAxisOptions.min = -50;
+        numberAxisOptions.max = 150;
     }
     chart.update(options);
 }

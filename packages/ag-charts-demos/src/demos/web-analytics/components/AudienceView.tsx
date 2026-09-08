@@ -68,7 +68,7 @@ export function AudienceView({
             <div className="wa-grid-2">
                 <section className="wa-card wa-card--fill">
                     <div className="wa-card-head">
-                        <h2 className="wa-card-title">Visitors by country</h2>
+                        <h2 className="wa-card-title">Sessions by country</h2>
                     </div>
                     {hasData ? (
                         <div className="wa-fill">
