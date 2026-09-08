@@ -1,4 +1,4 @@
-import { GALLERY_FAMILY_COPY, GALLERY_PAGE_COPY, type GalleryFamilyCopy } from '../galleryCopy';
+import { GALLERY_EXAMPLE_INTROS, GALLERY_FAMILY_COPY, GALLERY_PAGE_COPY, type GalleryFamilyCopy } from '../galleryCopy';
 
 /**
  * The gallery entry `resolveGallerySeo` needs, as `getGalleryExamples` builds it. A subset of the
@@ -46,9 +46,6 @@ const META_TAILS = [
     'Live AG Charts example.',
 ] as const;
 
-/** Frameworks the intro names, in the order the framework links render. */
-export const GALLERY_INTRO_FRAMEWORKS = 'JavaScript, React, Angular or Vue';
-
 /**
  * `Simple` distinguishes an example from its siblings in the gallery grid but adds nothing to a
  * page title, so it is dropped from the H1: `Simple Horizontal Bar Chart` reads as
@@ -87,11 +84,6 @@ function toProse(title: string): string {
         .join(' ');
 }
 
-/** `an` before a vowel letter — which also covers initialisms read letter-by-letter, e.g. an OHLC chart. */
-function indefiniteArticle(prose: string): string {
-    return /^[aeiou]/i.test(prose) ? 'an' : 'a';
-}
-
 function sentenceCase(prose: string): string {
     return prose.charAt(0).toUpperCase() + prose.slice(1);
 }
@@ -113,6 +105,18 @@ function metaCandidates(prose: string, configures: string): string[] {
     return leadIns
         .flatMap((leadIn) => META_TAILS.map((tail) => `${leadIn}: ${configures}. ${tail}`))
         .filter((candidate) => candidate.includes('AG Charts'));
+}
+
+/** The hand-written intro for one example, which every built page must have. */
+function exampleIntro(page: GallerySeoPage): string {
+    const intro = GALLERY_EXAMPLE_INTROS[page.name];
+    if (!intro) {
+        throw new Error(
+            `No gallery intro for example "${page.name}". ` +
+                `Add a row to GALLERY_EXAMPLE_INTROS in components/gallery/galleryCopy.ts.`
+        );
+    }
+    return intro;
 }
 
 function familyCopy(page: GallerySeoPage): GalleryFamilyCopy {
@@ -141,12 +145,11 @@ function bestFit(candidates: string[], min: number, max: number): string {
  */
 export function resolveGallerySeo(page: GallerySeoPage): GallerySeo {
     const overrides = GALLERY_PAGE_COPY[page.name] ?? {};
-    const { hook, visualises, configures, adjusts } = familyCopy(page);
+    const { hook, configures } = familyCopy(page);
 
     const displayTitle = withoutSimplePrefix(page.title);
     const h1 = resolveGalleryH1(page);
     const prose = toProse(displayTitle);
-    const article = indefiniteArticle(prose);
 
     // The hook is dropped rather than truncated: a clipped keyword phrase helps nobody.
     const title =
@@ -155,10 +158,5 @@ export function resolveGallerySeo(page: GallerySeoPage): GallerySeo {
     const description =
         overrides.seoDescription ?? bestFit(metaCandidates(prose, configures), META_TARGET_MIN, META_TARGET_MAX);
 
-    const intro =
-        overrides.intro ??
-        `This example shows ${article} ${prose} built with AG Charts, ${visualises}. ` +
-            `Configure ${adjusts}, then build the same chart in ${GALLERY_INTRO_FRAMEWORKS}.`;
-
-    return { title, h1, description, intro };
+    return { title, h1, description, intro: exampleIntro(page) };
 }

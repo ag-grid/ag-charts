@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import galleryData from '../../../content/gallery/data.json';
-import { GALLERY_FAMILY_COPY, GALLERY_HUB_COPY, GALLERY_PAGE_COPY } from '../galleryCopy';
+import { GALLERY_EXAMPLE_INTROS, GALLERY_FAMILY_COPY, GALLERY_HUB_COPY, GALLERY_PAGE_COPY } from '../galleryCopy';
 import { getGalleryExamples } from './filesData';
 import {
     MAX_TITLE_LENGTH,
@@ -79,9 +79,10 @@ describe('resolveGallerySeo', () => {
         expect(offenders(({ description }) => description.length < 120 || description.length > 170)).toEqual([]);
     });
 
-    it('names the chart type and the frameworks in every intro', () => {
-        expect(offenders(({ intro }) => !intro.startsWith('This example shows '))).toEqual([]);
-        expect(offenders(({ intro }) => !intro.includes('JavaScript, React, Angular or Vue'))).toEqual([]);
+    it('has an intro for every example, and none left behind for one that has gone', () => {
+        const names = new Set(EXAMPLES.map(({ exampleName }) => exampleName));
+        expect([...names].filter((name) => !(name in GALLERY_EXAMPLE_INTROS))).toEqual([]);
+        expect(Object.keys(GALLERY_EXAMPLE_INTROS).filter((name) => !names.has(name))).toEqual([]);
     });
 
     it('never doubles the word Chart', () => {
@@ -171,13 +172,12 @@ describe('the derived page copy', () => {
     });
 
     it('reads the chart name mid-sentence without flattening initialisms', () => {
-        expect(seoFor('ohlc').intro).toContain('an OHLC chart built with AG Charts');
-        expect(seoFor('bubble-with-custom-svg-patterns').intro).toContain('bubble chart with custom SVG patterns');
-        expect(seoFor('100--stacked-area').intro).toContain('a 100% stacked area chart');
+        expect(seoFor('ohlc').description).toContain('OHLC chart');
+        expect(seoFor('bubble-with-custom-svg-patterns').description).toContain('SVG patterns');
+        expect(seoFor('100--stacked-area').description).toContain('100% stacked area chart');
     });
 
     it("takes its wording from the example's own chart family", () => {
-        expect(seoFor('sankey-customisation').intro).toContain('proportionally sized links');
         expect(seoFor('horizontal-box-plot').description).toContain('quartiles, medians, whiskers');
     });
 
