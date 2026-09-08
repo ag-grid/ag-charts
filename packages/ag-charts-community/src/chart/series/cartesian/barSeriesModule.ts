@@ -19,6 +19,7 @@ import {
 import type { AgBarSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
+import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
 import { BarSeries } from './barSeries';
@@ -73,7 +74,7 @@ const themeTemplate: ExtensibleSeriesTheme<'bar'> = {
     },
 };
 
-export const BarSeriesModule: SeriesModuleDefinition<AgBarSeriesOptions> = {
+export const BarSeriesModule: SeriesModuleDefinition<AgBarSeriesOptions> = /* #__PURE__ */ communityModule({
     type: 'series',
     name: 'bar',
     chartType: 'cartesian',
@@ -90,4 +91,4 @@ export const BarSeriesModule: SeriesModuleDefinition<AgBarSeriesOptions> = {
     themeTemplate,
 
     create: (ctx: DynamicContext<ChartRegistry>) => new BarSeries(ctx),
-};
+});

@@ -16,6 +16,7 @@ import {
 import type { AgScatterSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
+import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
 import { BUBBLE_SCATTER_COLOR_SCALE_THEME, BUBBLE_SCATTER_GRADIENT_LEGEND_THEME } from './bubbleSeriesModule';
@@ -70,7 +71,7 @@ const themeTemplate: ExtensibleSeriesTheme<'scatter'> = {
     gradientLegend: BUBBLE_SCATTER_GRADIENT_LEGEND_THEME,
 };
 
-export const ScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions> = {
+export const ScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions> = /* #__PURE__ */ communityModule({
     type: 'series',
     name: 'scatter',
     chartType: 'cartesian',
@@ -93,4 +94,4 @@ export const ScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions>
     themeTemplate,
 
     create: (ctx: DynamicContext<ChartRegistry>) => new ScatterSeries(ctx),
-};
+});

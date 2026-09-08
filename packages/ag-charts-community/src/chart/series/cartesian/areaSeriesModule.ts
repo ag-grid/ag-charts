@@ -19,6 +19,7 @@ import {
 import type { AgAreaSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
+import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
 import { AreaSeries } from './areaSeries';
@@ -93,7 +94,7 @@ const themeTemplate: ExtensibleSeriesTheme<'area'> = {
     },
 };
 
-export const AreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions> = {
+export const AreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions> = /* #__PURE__ */ communityModule({
     type: 'series',
     name: 'area',
     chartType: 'cartesian',
@@ -117,4 +118,4 @@ export const AreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions> = {
     themeTemplate,
 
     create: (ctx: DynamicContext<ChartRegistry>) => new AreaSeries(ctx),
-};
+});

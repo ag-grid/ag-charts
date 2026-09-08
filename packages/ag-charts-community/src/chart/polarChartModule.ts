@@ -1,6 +1,7 @@
 import { type ChartModuleDefinition, UnknownError, ValidationError, validate, without } from 'ag-charts-core';
 import type { AgPolarChartOptions } from 'ag-charts-types';
 
+import { communityModule } from '../module/moduleIdentity';
 import type { ChartOptions } from '../module/optionsModule';
 import { VERSION } from '../version';
 import type { TransferableResources } from './chart';
@@ -8,7 +9,7 @@ import { polarChartOptionsDefs } from './chartOptionsDefs';
 import { PolarChart } from './polarChart';
 import { commonChartThemeTemplate } from './themes/chartThemeTemplate';
 
-export const PolarChartModule: ChartModuleDefinition<AgPolarChartOptions> = {
+export const PolarChartModule: ChartModuleDefinition<AgPolarChartOptions> = /* #__PURE__ */ communityModule({
     type: 'chart',
     name: 'polar',
     version: VERSION,
@@ -34,4 +35,4 @@ export const PolarChartModule: ChartModuleDefinition<AgPolarChartOptions> = {
         result.invalid.push(...additionalErrors);
         return result;
     },
-};
+});

@@ -1,5 +1,4 @@
 import { ModuleRegistry, enterpriseRegistry } from 'ag-charts-core';
-import type { AgChartOptions } from 'ag-charts-types';
 
 import { backgroundRegionsTheme } from './features/background-regions/backgroundRegionsTheme';
 import { Background } from './features/background/background';
@@ -79,8 +78,7 @@ export { AllMapSeriesModule } from './module-bundles/topology';
 ModuleRegistry.setRegistryMode(ModuleRegistry.RegistryMode.Enterprise);
 
 enterpriseRegistry.styles = styles;
-enterpriseRegistry.licenseManager = (options: AgChartOptions) =>
-    new LicenseManager(options.container?.ownerDocument ?? (typeof document === 'undefined' ? undefined : document));
+enterpriseRegistry.licenseManager = (document) => new LicenseManager(document);
 enterpriseRegistry.injectWatermark = injectWatermark;
 enterpriseRegistry.createBackground = (ctx) => new Background(ctx);
 enterpriseRegistry.createForeground = (ctx) => new Foreground(ctx);

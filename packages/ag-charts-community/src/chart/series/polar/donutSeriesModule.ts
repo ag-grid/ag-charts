@@ -1,14 +1,15 @@
-import type { DynamicContext, SeriesModuleDefinition } from 'ag-charts-core';
+import { type DynamicContext, type SeriesModuleDefinition } from 'ag-charts-core';
 import type { AgDonutSeriesOptions } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
+import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
 import { PolarChartModule } from '../../polarChartModule';
 import { DonutSeries } from './donutSeries';
 import { donutSeriesOptionsDef } from './donutSeriesOptionsDef';
 import { donutTheme } from './donutTheme';
 
-export const DonutSeriesModule: SeriesModuleDefinition<AgDonutSeriesOptions> = {
+export const DonutSeriesModule: SeriesModuleDefinition<AgDonutSeriesOptions> = /* #__PURE__ */ communityModule({
     type: 'series',
     name: 'donut',
     chartType: 'polar',
@@ -19,4 +20,4 @@ export const DonutSeriesModule: SeriesModuleDefinition<AgDonutSeriesOptions> = {
     themeTemplate: donutTheme,
 
     create: (ctx: DynamicContext<ChartRegistry>) => new DonutSeries(ctx),
-};
+});

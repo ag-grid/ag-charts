@@ -31,6 +31,7 @@ import type {
 import { areaSeriesOptionsDef } from '../../chart/series/cartesian/areaSeriesOptionsDef';
 import { barSeriesOptionsDef } from '../../chart/series/cartesian/barSeriesOptionsDef';
 import { lineSeriesOptionsDef } from '../../chart/series/cartesian/lineSeriesOptionsDef';
+import { communityModule } from '../../module/moduleIdentity';
 import { VERSION } from '../../version';
 import { sparkline, sparklineDataPreset } from './sparkline';
 import { sparklineThemeTemplate } from './sparklineTheme';
@@ -112,7 +113,7 @@ commonSparklineOptionsDef.overrideDevicePixelRatio = undocumented(number);
 // @ts-expect-error undocumented option
 commonSparklineOptionsDef.foreground = undocumented(defined);
 
-export const SparklinePresetModule: PresetModuleDefinition<AgSparklineOptions> = {
+export const SparklinePresetModule: PresetModuleDefinition<AgSparklineOptions> = /* #__PURE__ */ communityModule({
     type: 'preset',
     name: 'sparkline',
     version: VERSION,
@@ -139,4 +140,4 @@ export const SparklinePresetModule: PresetModuleDefinition<AgSparklineOptions> =
     processData: sparklineDataPreset,
 
     themeTemplate: sparklineThemeTemplate,
-};
+});
