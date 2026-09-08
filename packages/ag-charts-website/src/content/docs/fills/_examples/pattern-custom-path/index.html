@@ -1,7 +1,11 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="line()">Line</button>
-        <button onclick="shape()">Shape</button>
+        <div class="button-group" role="group" aria-label="Pattern">
+            <input type="radio" id="pattern-line" name="pattern" value="line" checked onchange="patternChange(event)" />
+            <label for="pattern-line">Line</label>
+            <input type="radio" id="pattern-shape" name="pattern" value="shape" onchange="patternChange(event)" />
+            <label for="pattern-shape">Shape</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

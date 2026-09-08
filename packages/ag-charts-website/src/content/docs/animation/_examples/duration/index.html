@@ -1,11 +1,41 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="changeSeriesBar()">Bar</button>
-        <button onclick="changeSeriesLine()">Line</button>
-        <button onclick="changeSeriesArea()">Area</button>
-        <button class="gap-right" onclick="changeSeriesDonut()">Pie &amp; Donut</button>
-        <button onclick="changeDuration(500)">Duration: 500ms</button>
-        <button onclick="changeDuration(2000)">Duration: 2000ms</button>
+        <div class="button-group gap-right" role="group" aria-label="Series type">
+            <input
+                type="radio"
+                id="series-bar"
+                name="series-type"
+                value="bar"
+                checked
+                onchange="seriesTypeChange(event)"
+            />
+            <label for="series-bar">Bar</label>
+            <input type="radio" id="series-line" name="series-type" value="line" onchange="seriesTypeChange(event)" />
+            <label for="series-line">Line</label>
+            <input type="radio" id="series-area" name="series-type" value="area" onchange="seriesTypeChange(event)" />
+            <label for="series-area">Area</label>
+            <input type="radio" id="series-donut" name="series-type" value="donut" onchange="seriesTypeChange(event)" />
+            <label for="series-donut">Pie &amp; Donut</label>
+        </div>
+        <div class="button-group" role="group" aria-label="Animation duration">
+            <input
+                type="radio"
+                id="duration-500"
+                name="animation-duration"
+                value="500"
+                checked
+                onchange="durationChange(event)"
+            />
+            <label for="duration-500">Duration: 500ms</label>
+            <input
+                type="radio"
+                id="duration-2000"
+                name="animation-duration"
+                value="2000"
+                onchange="durationChange(event)"
+            />
+            <label for="duration-2000">Duration: 2000ms</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>
