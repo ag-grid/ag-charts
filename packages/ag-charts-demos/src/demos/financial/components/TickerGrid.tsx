@@ -1,11 +1,13 @@
 import {
     type CellKeyDownEvent,
     type ColDef,
+    type FirstDataRenderedEvent,
     type FullWidthCellKeyDownEvent,
-    type RowClassRules,
+    type GridApi,
+    type RowSelectionOptions,
 } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { baseColDef, getRowId, gridTheme, rowValuesEqual } from './grid';
 
@@ -17,6 +19,9 @@ interface TickerGridProps<T extends { ticker: string }> {
     activeTicker: string;
     onSelect: (ticker: string) => void;
 }
+
+// Selection carries the active highlight, so moving it must never tear down a row's cell renderers.
+const rowSelection: RowSelectionOptions = { mode: 'singleRow', checkboxes: false };
 
 // A titled watchlist-style grid: a fixed row set whose values stream in place,
 // with the active ticker highlighted and rows selectable.
@@ -48,15 +53,23 @@ export function TickerGrid<T extends { ticker: string }>({
         if (update.length > 0) api.applyTransactionAsync({ update });
     }, [rowData]);
 
-    // rowClassRules close over activeTicker; redraw so the highlight follows a
-    // selection made elsewhere.
-    const rowClassRules = useMemo<RowClassRules<T>>(
-        () => ({ 'fin-grid-active': ({ data }) => data?.ticker === activeTicker }),
+    // `gridRef` holds no API until the grid signals ready, a render after mount, so the first sync
+    // takes the one the grid hands it.
+    const syncSelection = useCallback(
+        (readyApi?: GridApi<T>) => {
+            const api = readyApi ?? gridRef.current?.api;
+            if (!api) return;
+            const node = api.getRowNode(activeTicker);
+            // A ticker belongs to one list, so the lists without it clear theirs and one row stays selected.
+            if (node) api.setNodesSelected({ nodes: [node], newValue: true });
+            else api.deselectAll();
+        },
         [activeTicker]
     );
     useEffect(() => {
-        gridRef.current?.api?.redrawRows();
-    }, [activeTicker]);
+        syncSelection();
+    }, [syncSelection]);
+    const onFirstDataRendered = ({ api }: FirstDataRenderedEvent<T>) => syncSelection(api);
 
     const onCellKeyDown = ({ event, data }: CellKeyDownEvent<T> | FullWidthCellKeyDownEvent<T>) => {
         if (!data || !(event instanceof KeyboardEvent)) return;
@@ -77,7 +90,8 @@ export function TickerGrid<T extends { ticker: string }>({
                     getRowId={getRowId}
                     columnDefs={columnDefs}
                     defaultColDef={defaultColDef}
-                    rowClassRules={rowClassRules}
+                    rowSelection={rowSelection}
+                    onFirstDataRendered={onFirstDataRendered}
                     domLayout="autoHeight"
                     rowHeight={28}
                     headerHeight={30}
