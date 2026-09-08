@@ -1,15 +1,24 @@
 @use 'design-system' as *;
 
 .carousel {
+    // Callers override this to set the spacing between slides.
+    --carousel-gap: #{$spacing-size-4};
+
     display: flex;
     align-items: center;
     gap: $spacing-size-2;
 }
 
+// Positioning context for the fades, which must not scroll with the track.
+.viewport {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
 .track {
     display: flex;
-    flex: 1;
-    gap: $spacing-size-4;
+    gap: var(--carousel-gap);
     padding-bottom: $spacing-size-2;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
@@ -18,6 +27,31 @@
     &::-webkit-scrollbar {
         display: none;
     }
+
+    // Snapping and sizing belong to the track, so slides stay unaware they are in a carousel.
+    > * {
+        flex: 0 0 auto;
+        scroll-snap-align: start;
+    }
+}
+
+.fadeStart,
+.fadeEnd {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: $spacing-size-16;
+    pointer-events: none;
+}
+
+.fadeStart {
+    left: 0;
+    background: linear-gradient(to right, var(--color-bg-primary), transparent);
+}
+
+.fadeEnd {
+    right: 0;
+    background: linear-gradient(to left, var(--color-bg-primary), transparent);
 }
 
 // An outlined circle, not one of the filled button variants. The global `button` element
