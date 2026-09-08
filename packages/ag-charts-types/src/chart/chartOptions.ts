@@ -377,7 +377,7 @@ export type AgChartValidationSeverity = 'error' | 'warning' | 'deprecation';
 
 /** A single validation problem reported by the chart. */
 export interface AgChartValidationIssueEvent {
-    /** The severity of the problem. */
+    /** The severity of the problem, matching its console channel: `console.error` is `error`, `console.warn` is `warning` or `deprecation`. */
     severity: 'error' | 'warning' | 'deprecation';
     /** A description of the problem, the same text reported to the console and the validation overlay. */
     message: string;
@@ -407,16 +407,17 @@ export interface AgChartValidationsOptions {
      * `['warning']` throws on a warning-severity problem but not on an error-severity one. An empty
      * array never throws, matching the behaviour of charts that do not set this option.
      *
-     * Console output is never suppressed by this option — the console record of a problem is written
-     * before the throw.
+     * A problem raised while options are applied throws from `create()` or `update()`; one raised
+     * during a chart update rejects the pending `update()` or `waitForUpdate()` promise instead. Console
+     * output is never suppressed by this option — the console record of a problem is written before
+     * the throw.
      *
      * Default: `[]`
      */
     throwOn?: AgChartValidationSeverity[];
     /**
-     * Called for each validation problem the chart raises — an invalid option value or a runtime error
-     * caught during a chart update. The reported problems are the same set the validation overlay
-     * shows, not every diagnostic the chart can write to the console. Never gated by
+     * Called for each validation problem the chart raises: every warning, error and deprecation notice
+     * the chart writes to the browser console, at the severity the console uses. Never gated by
      * `consoleOn` or `showOverlayOn`.
      *
      * Default: `undefined`
