@@ -22,12 +22,48 @@ type Options = {
 
 const IGNORED_PATHS = ['/archive'];
 const HREF_PATTERNS_TO_IGNORE = [
-    '?', // Links with queries
     '#reference-', // API references, as they are rendered client side
     '#example-', // Example references, as they aren't headings
     '#contact-section', // Contact form on about page
     '#manage_cookies', // Footer link to open cookies management
 ];
+
+// Attribute values are read out of the raw HTML, so character references are
+// still encoded. They have to be decoded before the href is picked apart, or the
+// `#` of a reference such as `&#38;` (the `&` between query parameters) reads as
+// a fragment marker.
+const NAMED_HTML_ENTITIES: Record<string, string> = {
+    amp: '&',
+    apos: "'",
+    gt: '>',
+    lt: '<',
+    nbsp: '\u00a0',
+    quot: '"',
+};
+
+const decodeHtmlEntities = (value: string): string =>
+    value.replace(/&(#x[0-9a-f]+|#\d+|[a-z][a-z0-9]*);/gi, (reference, body: string) => {
+        if (!body.startsWith('#')) {
+            return NAMED_HTML_ENTITIES[body.toLowerCase()] ?? reference;
+        }
+        const isHex = body[1].toLowerCase() === 'x';
+        const codePoint = parseInt(isHex ? body.slice(2) : body.slice(1), isHex ? 16 : 10);
+        // Lone surrogates and out-of-range values would throw; leave them as they were.
+        if (!Number.isInteger(codePoint) || codePoint > 0x10ffff || (codePoint >= 0xd800 && codePoint <= 0xdfff)) {
+            return reference;
+        }
+        return String.fromCodePoint(codePoint);
+    });
+
+// Keeps any fragment after the query, so anchor checks still see it.
+const stripQueryString = (href: string): string => {
+    const queryIndex = href.indexOf('?');
+    if (queryIndex === -1) {
+        return href;
+    }
+    const hashIndex = href.indexOf('#', queryIndex);
+    return hashIndex === -1 ? href.slice(0, queryIndex) : href.slice(0, queryIndex) + href.slice(hashIndex);
+};
 
 const isCI =
     process.env.NX_TASK_TARGET_CONFIGURATION === 'ci' || process.env.NX_TASK_TARGET_CONFIGURATION === 'staging';
@@ -90,8 +126,8 @@ const checkLinks = async (dir: string, files: string[], options: Options) => {
     const linksToValidate: Record<string, { filePaths: Set<string> }> = {};
     // Links whose shape alone would cost a redirect (no trailing slash, non-canonical host, ...),
     // keyed by the offending href. Recorded for every internal link, including the absolute
-    // `https://www.ag-grid.com/...` ones and the query/fragment links the existence checks below
-    // leave alone, because the redirect happens before the target is consulted.
+    // `https://www.ag-grid.com/...` ones and the client-side-injected fragment links the existence
+    // checks below leave alone, because the redirect happens before the target is consulted.
     const shapeIssues: Record<string, { message: string; filePaths: Set<string> }> = {};
     const { prefix, frameworkRedirect } = options;
 
@@ -132,9 +168,10 @@ const checkLinks = async (dir: string, files: string[], options: Options) => {
         const recordUsage = (href: string) => {
             recordShapeIssues(href);
 
-            // Query links and anchors injected client-side (API/example
-            // references, the about-page contact form) have no static target
-            // to resolve against.
+            href = stripQueryString(href);
+
+            // Anchors injected client-side (API/example references, the
+            // about-page contact form) have no static target to resolve against.
             if (HREF_PATTERNS_TO_IGNORE.some((pattern) => href.includes(pattern))) {
                 return;
             }
@@ -185,7 +222,7 @@ const checkLinks = async (dir: string, files: string[], options: Options) => {
 
                 const hrefMatch = /(?:^|\s)href=(["'])(.*?)\1/i.exec(tag);
                 if (hrefMatch) {
-                    recordUsage(hrefMatch[2]);
+                    recordUsage(decodeHtmlEntities(hrefMatch[2]));
                 }
             }
         };
