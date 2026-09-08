@@ -701,6 +701,38 @@ export function getReferencedTypeName(type?: TypeNode): string | undefined {
     return undefined;
 }
 
+/** Union members with arrays and nested unions unwrapped, e.g. `A | B | (A | B)[]` yields `[A, B, A, B]`. */
+function flattenUnionMembers(type: TypeNode): TypeNode[] {
+    const members = isUnionNode(type) ? type.type : [type];
+    return members.flatMap((member) => {
+        const element = isArrayNode(member) ? member.type : member;
+        return isUnionNode(element) ? flattenUnionMembers(element) : [member];
+    });
+}
+
+/**
+ * The non-deprecated type aliases a union references, so a row typed `A | B | (A | B)[]` expands
+ * into their definitions as `A | A[]` already does. `undefined` when it references none.
+ */
+export function resolveUnionAliases(
+    unionType: MultiTypeNode & { kind: 'union' },
+    reference: ApiReferenceType | undefined
+): TypeAliasNode[] | undefined {
+    if (!reference) {
+        return undefined;
+    }
+    const names = referencedMemberNames({ kind: 'union', type: flattenUnionMembers(unionType) }, reference);
+    const aliases = [...new Set(names)]
+        .map((name) => reference.get(name)!)
+        .filter((node): node is TypeAliasNode => node.kind === 'typeAlias' && !isDeprecated(node));
+    return aliases.length ? aliases : undefined;
+}
+
+/** The generator marks deprecation only through the doc tag, which its own filters also key on. */
+function isDeprecated(node: NodeTypes): boolean {
+    return Boolean(node.docs?.some((line) => line.includes('@deprecated')));
+}
+
 /** A union member is "lost" when it is not rendered as an interface variant row (see `toUnionVariant`). */
 function isVariantInterface(member: TypeNode, reference: ApiReferenceType): boolean {
     const name = getReferencedTypeName(isArrayNode(member) ? member.type : member);
