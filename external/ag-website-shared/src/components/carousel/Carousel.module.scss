@@ -77,8 +77,8 @@
         border-color $transition-default-timing,
         opacity $transition-default-timing;
 
-    &:hover:not(:disabled),
-    &:active:not(:disabled) {
+    &:hover:not([aria-disabled]),
+    &:active:not([aria-disabled]) {
         --icon-color: var(--color-link-hover);
 
         background-color: var(--color-bg-primary);
@@ -86,7 +86,11 @@
     }
 
     // Kept in the layout rather than hidden, so the track does not change width at either end.
-    &:disabled {
+    // `:hover`/`:active` are matched too: the element styles reset an aria-disabled button's
+    // fill from `&:hover &[aria-disabled]`, which outweighs the plain attribute selector.
+    &[aria-disabled],
+    &[aria-disabled]:hover,
+    &[aria-disabled]:active {
         background-color: var(--color-bg-primary);
         border-color: var(--color-border-primary);
         opacity: 0.35;

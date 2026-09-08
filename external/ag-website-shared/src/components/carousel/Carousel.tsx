@@ -66,9 +66,10 @@ export function Carousel({
         return () => observer.disconnect();
     }, [syncScrollState]);
 
-    const scrollByPage = (direction: 1 | -1) => {
+    const scrollByPage = (direction: 1 | -1, enabled: boolean) => {
         const track = trackRef.current;
-        if (!track) {
+        // An aria-disabled button still fires its click, so the guard belongs here.
+        if (!track || !enabled) {
             return;
         }
         track.scrollBy({ left: direction * track.clientWidth, behavior: 'smooth' });
@@ -80,8 +81,11 @@ export function Carousel({
                 <button
                     type="button"
                     className={styles.control}
-                    onClick={() => scrollByPage(-1)}
-                    disabled={!canScrollBack}
+                    onClick={() => scrollByPage(-1, canScrollBack)}
+                    // `aria-disabled`, not `disabled`: the element styles drop pointer events from a
+                    // disabled button, so a control switching off under the pointer would leave the
+                    // cursor stale. Omitted entirely when enabled — the selector matches on presence.
+                    aria-disabled={canScrollBack ? undefined : true}
                     aria-label={previousLabel}
                 >
                     <Icon name="chevronLeft" />
@@ -109,8 +113,8 @@ export function Carousel({
                 <button
                     type="button"
                     className={styles.control}
-                    onClick={() => scrollByPage(1)}
-                    disabled={!canScrollOn}
+                    onClick={() => scrollByPage(1, canScrollOn)}
+                    aria-disabled={canScrollOn ? undefined : true}
                     aria-label={nextLabel}
                 >
                     <Icon name="chevronRight" />
