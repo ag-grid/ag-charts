@@ -37,12 +37,23 @@ AddCharset utf-8 .md
 # env-split, so the policy is generated per environment.
 ${getCspContent(env)}
 
-${getMarkdownNegotiationRules()}
+${env === 'production' ? `${getHostCanonicalizationRules()}\n\n` : ''}${getMarkdownNegotiationRules()}
 
 ${getRedirectRules()}
 
 Options -Indexes
 `;
+}
+
+// The parent site's .htaccess apex-to-www swap isn't inherited into this nested .htaccess, so /charts needs its own (production only; staging has a single host).
+function getHostCanonicalizationRules(): string {
+    return `<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Canonical host is www.ag-grid.com; the bare apex domain must not serve pages directly.
+    RewriteCond %{HTTP_HOST} ^ag-grid\\.com$ [NC]
+    RewriteRule ^ https://www.ag-grid.com%{REQUEST_URI} [R=301,L]
+</IfModule>`;
 }
 
 function getCspContent(env: HtaccessEnv): string {
