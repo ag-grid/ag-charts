@@ -615,15 +615,22 @@ export interface AgSeriesAreaBackgroundRegionLabel extends Omit<AgChartLabelStyl
     yOffset?: PixelSize;
 }
 
+/** The position of a background region's label.
+ *
+ * For a position outside the region, the first token is the side of the region the label sits on and
+ * the second is its alignment along that side — the same twelve names, with the same meaning, as
+ * `legend.placement`. An `inside` corner label is flush to both named edges, so token order carries no
+ * information there.
+ */
 export type AgSeriesAreaBackgroundRegionLabelPosition =
     | 'top'
     | 'left'
     | 'right'
     | 'bottom'
-    | 'top-left'
-    | 'top-right'
-    | 'bottom-left'
-    | 'bottom-right'
+    | 'left-top'
+    | 'right-top'
+    | 'left-bottom'
+    | 'right-bottom'
     | 'inside'
     | 'inside-left'
     | 'inside-right'
@@ -633,7 +640,7 @@ export type AgSeriesAreaBackgroundRegionLabelPosition =
     | 'inside-bottom-left'
     | 'inside-top-right'
     | 'inside-bottom-right'
-    | 'top-left-above'
-    | 'top-right-above'
-    | 'bottom-left-below'
-    | 'bottom-right-below';
+    | 'top-left'
+    | 'top-right'
+    | 'bottom-left'
+    | 'bottom-right';

@@ -14,6 +14,7 @@ import {
 import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { anchors } from './cartesianBackgroundRegion';
 
 const NUMERIC: AgCartesianChartOptions = {
     data: [
@@ -606,10 +607,10 @@ const labelPositions = [
     'left',
     'right',
     'bottom',
-    'top-left',
-    'top-right',
-    'bottom-left',
-    'bottom-right',
+    'left-top',
+    'right-top',
+    'left-bottom',
+    'right-bottom',
     'inside',
     'inside-left',
     'inside-right',
@@ -619,10 +620,10 @@ const labelPositions = [
     'inside-bottom-left',
     'inside-top-right',
     'inside-bottom-right',
-    'top-left-above',
-    'top-right-above',
-    'bottom-left-below',
-    'bottom-right-below',
+    'top-left',
+    'top-right',
+    'bottom-left',
+    'bottom-right',
 ] as const;
 for (const position of labelPositions) {
     EXAMPLES[`LABEL_${position}`] = {
@@ -731,6 +732,77 @@ describe('Background Regions removal', () => {
 
         expect(seriesArea.instances).toHaveLength(0);
         expectWarningsCalls().toEqual([]);
+    });
+});
+
+type DerivedAnchor = { regionH: number; regionV: number; labelH: number; labelV: number };
+
+/**
+ * The naming contract: for an outside position the first token is the side of the region the label
+ * sits on (so on that axis the label is pushed out of the region) and the second is its alignment
+ * along that side (so on the other axis the label matches the region). An `inside` label is flush
+ * to both named edges.
+ */
+function deriveAnchor(position: string): DerivedAnchor {
+    const regionH = position.includes('left') ? -1 : position.includes('right') ? 1 : 0;
+    const regionV = position.includes('top') ? -1 : position.includes('bottom') ? 1 : 0;
+
+    if (position.startsWith('inside')) {
+        return { regionH, regionV, labelH: regionH, labelV: regionV };
+    }
+
+    const side = position.split('-')[0];
+    const outwardIsHorizontal = side === 'left' || side === 'right';
+    return {
+        regionH,
+        regionV,
+        labelH: outwardIsHorizontal ? -regionH : regionH,
+        labelV: outwardIsHorizontal ? regionV : -regionV,
+    };
+}
+
+describe('Background Region label positions', () => {
+    it('places every position where its own name says it should', () => {
+        const expected: Record<string, DerivedAnchor> = {};
+        const actual: Record<string, DerivedAnchor> = {};
+        for (const [position, anchor] of Object.entries(anchors)) {
+            expected[position] = deriveAnchor(position);
+            actual[position] = anchor;
+        }
+
+        expect(actual).toEqual(expected);
+    });
+});
+
+const REMOVED_LABEL_POSITIONS = ['top-left-above', 'top-right-above', 'bottom-left-below', 'bottom-right-below'];
+
+describe('Background Region label position validation', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    it('rejects the removed -above / -below position names', async () => {
+        for (const position of REMOVED_LABEL_POSITIONS) {
+            const options: AgCartesianChartOptions = {
+                ...NUMERIC,
+                seriesArea: {
+                    backgroundRegions: [
+                        {
+                            fill: 'lightsalmon',
+                            xRange: { start: 20, end: 80 },
+                            yRange: { start: 20, end: 80 },
+                            label: { position: position as never, text: position },
+                        },
+                    ],
+                },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            const chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            chart.destroy();
+        }
+
+        expectWarningsCalls().toMatchInlineSnapshot();
     });
 });
 

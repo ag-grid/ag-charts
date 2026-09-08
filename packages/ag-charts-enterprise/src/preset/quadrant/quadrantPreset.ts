@@ -63,17 +63,17 @@ const LABEL_POSITIONS: Record<
     Record<Region, AgSeriesAreaBackgroundRegionLabelPosition>
 > = {
     'outside-outer': {
-        topLeft: 'top-left-above',
-        topRight: 'top-right-above',
-        bottomLeft: 'bottom-left-below',
-        bottomRight: 'bottom-right-below',
+        topLeft: 'top-left',
+        topRight: 'top-right',
+        bottomLeft: 'bottom-left',
+        bottomRight: 'bottom-right',
     },
     'outside-center': { topLeft: 'top', topRight: 'top', bottomLeft: 'bottom', bottomRight: 'bottom' },
     'outside-inner': {
-        topLeft: 'top-right-above',
-        topRight: 'top-left-above',
-        bottomLeft: 'bottom-right-below',
-        bottomRight: 'bottom-left-below',
+        topLeft: 'top-right',
+        topRight: 'top-left',
+        bottomLeft: 'bottom-right',
+        bottomRight: 'bottom-left',
     },
     'inside-outer-outer': {
         topLeft: 'inside-top-left',
