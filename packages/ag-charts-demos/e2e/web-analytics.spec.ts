@@ -144,6 +144,26 @@ test.describe(DEMO_ID, () => {
         await expect(page.locator('.wa-card-sub')).toHaveText(selected!);
     });
 
+    test.describe('on a phone-sized viewport', () => {
+        test.use({ viewport: { width: 390, height: 844 } });
+
+        test('the Overview fits the viewport and scrolls only the KPI strip', async ({ page }) => {
+            await waitForAllChartUpdates(page);
+
+            const doc = await page.evaluate(() => ({
+                scrollWidth: document.documentElement.scrollWidth,
+                clientWidth: document.documentElement.clientWidth,
+            }));
+            expect(doc.scrollWidth).toBe(doc.clientWidth);
+
+            const strip = await page.locator('.wa-kpi-tabs').evaluate((el) => ({
+                scrollWidth: el.scrollWidth,
+                clientWidth: el.clientWidth,
+            }));
+            expect(strip.scrollWidth).toBeGreaterThan(strip.clientWidth);
+        });
+    });
+
     // A tooltip would not open here: Radix opens those on hover and keyboard focus, never on tap.
     test.describe('on a touch device', () => {
         test.use({ hasTouch: true });

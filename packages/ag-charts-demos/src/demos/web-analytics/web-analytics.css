@@ -158,10 +158,6 @@
     margin: 0 auto;
 }
 
-.wa-view--overview {
-    min-width: 750px;
-}
-
 /* ---- cards ---- */
 .wa-card {
     background: var(--wa-panel);
@@ -214,11 +210,11 @@
 }
 .wa-kpi-tabs {
     display: grid;
-    /* Always one row, however many KPIs there are. */
+    /* Always one row: too narrow for every KPI and the strip scrolls, not the card. */
     grid-auto-flow: column;
-    grid-auto-columns: 1fr;
+    grid-auto-columns: minmax(150px, 1fr);
+    overflow-x: auto;
     margin: 0 -20px 16px;
-    border-bottom: 1px solid var(--wa-border);
     background: var(--wa-panel-2);
     border-radius: calc(var(--wa-radius) - 1px) calc(var(--wa-radius) - 1px) 0 0;
 }
@@ -230,6 +226,7 @@
     background: transparent;
     border: 0;
     border-left: 1px solid var(--wa-border);
+    border-bottom: 1px solid var(--wa-border);
     padding: 14px 16px;
     display: flex;
     flex-direction: column;
@@ -254,11 +251,10 @@
 .wa-kpi:hover:not(.is-active) {
     background: var(--wa-panel);
 }
-/* The selected tab joins the chart panel below it, covering the strip's bottom rule. */
+/* The selected tab joins the chart panel below it, breaking the strip's bottom rule. */
 .wa-kpi.is-active {
     background: var(--wa-panel);
-    margin-bottom: -1px;
-    padding-bottom: 15px;
+    border-bottom-color: transparent;
 }
 .wa-kpi.is-active::before {
     content: '';
@@ -290,9 +286,6 @@
     display: block;
     height: 30px;
     margin: 2px -4px -8px;
-}
-.wa-kpi.is-active .wa-kpi-spark-box {
-    margin-bottom: -15px;
 }
 .wa-kpi-spark {
     width: 100%;

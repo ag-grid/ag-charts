@@ -128,7 +128,7 @@ export function OverviewView({
     }, [selectedDays, activeFilterCount, daySessions, displayedRowCount]);
 
     return (
-        <div className="wa-view wa-view--overview">
+        <div className="wa-view">
             <section className="wa-card wa-card--tabbed">
                 <KpiTiles kpis={kpis} activeKey={metric} onSelect={onMetricSelect} />
                 <div className="wa-card-head">
