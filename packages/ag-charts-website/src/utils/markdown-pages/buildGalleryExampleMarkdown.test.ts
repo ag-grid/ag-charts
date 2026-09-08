@@ -41,12 +41,13 @@ describe('buildGalleryExampleMarkdown', () => {
         expect(output).toContain(`description: ${JSON.stringify(seo.description)}`);
         expect(output).toContain(`\n# ${seo.h1}`);
         // The intro's own links are absolute here, so it is emitted rewritten rather than verbatim.
-        expect(output).toContain(seo.intro.replace('](/r/', '](https://www.ag-grid.com/r/'));
+        expect(output).toContain(seo.intro.replace(/\]\(\//g, '](https://www.ag-grid.com/'));
     });
 
     it("makes the intro's inline links absolute, so the file reads out of context", async () => {
         const output = await buildFor('simple-bar');
-        expect(output).toContain('[tooltips](https://www.ag-grid.com/r/tooltips/)');
+        expect(output).toContain('[rounded bars](https://www.ag-grid.com/r/bar-series/)');
+        expect(output).toContain('[React](https://www.ag-grid.com/react/quick-start/)');
     });
 
     it('names the chart type and links its documentation page', async () => {

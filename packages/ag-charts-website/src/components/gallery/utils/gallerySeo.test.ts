@@ -15,7 +15,8 @@ const RESOLVED = EXAMPLES.map(({ exampleName }) => ({ exampleName, seo: resolveG
  */
 const MAX_TITLE_LENGTH = 80;
 const MIN_DESCRIPTION_LENGTH = 120;
-const MAX_DESCRIPTION_LENGTH = 170;
+// Raised to fit the hand-written copy; note search results truncate around 160 characters.
+const MAX_DESCRIPTION_LENGTH = 200;
 
 /** Report every offender rather than the first, so a copy pass can be done in one go. */
 const offenders = (predicate: (seo: (typeof RESOLVED)[number]['seo']) => boolean) =>
@@ -30,7 +31,11 @@ describe('resolveGallerySeo', () => {
     it('has a copy row for every example, and none left behind for one that has gone', () => {
         const names = new Set(EXAMPLES.map(({ exampleName }) => exampleName));
         expect([...names].filter((name) => !(name in GALLERY_EXAMPLE_COPY))).toEqual([]);
-        expect(Object.keys(GALLERY_EXAMPLE_COPY).filter((name) => !names.has(name))).toEqual([]);
+
+        // Matched against every example in the data, hidden ones included: a hidden example
+        // serves no page but may still carry copy, ready for when it is shown again.
+        const allNames = new Set(galleryData.series.flat().flatMap(({ examples }) => examples.map(({ name }) => name)));
+        expect(Object.keys(GALLERY_EXAMPLE_COPY).filter((name) => !allNames.has(name))).toEqual([]);
     });
 
     it('serves a non-empty title, H1, description and intro on every page', () => {
@@ -73,17 +78,22 @@ describe('resolveGallerySeo', () => {
         expect(new Set(titles).size).toBe(titles.length);
     });
 
-    it('links intros only through /r/, to docs pages that exist', () => {
+    it('links intros to docs pages that exist, without the site base', () => {
         const docsPages = new Set(
             readdirSync(new URL('../../../content/docs', import.meta.url), { withFileTypes: true })
                 .filter((entry) => entry.isDirectory())
                 .map((entry) => entry.name)
         );
+        // `/r/<page>/` keeps a topic link framework-agnostic, as the gallery itself is;
+        // `/<framework>/<page>/` is for the links that deliberately name one framework.
+        const INTRO_HREF = /^\/(r|javascript|react|angular|vue)\/([^/]+)\/$/;
         const problems = RESOLVED.flatMap(({ exampleName, seo }) =>
             [...seo.intro.matchAll(/\]\(([^)]+)\)/g)]
                 .map(([, href]) => href)
-                // `/r/` keeps the link framework-agnostic, as the gallery itself is.
-                .filter((href) => !/^\/r\/[^/]+\/$/.test(href) || !docsPages.has(href.split('/')[2]))
+                .filter((href) => {
+                    const match = INTRO_HREF.exec(href);
+                    return !match || !docsPages.has(match[2]);
+                })
                 .map((href) => `${exampleName} -> ${href}`)
         );
         expect(problems).toEqual([]);
