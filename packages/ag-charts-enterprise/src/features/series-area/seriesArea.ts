@@ -1,63 +1,40 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
-    AbstractModuleInstance,
     ChartAxisDirection,
     type DynamicContext,
     type NormalisedSeriesAreaBackgroundRegion,
-    type SeriesAreaPluginModuleInstance,
     jsonDiff,
 } from 'ag-charts-core';
 
-export class BackgroundRegionsPlugin extends AbstractModuleInstance implements SeriesAreaPluginModuleInstance {
+import { CartesianBackgroundRegion } from '../background-regions/cartesianBackgroundRegion';
+
+export class SeriesArea extends _ModuleSupport.SeriesArea {
     private instances: _ModuleSupport.BackgroundRegion[] = [];
-    private lastOptions: NormalisedSeriesAreaBackgroundRegion[] | undefined;
+    private lastRegionOptions: NormalisedSeriesAreaBackgroundRegion[] | undefined;
 
     private readonly regionGroup = new _ModuleSupport.Group({ name: 'BackgroundRegions-Region' });
     private readonly labelGroup = new _ModuleSupport.Group({ name: 'BackgroundRegions-Label' });
 
-    constructor(
-        private readonly ctx: DynamicContext<_ModuleSupport.ChartSeriesAreaRegistry<_ModuleSupport.SeriesAreaContext>>
-    ) {
-        super();
-        this.ctx = ctx;
-        this.ctx.parent.attachSeriesAreaUnderlay(this.regionGroup);
-        this.ctx.parent.attachSeriesAreaOverlay(this.labelGroup);
-    }
+    constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
+        super(ctx);
 
-    applyOptions(options: NormalisedSeriesAreaBackgroundRegion[]) {
-        if (this.optionsEquivalent(options)) {
-            return;
-        }
-        this.lastOptions = options;
+        this.underlayGroup.appendChild(this.regionGroup);
+        this.overlayGroup.appendChild(this.labelGroup);
 
-        for (const region of this.instances) {
-            this.detachInstance(region);
-        }
-
-        if (options == null) {
-            this.instances = [];
-            return;
-        }
-
-        this.instances = options.map((regionOptions) => {
-            const instance = this.ctx.backgroundRegion;
-            instance.setOptions(regionOptions);
-            this.attachInstance(instance);
-            this.initInstance(instance, regionOptions);
-            return instance;
+        this.cleanup.register(() => {
+            this.detachInstances();
+            this.regionGroup.remove();
+            this.labelGroup.remove();
         });
     }
 
-    setVisible(visible: boolean): void {
-        this.regionGroup.visible = visible;
-        this.labelGroup.visible = visible;
+    override applyOptions() {
+        // Read from chart state rather than the retained property: `set()` leaves a property untouched
+        // when a full update omits it, which would keep stale regions alive.
+        this.applyRegionOptions(this.ctx.chartState.getValue('options', 'seriesArea')?.backgroundRegions);
     }
 
-    getInstances(): readonly _ModuleSupport.BackgroundRegion[] {
-        return this.instances;
-    }
-
-    onSeriesAreaUpdate(clipRect: _ModuleSupport.BBox | undefined): void {
+    protected override onUpdate(clipRect: _ModuleSupport.BBox | undefined): void {
         // Labels are deliberately unclipped so outside positions remain visible past the series area edge,
         // matching cross line labels.
         this.regionGroup.setClipRectCanvasSpace(clipRect);
@@ -69,14 +46,20 @@ export class BackgroundRegionsPlugin extends AbstractModuleInstance implements S
         }
     }
 
-    override destroy(): void {
-        for (const region of this.instances) {
-            this.detachInstance(region);
-        }
-        this.instances = [];
-        this.regionGroup.remove();
-        this.labelGroup.remove();
-        super.destroy();
+    private applyRegionOptions(options: NormalisedSeriesAreaBackgroundRegion[] | undefined) {
+        if (this.optionsEquivalent(options)) return;
+
+        this.lastRegionOptions = options;
+        this.detachInstances();
+
+        this.instances =
+            options?.map((regionOptions) => {
+                const instance = new CartesianBackgroundRegion(this.ctx.logger);
+                instance.setOptions(regionOptions);
+                this.attachInstance(instance);
+                this.initInstance(instance, regionOptions);
+                return instance;
+            }) ?? [];
     }
 
     private attachInstance(region: _ModuleSupport.BackgroundRegion): void {
@@ -84,9 +67,12 @@ export class BackgroundRegionsPlugin extends AbstractModuleInstance implements S
         this.labelGroup.appendChild(region.labelGroup);
     }
 
-    private detachInstance(region: _ModuleSupport.BackgroundRegion): void {
-        region.regionGroup.remove();
-        region.labelGroup.remove();
+    private detachInstances(): void {
+        for (const region of this.instances) {
+            region.regionGroup.remove();
+            region.labelGroup.remove();
+        }
+        this.instances = [];
     }
 
     private initInstance(region: _ModuleSupport.BackgroundRegion, opts: NormalisedSeriesAreaBackgroundRegion): void {
@@ -109,7 +95,7 @@ export class BackgroundRegionsPlugin extends AbstractModuleInstance implements S
     }
 
     private optionsEquivalent(options: NormalisedSeriesAreaBackgroundRegion[] | undefined): boolean {
-        const previous = this.lastOptions;
+        const previous = this.lastRegionOptions;
         if (options === previous) return true;
         if (options == null || previous == null) return false;
         return jsonDiff(previous, options) == null;

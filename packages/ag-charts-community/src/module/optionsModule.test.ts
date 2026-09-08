@@ -660,6 +660,51 @@ describe('ChartOptions', () => {
             expect(errors.some((m) => m.includes('GaugePresetModule'))).toBe(true);
             expect((console.warn as Mock).mock.calls.every(([m]) => !String(m).includes('Unknown option'))).toBe(true);
         });
+
+        const backgroundRegionsOptions = () =>
+            ({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                seriesArea: { backgroundRegions: [{ xRange: { start: 0, end: 1 } }] },
+            }) as AgCartesianChartOptions;
+
+        it('warns and drops `seriesArea.backgroundRegions` outside enterprise', () => {
+            const logger = new Logger();
+            const instanceWarnOnce = vi.spyOn(logger, 'warnOnce');
+            const ambientWarnOnce = vi.spyOn(ambientLogger, 'warnOnce');
+
+            const processedOptions = prepareOptions(backgroundRegionsOptions(), logger);
+
+            const warnings = instanceWarnOnce.mock.calls.map(([m]) => String(m));
+            expect(
+                warnings.some((m) =>
+                    m.includes('Option `seriesArea.backgroundRegions` is an AG Charts Enterprise feature')
+                )
+            ).toBe(true);
+            expect(ambientWarnOnce).not.toHaveBeenCalled();
+            expect(processedOptions.seriesArea?.backgroundRegions).toBeNull();
+        });
+
+        it('leaves the community `seriesArea` options alongside it untouched', () => {
+            const processedOptions = prepareOptions({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                seriesArea: { clip: true, backgroundRegions: [{ xRange: { start: 0, end: 1 } }] },
+            } as AgCartesianChartOptions);
+
+            expect(processedOptions.seriesArea?.clip).toBe(true);
+            expect(processedOptions.seriesArea?.backgroundRegions).toBeNull();
+        });
+
+        it('stays silent when `backgroundRegions` appears only as a theme override', () => {
+            prepareOptions({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                theme: { overrides: { line: { seriesArea: { backgroundRegions: { fill: '#f00' } } } } },
+            } as AgCartesianChartOptions);
+
+            const messages = (console.error as Mock).mock.calls
+                .concat((console.warn as Mock).mock.calls)
+                .map(([m]) => String(m));
+            expect(messages.every((m) => !m.includes('AG Charts Enterprise feature'))).toBe(true);
+        });
     });
 
     describe('top-level object option type warnings', () => {
