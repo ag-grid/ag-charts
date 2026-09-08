@@ -1239,10 +1239,15 @@ export abstract class CartesianAxis<
 
             if (maxLabelExtent <= 0) continue;
 
-            // The tier's shared band: `maxLabelExtent` deep, outward of the natural inner edge.
+            // The tier's shared band, outward of the natural inner edge and as deep as the deepest
+            // label - but never past the canvas edge, which a label too large for the axis area can
+            // reach. Flushing within a band that leaves the canvas costs the SHORTER labels their
+            // outward edge, and with it the whole label.
             let band: { start: number; end: number } | undefined;
             if (bandInner != null) {
-                const bandOuter = bandInner - sideFlag * maxLabelExtent;
+                const canvasEdge = (sideFlag === -1 ? this.moduleCtx.scene.height : 0) - this.translation.y;
+                const bandDepth = Math.min(maxLabelExtent, Math.abs(canvasEdge - bandInner));
+                const bandOuter = bandInner - sideFlag * bandDepth;
                 band = { start: Math.min(bandInner, bandOuter), end: Math.max(bandInner, bandOuter) };
             }
 
@@ -1281,6 +1286,11 @@ export abstract class CartesianAxis<
                     } else {
                         y = (band.start + band.end) / 2 - (extent.y0 + extent.y1) / 2;
                     }
+
+                    // A label too deep for the band cannot honour the flush without reaching back
+                    // across the axis line into the series area, where the series paints over it,
+                    // so it holds the band's inner edge instead. A no-op for a label that fits.
+                    y = sideFlag === -1 ? Math.max(y, band.start - extent.y0) : Math.min(y, band.end - extent.y1);
 
                     datum.y = y;
                     datum.rotationCenterY = y;
