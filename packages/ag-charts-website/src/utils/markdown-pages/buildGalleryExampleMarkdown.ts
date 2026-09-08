@@ -55,7 +55,7 @@ export async function buildGalleryExampleMarkdown({
     siteRoot,
 }: BuildGalleryExampleMarkdownOptions): Promise<string> {
     const contents = await getGeneratedContents({ type: 'gallery', exampleName });
-    const seo = resolveGallerySeo(page);
+    const seo = resolveGallerySeo(page.name);
 
     const document: string[] = [
         buildChartsFrontmatter({

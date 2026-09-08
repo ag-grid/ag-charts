@@ -33,7 +33,7 @@ describe('buildGalleryExampleMarkdown', () => {
 
     it("emits frontmatter, heading and intro matching the page's own copy", async () => {
         const { page } = EXAMPLES.find((example) => example.exampleName === 'simple-bar')!;
-        const seo = resolveGallerySeo(page);
+        const seo = resolveGallerySeo(page.name);
         const output = await buildFor('simple-bar');
 
         expect(output.startsWith('---\n')).toBe(true);

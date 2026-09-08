@@ -22,7 +22,7 @@ const { page, relatedExamples } = Astro.props;
 const exampleName = Astro.params.pageName;
 
 // Shared with the page's `.md` twin so the two describe the example identically.
-const seo = resolveGallerySeo(page);
+const seo = resolveGallerySeo(page.name);
 const relatedHeading = relatedExamplesHeading({ seriesTitle: page.seriesTitle, related: relatedExamples });
 ---
 

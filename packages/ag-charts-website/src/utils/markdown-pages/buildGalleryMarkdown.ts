@@ -57,7 +57,7 @@ export function buildGalleryMarkdown({ siteRoot }: { siteRoot?: string } = {}): 
         const heading = chartType.enterprise ? `${familyHeading} (Enterprise)` : familyHeading;
         const links = chartType.examples
             .filter((example) => !example.hidden)
-            .map((example) => `- [${resolveGalleryH1(example)}](${galleryExampleUrl(example.name, siteRoot)})`);
+            .map((example) => `- [${resolveGalleryH1(example.name)}](${galleryExampleUrl(example.name, siteRoot)})`);
 
         if (links.length === 0) {
             continue;

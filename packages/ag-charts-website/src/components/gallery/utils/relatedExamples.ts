@@ -76,8 +76,8 @@ export function getRelatedExamples({
         return [];
     }
 
-    const toRelated = (example: { title: string; name: string }, isFamilySibling: boolean) => ({
-        label: resolveGalleryH1(example),
+    const toRelated = (example: { name: string }, isFamilySibling: boolean) => ({
+        label: resolveGalleryH1(example.name),
         name: example.name,
         isFamilySibling,
     });
@@ -139,7 +139,7 @@ export function getFamilyExamples({
         title: family.title,
         hubUrl: getPageHashUrl({ chartSeriesName: family.seriesName }),
         examples: visibleExamples(family).map((example) => ({
-            label: resolveGalleryH1(example),
+            label: resolveGalleryH1(example.name),
             name: example.name,
             url: getPageUrl(example.name),
         })),

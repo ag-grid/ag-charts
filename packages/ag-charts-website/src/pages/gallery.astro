@@ -93,7 +93,7 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
                                             .map(({ title, name }: GalleryExample) => (
                                                 <GalleryExampleLink
                                                     client:visible
-                                                    label={resolveGalleryH1({ title, name })}
+                                                    label={resolveGalleryH1(name)}
                                                     exampleName={name}
                                                     enableDprScaling={enableDprScaling}
                                                     isModified={modifiedExamples.has(name)}
