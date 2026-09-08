@@ -58,72 +58,29 @@ const LABEL_SPACING_DIRECTIONS: Record<AgQuadrantRegionLabelPosition, LabelDirec
     'inside-inner-inner': { x: 1, y: 1 },
 };
 
-const LABEL_POSITIONS: Record<
-    AgQuadrantRegionLabelPosition,
-    Record<Region, AgSeriesAreaBackgroundRegionLabelPosition>
-> = {
-    'outside-outer': {
-        topLeft: 'top-left',
-        topRight: 'top-right',
-        bottomLeft: 'bottom-left',
-        bottomRight: 'bottom-right',
-    },
-    'outside-center': { topLeft: 'top', topRight: 'top', bottomLeft: 'bottom', bottomRight: 'bottom' },
-    'outside-inner': {
-        topLeft: 'top-right',
-        topRight: 'top-left',
-        bottomLeft: 'bottom-right',
-        bottomRight: 'bottom-left',
-    },
-    'inside-outer-outer': {
-        topLeft: 'inside-top-left',
-        topRight: 'inside-top-right',
-        bottomLeft: 'inside-bottom-left',
-        bottomRight: 'inside-bottom-right',
-    },
-    'inside-outer-center': {
-        topLeft: 'inside-top',
-        topRight: 'inside-top',
-        bottomLeft: 'inside-bottom',
-        bottomRight: 'inside-bottom',
-    },
-    'inside-outer-inner': {
-        topLeft: 'inside-top-right',
-        topRight: 'inside-top-left',
-        bottomLeft: 'inside-bottom-right',
-        bottomRight: 'inside-bottom-left',
-    },
-    'inside-center-outer': {
-        topLeft: 'inside-left',
-        topRight: 'inside-right',
-        bottomLeft: 'inside-left',
-        bottomRight: 'inside-right',
-    },
-    'inside-center': { topLeft: 'inside', topRight: 'inside', bottomLeft: 'inside', bottomRight: 'inside' },
-    'inside-center-inner': {
-        topLeft: 'inside-right',
-        topRight: 'inside-left',
-        bottomLeft: 'inside-right',
-        bottomRight: 'inside-left',
-    },
-    'inside-inner-outer': {
-        topLeft: 'inside-bottom-left',
-        topRight: 'inside-bottom-right',
-        bottomLeft: 'inside-top-left',
-        bottomRight: 'inside-top-right',
-    },
-    'inside-inner-center': {
-        topLeft: 'inside-bottom',
-        topRight: 'inside-bottom',
-        bottomLeft: 'inside-top',
-        bottomRight: 'inside-top',
-    },
-    'inside-inner-inner': {
-        topLeft: 'inside-bottom-right',
-        topRight: 'inside-bottom-left',
-        bottomLeft: 'inside-top-right',
-        bottomRight: 'inside-top-left',
-    },
+type RegionLabelPositions = Record<Region, AgSeriesAreaBackgroundRegionLabelPosition>;
+
+const perRegion = (
+    topLeft: AgSeriesAreaBackgroundRegionLabelPosition,
+    topRight: AgSeriesAreaBackgroundRegionLabelPosition,
+    bottomLeft: AgSeriesAreaBackgroundRegionLabelPosition,
+    bottomRight: AgSeriesAreaBackgroundRegionLabelPosition
+): RegionLabelPositions => ({ topLeft, topRight, bottomLeft, bottomRight });
+
+// Arguments are in region order: topLeft, topRight, bottomLeft, bottomRight.
+const LABEL_POSITIONS: Record<AgQuadrantRegionLabelPosition, RegionLabelPositions> = {
+    'outside-outer': perRegion('top-left', 'top-right', 'bottom-left', 'bottom-right'),
+    'outside-center': perRegion('top', 'top', 'bottom', 'bottom'),
+    'outside-inner': perRegion('top-right', 'top-left', 'bottom-right', 'bottom-left'),
+    'inside-outer-outer': perRegion('inside-top-left', 'inside-top-right', 'inside-bottom-left', 'inside-bottom-right'),
+    'inside-outer-center': perRegion('inside-top', 'inside-top', 'inside-bottom', 'inside-bottom'),
+    'inside-outer-inner': perRegion('inside-top-right', 'inside-top-left', 'inside-bottom-right', 'inside-bottom-left'),
+    'inside-center-outer': perRegion('inside-left', 'inside-right', 'inside-left', 'inside-right'),
+    'inside-center': perRegion('inside', 'inside', 'inside', 'inside'),
+    'inside-center-inner': perRegion('inside-right', 'inside-left', 'inside-right', 'inside-left'),
+    'inside-inner-outer': perRegion('inside-bottom-left', 'inside-bottom-right', 'inside-top-left', 'inside-top-right'),
+    'inside-inner-center': perRegion('inside-bottom', 'inside-bottom', 'inside-top', 'inside-top'),
+    'inside-inner-inner': perRegion('inside-bottom-right', 'inside-bottom-left', 'inside-top-right', 'inside-top-left'),
 };
 
 function labelOffset(spacing: number, direction: -1 | 0 | 1, outward: -1 | 1) {
