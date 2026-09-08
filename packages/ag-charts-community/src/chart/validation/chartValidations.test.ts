@@ -548,10 +548,59 @@ describe('ChartValidations - chart integration', () => {
         );
         expect(chart.ctx.validations.hasVisibleIssues()).toBe(true);
 
-        await hoverAction(200, 150)(chart);
+        await hoverAction(600, 400)(chart);
         await waitForChartStability(chart);
 
         expect(chart.ctx.validations.hasVisibleIssues()).toBe(true);
+        expectWarningsCalls().toHaveLength(1);
+    });
+
+    it('reports a tooltip renderer exception to the overlay and the listener at the hover that raised it', async () => {
+        const issueRaised = vi.fn();
+        chart = await createChart(
+            options({
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        tooltip: {
+                            renderer: () => {
+                                throw new Error('renderer boom');
+                            },
+                        },
+                    },
+                ],
+                validations: { showOverlayOn: ['warning'], issueRaised },
+            })
+        );
+        expect(issueRaised).not.toHaveBeenCalled();
+
+        await hoverAction(600, 400)(chart);
+        await waitForChartStability(chart);
+
+        expect(issueRaised).toHaveBeenCalledWith({
+            severity: 'warning',
+            message: expect.stringContaining('tooltip.renderer'),
+        });
+        expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
+        expectWarningsCalls().toHaveLength(1);
+    });
+
+    it('shows an omitted series type on the overlay and tells the listener, with throwOn unset', async () => {
+        const issueRaised = vi.fn();
+        chart = await createChart(
+            options({
+                series: [{ xKey: 'x', yKey: 'y' } as any],
+                validations: { showOverlayOn: ['warning'], issueRaised },
+            })
+        );
+
+        expect(issueRaised).toHaveBeenCalledWith({
+            severity: 'warning',
+            message: expect.stringContaining('series[0].type` is required'),
+        });
+        expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
         expectWarningsCalls().toHaveLength(1);
     });
 
