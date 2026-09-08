@@ -55,7 +55,7 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setTooltipMode(mode: AgTooltipMode) {
-    options.tooltip!.mode = mode;
+function setTooltipMode(event: Event) {
+    options.tooltip!.mode = (event.target as HTMLInputElement).value as AgTooltipMode;
     chart.update(options);
 }

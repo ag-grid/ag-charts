@@ -42,6 +42,7 @@ const options: AgChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setVerticalAlign(verticalAlign: 'baseline' | 'top' | 'middle' | 'bottom') {
+function setVerticalAlign(event: Event) {
+    const verticalAlign = (event.target as HTMLInputElement).value as 'baseline' | 'top' | 'middle' | 'bottom';
     chart.updateDelta({ title: { text: buildTitle(verticalAlign) } });
 }

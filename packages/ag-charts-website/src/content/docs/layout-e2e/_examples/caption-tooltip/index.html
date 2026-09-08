@@ -1,12 +1,29 @@
-<div id="controls">
-    <button id="visible-always">Always</button>
-    <button id="visible-never">Never</button>
-    <button id="visible-auto">Auto</button>
-    <button id="custom-text">Custom Text</button>
-    <button id="renderer">Renderer</button>
-    <button id="empty-renderer">Empty Renderer</button>
-    <button id="undefined-renderer">Undefined Renderer</button>
-    <button id="truncate">Truncate</button>
-    <button id="reset">Reset</button>
+<div class="example-controls">
+    <div class="controls-row">
+        <span>Visibility:</span>
+        <div class="button-group gap-right" role="group" aria-label="Visibility">
+            <input type="radio" id="visible-always" name="caption-visible" value="always" />
+            <label for="visible-always">Always</label>
+            <input type="radio" id="visible-never" name="caption-visible" value="never" />
+            <label for="visible-never">Never</label>
+            <input type="radio" id="visible-auto" name="caption-visible" value="auto" checked />
+            <label for="visible-auto">Auto</label>
+        </div>
+        <button id="truncate">Truncate</button>
+        <button id="reset">Reset</button>
+    </div>
+    <div class="controls-row">
+        <span>Content:</span>
+        <div class="button-group" role="group" aria-label="Content">
+            <input type="radio" id="custom-text" name="caption-content" value="custom-text" />
+            <label for="custom-text">Custom Text</label>
+            <input type="radio" id="renderer" name="caption-content" value="renderer" />
+            <label for="renderer">Renderer</label>
+            <input type="radio" id="empty-renderer" name="caption-content" value="empty-renderer" />
+            <label for="empty-renderer">Empty Renderer</label>
+            <input type="radio" id="undefined-renderer" name="caption-content" value="undefined-renderer" />
+            <label for="undefined-renderer">Undefined Renderer</label>
+        </div>
+    </div>
 </div>
 <div id="myChart"></div>

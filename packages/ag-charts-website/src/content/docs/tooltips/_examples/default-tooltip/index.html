@@ -1,12 +1,21 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="removeYNames()">Remove yNames</button>
-        <button onclick="addYNames()">Add yNames</button>
+        <div class="button-group" role="group" aria-label="yNames">
+            <input type="radio" id="ynames-remove" name="ynames" value="remove" onchange="yNamesChange(event)" />
+            <label for="ynames-remove">Remove yNames</label>
+            <input type="radio" id="ynames-add" name="ynames" value="add" checked onchange="yNamesChange(event)" />
+            <label for="ynames-add">Add yNames</label>
+        </div>
     </div>
     <div class="controls-row">
-        <button onclick="showNumSeries(1)">1 Series</button>
-        <button onclick="showNumSeries(2)">2 Series</button>
-        <button onclick="showNumSeries(5)">5 Series</button>
+        <div class="button-group" role="group" aria-label="Series">
+            <input type="radio" id="series-1" name="series-count" value="1" onchange="showNumSeries(event)" />
+            <label for="series-1">1 Series</label>
+            <input type="radio" id="series-2" name="series-count" value="2" checked onchange="showNumSeries(event)" />
+            <label for="series-2">2 Series</label>
+            <input type="radio" id="series-5" name="series-count" value="5" onchange="showNumSeries(event)" />
+            <label for="series-5">5 Series</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>
