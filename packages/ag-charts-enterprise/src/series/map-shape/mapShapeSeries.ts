@@ -5,8 +5,10 @@ import type {
     Feature,
     FeatureCollection,
     FillStrokeMorph,
+    FontOptions,
     Geometry,
     ITextMeasurer,
+    LabelFit,
     Normalised,
     NormalisedTextOrSegments,
     Point,
@@ -15,11 +17,17 @@ import type {
 import {
     cachedTextMeasurer,
     findDiscreteColorBinLabel,
+    fitLabelTextToRegionAutoSize,
     formatValue,
+    hasRealChars,
+    insetFitRegion,
     isArray,
+    keptCharacters,
     measureTextSegments,
     mergeDefaults,
+    resolveLabelFit,
     toPlainText,
+    withFitRegion,
 } from 'ag-charts-core';
 import type {
     AgDrawingMode,
@@ -35,14 +43,14 @@ import { LonLatBBox } from '../map-util/lonLatBbox';
 import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { polygonMarkerCenter } from '../map-util/markerUtil';
-import { maxWidthInPolygonForRectOfHeight, preferredLabelCenter } from '../map-util/polygonLabelUtil';
+import { polygonFitRegion, preferredLabelCenter } from '../map-util/polygonLabelUtil';
 import { getTopologyShapeFillBBox } from '../map-util/shapeFillBBox';
 import { TopologySeries } from '../map-util/topologySeries';
 import type { ITopology } from '../map-util/topologyTypes';
-import { formatSingleLabel } from '../util/labelFormatter';
 import {
     type MapShapeNodeDatum,
     type MapShapeNodeLabelDatum,
+    type MapShapeSeriesLabel,
     MapShapeSeriesProperties,
 } from './mapShapeSeriesProperties';
 
@@ -60,6 +68,8 @@ const {
     Selection,
     Text,
     PointerEvents,
+    expandLabelBoxExtent,
+    labelHasBox,
     getLabelStyles,
 } = _ModuleSupport;
 
@@ -78,14 +88,42 @@ type NormalisedMapShapeSeriesStyle = Normalised<AgMapShapeSeriesStyle, never, Fi
 
 const fixedScale = _ModuleSupport.MercatorScale.fixedScale();
 
+/** The label's anchors in fixed-scale space, cached per geometry so panning and zooming do not repeat the search. */
 interface LabelLayout {
     geometry: Geometry;
     labelText: NormalisedTextOrSegments;
     aspectRatio: number;
+    fixedPolygon: Position[][];
+    /** Centre of the widest rect with the single-line text's own aspect ratio. */
     x: number;
     y: number;
-    maxWidth: number;
-    fixedPolygon: Position[][];
+    /** Centre of a squarer rect for wrapped text, as the single-line one may hug a strip. `null` once found wanting. */
+    wrapAnchor?: { x: number; y: number } | null;
+}
+
+/** What one render's label fitting shares across every shape. */
+interface LabelFitting {
+    fit: LabelFit;
+    font: FontOptions;
+    /** Series `padding` plus the drawn label box, kept clear of the shape edge on each side. */
+    inset: { x: number; y: number };
+}
+
+// The shape always bounds the label, so overflow control is always on: a label that does not fit is hidden
+// unless `truncate` asks for an ellipsis instead. The theme maps the deprecated `overflowStrategy` onto it.
+function resolveLabelFitting<P>(label: MapShapeSeriesLabel<P>, padding: number): LabelFitting {
+    const { maxWidth, maxHeight, wrapping, truncate, minimumFontSize, lineHeight } = label;
+    const { fontFamily, fontStyle, fontWeight, fontSize } = label;
+    const fit = resolveLabelFit({ maxWidth, maxHeight, wrapping, truncate, minimumFontSize }, true);
+    const box = expandLabelBoxExtent(label);
+    return {
+        fit: { ...fit, lineHeight, boxed: labelHasBox(label) },
+        font: { fontFamily, fontStyle, fontWeight, fontSize },
+        inset: {
+            x: padding + Math.max(box.left, box.right),
+            y: padding + Math.max(box.top, box.bottom),
+        },
+    };
 }
 export class MapShapeSeries
     extends TopologySeries<
@@ -313,60 +351,61 @@ export class MapShapeSeries
         });
         if (labelPlacement == null) return;
 
-        const { x, y, maxWidth } = labelPlacement;
+        const { x, y } = labelPlacement;
 
-        return { geometry, labelText, aspectRatio, x, y, maxWidth, fixedPolygon };
+        return { geometry, labelText, aspectRatio, fixedPolygon, x, y };
     }
 
+    private getWrapAnchor(labelLayout: LabelLayout) {
+        if (labelLayout.wrapAnchor === undefined) {
+            const aspectRatio = Math.max(1, Math.sqrt(labelLayout.aspectRatio));
+            const found = preferredLabelCenter(labelLayout.fixedPolygon, { aspectRatio, precision: 1e-3 });
+            labelLayout.wrapAnchor = found == null ? null : { x: found.x, y: found.y };
+        }
+        return labelLayout.wrapAnchor;
+    }
+
+    // Each line is wrapped to the width the polygon offers where it lands. Text that fits whole on one line
+    // keeps the single-line anchor; anything else is also tried at the squarer one and the fuller result wins.
     private getLabelDatum(
         labelLayout: LabelLayout,
-        scaling: number,
+        projectedGeometry: Geometry,
+        { fit, font, inset }: LabelFitting,
         datumIndex: number,
         idValue: string
     ): MapShapeNodeLabelDatum | undefined {
         const { scale } = this;
         if (scale == null) return;
 
-        const { padding, label } = this.properties;
-        const { labelText, aspectRatio, x: untruncatedX, y, maxWidth, fixedPolygon } = labelLayout;
+        const polygon = largestPolygon(projectedGeometry);
+        if (polygon == null) return;
 
-        const maxSizeWithoutTruncation = {
-            width: Math.ceil(maxWidth * scaling),
-            height: Math.ceil((maxWidth * scaling) / aspectRatio),
-            meta: untruncatedX,
+        const { labelText } = labelLayout;
+        const fitAt = (fixedX: number, fixedY: number) => {
+            const [x, y] = scale.convert(fixedScale.invert([fixedX, fixedY]));
+            const region = insetFitRegion(polygonFitRegion(polygon, x, y), inset.x, inset.y);
+            const fitted = fitLabelTextToRegionAutoSize(labelText, withFitRegion(fit, region), font);
+            return { x: x + fitted.offsetX, y: y + fitted.offsetY, fitted, kept: keptCharacters(fitted.text) };
         };
-        const labelFormatting = formatSingleLabel<number>(
-            toPlainText(labelText),
-            label,
-            { padding },
-            (height, allowTruncation) => {
-                if (!allowTruncation) {
-                    return maxSizeWithoutTruncation;
-                }
 
-                const result = maxWidthInPolygonForRectOfHeight(fixedPolygon, untruncatedX, y, height / scaling);
-                return {
-                    width: result.width * scaling,
-                    height,
-                    meta: result.x,
-                };
+        let placed = fitAt(labelLayout.x, labelLayout.y);
+        const wholeSingleLine =
+            placed.kept >= keptCharacters(labelText) && !toPlainText(placed.fitted.text).includes('\n');
+        if (!wholeSingleLine) {
+            const wrapAnchor = this.getWrapAnchor(labelLayout);
+            const wrapped = wrapAnchor == null ? undefined : fitAt(wrapAnchor.x, wrapAnchor.y);
+            if (wrapped != null && wrapped.kept >= placed.kept) {
+                placed = wrapped;
             }
-        );
-        if (labelFormatting == null) return;
-
-        const [{ text, fontSize, lineHeight, width }, formattingX] = labelFormatting;
-
-        // Only shift horizontally if necessary
-        const x = width < maxSizeWithoutTruncation.width ? untruncatedX : formattingX;
-
-        const position = this.scale!.convert(fixedScale.invert([x, y]));
+        }
+        if (!hasRealChars(placed.fitted.text)) return;
 
         return {
-            x: position[0],
-            y: position[1],
-            text,
-            fontSize,
-            lineHeight,
+            x: placed.x,
+            y: placed.y,
+            text: placed.fitted.text,
+            fontSize: placed.fitted.fontSize ?? font.fontSize,
+            lineHeight: fit.lineHeight,
             datumIndex,
             idValue,
             datumId: createDatumId(idValue),
@@ -425,10 +464,10 @@ export class MapShapeSeries
             return { itemId: seriesId, nodeData: [], labelData: [] };
         }
 
-        const scaling = scale == null ? Number.NaN : (scale.range[1][0] - scale.range[0][0]) / scale.bounds.width;
         const columns = this.resolveShapeDataColumns(processedData);
 
         const measurer = cachedTextMeasurer(label);
+        const labelFitting = resolveLabelFitting(label, properties.padding);
 
         const labelLayouts = new Map<string, LabelLayout>();
         this.previousLabelLayouts = labelLayouts;
@@ -465,15 +504,15 @@ export class MapShapeSeries
                 labelLayouts.set(dataValues.idValue, labelLayout);
             }
 
+            const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
+
             const labelDatum =
-                labelLayout != null && scale != null
-                    ? this.getLabelDatum(labelLayout, scaling, datumIndex, dataValues.idValue)
+                labelLayout != null && projectedGeometry != null
+                    ? this.getLabelDatum(labelLayout, projectedGeometry, labelFitting, datumIndex, dataValues.idValue)
                     : undefined;
             if (labelDatum != null) {
                 labelData.push(labelDatum);
             }
-
-            const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
 
             nodeData.push({
                 series: this,

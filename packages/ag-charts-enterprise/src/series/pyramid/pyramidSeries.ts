@@ -82,6 +82,7 @@ const {
     resolveBarLabelCandidate,
     expandLabelBoxExtent,
     expandPlacementLabelBoxExtent,
+    labelHasBox,
     fitLabelToContainerAutoSize,
     pickPlacementStyle,
 } = _ModuleSupport;
@@ -536,6 +537,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     private createLabelContext(horizontal: boolean): PyramidLabelContext {
         const { label } = this.properties;
+        const labelFit = resolveLabelFit(label, !label.collision.alwaysShow);
         const reportedPlacements = resolveFunnelPlacements(
             label.placement,
             'inside-center',
@@ -552,7 +554,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             ),
             routesThroughEngine: this.routesThroughEngine(),
             plotRegion: this.resolveLabelPlotRegion(label.collision),
-            labelFit: resolveLabelFit(label, !label.collision.alwaysShow),
+            labelFit: labelFit && { ...labelFit, boxed: labelHasBox(label) },
         };
     }
 

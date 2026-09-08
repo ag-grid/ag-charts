@@ -1,7 +1,19 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
-import type { AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
+import type {
+    AgChartLabelAutoFontSizeOptions,
+    AgChartLabelFitOptions,
+    AgChartLabelOptions,
+} from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { ContextDefault, DatumDefault, DatumKey, GeoJSON, PixelSize } from '../../chart/types';
+import type {
+    ContextDefault,
+    DatumDefault,
+    DatumKey,
+    FontSize,
+    GeoJSON,
+    OverflowStrategy,
+    PixelSize,
+} from '../../chart/types';
 import type { AgColorScale, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type {
     AgBaseSeriesOptions,
@@ -48,6 +60,20 @@ export interface AgMapShapeSeriesOptionsNames {
     labelName?: string;
 }
 
+export interface AgMapShapeSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
+    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgChartLabelFitOptions, AgChartLabelAutoFontSizeOptions {
+    /** Line height to use for the label. */
+    lineHeight?: FontSize;
+    /**
+     * Adjusts the behaviour of labels when they overflow.
+     * - `'ellipsis'` will truncate the text to fit, appending an ellipsis (...)
+     * - `'hide'` only displays the label if it completely fits within its bounds, and removes it if it would overflow
+     *
+     * @deprecated v14.2.0 Use `truncate` instead.
+     */
+    overflowStrategy?: OverflowStrategy;
+}
+
 export interface AgMapShapeSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
         AgMapShapeSeriesStyle,
@@ -55,7 +81,7 @@ export interface AgMapShapeSeriesThemeableOptions<TDatum = DatumDefault, TContex
     /** Configuration for colour scale with fills, domain, and mode. */
     colorScale?: AgColorScale;
     /** Configuration for the labels shown inside the shape. */
-    label?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgMapShapeSeriesLabelFormatterParams<TDatum>, TContext>;
+    label?: AgMapShapeSeriesLabelOptions<TDatum, AgMapShapeSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Distance between the shape edges and the text. */
     padding?: PixelSize;
     /** Series-specific tooltip configuration. */

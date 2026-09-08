@@ -135,7 +135,8 @@ function firstOutside(inside: (t: number) => boolean, limit: number, probes: num
     return lo;
 }
 
-function memoiseByBand(spanAt: (top: number, bottom: number) => readonly [number, number]) {
+/** Caches a region's `spanAt` by band, as wrapping asks for the same band once per candidate word. */
+export function memoiseByBand(spanAt: (top: number, bottom: number) => readonly [number, number]) {
     const cache = new Map<string, readonly [number, number]>();
     return (top: number, bottom: number) => {
         const key = `${top},${bottom}`;
