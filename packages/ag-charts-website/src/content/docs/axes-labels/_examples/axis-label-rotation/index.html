@@ -1,72 +1,20 @@
 <div class="example-controls">
     <div class="controls-row">
-        <span>Rotation:</span>
-        <div class="button-group" role="group" aria-label="Rotation">
-            <input
-                type="radio"
-                id="rotation-none"
-                name="label-rotation"
-                value="none"
-                onchange="rotationChange(event)"
-            />
-            <label for="rotation-none">No rotation</label>
-            <input
-                type="radio"
-                id="rotation-fixed"
-                name="label-rotation"
-                value="fixed"
-                onchange="rotationChange(event)"
-            />
-            <label for="rotation-fixed">Fixed rotation</label>
-            <input
-                type="radio"
-                id="rotation-auto"
-                name="label-rotation"
-                value="auto"
-                checked
-                onchange="rotationChange(event)"
-            />
-            <label for="rotation-auto">Auto rotation (default)</label>
-        </div>
+        Rotation:
+        <button onclick="disableRotation()">No rotation</button>
+        <button onclick="fixedRotation()">Fixed rotation</button>
+        <button onclick="autoRotation()">Auto rotation (default)</button>
     </div>
     <div class="controls-row">
-        <span>Values:</span>
-        <div class="button-group" role="group" aria-label="Values">
-            <input
-                type="radio"
-                id="values-short"
-                name="label-values"
-                value="short"
-                checked
-                onchange="valuesChange(event)"
-            />
-            <label for="values-short">Short labels</label>
-            <input type="radio" id="values-long" name="label-values" value="long" onchange="valuesChange(event)" />
-            <label for="values-long">Long labels</label>
-        </div>
+        Values:
+        <button onclick="shortLabels()">Short labels</button>
+        <button onclick="longLabels()">Long labels</button>
     </div>
     <div class="controls-row">
-        <span>Avoid Collisions:</span>
-        <div class="button-group" role="group" aria-label="Avoid Collisions">
-            <input
-                type="radio"
-                id="collisions-off"
-                name="collision-avoidance"
-                value="off"
-                onchange="collisionsChange(event)"
-            />
-            <label for="collisions-off">Off</label>
-            <input
-                type="radio"
-                id="collisions-on"
-                name="collision-avoidance"
-                value="on"
-                checked
-                onchange="collisionsChange(event)"
-            />
-            <label for="collisions-on">On (default)</label>
-        </div>
-        <button class="push-right" onclick="reset()">Default</button>
+        Avoid Collisions:
+        <button onclick="noCollisionDetection()">Off</button>
+        <button onclick="autoCollisionDetection()">On (default)</button>
+        <button class="push-right" onclick="reset()">Reset</button>
     </div>
 </div>
 <div class="resizable-container">

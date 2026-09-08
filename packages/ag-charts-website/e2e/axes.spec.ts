@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 
-import { expect, test } from './fixture';
+import { test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
     SELECTORS,
@@ -145,7 +145,7 @@ test.describe('axes', () => {
     test.describe('axis-label-rotation controls', () => {
         test('fixed rotation applies a constant angle', async ({ page }) => {
             const canvas = await gotoAxesExample(page, 'axis-label-rotation');
-            await page.locator('label[for="rotation-fixed"]').click();
+            await page.getByRole('button', { name: 'Fixed rotation' }).click();
             await waitForAllChartUpdates(page);
             await expectChartScreenshot(page, canvas, 'axis-label-rotation-fixed-rotation.png');
         });
@@ -154,16 +154,16 @@ test.describe('axes', () => {
         // to keep them readable — the contrast to the collision-off overlap below.
         test('irregular labels with collision detection rotate to avoid overlap', async ({ page }) => {
             const canvas = await gotoAxesExample(page, 'axis-label-rotation');
-            await page.locator('label[for="values-irregular"]').click();
-            await expect(page.locator('#collisions-on')).toBeChecked();
+            await page.getByRole('button', { name: 'Irregular labels' }).click();
+            await page.getByRole('button', { name: 'On (default)', exact: true }).click();
             await waitForAllChartUpdates(page);
             await expectChartScreenshot(page, canvas, 'axis-label-rotation-irregular-collision.png');
         });
 
         test('irregular labels without collision detection overlap', async ({ page }) => {
             const canvas = await gotoAxesExample(page, 'axis-label-rotation');
-            await page.locator('label[for="values-irregular"]').click();
-            await page.locator('label[for="collisions-off"]').click();
+            await page.getByRole('button', { name: 'Irregular labels' }).click();
+            await page.getByRole('button', { name: 'Off', exact: true }).click();
             await waitForAllChartUpdates(page);
             await expectChartScreenshot(page, canvas, 'axis-label-rotation-irregular-no-collision.png');
         });
