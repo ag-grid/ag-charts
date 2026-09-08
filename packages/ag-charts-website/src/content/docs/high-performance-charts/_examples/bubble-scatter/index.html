@@ -14,10 +14,16 @@
             <option value="star">Star</option>
             <option value="triangle">Triangle</option>
         </select>
-        <button onclick="setData(1e3)">1k</button>
-        <button onclick="setData(1e4)">10k</button>
-        <button onclick="setData(1e5)">100k</button>
-        <button onclick="setData(1e6)">1m</button>
+        <div class="button-group" role="group" aria-label="Data Size">
+            <input type="radio" id="data-size-1k" name="data-size" value="1000" onchange="setData(event)" />
+            <label for="data-size-1k">1k</label>
+            <input type="radio" id="data-size-10k" name="data-size" value="10000" checked onchange="setData(event)" />
+            <label for="data-size-10k">10k</label>
+            <input type="radio" id="data-size-100k" name="data-size" value="100000" onchange="setData(event)" />
+            <label for="data-size-100k">100k</label>
+            <input type="radio" id="data-size-1m" name="data-size" value="1000000" onchange="setData(event)" />
+            <label for="data-size-1m">1m</label>
+        </div>
         <label>
             <span>Max Visible Items</span>
             <input

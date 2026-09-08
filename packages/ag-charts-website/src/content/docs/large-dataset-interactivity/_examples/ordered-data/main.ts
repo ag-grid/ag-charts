@@ -199,7 +199,11 @@ function setSeries(type: string, label: string) {
     chart.update(options);
 }
 
-function setData(points: number, label: string) {
+function setData(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const points = Number(input.value);
+    const label = input.dataset.label!;
+
     const newDatapoints = (options.series?.[0] as any)?.stacked ? points / 2 : points;
     if (options.data?.length !== newDatapoints) {
         options.data = baseData.slice(-newDatapoints);

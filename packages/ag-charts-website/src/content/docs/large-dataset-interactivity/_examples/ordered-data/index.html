@@ -21,11 +21,54 @@
             <option value="histogram">Histogram</option>
         </select>
         <span class="gap-left">Data Size:</span>
-        <button onclick="setData(1e3, '1K')">1K</button>
-        <button onclick="setData(1e4, '10K')">10K</button>
-        <button onclick="setData(1e5, '100K')">100K</button>
-        <button onclick="setData(5e5, '500K')">500K</button>
-        <button onclick="setData(1e6, '1M')">1M</button>
+        <div class="button-group" role="group" aria-label="Data Size">
+            <input
+                type="radio"
+                id="data-size-1k"
+                name="data-size"
+                value="1000"
+                data-label="1K"
+                checked
+                onchange="setData(event)"
+            />
+            <label for="data-size-1k">1K</label>
+            <input
+                type="radio"
+                id="data-size-10k"
+                name="data-size"
+                value="10000"
+                data-label="10K"
+                onchange="setData(event)"
+            />
+            <label for="data-size-10k">10K</label>
+            <input
+                type="radio"
+                id="data-size-100k"
+                name="data-size"
+                value="100000"
+                data-label="100K"
+                onchange="setData(event)"
+            />
+            <label for="data-size-100k">100K</label>
+            <input
+                type="radio"
+                id="data-size-500k"
+                name="data-size"
+                value="500000"
+                data-label="500K"
+                onchange="setData(event)"
+            />
+            <label for="data-size-500k">500K</label>
+            <input
+                type="radio"
+                id="data-size-1m"
+                name="data-size"
+                value="1000000"
+                data-label="1M"
+                onchange="setData(event)"
+            />
+            <label for="data-size-1m">1M</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>
