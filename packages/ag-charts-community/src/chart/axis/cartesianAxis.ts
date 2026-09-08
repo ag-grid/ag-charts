@@ -1239,14 +1239,10 @@ export abstract class CartesianAxis<
 
             if (maxLabelExtent <= 0) continue;
 
-            // The tier's shared band, outward of the natural inner edge and as deep as the deepest
-            // label - but never deeper than the axis area, which `maxThicknessRatio` caps. A label
-            // too deep for that cap reaches past the reservation, and flushing within its reach
-            // would push the SHORTER labels outward past the axis area and out of the canvas.
+            // The tier's shared band: `maxLabelExtent` deep, outward of the natural inner edge.
             let band: { start: number; end: number } | undefined;
             if (bandInner != null) {
-                const bandDepth = Math.min(maxLabelExtent, this.chartLayout?.sizeLimit ?? Infinity);
-                const bandOuter = bandInner - sideFlag * bandDepth;
+                const bandOuter = bandInner - sideFlag * maxLabelExtent;
                 band = { start: Math.min(bandInner, bandOuter), end: Math.max(bandInner, bandOuter) };
             }
 
@@ -1285,11 +1281,6 @@ export abstract class CartesianAxis<
                     } else {
                         y = (band.start + band.end) / 2 - (extent.y0 + extent.y1) / 2;
                     }
-
-                    // A label deeper than the band cannot honour the flush without reaching back
-                    // across the axis line into the series area, where the series paints over it,
-                    // so it holds the band's inner edge instead. A no-op for a label that fits.
-                    y = sideFlag === -1 ? Math.max(y, band.start - extent.y0) : Math.min(y, band.end - extent.y1);
 
                     datum.y = y;
                     datum.rotationCenterY = y;
