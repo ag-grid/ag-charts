@@ -17,6 +17,7 @@ import {
 import type { AgHistogramSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
+import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
 import { HistogramSeries } from './histogramSeries';
@@ -69,7 +70,7 @@ const themeTemplate: ExtensibleSeriesTheme<'histogram'> = {
     },
 };
 
-export const HistogramSeriesModule: SeriesModuleDefinition<AgHistogramSeriesOptions> = {
+export const HistogramSeriesModule: SeriesModuleDefinition<AgHistogramSeriesOptions> = /* #__PURE__ */ communityModule({
     type: 'series',
     name: 'histogram',
     chartType: 'cartesian',
@@ -93,4 +94,4 @@ export const HistogramSeriesModule: SeriesModuleDefinition<AgHistogramSeriesOpti
     themeTemplate,
 
     create: (ctx: DynamicContext<ChartRegistry>) => new HistogramSeries(ctx),
-};
+});

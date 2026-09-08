@@ -1,45 +1,89 @@
 ---
-title: 'Dev-Time Validation'
+title: 'Development Validation'
+description: 'Report $framework Chart option misconfiguration and caught runtime errors to the console, a development overlay, or a custom logging system via the `issueRaised` event.'
 ---
 
-Option misconfiguration and caught runtime errors are normally reported only to the browser console, where they are easy to miss. The validation overlay surfaces them on the chart instead. Issues are grouped by severity — errors, then warnings, then deprecations — each group with its own count and accent colour, under a header summarising the totals.
+AG Charts reports option misconfiguration and caught runtime errors. Reports go to the browser console or a development overlay, the chart can throw to halt execution, and an event can be raised for each issue.
+
+## Severity Levels
+
+Each validation issue is reported as one of three severities: `error`, `warning`, or `deprecation`.
+
+`consoleOn`, `showOverlayOn` and `throwOn` each take an array of one or more of these severities, and apply only to the ones listed. An empty array disables that option entirely.
+
+The `issueRaised` event reports every issue and includes a `severity` property in the parameters.
 
 ## Validation Overlay
 
-The overlay is opt-in and intended for development. Enable it with `validations.overlaySeverity`, which defaults to `'none'`:
+The overlay is opt-in and intended for development. Enable it by using `validations.showOverlayOn` and providing the severity levels desired.
 
-{% chartExampleRunner title="Validation Overlay" name="validation-overlay" type="generated" /%}
+{% chartExampleRunner title="Validation Overlay" name="validation-overlay-multi" type="generated" /%}
 
 ```js format="snippet"
 {
     validations: {
-        overlaySeverity: 'warning',
+        showOverlayOn: ['error', 'warning'],
     },
 }
 ```
 
-`overlaySeverity` is an inclusive threshold: each severity also shows every louder one.
+In this example:
 
-- `'error'` — errors only.
-- `'warning'` — errors and warnings.
-- `'deprecation'` — errors, warnings and deprecations.
-- `'none'` — nothing. This is the default, so the overlay never appears unless you opt in.
+- Any errors or warnings present would be shown in the overlay, but deprecations would not, since `showOverlayOn` only lists `'error'` and `'warning'`.
+- Issues are grouped and sorted by severity, with a count in each group's heading.
+- Each issue shows a message and the relevant code block.
+- There is a Copy button for pasting into a bug report and dismissing the overlay hides it without suppressing future issues.
+- While shown, the validation overlay takes priority over the loading and no-data overlays.
 
-Each issue shows a message, a code block, and a Copy button for pasting into a bug report. Dismiss hides the overlay for that chart instance without suppressing future issues.
+## Console Output
 
-While shown, the validation overlay takes priority over the loading and no-data overlays.
+Validation issues are written to the browser console by default. Use `validations.consoleOn` to change which severities are logged, or provide an empty array to disable console output entirely.
 
-## Multiple Issues
+{% chartExampleRunner title="Validation Console Output" name="validation-console" type="generated" /%}
 
-Issues are grouped and sorted by severity, with a count in each group's heading:
+```js format="snippet"
+{
+    validations: {
+        consoleOn: ['warning'],
+    },
+}
+```
 
-{% chartExampleRunner title="Multiple Validation Issues" name="validation-overlay-multi" type="generated" /%}
+In the above example:
 
-## Dark Theme
+- Applying the invalid option with `consoleOn: ['warning']` selected logs a warning to the console.
+- Applying it with `consoleOn: []` selected logs nothing.
 
-The overlay adapts to the chart's active theme:
+## Throwing on Validation Issues
 
-{% chartExampleRunner title="Validation Overlay — Dark Theme" name="validation-overlay-dark" type="generated" /%}
+Use `validations.throwOn` to make the chart throw an exception and fail-fast, instead of warning and falling back to a default. Console output still follows `consoleOn` and is never suppressed by this option.
+
+```js format="snippet"
+{
+    validations: {
+        throwOn: ['warning'],
+    },
+}
+```
+
+## Issue Raised Events
+
+Subscribe to the `validations.issueRaised` event to programmatically handle validation issues, for example to log them to a custom system.
+
+{% chartExampleRunner title="Validation Issue Events" name="validation-issue-raised" type="generated" /%}
+
+```js format="snippet"
+{
+    validations: {
+        issueRaised: (event) => console.log(event),
+    },
+}
+```
+
+In this example:
+
+- The `issueRaised` event is logged to the console when invalid options are applied.
+- Unlike `consoleOn`, `showOverlayOn`, and `throwOn`, `issueRaised` is not filtered by severity.
 
 ## API Reference
 

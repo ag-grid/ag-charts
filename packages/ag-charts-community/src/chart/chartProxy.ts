@@ -304,13 +304,14 @@ export class AgChartInstanceProxy implements AgChartProxy {
         if (ModuleRegistry.isEnterprise()) {
             // Disable enterprise features that may interfere with image generation.
             processedOverrides.animation = { enabled: false };
+        }
 
-            // Add watermark if no licence
-            const foreground = this.licenseManager?.getWatermarkForegroundConfigForBrowser();
-            if (foreground) {
-                // @ts-expect-error undocumented option
-                processedOverrides.foreground = foreground;
-            }
+        // The watermark follows the licence rather than the registry mode, and honours a key set since creation.
+        this.licenseManager?.validateLicense();
+        const foreground = this.licenseManager?.getWatermarkForegroundConfigForBrowser();
+        if (foreground) {
+            // @ts-expect-error undocumented option
+            processedOverrides.foreground = foreground;
         }
 
         const specialOverrides = { ...chart.chartOptions.specialOverrides };

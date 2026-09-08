@@ -54,9 +54,13 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
         segmentation: { clickOrder: 'reverse' },
     },
     'dev-validation': {
-        'validation-overlay': { ignoreConsoleWarnings: true },
         'validation-overlay-multi': { ignoreConsoleWarnings: true, frameworks: ['vanilla'] },
-        'validation-overlay-dark': { ignoreConsoleWarnings: true, frameworks: ['vanilla'] },
+        // Selecting a consoleOn radio only changes state; only the button redraws the chart.
+        'validation-console': { skipCanvasUpdateCheck: ['[]'] },
+    },
+    'dev-validation-test': {
+        // Selecting a throwOn radio only changes state; only the button redraws (or throws before) the chart.
+        'validation-throw': { skipCanvasUpdateCheck: ['[]'] },
     },
     'range-area-series': {
         'range-area-missing-data': { ignoreConsoleWarnings: true },

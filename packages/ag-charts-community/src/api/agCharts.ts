@@ -29,6 +29,7 @@ import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
 import type { DataServiceRestoredData } from '../chart/data/dataService';
 import { detectChartType } from '../chart/mapping/types';
 import { resolveInstanceModuleScope } from '../module/instanceModuleScope';
+import { isCommunityModule } from '../module/moduleIdentity';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import { Pool } from '../util/pool';
 import { VERSION } from '../version';
@@ -93,24 +94,40 @@ function takeOptionsArgumentIssue<O>(options: O, methodName: string): { options:
     return { options: rest as O, issue: issue as string };
 }
 
-// A chart is licensed by the modules it can use, not by which package happens to be loaded on the page.
+// A chart is licensed by the modules it can use, and only definitions the community package marked
+// count as community: the `enterprise` flag is caller-writable, so it decides nothing here.
 function usesEnterpriseModules(moduleScope: ModuleScope): boolean {
     for (const module of moduleScope.listModules()) {
-        if (module.enterprise) return true;
+        if (!isCommunityModule(module)) return true;
     }
     return false;
 }
 
-let pageLicenseManager: LicenseManager | undefined;
-let licenseChecked = false;
-// The licence is validated once per page; every chart that needs it shares the result.
-function validatedLicenseManager(options: AgChartOptions): LicenseManager | undefined {
-    if (!licenseChecked) {
-        pageLicenseManager = enterpriseRegistry.licenseManager?.(options);
-        pageLicenseManager?.validateLicense();
-        licenseChecked = true;
+// The watermark decision depends on the hosting document, so a manager built for one document is
+// never reused by a chart in another. The manager itself validates once per key and latches the banner.
+const NO_DOCUMENT = {};
+const licenseManagers = new WeakMap<object, LicenseManager>();
+// Decided once at creation and kept off the instance, so a later update or a caller cannot exempt a chart.
+const studioCharts = new WeakMap<AgChartInstanceProxy, boolean>();
+
+function hostDocument(options: AgChartOptions): Document | undefined {
+    return options.container?.ownerDocument ?? (typeof document === 'undefined' ? undefined : document);
+}
+
+function validatedLicenseManager(options: AgChartOptions, keyRequired: boolean): LicenseManager | undefined {
+    const chartDocument = hostDocument(options);
+    const cacheKey = chartDocument ?? NO_DOCUMENT;
+    let licenseManager = licenseManagers.get(cacheKey);
+    if (licenseManager == null) {
+        // Enterprise may load lazily, so an absent manager must not be cached.
+        licenseManager = enterpriseRegistry.licenseManager?.(chartDocument);
+        if (licenseManager == null) return;
+        licenseManagers.set(cacheKey, licenseManager);
     }
-    return pageLicenseManager;
+    if (keyRequired && !licenseManager.hasLicenseKey()) return;
+
+    licenseManager.validateLicense();
+    return licenseManager;
 }
 
 /**
@@ -136,7 +153,7 @@ export abstract class AgCharts {
     }
 
     public static getLicenseDetails(licenseKey: string) {
-        return enterpriseRegistry.licenseManager?.({}).getLicenseDetails(licenseKey);
+        return enterpriseRegistry.licenseManager?.().getLicenseDetails(licenseKey);
     }
 
     /**
@@ -479,15 +496,21 @@ class AgChartsInternal {
         return proxy;
     }
 
-    // Re-run on every update: a community chart's scope gains enterprise modules registered after it was created.
+    // Re-run on every update: the scope may gain enterprise modules, or a key may have been set since.
     private static licenseCheck(proxy: AgChartInstanceProxy, chartOptions: ChartOptions) {
         const { userOptions, processedOptions, moduleRegistry } = chartOptions;
-        // Presets strip this undocumented flag from the processed options, so read it as the user gave it.
-        const withinStudio = (userOptions as { withinStudio?: boolean }).withinStudio;
-        if (proxy.licenseManager != null || withinStudio || !usesEnterpriseModules(moduleRegistry)) return;
+        let withinStudio = studioCharts.get(proxy);
+        if (withinStudio == null) {
+            // Presets strip this undocumented flag from the processed options, so read it as the user gave it.
+            withinStudio = (userOptions as { withinStudio?: boolean }).withinStudio === true;
+            studioCharts.set(proxy, withinStudio);
+        }
+        if (withinStudio) return;
 
-        const licenseManager = validatedLicenseManager(processedOptions);
-        if (licenseManager == null) return;
+        // A community-only scope is validated only when a key was supplied, and is never watermarked.
+        const enterpriseScope = usesEnterpriseModules(moduleRegistry);
+        const licenseManager = validatedLicenseManager(processedOptions, !enterpriseScope);
+        if (licenseManager == null || !enterpriseScope || proxy.licenseManager != null) return;
 
         proxy.licenseManager = licenseManager;
         if (licenseManager.isDisplayWatermark()) {
