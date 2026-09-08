@@ -2582,8 +2582,7 @@ describe('CartesianAxis', () => {
             });
         });
 
-        // Recorded interpretation, decisions.md "Semantics of verticalAlign per axis orientation":
-        // a vertical axis aligns each label around its own tick anchor, not within a shared band.
+        // A continuous vertical axis aligns each label around its own tick anchor, not within a band.
         it('AC1: a continuous vertical axis moves each label around its own tick anchor', async () => {
             await renderChart(leftAxisOptions());
             const chartInternal = deproxy(chart as any) as any;
@@ -2603,9 +2602,9 @@ describe('CartesianAxis', () => {
                 expect(node.datum).toMatchObject(natural!);
             }
 
-            for (const [verticalAlign, direction] of [
-                ['top', 1],
-                ['bottom', -1],
+            for (const [verticalAlign, textBaseline, direction] of [
+                ['top', 'bottom', -1],
+                ['bottom', 'top', 1],
             ] as const) {
                 await renderChart(leftAxisOptions({ verticalAlign }));
                 const nodes = getAxisLabelNodes(chart, 'left');
@@ -2616,7 +2615,7 @@ describe('CartesianAxis', () => {
                     expect(naturalBox).toBeDefined();
                     // The anchor stays on the tick; only the baseline the glyphs hang from changes.
                     expect(node.datum.y).toBeCloseTo(natural!.y, 5);
-                    expect(node.datum.textBaseline).toBe(verticalAlign);
+                    expect(node.datum.textBaseline).toBe(textBaseline);
 
                     const box = Transformable.toCanvas(node);
                     expect(box.y).toBeCloseTo(naturalBox!.y + (direction * naturalBox!.height) / 2, 1);
@@ -2979,7 +2978,7 @@ describe('CartesianAxis', () => {
         });
 
         // A vertical axis cannot flush `verticalAlign` away: the baseline moves each label by its
-        // own height, so a tall label below a short one overlaps it only when both hang from the bottom.
+        // own height, so a tall label below a short one overlaps it only when both sit above their ticks.
         describe('collision avoidance on a vertical axis with unequal-height neighbours', () => {
             // A number axis, so no band caps the label height; the lowest tick carries the tall label.
             const unequalHeightOptions = (
@@ -3011,9 +3010,10 @@ describe('CartesianAxis', () => {
                 getAxisLabelNodes(chart, position).sort((a, b) => a.datum.y - b.datum.y);
 
             it('is the geometry the finding describes: a tall label one tick below a short one', async () => {
-                await renderChart(unequalHeightOptions('bottom', false));
+                await renderChart(unequalHeightOptions('top', false));
                 const nodes = nodesByPosition('left');
                 expect(nodes.length).toBeGreaterThan(2);
+                expect(nodes[0].datum.textBaseline).toBe('bottom');
 
                 const [tall, short] = nodes.slice(-2).reverse();
                 const tallHeight = Transformable.toCanvas(tall).height;
@@ -3217,7 +3217,9 @@ describe('CartesianAxis', () => {
 
                     const nodes = getAxisLabelNodes(chart, position);
                     expect(nodes.length).toBeGreaterThan(1);
-                    expect(nodes[0].datum.textBaseline).toBe(verticalAlign);
+                    // The left fixture is continuous, the right one banded.
+                    const flipped = { top: 'bottom', middle: 'middle', bottom: 'top' }[verticalAlign];
+                    expect(nodes[0].datum.textBaseline).toBe(position === 'left' ? flipped : verticalAlign);
                     for (const node of nodes) {
                         const box = Transformable.toCanvas(node);
                         expect(box.y).toBeGreaterThanOrEqual(0);

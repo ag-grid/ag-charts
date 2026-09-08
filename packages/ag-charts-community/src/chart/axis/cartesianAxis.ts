@@ -112,6 +112,8 @@ function isTitleAcrossAxis(position: AgCartesianAxisPosition, orientation: AgAxi
     return (orientation === 'horizontal') === axisVertical;
 }
 
+const OPPOSITE_BASELINE: Record<VerticalAlign, VerticalAlign> = { top: 'bottom', middle: 'middle', bottom: 'top' };
+
 const titleRotations: Record<AgAxisTitleOrientation, number> = {
     horizontal: 0,
     vertical: -Math.PI / 2,
@@ -403,7 +405,7 @@ export abstract class CartesianAxis<
             isVertical: this.direction === ChartAxisDirection.Y,
             sizeLimit: this.chartLayout?.sizeLimit,
             inRange: (translation: number) => this.inRange(translation, 0.001),
-            labelBaseline: label.verticalAlign,
+            labelBaseline: this.resolveLabelBaseline(label.verticalAlign),
             labelBandOffsets: this.bandFlushesLabels()
                 ? (ticks, rotation, textAlign, textBaseline) =>
                       this.measureLabelBandOffsets(ticks, { rotation, textAlign, textBaseline }, scrollbarThickness)
@@ -1036,9 +1038,7 @@ export abstract class CartesianAxis<
         // label rotation. Unset (the default) leaves the computed value untouched.
         const labelTextAlign = this.resolveLabelTextAlign(label.textAlign);
         const textAlign = labelTextAlign ?? tickGenerationResult.textAlign;
-        // `label.verticalAlign` is the vertical counterpart, and `VerticalAlign` is a subset of
-        // `CanvasTextBaseline`, so the configured value is the baseline as it stands.
-        const textBaseline = label.verticalAlign ?? tickGenerationResult.textBaseline;
+        const textBaseline = this.resolveLabelBaseline(label.verticalAlign) ?? tickGenerationResult.textBaseline;
         const { range } = scale;
         const sideFlag = getAxisLabelSideFlag(this.mirrored);
         let labelOffset =
@@ -1079,6 +1079,12 @@ export abstract class CartesianAxis<
             rotationCenterY: y,
             range,
         };
+    }
+
+    // A continuous vertical axis has no band to align within, so `'top'` means above the tick.
+    private resolveLabelBaseline(verticalAlign: VerticalAlign | undefined): VerticalAlign | undefined {
+        if (verticalAlign == null || this.horizontal || this.scale.bandwidth != null) return verticalAlign;
+        return OPPOSITE_BASELINE[verticalAlign];
     }
 
     /**
@@ -1251,7 +1257,7 @@ export abstract class CartesianAxis<
                             glyphBox,
                             extent,
                             rotation,
-                            verticalAlign,
+                            this.resolveLabelBaseline(verticalAlign)!,
                             computedTextBaseline
                         );
                         datum.rotationCenterX = datum.x;
@@ -1331,10 +1337,10 @@ export abstract class CartesianAxis<
         glyphBox: LabelBox,
         extent: LabelExtent,
         rotation: number,
-        verticalAlign: VerticalAlign,
+        textBaseline: VerticalAlign,
         computedTextBaseline: VerticalAlign
     ) {
-        const shift = getVerticalAlignShift(glyphBox.height, verticalAlign, computedTextBaseline);
+        const shift = getVerticalAlignShift(glyphBox.height, textBaseline, computedTextBaseline);
         const computedExtent = getRotatedLabelExtent(
             { ...glyphBox, y: glyphBox.y + shift },
             datum.x,
