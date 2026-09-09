@@ -89,22 +89,17 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function useDefaultTheme() {
-    delete options.theme;
-    chart.update(options);
-}
+function themeChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
 
-function usePaperTheme() {
-    options.theme = paperTheme;
-    chart.update(options);
-}
-
-function useOceanTheme() {
-    options.theme = oceanTheme;
-    chart.update(options);
-}
-
-function useNeonTheme() {
-    options.theme = neonTheme;
+    if (value === 'default') {
+        delete options.theme;
+    } else if (value === 'paper') {
+        options.theme = paperTheme;
+    } else if (value === 'ocean') {
+        options.theme = oceanTheme;
+    } else if (value === 'neon') {
+        options.theme = neonTheme;
+    }
     chart.update(options);
 }

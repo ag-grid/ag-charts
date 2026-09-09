@@ -200,22 +200,14 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function useDefaultTheme() {
-    options.theme = defaultTheme;
-    chart.update(options);
-}
-
-function usePaperTheme() {
-    options.theme = paperTheme;
-    chart.update(options);
-}
-
-function useOceanTheme() {
-    options.theme = oceanTheme;
-    chart.update(options);
-}
-
-function useNeonTheme() {
-    options.theme = neonTheme;
+function themeChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    const themes: Record<string, AgChartTheme> = {
+        default: defaultTheme,
+        paper: paperTheme,
+        ocean: oceanTheme,
+        neon: neonTheme,
+    };
+    options.theme = themes[value];
     chart.update(options);
 }

@@ -1,7 +1,11 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="applyOptions('bar')">Bar & Line Chart</button>
-        <button onclick="applyOptions('pie')">Pie Chart</button>
+        <div class="button-group" role="group" aria-label="Chart Type">
+            <input type="radio" id="type-bar" name="chart-type" value="bar" checked onchange="applyOptions(event)" />
+            <label for="type-bar">Bar & Line Chart</label>
+            <input type="radio" id="type-pie" name="chart-type" value="pie" onchange="applyOptions(event)" />
+            <label for="type-pie">Pie Chart</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

@@ -43,43 +43,29 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function defaultFill() {
+function fillChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+
     (options.series as AgBarSeriesOptions[])?.forEach((series) => {
-        series.fill = undefined;
-    });
-
-    chart.update(options);
-}
-
-function gradientFill() {
-    (options.series as AgBarSeriesOptions[])?.forEach((series) => {
-        series.fill = {
-            type: 'gradient',
-        };
-    });
-
-    chart.update(options);
-}
-
-function patternFill() {
-    (options.series as AgBarSeriesOptions[])?.forEach((series) => {
-        series.fill = {
-            type: 'pattern',
-        };
-    });
-
-    chart.update(options);
-}
-
-function imageFill() {
-    (options.series as AgBarSeriesOptions[])?.forEach((series) => {
-        series.fill = {
-            type: 'image',
-            url: '${baseWWWUrl}/example-assets/docs-images/' + `${series.yKey}.png`,
-            backgroundFillOpacity: 0.4,
-            width: 30,
-            height: 30,
-        };
+        switch (value) {
+            case 'gradient':
+                series.fill = { type: 'gradient' };
+                break;
+            case 'pattern':
+                series.fill = { type: 'pattern' };
+                break;
+            case 'image':
+                series.fill = {
+                    type: 'image',
+                    url: '${baseWWWUrl}/example-assets/docs-images/' + `${series.yKey}.png`,
+                    backgroundFillOpacity: 0.4,
+                    width: 30,
+                    height: 30,
+                };
+                break;
+            default:
+                series.fill = undefined;
+        }
     });
 
     chart.update(options);
