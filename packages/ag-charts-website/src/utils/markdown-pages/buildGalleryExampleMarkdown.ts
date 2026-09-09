@@ -5,6 +5,7 @@ import { galleryFamilyHeading, resolveGallerySeo } from '@components/gallery/uti
 import { type GalleryRelatedExample, relatedExamplesHeading } from '@components/gallery/utils/relatedExamples';
 import { getExampleFileUrl, getExampleUrl, getPageUrl } from '@components/gallery/utils/urlPaths';
 import { toTitle } from '@utils/toTitle';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 import GithubSlugger from 'github-slugger';
 
@@ -32,6 +33,17 @@ export interface BuildGalleryExampleMarkdownOptions {
     siteRoot?: string;
 }
 
+/** Site-relative markdown link, as an intro carries: `[tooltips](/r/tooltips/)`. */
+const INTRO_LINK = /\]\((\/[^)]*)\)/g;
+
+/**
+ * Absolute-ise the inline links an intro carries, as every other link in the document is: the
+ * `.md` is read out of context, where a root-relative href resolves against the wrong origin.
+ */
+function withAbsoluteIntroLinks(intro: string, siteRoot?: string): string {
+    return intro.replace(INTRO_LINK, (_match, href: string) => `](${toAbsoluteUrl(urlWithBaseUrl(href), siteRoot)})`);
+}
+
 /** Matches GallerySeriesLink: an explicit `seriesLink`, else the chart type's default docs slug. */
 function seriesDocsUrl(page: GalleryExamplePage): string {
     const slugger = new GithubSlugger();
@@ -55,7 +67,7 @@ export async function buildGalleryExampleMarkdown({
     siteRoot,
 }: BuildGalleryExampleMarkdownOptions): Promise<string> {
     const contents = await getGeneratedContents({ type: 'gallery', exampleName });
-    const seo = resolveGallerySeo(page);
+    const seo = resolveGallerySeo(page.name);
 
     const document: string[] = [
         buildChartsFrontmatter({
@@ -65,7 +77,7 @@ export async function buildGalleryExampleMarkdown({
             description: seo.description,
         }),
         `# ${seo.h1}`,
-        seo.intro,
+        withAbsoluteIntroLinks(seo.intro, siteRoot),
     ];
 
     const chartType = page.enterprise ? `${page.seriesTitle} (Enterprise)` : page.seriesTitle;

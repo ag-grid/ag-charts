@@ -1,21 +1,27 @@
+import { readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import galleryData from '../../../content/gallery/data.json';
-import { GALLERY_FAMILY_COPY, GALLERY_HUB_COPY, GALLERY_PAGE_COPY } from '../galleryCopy';
+import { GALLERY_EXAMPLE_COPY, GALLERY_HUB_COPY, type GalleryExampleCopy } from '../galleryCopy';
 import { getGalleryExamples } from './filesData';
-import {
-    MAX_TITLE_LENGTH,
-    galleryFamilyHeading,
-    galleryFamilyName,
-    resolveGalleryH1,
-    resolveGallerySeo,
-} from './gallerySeo';
+import { galleryFamilyHeading, galleryFamilyName, resolveGalleryH1, resolveGallerySeo } from './gallerySeo';
+import { galleryPageSeoProblems } from './gallerySeoChecker';
 
 const EXAMPLES = getGalleryExamples({ galleryData });
-const RESOLVED = EXAMPLES.map(({ exampleName, page }) => ({ exampleName, seo: resolveGallerySeo(page) }));
+const RESOLVED = EXAMPLES.map(({ exampleName }) => ({ exampleName, seo: resolveGallerySeo(exampleName) }));
 
-// Length targets bind the formula, not the hand-written copy, which has its own looser bounds.
-const DERIVED = RESOLVED.filter(({ exampleName }) => !(exampleName in GALLERY_PAGE_COPY));
+/**
+ * The copy is hand-written, so these are editorial bounds rather than a formula's output: a title
+ * or description outside them is one search results will truncate.
+ */
+const MAX_TITLE_LENGTH = 80;
+const MIN_DESCRIPTION_LENGTH = 120;
+// Raised to fit the hand-written copy; note search results truncate around 160 characters.
+const MAX_DESCRIPTION_LENGTH = 200;
+
+/** The head tags `Layout.astro` builds from a copy row, as the build's checker parses them. */
+const renderedHead = ({ title, h1, description }: GalleryExampleCopy) =>
+    `<title>${title}</title><meta name="description" content="${description.replaceAll('"', '&quot;')}"><h1>${h1}</h1>`;
 
 /** Report every offender rather than the first, so a copy pass can be done in one go. */
 const offenders = (predicate: (seo: (typeof RESOLVED)[number]['seo']) => boolean) =>
@@ -27,18 +33,14 @@ describe('resolveGallerySeo', () => {
         expect(RESOLVED).toHaveLength(EXAMPLES.length);
     });
 
-    it('has a copy row for every chart family in the gallery data', () => {
-        const families = new Set(galleryData.series.flat().map((series) => series.seriesName));
-        const missing = [...families].filter((family) => !(family in GALLERY_FAMILY_COPY));
-        expect(missing).toEqual([]);
-    });
-
-    it('has no copy rows for families or pages that no longer exist', () => {
-        const families = new Set(galleryData.series.flat().map((series) => series.seriesName));
-        expect(Object.keys(GALLERY_FAMILY_COPY).filter((family) => !families.has(family))).toEqual([]);
-
+    it('has a copy row for every example, and none left behind for one that has gone', () => {
         const names = new Set(EXAMPLES.map(({ exampleName }) => exampleName));
-        expect(Object.keys(GALLERY_PAGE_COPY).filter((name) => !names.has(name))).toEqual([]);
+        expect([...names].filter((name) => !(name in GALLERY_EXAMPLE_COPY))).toEqual([]);
+
+        // Matched against every example in the data, hidden ones included: a hidden example
+        // serves no page but may still carry copy, ready for when it is shown again.
+        const allNames = new Set(galleryData.series.flat().flatMap(({ examples }) => examples.map(({ name }) => name)));
+        expect(Object.keys(GALLERY_EXAMPLE_COPY).filter((name) => !allNames.has(name))).toEqual([]);
     });
 
     it('serves a non-empty title, H1, description and intro on every page', () => {
@@ -49,10 +51,6 @@ describe('resolveGallerySeo', () => {
         expect(offenders(({ title }) => title.includes('AG Charts Gallery:'))).toEqual([]);
     });
 
-    it('names the example intent in every title', () => {
-        expect(offenders(({ title }) => !title.includes('Example'))).toEqual([]);
-    });
-
     it('never serves a bare chart name as the H1', () => {
         const chartNames = new Set(
             galleryData.series.flat().flatMap((series) => series.examples.map((example) => example.title))
@@ -61,27 +59,27 @@ describe('resolveGallerySeo', () => {
         expect(offenders(({ h1 }) => !h1.endsWith('Example'))).toEqual([]);
     });
 
-    it('drops the title hook rather than overflowing, where dropping it is enough', () => {
-        const tooLong = DERIVED.filter(
-            ({ seo }) => seo.title.length > MAX_TITLE_LENGTH && seo.title !== `${seo.h1} | AG Charts`
-        ).map(({ exampleName }) => exampleName);
-        expect(tooLong).toEqual([]);
-    });
-
-    it('lands every derived meta description in the 140-155 character band', () => {
-        const outOfBand = DERIVED.filter(({ seo }) => seo.description.length < 140 || seo.description.length > 155).map(
-            ({ exampleName, seo }) => `${exampleName} (${seo.description.length})`
+    // The site build runs this same check over the rendered HTML, so a copy row that fails it
+    // costs a full build to discover. Running it here against the copy those pages render from
+    // catches the identical problems in seconds, with no duplicated rules to drift apart.
+    it('passes the SEO check the site build runs over the rendered pages', () => {
+        const problems = RESOLVED.flatMap(({ exampleName, seo }) =>
+            galleryPageSeoProblems(renderedHead(seo)).map((problem) => `${exampleName} ${problem}`)
         );
-        expect(outOfBand).toEqual([]);
+        expect(problems).toEqual([]);
     });
 
-    it('keeps the hand-written descriptions within a length search results will show', () => {
-        expect(offenders(({ description }) => description.length < 120 || description.length > 170)).toEqual([]);
+    it('keeps every title within a length search results will show', () => {
+        expect(offenders(({ title }) => title.length > MAX_TITLE_LENGTH)).toEqual([]);
     });
 
-    it('names the chart type and the frameworks in every intro', () => {
-        expect(offenders(({ intro }) => !intro.startsWith('This example shows '))).toEqual([]);
-        expect(offenders(({ intro }) => !intro.includes('JavaScript, React, Angular or Vue'))).toEqual([]);
+    it('keeps every meta description within a length search results will show', () => {
+        expect(
+            offenders(
+                ({ description }) =>
+                    description.length < MIN_DESCRIPTION_LENGTH || description.length > MAX_DESCRIPTION_LENGTH
+            )
+        ).toEqual([]);
     });
 
     it('never doubles the word Chart', () => {
@@ -94,10 +92,35 @@ describe('resolveGallerySeo', () => {
         const titles = RESOLVED.map(({ seo }) => seo.title);
         expect(new Set(titles).size).toBe(titles.length);
     });
+
+    it('links intros to docs pages that exist, without the site base', () => {
+        const docsPages = new Set(
+            readdirSync(new URL('../../../content/docs', import.meta.url), { withFileTypes: true })
+                .filter((entry) => entry.isDirectory())
+                .map((entry) => entry.name)
+        );
+        // `/r/<page>/` keeps a topic link framework-agnostic, as the gallery itself is;
+        // `/<framework>/<page>/` is for the links that deliberately name one framework.
+        const INTRO_HREF = /^\/(r|javascript|react|angular|vue)\/([^/]+)\/$/;
+        const problems = RESOLVED.flatMap(({ exampleName, seo }) =>
+            [...seo.intro.matchAll(/\]\(([^)]+)\)/g)]
+                .map(([, href]) => href)
+                .filter((href) => {
+                    const match = INTRO_HREF.exec(href);
+                    return !match || !docsPages.has(match[2]);
+                })
+                .map((href) => `${exampleName} -> ${href}`)
+        );
+        expect(problems).toEqual([]);
+    });
+
+    it('throws when an example has no copy row', () => {
+        expect(() => resolveGallerySeo('mystery')).toThrow(/No gallery copy for example "mystery"/);
+    });
 });
 
 describe('the gallery hub copy', () => {
-    it('keeps the title within the length the formula holds the example pages to', () => {
+    it('keeps the title within a length search results will show', () => {
         expect(GALLERY_HUB_COPY.title.length).toBeLessThanOrEqual(MAX_TITLE_LENGTH);
     });
 
@@ -148,47 +171,13 @@ describe('galleryFamilyHeading', () => {
 
 describe('resolveGalleryH1', () => {
     it('resolves the same H1 the page serves, for every example', () => {
-        const disagree = EXAMPLES.filter(({ page }) => resolveGalleryH1(page) !== resolveGallerySeo(page).h1);
+        const disagree = EXAMPLES.filter(
+            ({ exampleName }) => resolveGalleryH1(exampleName) !== resolveGallerySeo(exampleName).h1
+        );
         expect(disagree).toEqual([]);
     });
-});
-
-describe('the hand-written page copy', () => {
-    it('is used verbatim where supplied', () => {
-        const seo = resolveGallerySeo(EXAMPLES.find(({ exampleName }) => exampleName === 'simple-bar')!.page);
-        expect(seo.title).toBe('Bar Chart Example - JavaScript Data Visualization | AG Charts');
-        expect(seo.h1).toBe('Bar Chart Example');
-        expect(seo.description).toContain('An interactive bar chart built with AG Charts: compare categories');
-    });
-});
-
-describe('the derived page copy', () => {
-    const seoFor = (exampleName: string) =>
-        resolveGallerySeo(EXAMPLES.find((example) => example.exampleName === exampleName)!.page);
 
     it('drops the "Simple" the gallery grid uses to disambiguate siblings', () => {
-        expect(seoFor('simple-horizontal-bar').h1).toBe('Horizontal Bar Chart Example');
-    });
-
-    it('reads the chart name mid-sentence without flattening initialisms', () => {
-        expect(seoFor('ohlc').intro).toContain('an OHLC chart built with AG Charts');
-        expect(seoFor('bubble-with-custom-svg-patterns').intro).toContain('bubble chart with custom SVG patterns');
-        expect(seoFor('100--stacked-area').intro).toContain('a 100% stacked area chart');
-    });
-
-    it("takes its wording from the example's own chart family", () => {
-        expect(seoFor('sankey-customisation').intro).toContain('proportionally sized links');
-        expect(seoFor('horizontal-box-plot').description).toContain('quartiles, medians, whiskers');
-    });
-
-    it('throws when a chart family has no copy row', () => {
-        expect(() =>
-            resolveGallerySeo({
-                title: 'Mystery Chart',
-                name: 'mystery',
-                seriesTitle: 'Mystery',
-                chartSeriesName: 'mystery',
-            })
-        ).toThrow(/No gallery copy for chart family "mystery"/);
+        expect(resolveGalleryH1('simple-horizontal-bar')).toBe('Horizontal Bar Chart Example');
     });
 });

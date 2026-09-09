@@ -28,7 +28,10 @@ async function expectNavSelfHighlighting(page: Page, uri: string) {
 }
 
 test.describe('docs-page-nav', () => {
-    setupIntrinsicAssertions(test);
+    // A series page renders gallery example cards, and the e2e environment deliberately skips
+    // `generate-thumbnails` (see ci.yml), so those cards have no image to load. The resulting 404s
+    // say nothing about the nav behaviour under test.
+    setupIntrinsicAssertions(test, { ignoreConsolePatterns: ['ag-charts-thumbnails'] });
 
     // API pages stack a second sticky bar under the site header, so their scroll offset is larger
     // than the rest of the docs.

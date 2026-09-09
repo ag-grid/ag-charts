@@ -70,7 +70,7 @@ describe('getRelatedExamples', () => {
     });
 
     it('anchors each link on the H1 the target page serves', () => {
-        const h1ByName = new Map(EXAMPLES.map(({ exampleName, page }) => [exampleName, resolveGallerySeo(page).h1]));
+        const h1ByName = new Map(EXAMPLES.map(({ exampleName }) => [exampleName, resolveGallerySeo(exampleName).h1]));
         const mismatched = EXAMPLES.flatMap(({ exampleName, relatedExamples }) =>
             relatedExamples
                 .filter(({ label, name }) => label !== h1ByName.get(name))

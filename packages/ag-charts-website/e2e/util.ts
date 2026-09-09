@@ -120,7 +120,13 @@ export function setupIntrinsicAssertions(
             if (msg.text().includes('This page is in Quirks Mode')) return;
 
             // Caller-supplied patterns to ignore (e.g. staging-specific noise not relevant to other specs).
-            if (opts.ignoreConsolePatterns?.some((p) => msg.text().includes(p))) return;
+            // Matched against the resource URL as well as the text: a failed request reports only
+            // its status, so the URL is the only thing naming what actually failed.
+            const messageText: string = msg.text();
+            const resourceUrl: string = msg.location().url;
+            if (opts.ignoreConsolePatterns?.some((p) => messageText.includes(p) || resourceUrl.includes(p))) {
+                return;
+            }
 
             // Browser/OS noise.
             if (msg.text().includes('GL Driver Message')) return;
