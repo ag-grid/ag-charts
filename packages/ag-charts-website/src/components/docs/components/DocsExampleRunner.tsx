@@ -2,11 +2,12 @@ import type { InternalFramework } from '@ag-grid-types';
 import { getLoadingIFrameId } from '@ag-website-shared/components/loading-logo/getElementId';
 import { excludeHiddenFiles } from '@components/docs/utils/excludeHiddenFiles';
 import type { ExampleType } from '@components/example-generator/types';
-import { ExampleRunner } from '@components/example-runner/components/ExampleRunner';
+import { DEFAULT_HEIGHT, ExampleRunner } from '@components/example-runner/components/ExampleRunner';
 import { ExternalLinks } from '@components/example-runner/components/ExternalLinks';
 import type { ExampleOptions } from '@components/example-runner/types';
 import { useStore } from '@nanostores/react';
 import { $internalFramework } from '@stores/frameworkStore';
+import { useHasMounted } from '@utils/hooks/useHasMounted';
 import { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 
@@ -202,6 +203,17 @@ const DocsExampleRunnerInner = ({
 };
 
 export const DocsExampleRunner = (props: Props) => {
+    // The island hydrates when scrolled into view, so it is also rendered on the server. The
+    // runner's framework and dark mode live in localStorage and its contents come from a client
+    // query, so until mounted render a placeholder rather than a default that hydration would
+    // replace. It has the example's height because Astro's visibility observer watches the
+    // island's children: an empty island would never hydrate.
+    const hasMounted = useHasMounted();
+
+    if (!hasMounted) {
+        return <div style={{ height: props.options?.exampleHeight ?? DEFAULT_HEIGHT }} />;
+    }
+
     return (
         <QueryClientProvider client={queryClient}>
             <DocsExampleRunnerInner {...props} />
