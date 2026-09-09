@@ -71,6 +71,10 @@
                 "url": "/contact/"
             },
             {
+                "name": "Terms of Use",
+                "url": "https://www.ag-grid.com/terms-of-use/"
+            },
+            {
                 "name": "Privacy Policy",
                 "url": "https://www.ag-grid.com/privacy/"
             },
