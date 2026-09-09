@@ -1,6 +1,25 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button id="twoFingerZoomToggle" aria-pressed="true" onclick="toggleTwoFingerZoom()">Two Finger Zoom</button>
+        <span>Two Finger Zoom:</span>
+        <div class="button-group" role="group" aria-label="Two Finger Zoom">
+            <input
+                type="radio"
+                id="two-finger-zoom-enabled"
+                name="two-finger-zoom"
+                value="true"
+                checked
+                onchange="toggleTwoFingerZoom(event)"
+            />
+            <label for="two-finger-zoom-enabled">Enabled</label>
+            <input
+                type="radio"
+                id="two-finger-zoom-disabled"
+                name="two-finger-zoom"
+                value="false"
+                onchange="toggleTwoFingerZoom(event)"
+            />
+            <label for="two-finger-zoom-disabled">Disabled</label>
+        </div>
     </div>
 </div>
 

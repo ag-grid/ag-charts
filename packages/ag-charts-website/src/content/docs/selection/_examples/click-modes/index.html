@@ -20,7 +20,20 @@
             />
             <label for="click-mode-multiple"><code>'multiple'</code></label>
         </div>
-        <button id="clickAwayToggle" aria-pressed="true" onclick="setClickAway()">Click-away to clear</button>
+        <span>Click-away to clear:</span>
+        <div class="button-group" role="group" aria-label="Click-away to clear">
+            <input
+                type="radio"
+                id="click-away-true"
+                name="click-away"
+                value="true"
+                checked
+                onchange="setClickAway(event)"
+            />
+            <label for="click-away-true"><code>true</code></label>
+            <input type="radio" id="click-away-false" name="click-away" value="false" onchange="setClickAway(event)" />
+            <label for="click-away-false"><code>false</code></label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

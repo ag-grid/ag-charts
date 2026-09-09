@@ -1,6 +1,25 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button id="outOfRangeToggle" aria-pressed="false" onclick="toggleOutOfRange()">Out of Range</button>
+        <span>Enable Out of Range:</span>
+        <div class="button-group" role="group" aria-label="Enable Out of Range">
+            <input
+                type="radio"
+                id="out-of-range-true"
+                name="out-of-range"
+                value="true"
+                onchange="toggleOutOfRange(event)"
+            />
+            <label for="out-of-range-true">True</label>
+            <input
+                type="radio"
+                id="out-of-range-false"
+                name="out-of-range"
+                value="false"
+                checked
+                onchange="toggleOutOfRange(event)"
+            />
+            <label for="out-of-range-false">False (default)</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>
