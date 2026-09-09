@@ -29,10 +29,6 @@ const options: AgChartOptions = {
             sizeName: 'Capacity',
             secondaryLabelKey: 'capacity',
             innerRadiusRatio: 0.35,
-            innerCircle: {
-                fill: 'grey',
-                fillOpacity: 0.08,
-            },
             innerLabels: [
                 {
                     text: 'Total Capacity',
