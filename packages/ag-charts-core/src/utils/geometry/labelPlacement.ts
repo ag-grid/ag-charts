@@ -1609,11 +1609,11 @@ function shrunkCandidateIsClear(region: BoxBounds, inflate: number): boolean {
  * The narrowest glyph budget a re-fit of the label's text can leave a character in, or 0 when that cannot
  * be told cheaply. `textWrap` breaks on the per-grapheme estimate and then confirms against the measured
  * width, so the smaller of the two is what a budget has to reach. Under `'hide'` a word broken by the
- * budget erases the label, so the widest word (the widest line, when wrapping is off) is the floor; under
- * `'ellipsis'` a character survives only whole in a word that fits or ahead of an ellipsis, so the floor is
- * the cheaper of the narrowest word and the narrowest grapheme plus the ellipsis. Only an unstyled plain
- * string at the configured font qualifies: a segmented or shape-bound label wraps by other rules and a
- * hyphenating one can break inside a word.
+ * budget erases the label, so the widest word (the widest line, when wrapping is off) is the floor. Under
+ * `'ellipsis'` a truncation keeps a prefix of the line, so a character survives only when a line's first
+ * word fits whole or its first grapheme fits ahead of the ellipsis, and the cheapest line is the floor.
+ * Only an unstyled plain string at the configured font qualifies: a segmented or shape-bound label wraps
+ * by other rules and a hyphenating one can break inside a word.
  */
 function minRefitWidth(fit: LabelFitDescriptor): number {
     if (!Number.isNaN(cascadeMinRefitWidth)) return cascadeMinRefitWidth;
@@ -1622,37 +1622,57 @@ function minRefitWidth(fit: LabelFitDescriptor): number {
     let floor = 0;
     if (
         (overflowStrategy === 'hide' || overflowStrategy === 'ellipsis') &&
+        fit.fitOverflow == null &&
         policy.region == null &&
         !isArray(text) &&
         (wrapping == null || wrapping === 'on-space' || wrapping === 'never')
     ) {
         const measurer = cascadeMeasurer ?? cachedTextMeasurer(fit.font);
         const hide = overflowStrategy === 'hide';
+        const ellipsisWidth = hide ? 0 : measurer.textWidth(EllipsisChar);
         let widestUnit = 0;
-        let narrowestUnit = Infinity;
-        let narrowestGrapheme = Infinity;
+        let narrowestLead = Infinity;
         for (const line of toTextString(text).split(LineSplitter)) {
             for (const unit of wrapping === 'never' ? [line.trimEnd()] : line.split(' ')) {
                 if (unit === '') continue;
+                const graphemes = graphemeSegments(unit);
                 let estimate = 0;
-                for (const grapheme of graphemeSegments(unit)) {
-                    const width = measurer.textWidth(grapheme);
-                    estimate += width;
-                    narrowestGrapheme = Math.min(narrowestGrapheme, width);
+                for (const grapheme of graphemes) {
+                    estimate += measurer.textWidth(grapheme);
                 }
                 const unitWidth = Math.min(estimate, measurer.textWidth(unit));
-                widestUnit = Math.max(widestUnit, unitWidth);
-                narrowestUnit = Math.min(narrowestUnit, unitWidth);
+                if (hide) {
+                    widestUnit = Math.max(widestUnit, unitWidth);
+                    continue;
+                }
+                // Only the line's leading word can survive a truncation, so the rest of the line is moot.
+                narrowestLead = Math.min(narrowestLead, unitWidth, measurer.textWidth(graphemes[0]) + ellipsisWidth);
+                break;
             }
         }
         if (hide) {
             floor = widestUnit;
-        } else if (narrowestUnit !== Infinity) {
-            floor = Math.min(narrowestUnit, narrowestGrapheme + measurer.textWidth(EllipsisChar));
+        } else if (narrowestLead !== Infinity) {
+            floor = narrowestLead;
         }
     }
     cascadeMinRefitWidth = floor;
     return floor;
+}
+
+/**
+ * Whether losing a line of height is certain to erase the label's text. A height reduction only counts
+ * from a whole line up, a narrower re-wrap never needs fewer lines than the current fit, and `'hide'`
+ * erases the text once a line is clipped; so for a plain string with no overflow fallback the re-fit can
+ * be failed without wrapping anything.
+ */
+function erasesOnLostLine(fit: LabelFitDescriptor): boolean {
+    return (
+        fit.policy.overflowStrategy === 'hide' &&
+        fit.fitOverflow == null &&
+        fit.policy.region == null &&
+        !isArray(fit.text)
+    );
 }
 
 /**
@@ -1687,8 +1707,11 @@ function shrinkCompassCandidate(
     // Most re-fits fail by breaking a word the budget cannot hold, so the reduction the text can afford
     // caps the query and rejects the candidate before any text is wrapped.
     const affordableWidth = unstyled ? candidateLabel.glyphWidth - minRefitWidth(fit) : Infinity;
-    const widthCap = upright ? affordableWidth : Infinity;
-    const heightCap = upright ? Infinity : affordableWidth;
+    const affordableHeight = unstyled && erasesOnLostLine(fit) ? 0 : Infinity;
+    const widthCap = upright ? affordableWidth : affordableHeight;
+    const heightCap = upright ? affordableHeight : affordableWidth;
+    // Neither axis can give anything up, so no reduction the obstacles ask for is worth measuring.
+    if (widthCap <= 0 && heightCap <= 0) return false;
     if (!measureShrinkReduction(vec?.x ?? 0, vec?.y ?? 0, cascadeInflate, floorX, floorY, widthCap, heightCap)) {
         return false;
     }
