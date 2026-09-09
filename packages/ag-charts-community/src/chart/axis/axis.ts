@@ -1171,14 +1171,16 @@ export abstract class Axis<
     }
 
     /**
-     * Whether every series the user has switched on resolves to nothing renderable — the state the
-     * chart raises its no-data overlay in, so gridlines drawn behind it would contradict it.
-     * Switched-off series are excluded deliberately: a chart with every series hidden on a fixed axis
-     * domain is an empty chart, not a misconfigured one, and keeps its grid.
+     * Whether the chart as a whole resolves to nothing renderable — the state it raises its no-data
+     * overlay in, so gridlines drawn behind it would contradict it. Every axis reads the same
+     * chart-wide verdict, so a series that resolves to nothing cannot take the grid off its own axis
+     * while a populated series elsewhere keeps the chart displayed. Legend-hidden series are excluded:
+     * their `hasData` depends on whether they have ever been processed, which would make the grid
+     * flip on a toggle round-trip.
      */
     private hasNoSeriesData() {
         let enabledCount = 0;
-        for (const series of this.boundSeries) {
+        for (const series of this.moduleCtx.chartService.series) {
             if (!series.isEnabled()) continue;
             if (series.hasData) return false;
             enabledCount++;

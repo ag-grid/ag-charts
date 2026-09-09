@@ -1733,6 +1733,35 @@ describe('BubbleSeries', () => {
             expect(deproxy(chart).series[0].hasData).toBe(false);
         });
 
+        it('keeps every grid when a second series on another y axis is still resolvable', async () => {
+            const options = {
+                data: [
+                    { x: 1, y: 1, y2: 4, s: 10 },
+                    { x: 2, y: 2, y2: 5, s: 20 },
+                ],
+                series: [
+                    { type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: '' },
+                    { type: 'bubble', xKey: 'x', yKey: 'y2', yKeyAxis: 'y2', sizeKey: 's' },
+                ],
+                legend: { enabled: false },
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    y2: { type: 'number', position: 'right' },
+                },
+            } as AgCartesianChartOptions;
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // No no-data overlay is raised while one series resolves, so no axis may drop its grid.
+            expect(gridLinesVisible(chart)).toEqual([true, true, true]);
+            expect(deproxy(chart).series[1].hasData).toBe(true);
+            expectWarningsCalls().toEqual([
+                [`AG Charts - the key '' was not found in any data element for BubbleSeries-1.`],
+            ]);
+        });
+
         it('labels the markers from an empty sizeKey the data does carry', async () => {
             await createBubble({ sizeKey: '', label: { enabled: true } }, withEmptyColumn);
 
