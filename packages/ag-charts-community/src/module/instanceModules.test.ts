@@ -2,13 +2,19 @@ import type { Mock } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { type ModuleDefinition, ModuleRegistry, ModuleType, enterpriseRegistry } from 'ag-charts-core';
-import type { AgCartesianChartOptions, AgChartInstance, AgSparklineOptions } from 'ag-charts-types';
+import type {
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgPolarChartOptions,
+    AgSparklineOptions,
+} from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
 import { SparklinePresetModule } from '../api/preset/presetModules';
 import { LegendModule } from '../chart/legend/legendModule';
 import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import { LineSeriesModule } from '../chart/series/cartesian/lineSeriesModule';
+import { PieSeriesModule } from '../chart/series/polar/pieSeriesModule';
 import { prepareTestOptions, setupMockCanvas, setupMockConsole, waitForChartStability } from '../chart/test/utils';
 import { CategoryAxisModule } from './axis-modules/categoryAxisModule';
 import { NumberAxisModule } from './axis-modules/numberAxisModule';
@@ -29,19 +35,18 @@ const BAR_CHART: AgCartesianChartOptions = {
     series: [{ type: 'bar', xKey: 'quarter', yKey: 'revenue' }],
 };
 
+const PIE_CHART: AgPolarChartOptions = {
+    data: LINE_CHART.data,
+    series: [{ type: 'pie', angleKey: 'revenue', legendItemKey: 'quarter' }],
+};
+
 const LINE_MODULES = [LineSeriesModule, CategoryAxisModule, NumberAxisModule];
 
-function processOptions(userOptions: AgCartesianChartOptions, modules?: ModuleDefinition[]) {
-    return new ChartOptions<AgCartesianChartOptions>(
-        undefined,
-        userOptions,
-        {},
-        {},
-        { modules },
-        undefined,
-        false,
-        false
-    );
+function processOptions<T extends AgCartesianChartOptions | AgPolarChartOptions>(
+    userOptions: T,
+    modules?: ModuleDefinition[]
+) {
+    return new ChartOptions<T>(undefined, userOptions, {}, {}, { modules }, undefined, false, false);
 }
 
 // Reads and clears, so an asserted message does not trip the mock console's clean-exit check.
@@ -146,6 +151,31 @@ describe('instance modules', () => {
             const chartOptions = processOptions(LINE_CHART, [LineSeriesModule]);
             expect(axisCount(chartOptions)).toBe(2);
             expect(console.error).not.toHaveBeenCalled();
+        });
+    });
+
+    // The pie template enables `legend` by default; only a user-set legend should report the module.
+    describe('theme defaults for unregistered modules', () => {
+        it('drops a template default for an unregistered plugin without reporting it', () => {
+            const chartOptions = processOptions(PIE_CHART, [PieSeriesModule]);
+
+            expect(chartOptions.processedOptions.series).toHaveLength(1);
+            expect('legend' in chartOptions.processedOptions).toBe(false);
+            expect(console.error).not.toHaveBeenCalled();
+        });
+
+        it('reports an unregistered plugin enabled through theme overrides', () => {
+            processOptions({ ...PIE_CHART, theme: { overrides: { pie: { legend: { enabled: true } } } } }, [
+                PieSeriesModule,
+            ]);
+
+            expect(takeConsoleMessages('error').some((m) => m.includes('LegendModule'))).toBe(true);
+        });
+
+        it('reports an unregistered plugin enabled through options', () => {
+            processOptions({ ...PIE_CHART, legend: { enabled: true } }, [PieSeriesModule]);
+
+            expect(takeConsoleMessages('error').some((m) => m.includes('LegendModule'))).toBe(true);
         });
     });
 
