@@ -135,6 +135,19 @@ describe('ChartValidations', () => {
             expect(validations.hasVisibleIssues()).toBe(true);
         });
 
+        it('keeps a dismissed overlay dismissed when an issue the selection does not show arrives', () => {
+            const { logger, validations, changes } = build();
+            validations.setShowOverlayOn(['error']);
+            logger.error('shown');
+            validations.dismiss();
+            changes.mockClear();
+
+            logger.warn('not shown');
+
+            expect(validations.hasVisibleIssues()).toBe(false);
+            expect(changes).not.toHaveBeenCalled();
+        });
+
         it('keeps a dismissed overlay dismissed when the same runtime error re-reports', () => {
             const { logger, validations } = build();
             validations.setShowOverlayOn(['error']);

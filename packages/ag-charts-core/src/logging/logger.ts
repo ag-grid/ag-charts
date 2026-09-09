@@ -28,11 +28,11 @@ export interface LogIssue {
 // A logged value can be anything a user callback threw, so serialisation must not be the thing that throws.
 function stringifyLogContent(value: unknown): string {
     if (value instanceof Error || typeof value !== 'object' || value == null) return String(value);
-    if (value.toString !== Object.prototype.toString) return String(value);
+    const customToString = typeof value.toString === 'function' && value.toString !== Object.prototype.toString;
     try {
-        return JSON.stringify(value);
+        return customToString ? String(value) : JSON.stringify(value);
     } catch {
-        return String(value);
+        return '[object Object]';
     }
 }
 

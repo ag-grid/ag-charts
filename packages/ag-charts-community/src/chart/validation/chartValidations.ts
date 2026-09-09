@@ -249,8 +249,8 @@ export class ChartValidations {
             // An issue raised by interaction has no pass to re-raise it, so no pass retires it.
             const pass = this.openPasses.at(-1);
             if (pass != null) this.passOf.set(key, pass);
-            this.dismissed = false;
             if ((this.showOverlayMask & SEVERITY_BIT[issue.severity]) !== 0) {
+                this.dismissed = false;
                 this.eventsHub.emit('validation:change', null);
             }
         }

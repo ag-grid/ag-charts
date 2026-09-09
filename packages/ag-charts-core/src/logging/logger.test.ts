@@ -255,6 +255,21 @@ describe('Logger', () => {
             expect(listener).toHaveBeenNthCalledWith(2, { severity: 'warning', message: '[object Object]' });
         });
 
+        it('serialises a null-prototype object, which has no toString, rather than throwing', () => {
+            const logger = new Logger();
+            const listener = vi.fn();
+            logger.onIssue(listener);
+            const bare = Object.assign(Object.create(null), { code: 1 });
+
+            expect(() => logger.warn('callback threw', bare)).not.toThrow();
+
+            expect(listener).toHaveBeenCalledWith({
+                severity: 'warning',
+                message: 'callback threw',
+                detail: '{"code":1}',
+            });
+        });
+
         it('keeps two distinct object messages apart, rather than collapsing both to [object Object]', () => {
             const logger = new Logger();
             const listener = vi.fn();
