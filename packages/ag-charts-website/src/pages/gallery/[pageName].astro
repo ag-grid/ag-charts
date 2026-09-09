@@ -9,7 +9,6 @@ import { GalleryIntro } from '@components/gallery/components/GalleryIntro';
 import { GallerySeriesLink } from '@components/gallery/components/GallerySeriesLink';
 import { resolveGallerySeo } from '@components/gallery/utils/gallerySeo';
 import { relatedExamplesHeading } from '@components/gallery/utils/relatedExamples';
-import { GALLERY_FRAMEWORK_LINKS } from '@components/gallery/galleryFrameworkLinks';
 import { GALLERY_IMAGE_DPR_ENHANCEMENT } from '@constants';
 
 export async function getStaticPaths() {
@@ -45,20 +44,6 @@ const relatedHeading = relatedExamplesHeading({ seriesTitle: page.seriesTitle, r
         </div>
 
         <p class="intro"><GalleryIntro intro={seo.intro} /></p>
-
-        <p class="frameworkLinks text-secondary">
-            {/* Array children are concatenated verbatim, so indentation cannot add stray spaces. */}
-            {
-                [
-                    'Get started with ',
-                    ...GALLERY_FRAMEWORK_LINKS.flatMap(({ label, url }, i) => [
-                        i === 0 ? '' : i === GALLERY_FRAMEWORK_LINKS.length - 1 ? ' or ' : ', ',
-                        <a href={url}>{label}</a>,
-                    ]),
-                    '.',
-                ]
-            }
-        </p>
 
         <GalleryExampleRunner exampleName={exampleName} />
 
@@ -103,18 +88,13 @@ const relatedHeading = relatedExamplesHeading({ seriesTitle: page.seriesTitle, r
         padding-bottom: $spacing-size-2;
     }
 
-    // Sits directly under the title, styled as the framework links below the intro.
+    // Sits directly under the title, styled to match the intro below it.
     .seriesDocsLink {
         margin-bottom: $spacing-size-4;
         font-size: var(--text-fs-sm);
     }
 
     .intro {
-        margin-bottom: $spacing-size-2;
-        font-size: var(--text-fs-sm);
-    }
-
-    .frameworkLinks {
         max-width: 70ch;
         margin-bottom: $spacing-size-6;
         font-size: var(--text-fs-sm);
