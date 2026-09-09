@@ -407,6 +407,140 @@ describe('series label fit', () => {
         });
         expect(someTruncated(nestedLabelTexts(1))).toBe(true);
     });
+    describe('map-shape (fits inside the shape polygon)', () => {
+        const ukSeries = (label: object, labelText = 'A long label that has to wrap inside its shape') => ({
+            topology: ukTopology,
+            series: [
+                {
+                    type: 'map-shape',
+                    data: [
+                        { name: 'England', label: labelText },
+                        { name: 'Scotland', label: labelText },
+                        { name: 'Wales', label: labelText },
+                        { name: 'Northern Ireland', label: labelText },
+                    ],
+                    idKey: 'name',
+                    labelKey: 'label',
+                    label,
+                },
+            ],
+        });
+        const mapShapeLabels = (): { text: unknown; fontSize: number }[] =>
+            (chart.series[0].contextNodeData?.labelData ?? []) as { text: unknown; fontSize: number }[];
+        const expectCornersInside = (shape: any, box: { x: number; y: number; width: number; height: number }) => {
+            for (const [x, y] of [
+                [box.x, box.y],
+                [box.x + box.width, box.y],
+                [box.x, box.y + box.height],
+                [box.x + box.width, box.y + box.height],
+            ]) {
+                // Shape edges are drawn with a stroke, so a corner on the edge is allowed 1px of slack.
+                expect(shape.distanceSquared(x, y)).toBeLessThanOrEqual(1);
+            }
+        };
+        const eachLabelShape = (visit: (shape: any, text: any) => void) => {
+            const series = chart.series[0];
+            const shapes = new Map<unknown, any>();
+            series.datumSelection.each((node: any, datum: any) => shapes.set(datum.idValue, node));
+            series.labelSelection.each((text: any, labelDatum: any) => visit(shapes.get(labelDatum.idValue), text));
+        };
+        // Every drawn line box must sit inside its shape, which is the contract the region fit makes.
+        const everyLineInsideItsShape = () => {
+            let checked = 0;
+            eachLabelShape((shape, text) => {
+                for (const box of text.getLineBoxes()) {
+                    checked += 1;
+                    expectCornersInside(shape, box);
+                }
+            });
+            return checked;
+        };
+
+        it('wraps labels within their shape by default', async () => {
+            await renderAndSnapshot(ukSeries({ fontSize: 10 }));
+            expect(someWrapped(flatLabelTexts())).toBe(true);
+            expect(everyLineInsideItsShape()).toBeGreaterThan(1);
+        });
+
+        // A filled label draws one rectangle round the whole block, which has to fit the shape as a rectangle:
+        // in a triangle the lines nearer the apex are narrower than the widest line the box is drawn to.
+        it('keeps the box drawn round a label inside the shape', async () => {
+            const triangle = {
+                type: 'FeatureCollection',
+                features: [
+                    {
+                        type: 'Feature',
+                        properties: { name: 'Apex' },
+                        geometry: {
+                            type: 'Polygon',
+                            coordinates: [
+                                [
+                                    [0, 0],
+                                    [3, 0],
+                                    [1.5, 12],
+                                    [0, 0],
+                                ],
+                            ],
+                        },
+                    },
+                ],
+            };
+            await renderAndSnapshot({
+                topology: triangle,
+                series: [
+                    {
+                        type: 'map-shape',
+                        data: [{ name: 'Apex', label: 'A long label that has to wrap inside its shape' }],
+                        idKey: 'name',
+                        labelKey: 'label',
+                        label: { fontSize: 18, color: 'black', fill: 'white', padding: 4, truncate: true },
+                    },
+                ],
+            });
+            let checked = 0;
+            eachLabelShape((shape, text) => {
+                const boxes: { x: number; y: number; width: number; height: number }[] = text.getLineBoxes();
+                if (boxes.length === 0) return;
+                checked += 1;
+                // The line boxes tile the drawn box, padding included, so their union is the rectangle drawn.
+                const x = Math.min(...boxes.map((box) => box.x));
+                const y = Math.min(...boxes.map((box) => box.y));
+                const right = Math.max(...boxes.map((box) => box.x + box.width));
+                const bottom = Math.max(...boxes.map((box) => box.y + box.height));
+                expectCornersInside(shape, { x, y, width: right - x, height: bottom - y });
+            });
+            expect(checked).toBe(1);
+        });
+
+        // Setting `wrapping` is one of the shared triggers that turns `truncate` on, so it is disabled again here.
+        it('hides a label that does not fit at all rather than truncating it', async () => {
+            await renderAndSnapshot(ukSeries({ fontSize: 14, wrapping: 'never', truncate: false }));
+            expect(someTruncated(flatLabelTexts())).toBe(false);
+            expect(flatLabelTexts().length).toBeLessThan(4);
+        });
+
+        it('truncates within an explicit maxWidth/maxHeight', async () => {
+            await renderAndSnapshot(ukSeries({ fontSize: 10, maxWidth: 40, maxHeight: 30, truncate: true }));
+            const boxes: any[] = [];
+            chart.series[0].labelSelection.each((text: any) => boxes.push(...text.getLineBoxes()));
+            expect(boxes.length).toBeGreaterThan(0);
+            expect(boxes.every((box) => box.width <= 40 + 1)).toBe(true);
+            expect(someTruncated(flatLabelTexts())).toBe(true);
+        });
+
+        it('shrinks labels to minimumFontSize before wrapping or hiding them', async () => {
+            await renderAndSnapshot(
+                ukSeries({ fontSize: 14, wrapping: 'never', minimumFontSize: 6, truncate: false }, 'Tiny label')
+            );
+            const labels = mapShapeLabels();
+            expect(labels.length).toBe(4);
+            expect(labels.some((label) => label.fontSize < 14)).toBe(true);
+            expect(labels.every((label) => label.fontSize >= 6)).toBe(true);
+            expect(someTruncated(flatLabelTexts())).toBe(false);
+            expect(everyLineInsideItsShape()).toBe(labels.length);
+        });
+    });
+
     // A pyramid stage is a trapezoid, and the apex one is a triangle: the room a line of text gets depends on
     // where in the stage it sits, so a long apex label wraps into the narrowing point rather than against one
     // inscribed rectangle's width.

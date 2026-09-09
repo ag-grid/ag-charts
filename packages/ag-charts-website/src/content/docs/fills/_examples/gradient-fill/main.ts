@@ -23,22 +23,21 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function defaultGradient() {
-    (options.series![0] as AgBarSeriesOptions).fill = {
-        type: 'gradient',
-    };
-    chart.update(options);
-}
-
-function gradientColorStops() {
-    (options.series![0] as AgBarSeriesOptions).fill = {
-        type: 'gradient',
-        colorStops: [
-            { color: '#70C1FF', stop: 0.1 },
-            { color: '#FFD86F', stop: 0.3 },
-            { color: '#FF9A60', stop: 0.5 },
-            { color: '#D16BA5' },
-        ],
-    };
+function gradientChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    (options.series![0] as AgBarSeriesOptions).fill =
+        value === 'colorStops'
+            ? {
+                  type: 'gradient',
+                  colorStops: [
+                      { color: '#70C1FF', stop: 0.1 },
+                      { color: '#FFD86F', stop: 0.3 },
+                      { color: '#FF9A60', stop: 0.5 },
+                      { color: '#D16BA5' },
+                  ],
+              }
+            : {
+                  type: 'gradient',
+              };
     chart.update(options);
 }

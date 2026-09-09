@@ -80,9 +80,37 @@ In this configuration:
 
 - `labelKey` defines what will appear as the title for each tile.
 
-{% note %}
-See [Label options](#reference-AgMapShapeSeriesOptions-label) for options for handling long labels.
-{% /note %}
+### Label Fitting
+
+Labels are always fitted to the shape they sit in: text wraps to the room the shape offers on each line, and a label that still does not fit is hidden. The `label` options control how that fitting behaves.
+
+{% chartExampleRunner title="Label Fitting" name="label-fitting" type="generated" /%}
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'map-shape',
+            idKey: 'name',
+            labelKey: 'name',
+            label: {
+                wrapping: 'on-space',
+                truncate: true,
+                minimumFontSize: 8,
+            },
+        },
+    ],
+}
+```
+
+In this example:
+
+- `wrapping` (`'on-space'`, `'always'`, `'hyphenate'`, `'never'`) controls how text wraps within the shape. The default is `'on-space'`.
+- `maxWidth` and `maxHeight` cap the label size in pixels. The shape bounds the label as well, and whichever bound is tighter applies.
+- `truncate` appends an ellipsis to whatever still does not fit. With it disabled the label is hidden instead.
+- `minimumFontSize` lets the label shrink to fit before it is truncated or hidden.
+
+See [Series Labels](./series-labels/#collision-avoidance) for how these options behave across other series types.
 
 ## Background Shapes
 

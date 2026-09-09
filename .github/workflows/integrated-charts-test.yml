@@ -36,7 +36,7 @@ jobs:
         timeout-minutes: 60
         steps:
             - name: Checkout ag-charts
-              uses: actions/checkout@v7
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
             - name: Setup
               uses: ./.github/actions/setup-nx
@@ -120,7 +120,7 @@ jobs:
 
             - name: Slack Notification (failure)
               if: failure()
-              uses: rtCamp/action-slack-notify@v2
+              uses: rtCamp/action-slack-notify@33ca3be66c6f378fe1610fd1d5258632dbed5e58 # v2.4.0
               env:
                   SLACK_COLOR: failure
                   SLACK_TITLE: Integrated Charts Pre-Integration Test Failed
@@ -134,7 +134,7 @@ jobs:
               # Only announce a return to green, not every routine pass, so a daily
               # "still fine" ping doesn't become noise.
               if: success() && steps.prev_run.outputs.conclusion == 'failure'
-              uses: rtCamp/action-slack-notify@v2
+              uses: rtCamp/action-slack-notify@33ca3be66c6f378fe1610fd1d5258632dbed5e58 # v2.4.0
               env:
                   SLACK_COLOR: good
                   SLACK_TITLE: Integrated Charts Pre-Integration Test Recovered

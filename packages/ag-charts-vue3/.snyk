@@ -5,38 +5,22 @@ ignore:
     - vue@3.5.16 > @vue/compiler-sfc@3.5.16 > postcss@8.5.3:
         reason: >-
             Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-07-27T10:17:20.222Z
   SNYK-JS-POSTCSS-18313036:
     - vue@3.5.16 > @vue/compiler-sfc@3.5.16 > postcss@8.5.3:
         reason: >-
             Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-07-27T10:16:26.761Z
-  SNYK-JS-BRACEEXPANSION-18313044:
-    - rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
-        created: 2026-07-27T09:08:46.902Z
-  SNYK-JS-BRACEEXPANSION-15789759:
-    - rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
-        reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
-        created: 2026-03-27T16:17:29.480Z
   SNYK-JS-MINIMATCH-15353389:
     - rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2:
         reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T17:26:40.532Z
   SNYK-JS-MINIMATCH-15309438:
     - rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2:
         reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+        expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T16:57:12.994Z
-  SNYK-JS-BRACEEXPANSION-17706650:
-    - rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
-        reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
-        expires: '2026-10-23T00:00:00.000Z'
-        created: '2026-07-23T00:00:00.000Z'
 patch: {}

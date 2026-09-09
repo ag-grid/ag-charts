@@ -56,8 +56,9 @@ const options: AgChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setLoading(value: boolean | undefined) {
-    chart.updateDelta({ loading: value });
+function loadingChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    chart.updateDelta({ loading: value === 'undefined' ? undefined : value === 'true' });
 }
 
 function reload() {

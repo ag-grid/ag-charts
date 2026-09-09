@@ -218,55 +218,40 @@ let options: AgCartesianChartOptions | AgPolarChartOptions = {
 // Create chart
 const chart = AgCharts.create(options as AgChartOptions);
 
-function changeSeriesBar() {
-    variance = 20;
+function seriesTypeChange(event: Event) {
+    const seriesType = (event.target as HTMLInputElement).value as 'bar' | 'line' | 'area' | 'donut';
+
     offset = 0;
-    length = 8;
     seed = 1234;
 
-    options.series = barOptions.series;
-    options.axes = barOptions.axes;
+    switch (seriesType) {
+        case 'bar':
+            variance = 20;
+            length = 8;
+            options.series = barOptions.series;
+            options.axes = barOptions.axes;
+            break;
+        case 'line':
+            variance = 4;
+            length = 30;
+            options.series = lineOptions.series;
+            options.axes = lineOptions.axes;
+            break;
+        case 'area':
+            variance = 20;
+            length = 30;
+            options.series = areaOptions.series;
+            options.axes = areaOptions.axes;
+            break;
+        case 'donut':
+            variance = 30;
+            length = 6;
+            options.series = donutOptions.series;
+            options.axes = donutOptions.axes;
+            break;
+    }
+
     options.data = getGeneratedData();
-
-    chart.update(options);
-}
-
-function changeSeriesLine() {
-    variance = 4;
-    offset = 0;
-    length = 30;
-    seed = 1234;
-
-    options.series = lineOptions.series;
-    options.axes = lineOptions.axes;
-    options.data = getGeneratedData();
-
-    chart.update(options);
-}
-
-function changeSeriesArea() {
-    variance = 20;
-    offset = 0;
-    length = 30;
-    seed = 1234;
-
-    options.series = areaOptions.series;
-    options.axes = areaOptions.axes;
-    options.data = getGeneratedData();
-
-    chart.update(options);
-}
-
-function changeSeriesDonut() {
-    variance = 30;
-    offset = 0;
-    length = 6;
-    seed = 1234;
-
-    options.series = donutOptions.series;
-    options.axes = donutOptions.axes;
-    options.data = getGeneratedData();
-
     chart.update(options);
 }
 

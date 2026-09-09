@@ -2,10 +2,4 @@
 version: v1.25.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
-    SNYK-JS-FOLLOWREDIRECTS-16032162:
-        - skia-canvas@3.0.8 > follow-redirects@1.15.11:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-05-01T11:18:01.217Z
 patch: {}
