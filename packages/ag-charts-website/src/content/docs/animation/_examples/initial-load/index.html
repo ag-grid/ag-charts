@@ -1,9 +1,22 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="changeSeriesBar()">Bar</button>
-        <button onclick="changeSeriesLine()">Line</button>
-        <button onclick="changeSeriesArea()">Area</button>
-        <button onclick="changeSeriesDonut()">Pie &amp; Donut</button>
+        <div class="button-group" role="group" aria-label="Series Type">
+            <input
+                type="radio"
+                id="series-bar"
+                name="series-type"
+                value="bar"
+                checked
+                onchange="seriesTypeChange(event)"
+            />
+            <label for="series-bar">Bar</label>
+            <input type="radio" id="series-line" name="series-type" value="line" onchange="seriesTypeChange(event)" />
+            <label for="series-line">Line</label>
+            <input type="radio" id="series-area" name="series-type" value="area" onchange="seriesTypeChange(event)" />
+            <label for="series-area">Area</label>
+            <input type="radio" id="series-donut" name="series-type" value="donut" onchange="seriesTypeChange(event)" />
+            <label for="series-donut">Pie &amp; Donut</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

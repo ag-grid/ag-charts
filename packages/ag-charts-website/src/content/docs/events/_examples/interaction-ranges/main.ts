@@ -31,28 +31,13 @@ let options: AgCartesianChartOptions<DataType> = {
 
 const chart = AgCharts.create(options);
 
-function exact() {
+function nodeClickRangeChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    const nodeClickRange = value === 'distance' ? 10 : (value as 'exact' | 'nearest');
+
     options.series = options.series!.map((series) => ({
         ...series,
-        nodeClickRange: 'exact',
-    }));
-
-    chart.update(options);
-}
-
-function nearest() {
-    options.series = options.series!.map((series) => ({
-        ...series,
-        nodeClickRange: 'nearest',
-    }));
-
-    chart.update(options);
-}
-
-function distance() {
-    options.series = options.series!.map((series) => ({
-        ...series,
-        nodeClickRange: 10,
+        nodeClickRange,
     }));
 
     chart.update(options);

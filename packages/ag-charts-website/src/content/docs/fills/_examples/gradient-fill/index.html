@@ -1,7 +1,24 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="defaultGradient()">Default</button>
-        <button onclick="gradientColorStops()">Gradient Color Stops</button>
+        <div class="button-group" role="group" aria-label="Gradient Fill">
+            <input
+                type="radio"
+                id="gradient-default"
+                name="gradient-fill"
+                value="default"
+                checked
+                onchange="gradientChange(event)"
+            />
+            <label for="gradient-default">Default</label>
+            <input
+                type="radio"
+                id="gradient-color-stops"
+                name="gradient-fill"
+                value="colorStops"
+                onchange="gradientChange(event)"
+            />
+            <label for="gradient-color-stops">Gradient Color Stops</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>
