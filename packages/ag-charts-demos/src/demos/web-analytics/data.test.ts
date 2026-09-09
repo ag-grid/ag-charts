@@ -115,9 +115,7 @@ describe('path flow', () => {
 });
 
 describe('comparison series', () => {
-    // A degraded day in the previous period reads as an unexplained cliff: cross-lines only
-    // overlay the current range, and the previous series is drawn against the current x.
-    // Spikes are fine here — they stay plausible traffic; only a collapse is unaccountable.
+    // A collapsed day here reads as an unexplained cliff: cross-lines overlay only the current range.
     it.each(DASHBOARD_RANGES)('holds the %i-day previous period clear of collapsed days', (days: number) => {
         const points = dailySummary(previousRangeOf(days));
         const sorted = points.map((p) => p.sessions).sort((a, b) => a - b);

@@ -186,6 +186,7 @@ const RETURNING_VISITOR_POOL = 1500;
 // Days before DATA_END, so events stay anchored near "today" whatever the history length.
 const fromEnd = (daysBeforeEnd: number) => HISTORY_DAYS - 1 - daysBeforeEnd;
 const EVENT_OFFSET = {
+    // Must stay clear of every range's comparison period, or the dip lands on a series no cross-line explains.
     outage: fromEnd(60),
     springLaunch: fromEnd(27),
     creatorCollab: fromEnd(15),
@@ -329,7 +330,7 @@ export const SEED_ANNOTATIONS: Annotation[] = [
     {
         annotationId: 'a1',
         date: dayDate(EVENT_OFFSET.outage),
-        label: 'API outage',
+        label: 'Site outage',
         description: 'Site-wide outage after a bad deploy.',
         type: 'product',
         createdBy: 'ops',
