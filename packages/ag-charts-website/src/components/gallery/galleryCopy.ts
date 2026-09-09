@@ -296,84 +296,84 @@ export const GALLERY_EXAMPLE_COPY: Record<string, GalleryExampleCopy> = {
         intro: 'This example shows multiple concentric donut charts built with AG Charts, comparing daily water usage per person by country in the outer ring and by continent in the inner ring, each [donut series](/r/donut-series/) with its own radius, corner radius and [tooltip](/r/tooltips/) renderer. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'multiple-map-shape-series': {
-        title: 'Map Chart With Multiple Shape Series - JavaScript Geographic Data | AG Charts',
+        title: 'Map Chart With Multiple Shape Series Example | AG Charts',
         h1: 'Map Chart With Multiple Shape Series Example',
         description:
             'A world map built with AG Charts: layers six continent-specific shape series onto one topology, with GDP tooltips, zoom and a legend. Explore the live example and copy the code.',
         intro: 'This example shows a world map built with AG Charts, layering six continent-specific [map shape series](/r/map-shapes/) onto a single [topology](/r/map-topology/), with country-level GDP tooltips, [zoom](/r/zoom/) and a [legend](/r/legend/) to toggle each region. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'multiple-map-series': {
-        title: 'Multiple Map Chart Series - JavaScript Geographic Data | AG Charts',
+        title: 'Multiple Map Chart Series Example - JavaScript Geographic Data | AG Charts',
         h1: 'Multiple Map Chart Series Example',
         description:
             'A travel network map built with AG Charts: combines population-sized markers for islands with ferry and flight route lines. Explore the live example and copy the code.',
         intro: 'This example shows a Greek islands travel network map built with AG Charts, combining population-sized [map markers](/r/map-markers/) for each island with ferry and flight connections drawn as [map lines](/r/map-lines/), styled with dashed strokes, a [legend](/r/legend/) and [zoom](/r/zoom/). Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'map-heatmap-series': {
-        title: 'Map Chart with Heatmap - JavaScript Geographic Data | AG Charts',
+        title: 'Map Chart with Heatmap Example - JavaScript Geographic Data | AG Charts',
         h1: 'Map Chart with Heatmap Example',
         description:
             'A US GDP heatmap built with AG Charts: colours each state by economic output using a colour scale, gradient legend and custom tooltips. Explore the live example and copy the code.',
         intro: 'This example shows a United States GDP heatmap built with AG Charts, colouring each state by economic output using a [colour scale](/r/colour-scale/) on a [map shape](/r/map-shapes/) series, with a gradient legend and state-level tooltips. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'map-shapes-lines': {
-        title: 'Map Chart With Shapes and Lines - JavaScript Geographic Data | AG Charts',
+        title: 'Map Chart With Shapes and Lines Example - JavaScript Geographic Data | AG Charts',
         h1: 'Map Chart With Shapes and Lines Example',
         description:
             'A London Underground map built with AG Charts: layers borough shapes beneath colour-coded tube line routes sized by ridership. Explore the live example and copy the code.',
         intro: 'This example shows a London Underground map built with AG Charts, layering faded [map shape](/r/map-shapes/) borough boundaries beneath eleven colour-coded [map line](/r/map-lines/) series sized by daily ridership, with a floating [legend](/r/legend/) for each tube line. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'map-lines-markers': {
-        title: 'Map Chart with Lines and Markers - JavaScript Geographic Data | AG Charts',
+        title: 'Map Chart with Lines and Markers Example | AG Charts',
         h1: 'Map Chart with Lines and Markers Example',
         description:
             'A York cycle network map built with AG Charts: overlays cycle lanes and traffic camera markers on a road network background. Explore the live example and copy the code.',
         intro: 'This example shows a York cycle network map built with AG Charts, overlaying [map line](/r/map-lines/) cycle lanes and pin-shaped [map markers](/r/map-markers/) for traffic cameras on top of a road network background, with a floating [legend](/r/legend/). Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'map-kitchen-sink': {
-        title: 'Map Chart Kitchen Sink - JavaScript Geographic Data | AG Charts',
+        title: 'Map Chart Kitchen Sink Example - JavaScript Geographic Data | AG Charts',
         h1: 'Map Chart Kitchen Sink Example',
         description:
             'A world currency zones map built with AG Charts: combines shape, line and marker series to plot currencies, cables and financial capitals. Explore the live example and copy the code.',
         intro: 'This example shows a global currency zones map built with AG Charts, combining [map shape](/r/map-shapes/) layers for eight currencies, dashed [map line](/r/map-lines/) submarine cables and [map markers](/r/map-markers/) for capital cities and stock exchanges, all with [zoom](/r/zoom/) and a shared [legend](/r/legend/). Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'simple-org-chart-with-images': {
-        title: 'Org Chart With Images - JavaScript Hierarchy Diagram | AG Charts',
+        title: 'Org Chart With Images Example - JavaScript Hierarchy Diagram | AG Charts',
         h1: 'Org Chart With Images Example',
         description:
             'A team directory org chart built with AG Charts: shows avatar images, country flags and colour-coded working-status labels on each node. Explore the live example and copy the code.',
         intro: 'This example shows a team directory [org chart](/r/org-chart/) built with AG Charts, displaying avatar images and country flags on each node alongside colour-coded working-status labels, with several branches collapsed by default. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'simple-org-chart-with-categories': {
-        title: 'Org Chart With Categories - JavaScript Hierarchy Diagram | AG Charts',
+        title: 'Org Chart With Categories Example - JavaScript Hierarchy Diagram | AG Charts',
         h1: 'Org Chart With Categories Example',
         description:
             'A product family org chart built with AG Charts: colours nodes and links by category with dashed strokes marking beta products. Explore the live example and copy the code.',
         intro: 'This example shows a product family [org chart](/r/org-chart/) built with AG Charts, colouring nodes and connecting links by product category and using dashed strokes to flag beta releases, arranged in a horizontal layout. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'org-chart-with-many-nodes': {
-        title: 'Org Chart With Many Nodes - JavaScript Hierarchy Diagram | AG Charts',
+        title: 'Org Chart With Many Nodes Example - JavaScript Hierarchy Diagram | AG Charts',
         h1: 'Org Chart With Many Nodes Example',
         description:
             'A large company hierarchy org chart built with AG Charts: switches to a stacked layout at deeper levels with zoom controls for many nodes. Explore the live example and copy the code.',
         intro: 'This example shows a large company hierarchy [org chart](/r/org-chart/) built with AG Charts, switching to a stacked layout from the fifth level deep and adding [zoom](/r/zoom/) controls so visitors can navigate hundreds of nodes. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'simple-histogram': {
-        title: 'Histogram Chart - JavaScript Distribution Chart | AG Charts',
+        title: 'Histogram Chart Example - JavaScript Distribution Chart | AG Charts',
         h1: 'Histogram Chart Example',
         description:
             'A vehicle engine size histogram built with AG Charts: bins continuous values with a mean reference line and detailed frequency tooltips. Explore the live example and copy the code.',
         intro: 'This example shows a vehicle engine size [histogram](/r/histogram-series/) built with AG Charts, grouping engine sizes into automatically sized bins with a mean [cross line](/r/axes-cross-lines/) and tooltips showing the vehicle count and percentage per bin. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'histogram-with-specified-bins': {
-        title: 'Histogram Chart With Specified Bins - JavaScript Distribution Chart | AG Charts',
+        title: 'Histogram Chart With Specified Bins Example | AG Charts',
         h1: 'Histogram Chart With Specified Bins Example',
         description:
             'A student exam score histogram built with AG Charts: maps each grade to fixed bin boundaries with area-plotted bars and pattern fills. Explore the live example and copy the code.',
         intro: 'This example shows a student exam score [histogram](/r/histogram-series/) built with AG Charts, mapping each grade boundary to its own fixed bin, drawn as area-plotted bars with alternating pattern [fills](/r/fills/), a [crosshair](/r/axes-crosshairs/) and a bordered [legend](/r/legend/). Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'histogram-with-missing-bins': {
-        title: 'Histogram Chart With Missing Bins - JavaScript Distribution Chart | AG Charts',
+        title: 'Histogram Chart With Missing Bins Example | AG Charts',
         h1: 'Histogram Chart With Missing Bins Example',
         description:
             'A fuel efficiency histogram built with AG Charts: aggregates highway MPG by engine size bin, some left empty, with a reversed axis and range bands. Explore the live example and copy the code.',
@@ -793,35 +793,35 @@ export const GALLERY_EXAMPLE_COPY: Record<string, GalleryExampleCopy> = {
         intro: 'This example shows a horizontal [range bar](/r/range-bar-series/) and bubble combination chart built with AG Charts, drawing production cost and retail price ranges together with profit margin bubbles across three shared axes, complete with a currency-formatted value axis and a footnote explaining the cost basis. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'radar-line-radar-area-nightingale-combination': {
-        title: 'Radar Line, Area and Nightingale Combination | AG Charts',
+        title: 'Radar Line, Area and Nightingale Combination Example | AG Charts',
         h1: 'Radar Line, Area and Nightingale Combination Example',
         description:
             'A radar line, radar area and nightingale combination chart built with AG Charts: compare departmental efficiency, satisfaction and quality. Explore the live example and copy the code.',
         intro: 'This example shows a [radar line](/r/radar-line-series/), [radar area](/r/radar-area-series/) and [nightingale](/r/nightingale-series/) combination chart built with AG Charts, drawing three series types together on shared angle and radius axes to compare efficiency, customer satisfaction and quality across departments. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'grouped-bar-line-combination': {
-        title: 'Grouped Category Axis Combination | AG Charts',
+        title: 'Grouped Category Axis Combination Example | AG Charts',
         h1: 'Grouped Category Axis Combination Example',
         description:
             'A bar and line combination chart built with AG Charts: compare tech infrastructure and growth metrics across a grouped continent, country and city axis. Explore the live example and copy the code.',
         intro: 'This example shows a bar and line combination chart built with AG Charts, drawing infrastructure bars and growth lines together on a [grouped category axis](/r/axes-types/) that nests continent, country and city, with a secondary y-axis, custom marker shapes and a shared tooltip. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'step-interpolation-combination': {
-        title: 'Step Interpolation Combination | AG Charts',
+        title: 'Step Interpolation Combination Example | AG Charts',
         h1: 'Step Interpolation Combination Example',
         description:
             'A range area and line combination chart built with AG Charts: plot UK fuel price indices using step interpolation across current and real terms. Explore the live example and copy the code.',
         intro: 'This example shows a range area and line combination chart built with AG Charts, drawing current gas and electricity prices as a shaded band alongside real-terms price lines, all using [step interpolation](/r/line-series/) to reflect quarterly index changes. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'grouped-category-combination': {
-        title: 'Bar, Line and Area Combination | AG Charts',
+        title: 'Bar, Line and Area Combination Example | AG Charts',
         h1: 'Bar, Line and Area Combination Example',
         description:
             'A bar, line and area combination chart built with AG Charts: compare food calories, blood sugar spike and macronutrients on multiple axes. Explore the live example and copy the code.',
         intro: 'This example shows a bar, line and area combination chart built with AG Charts, drawing calorie, blood sugar and macronutrient series together across three separate [axes](/r/axes-secondary/), with a smoothed blood sugar line, a floating bordered [legend](/r/legend/) and a shared tooltip anchored to the chart. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'stacked-bar-area-combination': {
-        title: 'Stacked Bar and Area Combination | AG Charts',
+        title: 'Stacked Bar and Area Combination Example | AG Charts',
         h1: 'Stacked Bar and Area Combination Example',
         description:
             'A stacked bar and area combination chart built with AG Charts: track music format revenue against concert ticket sales from 1975 to 2024. Explore the live example and copy the code.',

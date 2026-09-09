@@ -2,9 +2,10 @@ import { readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import galleryData from '../../../content/gallery/data.json';
-import { GALLERY_EXAMPLE_COPY, GALLERY_HUB_COPY } from '../galleryCopy';
+import { GALLERY_EXAMPLE_COPY, GALLERY_HUB_COPY, type GalleryExampleCopy } from '../galleryCopy';
 import { getGalleryExamples } from './filesData';
 import { galleryFamilyHeading, galleryFamilyName, resolveGalleryH1, resolveGallerySeo } from './gallerySeo';
+import { galleryPageSeoProblems } from './gallerySeoChecker';
 
 const EXAMPLES = getGalleryExamples({ galleryData });
 const RESOLVED = EXAMPLES.map(({ exampleName }) => ({ exampleName, seo: resolveGallerySeo(exampleName) }));
@@ -17,6 +18,10 @@ const MAX_TITLE_LENGTH = 80;
 const MIN_DESCRIPTION_LENGTH = 120;
 // Raised to fit the hand-written copy; note search results truncate around 160 characters.
 const MAX_DESCRIPTION_LENGTH = 200;
+
+/** The head tags `Layout.astro` builds from a copy row, as the build's checker parses them. */
+const renderedHead = ({ title, h1, description }: GalleryExampleCopy) =>
+    `<title>${title}</title><meta name="description" content="${description.replaceAll('"', '&quot;')}"><h1>${h1}</h1>`;
 
 /** Report every offender rather than the first, so a copy pass can be done in one go. */
 const offenders = (predicate: (seo: (typeof RESOLVED)[number]['seo']) => boolean) =>
@@ -52,6 +57,16 @@ describe('resolveGallerySeo', () => {
         );
         expect(offenders(({ h1 }) => chartNames.has(h1))).toEqual([]);
         expect(offenders(({ h1 }) => !h1.endsWith('Example'))).toEqual([]);
+    });
+
+    // The site build runs this same check over the rendered HTML, so a copy row that fails it
+    // costs a full build to discover. Running it here against the copy those pages render from
+    // catches the identical problems in seconds, with no duplicated rules to drift apart.
+    it('passes the SEO check the site build runs over the rendered pages', () => {
+        const problems = RESOLVED.flatMap(({ exampleName, seo }) =>
+            galleryPageSeoProblems(renderedHead(seo)).map((problem) => `${exampleName} ${problem}`)
+        );
+        expect(problems).toEqual([]);
     });
 
     it('keeps every title within a length search results will show', () => {
