@@ -82,9 +82,15 @@
     flex-wrap: wrap;
 }
 
-/* ---- demo notice (top bar info icon + Radix tooltip) ---- */
-.wa-notice-trigger {
+/* ---- demo notice (top bar info icon + hover tooltip) ---- */
+/* Anchor for the tooltip; the top bar row itself must not grow to fit it. */
+.wa-notice {
     flex: none;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+.wa-notice-trigger {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -106,8 +112,13 @@
     outline-offset: 1px;
 }
 .wa-notice-tip {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
     z-index: 60;
-    max-width: 380px;
+    /* Wide enough to hold the notice on two or three lines, narrow enough to stay on a phone. */
+    width: max-content;
+    max-width: min(380px, calc(100vw - 24px));
     padding: 10px 12px;
     border: 1px solid var(--wa-border);
     border-radius: var(--wa-radius-sm);
@@ -117,9 +128,7 @@
     font-size: 13px;
     font-weight: 500;
     line-height: 1.45;
-}
-.wa-notice-arrow {
-    fill: var(--wa-panel);
+    pointer-events: none;
 }
 
 /* ---- icon + label grid cells (country flag, browser icon) ---- */
