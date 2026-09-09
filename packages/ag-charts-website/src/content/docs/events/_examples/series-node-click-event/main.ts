@@ -13,7 +13,7 @@ import { DataType, getData } from './data';
 ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LineSeriesModule, NumberAxisModule]);
 
 function toString(ev: { datum: DataType; yKey?: keyof DataType; seriesId: string }) {
-    return `Temperature in ${ev.datum.month}: ${String(ev.datum[ev.yKey ?? ''])}°C. Series: ${ev.seriesId}`;
+    return `Temperature in ${ev.datum.month}: ${String(ev.datum[ev.yKey!])}°C. Series: ${ev.seriesId}`;
 }
 
 const options: AgChartOptions<DataType> = {
