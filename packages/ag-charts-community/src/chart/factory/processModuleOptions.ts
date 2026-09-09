@@ -80,11 +80,16 @@ function sanitizeThemeModulesUncached(theme: ChartTheme, moduleRegistry: ModuleS
 
     if (missingModules.size === 0) return theme;
 
-    function prunePlugins(target?: PlainObject) {
+    // A template default is never a user request; only user-supplied `enabled: true` should still report.
+    function isPrunable(entry: PlainObject, userSupplied: boolean) {
+        return !userSupplied || entry.enabled !== true;
+    }
+
+    function prunePlugins(target: PlainObject | undefined, userSupplied: boolean) {
         const missingPlugins = missingModules.get(ModuleType.Plugin);
         if (!isObject(target) || !missingPlugins) return;
         for (const pluginName of missingPlugins) {
-            if (pluginName in target && target[pluginName].enabled !== true) {
+            if (pluginName in target && isPrunable(target[pluginName], userSupplied)) {
                 delete target[pluginName];
             }
         }
@@ -100,31 +105,31 @@ function sanitizeThemeModulesUncached(theme: ChartTheme, moduleRegistry: ModuleS
         }
     }
 
-    function pruneAxisPlugins(target?: PlainObject) {
+    function pruneAxisPlugins(target: PlainObject | undefined, userSupplied: boolean) {
         const missingAxisPlugins = missingModules.get(ModuleType.AxisPlugin);
         if (!isObject(target) || !missingAxisPlugins) return;
         for (const pluginName of missingAxisPlugins) {
-            if (pluginName in target && target[pluginName].enabled !== true) {
+            if (pluginName in target && isPrunable(target[pluginName], userSupplied)) {
                 delete target[pluginName];
             }
         }
     }
 
-    function pruneAxes(axes?: PlainObject) {
+    function pruneAxes(axes: PlainObject | undefined, userSupplied: boolean) {
         if (!isObject(axes)) return;
         for (const axisName of Object.keys(axes)) {
             if (missingModules.get(ModuleType.Axis)?.has(axisName)) {
                 delete axes[axisName];
                 continue;
             }
-            pruneAxisPlugins(axes[axisName] as PlainObject);
+            pruneAxisPlugins(axes[axisName] as PlainObject, userSupplied);
         }
     }
 
-    function pruneSeriesEntry(entry?: PlainObject) {
+    function pruneSeriesEntry(entry: PlainObject | undefined, userSupplied: boolean) {
         if (!isObject(entry)) return;
-        pruneAxes(entry.axes as PlainObject);
-        prunePlugins(entry);
+        pruneAxes(entry.axes as PlainObject, userSupplied);
+        prunePlugins(entry, userSupplied);
         pruneSeriesPlugins(entry.series as PlainObject);
     }
 
@@ -137,14 +142,14 @@ function sanitizeThemeModulesUncached(theme: ChartTheme, moduleRegistry: ModuleS
             delete config[seriesType];
             continue;
         }
-        pruneSeriesEntry(config[seriesType]);
+        pruneSeriesEntry(config[seriesType], false);
     }
 
     if (isObject(overrides)) {
         const overridesObj = overrides as PlainObject;
         if (isObject(overridesObj.common)) {
-            pruneAxes(overridesObj.common.axes);
-            prunePlugins(overridesObj.common);
+            pruneAxes(overridesObj.common.axes, true);
+            prunePlugins(overridesObj.common, true);
         }
         for (const seriesType of Object.keys(overridesObj)) {
             if (seriesType === 'common') continue;
@@ -152,7 +157,7 @@ function sanitizeThemeModulesUncached(theme: ChartTheme, moduleRegistry: ModuleS
                 delete overridesObj[seriesType];
                 continue;
             }
-            pruneSeriesEntry(overridesObj[seriesType] as PlainObject);
+            pruneSeriesEntry(overridesObj[seriesType] as PlainObject, true);
         }
     }
 
@@ -166,8 +171,8 @@ function sanitizeThemeModulesUncached(theme: ChartTheme, moduleRegistry: ModuleS
                 delete presetsObj[presetName];
                 continue;
             }
-            prunePlugins(presetsObj[presetName] as PlainObject);
-            pruneAxes(presetsObj[presetName]?.axes);
+            prunePlugins(presetsObj[presetName] as PlainObject, true);
+            pruneAxes(presetsObj[presetName]?.axes, true);
         }
     }
 
