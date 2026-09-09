@@ -13,8 +13,17 @@ const fit = {
     truncate: true,
     minimumFontSize: undefined as number | undefined,
 };
+let calloutLabelEnabled = true;
+let sectorLabelEnabled = true;
 
 function buildSeries(): AgPolarChartOptions<DataType>['series'] {
+    const calloutLabel = { ...fit, enabled: calloutLabelEnabled };
+    const sectorLabel = {
+        ...fit,
+        enabled: sectorLabelEnabled,
+        formatter: ({ value }: { value: number }) => `${value}% of total`,
+    };
+
     if (seriesType === 'donut') {
         return [
             {
@@ -23,8 +32,8 @@ function buildSeries(): AgPolarChartOptions<DataType>['series'] {
                 angleKey: 'terawattHours',
                 calloutLabelKey: 'source',
                 sectorLabelKey: 'share',
-                calloutLabel: { ...fit },
-                sectorLabel: { ...fit, formatter: ({ value }) => `${value}% of total` },
+                calloutLabel,
+                sectorLabel,
             },
         ];
     }
@@ -34,8 +43,8 @@ function buildSeries(): AgPolarChartOptions<DataType>['series'] {
             angleKey: 'terawattHours',
             calloutLabelKey: 'source',
             sectorLabelKey: 'share',
-            calloutLabel: { ...fit },
-            sectorLabel: { ...fit, formatter: ({ value }) => `${value}% of total` },
+            calloutLabel,
+            sectorLabel,
         },
     ];
 }
@@ -45,6 +54,7 @@ const options: AgPolarChartOptions<DataType> = {
     title: { text: 'Global Electricity Generation by Source' },
     data: getData(),
     series: buildSeries(),
+    legend: { position: 'right' },
 };
 
 const chart = AgCharts.create(options);
@@ -72,12 +82,30 @@ function setWrapping(wrapping: string) {
     refresh();
 }
 
-function setTruncate(event: Event) {
-    fit.truncate = (event.target as HTMLInputElement).value === 'true';
+function setTruncate(truncate: boolean) {
+    fit.truncate = truncate;
     refresh();
 }
 
 function setMinimumFontSize(value: string) {
     fit.minimumFontSize = value === 'off' ? undefined : Number(value);
+    refresh();
+}
+
+function toggleCalloutLabel() {
+    calloutLabelEnabled = !calloutLabelEnabled;
+    (document.getElementById('calloutLabelToggle') as HTMLButtonElement).setAttribute(
+        'aria-pressed',
+        String(calloutLabelEnabled)
+    );
+    refresh();
+}
+
+function toggleSectorLabel() {
+    sectorLabelEnabled = !sectorLabelEnabled;
+    (document.getElementById('sectorLabelToggle') as HTMLButtonElement).setAttribute(
+        'aria-pressed',
+        String(sectorLabelEnabled)
+    );
     refresh();
 }

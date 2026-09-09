@@ -1,14 +1,18 @@
 <div class="example-controls">
     <div class="controls-row">
-        <div class="gap-right">
+        <div>
             <label for="seriesSelect">Series:</label>
             <select id="seriesSelect" onchange="setSeriesType(event.target.value)">
                 <option value="pie">Pie</option>
                 <option value="donut">Donut</option>
             </select>
         </div>
-        <div>
-            <label for="maxWidthSlider">Max Width:</label>
+        <button id="calloutLabelToggle" aria-pressed="true" onclick="toggleCalloutLabel()">
+            Toggle Callout Labels
+        </button>
+        <button id="sectorLabelToggle" aria-pressed="true" onclick="toggleSectorLabel()">Toggle Sector Labels</button>
+        <div class="gap-left">
+            <label for="maxWidthSlider">Max Label Width:</label>
             <input
                 type="range"
                 id="maxWidthSlider"
@@ -22,7 +26,7 @@
         </div>
     </div>
     <div class="controls-row">
-        <div class="gap-right">
+        <div>
             <label for="wrapSelect">Wrapping:</label>
             <select id="wrapSelect" onchange="setWrapping(event.target.value)">
                 <option value="on-space">on-space</option>
@@ -31,7 +35,7 @@
                 <option value="never">never</option>
             </select>
         </div>
-        <div class="gap-right">
+        <div>
             <label for="minFontSelect">Minimum Font Size:</label>
             <select id="minFontSelect" onchange="setMinimumFontSize(event.target.value)">
                 <option value="off">Off</option>
@@ -39,11 +43,12 @@
                 <option value="6">6</option>
             </select>
         </div>
-        <div class="button-group" role="group" aria-label="Truncate">
-            <input type="radio" id="truncate-show" name="truncate" value="true" checked onchange="setTruncate(event)" />
-            <label for="truncate-show">Truncate</label>
-            <input type="radio" id="truncate-hide" name="truncate" value="false" onchange="setTruncate(event)" />
-            <label for="truncate-hide">Hide</label>
+        <div>
+            <label for="truncateSelect">Truncate:</label>
+            <select id="truncateSelect" onchange="setTruncate(event.target.value === 'enabled')">
+                <option value="enabled">Enabled</option>
+                <option value="disabled">Disabled</option>
+            </select>
         </div>
     </div>
 </div>
