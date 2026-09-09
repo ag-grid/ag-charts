@@ -16,6 +16,8 @@ const dataWithTotals = data.map((country) => ({
     totalCapacity: country.children?.reduce((sum, farm) => sum + (farm.capacity || 0), 0) || 0,
 }));
 
+const grandTotal = dataWithTotals.reduce((sum, country) => sum + country.totalCapacity, 0);
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: dataWithTotals,
@@ -26,6 +28,23 @@ const options: AgChartOptions = {
             sizeKey: 'capacity',
             sizeName: 'Capacity',
             secondaryLabelKey: 'capacity',
+            innerRadiusRatio: 0.35,
+            innerCircle: {
+                fill: 'grey',
+                fillOpacity: 0.08,
+            },
+            innerLabels: [
+                {
+                    text: 'Total Capacity',
+                    fontSize: 12,
+                    color: { ref: 'subtleTextColor' },
+                },
+                {
+                    text: `${(grandTotal / 1000).toFixed(1)} GW`,
+                    fontSize: 24,
+                    fontWeight: 'bold',
+                },
+            ],
             label: {
                 minimumFontSize: 8,
             },
