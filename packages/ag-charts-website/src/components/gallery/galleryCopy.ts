@@ -358,6 +358,27 @@ export const GALLERY_EXAMPLE_COPY: Record<string, GalleryExampleCopy> = {
             'A large company hierarchy org chart built with AG Charts: switches to a stacked layout at deeper levels with zoom controls for many nodes. Explore the live example and copy the code.',
         intro: 'This example shows a large company hierarchy [org chart](/r/org-chart/) built with AG Charts, switching to a stacked layout from the fifth level deep and adding [zoom](/r/zoom/) controls so visitors can navigate hundreds of nodes. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
+    'quadrant-chart': {
+        title: 'Quadrant Chart Example - JavaScript 2x2 Matrix | AG Charts',
+        h1: 'Quadrant Chart Example',
+        description:
+            'An operational risk quadrant chart built with AG Charts: divides assessed likelihood against financial exposure into four labelled response regions. Explore the live example and copy the code.',
+        intro: 'This example shows an operational risk [quadrant chart](/r/quadrant-chart/) built with AG Charts, dividing assessed likelihood against financial exposure into four labelled regions around a pivot, with a custom [tooltip](/r/tooltips/) naming the agreed response and the risk owner. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
+    },
+    'quadrant-chart-with-size': {
+        title: 'Quadrant Chart With Varying Size Example - JavaScript 2x2 Matrix | AG Charts',
+        h1: 'Quadrant Chart With Varying Size Example',
+        description:
+            'A growth-share matrix built with AG Charts: sizes every marker by annual revenue and highlights the invest and divest regions. Explore the live example and copy the code.',
+        intro: 'This example shows a growth-share [quadrant chart](/r/quadrant-chart/) built with AG Charts, sizing each product marker by annual revenue and colouring the invest and divest regions, with the axes crossing at the pivot and their labels carried along the crossing lines. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
+    },
+    'quadrant-chart-with-large-data': {
+        title: 'Quadrant Chart With Large Data Example - JavaScript 2x2 Matrix | AG Charts',
+        h1: 'Quadrant Chart With Large Data Example',
+        description:
+            'A customer health quadrant chart built with AG Charts: spreads 1,000 accounts across four segments by year-on-year usage and revenue change. Explore the live example and copy the code.',
+        intro: 'This example shows a customer health [quadrant chart](/r/quadrant-chart/) built with AG Charts, spreading 1,000 accounts across four segments by their year-on-year change in usage and revenue, giving each segment its own marker colour, region label and [highlight](/r/series-highlighting/) style. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
+    },
     'simple-histogram': {
         title: 'Histogram Chart Example - JavaScript Distribution Chart | AG Charts',
         h1: 'Histogram Chart Example',
