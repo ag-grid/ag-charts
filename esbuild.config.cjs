@@ -178,11 +178,16 @@ function renameReferences(code, node, from, to) {
             return;
         }
         if (!n.type) return;
+        if (n.type === 'Property' && n.shorthand && n.value.type === 'Identifier') {
+            // `{ Foo }` shares one range between key and value, so expand it to `Foo: _c$0`.
+            if (n.value.name === from) ranges.push([n.start, n.end, `${from}: ${to}`]);
+            return;
+        }
         if (n.type === 'Identifier') {
             const isPropertyName =
                 (parent?.type === 'MemberExpression' && key === 'property' && !parent.computed) ||
-                (parent?.type === 'Property' && key === 'key' && !parent.computed && !parent.shorthand);
-            if (n.name === from && !isPropertyName) ranges.push([n.start, n.end]);
+                (parent?.type === 'Property' && key === 'key' && !parent.computed);
+            if (n.name === from && !isPropertyName) ranges.push([n.start, n.end, to]);
             return;
         }
         for (const childKey of Object.keys(n)) {
@@ -193,10 +198,10 @@ function renameReferences(code, node, from, to) {
     visit(node, null, null);
 
     let result = code.slice(node.start, node.end);
-    for (const [start, end] of ranges.reverse()) {
+    for (const [start, end, text] of ranges.reverse()) {
         const s = start - node.start;
         const e = end - node.start;
-        result = result.slice(0, s) + to + result.slice(e);
+        result = result.slice(0, s) + text + result.slice(e);
     }
     return result;
 }
