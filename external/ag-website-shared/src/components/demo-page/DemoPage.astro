@@ -33,8 +33,15 @@ const { currentId, examples, eyebrow, title, description, primaryCta, secondaryC
                                     class:list={[styles.featureItem, isActive && styles.featureItemActive]}
                                     aria-current={isActive ? 'page' : undefined}
                                 >
-                                    <span class={styles.featureTitle}>{example.title}</span>
-                                    <span class={styles.featureDescription}>{example.description}</span>
+                                    {example.image && (
+                                        <span class={styles.featureImage}>
+                                            <img src={urlWithBaseUrl(example.image)} alt="" decoding="async" />
+                                        </span>
+                                    )}
+                                    <span class={styles.featureBody}>
+                                        <span class={styles.featureTitle}>{example.title}</span>
+                                        <span class={styles.featureDescription}>{example.description}</span>
+                                    </span>
                                 </a>
                             </li>
                         );
