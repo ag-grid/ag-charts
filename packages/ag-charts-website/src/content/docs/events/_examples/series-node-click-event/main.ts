@@ -1,84 +1,50 @@
+import type { AgChartOptions } from 'ag-charts-community';
 import {
-    AgCartesianChartOptions,
     AgCharts,
+    BarSeriesModule,
     CategoryAxisModule,
-    LegendModule,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
-    RangeBarSeriesModule,
-} from 'ag-charts-enterprise';
+} from 'ag-charts-community';
 
-import type { DataType } from './data';
-import { getData } from './data';
+import { DataType, getData } from './data';
 
-ModuleRegistry.registerModules([
-    RangeBarSeriesModule,
-    CategoryAxisModule,
-    LegendModule,
-    LineSeriesModule,
-    NumberAxisModule,
-]);
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LineSeriesModule, NumberAxisModule]);
 
-function toString(ev: { datum: DataType; seriesId: string }) {
-    const celsius = new Intl.NumberFormat('en-US', { style: 'unit', unit: 'celsius', unitDisplay: 'short' });
-    const mean = celsius.format(ev.datum.mean);
-    const low = celsius.format(ev.datum.low);
-    const high = celsius.format(ev.datum.high);
-    return `${ev.seriesId}, mean: ${mean}, low: ${low}, high: ${high}`;
+function toString(ev: { datum: DataType; yKey?: keyof DataType; seriesId: string }) {
+    return `Temperature in ${ev.datum.month}: ${String(ev.datum[ev.yKey ?? ''])}°C. Series: ${ev.seriesId}`;
 }
 
-const options: AgCartesianChartOptions<DataType> = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'London Monthly Temperatures',
+        text: 'Average low/high temperatures in London',
     },
     subtitle: {
-        text: 'Year-on-year average temperature with this year’s high/low range',
+        text: '(click a data point for details)',
     },
     data: getData(),
     legend: {
-        enabled: true,
-    },
-    axes: {
-        x: {
-            type: 'category',
-            position: 'bottom',
-            title: {
-                text: 'Month',
-            },
-        },
-        y: {
-            type: 'number',
-            position: 'left',
-            title: {
-                text: 'Temperature (°C)',
-            },
-            label: {
-                formatter: ({ value }) => `${value}°C`,
-            },
-        },
+        enabled: false,
     },
     series: [
         {
-            type: 'range-bar',
-            xKey: 'month',
-            yLowKey: 'low',
-            yHighKey: 'high',
-            yName: 'This year high/low',
-            listeners: {
-                seriesNodeClick: (ev) => console.log('[bar click]', toString(ev)),
-                seriesNodeDoubleClick: (ev) => console.log('[bar double click]', toString(ev)),
-            },
-        },
-        {
             type: 'line',
             xKey: 'month',
-            yKey: 'mean',
-            yName: 'Year-on-year average',
+            yKey: 'high',
             listeners: {
                 seriesNodeClick: (ev) => console.log('[line click]', toString(ev)),
                 seriesNodeDoubleClick: (ev) => console.log('[line double click]', toString(ev)),
+            },
+        },
+        {
+            type: 'bar',
+            xKey: 'month',
+            yKey: 'low',
+            listeners: {
+                seriesNodeClick: (ev) => console.log('[bar click]', toString(ev)),
+                seriesNodeDoubleClick: (ev) => console.log('[bar double click]', toString(ev)),
             },
         },
     ],
