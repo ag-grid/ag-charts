@@ -1,21 +1,39 @@
-import type { AgCartesianChartOptions } from 'ag-charts-community';
+import type { AgAxisDirection, AgAxisValue, AgCartesianChartOptions } from 'ag-charts-enterprise';
 import {
     AgCharts,
-    BarSeriesModule,
-    CategoryAxisModule,
+    AxisInteractionModule,
     LegendModule,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
-} from 'ag-charts-community';
+    UnitTimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
-ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
+ModuleRegistry.registerModules([
+    AxisInteractionModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+]);
 
 const profitColor = '#8B5CF6';
 const ordersColor = '#F59E0B';
 const salesColor = '#0EA5E9';
+
+function formatValue(value: AgAxisValue) {
+    if (value instanceof Date) {
+        return value.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+    }
+    // Clicks on a continuous axis resolve to a fractional value, so round it for display.
+    return typeof value === 'number' ? value.toFixed(2) : String(value);
+}
+
+function toString(ev: { axisId: string; direction: AgAxisDirection; value: AgAxisValue }) {
+    return `axisId: ${ev.axisId}, direction: ${ev.direction}, value: ${formatValue(ev.value)}`;
+}
 
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
@@ -30,6 +48,10 @@ const options: AgCartesianChartOptions<DataType> = {
         x: {
             type: 'unit-time',
             position: 'bottom',
+            listeners: {
+                click: (ev) => console.log('[x axis click]', toString(ev)),
+                doubleClick: (ev) => console.log('[x axis double click]', toString(ev)),
+            },
         },
         yProfit: {
             type: 'number',
@@ -41,6 +63,10 @@ const options: AgCartesianChartOptions<DataType> = {
             label: { color: profitColor },
             line: { stroke: profitColor },
             tick: { stroke: profitColor },
+            listeners: {
+                click: (ev) => console.log('[profit axis click]', toString(ev)),
+                doubleClick: (ev) => console.log('[profit axis double click]', toString(ev)),
+            },
         },
         ySales: {
             type: 'number',
@@ -95,6 +121,10 @@ const options: AgCartesianChartOptions<DataType> = {
             marker: { fill: salesColor },
         },
     ],
+    listeners: {
+        axisClick: (ev) => console.log('[chart axis click]', toString(ev)),
+        axisDoubleClick: (ev) => console.log('[chart axis double click]', toString(ev)),
+    },
 };
 
 AgCharts.create(options);
