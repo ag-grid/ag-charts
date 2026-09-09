@@ -6,18 +6,14 @@ import {
     Padding,
     Property,
     ProxyPropertyOnWrite,
-    type SeriesAreaPluginModuleInstance,
     ZIndexMap,
 } from 'ag-charts-core';
 
 import type { LayoutCompleteEvent } from '../../core/eventsHub';
-import type { ChartRegistry, ChartSeriesAreaRegistry } from '../../module/moduleContext';
-import { ModuleMap } from '../../module/moduleMap';
+import type { ChartRegistry } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
 import { Group, TransformableGroup } from '../../scene/group';
 import { Rect } from '../../scene/shape/rect';
-import type { BackgroundRegion } from '../background-regions/backgroundRegion';
-import type { SeriesAreaContext } from './seriesAreaContext';
 
 export class SeriesArea extends BaseProperties {
     private readonly seriesAreaGroup = new Group({
@@ -26,8 +22,8 @@ export class SeriesArea extends BaseProperties {
     });
     private readonly borderNode = this.seriesAreaGroup.appendChild(new Rect());
 
-    // This property is required to silence warnings about unable to set 'backgroundRegions'. However, this property
-    // is not used. Instead these options are passed through to the background regions module and plugin.
+    // Declared so that setting the option does not warn in community, where the enterprise series
+    // area that renders the regions is absent.
     @Property
     backgroundRegions: any;
 
@@ -46,15 +42,11 @@ export class SeriesArea extends BaseProperties {
 
     protected readonly cleanup = new CleanupRegistry();
 
-    private readonly moduleMap = new ModuleMap<SeriesAreaPluginModuleInstance>();
-    private moduleContext?: DynamicContext<ChartSeriesAreaRegistry<SeriesAreaContext>>;
-    private seriesAreaContext?: SeriesAreaContext;
-
-    private readonly overlayGroup = new TransformableGroup({
+    protected readonly overlayGroup = new TransformableGroup({
         name: 'SeriesArea-Overlay',
         zIndex: ZIndexMap.SERIES_AREA_CONTAINER,
     });
-    private readonly underlayGroup = new TransformableGroup({
+    protected readonly underlayGroup = new TransformableGroup({
         name: 'SeriesArea-Underlay',
         zIndex: ZIndexMap.SERIES_AREA_UNDERLAY,
     });
@@ -87,32 +79,18 @@ export class SeriesArea extends BaseProperties {
         };
     }
 
-    getModuleMap() {
-        return this.moduleMap;
-    }
-
-    createModuleContext() {
-        this.seriesAreaContext ??= this.createSeriesAreaContext();
-        this.moduleContext ??= this.ctx
-            .child<{ backgroundRegion: BackgroundRegion; parent: SeriesAreaContext }>()
-            .constant('parent', this.seriesAreaContext);
-        return this.moduleContext;
+    applyOptions() {
+        // Overridden by the enterprise series area to apply its enterprise-only option subtrees.
     }
 
     update(seriesRect: BBox, clipRect: BBox | undefined) {
-        // Plugin groups are translated to the series rect origin, so the clip rect has to be
-        // rebased into that space rather than passed through in chart coordinates.
-        const localClipRect = clipRect?.clone().translate(-seriesRect.x, -seriesRect.y);
-        for (const module of this.moduleMap.modules()) {
-            module.onSeriesAreaUpdate?.(localClipRect);
-        }
+        // The overlay/underlay groups are translated to the series rect origin, so the clip rect has
+        // to be rebased into that space rather than passed through in chart coordinates.
+        this.onUpdate(clipRect?.clone().translate(-seriesRect.x, -seriesRect.y));
     }
 
-    private createSeriesAreaContext(): SeriesAreaContext {
-        return {
-            attachSeriesAreaOverlay: (group) => this.overlayGroup.appendChild(group),
-            attachSeriesAreaUnderlay: (group) => this.underlayGroup.appendChild(group),
-        };
+    protected onUpdate(_clipRect: BBox | undefined) {
+        // Overridden by the enterprise series area to update its region content.
     }
 
     protected onLayoutComplete(event: LayoutCompleteEvent) {
@@ -123,7 +101,7 @@ export class SeriesArea extends BaseProperties {
         this.borderNode.width = width;
         this.borderNode.height = height;
 
-        // Axis scale ranges are relative to the unpadded series rect, so plugin content must share
+        // Axis scale ranges are relative to the unpadded series rect, so overlay content must share
         // that origin — using the padded rect displaces it by the padding and border width.
         const { x: seriesX, y: seriesY } = event.series.rect;
 

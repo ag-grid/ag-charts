@@ -1,9 +1,16 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="setStep(5)">Set Step = 5</button>
-        <button onclick="setStep(10)">Set Step = 10</button>
-        <button onclick="setStep(45)">Set Step = 45</button>
-        <button onclick="clearInterval()">Clear Interval</button>
+        <span>Interval Step:</span>
+        <div class="button-group" role="group" aria-label="Interval Step">
+            <input type="radio" id="step-none" name="interval-step" value="none" checked onchange="stepChange(event)" />
+            <label for="step-none">No interval</label>
+            <input type="radio" id="step-5" name="interval-step" value="5" onchange="stepChange(event)" />
+            <label for="step-5">5</label>
+            <input type="radio" id="step-10" name="interval-step" value="10" onchange="stepChange(event)" />
+            <label for="step-10">10</label>
+            <input type="radio" id="step-45" name="interval-step" value="45" onchange="stepChange(event)" />
+            <label for="step-45">45</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

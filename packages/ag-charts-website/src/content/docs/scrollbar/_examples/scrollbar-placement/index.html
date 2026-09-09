@@ -1,8 +1,19 @@
 <div class="example-controls">
     <div class="controls-row">
-        <label>Placement:</label>
-        <button onclick="setPlacement('outer')">Outer</button>
-        <button onclick="setPlacement('inner')">Inner</button>
+        <span>Placement:</span>
+        <div class="button-group" role="group" aria-label="Placement">
+            <input type="radio" id="placement-outer" name="placement" value="outer" onchange="setPlacement(event)" />
+            <label for="placement-outer">Outer</label>
+            <input
+                type="radio"
+                id="placement-inner"
+                name="placement"
+                value="inner"
+                checked
+                onchange="setPlacement(event)"
+            />
+            <label for="placement-inner">Inner</label>
+        </div>
     </div>
     <div class="controls-row">
         <label for="spacingSlider">spacing:</label>

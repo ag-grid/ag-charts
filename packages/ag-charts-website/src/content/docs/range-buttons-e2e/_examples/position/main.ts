@@ -1,5 +1,5 @@
 import {
-    AgChartOptions,
+    AgCartesianChartOptions,
     AgCharts,
     AgRangesPosition,
     CategoryAxisModule,
@@ -13,7 +13,7 @@ import { DataType, getData } from './data';
 
 ModuleRegistry.registerModules([CategoryAxisModule, LineSeriesModule, NumberAxisModule, RangesModule]);
 
-const options: AgChartOptions<DataType> = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -27,6 +27,7 @@ const options: AgChartOptions<DataType> = {
         fontStyle: 'italic',
     },
     ranges: {
+        position: 'top-right',
         buttons: [
             { label: 'Teenagers', value: [15, 19] },
             { label: 'Young Adults', value: [20, 29] },
@@ -100,7 +101,7 @@ const options: AgChartOptions<DataType> = {
 
 const chart = AgCharts.create(options);
 
-function changePosition(position: AgRangesPosition) {
-    options.ranges!.position = position;
-    chart.update(options as any);
+function changePosition(event: Event) {
+    options.ranges!.position = (event.target as HTMLInputElement).value as AgRangesPosition;
+    chart.update(options);
 }

@@ -70,12 +70,12 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setSeriesAreaScrolling(enabled: boolean) {
-    options.scrollbar!.enableSeriesAreaScrolling = enabled;
+function setSeriesAreaScrolling(event: Event) {
+    options.scrollbar!.enableSeriesAreaScrolling = (event.target as HTMLInputElement).value === 'true';
     chart.update(options);
 }
 
-function setAxisScrolling(enabled: boolean) {
-    options.scrollbar!.enableAxisScrolling = enabled;
+function setAxisScrolling(event: Event) {
+    options.scrollbar!.enableAxisScrolling = (event.target as HTMLInputElement).value === 'true';
     chart.update(options);
 }

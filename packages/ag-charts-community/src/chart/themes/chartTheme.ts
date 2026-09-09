@@ -40,6 +40,7 @@ import {
     PALETTE_UP_STROKE,
     deepClone,
     deepFreeze,
+    enterpriseRegistry,
     getSequentialColors,
     groupBy,
     isArray,
@@ -615,9 +616,9 @@ function getSeriesThemeTemplate(seriesType: string, moduleRegistry: ModuleScope)
         }
     }
 
-    for (const module of moduleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
+    if (enterpriseRegistry.seriesAreaThemeTemplate != null) {
         themeTemplate = mergeDefaultsShallowOperations(
-            { seriesArea: { [module.name]: module.themeTemplate } },
+            { seriesArea: enterpriseRegistry.seriesAreaThemeTemplate },
             themeTemplate
         );
     }

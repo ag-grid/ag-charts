@@ -22,7 +22,6 @@ export enum ModuleType {
     Plugin = 'plugin',
     AxisPlugin = 'axis:plugin',
     SeriesPlugin = 'series:plugin',
-    SeriesAreaPlugin = 'series-area:plugin',
     Preset = 'preset',
 }
 
@@ -40,9 +39,7 @@ export type ModuleTypeSwitch<TModule extends ModuleType, TOptions = any> = TModu
               ? AxisPluginModuleDefinition<TOptions>
               : TModule extends ModuleType.SeriesPlugin
                 ? SeriesPluginModuleDefinition<TOptions>
-                : TModule extends ModuleType.SeriesAreaPlugin
-                  ? SeriesAreaPluginModuleDefinition<TOptions>
-                  : never;
+                : never;
 
 export interface ModuleInstance {
     destroy?(this: void): void;
@@ -86,14 +83,6 @@ export interface SeriesPluginModuleInstance extends ModuleInstance {
     getPropertyDefinitions(opts: PropertyDefinitionOpts): any[] /* PropertyDefinition<unknown>[] */;
     getDomain(direction: any /* ChartAxisDirection */): any[];
     getTooltipParams(): object;
-}
-
-export interface SeriesAreaPluginModuleInstance extends ModuleInstance {
-    applyOptions(this: void, options: any): void;
-    onSeriesAreaUpdate?(
-        this: void,
-        clipRect: { x: number; y: number; width: number; height: number } | undefined
-    ): void;
 }
 
 export interface ModuleDefinition<
@@ -223,12 +212,4 @@ export interface SeriesPluginModuleDefinition<TOptions> extends ModuleDefinition
 > {
     readonly chartType?: string;
     readonly seriesTypes?: string[];
-}
-
-export interface SeriesAreaPluginModuleDefinition<TOptions> extends ModuleDefinition<
-    ModuleType.SeriesAreaPlugin,
-    TOptions,
-    SeriesAreaPluginModuleInstance
-> {
-    readonly chartType?: string;
 }

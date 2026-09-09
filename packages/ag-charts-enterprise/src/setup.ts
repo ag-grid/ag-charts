@@ -1,8 +1,9 @@
-import { type AgChartOptions } from 'ag-charts-community';
 import { ModuleRegistry, enterpriseRegistry } from 'ag-charts-core';
 
+import { backgroundRegionsTheme } from './features/background-regions/backgroundRegionsTheme';
 import { Background } from './features/background/background';
 import { Foreground } from './features/foreground/foreground';
+import { SeriesArea } from './features/series-area/seriesArea';
 import { LicenseManager } from './license/licenseManager';
 import { injectWatermark } from './license/watermark';
 import { AllEnterpriseModule } from './module-bundles/all';
@@ -12,11 +13,10 @@ export function setupEnterpriseModules() {
     ModuleRegistry.registerModules(AllEnterpriseModule);
 
     enterpriseRegistry.styles = styles;
-    enterpriseRegistry.licenseManager = (options: AgChartOptions) =>
-        new LicenseManager(
-            options.container?.ownerDocument ?? (typeof document === 'undefined' ? undefined : document)
-        );
+    enterpriseRegistry.licenseManager = (document) => new LicenseManager(document);
     enterpriseRegistry.injectWatermark = injectWatermark;
     enterpriseRegistry.createBackground = (ctx) => new Background(ctx);
     enterpriseRegistry.createForeground = (ctx) => new Foreground(ctx);
+    enterpriseRegistry.createSeriesArea = (ctx) => new SeriesArea(ctx);
+    enterpriseRegistry.seriesAreaThemeTemplate = { backgroundRegions: backgroundRegionsTheme };
 }

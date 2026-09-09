@@ -23,6 +23,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
+import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
 import { BubbleSeries } from './bubbleSeries';
@@ -106,7 +107,7 @@ const themeTemplate: ExtensibleSeriesTheme<'bubble'> = {
     gradientLegend: BUBBLE_SCATTER_GRADIENT_LEGEND_THEME,
 };
 
-export const BubbleSeriesModule: SeriesModuleDefinition<AgBubbleSeriesOptions> = {
+export const BubbleSeriesModule: SeriesModuleDefinition<AgBubbleSeriesOptions> = /* #__PURE__ */ communityModule({
     type: 'series',
     name: 'bubble',
     chartType: 'cartesian',
@@ -129,4 +130,4 @@ export const BubbleSeriesModule: SeriesModuleDefinition<AgBubbleSeriesOptions> =
     themeTemplate,
 
     create: (ctx: DynamicContext<ChartRegistry>) => new BubbleSeries(ctx),
-};
+});

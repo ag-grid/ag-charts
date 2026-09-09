@@ -28,9 +28,7 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-document.getElementById('disable')!.addEventListener('click', () => {
-    chart.updateDelta({ ranges: { enabled: false } });
-});
-document.getElementById('enable')!.addEventListener('click', () => {
-    chart.updateDelta({ ranges: { enabled: true } });
-});
+function rangesChange(event: Event) {
+    const enabled = (event.target as HTMLInputElement).value === 'true';
+    chart.updateDelta({ ranges: { enabled } });
+}

@@ -8,6 +8,7 @@ import {
     callback,
     commonChartOptionsDefs,
     defined,
+    enterprise,
     fillOptionsDef,
     geoJson,
     htmlElement,
@@ -105,13 +106,17 @@ export const cartesianChartOptionsDefs: OptionsDefs<AgCartesianChartOptions> = {
         clip: boolean,
         cornerRadius: number,
         padding: or(themeOperator, padding),
-        backgroundRegions: arrayOfDefs<AgSeriesAreaBackgroundRegion>({
-            ...fillOptionsDef,
-            ...strokeOptionsDef,
-            xRange: seriesAreaBackgroundRegionRangeDef,
-            yRange: seriesAreaBackgroundRegionRangeDef,
-            label: seriesAreaBackgroundRegionLabelDef,
-        }),
+        // Enterprise-only: the community bundle has no implementation for it, so a community user
+        // supplying it gets the standard enterprise-feature warning and the value is dropped.
+        backgroundRegions: enterprise(
+            arrayOfDefs<AgSeriesAreaBackgroundRegion>({
+                ...fillOptionsDef,
+                ...strokeOptionsDef,
+                xRange: seriesAreaBackgroundRegionRangeDef,
+                yRange: seriesAreaBackgroundRegionRangeDef,
+                label: seriesAreaBackgroundRegionLabelDef,
+            })
+        ),
     },
 };
 

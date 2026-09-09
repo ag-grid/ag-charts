@@ -505,12 +505,6 @@ export const ExpectedModules = new Map<string, ModulePlaceholder>(
             },
 
             {
-                type: 'series-area:plugin',
-                name: 'backgroundRegions',
-                moduleId: 'BackgroundRegionsModule',
-            },
-
-            {
                 type: 'preset',
                 name: 'gauge-preset',
                 chartType: 'standalone',

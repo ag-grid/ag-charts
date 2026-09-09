@@ -55,7 +55,8 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function changeAction(newAction: NonNullable<AgTouchOptions['dragAction']>) {
+function changeAction(event: Event) {
+    const newAction = (event.target as HTMLInputElement).value as NonNullable<AgTouchOptions['dragAction']>;
     if (options.touch) {
         options.touch.dragAction = newAction;
     }

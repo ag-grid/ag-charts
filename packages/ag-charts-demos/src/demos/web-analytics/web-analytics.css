@@ -68,11 +68,9 @@
     letter-spacing: -0.01em;
     margin-right: 24px;
 }
-.wa-brand-dot {
-    width: 20px;
-    height: 20px;
-    border-radius: 5px;
-    background: var(--wa-accent);
+.wa-brand-mark {
+    flex: none;
+    display: block;
 }
 .wa-topbar-spacer {
     flex: 1 1 auto;
@@ -82,6 +80,66 @@
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
+}
+
+/* ---- demo notice (top bar info icon + Radix tooltip) ---- */
+.wa-notice-trigger {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: var(--wa-radius-sm);
+    background: transparent;
+    color: var(--wa-muted);
+    cursor: pointer;
+}
+.wa-notice-trigger:hover {
+    background: var(--wa-accent-soft);
+    color: var(--wa-accent-strong);
+}
+.wa-notice-trigger:focus-visible {
+    outline: 2px solid var(--wa-accent);
+    outline-offset: 1px;
+}
+.wa-notice-tip {
+    z-index: 60;
+    max-width: 380px;
+    padding: 10px 12px;
+    border: 1px solid var(--wa-border);
+    border-radius: var(--wa-radius-sm);
+    background: var(--wa-panel);
+    box-shadow: var(--wa-shadow-popover);
+    color: var(--wa-muted);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.45;
+}
+.wa-notice-arrow {
+    fill: var(--wa-panel);
+}
+
+/* ---- icon + label grid cells (country flag, browser icon) ---- */
+.wa-icon-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.wa-flag {
+    flex: none;
+    width: 18px;
+    height: 12px;
+    object-fit: cover;
+    border: 1px solid var(--wa-border);
+    border-radius: 2px;
+}
+.wa-cell-icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
 }
 
 /* ---- body / scroll region ---- */
@@ -145,19 +203,30 @@
     min-width: 0;
 }
 
-/* ---- KPI tiles ---- */
-.wa-kpis {
+/* ---- KPI tabs ---- */
+/* Card whose head is the KPI tab strip, which spans the full card width. */
+.wa-card--tabbed {
+    padding-top: 0;
+}
+.wa-kpi-tabs {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 14px;
+    /* Always one row: too narrow for every KPI and the strip scrolls, not the card. */
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(150px, 1fr);
+    overflow-x: auto;
+    margin: 0 -20px 16px;
+    background: var(--wa-panel-2);
+    border-radius: calc(var(--wa-radius) - 1px) calc(var(--wa-radius) - 1px) 0 0;
 }
 .wa-kpi {
     position: relative;
     /* A button does not inherit the app font by default. */
     font: inherit;
-    background: var(--wa-panel);
-    border: 1px solid var(--wa-border);
-    border-radius: var(--wa-radius);
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-left: 1px solid var(--wa-border);
+    border-bottom: 1px solid var(--wa-border);
     padding: 14px 16px;
     display: flex;
     flex-direction: column;
@@ -166,20 +235,26 @@
     overflow: hidden;
     transition:
         background 0.12s ease,
-        border-color 0.12s ease;
+        color 0.12s ease;
+}
+.wa-kpi:first-child {
+    border-left: 0;
+    border-top-left-radius: inherit;
+}
+.wa-kpi:last-child {
+    border-top-right-radius: inherit;
 }
 .wa-kpi:focus-visible {
     outline: 2px solid var(--wa-accent);
-    outline-offset: 1px;
+    outline-offset: -2px;
 }
-.wa-kpi:hover {
-    border-color: var(--wa-border-strong);
-    background: var(--wa-panel-2);
+.wa-kpi:hover:not(.is-active) {
+    background: var(--wa-panel);
 }
-/* The tile driving the traffic chart, marked by a top rule in the metric's own
-   colour (set inline per metric). */
+/* The selected tab joins the chart panel below it, breaking the strip's bottom rule. */
 .wa-kpi.is-active {
-    border-color: var(--wa-border-strong);
+    background: var(--wa-panel);
+    border-bottom-color: transparent;
 }
 .wa-kpi.is-active::before {
     content: '';
@@ -196,7 +271,7 @@
     letter-spacing: 0.05em;
 }
 .wa-kpi-value {
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 700;
     letter-spacing: -0.02em;
     /* Text ink, not the metric colour — the sparkline already carries that. */
@@ -207,11 +282,10 @@
     font-weight: 600;
     font-variant-numeric: tabular-nums;
 }
-/* Sparkline sits at the foot of the tile, spanning its full width. */
 .wa-kpi-spark-box {
     display: block;
-    height: 34px;
-    margin: 4px -4px -4px;
+    height: 30px;
+    margin: 2px -4px -8px;
 }
 .wa-kpi-spark {
     width: 100%;
@@ -249,6 +323,13 @@
 .wa-card--fill > .wa-fill {
     flex: 1 1 auto;
     min-height: 0;
+}
+
+.wa-grid-2-even {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    align-items: start;
 }
 
 .wa-grid-3 {
@@ -305,6 +386,112 @@
 }
 .wa-btn[data-state='open'] {
     border-color: var(--wa-accent);
+}
+.wa-btn--primary {
+    background: var(--wa-accent);
+    border-color: var(--wa-accent);
+    color: #ffffff;
+}
+.wa-btn--primary:hover,
+.wa-btn--primary:disabled:hover {
+    background: var(--wa-accent-strong);
+    border-color: var(--wa-accent-strong);
+}
+/* Outlined counterpart to the primary button: accent ink, panel ground. */
+.wa-btn--secondary {
+    border-color: var(--wa-accent);
+    color: var(--wa-accent);
+}
+.wa-btn--secondary:hover {
+    border-color: var(--wa-accent-strong);
+    background: var(--wa-accent-soft);
+    color: var(--wa-accent-strong);
+}
+.wa-btn--secondary:disabled:hover {
+    border-color: var(--wa-accent);
+    background: var(--wa-panel);
+}
+
+/* Buttons inside cards sit beside 13-14px card text, so they run smaller than the
+   top-bar controls. */
+.wa-card .wa-btn {
+    height: 28px;
+    padding: 0 10px;
+    font-size: 13px;
+}
+
+/* ---- event annotations: card toolbar and its add-event popover ---- */
+.wa-card-actions {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.wa-event-form {
+    width: 260px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    background: var(--wa-panel);
+    border: 1px solid var(--wa-border-strong);
+    border-radius: var(--wa-radius);
+    box-shadow: var(--wa-shadow-popover);
+}
+/* Opened from the context menu: placed at the click point in viewport space. */
+.wa-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.wa-field-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--wa-muted);
+}
+.wa-input {
+    box-sizing: border-box;
+    width: 100%;
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid var(--wa-border);
+    border-radius: var(--wa-radius-sm);
+    background: var(--wa-panel);
+    color: var(--wa-text);
+    font: inherit;
+}
+.wa-input:focus-visible {
+    border-color: var(--wa-accent);
+    outline: 2px solid var(--wa-accent);
+    outline-offset: -1px;
+}
+.wa-fieldset {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+.wa-fieldset > .wa-field-label {
+    padding: 0;
+    margin-bottom: 5px;
+}
+.wa-radio-row {
+    display: flex;
+    gap: 14px;
+}
+.wa-radio {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+.wa-radio input {
+    accent-color: var(--wa-accent);
+    margin: 0;
+}
+.wa-event-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
 }
 
 /* ---- Radix Select ---- */
@@ -413,29 +600,74 @@
     width: 100%;
 }
 
-.wa-app .ag-charts-tooltip-value {
+/* ---- traffic chart tooltip (scoped via the class its renderers emit) ---- */
+.wa-app .wa-traffic-tooltip {
+    /* Tighter than the 8px default: every row is a single line. */
+    --tooltip-row-spacing: 2px;
+}
+
+/* One content block per series, each with 8px of vertical padding: collapse the
+   doubled padding where two of them meet. */
+.wa-app .wa-traffic-tooltip:has(+ .wa-traffic-tooltip) {
+    padding-bottom: 4px;
+}
+
+.wa-app .wa-traffic-tooltip + .wa-traffic-tooltip {
+    padding-top: 2px;
+}
+
+.wa-app .wa-traffic-tooltip .ag-charts-tooltip-row {
+    /* Keep the symbol and label together on the left; the value is pushed right below. */
+    justify-content: flex-start;
+    align-items: center;
+    gap: 4px;
+}
+
+.wa-app .wa-traffic-tooltip .ag-charts-tooltip-label {
+    /* The default `flex: 1` stretches the label away from its symbol. */
+    flex: 0 1 auto;
+}
+
+.wa-app .wa-traffic-tooltip .ag-charts-tooltip-value {
     font-weight: bold;
+    /* Sit against the row's right edge whatever the label width, so values line up. */
+    margin-inline-start: auto;
+    padding-inline-start: 16px;
+    text-align: right;
+}
+
+.wa-app .wa-traffic-tooltip .ag-charts-tooltip-symbol {
+    display: flex;
+    margin: 0;
+    padding: 0;
+}
+
+.wa-app .wa-traffic-tooltip .ag-charts-tooltip-footer {
+    border-top: 1px solid var(--wa-border);
+    padding-top: 8px;
+    margin-top: 8px;
+    text-align: left;
+}
+
+.wa-app .wa-traffic-tooltip .ag-charts-tooltip-footer-text {
+    display: block;
+    font-size: 12px;
 }
 
 /* ---- responsive: stack multi-column layouts, keep everything readable ---- */
 @media (max-width: 1100px) {
     .wa-grid-2,
+    .wa-grid-2-even,
     .wa-grid-3 {
         grid-template-columns: 1fr;
     }
     .wa-grid-4 {
         grid-template-columns: repeat(2, 1fr);
     }
-    .wa-kpis {
-        grid-template-columns: repeat(3, 1fr);
-    }
 }
 @media (max-width: 640px) {
     .wa-grid-4 {
         grid-template-columns: 1fr;
-    }
-    .wa-kpis {
-        grid-template-columns: repeat(2, 1fr);
     }
     .wa-body {
         padding: 16px 14px 32px;
@@ -444,6 +676,6 @@
         padding: 12px 14px;
     }
     .wa-kpi-value {
-        font-size: 24px;
+        font-size: 22px;
     }
 }

@@ -5,6 +5,7 @@ import type {
     AgTimeIntervalUnit,
     DateFormatterStyle,
     FormatterParams,
+    VerticalAlign,
 } from 'ag-charts-types';
 
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
@@ -78,6 +79,32 @@ export function getBandEdgeOffset(bandwidth: number, textAlign: ResolvedTextAlig
 
 /** Offset of a text box's left edge from its anchor, as a fraction of the box's width. */
 const ANCHOR_OFFSET_FRACTION: Record<ResolvedTextAlign, number> = { left: 0, center: 0.5, right: 1 };
+
+const VERTICAL_BAND_EDGE_FRACTION: Record<VerticalAlign, number> = { top: -0.5, middle: 0, bottom: 0.5 };
+
+/**
+ * Offset from a tick's position - the middle of its band - to the band edge a configured vertical
+ * alignment anchors against. A scale with no bands puts the tick at no band edge, so the anchor
+ * stays put.
+ *
+ * The alignment is in canvas space, so `'bottom'` is the band's larger coordinate whichever way the
+ * scale's range runs - hence the magnitude of a bandwidth a descending range gives a sign to.
+ */
+export function getVerticalBandEdgeOffset(bandwidth: number, verticalAlign: VerticalAlign | undefined): number {
+    if (verticalAlign == null) return 0;
+    return VERTICAL_BAND_EDGE_FRACTION[verticalAlign] * Math.abs(bandwidth);
+}
+
+/** Offset of a text box's top edge from its anchor, as a fraction of the box's height. */
+const ANCHOR_OFFSET_FRACTION_Y: Record<VerticalAlign, number> = { top: 0, middle: 0.5, bottom: 1 };
+
+/**
+ * Vertical shift that takes a text box measured under `from` to where `to` would place it. Both
+ * alignments anchor the same glyphs, so the box only slides along its own height.
+ */
+export function getVerticalAlignShift(height: number, from: VerticalAlign, to: VerticalAlign): number {
+    return (ANCHOR_OFFSET_FRACTION_Y[from] - ANCHOR_OFFSET_FRACTION_Y[to]) * height;
+}
 
 export interface LabelExtent {
     x0: number;

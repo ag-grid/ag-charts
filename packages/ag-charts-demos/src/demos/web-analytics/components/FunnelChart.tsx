@@ -19,10 +19,12 @@ export function FunnelChart({ data }: FunnelChartProps) {
             valueKey: 'sessionsEntering',
             fills: FUNNEL_COLORS,
             strokeWidth: 0,
+            cornerRadius: 5,
             stageLabel: {
                 enabled: false,
             },
             label: {
+                placement: ['inside-center', 'outside-after'],
                 formatter: ({ datum }) => [
                     { text: datum.stepName, fontSize: 13, fontWeight: 'bold' },
                     { text: '\n' },

@@ -65,7 +65,7 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function changeVisible(visible: AgZoomButtonsVisible) {
-    options.zoom!.buttons!.visible = visible;
+function changeVisible(event: Event) {
+    options.zoom!.buttons!.visible = (event.target as HTMLInputElement).value as AgZoomButtonsVisible;
     chart.update(options);
 }

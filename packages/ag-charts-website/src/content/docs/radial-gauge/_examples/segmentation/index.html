@@ -1,8 +1,32 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="setSegmentationInterval({ step: 10 })">Step: <code>10</code></button>
-        <button onclick="setSegmentationInterval({ count: 4 })">Count: <code>4</code></button>
-        <button onclick="setSegmentationInterval({ values: [40, 50, 60] })">Values: <code>[40, 50, 60]</code></button>
+        <div class="button-group" role="group" aria-label="Segmentation Interval">
+            <input
+                type="radio"
+                id="segmentation-step"
+                name="segmentation-interval"
+                value="step"
+                onchange="setSegmentationInterval(event)"
+            />
+            <label for="segmentation-step">Step: <code>10</code></label>
+            <input
+                type="radio"
+                id="segmentation-count"
+                name="segmentation-interval"
+                value="count"
+                checked
+                onchange="setSegmentationInterval(event)"
+            />
+            <label for="segmentation-count">Count: <code>4</code></label>
+            <input
+                type="radio"
+                id="segmentation-values"
+                name="segmentation-interval"
+                value="values"
+                onchange="setSegmentationInterval(event)"
+            />
+            <label for="segmentation-values">Values: <code>[40, 50, 60]</code></label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

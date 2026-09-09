@@ -12,8 +12,9 @@ import { CartesianChartModule } from '../../chart/cartesianChartModule';
 import { commonAxisThemeTemplate, titleAxisThemeTemplate } from '../../chart/themes/axisThemeTemplate';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
+import { communityModule } from '../moduleIdentity';
 
-export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions, LogAxis> = {
+export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions, LogAxis> = /* #__PURE__ */ communityModule({
     type: 'axis',
     name: 'log',
     chartType: 'cartesian',
@@ -33,4 +34,4 @@ export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions, LogAxis> = {
 
     create: (ctx: DynamicContext<ChartRegistry>, id, options) =>
         new LogAxis(ctx, id, options as NormalisedNumberAxisOptions),
-};
+});

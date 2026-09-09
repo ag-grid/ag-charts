@@ -8,6 +8,10 @@
                 "path": "./quadrant-chart/"
             },
             {
+                "text": "Background Regions",
+                "path": "./background-regions/"
+            },
+            {
                 "text": "Additional Click Events",
                 "path": "./events/"
             },
