@@ -1,5 +1,7 @@
 import { ambientLog } from 'ag-charts-core';
 
+import { rethrowFailFast } from './failFastError';
+
 type Handler = (...args: any[]) => void;
 
 export type Listener<H extends Handler> = {
@@ -40,6 +42,7 @@ export class Listeners<EventType extends string, EventHandler extends Handler> {
             try {
                 listener.handler(...params);
             } catch (e) {
+                rethrowFailFast(e);
                 ambientLog.errorOnce(e);
             }
         }

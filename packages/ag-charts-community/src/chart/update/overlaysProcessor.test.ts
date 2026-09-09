@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { AgDocument, EventEmitter, getDocument } from 'ag-charts-core';
+import { AgDocument, EventEmitter, Logger, getDocument } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import { DOMManager } from '../../dom/domManager';
@@ -9,7 +9,7 @@ import { BBox } from '../../scene/bbox';
 import type { DataService } from '../data/dataService';
 import type { AnimationManager } from '../interaction/animationManager';
 import { ChartOverlays } from '../overlay/chartOverlays';
-import { ValidationIssueCollector } from '../validation/validationIssueCollector';
+import { ChartValidations } from '../validation/chartValidations';
 import { OverlaysProcessor } from './overlaysProcessor';
 import type { ChartLike } from './processor';
 
@@ -34,7 +34,7 @@ describe('OverlaysProcessor', () => {
         domManager.containerSize = { width: 800, height: 600, pixelRatio: 1 };
 
         const overlays = new ChartOverlays();
-        const validationCollector = new ValidationIssueCollector();
+        const validations = new ChartValidations({ logger: new Logger(), eventsHub });
 
         const chartLike = { series: [], axes: [], seriesRoot: {} } as unknown as ChartLike;
         const dataService = { isLoading } as unknown as DataService<any>;
@@ -49,10 +49,10 @@ describe('OverlaysProcessor', () => {
             localeManager,
             animationManager,
             domManager,
-            validationCollector
+            validations
         );
 
-        return { overlays, validationCollector, eventsHub, chartLike };
+        return { overlays, validations, eventsHub, chartLike };
     }
 
     function emitLayout(eventsHub: EventsHub, rect = new BBox(0, 0, 800, 600), chart = { width: 800, height: 600 }) {
@@ -66,18 +66,18 @@ describe('OverlaysProcessor', () => {
     }
 
     it('AG-17974 does not surface the no-data overlay on a validation change before the first layout', () => {
-        const { overlays, validationCollector } = build();
+        const { overlays, validations } = build();
         const noDataSpy = vi.spyOn(overlays.noData, 'getElement');
 
-        // Applying options dispatches a validation-collection change before series and data exist.
-        validationCollector.setIssues([]);
+        // Applying options starts a validation cycle before series and data exist.
+        validations.beginCycle([]);
 
         expect(noDataSpy).not.toHaveBeenCalled();
     });
 
     it('AG-17974 still surfaces the no-data overlay for an empty-data chart once the first layout completes', () => {
-        const { overlays, validationCollector, eventsHub } = build();
-        validationCollector.setIssues([]);
+        const { overlays, validations, eventsHub } = build();
+        validations.beginCycle([]);
 
         const noDataSpy = vi.spyOn(overlays.noData, 'getElement');
         emitLayout(eventsHub);
@@ -86,7 +86,7 @@ describe('OverlaysProcessor', () => {
     });
 
     it('holds the settled overlay state when a validation change arrives with stale series', () => {
-        const { overlays, validationCollector, eventsHub, chartLike } = build();
+        const { overlays, validations, eventsHub, chartLike } = build();
         chartLike.series = [{ type: 'bar', hasData: true, visible: true }];
         emitLayout(eventsHub);
 
@@ -95,7 +95,7 @@ describe('OverlaysProcessor', () => {
         // Chart.applyOptions() dispatches the validation change before attaching the incoming
         // series, so the series still describe the previous update at this point.
         chartLike.series = [];
-        validationCollector.setIssues([]);
+        validations.beginCycle([]);
 
         expect(noDataSpy).not.toHaveBeenCalled();
     });
@@ -171,11 +171,11 @@ describe('OverlaysProcessor', () => {
     });
 
     it('anchors the validation overlay to the chart rect, not the DOM container, when they differ', () => {
-        const { overlays, validationCollector, eventsHub } = build();
+        const { overlays, validations, eventsHub } = build();
         const validationSpy = vi.spyOn(overlays.validation, 'getElement');
 
-        validationCollector.setShowOverlayOn(['warning']);
-        validationCollector.setIssues([{ severity: 'warning', message: 'bad option' }]);
+        validations.setShowOverlayOn(['warning']);
+        validations.beginCycle([{ severity: 'warning', message: 'bad option' }]);
 
         // width/height options shrink the canvas (200x200) below its 800x600 DOM container; the modal
         // validation overlay must span the canvas, not overflow it at the container size.
@@ -186,11 +186,11 @@ describe('OverlaysProcessor', () => {
     });
 
     it('re-sizes the validation overlay to the new chart rect when a later layout reports a resize', () => {
-        const { overlays, validationCollector, eventsHub } = build();
+        const { overlays, validations, eventsHub } = build();
         const validationSpy = vi.spyOn(overlays.validation, 'getElement');
 
-        validationCollector.setShowOverlayOn(['warning']);
-        validationCollector.setIssues([{ severity: 'warning', message: 'bad option' }]);
+        validations.setShowOverlayOn(['warning']);
+        validations.beginCycle([{ severity: 'warning', message: 'bad option' }]);
 
         emitLayout(eventsHub, new BBox(0, 0, 800, 600), { width: 800, height: 600 });
         expect(overlays.validation.focusBox).toEqual(new BBox(0, 0, 800, 600));
@@ -205,11 +205,11 @@ describe('OverlaysProcessor', () => {
     });
 
     it('follows a canvas resize when a throwing update emits no layout:complete', () => {
-        const { overlays, validationCollector, eventsHub } = build();
+        const { overlays, validations, eventsHub } = build();
         const validationSpy = vi.spyOn(overlays.validation, 'getElement');
 
-        validationCollector.setShowOverlayOn(['error']);
-        validationCollector.setIssues([{ severity: 'error', message: 'update error' }]);
+        validations.setShowOverlayOn(['error']);
+        validations.beginCycle([{ severity: 'error', message: 'update error' }]);
         emitLayout(eventsHub, new BBox(0, 0, 800, 600), { width: 800, height: 600 });
         expect(overlays.validation.focusBox).toEqual(new BBox(0, 0, 800, 600));
 

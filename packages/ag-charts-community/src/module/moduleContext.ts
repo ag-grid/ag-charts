@@ -27,6 +27,7 @@ import type { LayoutManager } from '../chart/layout/layoutManager';
 import type { LegendManager } from '../chart/legend/legendManager';
 import type { OptionsGraphService } from '../chart/optionsGraphService';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
+import type { ChartValidations } from '../chart/validation/chartValidations';
 import type { EventsHub } from '../core/eventsHub';
 import type { DOMManager } from '../dom/domManager';
 import type { ProxyInteractionService } from '../dom/proxyInteractionService';
@@ -89,6 +90,7 @@ export interface ChartRegistry {
     readonly stateManager: StateManager;
     readonly syncManager: SyncManager;
     readonly tooltipManager: TooltipManager;
+    readonly validations: ChartValidations;
     readonly widgets: WidgetSet;
     readonly zoomManager?: ZoomManager;
 

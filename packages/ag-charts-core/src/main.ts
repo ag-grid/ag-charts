@@ -26,7 +26,7 @@ export * from './structures/eventEmitter';
 export * from './structures/lruCache';
 export * as Debug from './logging/debugLogger';
 export { Logger, ambientLogger, isLogLevel } from './logging/logger';
-export type { LogLevel } from './logging/logger';
+export type { LogIssue, LogLevel } from './logging/logger';
 // Chart-less logging fallback, restricted by the `no-unscoped-logger` lint rule. Enumerated rather
 // than `export *` so the namespace cannot reach the `Logger` constructor.
 export * as ambientLog from './logging/ambientLog';
