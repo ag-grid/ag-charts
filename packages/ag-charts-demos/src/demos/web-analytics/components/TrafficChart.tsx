@@ -313,11 +313,14 @@ export function TrafficChart({
                 selectionChange: ({ source }) => {
                     // Ignore our own api-call echoes; only user interaction should push a new selection upward.
                     if (source === 'api-call') return;
+                    // Asymmetric by design: a cross-line click wins the event before the selection
+                    // module sees it, so the reverse order keeps both selected.
+                    onAnnotationSelect(null);
                     onSelectionChange(selectionToDays(chartRef.current?.getSelection() ?? []));
                 },
                 crossLineClick: ({ crossLineId }) => onAnnotationSelect(crossLineId),
-                // A cross-line click never reaches here: the engine fires its cross-line
-                // callbacks and returns before the chart-level listeners.
+                // Only a click missing both a cross-line and a datum reaches here; the engine
+                // returns before the chart-level listeners in either of those cases.
                 click: () => onAnnotationSelect(null),
             },
         };
