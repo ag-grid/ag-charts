@@ -22,20 +22,6 @@ In this example:
 - When a blank area on a chart is clicked, a message is shown in the console.
 - When a blank area on a chart is double-clicked, a different message is shown.
 
-### seriesNodeClick and seriesNodeDoubleClick
-
-These are fired on click or double-click of any series node in the chart.
-
-The contents of the event object passed to the listener will depend on the type of series the clicked node belongs to.
-
-{% chartExampleRunner title="Node Click Event" name="series-node-click-event" type="generated" /%}
-
-In this example:
-
-- Whenever a column or line marker is clicked, information about that series node is shown in the console.
-- Whenever a column or line marker is double-clicked, the information is shown with temperatures in Fahrenheit.
-- The ID of the series that contains the clicked node is also logged.
-
 ### seriesVisibilityChange
 
 This is fired when the visibility of a series or data item is toggled. This is usually triggered by user interaction with a legend item.
@@ -169,12 +155,46 @@ These events contain:
 
 ### seriesNodeClick and seriesNodeDoubleClick
 
-{% chartExampleRunner title="Node Click Event" name="node-click-event" type="generated" /%}
+These are fired on click or double-click of a series node in the chart.
+
+Listeners can be added either to the chart-level `listeners` option to listen to all series, or to the `series[].listeners` options to listen to individual series separately.
+
+The contents of the event object passed to the listener will depend on the type of series the clicked node belongs to.
+
+{% chartExampleRunner title="Node Click Event" name="series-node-click-event" type="generated" /%}
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'line',
+            listeners: {
+                seriesNodeClick: (ev) => console.log('[line click]', toString(ev)),
+                seriesNodeDoubleClick: (ev) => console.log('[line double click]', toString(ev)),
+            },
+            // ...
+        },
+        {
+            type: 'bar',
+            listeners: {
+                seriesNodeClick: (ev) => console.log('[bar click]', toString(ev)),
+                seriesNodeDoubleClick: (ev) => console.log('[bar double click]', toString(ev)),
+            },
+            // ...
+        },
+    ],
+    listeners: {
+        seriesNodeClick: (ev) => console.log('[chart click]', toString(ev)),
+        seriesNodeDoubleClick: (ev) => console.log('[chart double click]', toString(ev)),
+    },
+}
+```
 
 In this example:
 
-- Whenever a bar is clicked or double-clicked, information about that bar is shown in the console.
-- The event listener pulls extra information from the datum containing the bar's value and shows it in the console as well. In this case the breakdown of sales numbers by brand name.
+- Whenever a bar is clicked or double-clicked, the Bar Series listener prints a message to the console.
+- Whenever a marker is clicked or double-clicked, the Line Series listener prints a message to the console.
+- Whenever any series nodes (bar or marker) is clicked or double-clicked, the Chart listener prints a message to the console.
 
 ## Legend Events
 
