@@ -313,14 +313,12 @@ export function TrafficChart({
                 selectionChange: ({ source }) => {
                     // Ignore our own api-call echoes; only user interaction should push a new selection upward.
                     if (source === 'api-call') return;
-                    // Asymmetric by design: a cross-line click wins the event before the selection
-                    // module sees it, so the reverse order keeps both selected.
+                    // A cross-line click never reaches here, so clearing the annotation cannot drop a fresh one.
                     onAnnotationSelect(null);
                     onSelectionChange(selectionToDays(chartRef.current?.getSelection() ?? []));
                 },
                 crossLineClick: ({ crossLineId }) => onAnnotationSelect(crossLineId),
-                // Only a click missing both a cross-line and a datum reaches here; the engine
-                // returns before the chart-level listeners in either of those cases.
+                // Only an empty-area click reaches here; cross-line and datum clicks return before chart listeners.
                 click: () => onAnnotationSelect(null),
             },
         };

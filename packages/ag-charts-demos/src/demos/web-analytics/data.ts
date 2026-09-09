@@ -199,8 +199,7 @@ const SPIKES: Record<number, number> = {
     [EVENT_OFFSET.outage]: 0.01, // outage / bad deploy dip
 };
 
-// A spike only scales session count, so ratio metrics stay flat through an outage.
-// Degraded days shape the sessions themselves: they bounce off the landing page.
+// A spike only scales session count, so ratio metrics stay flat unless degraded days bounce the sessions too.
 const DEGRADED_DAYS = new Set([EVENT_OFFSET.outage]);
 
 function dailyVolume(dayIndex: number, rand: () => number): number {
