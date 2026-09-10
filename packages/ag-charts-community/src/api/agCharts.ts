@@ -466,7 +466,6 @@ class AgChartsInternal {
 
         chart.ctx.domManager.updateCSSVariableWatchers(chartOptions.processedCSSVariables);
 
-        // Must precede the short-circuit below: each listener closes over its own update's options.
         chart.setRequestRefreshListener(() => {
             const refreshedChartOptions = new ChartOptions(
                 baseOptions,
@@ -480,16 +479,9 @@ class AgChartsInternal {
                 Debug.check('scene:stats', 'scene:stats:verbose') ? performance.now() : undefined,
                 chart.ctx
             );
-            // Re-derived per refresh, so registering the module later recovers.
-            if (refreshedChartOptions.unusableLeadSeriesType != null) return;
             AgChartsInternal.licenseCheck(chartProxy, refreshedChartOptions);
             AgChartsInternal.requestFactoryUpdate(chart, refreshedChartOptions);
         });
-
-        if (chartOptions.unusableLeadSeriesType != null) {
-            AgChartsInternal.queueSkippedUpdate(chart, chartOptions);
-            return proxy;
-        }
 
         AgChartsInternal.requestFactoryUpdate(chart, chartOptions);
 
@@ -587,24 +579,6 @@ class AgChartsInternal {
             this.destroy,
             Infinity // Unbounded, so Grid sorting cannot exhaust the pool.
         );
-    }
-
-    private static readonly skippedChartOptions = new WeakSet<ChartOptions>();
-
-    // Only an applied update splices its entry off the queue, so replace the last skipped one.
-    private static queueSkippedUpdate(chart: Chart, chartOptions: ChartOptions) {
-        const queued = chart.queuedChartOptions.at(-1);
-        if (queued != null && AgChartsInternal.skippedChartOptions.has(queued)) {
-            chart.queuedChartOptions.pop();
-            chart.queuedUserOptions.pop();
-        }
-        AgChartsInternal.skippedChartOptions.add(chartOptions);
-        chart.queuedUserOptions.push(chartOptions.userOptions);
-        chart.queuedChartOptions.push(chartOptions);
-        // No `applyOptions()` follows, so a revalidated pass hands its issues over here.
-        if (chartOptions.revalidated) {
-            chart.ctx.validations.beginCycle(chartOptions.issues, chartOptions.validations);
-        }
     }
 
     private static requestFactoryUpdate(chart: Chart, chartOptions: ChartOptions) {
