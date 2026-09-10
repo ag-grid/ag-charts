@@ -115,6 +115,10 @@ export const chartListenerToModule = new Map([
     ['crossLineDoubleClick', 'CrossLinesModule'],
 ]);
 
+// `click` means AxisInteractionModule on an axis but CrossLinesModule on a Cross Line, so a
+// `listeners` nested in one of these must not be read as the chart-level one.
+export const nestedListenerOwners = new Set(['axes', 'axis', 'series', 'crossLines', 'legend', 'annotations']);
+
 // Nested series plugin option → Module ID
 export const seriesPluginToModule = new Map([['errorBar', 'ErrorBarsModule']]);
 

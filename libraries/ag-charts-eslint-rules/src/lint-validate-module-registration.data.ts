@@ -34,6 +34,10 @@ const DataSourceModule = {};
 const ContextMenuModule = {};
 const CandlestickSeriesModule = {};
 const OrdinalTimeAxisModule = {};
+const AxisInteractionModule = {};
+const CrossLinesModule = {};
+
+const noop = (_event?: unknown) => undefined;
 
 // =============================================================================
 // TEST CASE 1: Correct registration - should pass
@@ -303,3 +307,64 @@ const perChartSpread = {
     axes: { x: { type: 'ordinal-time' }, y: { type: 'number' } },
 };
 AgCharts.create({ ...perChartSpread, title: { text: 'Spread' } }, { modules: [AreaSeriesModule] });
+
+// TEST CASE 22: Chart-level axis listeners with the module registered - should pass
+AgCharts.create(
+    {
+        series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+        axes: { x: { type: 'category' }, y: { type: 'number' } },
+        listeners: { axisClick: noop, axisDoubleClick: noop },
+    },
+    { modules: [BarSeriesModule, CategoryAxisModule, NumberAxisModule, AxisInteractionModule] }
+);
+
+// TEST CASE 23: Chart-level axisClick without AxisInteractionModule - should fail
+AgCharts.create(
+    {
+        series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+        axes: { x: { type: 'category' }, y: { type: 'number' } },
+        listeners: { axisClick: noop },
+    },
+    { modules: [BarSeriesModule, CategoryAxisModule, NumberAxisModule] }
+);
+
+// TEST CASE 24: Chart-level crossLineClick without CrossLinesModule - should fail
+AgCharts.create(
+    {
+        series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+        axes: { x: { type: 'category' }, y: { type: 'number' } },
+        listeners: { crossLineClick: noop },
+    },
+    { modules: [BarSeriesModule, CategoryAxisModule, NumberAxisModule] }
+);
+
+// TEST CASE 25: Axis listeners supplied through a shared const - should pass
+const sharedAxisListeners = { click: noop };
+AgCharts.create(
+    {
+        series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+        axes: { x: { type: 'category', listeners: sharedAxisListeners }, y: { type: 'number' } },
+    },
+    { modules: [BarSeriesModule, CategoryAxisModule, NumberAxisModule, AxisInteractionModule] }
+);
+
+// TEST CASE 26: A Cross Line `click` needs the cross-lines module, not the axis one - should pass
+AgCharts.create(
+    {
+        series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+        axes: {
+            x: { type: 'category' },
+            y: { type: 'number', crossLines: [{ type: 'line', value: 5, listeners: { click: noop } }] },
+        },
+    },
+    { modules: [BarSeriesModule, CategoryAxisModule, NumberAxisModule, CrossLinesModule] }
+);
+
+// TEST CASE 27: Series listeners are not chart-level listeners - should pass
+AgCharts.create(
+    {
+        series: [{ type: 'bar', xKey: 'x', yKey: 'y', listeners: { seriesNodeClick: noop } }],
+        axes: { x: { type: 'category' }, y: { type: 'number' } },
+    },
+    { modules: [BarSeriesModule, CategoryAxisModule, NumberAxisModule] }
+);
