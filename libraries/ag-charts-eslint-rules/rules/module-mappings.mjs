@@ -97,6 +97,24 @@ export const axisPluginToModule = new Map([
 // Polar-specific overrides for axisPluginToModule
 export const polarAxisPluginToModule = new Map([['crossLines', 'PolarCrossLinesModule']]);
 
+// Nested `axes[].listeners` event → Module ID. Axis click events are dispatched by the enterprise
+// axis DOM proxy, whereas the cross-line events are dispatched by the community cross-lines plugin.
+export const axisListenerToModule = new Map([
+    ['click', 'AxisInteractionModule'],
+    ['doubleClick', 'AxisInteractionModule'],
+    ['crossLineClick', 'CrossLinesModule'],
+    ['crossLineDoubleClick', 'CrossLinesModule'],
+]);
+
+// Nested chart-level `listeners` event → Module ID, for the events dispatched by a plugin rather
+// than by the chart itself. These are the chart-level counterparts of `axisListenerToModule`.
+export const chartListenerToModule = new Map([
+    ['axisClick', 'AxisInteractionModule'],
+    ['axisDoubleClick', 'AxisInteractionModule'],
+    ['crossLineClick', 'CrossLinesModule'],
+    ['crossLineDoubleClick', 'CrossLinesModule'],
+]);
+
 // Nested series plugin option → Module ID
 export const seriesPluginToModule = new Map([['errorBar', 'ErrorBarsModule']]);
 

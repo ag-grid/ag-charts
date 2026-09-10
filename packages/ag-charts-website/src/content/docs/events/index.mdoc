@@ -232,6 +232,60 @@ Although clicking a legend item will usually toggle the series visibility, this 
 
 The legend item click events include a `preventDefault` function that can be called to stop the default series visibility toggling. See the [seriesVisibilityChange](#seriesvisibilitychange) event documentation for an example of this.
 
+## Axis Events {% enterpriseIcon /%}
+
+These are fired on click or double-click of an axis area, which covers the axis line, its ticks, labels and title.
+
+These events contain:
+
+- The `axisId` of the axis, as specified in `axes`.
+- The `direction` of the axis.
+- The `value` on the axis at the clicked point, matching the [axis type](./axes-types/), along with its `index` in the axis `domain`.
+- The `boundSeries` bound to the axis.
+
+### axisClick and axisDoubleClick
+
+These are fired on click or double-click of an axis in the chart.
+
+Listeners can be added either to the chart-level `listeners` option to listen to all axes, or to an individual axis' `listeners` option in `axes` to listen to that axis separately. As with [seriesNodeClick](#seriesnodeclick-and-seriesnodedoubleclick), the chart-level listener is fired alongside the axis-level one.
+
+{% chartExampleRunner title="Axis Click Event" name="axis-click-event" type="generated" /%}
+
+```js format="snippet"
+{
+    axes: {
+        x: {
+            listeners: {
+                click: (ev) => console.log('[x axis click]', toString(ev)),
+                doubleClick: (ev) => console.log('[x axis double click]', toString(ev)),
+            },
+            // ...
+        },
+        yProfit: {
+            listeners: {
+                click: (ev) => console.log('[profit axis click]', toString(ev)),
+                doubleClick: (ev) => console.log('[profit axis double click]', toString(ev)),
+            },
+            // ...
+        },
+    },
+    listeners: {
+        axisClick: (ev) => console.log('[chart axis click]', toString(ev)),
+        axisDoubleClick: (ev) => console.log('[chart axis double click]', toString(ev)),
+    },
+}
+```
+
+In this example:
+
+- Whenever the X Axis is clicked or double-clicked, the X Axis listener prints a message to the console.
+- Whenever the Profit Axis is clicked or double-clicked, the Profit Axis listener prints a message to the console.
+- Whenever any axis is clicked or double-clicked, the Chart listener prints a message to the console. The Sales and Orders axes have no listeners of their own, so this is the only listener they fire.
+
+{% note %}
+When an axis has no listener for the event, and the chart-level `axisClick` or `axisDoubleClick` is not set either, a click on that axis area falls back to the chart [click and doubleClick](#click-and-doubleclick) events instead.
+{% /note %}
+
 ## Interaction Ranges
 
 By default, the `seriesNodeClick` event is only triggered when the user clicks exactly on a node. You can use the `nodeClickRange` option to instead define a range at which the event is triggered. This can be set to one of three values: `'nearest'`, `'exact'` or a number as a distance in pixels.
@@ -267,6 +321,10 @@ All series event options have similar interface contracts. See the series-specif
 
 {% tabItem id="AgChartLegendListeners" label="Legend Events" %}
 {% apiReference id="AgChartLegendListeners" /%}
+{% /tabItem %}
+
+{% tabItem id="AgAxisListeners" label="Axis Events" %}
+{% apiReference id="AgAxisListeners" include=["click", "doubleClick"] /%}
 {% /tabItem %}
 
 {% tabItem id="AgBaseChartListeners" label="Chart Events" %}
