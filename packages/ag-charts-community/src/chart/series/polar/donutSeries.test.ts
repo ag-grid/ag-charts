@@ -1307,6 +1307,7 @@ describe('DonutSeries', () => {
             expectWarningsCalls().toEqual([]);
         });
     });
+
     describe('AG-18485 inner label centring', () => {
         const centredOptions = (innerLabels: AgDonutSeriesOptions['innerLabels']): AgPolarChartOptions => ({
             ...options,
@@ -1317,10 +1318,10 @@ describe('DonutSeries', () => {
             series: [{ type: 'donut', angleKey: 'value', innerRadiusRatio: 0.9, innerLabels }],
         });
 
-        const innerLabelBoxes = (myChart: Chart) => {
-            const [series] = (myChart as any).series as any[];
-            return (series.innerLabelsSelection.nodes() as Text[]).map((node) => node.getBBox());
-        };
+        const innerLabelBoxes = (myChart: Chart) =>
+            classCast(myChart.series[0], DonutSeries)
+                .innerLabelsSelection.nodes()
+                .map((node) => node.getBBox());
 
         // 1px tolerance absorbs canvas-mock measurement noise; the defect is a whole descent.
         it('centres a single inner label on the centre of the hole', async () => {
