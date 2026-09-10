@@ -1,4 +1,6 @@
-import * as RPopover from '@radix-ui/react-popover';
+import { useState } from 'react';
+
+const NOTICE_ID = 'wa-demo-notice';
 
 function InfoIcon() {
     return (
@@ -11,18 +13,29 @@ function InfoIcon() {
 }
 
 export function DemoNotice() {
+    const [open, setOpen] = useState(false);
+
     return (
-        <RPopover.Root>
-            <RPopover.Trigger className="wa-notice-trigger" aria-label="About this demo">
+        <span className="wa-notice">
+            <button
+                type="button"
+                className="wa-notice-trigger"
+                aria-label="About this demo"
+                aria-describedby={open ? NOTICE_ID : undefined}
+                onMouseEnter={() => setOpen(true)}
+                onMouseLeave={() => setOpen(false)}
+                onFocus={() => setOpen(true)}
+                onBlur={() => setOpen(false)}
+                onKeyDown={(event) => event.key === 'Escape' && setOpen(false)}
+            >
                 <InfoIcon />
-            </RPopover.Trigger>
-            <RPopover.Portal>
-                <RPopover.Content className="wa-portal wa-notice-tip" side="bottom" align="end" sideOffset={6}>
+            </button>
+            {open && (
+                <span id={NOTICE_ID} role="tooltip" className="wa-notice-tip">
                     This is a sample application showcasing AG Charts and AG Grid features. All data shown is synthetic
                     and randomly generated for demonstration purposes only.
-                    <RPopover.Arrow className="wa-notice-arrow" width={10} height={5} />
-                </RPopover.Content>
-            </RPopover.Portal>
-        </RPopover.Root>
+                </span>
+            )}
+        </span>
     );
 }

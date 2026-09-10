@@ -163,7 +163,7 @@ export const DONUT_SERIES_INNER_TEXT: AgPolarChartOptions = {
             innerRadiusOffset: -30,
             innerLabels: [
                 { text: '35%', color: 'white', fontSize: 50 },
-                { text: 'Market', spacing: 10 },
+                { text: 'Market', spacing: 4 },
             ],
             innerCircle: {
                 fill: '#a3a2a1',

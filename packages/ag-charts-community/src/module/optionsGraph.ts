@@ -242,7 +242,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         this.paletteType = isObject(userOptions?.theme) ? paletteType(userOptions.theme?.palette) : 'inbuilt';
 
         // Extract the primary series type, bypassing the graph so we have it ready immediately.
-        const seriesType = userOptions.series?.[0]?.type ?? 'line';
+        const seriesType = this.resolveSeriesType();
         this.seriesType = seriesType;
 
         // Build the initial user options, defaults, common and series overrides graphs on the root.
@@ -292,7 +292,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
                 $applyTheme: [
                     ['/$seriesType/axes/$axisType/$position', '/$seriesType/axes/$axisType'],
                     {
-                        seriesType: { $path: ['/series/0/type', 'line'] },
+                        seriesType: { $path: ['/series/0/type', seriesType] },
                         axisType: { $path: ['./type', 'category'] },
                         position: { $path: ['./position'] },
                     },
@@ -352,6 +352,18 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             this.annotations = undefined;
             debug('cleared');
         });
+    }
+
+    // The theme only has entries for registered series types; any registered type shares the chart-level defaults.
+    private resolveSeriesType(): string {
+        const seriesType = this.userOptions.series?.[0]?.type ?? 'line';
+        if (seriesType in this.config) return seriesType;
+        const registeredTypes = Object.keys(this.config);
+        return (
+            registeredTypes.find((type) => this.moduleRegistry.getSeriesModule(type)?.chartType === 'cartesian') ??
+            registeredTypes[0] ??
+            seriesType
+        );
     }
 
     clearSafe() {
