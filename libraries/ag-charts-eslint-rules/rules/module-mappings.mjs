@@ -119,6 +119,8 @@ export const chartListenerToModule = new Map([
 // `listeners` nested in one of these must not be read as the chart-level one.
 export const nestedListenerOwners = new Set(['axes', 'axis', 'series', 'crossLines', 'legend', 'annotations']);
 
+export const chartOptionsMarkers = new Set(['series', 'axes', 'axis']);
+
 // Nested series plugin option → Module ID
 export const seriesPluginToModule = new Map([['errorBar', 'ErrorBarsModule']]);
 

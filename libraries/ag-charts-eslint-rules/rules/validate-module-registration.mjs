@@ -10,6 +10,7 @@ import {
     bundleContents,
     cartesianSeriesModules,
     chartListenerToModule,
+    chartOptionsMarkers,
     enterpriseModules,
     intrinsicDefaults,
     moduleToPackage,
@@ -304,6 +305,54 @@ export default {
             if (declarator?.type !== 'VariableDeclarator') return undefined;
             const init = unwrapExpressions(declarator.init);
             return init?.type === 'ObjectExpression' ? init : undefined;
+        }
+
+        /** A chart's own options, as opposed to a factored-out axis or series that also has `listeners`. */
+        function isChartOptionsObject(objectNode) {
+            if (objectNode?.type !== 'ObjectExpression') return false;
+            return objectNode.properties.some(
+                (p) => p.type === 'Property' && p.key.type === 'Identifier' && chartOptionsMarkers.has(p.key.name)
+            );
+        }
+
+        /** Whether these options are a polar chart's, judged from their own axes and series. */
+        function isPolarOptions(optionsNode) {
+            for (const prop of optionsNode.properties) {
+                if (prop.type !== 'Property' || prop.key.type !== 'Identifier') continue;
+
+                if (prop.key.name === 'axes' && prop.value.type === 'ObjectExpression') {
+                    for (const axis of prop.value.properties) {
+                        if (axis.type !== 'Property' || axis.key.type !== 'Identifier') continue;
+                        if (axis.key.name === 'angle' || axis.key.name === 'radius') return true;
+                    }
+                }
+
+                if (prop.key.name === 'series' && prop.value.type === 'ArrayExpression') {
+                    for (const element of prop.value.elements) {
+                        const series = unwrapExpressions(element);
+                        if (series?.type !== 'ObjectExpression') continue;
+                        for (const p of series.properties) {
+                            if (p.type !== 'Property' || p.key.type !== 'Identifier' || p.key.name !== 'type') continue;
+                            const seriesType = getStringValue(p.value);
+                            if (seriesType && seriesChartType.get(seriesType) === 'polar') return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        /** Chart-level listener mapping, with the polar Cross Lines module for a polar chart. */
+        function chartListenerModules(optionsNode) {
+            if (!isPolarOptions(optionsNode)) return chartListenerToModule;
+
+            const polarCrossLines = polarAxisPluginToModule.get('crossLines');
+            return new Map(
+                [...chartListenerToModule].map(([event, moduleId]) => [
+                    event,
+                    moduleId === 'CrossLinesModule' ? polarCrossLines : moduleId,
+                ])
+            );
         }
 
         /** Require each listener event's module, using the caller's mapping for its own level. */
@@ -862,8 +911,9 @@ export default {
                                 a.key.type === 'Identifier' &&
                                 nestedListenerOwners.has(a.key.name)
                         );
-                    if (!nested) {
-                        requireListenerModules(node, chartListenerToModule, (e) => `listeners.${e} option`);
+                    if (!nested && isChartOptionsObject(node.parent)) {
+                        const modules = chartListenerModules(node.parent);
+                        requireListenerModules(node, modules, (e) => `listeners.${e} option`);
                     }
                 } else if (keyName === 'type') {
                     // Handle type properties anywhere in the file

@@ -36,6 +36,10 @@ const CandlestickSeriesModule = {};
 const OrdinalTimeAxisModule = {};
 const AxisInteractionModule = {};
 const CrossLinesModule = {};
+const PolarCrossLinesModule = {};
+const RadialColumnSeriesModule = {};
+const AngleCategoryAxisModule = {};
+const RadiusNumberAxisModule = {};
 
 const noop = (_event?: unknown) => undefined;
 
@@ -364,6 +368,29 @@ AgCharts.create(
 AgCharts.create(
     {
         series: [{ type: 'bar', xKey: 'x', yKey: 'y', listeners: { seriesNodeClick: noop } }],
+        axes: { x: { type: 'category' }, y: { type: 'number' } },
+    },
+    { modules: [BarSeriesModule, CategoryAxisModule, NumberAxisModule] }
+);
+
+// TEST CASE 28: A polar chart's cross-line listener needs the polar module - should pass
+AgCharts.create(
+    {
+        series: [{ type: 'radial-column', angleKey: 'x', radiusKey: 'y' }],
+        axes: {
+            angle: { type: 'angle-category' },
+            radius: { type: 'radius-number', crossLines: [{ type: 'line', value: 5 }] },
+        },
+        listeners: { crossLineClick: noop },
+    },
+    { modules: [RadialColumnSeriesModule, AngleCategoryAxisModule, RadiusNumberAxisModule, PolarCrossLinesModule] }
+);
+
+// TEST CASE 29: A standalone config that is not chart options - should pass
+const detachedAxisConfig = { listeners: { crossLineClick: noop } };
+AgCharts.create(
+    {
+        series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
         axes: { x: { type: 'category' }, y: { type: 'number' } },
     },
     { modules: [BarSeriesModule, CategoryAxisModule, NumberAxisModule] }
