@@ -98,6 +98,12 @@ const DocsExampleRunnerInner = ({
     );
 
     useEffect(() => {
+        // The build embeds a hidden copy of the source for crawlers; this island now owns the code
+        // viewer, so drop it rather than carry the source twice.
+        document.getElementById(id)?.querySelector('[data-example-source-code]')?.remove();
+    }, [id]);
+
+    useEffect(() => {
         if (!exampleName) {
             return;
         }

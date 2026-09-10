@@ -2,9 +2,13 @@
 import { DocsExampleRunner } from './DocsExampleRunner';
 import type { ExampleType } from '@components/example-generator/types';
 import ExampleRunnerContainer from '@components/example-runner/components/ExampleRunnerContainer.astro';
-import { DOCS_PAGE_NAME_PATH_INDEX } from '../constants';
+import ExampleRunnerSourceCode from '@components/example-runner/components/ExampleRunnerSourceCode.astro';
+import { getExampleViewerFiles } from '@components/example-runner/utils/exampleViewerFiles';
 import type { ExampleOptions } from '@components/example-runner/types';
 import { getGeneratedContents } from '@components/example-generator';
+import { DISABLE_EXAMPLE_SOURCE_EMBED } from '@constants';
+import { getInternalFramework } from '@utils/framework';
+import { getFrameworkFromPath, getPageNameFromPath } from '../utils/urlPaths';
 
 interface Props {
     title: string;
@@ -20,23 +24,27 @@ interface Props {
 
 const { title, name, type, options, isInline, initialLoadDeferred } = Astro.props as Props;
 
-const pathSegments = Astro.url.pathname.split('/');
-const pageName = pathSegments[DOCS_PAGE_NAME_PATH_INDEX];
+const pageName = getPageNameFromPath(Astro.url.pathname);
+const framework = getFrameworkFromPath(Astro.url.pathname);
 
+// The TypeScript variant, as the markdown twin page embeds, so crawlers get the same source from
+// both. A visitor's own language choice is still fetched by the island as before.
+const internalFramework = getInternalFramework({ framework, useTypescript: true });
 const generatedExampleParams = {
     type: 'docs',
-    framework: 'vanilla', // Should be the same for all frameworks
+    framework: internalFramework,
     pageName,
     exampleName: name,
 };
-// NOTE: Even though we have the contents at build time, we are not passing
-// it into the component, so that we can load the contents at runtime.
-// This avoids the page being bigger than it needs to be, if the user does
-// not scroll to the example.
+// NOTE: The island still fetches the contents at runtime rather than taking them as props, so the
+// page only carries the source once: in the crawlable panel below, which the island removes once
+// it has mounted.
 const contents = await getGeneratedContents(generatedExampleParams);
 // Get whether example has console log component at build time, so that we
 // can show it on page load.
 const hasExampleConsoleLog = contents?.hasExampleConsoleLog;
+const sourceCode =
+    contents && !DISABLE_EXAMPLE_SOURCE_EMBED ? getExampleViewerFiles(contents, internalFramework) : undefined;
 ---
 
 <ExampleRunnerContainer
@@ -57,4 +65,13 @@ const hasExampleConsoleLog = contents?.hasExampleConsoleLog;
         hasExampleConsoleLog={hasExampleConsoleLog}
         initialLoadDeferred={initialLoadDeferred}
     />
+    {
+        sourceCode && (
+            <ExampleRunnerSourceCode
+                internalFramework={internalFramework}
+                files={sourceCode.files}
+                mainFileName={sourceCode.mainFileName}
+            />
+        )
+    }
 </ExampleRunnerContainer>

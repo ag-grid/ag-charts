@@ -3,7 +3,7 @@ import { toAbsoluteUrl } from '@ag-website-shared/markdoc/toAbsoluteUrl';
 import { getExamplesPath, getPageImages } from '@components/docs/utils/filesData';
 import { getExampleLinkUrl } from '@components/docs/utils/urlPaths';
 import { getGeneratedContents } from '@components/example-generator';
-import { stripOutExampleGeneratorCode } from '@components/example-runner/components/stripOutExampleGeneratorCode';
+import { getExampleViewerFiles } from '@components/example-runner/utils/exampleViewerFiles';
 import { transform as transformSnippet } from '@components/snippet/snippetTransformer';
 import { getInternalFramework } from '@utils/framework';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
@@ -66,11 +66,9 @@ export function createChartsMarkdownResolvers({ siteRoot }: { siteRoot?: string 
                 if (!fileName || !contents.files?.[fileName]) {
                     return null;
                 }
-                // Strip the harness the example generator injects (dark-mode switcher, console
-                // logging, e2e theme setup) so the reader/LLM sees the same clean source as the
-                // on-page code viewer.
-                const files = { ...contents.files };
-                stripOutExampleGeneratorCode(files);
+                // The same cleaned files the on-page code viewer shows, so the reader/LLM sees
+                // identical source.
+                const { files } = getExampleViewerFiles(contents, internalFramework);
                 const cleanCode = files[fileName].trim();
                 const liveUrl = toAbsoluteUrl(
                     getExampleLinkUrl({ internalFramework, pageName, exampleName: name }),
