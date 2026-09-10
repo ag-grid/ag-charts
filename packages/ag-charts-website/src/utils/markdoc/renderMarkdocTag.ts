@@ -93,7 +93,7 @@ async function renderGalleryExamples(attributes: Record<string, any>, siteRoot?:
     });
     const links = family.examples.map(({ label, url }) => `- [${label}](${toAbsoluteUrl(url, siteRoot)})`).join('\n');
     const hubUrl = toAbsoluteUrl(family.hubUrl, siteRoot);
-    return `Every ${galleryFamilyName(family.title)} example in the [AG Charts gallery](${hubUrl}):\n\n${links}`;
+    return `See more ${galleryFamilyName(family.title)} examples in the [AG Charts Gallery](${hubUrl}).\n\n${links}`;
 }
 
 async function renderMajorTable(

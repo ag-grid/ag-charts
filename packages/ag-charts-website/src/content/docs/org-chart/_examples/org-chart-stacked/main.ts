@@ -24,9 +24,9 @@ const options: AgStandaloneChartOptions = {
             parentIdKey: 'parentId',
             layout: {
                 type: 'stacked',
+                stackFromDepth: 4,
                 linkIndentation: 26,
                 nodeIndentation: 26,
-                stackFromDepth: 4,
             },
             node: {
                 // clickToExpand: false,
@@ -68,7 +68,7 @@ function updateNodeIndentation(event: any) {
     chart.update(options);
 }
 
-function updatestackFromDepth(event: any) {
+function updateStackFromDepth(event: any) {
     const value = Number(event.target?.value);
     (options.series![0] as AgOrganizationSeriesOptions).layout!.stackFromDepth = value;
     document.getElementById('stackFromDepthValue')!.innerHTML = String(value);

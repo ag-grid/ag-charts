@@ -1,19 +1,12 @@
 <div class="example-controls">
     <div class="controls-row">
-        <div class="button-group" role="group" aria-label="Range Bounds">
-            <input
-                type="radio"
-                id="bounds-closed"
-                name="range-bounds"
-                value="closed"
-                checked
-                onchange="boundsChange(event)"
-            />
-            <label for="bounds-closed">Both Bounds</label>
-            <input type="radio" id="bounds-open" name="range-bounds" value="open" onchange="boundsChange(event)" />
-            <label for="bounds-open">Open Ended</label>
-            <input type="radio" id="bounds-full" name="range-bounds" value="full" onchange="boundsChange(event)" />
-            <label for="bounds-full">Full Width</label>
+        <div class="button-group" role="group" aria-label="Bounds">
+            <input type="radio" id="closed" name="bounds" value="closed" onchange="setBounds(event)" />
+            <label for="closed">Both Bounds</label>
+            <input type="radio" id="open" name="bounds" value="open" checked onchange="setBounds(event)" />
+            <label for="open">Open Ended</label>
+            <input type="radio" id="full" name="bounds" value="full" onchange="setBounds(event)" />
+            <label for="full">Full Width</label>
         </div>
     </div>
 </div>

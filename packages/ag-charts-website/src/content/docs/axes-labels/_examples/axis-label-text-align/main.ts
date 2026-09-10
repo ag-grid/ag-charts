@@ -5,6 +5,12 @@ import { getData } from './data';
 
 ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
 
+type TextAlign = 'left' | 'center' | 'right';
+
+const initialXTextAlign: TextAlign = 'center';
+// 'left' is what a right-positioned vertical axis derives, so the labels start unchanged.
+const initialYTextAlign: TextAlign = 'left';
+
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -18,18 +24,29 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'category',
+            label: {
+                textAlign: initialXTextAlign,
+            },
         },
         y: {
             type: 'number',
             position: 'right',
-            // Right-align the labels of this axis, rather than using the alignment
-            // derived from the axis position.
             label: {
-                textAlign: 'right',
+                textAlign: initialYTextAlign,
                 formatter: ({ value }) => `$${value.toLocaleString()}`,
             },
         } as AgNumberAxisOptions,
     },
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+function setXTextAlign(event: Event) {
+    options.axes!.x!.label!.textAlign = (event.target as HTMLInputElement).value as TextAlign;
+    chart.update(options);
+}
+
+function setYTextAlign(event: Event) {
+    options.axes!.y!.label!.textAlign = (event.target as HTMLInputElement).value as TextAlign;
+    chart.update(options);
+}
