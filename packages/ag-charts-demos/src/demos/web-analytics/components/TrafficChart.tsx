@@ -317,6 +317,8 @@ export function TrafficChart({
                     onAnnotationSelect(null);
                     onSelectionChange(selectionToDays(chartRef.current?.getSelection() ?? []));
                 },
+                // Fires on every datum click, including a re-click that leaves the selection unchanged.
+                seriesNodeClick: () => onAnnotationSelect(null),
                 crossLineClick: ({ crossLineId }) => onAnnotationSelect(crossLineId),
                 // Only an empty-area click reaches here; cross-line and datum clicks return before chart listeners.
                 click: () => onAnnotationSelect(null),
