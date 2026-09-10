@@ -39,13 +39,6 @@ In this example:
 The available label positions are series-specific. These include `'inside-start'` or `'outside-end'` for a bar series, and `'top'` or `'left'` for a bubble series.
 
 See the [API Reference](/options/) for the full list of placement values per series type.
-
-Funnel and Pyramid Series place their labels with `'inside-center'`, `'inside-start'`, `'inside-end'`, `'outside-start'` and `'outside-end'` along the stage axis, and with `'inside-before'`, `'inside-after'`, `'outside-before'` and `'outside-after'` on the same sides as `stageLabel.placement`. A Pyramid Series centres its label on the stage and limits its width to the part of the stage the text sits across, so a long label wraps more in a narrow stage than in a wide one. An outside placement is rejected when it would leave the series area, in which case the label falls back to the next placement in the array; `aspectRatio` and `spacing` are the options that make room for one.
-
-Cone Funnel Series combine the side of the divider with the position along it, giving nine values from `'start-before'` to `'end-after'`. `start` and `end` are the two sides of the divider and `middle` sits on it, while `before`, `center` and `after` run along it. The single-word values `'before'`, `'middle'` and `'after'` are deprecated aliases of `'start-center'`, `'middle-center'` and `'end-center'`.
-
-A Cone Funnel label is always drawn clear of the divider line, so the series has no `insideStyle` or `outsideStyle` options.
-
 {% chartExampleRunner title="Label Placement" name="label-position" type="generated" /%}
 
 ```js format="snippet"
@@ -104,7 +97,7 @@ In this example:
 Series label collision avoidance is separate from [axis label collision avoidance](./axes-labels/#collision-avoidance), which is configured independently on each axis.
 {% /note %}
 
-As well as using [fallback placement](#placement) and [fallback orientation](#orientation) options, labels can also wrap, truncate or be hidden when they collide with other elements or don't fit within provided `maxWidth`/`maxHeight` values.
+As well as using [fallback placement](#placement) and [fallback orientation](#orientation) options, labels can also wrap, truncate, shrink to a smaller font size or be hidden when they collide with other elements or don't fit within provided `maxWidth`/`maxHeight` values.
 
 {% chartExampleRunner title="Label Fitting" name="label-fitting" type="generated" /%}
 
@@ -120,6 +113,7 @@ As well as using [fallback placement](#placement) and [fallback orientation](#or
                 maxHeight: 54,
                 wrapping: 'on-space',
                 truncate: true,
+                minimumFontSize: 8,
             },
         },
     ],
@@ -129,6 +123,7 @@ As well as using [fallback placement](#placement) and [fallback orientation](#or
 In this example:
 
 - `maxWidth` and `maxHeight` specify the maximum label size.
+- Supplying a `minimumFontSize` lets the label shrink in conjunction with wrapping, attempting these methods before truncating or hiding.
 - `wrapping` (`'on-space'`, `'always'`, `'hyphenate'`, `'never'`) controls how overflowing text wraps within the provided size or bar boundary.
 - `truncate` truncates whatever still doesn't fit, appending an ellipsis.
 
@@ -167,30 +162,6 @@ In this example:
 - Use the controls and resize the container to see how the labels wrap, truncate or are hidden when they don't fit.
 - `minimumFontSize` lets the label shrink to fit before it is truncated or hidden. Switch it on to see the labels render in full at a smaller size.
 - When a `calloutLabel` doesn't fit around the chart, the pie or donut shrinks to make room for it, rather than fitting the label around a fixed radius.
-
-### Reducing the Font Size
-
-Bar, histogram, waterfall, range bar, line, area, scatter, bubble, pie and donut labels can shrink to fit instead of wrapping, truncating or being hidden. Set `minimumFontSize` to the smallest size the label may use:
-
-```js format="snippet"
-{
-    series: [
-        {
-            // ...
-            label: {
-                enabled: true,
-                placement: 'inside-center',
-                wrapping: 'on-space',
-                minimumFontSize: 8,
-            },
-        },
-    ],
-}
-```
-
-The label picks the largest size between its `fontSize` and `minimumFontSize` at which the whole text fits. `wrapping` applies at each size tried, so a label can wrap and shrink together to fit. Only when the text still does not fit at `minimumFontSize` is it truncated or hidden, so shrinking is always preferred over an ellipsis.
-
-Line, area, scatter and bubble labels are positioned around their data points, so they shrink to resolve collisions as well as to fit. Every placement is tried at the configured size first, and only when none is clear of the surrounding labels and markers is the label reduced to the largest size at which one is.
 
 ### Hiding Labels
 

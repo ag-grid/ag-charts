@@ -15,7 +15,7 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Reservoir Level',
+        text: 'Reservoir Capacity',
     },
     seriesArea: {
         backgroundRegions: [
@@ -32,8 +32,8 @@ const options: AgCartesianChartOptions = {
         {
             type: 'line',
             xKey: 'date',
-            yKey: 'level',
-            yName: 'Level',
+            yKey: 'capacity',
+            yName: 'Capacity',
         },
     ],
     axes: {

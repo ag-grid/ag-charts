@@ -4,12 +4,11 @@ description: 'Shade a rectangular area of the $framework Chart series area, boun
 enterprise: true
 ---
 
-Background Regions shade a rectangular area of the series area, bounded by value ranges on the x and y axes.
+Background Regions are shaded rectangular area in a cartesian chart, bounded by value ranges on the both x and y axes. These can denote additional information or thresholds, making them useful for data analysis.
 
 ## Adding Background Regions
 
-Add Background Regions with the `seriesArea.backgroundRegions` array. Each region is bounded by an `xRange` and a
-`yRange`.
+Background Regions are defined in the `seriesArea.backgroundRegions` array.
 
 {% chartExampleRunner title="Simple Background Region" name="simple-background-regions" type="generated" /%}
 
@@ -31,19 +30,17 @@ Add Background Regions with the `seriesArea.backgroundRegions` array. Each regio
 
 In this configuration:
 
-- `xRange` and `yRange` bound the region with `start` and `end` values, given in the units of the axis they apply to.
-- `label.text` adds a label to the region.
+- `xRange` and `yRange` bound the region with `start` and `end` values, given in the units of the appropriate axis.
+- `label.text` adds a [label](#labels) to the region.
 
-Regions are drawn behind the series, above the chart background. Region labels are drawn in front of the series.
-
-{% note %}
-Background Regions are only supported on cartesian charts.
-{% /note %}
+Regions are drawn behind the series and above the chart background.
 
 ## Range Bounds
 
-Every part of `xRange` and `yRange` is optional. Omitting a `start` or an `end` extends that side of the region to the
-edge of the series area, and omitting a range entirely spans the region across that axis.
+The range boundaries are defined by optional `xRange` and `yRange` properties, each containing both `start` and `end` properties.
+These must be in the units of the appropriate axis.
+
+Omitting a `start` or an `end` extends that side of the region along the entire axis domain in that direction. Omitting a range entirely spans the entire axis.
 
 {% chartExampleRunner title="Range Bounds" name="range-bounds" type="generated" /%}
 
@@ -65,17 +62,16 @@ edge of the series area, and omitting a range entirely spans the region across t
 
 In this configuration:
 
-- `xRange` has no `end`, so the region extends to the right edge of the series area.
-- `yRange` has no `start`, so it extends to the bottom edge.
-- Use the buttons to switch between these bounds, a region bounded on both axes, and one with `xRange` omitted
-  altogether so that it spans the full width.
+- "Open Ended" has only one bound defined for each range.
+    - `xRange` has no `end`, so the region extends to the right edge of the series area.
+    - `yRange` has no `start`, so it extends to the bottom edge.
+- "Both Bounds" has both `start` and `end` defined for `xRange` and `yRange`, so the region is bounded on all sides.
+- "Full Width" has no `xRange`, so it spans the full width of the series area, while `yRange` is bounded on both sides.
 - Values outside the axis domain are clamped to the edge of the series area.
-- If `start` is greater than `end`, the region renders as if the two values were swapped.
 
 ## Labels
 
-Use `label.position` to place a label relative to its region. Labels are styled with the usual font, colour, padding
-and border options.
+Use `label.position` to place a label relative to its region.
 
 {% chartExampleRunner title="Labels" name="region-labels" type="generated" /%}
 
@@ -91,17 +87,13 @@ and border options.
 In this example:
 
 - Use the dropdown to change `position`.
-- Positions prefixed with `inside` place the label within the region; the others place it outside the corresponding
-  edge or corner.
-- Positions suffixed with `above` or `below` clear the region's horizontal edge while staying aligned to its left or
-  right edge.
-- `position` defaults to `'top'`.
-- `xOffset` and `yOffset` move the label from its position by a number of pixels, and are not clipped to the series
-  area.
+- Position names give the edge first, then the alignment along it. `top-left` sits above the region, aligned left, and `left-top` sits to its left, aligned top.
+- An `inside` prefix places the label within the region.
+- `xOffset` and `yOffset` move the label from its position by the specified number of pixels.
 
 ## Multiple Axes
 
-On a chart with [multiple axes](./axes-secondary/) in one direction, use `axis` to name the axis a range applies to.
+On a chart with [multiple axes](./axes-secondary/) in one direction, use `axis` to specify the axis that the range is plotted against.
 
 {% chartExampleRunner title="Multiple Axes" name="multiple-axes" type="generated" /%}
 
@@ -110,6 +102,7 @@ On a chart with [multiple axes](./axes-secondary/) in one direction, use `axis` 
     seriesArea: {
         backgroundRegions: [
             {
+                xRange: { start: new Date(2025, 0, 1), end: new Date(2025, 4, 1) },
                 yRange: { axis: 'rainfall', start: 100 },
                 label: {
                     text: 'Heavy Rainfall',
@@ -120,26 +113,25 @@ On a chart with [multiple axes](./axes-secondary/) in one direction, use `axis` 
     },
     axes: {
         x: { type: 'unit-time' },
-        y: { type: 'number' },
+        capacity: { type: 'number', position: 'left' },
         rainfall: { type: 'number', position: 'right' },
     },
 }
 ```
 
-In this configuration:
+In this example:
 
-- `yRange.axis` is set to `'rainfall'`, so the range is resolved against that axis rather than the primary y-axis.
-- `xRange` is omitted, so the region spans the full width of the series area.
-- When `axis` is omitted, the range applies to the first axis declared in that direction.
+- `yRange.axis` is set to `'rainfall'`, so the range is resolved against that axis rather than the `capacity` axis.
+- `yRange` has no `end`, so the region extends to the top edge of the series area.
+- When `axis` is omitted in this scenario, the range uses the first axis declared in that direction.
 
 ## Customisation
 
-Regions are styled with `fill`, `fillOpacity`, `stroke`, `strokeWidth` and `strokeOpacity`. Labels have their own
-text, box and border options.
+Regions are styled with `fill`, `fillOpacity`, `stroke`, `strokeWidth` and `strokeOpacity`.
+
+[Labels](#labels) are styled with [font](./text/) and [fills & border](./fills-borders/) options.
 
 {% chartExampleRunner title="Customisation" name="customisation" type="generated" /%}
-
-<!-- cspell:ignore Adelie -->
 
 ```js format="snippet"
 {
@@ -150,12 +142,12 @@ text, box and border options.
                 fillOpacity: 0.2,
                 stroke: '#2b5c95',
                 strokeWidth: 2,
-                xRange: percentileRange(flipperLengths),
-                yRange: percentileRange(bodyMasses),
+                xRange: { start: 14, end: 31 },
+                yRange: { start: 27500, end: 63000 },
                 label: {
-                    text: 'Adelie',
-                    position: 'inside-top',
-                    yOffset: 8,
+                    text: 'Retail',
+                    position: 'top-left',
+                    yOffset: -4,
                     color: '#2b5c95',
                     fontSize: 13,
                     fontWeight: 'bold',
@@ -169,6 +161,7 @@ text, box and border options.
                     },
                 },
             },
+            //... other regions
         ],
     },
 }
@@ -176,11 +169,10 @@ text, box and border options.
 
 In this example:
 
-- Each species has a region covering the middle 80% of its measurements.
-- Each label is colour-matched to its region, with `fill`, `cornerRadius`, `padding` and `border` styling the box
-  behind the text and `color` styling the text itself.
-- `yOffset` drops each label 8px below the top edge of its region.
-- Where `fill` is omitted, regions use the theme's default fill. A `stroke` is only drawn when one is specified.
+- Each market segment has a region covering the middle 80% of its deals, with a `fill` and `stroke` matching the series colour.
+- Each label is colour matched to its region, with `fill`, `cornerRadius`, `padding` and `border` styling the box
+  around the text and `color` styling the text itself.
+- `yOffset` lifts each label 4px clear of its region.
 
 ## API Reference
 

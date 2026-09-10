@@ -24,6 +24,32 @@
             <option value="bottom-left">bottom-left</option>
             <option value="bottom-right">bottom-right</option>
         </select>
+        <div class="gap-right">
+            <label for="xOffsetLabel"><code>xOffset:</code></label>
+            <input
+                type="range"
+                id="xOffsetLabel"
+                min="-100"
+                max="100"
+                value="0"
+                oninput="updateLabelXOffset(event)"
+                onchange="updateLabelXOffset(event)"
+            />
+            <span id="xOffsetValue">0</span>
+        </div>
+        <div>
+            <label for="yOffsetLabel"><code>yOffset:</code></label>
+            <input
+                type="range"
+                id="yOffsetLabel"
+                min="-100"
+                max="100"
+                value="0"
+                oninput="updateLabelYOffset(event)"
+                onchange="updateLabelYOffset(event)"
+            />
+            <span id="yOffsetValue">0</span>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

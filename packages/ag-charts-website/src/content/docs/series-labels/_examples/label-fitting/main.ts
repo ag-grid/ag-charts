@@ -58,6 +58,12 @@ function setWrapping(wrapping: string) {
     chart.update(options);
 }
 
+function setMinimumFontSize(value: string) {
+    (options.series![0] as AgBarSeriesOptions<DataType>).label!.minimumFontSize =
+        value === 'off' ? undefined : Number(value);
+    chart.update(options);
+}
+
 function setTruncate(value: string) {
     (options.series![0] as AgBarSeriesOptions<DataType>).label!.truncate = value === 'enabled';
     chart.update(options);

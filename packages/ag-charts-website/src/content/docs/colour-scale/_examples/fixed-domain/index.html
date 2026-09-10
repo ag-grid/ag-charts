@@ -4,14 +4,6 @@
         <div class="button-group" role="group" aria-label="Domain">
             <input
                 type="radio"
-                id="colour-scale-domain-fixed"
-                name="colour-scale-domain"
-                value="fixed"
-                onchange="domainChange(event)"
-            />
-            <label for="colour-scale-domain-fixed">Fixed [1, 10]</label>
-            <input
-                type="radio"
                 id="colour-scale-domain-auto"
                 name="colour-scale-domain"
                 value="auto"
@@ -19,6 +11,14 @@
                 onchange="domainChange(event)"
             />
             <label for="colour-scale-domain-auto">Auto</label>
+            <input
+                type="radio"
+                id="colour-scale-domain-fixed"
+                name="colour-scale-domain"
+                value="fixed"
+                onchange="domainChange(event)"
+            />
+            <label for="colour-scale-domain-fixed">Fixed [1, 10]</label>
         </div>
     </div>
 </div>
