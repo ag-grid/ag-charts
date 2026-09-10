@@ -1609,14 +1609,13 @@ function shrunkCandidateIsClear(region: BoxBounds, inflate: number): boolean {
 /**
  * The narrowest glyph budget a re-fit of the label's text can leave a character in, or `Infinity` when
  * that cannot be told cheaply. `textWrap` breaks on the per-grapheme estimate and then confirms against the
- * measured width, so the smaller of the two is what a budget has to reach. Under `'hide'` a word broken by
- * the budget erases the label, so the widest word (the whole line, when wrapping is off) is the floor, but
- * only for a single line: a line whose first grapheme overflows is dropped without an ellipsis, leaving the
- * rest of a multi-line label drawn. Under `'ellipsis'` a truncation keeps a prefix of the line, so a
- * character survives only when a line's first word fits whole or its first grapheme fits ahead of the
- * ellipsis, and the cheapest line is the floor. Only an unstyled plain string at the configured font
- * qualifies: a segmented or shape-bound label wraps by other rules and a hyphenating one can break inside a
- * word.
+ * measured width, so the smaller of the two is what a budget has to reach. Under `'hide'` any text lost
+ * erases the label, whether a word is broken by the budget or a line is dropped without an ellipsis, so the
+ * widest word on any line (the widest line, when wrapping is off) is the floor. Under `'ellipsis'` a
+ * truncation keeps a prefix of the line, so a character survives only when a line's first word fits whole
+ * or its first grapheme fits ahead of the ellipsis, and the cheapest line is the floor. Only an unstyled
+ * plain string at the configured font qualifies: a segmented or shape-bound label wraps by other rules and
+ * a hyphenating one can break inside a word.
  */
 function minRefitWidth(fit: LabelFitDescriptor): number {
     if (cascadeMinRefitWidth != null) return cascadeMinRefitWidth;
@@ -1632,11 +1631,7 @@ function minRefitWidth(fit: LabelFitDescriptor): number {
         (wrapping == null || wrapping === 'on-space' || wrapping === 'never')
     ) {
         const lines = toTextString(text).split(LineSplitter);
-        if (!hide) {
-            floor = narrowestLeadWidth(lines, wrapping);
-        } else if (lines.length === 1) {
-            floor = widestWordWidth(lines[0], wrapping);
-        }
+        floor = hide ? widestWordWidth(lines, wrapping) : narrowestLeadWidth(lines, wrapping);
     }
     cascadeMinRefitWidth = floor;
     return floor;
@@ -1644,13 +1639,15 @@ function minRefitWidth(fit: LabelFitDescriptor): number {
 
 type FitWrapping = LabelFitDescriptor['policy']['wrapping'];
 
-/** Width of `line`'s widest word, or of the whole line when wrapping is off; see {@link minRefitWidth}. */
-function widestWordWidth(line: string, wrapping: FitWrapping): number {
+/** Width of the widest word on any of `lines`, or of the widest line when wrapping is off; see {@link minRefitWidth}. */
+function widestWordWidth(lines: string[], wrapping: FitWrapping): number {
     const measurer = cascadeMeasurer!;
     let widest = 0;
-    for (const unit of wrapping === 'never' ? [line.trimEnd()] : line.split(' ')) {
-        if (unit !== '') {
-            widest = Math.max(widest, wordWidth(measurer, unit));
+    for (const line of lines) {
+        for (const unit of wrapping === 'never' ? [line.trimEnd()] : line.split(' ')) {
+            if (unit !== '') {
+                widest = Math.max(widest, wordWidth(measurer, unit));
+            }
         }
     }
     return widest;
@@ -1685,21 +1682,13 @@ function wordWidth(measurer: TextMeasurer, word: string): number {
 
 /**
  * Whether losing a line of height is certain to erase the label's text. A height reduction only counts
- * from a whole line up, a single line re-wrapped narrower never needs fewer lines than the current fit,
- * and `'hide'` erases the text once a line is clipped; so for a one-line plain string with no overflow
- * fallback the re-fit can be failed without wrapping anything. A multi-line string is exempt: the wrap
- * can drop whole lines silently (a line whose first grapheme overflows, or everything after a blank line
- * when wrapping is off), so it may need fewer lines than it has now.
+ * from a whole line up, text re-wrapped no wider never needs fewer lines than the current fit, and
+ * `'hide'` erases the text once any of it is lost, clipped or dropped; so for a plain string with no
+ * overflow fallback the re-fit can be failed without wrapping anything.
  */
 function erasesOnLostLine(fit: LabelFitDescriptor): boolean {
     const { policy, text } = fit;
-    return (
-        policy.overflowStrategy === 'hide' &&
-        fit.fitOverflow == null &&
-        policy.region == null &&
-        !isArray(text) &&
-        !toTextString(text).includes('\n')
-    );
+    return policy.overflowStrategy === 'hide' && fit.fitOverflow == null && policy.region == null && !isArray(text);
 }
 
 /**
