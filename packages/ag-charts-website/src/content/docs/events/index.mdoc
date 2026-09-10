@@ -288,9 +288,62 @@ When an axis has no listener for the event, and the chart-level `axisClick` or `
 
 ## Cross Line Events
 
-PLACEHOLDER
+These are fired on click or double-click of a [Cross Line](./axes-cross-lines/), including its label.
+
+These events contain:
+
+- The `crossLineId`, from the Cross Line's `id`, or a generated one if it has none.
+- The `axisId` and `direction` of the axis the Cross Line belongs to.
+- The `crossLineType`, either `'line'` or `'range'`.
+- The `value` of a `line` Cross Line, or the `[start, end]` `range` of a `range` Cross Line.
+- `allMatchedParams` - every element under the click point, including Cross Lines on other axes and any series node beneath them. Each entry is identified by its own `type`.
+
+### crossLineClick and crossLineDoubleClick
+
+These are fired on click or double-click of a Cross Line in the chart.
+
+Listeners can be added at three levels: a single Cross Line's `listeners` option, an axis' `listeners` option to listen to every Cross Line on that axis, or the chart-level `listeners` option to listen to every Cross Line in the chart. One click reaches all three.
 
 {% chartExampleRunner title="Cross Line Click Event" name="cross-line-click-event" type="generated" /%}
+
+```js format="snippet"
+{
+    axes: {
+        x: {
+            crossLines: [
+                {
+                    id: 'winter-lockdown',
+                    listeners: {
+                        click: (ev) => console.log('[lockdown click]', toString(ev)),
+                        doubleClick: (ev) => console.log('[lockdown double click]', toString(ev)),
+                    },
+                    // ...
+                },
+            ],
+            listeners: {
+                crossLineClick: (ev) => console.log('[x axis cross line click]', toString(ev)),
+                crossLineDoubleClick: (ev) => console.log('[x axis cross line double click]', toString(ev)),
+            },
+            // ...
+        },
+    },
+    listeners: {
+        crossLineClick: (ev) => console.log('[chart cross line click]', toString(ev)),
+        crossLineDoubleClick: (ev) => console.log('[chart cross line double click]', toString(ev)),
+    },
+}
+```
+
+In this example:
+
+- Whenever a lockdown range or the ICU capacity line is clicked or double-clicked, that Cross Line's own listener prints a message to the console.
+- Whenever a Cross Line on the X Axis is clicked or double-clicked, the X Axis listener prints a message to the console. The variant lines have no listeners of their own, so they reach only the X Axis and Chart listeners.
+- Whenever any Cross Line is clicked or double-clicked, the Chart listener prints a message to the console.
+- Clicking where a variant line crosses a lockdown range lists both Cross Lines in `allMatchedParams`.
+
+{% note %}
+When a Cross Line has no listener for the event, and neither the axis nor the chart has one either, a click on that Cross Line falls back to the chart [click and doubleClick](#click-and-doubleclick) events instead.
+{% /note %}
 
 ## Interaction Ranges
 
@@ -331,6 +384,12 @@ All series event options have similar interface contracts. See the series-specif
 
 {% tabItem id="AgAxisListeners" label="Axis Events" %}
 {% apiReference id="AgAxisListeners" include=["click", "doubleClick"] /%}
+{% /tabItem %}
+
+{% tabItem id="AgCrossLineListeners" label="Cross Line Events" %}
+Cross Line listeners can also be set on the axis that owns the Cross Line.
+{% apiReference id="AgCrossLineListeners" /%}
+{% apiReference id="AgAxisListeners" include=["crossLineClick", "crossLineDoubleClick"] /%}
 {% /tabItem %}
 
 {% tabItem id="AgBaseChartListeners" label="Chart Events" %}
