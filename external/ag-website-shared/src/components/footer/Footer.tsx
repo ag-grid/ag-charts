@@ -9,11 +9,18 @@ import GithubSlugger from 'github-slugger';
 import styles from './Footer.module.scss';
 
 /**
+ * A footer link, plus the cookie-preferences flag that opens the consent dialog instead of
+ * navigating. Declared here so a site whose footer type predates `showCookiesPrefs` still
+ * type-checks this component.
+ */
+type FooterLink = FooterItem['links'][number] & { showCookiesPrefs?: boolean };
+
+/**
  * A footer group renders as a menu column unless its `placement` moves it into the legal strip
  * under the columns. Declared here so a site whose footer type predates `placement` still renders
  * every group as a column.
  */
-type FooterGroup = FooterItem & { placement?: 'legal' };
+type FooterGroup = Omit<FooterItem, 'links'> & { placement?: 'legal'; links: FooterLink[] };
 
 interface FooterProps {
     showMicrosoftMessage?: boolean;
@@ -67,7 +74,7 @@ const LegalLinks = ({ group }: { group: FooterGroup }) => {
 
     return (
         <ul className={classNames('list-style-none', 'text-sm', styles.legalLinks)} aria-label={group.title}>
-            {group.links.map(({ name, url, newTab, showCookiesPrefs }) => (
+            {group.links.map(({ name, url, newTab, showCookiesPrefs }: FooterLink) => (
                 <li key={name}>
                     <a
                         id={`${slugger.slug(name)}-nav`}
