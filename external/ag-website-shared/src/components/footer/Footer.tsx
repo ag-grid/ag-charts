@@ -1,4 +1,4 @@
-import type { FooterItem } from '@ag-grid-types';
+import type { FooterItem, FooterLink } from '@ag-grid-types';
 import { DevToolsToggle } from '@ag-website-shared/components/dev-tools/DevTools';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { SiteLogo } from '@components/SiteLogo';
@@ -9,18 +9,11 @@ import GithubSlugger from 'github-slugger';
 import styles from './Footer.module.scss';
 
 /**
- * A footer link, plus the cookie-preferences flag that opens the consent dialog instead of
- * navigating. Declared here so a site whose footer type predates `showCookiesPrefs` still
- * type-checks this component.
- */
-type FooterLink = FooterItem['links'][number] & { showCookiesPrefs?: boolean };
-
-/**
  * A footer group renders as a menu column unless its `placement` moves it into the legal strip
  * under the columns. Declared here so a site whose footer type predates `placement` still renders
  * every group as a column.
  */
-type FooterGroup = Omit<FooterItem, 'links'> & { placement?: 'legal'; links: FooterLink[] };
+type FooterGroup = FooterItem & { placement?: 'legal' };
 
 interface FooterProps {
     showMicrosoftMessage?: boolean;
@@ -48,7 +41,7 @@ const MenuColumns = ({ footerItems }: { footerItems: FooterGroup[] }) => {
                     {title}
                 </span>
                 <ul className="list-style-none" aria-labelledby={titleId}>
-                    {links.map(({ name, url, newTab, iconName, showCookiesPrefs }: any) => (
+                    {links.map(({ name, url, newTab, iconName, showCookiesPrefs }: FooterLink) => (
                         <li key={`${title}_${name}`}>
                             <a
                                 id={`${slugger.slug(name)}-nav`}
