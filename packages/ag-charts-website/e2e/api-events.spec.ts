@@ -93,15 +93,15 @@ test.describe('api-events', () => {
                 await consoleLogs.expectLogs([]);
 
                 await page.mouse.click(aprMarker.x, aprMarker.y);
-                await consoleLogs.expectLogs(['[click]\nTemperature in April: 14.2°C\nSeries: LineSeries-1']);
+                await consoleLogs.expectLogs(['[click]\nTemperature in April: 14.2°C. Series: LineSeries-1']);
                 consoleLogs.clear();
 
                 await page.mouse.click(mayBarTop.x, mayBarTop.y);
-                await consoleLogs.expectLogs(['[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1']);
+                await consoleLogs.expectLogs(['[click]\nTemperature in May: 8.7°C. Series: BarSeries-1']);
                 consoleLogs.clear();
 
                 await page.mouse.click(mayBarBot.x, mayBarBot.y);
-                await consoleLogs.expectLogs(['[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1']);
+                await consoleLogs.expectLogs(['[click]\nTemperature in May: 8.7°C. Series: BarSeries-1']);
             });
             test('seriesNodeDoubleClick', async ({ page }) => {
                 await page.mouse.dblclick(center.x, center.y);
@@ -109,25 +109,25 @@ test.describe('api-events', () => {
 
                 await page.mouse.dblclick(aprMarker.x, aprMarker.y);
                 await consoleLogs.expectLogs([
-                    '[click]\nTemperature in April: 14.2°C\nSeries: LineSeries-1',
-                    '[click]\nTemperature in April: 14.2°C\nSeries: LineSeries-1',
-                    '[double click]\nTemperature in April: 57.56°F\nSeries: LineSeries-1',
+                    '[click] Temperature in April: 14.2°C. Series: LineSeries-1',
+                    '[click] Temperature in April: 14.2°C. Series: LineSeries-1',
+                    '[double click] Temperature in April: 57.56°F. Series: LineSeries-1',
                 ]);
                 consoleLogs.clear();
 
                 await page.mouse.dblclick(mayBarTop.x, mayBarTop.y);
                 await consoleLogs.expectLogs([
-                    '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
-                    '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
-                    '[double click]\nTemperature in May: 47.66°F\nSeries: BarSeries-1',
+                    '[click] Temperature in May: 8.7°C. Series: BarSeries-1',
+                    '[click] Temperature in May: 8.7°C. Series: BarSeries-1',
+                    '[double click] Temperature in May: 47.66°F. Series: BarSeries-1',
                 ]);
                 consoleLogs.clear();
 
                 await page.mouse.dblclick(mayBarBot.x, mayBarBot.y);
                 await consoleLogs.expectLogs([
-                    '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
-                    '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
-                    '[double click]\nTemperature in May: 47.66°F\nSeries: BarSeries-1',
+                    '[click] Temperature in May: 8.7°C. Series: BarSeries-1',
+                    '[click] Temperature in May: 8.7°C. Series: BarSeries-1',
+                    '[double click] Temperature in May: 47.66°F. Series: BarSeries-1',
                 ]);
             });
         });
@@ -137,15 +137,15 @@ test.describe('api-events', () => {
                 await consoleLogs.expectLogs([]);
 
                 await page.touchscreen.tap(aprMarker.x, aprMarker.y);
-                await consoleLogs.expectLogs(['[click]\nTemperature in April: 14.2°C\nSeries: LineSeries-1']);
+                await consoleLogs.expectLogs(['[click] Temperature in April: 14.2°C. Series: LineSeries-1']);
                 consoleLogs.clear();
 
                 await page.touchscreen.tap(mayBarTop.x, mayBarTop.y);
-                await consoleLogs.expectLogs(['[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1']);
+                await consoleLogs.expectLogs(['[click] Temperature in May: 8.7°C. Series: BarSeries-1']);
                 consoleLogs.clear();
 
                 await page.touchscreen.tap(mayBarBot.x, mayBarBot.y);
-                await consoleLogs.expectLogs(['[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1']);
+                await consoleLogs.expectLogs(['[click] Temperature in May: 8.7°C. Series: BarSeries-1']);
             });
             test('seriesNodeDoubleClick', async ({ page }) => {
                 await page.touchscreen.tap(center.x, center.y);
@@ -155,35 +155,35 @@ test.describe('api-events', () => {
                 await page.touchscreen.tap(aprMarker.x, aprMarker.y);
                 await page.touchscreen.tap(aprMarker.x, aprMarker.y);
                 await consoleLogs.expectLogs([
-                    '[click]\nTemperature in April: 14.2°C\nSeries: LineSeries-1',
-                    '[click]\nTemperature in April: 14.2°C\nSeries: LineSeries-1',
-                    '[double click]\nTemperature in April: 57.56°F\nSeries: LineSeries-1',
+                    '[click] Temperature in April: 14.2°C. Series: LineSeries-1',
+                    '[click] Temperature in April: 14.2°C. Series: LineSeries-1',
+                    '[double click] Temperature in April: 57.56°F. Series: LineSeries-1',
                 ]);
                 consoleLogs.clear();
 
                 await page.touchscreen.tap(mayBarTop.x, mayBarTop.y);
                 await page.touchscreen.tap(mayBarTop.x, mayBarTop.y);
                 await consoleLogs.expectLogs([
-                    '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
-                    '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
-                    '[double click]\nTemperature in May: 47.66°F\nSeries: BarSeries-1',
+                    '[click] Temperature in May: 8.7°C. Series: BarSeries-1',
+                    '[click] Temperature in May: 8.7°C. Series: BarSeries-1',
+                    '[double click] Temperature in May: 47.66°F. Series: BarSeries-1',
                 ]);
                 consoleLogs.clear();
 
                 await page.touchscreen.tap(mayBarBot.x, mayBarBot.y);
                 await page.touchscreen.tap(mayBarBot.x, mayBarBot.y);
                 await consoleLogs.expectLogs([
-                    '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
-                    '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
-                    '[double click]\nTemperature in May: 47.66°F\nSeries: BarSeries-1',
+                    '[click] Temperature in May: 8.7°C. Series: BarSeries-1',
+                    '[click] Temperature in May: 8.7°C. Series: BarSeries-1',
+                    '[double click] Temperature in May: 47.66°F. Series: BarSeries-1',
                 ]);
                 consoleLogs.clear();
 
                 await page.touchscreen.tap(mayBarTop.x, mayBarTop.y);
                 await page.touchscreen.tap(mayBarBot.x, mayBarBot.y); // Not a double click
                 await consoleLogs.expectLogs([
-                    '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
-                    '[click]\nTemperature in May: 8.7°C\nSeries: BarSeries-1',
+                    '[click] Temperature in May: 8.7°C. Series: BarSeries-1',
+                    '[click] Temperature in May: 8.7°C. Series: BarSeries-1',
                 ]);
             });
         });
@@ -191,7 +191,7 @@ test.describe('api-events', () => {
             test('seriesNodeClick', async ({ page }) => {
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('Enter');
-                await consoleLogs.expectLogs(['[click]\nTemperature in March: 11.3°C\nSeries: LineSeries-1']);
+                await consoleLogs.expectLogs(['[click] Temperature in March: 11.3°C. Series: LineSeries-1']);
             });
         });
     });
