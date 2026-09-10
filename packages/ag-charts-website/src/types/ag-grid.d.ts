@@ -58,6 +58,7 @@ export interface FooterItem {
         name: string;
         url: string;
         newTab?: boolean;
+        showCookiesPrefs?: boolean;
         iconName: string;
     }[];
 }
