@@ -5,9 +5,10 @@ import { createConsoleLogs, gotoExample, setupIntrinsicAssertions, toExamplePage
 
 async function openExample(
     page: Page,
+    pageName: 'events' | 'events-e2e',
     exampleName: 'chart-click-event' | 'series-node-click-event' | 'node-click-event'
 ) {
-    await gotoExample(page, toExamplePageUrl('events', exampleName, 'vanilla').url);
+    await gotoExample(page, toExamplePageUrl(pageName, exampleName, 'vanilla').url);
 }
 
 test.describe('api-events', () => {
@@ -21,7 +22,7 @@ test.describe('api-events', () => {
         const east = { x: 500, y: 150 };
 
         test.beforeEach(async ({ page }) => {
-            await openExample(page, 'chart-click-event');
+            await openExample(page, 'events', 'chart-click-event');
         });
         test.describe('mouse', () => {
             test('click', async ({ page }) => {
@@ -84,7 +85,7 @@ test.describe('api-events', () => {
         const mayBarBot = { x: 646, y: 506 };
 
         test.beforeEach(async ({ page }) => {
-            await openExample(page, 'series-node-click-event');
+            await openExample(page, 'events-e2e', 'series-node-click-event');
         });
         test.describe('mouse', () => {
             test('seriesNodeClick', async ({ page }) => {
@@ -202,7 +203,7 @@ test.describe('api-events', () => {
         const mayBot = { x: 648, y: 490 };
 
         test.beforeEach(async ({ page }) => {
-            await openExample(page, 'node-click-event');
+            await openExample(page, 'events-e2e', 'node-click-event');
         });
         test.describe('mouse', () => {
             test('nodeClick', async ({ page }) => {
