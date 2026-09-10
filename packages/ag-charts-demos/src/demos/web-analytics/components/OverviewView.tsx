@@ -1,5 +1,5 @@
 import * as RPopover from '@radix-ui/react-popover';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { DailyPoint } from '../data';
 import { fmtInt } from '../format';
@@ -56,6 +56,11 @@ export function OverviewView({
     const [formAnchor, setFormAnchor] = useState<FormAnchor | undefined>();
 
     const selectedAnnotation = annotations.find((a) => a.annotationId === selectedAnnotationId);
+
+    // Dropping out of the date range deselects for good, so widening it again does not resurrect it.
+    useEffect(() => {
+        if (selectedAnnotationId != null && !selectedAnnotation) setSelectedAnnotationId(null);
+    }, [selectedAnnotationId, selectedAnnotation]);
     // The charted day domain, which also bounds the form's date field.
     const firstDay = daily[0]?.date;
     const lastDay = daily.at(-1)?.date;

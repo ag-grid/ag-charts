@@ -3,11 +3,13 @@
  */
 import {
     annotationsPluginToModule,
+    axisListenerToModule,
     axisModuleCompatibility,
     axisPluginToModule,
     axisTypeToModule,
     bundleContents,
     cartesianSeriesModules,
+    chartListenerToModule,
     enterpriseModules,
     intrinsicDefaults,
     moduleToPackage,
@@ -441,6 +443,24 @@ export default {
                             : axisPluginToModule.get(keyName);
                     requireModule(moduleId, `axis option '${keyName}'`, prop);
                 }
+
+                // Check for axis listeners, whose events map to different modules. `listeners` is a
+                // Cartesian-only axis option, so there is no polar variant to account for here.
+                if (keyName === 'listeners' && prop.value.type === 'ObjectExpression') {
+                    for (const listenerProp of prop.value.properties) {
+                        if (listenerProp.type !== 'Property') continue;
+                        const eventName =
+                            listenerProp.key.type === 'Identifier'
+                                ? listenerProp.key.name
+                                : getStringValue(listenerProp.key);
+                        if (!eventName || !axisListenerToModule.has(eventName)) continue;
+                        requireModule(
+                            axisListenerToModule.get(eventName),
+                            `axis listener '${eventName}'`,
+                            listenerProp
+                        );
+                    }
+                }
             }
         }
 
@@ -455,6 +475,19 @@ export default {
                 }
                 const moduleId = pluginOptionToModule.get(keyName);
                 requireModule(moduleId, `option '${keyName}'`, propNode);
+            }
+
+            // Check for chart-level listeners whose events are dispatched by a plugin
+            if (keyName === 'listeners' && valueNode.type === 'ObjectExpression') {
+                for (const nestedProp of valueNode.properties) {
+                    if (nestedProp.type !== 'Property') continue;
+                    const eventName =
+                        nestedProp.key.type === 'Identifier' ? nestedProp.key.name : getStringValue(nestedProp.key);
+                    if (eventName && chartListenerToModule.has(eventName)) {
+                        const listenerModuleId = chartListenerToModule.get(eventName);
+                        requireModule(listenerModuleId, `listeners.${eventName} option`, nestedProp);
+                    }
+                }
             }
 
             // Check for nested options under annotations

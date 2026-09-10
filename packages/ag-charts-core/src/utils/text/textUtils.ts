@@ -207,7 +207,17 @@ const graphemeSegmenter =
         ? new Intl.Segmenter(undefined, { granularity: 'grapheme' })
         : undefined;
 
+/** Printable ASCII: every code unit is its own grapheme, so the segmenter has nothing to join. */
+function isPrintableAscii(text: string): boolean {
+    for (let i = 0; i < text.length; i++) {
+        const code = text.charCodeAt(i);
+        if (code < 0x20 || code > 0x7e) return false;
+    }
+    return true;
+}
+
 export function graphemeSegments(text: string): string[] {
+    if (isPrintableAscii(text)) return text.split('');
     if (graphemeSegmenter) {
         return Array.from(graphemeSegmenter.segment(text), (s) => s.segment);
     }

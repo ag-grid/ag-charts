@@ -1414,6 +1414,74 @@ describe('DonutSeries', () => {
         });
     });
 
+    describe('AG-18485 inner label centring', () => {
+        const centredOptions = (innerLabels: AgDonutSeriesOptions['innerLabels']): AgPolarChartOptions => ({
+            ...options,
+            data: [
+                { label: 'A', value: 60 },
+                { label: 'B', value: 40 },
+            ],
+            series: [{ type: 'donut', angleKey: 'value', innerRadiusRatio: 0.9, innerLabels }],
+        });
+
+        const innerLabelBoxes = (myChart: Chart) =>
+            classCast(myChart.series[0], DonutSeries)
+                .innerLabelsSelection.nodes()
+                .map((node) => node.getBBox());
+
+        // 1px tolerance absorbs canvas-mock measurement noise; the defect is a whole descent.
+        it('centres a single inner label on the centre of the hole', async () => {
+            chart = await createChart(centredOptions([{ text: '10', fontSize: 80 }]));
+
+            const [node] = classCast(chart.series[0], DonutSeries).innerLabelsSelection.nodes();
+            expect(node.visible).toBe(true);
+            const bbox = node.getBBox();
+            expect(Math.abs(bbox.y + bbox.height / 2)).toBeLessThan(1);
+        });
+
+        it('centres a two-line inner label stack on the centre of the hole, spacing intact', async () => {
+            chart = await createChart(
+                centredOptions([
+                    { text: 'Total', fontSize: 24, spacing: 6 },
+                    { text: '100', fontSize: 18, spacing: 10 },
+                ])
+            );
+
+            const boxes = innerLabelBoxes(chart);
+            expect(boxes).toHaveLength(2);
+            const top = Math.min(...boxes.map((bbox) => bbox.y));
+            const bottom = Math.max(...boxes.map((bbox) => bbox.y + bbox.height));
+            expect(Math.abs((top + bottom) / 2)).toBeLessThan(1);
+            // The gap is the upper label's spacing below plus the lower label's spacing above.
+            expect(boxes[1].y - (boxes[0].y + boxes[0].height)).toBeCloseTo(16, 5);
+        });
+
+        it('renders the ticket repro with the inner label centred in the hole', async () => {
+            const reproOptions = prepareTestOptions({
+                data: [
+                    { asset: 'Stocks', amount: 60000 },
+                    { asset: 'Bonds', amount: 40000 },
+                    { asset: 'Cash', amount: 7000 },
+                    { asset: 'Real Estate', amount: 5000 },
+                    { asset: 'Commodities', amount: 3000 },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'amount',
+                        innerRadiusRatio: 0.9,
+                        innerLabels: [{ text: '10', fontSize: 80 }],
+                    },
+                ],
+            } as AgPolarChartOptions);
+            // prepareTestOptions fixes the canvas size, so the repro's height is applied after it.
+            reproOptions.height = 200;
+            chart = deproxy(AgCharts.create(reproOptions) as AgChartProxy);
+            await waitForChartStability(chart);
+            await compare();
+        });
+    });
+
     describe('inner circle with rounded corners', () => {
         const data = [
             { asset: 'Stocks', amount: 30 },

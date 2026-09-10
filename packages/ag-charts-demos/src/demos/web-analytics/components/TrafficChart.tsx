@@ -313,11 +313,14 @@ export function TrafficChart({
                 selectionChange: ({ source }) => {
                     // Ignore our own api-call echoes; only user interaction should push a new selection upward.
                     if (source === 'api-call') return;
+                    // A cross-line click never reaches here, so clearing the annotation cannot drop a fresh one.
+                    onAnnotationSelect(null);
                     onSelectionChange(selectionToDays(chartRef.current?.getSelection() ?? []));
                 },
+                // Fires on every datum click, including a re-click that leaves the selection unchanged.
+                seriesNodeClick: () => onAnnotationSelect(null),
                 crossLineClick: ({ crossLineId }) => onAnnotationSelect(crossLineId),
-                // A cross-line click never reaches here: the engine fires its cross-line
-                // callbacks and returns before the chart-level listeners.
+                // Only an empty-area click reaches here; cross-line and datum clicks return before chart listeners.
                 click: () => onAnnotationSelect(null),
             },
         };

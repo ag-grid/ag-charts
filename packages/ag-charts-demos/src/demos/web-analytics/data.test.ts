@@ -14,6 +14,15 @@ const rangeOf = (days: number): DateRange => {
 
 const RANGES = [7, 30, 90];
 
+// Every range the dashboard offers, so the comparison-series checks cover the ones RANGES omits.
+const DASHBOARD_RANGES = [7, 14, 30, 90];
+
+/** The period the dashboard compares against: the same length, immediately preceding `range`. */
+const previousRangeOf = (days: number): DateRange => {
+    const end = new Date(rangeOf(days).start.getTime() - 1);
+    return { start: startOfDay(new Date(end.getTime() - (days - 1) * DAY_MS)), end };
+};
+
 describe('funnel', () => {
     it.each(RANGES)('narrows monotonically over %i days', (days: number) => {
         const steps = funnel(rangeOf(days));
@@ -102,6 +111,22 @@ describe('path flow', () => {
         const links = pathLinks(rangeOf(30));
         const firstColumn = links.filter((l) => l.from.startsWith('1. '));
         expect(firstColumn.reduce((sum, l) => sum + l.size, 0)).toBe(summary(rangeOf(30)).sessions);
+    });
+});
+
+describe('comparison series', () => {
+    // A collapsed day here reads as an unexplained cliff: cross-lines overlay only the current range.
+    it.each(DASHBOARD_RANGES)('holds the %i-day previous period clear of collapsed days', (days: number) => {
+        const points = dailySummary(previousRangeOf(days));
+        const sorted = points.map((p) => p.sessions).sort((a, b) => a - b);
+        const median = sorted[Math.floor(sorted.length / 2)];
+        expect(median).toBeGreaterThan(0);
+        for (const point of points) {
+            expect(
+                point.sessions,
+                `${point.date.toDateString()} collapses against a ${median}-session median`
+            ).toBeGreaterThan(median * 0.25);
+        }
     });
 });
 
