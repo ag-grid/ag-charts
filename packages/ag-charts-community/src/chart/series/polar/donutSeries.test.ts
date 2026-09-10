@@ -1327,17 +1327,17 @@ describe('DonutSeries', () => {
         it('centres a single inner label on the centre of the hole', async () => {
             chart = await createChart(centredOptions([{ text: '10', fontSize: 80 }]));
 
-            const [bbox] = innerLabelBoxes(chart);
-            expect(bbox).toBeDefined();
+            const [node] = classCast(chart.series[0], DonutSeries).innerLabelsSelection.nodes();
+            expect(node.visible).toBe(true);
+            const bbox = node.getBBox();
             expect(Math.abs(bbox.y + bbox.height / 2)).toBeLessThan(1);
         });
 
         it('centres a two-line inner label stack on the centre of the hole, spacing intact', async () => {
-            const spacing = 6;
             chart = await createChart(
                 centredOptions([
-                    { text: 'Total', fontSize: 24, spacing },
-                    { text: '100', fontSize: 18, spacing },
+                    { text: 'Total', fontSize: 24, spacing: 6 },
+                    { text: '100', fontSize: 18, spacing: 10 },
                 ])
             );
 
@@ -1346,7 +1346,8 @@ describe('DonutSeries', () => {
             const top = Math.min(...boxes.map((bbox) => bbox.y));
             const bottom = Math.max(...boxes.map((bbox) => bbox.y + bbox.height));
             expect(Math.abs((top + bottom) / 2)).toBeLessThan(1);
-            expect(boxes[1].y - (boxes[0].y + boxes[0].height)).toBeCloseTo(spacing * 2, 5);
+            // The gap is the upper label's spacing below plus the lower label's spacing above.
+            expect(boxes[1].y - (boxes[0].y + boxes[0].height)).toBeCloseTo(16, 5);
         });
 
         it('renders the ticket repro with the inner label centred in the hole', async () => {
