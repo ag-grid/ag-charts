@@ -1102,7 +1102,7 @@ export class Annotations extends AbstractModuleInstance {
         this.state.transition('dragEnd');
     }
 
-    private onCancel(widgetEvent?: _Widget.MouseWidgetEvent) {
+    private onCancel(widgetEvent?: _Widget.ClickWidgetEvent) {
         const { sourceEvent } = widgetEvent ?? {};
         if (sourceEvent?.currentTarget !== sourceEvent?.target) return;
         this.cancel();
