@@ -338,8 +338,8 @@ export class RadialGaugeSeries
 
         const { maxSpacing, minSpacing } = interval;
         const { arcLength } = scale;
-        const minTickCount = maxSpacing ? Math.floor(arcLength / maxSpacing) : 1;
-        const maxTickCount = minSpacing ? Math.floor(arcLength / minSpacing) : Infinity;
+        const minTickCount = maxSpacing === 0 ? 1 : Math.floor(arcLength / maxSpacing);
+        const maxTickCount = minSpacing === 0 ? Infinity : Math.floor(arcLength / minSpacing);
         const preferredTickCount = Math.floor((4 / Math.PI) * Math.abs(scale.range[0] - scale.range[1]));
         const tickCount = Math.max(minTickCount, Math.min(maxTickCount, preferredTickCount));
         const ticks =
@@ -1262,7 +1262,7 @@ export class RadialGaugeSeries
             tempText.rotationCenterX = x;
             tempText.rotationCenterY = y;
 
-            const box = rotation ? Transformable.toCanvas(tempText) : tempText.getBBox();
+            const box = rotation === 0 ? tempText.getBBox() : Transformable.toCanvas(tempText);
             if (box == null) continue;
 
             const minX = box.x;

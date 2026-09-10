@@ -116,7 +116,7 @@ export class DOMElementProxy {
 
     /** Reads innerHTML — returns cached value when in a deferred-capable proxy since DOM may not have flushed yet. */
     get innerHTML(): string {
-        if (this.pendingWrites) {
+        if (this.pendingWrites != null) {
             return (this.cache['innerHTML'] as string) ?? '';
         }
         return this.element.innerHTML;
@@ -195,7 +195,7 @@ export class DOMElementProxy {
     /** Returns the cached data attribute value (deferred-capable proxy) or reads from the element. */
     getData(name: string): string | undefined {
         const cacheKey: CacheKey = `d:${name}`;
-        if (this.pendingWrites) {
+        if (this.pendingWrites != null) {
             return this.cache[cacheKey] as string | undefined;
         }
         return this.element.dataset[name];
@@ -229,7 +229,7 @@ export class DOMElementProxy {
 
     /** Flush all pending deferred writes. No-op if not in deferred mode. */
     flush(): void {
-        if (this.pendingWrites) {
+        if (this.pendingWrites != null) {
             for (const fn of this.pendingWrites.values()) fn();
             this.pendingWrites.clear();
         }

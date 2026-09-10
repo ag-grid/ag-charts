@@ -59,12 +59,12 @@ export function buildSitePageIndex({
             unlisted.push({ title: toTitle(docs.pageName), url });
         }
 
-        if (links.length) {
+        if (links.length > 0) {
             siteIndex.push({ title: category, links });
         }
     }
 
-    if (unlisted.length) {
+    if (unlisted.length > 0) {
         siteIndex.push({ title: UNLISTED_DOCS_GROUP, links: unlisted });
     }
 

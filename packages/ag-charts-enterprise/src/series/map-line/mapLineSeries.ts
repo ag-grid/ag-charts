@@ -240,7 +240,7 @@ export class MapLineSeries
 
     private isColorScaleValid() {
         const { colorKey } = this.properties;
-        if (!colorKey) {
+        if (colorKey == null || colorKey === '') {
             return false;
         }
 

@@ -309,7 +309,7 @@ describe('Quadrant Preset', () => {
                     );
                 }
             }
-            if (!example.warnings?.length) {
+            if (example.warnings == null || example.warnings.length === 0) {
                 expect(console.warn).not.toHaveBeenCalled();
             }
         }

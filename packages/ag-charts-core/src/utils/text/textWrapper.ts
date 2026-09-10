@@ -708,9 +708,9 @@ export function truncateLine(text: string, measurer: ITextMeasurer, maxWidth: nu
     }
     text = text.slice(0, charOffset).trimEnd();
     const g = graphemeSegments(text);
-    while (g.length && measurer.textWidth(text) + ellipsisWidth > maxWidth) {
+    while (g.length > 0 && measurer.textWidth(text) + ellipsisWidth > maxWidth) {
         g.pop();
-        while (g.length && g.at(-1)!.trim() === '') {
+        while (g.length > 0 && g.at(-1)!.trim() === '') {
             g.pop();
         }
         text = g.join('');
@@ -737,7 +737,7 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
         }
         for (const line of lines) {
             const truncatedLine = truncateLine(line.trimEnd(), measurer, Math.max(0, maxWidth() - widthOffset));
-            if (!truncatedLine) break;
+            if (truncatedLine === '') break;
             result.push(truncatedLine);
             widthOffset = 0;
         }
@@ -771,7 +771,7 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
             lastSpaceIndex = 0;
         };
 
-        if (!result.length) {
+        if (result.length === 0) {
             estimatedWidth = widthOffset;
         }
 
@@ -795,7 +795,7 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
 
                 // check actual width in case estimation is off
                 let actualWidth = measurer.textWidth(line.slice(0, charOffset + char.length));
-                if (!result.length) {
+                if (result.length === 0) {
                     actualWidth += widthOffset;
                 }
                 if (actualWidth <= maxWidth()) {
@@ -807,14 +807,14 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
 
                 if (preserveText && wrapOnSpace) {
                     // A word with no space to break at overhangs whole rather than being cut short.
-                    const breakIndex = lastSpaceIndex || line.indexOf(' ', 1);
+                    const breakIndex = lastSpaceIndex === 0 ? line.indexOf(' ', 1) : lastSpaceIndex;
                     if (breakIndex < 1) break;
                     result.push(line.slice(0, breakIndex).trimEnd());
                     resumeAfterBreak(breakIndex);
                     continue;
                 }
 
-                if (lastSpaceIndex) {
+                if (lastSpaceIndex !== 0) {
                     const nextWord = getWordAt(line, lastSpaceIndex + 1);
                     const textWidth = measurer.textWidth(nextWord);
 
@@ -836,7 +836,7 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
                     }
                 } else if (wrapOnSpace) {
                     const newLine = truncateLine(line, measurer, maxWidth(), true);
-                    if (newLine) {
+                    if (newLine !== '') {
                         result.push(newLine);
                     }
                 }
@@ -849,15 +849,15 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
                 const postfix = wrapHyphenate ? '-' : '';
                 let newLine = line.slice(0, charOffset).trim();
                 const g = graphemeSegments(newLine);
-                while (g.length && measurer.textWidth(newLine + postfix) > maxWidth()) {
+                while (g.length > 0 && measurer.textWidth(newLine + postfix) > maxWidth()) {
                     g.pop();
-                    while (g.length && g.at(-1)!.trim() === '') {
+                    while (g.length > 0 && g.at(-1)!.trim() === '') {
                         g.pop();
                     }
                     newLine = g.join('');
                 }
 
-                if (newLine && newLine !== TrimEdgeGuard) {
+                if (newLine !== '' && newLine !== TrimEdgeGuard) {
                     result.push(preserveArabicJoining(newLine) + postfix);
                 } else {
                     if (!preserveText) {
@@ -874,7 +874,7 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
             i++;
         }
 
-        if (line) {
+        if (line !== '') {
             result.push(line);
         }
     }
@@ -1279,10 +1279,10 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
         const lastIndex = cleanLines.length - 1;
         for (let i = 0; i < cleanLines.length; i++) {
             let cleanLine = cleanLines[i];
-            if (leadingWs && i === firstContentIndex) {
+            if (leadingWs !== '' && i === firstContentIndex) {
                 cleanLine = leadingWs + cleanLine.trimStart();
             }
-            if (trailingWs && i === lastContentIndex) {
+            if (trailingWs !== '' && i === lastContentIndex) {
                 cleanLine = cleanLine.trimEnd() + trailingWs;
             }
             const textMetrics = measurer.measureText(cleanLine);
@@ -1309,7 +1309,7 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
         isFirstLine = false;
 
         if (totalHeight + height > maxHeight) {
-            if (result.length) {
+            if (result.length > 0) {
                 truncateLastSegment();
             }
             break;

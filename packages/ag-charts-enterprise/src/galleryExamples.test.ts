@@ -27,7 +27,7 @@ describe('Gallery Examples', () => {
 
     let chart: AgChartInstance<AgChartOptions | AgGaugeOptions>;
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }

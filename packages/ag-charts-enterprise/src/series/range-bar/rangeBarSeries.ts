@@ -1574,7 +1574,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     }
 
     protected override getHighlightLabelData(labelData: RangeBarNodeLabelDatum[], highlightedItem: RangeBarNodeDatum) {
-        if (highlightedItem.labels?.length) {
+        if (highlightedItem.labels != null && highlightedItem.labels.length > 0) {
             return highlightedItem.labels;
         }
 

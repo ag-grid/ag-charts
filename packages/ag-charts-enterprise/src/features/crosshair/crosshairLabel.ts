@@ -32,7 +32,9 @@ export class CrosshairLabel {
         this.elementProxy.setProperty('top', `${top}px`);
 
         const translate =
-            meta.translateX || meta.translateY ? `${meta.translateX ?? '0'} ${meta.translateY ?? '0'}` : '';
+            meta.translateX == null && meta.translateY == null
+                ? ''
+                : `${meta.translateX ?? '0'} ${meta.translateY ?? '0'}`;
         this.elementProxy.setProperty('translate', translate);
 
         this.toggle(true);

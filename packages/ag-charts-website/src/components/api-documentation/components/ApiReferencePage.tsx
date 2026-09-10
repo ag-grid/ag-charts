@@ -76,7 +76,7 @@ function ApiReferencePageInner({
 
     if (!reference) return null;
 
-    const pageRef = selection.pageInterface ? reference.get(selection.pageInterface) : null;
+    const pageRef = selection.pageInterface === '' ? null : reference.get(selection.pageInterface);
     const rootRef = reference.get(rootInterface);
 
     if (rootRef?.kind !== 'interface' || (pageRef && pageRef.kind !== 'interface')) {
@@ -124,7 +124,7 @@ function ApiReferencePageContent({
         <div className={styles.referenceOuter}>
             <header ref={(ref) => setHeaderHeight(ref?.clientHeight ?? 0)}>
                 <h1 className="text-3xl">
-                    {pageTitle?.type ? (
+                    {pageTitle?.type != null && pageTitle.type !== '' ? (
                         <>
                             {pageTitle.name}
                             {pageTitle.name === 'axes' ? <span className={styles.recordAlias}>.key</span> : ''}[type = '

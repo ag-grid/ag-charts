@@ -284,11 +284,6 @@ export function debugSceneNodeHighlight(ctx: CanvasRenderingContext2D, debugNode
         for (const [name, node] of Object.entries(debugNodes)) {
             const bbox = Transformable.toCanvas(node);
 
-            if (!bbox) {
-                ambientLog.log(`Scene.render() - no bbox for debugged node [${name}].`);
-                continue;
-            }
-
             ctx.globalAlpha = 0.8;
             ctx.strokeStyle = 'red';
             ctx.lineWidth = 1;
@@ -340,13 +335,13 @@ export function buildTree(node: Node, mode: 'json' | 'console'): BuildTree {
                 `${(order++).toString().padStart(3, '0')}|`,
                 `${treeNodeName ?? '<unknown>'}`,
                 `z: ${zIndexString}`,
-                translationX && `x: ${translationX}`,
-                translationY && `y: ${translationY}`,
-                rotation && `r: ${rotation}`,
+                translationX != null && translationX !== 0 && `x: ${translationX}`,
+                translationY != null && translationY !== 0 && `y: ${translationY}`,
+                rotation != null && rotation !== 0 && `r: ${rotation}`,
                 scalingX != null && scalingX !== 1 && `sx: ${scalingX}`,
                 scalingY != null && scalingY !== 1 && `sy: ${scalingY}`,
             ]
-                .filter((v) => !!v)
+                .filter((v) => v !== false)
                 .join(' ');
 
             let selectedKey = key;
@@ -373,9 +368,8 @@ export function buildDirtyTree(node: Node): {
         (c) => c.paths.length > 0
     );
     const name = Group.is(node) ? (node.name ?? node.id) : node.id;
-    const paths = childrenDirtyTree.length
-        ? childrenDirtyTree.flatMap((c) => c.paths).map((p) => `${name}.${p}`)
-        : [name];
+    const paths =
+        childrenDirtyTree.length > 0 ? childrenDirtyTree.flatMap((c) => c.paths).map((p) => `${name}.${p}`) : [name];
 
     return {
         dirtyTree: {

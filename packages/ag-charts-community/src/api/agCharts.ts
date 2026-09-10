@@ -573,7 +573,7 @@ class AgChartsInternal {
         const scopeKey = ModuleRegistry.getModuleScopeKey(moduleScope);
         const presetType = optionMetadata.presetType ?? 'default';
         return Pool.getPool<Chart, ChartOptions>(
-            scopeKey ? `${presetType}|${scopeKey}` : presetType,
+            scopeKey === '' ? presetType : `${presetType}|${scopeKey}`,
             this.createChartInstance,
             this.detachAndClear,
             this.destroy,

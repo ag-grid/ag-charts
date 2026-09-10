@@ -107,7 +107,7 @@ export class Aggregator<D extends object, K extends keyof D & string> {
                         return columns[columnIndex][absoluteDatumIndex] as D[K];
                     });
                     const valuesAgg = def.aggregateFunction(valuesToAgg, groupKeys);
-                    if (valuesAgg) {
+                    if (valuesAgg != null) {
                         groupAggValues =
                             def.groupAggregateFunction?.(valuesAgg, groupAggValues) ??
                             ContinuousDomain.extendDomain(valuesAgg, groupAggValues);

@@ -57,7 +57,7 @@ export function computeStructuralCacheKey(options: object): string | undefined {
     };
     try {
         const key = JSON.stringify(options, replacer);
-        if (unsafe || !key) return undefined;
+        if (unsafe || key === '') return undefined;
         return `${key}|${describeDataShape((options as { data?: unknown }).data)}`;
     } catch {
         return undefined;

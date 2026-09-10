@@ -25,9 +25,9 @@ const GRID_OWNED_ROUTES = ['/session/', '/community/', '/contact/'];
  * route path.
  */
 const routePathOf = (pathname: string, siteBasePath: string): string => {
-    const basePath = (siteBasePath || '').replace(/\/$/, '');
+    const basePath = siteBasePath.replace(/\/$/, '');
 
-    return basePath && pathname.startsWith(`${basePath}/`) ? pathname.slice(basePath.length) : pathname;
+    return basePath !== '' && pathname.startsWith(`${basePath}/`) ? pathname.slice(basePath.length) : pathname;
 };
 
 /** Whether a route path names a page the grid site owns. */

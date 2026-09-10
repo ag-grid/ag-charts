@@ -332,7 +332,7 @@ export class DataController {
                     (match as any).scopes.push(...clone.scopes);
                 }
 
-                if ((match.type === 'key' || match.type === 'value') && clone.idsMap?.size) {
+                if ((match.type === 'key' || match.type === 'value') && clone.idsMap != null && clone.idsMap.size > 0) {
                     match.idsMap ??= new Map();
                     DataController.mergeIdsMap(clone.idsMap, match.idsMap);
                 }

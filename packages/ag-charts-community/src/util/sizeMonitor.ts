@@ -160,7 +160,7 @@ export class SizeMonitor {
         this.elements.delete(element);
         this.removeFromQueue(element);
 
-        if (!this.elements.size) {
+        if (this.elements.size === 0) {
             this.destroy();
         }
     }

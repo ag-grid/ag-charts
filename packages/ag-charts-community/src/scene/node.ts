@@ -76,7 +76,7 @@ export abstract class Node<TDatum = unknown> {
     static toSVG(node: Node, width: number, height: number) {
         const svg = node?.toSVG();
 
-        if (svg == null || (!svg.elements.length && !svg.defs?.length)) return;
+        if (svg == null || (svg.elements.length === 0 && (svg.defs?.length ?? 0) === 0)) return;
 
         const root = createSvgElement('svg');
         root.setAttribute('width', String(width));
@@ -84,7 +84,7 @@ export abstract class Node<TDatum = unknown> {
         root.setAttribute('viewBox', `0 0 ${width} ${height}`);
         root.setAttribute('overflow', 'visible');
 
-        if (svg.defs?.length) {
+        if (svg.defs != null && svg.defs.length > 0) {
             const defs = createSvgElement('defs');
             defs.append(...svg.defs);
             root.append(defs);
@@ -98,8 +98,7 @@ export abstract class Node<TDatum = unknown> {
     static *extractBBoxes(nodes: Iterable<Node>, skipInvisible?: boolean) {
         for (const n of nodes) {
             if (!skipInvisible || (n.visible && !n.transitionOut)) {
-                const bbox = n.getBBox();
-                if (bbox) yield bbox;
+                yield n.getBBox();
             }
         }
     }

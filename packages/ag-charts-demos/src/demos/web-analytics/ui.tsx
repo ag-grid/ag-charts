@@ -39,7 +39,7 @@ export function Select({
             </RSelect.Portal>
         </RSelect.Root>
     );
-    if (!label) return trigger;
+    if (label == null || label === '') return trigger;
     return (
         <RLabel.Root className="wa-labeled-select">
             <span>{label}</span>

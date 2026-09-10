@@ -20,7 +20,7 @@ function getSnippetRegex({ startDelimiter, endDelimiter }: { startDelimiter: str
  */
 export function stripOutExampleGeneratorCode(files: FileContents) {
     MAIN_FILES.forEach((mainFile) => {
-        if (files[mainFile]) {
+        if (files[mainFile] != null && files[mainFile] !== '') {
             files[mainFile] =
                 files[mainFile]
                     .replace(DARK_MODE_REGEX, '')
@@ -32,7 +32,7 @@ export function stripOutExampleGeneratorCode(files: FileContents) {
 
     const e2eStyleRegex = getSnippetRegex({ startDelimiter: E2E_STYLE_START, endDelimiter: E2E_STYLE_END });
 
-    if (files['index.html']) {
+    if (files['index.html'] != null && files['index.html'] !== '') {
         files['index.html'] = files['index.html']?.replace(e2eStyleRegex, '').trim();
     }
 

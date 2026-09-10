@@ -88,7 +88,7 @@ export async function buildGalleryExampleMarkdown({
     document.push(`[Run this example](${toAbsoluteUrl(getExampleUrl({ exampleName }), siteRoot)})`);
 
     const entryFileName = contents?.entryFileName;
-    if (entryFileName && contents?.files?.[entryFileName]) {
+    if (entryFileName != null && entryFileName !== '' && (contents?.files?.[entryFileName] ?? '') !== '') {
         const files = { ...contents.files };
         stripOutExampleGeneratorCode(files);
         document.push('## Source', `\`\`\`js\n${files[entryFileName].trim()}\n\`\`\``);
@@ -97,7 +97,7 @@ export async function buildGalleryExampleMarkdown({
         const dataFiles = Object.keys(contents.files).filter(
             (fileName) => fileName !== entryFileName && fileName.endsWith('.js')
         );
-        if (dataFiles.length) {
+        if (dataFiles.length > 0) {
             const links = dataFiles
                 .map(
                     (fileName) =>
@@ -108,7 +108,7 @@ export async function buildGalleryExampleMarkdown({
         }
     }
 
-    if (relatedExamples.length) {
+    if (relatedExamples.length > 0) {
         const links = relatedExamples
             .map(({ label, name }) => `- [${label}](${toAbsoluteUrl(getPageUrl(name), siteRoot)})`)
             .join('\n');

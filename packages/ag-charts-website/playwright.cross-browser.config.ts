@@ -60,7 +60,7 @@ export default defineConfig({
         [
             'html',
             {
-                open: process.env.CI ? 'never' : 'on-failure',
+                open: process.env.CI != null && process.env.CI !== '' ? 'never' : 'on-failure',
                 outputFolder: '../../reports/ag-charts-website-e2e-cross-browser-html/',
             },
         ],

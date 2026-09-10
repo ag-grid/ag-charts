@@ -64,7 +64,7 @@ export const getInternalFramework = ({
 
 export const isReactInternalFramework = (internalFramework: InternalFramework) => {
     const reactInternalFrameworks: InternalFramework[] = ['reactFunctional', 'reactFunctionalTs'];
-    if (!internalFramework) {
+    if (internalFramework === '') {
         return false;
     }
 

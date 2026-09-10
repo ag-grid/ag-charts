@@ -6,7 +6,7 @@ import { buildSessionMarkdown, sessionDescription } from './buildSessionMarkdown
 const SITE_ROOT = 'https://www.ag-grid.com/';
 
 // The same filter the page's getStaticPaths applies: only recorded sessions get a page.
-const RECORDED = SESSIONS.filter((session) => session.youtubeUrl);
+const RECORDED = SESSIONS.filter((session) => session.youtubeUrl != null && session.youtubeUrl !== '');
 
 describe('buildSessionMarkdown', () => {
     it('covers every recorded session', () => {
@@ -35,7 +35,7 @@ describe('buildSessionMarkdown', () => {
     });
 
     it('lists the speakers with their roles, as the page does', () => {
-        const withSpeakers = RECORDED.find((session) => session.speakers?.length);
+        const withSpeakers = RECORDED.find((session) => (session.speakers?.length ?? 0) > 0);
         expect(withSpeakers).toBeDefined();
         const output = buildSessionMarkdown({ session: withSpeakers!, siteRoot: SITE_ROOT });
         const speaker = withSpeakers!.speakers![0];

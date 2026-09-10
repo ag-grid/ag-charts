@@ -194,7 +194,7 @@ export function processModuleOptions<T extends Partial<AgChartOptions>>(
         removeUnregisteredModuleOptions(chartType, options, moduleRegistry).concat(additionalMissingModules)
     );
 
-    if (!missingModules.length) return;
+    if (missingModules.length === 0) return;
 
     const installationReferenceUrl = ModuleRegistry.isIntegrated()
         ? 'https://www.ag-grid.com/data-grid/integrated-charts-installation/'
@@ -235,7 +235,8 @@ function bundlerMissingModulesMessage(
     installationReferenceUrl: string,
     instanceModules: boolean
 ): string {
-    const packageName = ModuleRegistry.isEnterprise() || missingOptions.enterprise?.length ? 'enterprise' : 'community';
+    const packageName =
+        ModuleRegistry.isEnterprise() || (missingOptions.enterprise?.length ?? 0) > 0 ? 'enterprise' : 'community';
     return [
         'required modules are not registered. Check if you have registered the modules:',
         '',
@@ -254,9 +255,9 @@ function formatImportItem(name: string) {
 }
 
 function formatImports(imports: string[], packageName: string) {
-    return imports.length
-        ? `import {\n${imports.map(formatImportItem).join('\n')}\n} from 'ag-charts-${packageName}';`
-        : null;
+    return imports.length === 0
+        ? null
+        : `import {\n${imports.map(formatImportItem).join('\n')}\n} from 'ag-charts-${packageName}';`;
 }
 
 function createRegistrySnippet(moduleNames: string[], packageName: string, instanceModules: boolean): string {
@@ -291,7 +292,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
         if (moduleRegistry.hasModule(module.name)) continue;
         if (SkippedModules.has(module.name)) continue;
         // Ignore modules that don't match the current chart type
-        if (chartType && module.chartType && chartType !== module.chartType) continue;
+        if (chartType != null && module.chartType != null && chartType !== module.chartType) continue;
 
         switch (module.type) {
             case 'chart':
@@ -376,7 +377,7 @@ export function removeIncompatibleModuleOptions<T extends Partial<AgChartOptions
     const hasSeriesOptions = 'series' in options && isArray(options.series);
     const matchChartType = (
         module: AxisPluginModuleDefinition<any> | SeriesPluginModuleDefinition<any> | PluginModuleDefinition<any>
-    ) => chartType == null || !module.chartType || module.chartType === chartType;
+    ) => chartType == null || module.chartType == null || module.chartType === chartType;
     const incompatibleModules: string[] = [];
 
     // Axis-plugin modules can share an `optionsKey`, so only strip a key when no compatible axis-plugin
