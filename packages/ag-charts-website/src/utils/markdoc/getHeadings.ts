@@ -66,7 +66,7 @@ function createHeadingRenderableNode({
  */
 function getMarkdocTabs(ast: Node) {
     const slugger = new Slugger();
-    let lastHeading: Node;
+    let lastHeading: Node | undefined;
 
     return ast.children
         .map((node) => {
@@ -74,7 +74,7 @@ function getMarkdocTabs(ast: Node) {
                 lastHeading = node;
             }
 
-            if (!isTabsTag(node) || !lastHeading || node.attributes.omitFromOverview) {
+            if (!isTabsTag(node) || lastHeading == null || node.attributes.omitFromOverview) {
                 return;
             }
 
@@ -147,7 +147,8 @@ export function getHeadings({
         },
     };
     const renderTree = Markdoc.transform(ast, config as ConfigType);
-    if (!renderTree) {
+    // `transform` can return a falsy scalar rather than a tag; only a tag or array carries headings.
+    if (renderTree == null || renderTree === false || renderTree === '' || renderTree === 0) {
         return [];
     }
 

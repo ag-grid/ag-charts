@@ -135,7 +135,7 @@ export const getPageImages = async ({
         '../../../content/docs/**/*.{jpeg,jpg,png,gif,svg,mp4}'
     );
 
-    if (!images[fullImagePath]) {
+    if (images[fullImagePath] == null) {
         const errorMsg = `Page "${pageName}" image "${imagePath}" does not exist in glob: "${docsPath}**/*.{jpeg,jpg,png,gif,svg,mp4}" (fullImagePath = ${fullImagePath})`;
         if (getIsDev()) {
             // eslint-disable-next-line no-console
@@ -155,9 +155,8 @@ export const getPageImages = async ({
     const darkModeImagePath = imagePath.replace(`.${extension}`, `-dark.${extension}`);
     const fullDarkModeImagePath = path.join(docsPath, pageName, darkModeImagePath);
     const darkModeImage = images[fullDarkModeImagePath];
-    const darkModeImageSrc = darkModeImage
-        ? ((await darkModeImage()).default.src ?? (await darkModeImage()).default)
-        : undefined;
+    const darkModeImageSrc =
+        darkModeImage == null ? undefined : ((await darkModeImage()).default.src ?? (await darkModeImage()).default);
 
     return {
         imageSrc,

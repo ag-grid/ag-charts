@@ -14,11 +14,13 @@ import { baseColDef, gridTheme } from './grid';
 const iconCell =
     (iconUrl: (value: string) => string | undefined, imgClass = 'wa-cell-icon') =>
     ({ value }: { value?: string }) => {
-        if (!value) return null;
+        if (value == null || value === '') return null;
         const src = iconUrl(value);
         return (
             <span className="wa-icon-cell">
-                {src && <img className={imgClass} src={src} alt="" aria-hidden="true" loading="lazy" />}
+                {src != null && src !== '' && (
+                    <img className={imgClass} src={src} alt="" aria-hidden="true" loading="lazy" />
+                )}
                 {value}
             </span>
         );

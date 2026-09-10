@@ -27,7 +27,7 @@ export function createId<T extends IDTypes | string = string>(instance: Identifi
     let className = Object.hasOwn(constructor, 'className') ? constructor.className : constructor.name;
 
     Debug.inDevelopmentMode(() => {
-        if (!className) {
+        if (className == null || className === '') {
             throw new Error(`The ${String(constructor)} is missing the 'className' property.`);
         }
     });

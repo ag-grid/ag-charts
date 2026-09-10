@@ -31,7 +31,7 @@ function applyIntervalOn<T extends AgCartesianChartOptions>(opts: T): T {
         ...opts,
         axes:
             mapValues(opts.axes ?? {}, (axis) =>
-                axis.type && axesToTest.includes(axis.type)
+                axis.type != null && axesToTest.includes(axis.type)
                     ? {
                           ...axis,
                           interval: { ...(axis.interval ?? {}), placement: 'on' },
@@ -48,7 +48,7 @@ function applyIntervalBetween<T extends AgCartesianChartOptions>(opts: T): T {
         ...opts,
         axes:
             mapValues(opts.axes ?? {}, (axis) =>
-                axis.type && axesToTest.includes(axis.type)
+                axis.type != null && axesToTest.includes(axis.type)
                     ? {
                           ...axis,
                           interval: { ...(axis.interval ?? {}), placement: 'between' },
@@ -98,7 +98,7 @@ describe('Category Axis', () => {
     let chart: ChartOrProxy;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }

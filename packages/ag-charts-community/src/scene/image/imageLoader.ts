@@ -133,7 +133,7 @@ export class ImageLoader extends EventEmitter<EventMap> {
             if (!contentTypeSaysSvg && !looksLikeSvgMarkup(text)) return { src: uri };
 
             const sized = injectSvgSize(text, sizeHint.width, sizeHint.height);
-            if (!sized) return { src: uri };
+            if (sized == null || sized === '') return { src: uri };
             const blob = new Blob([sized], { type: 'image/svg+xml' });
             const blobUrl = URL.createObjectURL(blob);
             return { src: blobUrl, blobUrl };

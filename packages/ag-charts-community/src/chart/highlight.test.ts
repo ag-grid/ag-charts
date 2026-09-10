@@ -22,7 +22,7 @@ describe('Chart highlighting', () => {
     const ctx = setupMockCanvas();
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -848,7 +848,7 @@ describe('Chart highlighting', () => {
                     y: { position: 'left', type: 'number' },
                 },
                 legend: { enabled: false },
-                ...(mode ? { highlight: { mode } } : {}),
+                ...(mode == null ? {} : { highlight: { mode } }),
                 series: [
                     { type: 'bar', xKey: 'category', yKey: 'apples' },
                     { type: 'bar', xKey: 'category', yKey: 'oranges' },

@@ -62,7 +62,10 @@ const hasCompleteBuild = sitemapPaths.length > 500;
 const sitemapBase = hasCompleteBuild
     ? sitemapPaths.reduce((shortest, path) => (path.length < shortest.length ? path : shortest)).replace(/\/$/, '')
     : '';
-const baseRelative = (pathname: string) => pathname.slice(sitemapBase.length) || '/';
+const baseRelative = (pathname: string) => {
+    const relative = pathname.slice(sitemapBase.length);
+    return relative === '' ? '/' : relative;
+};
 
 // The invariant the feature rests on: `.md` can be appended to any URL in the sitemap.
 describe.runIf(hasCompleteBuild)('every sitemap URL has a .md twin in dist', () => {

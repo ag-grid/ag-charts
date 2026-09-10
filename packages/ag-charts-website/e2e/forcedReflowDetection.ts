@@ -107,7 +107,10 @@ export function analyseForcedReflows(events: TraceEvent[]): ForcedReflowAnalysis
 
     for (const threadEvents of byThread.values()) {
         // Sort by start time ascending; ties broken by longer duration first (parent before child).
-        threadEvents.sort((a, b) => a.ts - b.ts || (b.dur ?? 0) - (a.dur ?? 0));
+        threadEvents.sort((a, b) => {
+            const byStart = a.ts - b.ts;
+            return byStart === 0 ? (b.dur ?? 0) - (a.dur ?? 0) : byStart;
+        });
 
         // Stack of currently open events (their end timestamp).
         const stack: TraceEvent[] = [];
@@ -200,7 +203,9 @@ export function filterAgChartsReflows(analysis: ForcedReflowAnalysis, opts?: Fil
 
         // Allowlist filter: skip known-unavoidable functions. Check the first
         // named frame because the top frame may be anonymous (e.g. an IIFE).
-        const firstNamedFunction = r.stackFrames.find((f) => f.functionName)?.functionName;
+        const firstNamedFunction = r.stackFrames.find(
+            (f) => f.functionName != null && f.functionName !== ''
+        )?.functionName;
         if (firstNamedFunction != null && allowlist.has(firstNamedFunction)) {
             const entry = (allowlisted[firstNamedFunction] ??= { count: 0, totalDuration: 0 });
             entry.count++;
@@ -227,12 +232,13 @@ export function formatReflowDiagnostics(analysis: ForcedReflowAnalysis): string 
 
     const lines = [`Forced reflows: ${analysis.count} (total ${(analysis.totalDuration / 1000).toFixed(2)}ms)`, ''];
     for (const r of analysis.reflows) {
-        const topFrame = r.stackFrames[0];
-        const frameLabel = topFrame
-            ? `${topFrame.functionName ?? '(anonymous)'} @ ${topFrame.url ?? '?'}:${topFrame.lineNumber ?? '?'}`
-            : '';
+        const topFrame = r.stackFrames.at(0);
+        const frameLabel =
+            topFrame == null
+                ? ''
+                : `${topFrame.functionName ?? '(anonymous)'} @ ${topFrame.url ?? '?'}:${topFrame.lineNumber ?? '?'}`;
         lines.push(
-            `  ${r.name} (${(r.dur / 1000).toFixed(2)}ms) triggered by ${r.parentName}${frameLabel ? ` [${frameLabel}]` : ''}`
+            `  ${r.name} (${(r.dur / 1000).toFixed(2)}ms) triggered by ${r.parentName}${frameLabel === '' ? '' : ` [${frameLabel}]`}`
         );
         // Include additional frames for context.
         for (const frame of r.stackFrames.slice(1, 4)) {

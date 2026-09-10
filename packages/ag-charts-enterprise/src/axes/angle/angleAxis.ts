@@ -150,7 +150,7 @@ export abstract class AngleAxis<
     protected updateSelections() {
         const data = this.tickData;
 
-        this.gridLineGroupSelection.update(this.gridLength && this.options.gridLine.enabled ? data : []);
+        this.gridLineGroupSelection.update(this.gridLength > 0 && this.options.gridLine.enabled ? data : []);
         this.tickLineGroupSelection.update(this.options.tick.enabled ? data : []);
         this.tickLabelGroupSelection.update(this.options.label.enabled ? (data as any) : []);
 
@@ -263,7 +263,7 @@ export abstract class AngleAxis<
     private updateGridLines() {
         const { scale, gridLength: radius, innerRadiusRatio } = this;
         const { style, width } = this.options.gridLine;
-        if (!(style && radius > 0)) {
+        if (style == null || radius <= 0) {
             return;
         }
 
@@ -291,7 +291,7 @@ export abstract class AngleAxis<
 
         tickLabelGroupSelection.each((node, _, index) => {
             const labelDatum = this.labelData[index];
-            if (!labelDatum || labelDatum.hidden) {
+            if (labelDatum == null || labelDatum.hidden) {
                 node.visible = false;
                 return;
             }
@@ -304,12 +304,12 @@ export abstract class AngleAxis<
             node.setAlign(labelDatum);
             node.setBoxing(label);
             node.visible = true;
-            if (labelDatum.rotation) {
+            if (labelDatum.rotation === 0) {
+                node.rotation = 0;
+            } else {
                 node.rotation = labelDatum.rotation;
                 node.rotationCenterX = labelDatum.x;
                 node.rotationCenterY = labelDatum.y;
-            } else {
-                node.rotation = 0;
             }
         });
     }
@@ -379,13 +379,14 @@ export abstract class AngleAxis<
             tempText.textAlign = textAlign;
             tempText.textBaseline = textBaseline;
             tempText.rotation = rotation;
-            if (rotation) {
+            if (rotation !== 0) {
                 tempText.rotationCenterX = x;
                 tempText.rotationCenterY = y;
             }
 
-            let box: _ModuleSupport.BBox | undefined = rotation ? Transformable.toCanvas(tempText) : tempText.getBBox();
-            if (box && options.hideWhenNecessary && !rotation) {
+            let box: _ModuleSupport.BBox | undefined =
+                rotation === 0 ? tempText.getBBox() : Transformable.toCanvas(tempText);
+            if (box != null && options.hideWhenNecessary && rotation === 0) {
                 const overflowLeft = seriesLeft - box.x;
                 const overflowRight = box.x + box.width - seriesRight;
                 const pixelError = 1;

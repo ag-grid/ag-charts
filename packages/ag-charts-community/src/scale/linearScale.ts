@@ -45,7 +45,7 @@ export class LinearScale extends ContinuousScale<AgNumericValue> {
         domain: AgNumericValue[] = this.domain,
         visibleRange?: [number, number]
     ): { ticks: AgNumericValue[]; count: number; firstTickIndex?: number } {
-        if (!domain || domain.length < 2 || tickCount < 1) {
+        if (domain == null || domain.length < 2 || tickCount < 1) {
             return { ticks: [], count: 0, firstTickIndex: 0 };
         }
         const [b0, b1] = domain;
@@ -54,7 +54,7 @@ export class LinearScale extends ContinuousScale<AgNumericValue> {
         // Full-precision BigInt ticks for the full (unzoomed) domain only; a custom interval or zoomed
         // sub-range falls through to the Number path below.
         const fullRange = visibleRange == null || (visibleRange[0] === 0 && visibleRange[1] === 1);
-        if (isBigIntDomain && !interval && fullRange) {
+        if (isBigIntDomain && interval == null && fullRange) {
             const ticks = createBigIntTicks(b0, b1, tickCount);
             return { ticks, count: ticks.length, firstTickIndex: 0 };
         }
@@ -66,7 +66,7 @@ export class LinearScale extends ContinuousScale<AgNumericValue> {
 
         const [d0, d1] = numericDomain;
 
-        if (interval) {
+        if (interval != null) {
             // A custom interval step is a Number concept; bigint full precision applies only to the auto-step path.
             const step = Math.abs(Number(interval));
             if (!isDenseInterval((d1 - d0) / step, this.getPixelRange(), this.logger)) {

@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import './ImageCarousel.scss';
 
 const ImageCarousel = () => {
-    const leftColumnRef = useRef(null);
-    const rightColumnRef = useRef(null);
+    const leftColumnRef = useRef<HTMLDivElement>(null);
+    const rightColumnRef = useRef<HTMLDivElement>(null);
     const [scrollHeight, setScrollHeight] = useState(0);
 
     useEffect(() => {

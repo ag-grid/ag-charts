@@ -174,7 +174,8 @@ export function deriveNormalizedStops(colorScale: ColorScaleState): GradientColo
     const [d0, d1] = displayDomain
         ? [toNumber(displayDomain[0]), toNumber(displayDomain[1])]
         : [domain[0], domain.at(-1)!];
-    const extent = d1 - d0 || 1;
+    const span = d1 - d0;
+    const extent = span === 0 || Number.isNaN(span) ? 1 : span;
 
     if (mode === 'discrete') {
         // domain has N+1 boundaries for N colours. Clamp to [0, 1] so

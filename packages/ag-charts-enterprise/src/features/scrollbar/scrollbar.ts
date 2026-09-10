@@ -230,7 +230,7 @@ export class Scrollbar extends AbstractModuleInstance {
             positionHasAxis,
         } = state;
 
-        const axisLayout = state.axisId ? event.axes[state.axisId] : undefined;
+        const axisLayout = state.axisId == null ? undefined : event.axes[state.axisId];
 
         if (!axisLayout) return;
 

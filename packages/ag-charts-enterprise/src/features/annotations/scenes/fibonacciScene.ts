@@ -277,12 +277,12 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
             FibonacciNodeTag.OneLine
         )[0];
 
-        if (!oneLine) {
+        if (oneLine == null) {
             return;
         }
 
         const { text: textProperties, strokeWidth } = datum;
-        this.text = this.updateNode(CollidableText<never>, this.text, !!textProperties.label);
+        this.text = this.updateNode(CollidableText<never>, this.text, textProperties.label !== '');
 
         updateLineText(oneLine.id, oneLine, coords, textProperties, this.text, textProperties.label, strokeWidth);
     }
@@ -316,10 +316,10 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
     public drag(datum: Datum, target: Point, context: AnnotationContext, snapping: boolean) {
         if (!datum.isWriteable()) return;
 
-        if (this.activeHandle) {
-            this.dragHandle(datum, target, context, snapping);
-        } else {
+        if (this.activeHandle == null) {
             this.dragAll(datum, target, context);
+        } else {
+            this.dragHandle(datum, target, context, snapping);
         }
     }
 

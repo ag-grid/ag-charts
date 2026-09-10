@@ -173,7 +173,7 @@ describe('Validation utils', () => {
 
         test('attachDescription adds a description to a validator', () => {
             const describedValidator = attachDescription(
-                (value: unknown, context) => string(value, context) && value !== '',
+                (value: unknown, context) => string(value, context) === true && value !== '',
                 'a non-empty string'
             );
             expect(validate<{ str: string }>({ str: '' }, { str: describedValidator }).invalid).toMatchSnapshot();

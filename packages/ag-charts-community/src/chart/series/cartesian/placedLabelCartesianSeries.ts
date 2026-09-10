@@ -238,7 +238,7 @@ export abstract class PlacedLabelCartesianSeries<
                 { placement: datum.placement }
             );
             const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
-            if (enabled && datum?.labelText) {
+            if (enabled && datum?.labelText != null && datum.labelText !== '') {
                 const point = this.readLabelPoint(datum);
                 const offset = styled ? styledLabelTextOffset(style) : placementOffset;
                 text.fontStyle = fontStyle;

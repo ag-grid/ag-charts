@@ -32,7 +32,7 @@ export function markerFadeInAnimation<D>(
 ) {
     const params = {
         ...options,
-        phase: options?.phase ?? (status ? NODE_UPDATE_STATE_TO_PHASE_MAPPING[status] : 'trailing'),
+        phase: options?.phase ?? (status == null ? 'trailing' : NODE_UPDATE_STATE_TO_PHASE_MAPPING[status]),
     };
     staticFromToMotion(id, 'markers', animationManager, markerSelections, { opacity: 0 }, { opacity: 1 }, params);
     for (const s of markerSelections) {

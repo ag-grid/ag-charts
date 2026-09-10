@@ -418,7 +418,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
             }
         }
 
-        if (strokeWidth) {
+        if (strokeWidth > 0) {
             if (w < pixelSize) {
                 // Too narrow, draw a vertical stroke
                 const lx = x + pixelSize / 2;
@@ -604,7 +604,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
     ) {
         const { stroke, effectiveStrokeWidth } = this;
 
-        if (stroke && effectiveStrokeWidth) {
+        if (stroke != null && stroke !== '' && effectiveStrokeWidth > 0) {
             const { globalAlpha } = ctx;
             const { lineDash, lineDashOffset, lineCap, lineJoin, borderPath, borderClipPath } = this;
 
@@ -618,13 +618,13 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
             if (lineDash) {
                 ctx.setLineDash(lineDash);
             }
-            if (lineDashOffset) {
+            if (lineDashOffset !== 0) {
                 ctx.lineDashOffset = lineDashOffset;
             }
-            if (lineCap) {
+            if (lineCap != null) {
                 ctx.lineCap = lineCap;
             }
-            if (lineJoin) {
+            if (lineJoin != null) {
                 ctx.lineJoin = lineJoin;
             }
 

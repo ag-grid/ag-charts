@@ -125,7 +125,7 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
             defaultPrevented = true;
         };
 
-        const getDatum = seriesId ? this.getDatum[seriesId] : undefined;
+        const getDatum = seriesId == null ? undefined : this.getDatum[seriesId];
 
         this.chartService.callListener({
             type: 'collapsedChange',

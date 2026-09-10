@@ -88,7 +88,7 @@ describe('Integrated Charts Cross Filtering', () => {
     let chart: ChartOrProxy;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }

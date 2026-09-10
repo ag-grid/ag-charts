@@ -26,7 +26,7 @@ describe('Legend pagination state (AG-13436)', () => {
     });
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }

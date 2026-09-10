@@ -43,11 +43,14 @@ export type ExampleOverrides = {
  * An empty or whitespace-only value is treated as absent rather than as "no frameworks", so a
  * mis-set variable cannot silently reduce a run to zero tests.
  */
-const frameworkScope = process.env.AG_E2E_FRAMEWORKS?.trim()
-    ? process.env.AG_E2E_FRAMEWORKS.split(',')
-          .map((fw) => fw.trim())
-          .filter(Boolean)
-    : undefined;
+const frameworkScopeValue = process.env.AG_E2E_FRAMEWORKS?.trim();
+const frameworkScope =
+    frameworkScopeValue == null || frameworkScopeValue === ''
+        ? undefined
+        : frameworkScopeValue
+              .split(',')
+              .map((fw) => fw.trim())
+              .filter(Boolean);
 
 /**
  * Intersects a per-example `frameworks` override with the run's framework scope, so scoping can

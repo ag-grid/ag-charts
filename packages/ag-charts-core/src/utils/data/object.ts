@@ -127,7 +127,7 @@ export function merge<TSource extends PlainObject, TArgs extends (TSource | Fals
 }
 
 export function mergeArrayDefaults<T extends PlainObject>(dataArray: T[], ...itemDefaults: T[]) {
-    if (itemDefaults && isArray(dataArray)) {
+    if (itemDefaults != null && isArray(dataArray)) {
         return dataArray.map((item) => mergeDefaults(item, ...itemDefaults));
     }
     return dataArray;

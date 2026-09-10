@@ -31,16 +31,16 @@ export function buildSessionMarkdown({ session, siteRoot }: { session: Session; 
         `# ${session.title}`,
     ];
 
-    if (session.speakers?.length) {
+    if (session.speakers != null && session.speakers.length > 0) {
         document.push(session.speakers.map((speaker) => `${speaker.name} (${speaker.role})`).join(', '));
     }
     if (durationMins != null) {
         document.push(`Duration: ${durationMins} minutes`);
     }
-    if (session.youtubeUrl) {
+    if (session.youtubeUrl != null && session.youtubeUrl !== '') {
         document.push(`[Watch the recording](${session.youtubeUrl})`);
     }
-    if (session.description) {
+    if (session.description != null && session.description !== '') {
         document.push(session.description);
     }
     document.push(

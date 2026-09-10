@@ -48,7 +48,9 @@ vi.mock('../canvas', () => ({
     createCanvasContext: () => ({
         font: '',
         measureText(text: string) {
-            const scale = (Number.parseFloat(this.font) || BASE_FONT_SIZE) / BASE_FONT_SIZE;
+            const parsedFontSize = Number.parseFloat(this.font);
+            const fontSize = Number.isNaN(parsedFontSize) || parsedFontSize === 0 ? BASE_FONT_SIZE : parsedFontSize;
+            const scale = fontSize / BASE_FONT_SIZE;
             return {
                 width: [...text].length * CHAR_WIDTH * scale,
                 fontBoundingBoxAscent: 16 * scale,
@@ -123,7 +125,7 @@ function placeLabelsOracle(data: Map<string, SeriesLabels>, bounds: BoxBounds, p
     const dataValues = [...sortedDataClone.values()].flat();
     for (const [seriesId, datums] of sortedDataClone.entries()) {
         const labels: PlacedLabel[] = [];
-        if (!datums[0]?.label) continue;
+        if (datums[0]?.label == null) continue;
         for (let index = 0, ln = datums.length; index < ln; index++) {
             const d = datums[index];
             const { point, label, anchor } = d;
@@ -2627,7 +2629,7 @@ function placePositionedLabelsOracle(
     const obstacles: LabelObstacle[] = [...externalObstacles];
     for (const [seriesId, entry] of orderKeepFirstOracle(data)) {
         const labels: PlacedLabel[] = [];
-        if (!entry.datums[0]?.label) continue;
+        if (entry.datums[0]?.label == null) continue;
         for (let index = 0, ln = entry.datums.length; index < ln; index++) {
             const d = entry.datums[index];
             if (d.label.text === '') continue;

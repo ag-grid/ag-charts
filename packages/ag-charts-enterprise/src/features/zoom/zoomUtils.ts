@@ -35,7 +35,7 @@ export function isMaxZoom(zoom: DefinedZoomState) {
  * rect so the zoom is pinned to the edges if the point is over the legends, axes, etc.
  */
 export function pointToRatio(bbox: BoxBounds, x: number, y: number): { x: number; y: number } {
-    if (!bbox) return { x: 0, y: 0 };
+    if (bbox == null) return { x: 0, y: 0 };
 
     const constrainedX = constrain(x - bbox.x, 0, bbox.x + bbox.width);
     const constrainedY = constrain(y - bbox.y, 0, bbox.y + bbox.height);

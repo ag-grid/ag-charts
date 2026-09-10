@@ -526,7 +526,7 @@ export abstract class Axis<
         const datum: LabelNodeDatum | undefined = node?.unsafeDatum;
         const { textUntruncated: title = undefined } = datum ?? {};
 
-        if (title) {
+        if (title != null && title !== '') {
             this.moduleCtx.tooltipManager.updateTooltip(
                 this.id,
                 { canvasX: event.currentX, canvasY: event.currentY, showArrow: false },
@@ -617,7 +617,7 @@ export abstract class Axis<
 
     protected onGridLengthChange(value: number, prevValue: number) {
         // Was visible and now invisible, or was invisible and now visible.
-        if (prevValue ^ value) {
+        if ((prevValue ^ value) !== 0) {
             this.onGridVisibilityChange();
         }
         this.notifyAxisPlugins('onGridChange');

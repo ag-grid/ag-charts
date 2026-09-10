@@ -1311,7 +1311,7 @@ describe('DataModel', () => {
             const data1 = DATA_BROWSER_MARKET_SHARE.map((d) => d);
             const data2 = DATA_BROWSER_MARKET_SHARE.map((d) => ({
                 ...d,
-                firefox: d.firefox ? d.firefox * 2 : d.firefox,
+                firefox: d.firefox == null ? d.firefox : d.firefox * 2,
             }));
 
             const allData = basicDataSet(data2)
@@ -2266,7 +2266,8 @@ describe('DataModel', () => {
                 const accumulated = [10, 35, 65];
                 const domainMin = Math.min(...accumulated);
                 const domainMax = Math.max(...accumulated);
-                const span = domainMax - domainMin || 1;
+                const rawSpan = domainMax - domainMin;
+                const span = rawSpan === 0 ? 1 : rawSpan;
                 const expectedNormalized = accumulated.map((v) => ((v - domainMin) / span) * 100);
 
                 expect(reprocessed.columns[0]).toHaveLength(3);

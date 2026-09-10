@@ -80,7 +80,7 @@ export class Range<D = any> extends Shape<D> {
         }
 
         const { stroke, strokeWidth, startLine, endLine } = this;
-        const strokeActive = !!((startLine || endLine) && stroke && strokeWidth);
+        const strokeActive = (startLine || endLine) && stroke != null && stroke !== '' && strokeWidth > 0;
 
         if (strokeActive) {
             const { lineDash, lineDashOffset, lineCap, lineJoin } = this;
@@ -91,13 +91,13 @@ export class Range<D = any> extends Shape<D> {
             if (lineDash) {
                 ctx.setLineDash([...lineDash]);
             }
-            if (lineDashOffset) {
+            if (lineDashOffset !== 0) {
                 ctx.lineDashOffset = lineDashOffset;
             }
-            if (lineCap) {
+            if (lineCap != null) {
                 ctx.lineCap = lineCap;
             }
-            if (lineJoin) {
+            if (lineJoin != null) {
                 ctx.lineJoin = lineJoin;
             }
 

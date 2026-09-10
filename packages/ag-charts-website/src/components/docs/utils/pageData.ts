@@ -76,7 +76,7 @@ export async function getDocsExamplePages({ pages }: { pages: DocsPage[] }) {
 
 function allPropertiesAreTruthy(entries: [string, DocExamplePage][], property: keyof DocExamplePage) {
     return entries.every(([_, data]) => {
-        return data[property];
+        return Boolean(data[property]);
     });
 }
 
@@ -115,9 +115,7 @@ export async function getDocsExampleContents({ pages }: { pages: DocsPage[] }) {
     const examplePromises = examples.map(async (example) => {
         const { internalFramework, pageName, exampleName } = example.params;
         const key = `${pageName}-${exampleName}`;
-        if (!exampleContents[key]) {
-            exampleContents[key] = {} as DocFrameworkExamples;
-        }
+        exampleContents[key] ??= {} as DocFrameworkExamples;
         const generatedExampleParams: GeneratedExampleParams = {
             type: 'docs',
             framework: internalFramework,

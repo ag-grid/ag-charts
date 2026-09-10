@@ -187,9 +187,9 @@ function createChartTheme(
     const presetBaseTheme = presetName == null ? undefined : moduleRegistry.getPresetModule(presetName)?.baseTheme;
 
     if (!validateStructure(value, logger)) {
-        return presetBaseTheme
-            ? getChartTheme(presetBaseTheme, logger, presetName, moduleRegistry)
-            : lightTheme(presetName, moduleRegistry);
+        return presetBaseTheme == null
+            ? lightTheme(presetName, moduleRegistry)
+            : getChartTheme(presetBaseTheme, logger, presetName, moduleRegistry);
     }
 
     if (value == null || typeof value === 'string') {
@@ -208,9 +208,10 @@ function createChartTheme(
 
     const baseThemeValue = cleared?.baseTheme ?? presetBaseTheme;
 
-    const baseTheme: any = baseThemeValue
-        ? getChartTheme(baseThemeValue, logger, presetName, moduleRegistry)
-        : lightTheme(presetName, moduleRegistry);
+    const baseTheme: any =
+        baseThemeValue == null
+            ? lightTheme(presetName, moduleRegistry)
+            : getChartTheme(baseThemeValue, logger, presetName, moduleRegistry);
     return cleared ? new baseTheme.constructor(cleared, presetName, moduleRegistry) : baseTheme;
 }
 

@@ -176,7 +176,7 @@ export class FlashOnUpdate extends AbstractModuleInstance {
     // so the array value has to be recovered before scale.convert().
     private resolveDomainValue(key: string): unknown {
         const domain = this.axisCtx?.scale.domain;
-        if (!domain?.length || !Array.isArray(domain[0])) return key;
+        if (domain == null || domain.length === 0 || !Array.isArray(domain[0])) return key;
         for (const d of domain) {
             if (String(d) === key) return d;
         }
@@ -226,7 +226,7 @@ export class FlashOnUpdate extends AbstractModuleInstance {
     }
 
     private flashChart(): void {
-        if (!this.chartFlashRect.width || !this.chartFlashRect.height) return;
+        if (this.chartFlashRect.width === 0 || this.chartFlashRect.height === 0) return;
 
         this.chartFlashRect.fill = this.opts.fill;
         this.chartFlashRect.fillOpacity = 0;

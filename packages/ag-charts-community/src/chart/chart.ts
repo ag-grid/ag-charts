@@ -728,7 +728,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
     protected getCaptionText(): string {
         return [this.title, this.subtitle, this.footnote]
-            .filter((caption) => caption.enabled && caption.text)
+            .filter((caption) => caption.enabled && caption.text != null && caption.text !== '')
             .map((caption) => caption.text)
             .join('. ');
     }
@@ -1339,7 +1339,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     protected destroySeries(allSeries: UnknownSeries[]): void {
-        if (allSeries) {
+        if (allSeries != null) {
             for (const series of allSeries) {
                 series.destroy();
                 this.seriesLayerManager.releaseGroup(series);
@@ -1642,7 +1642,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
     protected getDebugColors(): { background?: string; foreground?: string } | undefined {
         const bg = this.ctx.chartState.getValue('options', 'background').fill;
-        if (!bg) return undefined;
+        if (bg === '') return undefined;
         try {
             const color = Color.fromString(bg);
             const [lightness] = Color.RGBtoOKLCH(color.r, color.g, color.b);
@@ -1657,7 +1657,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if (seriesRect == null) return;
 
         const dimension = this._requiredRangeDirection === ChartAxisDirection.X ? seriesRect.width : seriesRect.height;
-        const requiredRangeRatio = _requiredRange / dimension || 0; // In case it's NaN, return 0.
+        const rangeRatio = _requiredRange / dimension;
+        const requiredRangeRatio = Number.isNaN(rangeRatio) ? 0 : rangeRatio; // In case it's NaN, return 0.
 
         // Once the dimensions of the chart have been calculated, allow modules to respond to these dimensions.
         this.ctx.eventsHub.emit('update:pre-series', {
@@ -2054,7 +2055,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         let modulesChanged = false;
         for (const module of this.ctx.moduleRegistry.listModulesByType(ModuleType.Plugin)) {
-            const shouldBeEnabled = !module.chartType || module.chartType === chartType;
+            const shouldBeEnabled = module.chartType == null || module.chartType === chartType;
             if (shouldBeEnabled === this.modulesManager.isEnabled(module.name)) continue;
 
             if (shouldBeEnabled) {
@@ -2270,7 +2271,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         const { type: chartType } = this.constructor as any;
 
         for (const module of this.ctx.moduleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
-            if (module.chartType && module.chartType !== chartType) continue;
+            if (module.chartType != null && module.chartType !== chartType) continue;
 
             const optionsKey = module.optionsKey ?? module.name;
             const pluginOpts = (options as any)[optionsKey];

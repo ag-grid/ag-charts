@@ -44,7 +44,7 @@ const updateHtml = (darkmode: boolean | undefined) => {
 
 $darkmode.listen(updateHtml);
 
-if (globalThis.window) {
+if (typeof globalThis.window !== 'undefined') {
     // A swap restores <html> to its server-rendered attributes, and $darkmode's listener
     // only fires on change, so the theme needs re-applying explicitly.
     document.addEventListener('astro:after-swap', () => {

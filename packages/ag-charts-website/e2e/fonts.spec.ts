@@ -26,7 +26,10 @@ test.describe('fonts', () => {
             pinNonChromiumToVanilla(test, framework);
 
             test('google fonts', async ({ page }) => {
-                await page.routeFromHAR(FONT_HAR, { url: FONT_CDN, update: !!process.env.UPDATE_FONT_HAR });
+                await page.routeFromHAR(FONT_HAR, {
+                    url: FONT_CDN,
+                    update: process.env.UPDATE_FONT_HAR != null && process.env.UPDATE_FONT_HAR !== '',
+                });
 
                 await gotoExample(page, url);
                 await waitForAllChartUpdates(page);

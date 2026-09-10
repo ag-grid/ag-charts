@@ -88,7 +88,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
             legendItemName,
         } = this.properties;
 
-        if (!data?.data.length || !xKey || legendType !== 'category') {
+        if (data == null || data.data.length === 0 || xKey == null || xKey === '' || legendType !== 'category') {
             return [];
         }
 

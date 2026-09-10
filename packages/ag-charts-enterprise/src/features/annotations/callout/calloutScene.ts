@@ -300,7 +300,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
             yPlacement = 'top';
         }
 
-        if (xPlacement && yPlacement) {
+        if (xPlacement != null && yPlacement != null) {
             return `${yPlacement}${xPlacement[0].toUpperCase()}${xPlacement.substring(1)}`;
         } else {
             return yPlacement ?? xPlacement;

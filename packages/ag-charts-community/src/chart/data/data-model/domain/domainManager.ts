@@ -275,7 +275,7 @@ export class DomainManager<D extends object, K extends keyof D & string> {
             if (skipDomains?.has(domain)) continue;
 
             for (const scope of getScopes(def)) {
-                if (!scope) continue;
+                if (scope == null) continue;
                 const data = getData(defIndex, scope);
                 if (!data) continue;
 
@@ -325,7 +325,7 @@ export class DomainManager<D extends object, K extends keyof D & string> {
 
         const scopes = new Set<string>();
         for (const valueDef of valueDefs) {
-            if (!valueDef.scopes) continue;
+            if (valueDef.scopes == null) continue;
             for (const scope of valueDef.scopes) {
                 scopes.add(scope);
             }

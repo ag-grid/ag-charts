@@ -16,10 +16,11 @@ interface PathFlowChartProps {
 // column; strip it for display so users just see the page name.
 const stripLevel = (label: string) => label.replace(/^\d+\.\s*/, '');
 
-const isTerminal = (label: string | undefined) => !!label && isTerminalNode(label);
+const isTerminal = (label: string | undefined) => label != null && label !== '' && isTerminalNode(label);
 
 // Sankey labels carry the level prefix and include terminal nodes, which read grey.
-const nodeColor = (label: string | undefined) => (!label || isTerminal(label) ? NEUTRAL : pageColor(stripLevel(label)));
+const nodeColor = (label: string | undefined) =>
+    label == null || label === '' || isTerminal(label) ? NEUTRAL : pageColor(stripLevel(label));
 
 export function PathFlowChart({ data }: PathFlowChartProps) {
     const options = useMemo<AgChartOptions>(() => {
@@ -59,7 +60,7 @@ export function PathFlowChart({ data }: PathFlowChartProps) {
             tooltip: {
                 renderer: ({ datum }) => {
                     const { from, to } = (datum ?? {}) as Partial<PathLink>;
-                    return from && to ? { title: `${from} → ${to}` } : undefined;
+                    return from == null || to == null ? undefined : { title: `${from} → ${to}` };
                 },
             },
         };

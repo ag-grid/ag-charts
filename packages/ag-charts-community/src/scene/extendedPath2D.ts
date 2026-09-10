@@ -431,7 +431,7 @@ export class ExtendedPath2D {
         const sAngle = Math.atan2((rotY - cpy) / ry, (rotX - cpx) / rx);
         const deltaTheta = Math.atan2((-rotY - cpy) / ry, (-rotX - cpx) / rx) - sAngle;
         const eAngle = sAngle + deltaTheta;
-        const counterClockwise = !!(1 - fS);
+        const counterClockwise = fS === 0;
 
         this.ellipse(cx, cy, rx, ry, rotation, sAngle, eAngle, counterClockwise);
     }

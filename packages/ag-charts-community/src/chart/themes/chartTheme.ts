@@ -473,7 +473,7 @@ export class ChartTheme {
                 for (const axisModule of moduleRegistry.listModulesByType(ModuleType.Axis)) {
                     axes[axisModule.name] = mergeDefaultsShallowOperations(
                         axes[axisModule.name],
-                        !axisModule.chartType || axisModule.chartType === chartType
+                        axisModule.chartType == null || axisModule.chartType === chartType
                             ? getAxisThemeTemplate(axisModule.name, moduleRegistry)
                             : null
                     );
@@ -489,7 +489,7 @@ export class ChartTheme {
         };
 
         const seriesModules = [...moduleRegistry.listModulesByType(ModuleType.Series)];
-        const seriesByChartType = groupBy(seriesModules, (s) => s.chartType || 'unknown');
+        const seriesByChartType = groupBy(seriesModules, (s) => s.chartType ?? 'unknown');
 
         return mergeDefaultsShallowOperations(
             ...Object.keys(seriesByChartType).map((chartType) =>

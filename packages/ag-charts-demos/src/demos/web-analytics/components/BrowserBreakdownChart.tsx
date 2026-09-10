@@ -60,7 +60,7 @@ export function BrowserBreakdownChart({ data }: BrowserBreakdownChartProps) {
                     label: {
                         formatter: ({ value }) => {
                             const url = browserIconUrl(String(value));
-                            if (!url) return String(value);
+                            if (url == null || url === '') return String(value);
                             return [
                                 { type: 'image', url, width: 14, height: 14, verticalAlign: 'middle' },
                                 { text: `  ${value}` },

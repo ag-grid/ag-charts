@@ -297,7 +297,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 label,
                 { value: angleDatum, datum, angleKey, radiusKey, angleName, radiusName, legendItemName }
             );
-            if (labelText) {
+            if (labelText != null && labelText !== '') {
                 return { x, y, text: labelText, textAlign: 'center', textBaseline: 'middle' };
             }
         };
@@ -383,7 +383,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         this.contentGroup.translationY = this.centerY;
         this.highlightGroup.translationX = this.centerX;
         this.highlightGroup.translationY = this.centerY;
-        if (this.labelGroup) {
+        if (this.labelGroup != null) {
             this.labelGroup.translationX = this.centerX;
             this.labelGroup.translationY = this.centerY;
         }
@@ -575,7 +575,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const radiusAxis = axes[ChartAxisDirection.Radius];
         const nodeDatum = this.nodeData?.[datumIndex];
 
-        if (!dataModel || !processedData || !angleAxis || !radiusAxis || !nodeDatum) return;
+        if (dataModel == null || processedData == null || angleAxis == null || radiusAxis == null || nodeDatum == null)
+            return;
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const radiusValue = dataModel.resolveKeysById(this, `radiusValue`, processedData)[datumIndex];

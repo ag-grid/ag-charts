@@ -41,14 +41,14 @@ const MAX_QUOTED_FONT_FAMILY_ENTRIES = 256;
 // Quote multi-word / digit-containing family names so canvas font shorthand
 // parses correctly; preserve already-quoted tokens and CSS generic keywords.
 function quoteFontFamily(fontFamily: string | undefined): string {
-    if (!fontFamily) return '';
+    if (fontFamily == null || fontFamily === '') return '';
     const cached = quotedFontFamilyCache.get(fontFamily);
     if (cached !== undefined) return cached;
     const quoted = fontFamily
         .split(',')
         .map((part) => {
             const trimmed = part.trim();
-            if (!trimmed) return trimmed;
+            if (trimmed === '') return trimmed;
             if (trimmed.startsWith('"') || trimmed.startsWith("'")) return trimmed;
             if (CSS_GENERIC_FAMILIES.has(trimmed)) return trimmed;
             if (/\s/.test(trimmed)) return `"${trimmed}"`;
@@ -62,10 +62,10 @@ function quoteFontFamily(fontFamily: string | undefined): string {
 
 export function toFontString({ fontSize, fontStyle, fontWeight, fontFamily }: FontOptions) {
     let fontString = '';
-    if (fontStyle && fontStyle !== 'normal') {
+    if (fontStyle != null && fontStyle !== 'normal') {
         fontString += `${fontStyle} `;
     }
-    if (fontWeight && fontWeight !== 'normal' && fontWeight !== 400) {
+    if (fontWeight != null && fontWeight !== 'normal' && fontWeight !== 400) {
         fontString += `${fontWeight === 700 ? 'bold' : fontWeight} `;
     }
     fontString += `${fontSize}px`;
@@ -113,7 +113,7 @@ function isDualJoiningArabic(code: number) {
 }
 
 export function preserveArabicJoining(text: string): string {
-    if (!text) return text;
+    if (text === '') return text;
     const lastCode = text.codePointAt(text.length - 1)!;
     if (isDualJoiningArabic(lastCode)) {
         return text + '\u200D'; // ZWJ

@@ -11,7 +11,7 @@ export function EmptyState({ message, hint }: EmptyStateProps) {
                 ◔
             </span>
             <span>{message}</span>
-            {hint && <span className="wa-card-sub">{hint}</span>}
+            {hint != null && hint !== '' && <span className="wa-card-sub">{hint}</span>}
         </div>
     );
 }

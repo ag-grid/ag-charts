@@ -66,7 +66,7 @@ describe('PieSeries', () => {
     setupMockConsole();
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }

@@ -141,7 +141,7 @@ export class TooltipManager {
 
     private applyStates() {
         const id = this.stateTracker.stateId();
-        const state = id ? this.stateTracker.get(id) : undefined;
+        const state = id == null ? undefined : this.stateTracker.get(id);
 
         if (this.suppressState.stateValue() || state?.meta == null || state?.content == null) {
             this.appliedState = null;

@@ -57,7 +57,7 @@ export function deriveTimeSpecifier(
     } = format;
     const formatOrder = FORMAT_ORDERS[unit];
     const hardcodedTimeFormat = hardCodedTimeFormats[unit];
-    const truncationOrder = truncateDate ? FORMAT_ORDERS[truncateDate] : -1;
+    const truncationOrder = truncateDate == null ? -1 : FORMAT_ORDERS[truncateDate];
 
     if (
         (truncationOrder < FORMAT_ORDERS.year && formatOrder >= FORMAT_ORDERS.year && !YEAR_FORMAT.test(year)) ||
@@ -108,5 +108,5 @@ export function deriveTimeSpecifier(
         dateFormat = `${month} ${day}`;
     }
     // AG-15156 - no format for just days
-    return dateFormat ? `${timeFormat} ${dateFormat}` : timeFormat;
+    return dateFormat == null || dateFormat === '' ? timeFormat : `${timeFormat} ${dateFormat}`;
 }

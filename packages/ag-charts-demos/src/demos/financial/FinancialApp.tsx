@@ -67,8 +67,8 @@ export const FinancialApp = () => {
 
     const last = bars[bars.length - 1];
     const first = bars[0];
-    const change = last && first ? last.close - first.open : 0;
-    const changePct = last && first ? (change / first.open) * 100 : 0;
+    const change = last == null || first == null ? 0 : last.close - first.open;
+    const changePct = last == null || first == null ? 0 : (change / first.open) * 100;
 
     return (
         <div className="fin-container">
@@ -95,7 +95,7 @@ export const FinancialApp = () => {
                             <div className="fin-quote">
                                 <TickerBadge ticker={instrument.ticker} />
                                 <span className="fin-quote-symbol">{instrument.name}</span>
-                                <span className="fin-quote-price">{last ? fmtPrice(last.close) : '—'}</span>
+                                <span className="fin-quote-price">{last == null ? '—' : fmtPrice(last.close)}</span>
                                 <span className={change >= 0 ? 'fin-up' : 'fin-down'}>
                                     {change >= 0 ? '▲' : '▼'} {fmtPrice(Math.abs(change))} ({changePct.toFixed(2)}%)
                                 </span>

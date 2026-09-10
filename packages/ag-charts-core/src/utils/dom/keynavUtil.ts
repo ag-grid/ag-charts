@@ -128,8 +128,8 @@ export function initRovingTabIndex(opts: {
             onFocus && attachListener(curr, 'focus', onFocus),
             onBlur && attachListener(curr, 'blur', onBlur),
             onEscape && addEscapeEventListener(curr, onEscape),
-            prev && linkTwoButtons(curr, prev, prevKey),
-            next && linkTwoButtons(curr, next, nextKey),
+            prev != null && linkTwoButtons(curr, prev, prevKey),
+            next != null && linkTwoButtons(curr, next, nextKey),
             attachListener(curr, 'keydown', (event: KeyboardEvent) => {
                 if (matchesKey(event, nextKey, prevKey)) {
                     event.preventDefault();

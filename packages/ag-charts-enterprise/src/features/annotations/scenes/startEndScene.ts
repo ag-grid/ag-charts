@@ -59,7 +59,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
     override dragHandle(datum: Datum, target: Point, context: AnnotationContext, snapping: boolean) {
         const { activeHandle, dragState } = this;
 
-        if (!activeHandle || !dragState) return;
+        if (activeHandle == null || !dragState) return;
 
         this[activeHandle].toggleDragging(true);
 

@@ -395,18 +395,19 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
                     timeInterval = minTimeInterval;
                 }
 
-                const intervalTicks = timeInterval
-                    ? getTimeIntervalTicks(
-                          scale,
-                          visibleRange,
-                          tickCount,
-                          maxTickCount,
-                          tickParams,
-                          timeInterval,
-                          reverse,
-                          minimumTimeGranularity
-                      )
-                    : undefined;
+                const intervalTicks =
+                    timeInterval == null
+                        ? undefined
+                        : getTimeIntervalTicks(
+                              scale,
+                              visibleRange,
+                              tickCount,
+                              maxTickCount,
+                              tickParams,
+                              timeInterval,
+                              reverse,
+                              minimumTimeGranularity
+                          );
                 if (intervalTicks) {
                     ({ ticks: rawTicks, primaryTicksIndices, alignment } = intervalTicks);
                 } else {
@@ -500,7 +501,7 @@ function createLabelData(
 
     for (let i = 0; i < tickData.length; i += 1) {
         const { tickLabel, textMetrics, translation } = tickData[i];
-        if (!tickLabel) continue;
+        if (tickLabel == null || tickLabel === '') continue;
 
         // `labelOffset` runs outward from the axis line, the opposite sign to the datum's `y` that
         // the flush moves, so the displacement is subtracted.

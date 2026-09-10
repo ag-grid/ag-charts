@@ -28,13 +28,13 @@ export function diffWindow<T>(
     }
 
     const transactions: AgDataTransaction<T>[] = [];
-    if (remove.length || update.length || backAdds.length) {
+    if (remove.length > 0 || update.length > 0 || backAdds.length > 0) {
         const transaction: AgDataTransaction<T> = {};
-        if (remove.length) transaction.remove = remove;
-        if (update.length) transaction.update = update;
-        if (backAdds.length) transaction.add = backAdds;
+        if (remove.length > 0) transaction.remove = remove;
+        if (update.length > 0) transaction.update = update;
+        if (backAdds.length > 0) transaction.add = backAdds;
         transactions.push(transaction);
     }
-    if (frontAdds.length) transactions.push({ add: frontAdds, addIndex: 0 });
+    if (frontAdds.length > 0) transactions.push({ add: frontAdds, addIndex: 0 });
     return transactions;
 }

@@ -8,7 +8,7 @@ export function getStaticPaths() {
     if (DISABLE_MARKDOWN_DOCS) {
         return [];
     }
-    return SESSIONS.filter((session) => session.youtubeUrl).map((session) => ({
+    return SESSIONS.filter((session) => session.youtubeUrl != null && session.youtubeUrl !== '').map((session) => ({
         params: { slug: sessionSlug(session.title) },
         props: { session },
     }));

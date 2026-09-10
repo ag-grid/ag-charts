@@ -86,7 +86,7 @@ export function SupplierTrendChart({
 
     const data = useMemo<Row[]>(() => {
         const [first] = [...trend.values()];
-        if (!first) return [];
+        if (first == null) return [];
         return first.map((point, index) => {
             const row: Row = { label: point.label };
             for (const [supplierId, points] of trend) {

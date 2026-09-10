@@ -21,7 +21,7 @@ if (typeof document !== 'undefined') {
 export function getDocument<E>(): Document & E;
 export function getDocument<K extends keyof Document>(propertyName: K): Document[K];
 export function getDocument<K extends keyof Document>(propertyName?: K) {
-    return propertyName ? verifiedGlobals.document?.[propertyName] : verifiedGlobals.document;
+    return propertyName == null ? verifiedGlobals.document : verifiedGlobals.document?.[propertyName];
 }
 
 /**
@@ -33,7 +33,7 @@ export function getWindow<E>(): Window & E;
 export function getWindow<K extends keyof Window>(propertyName: K): Window[K];
 export function getWindow<R = unknown>(propertyName: string): R;
 export function getWindow<K extends keyof Window>(propertyName?: K) {
-    return propertyName ? verifiedGlobals.window?.[propertyName] : verifiedGlobals.window;
+    return propertyName == null ? verifiedGlobals.window : verifiedGlobals.window?.[propertyName];
 }
 
 /**

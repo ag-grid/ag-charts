@@ -126,7 +126,7 @@ export class BandHighlight extends AbstractModuleInstance {
     }
 
     private handleHoverHighlight(event: _ModuleSupport.HoverLikeEvent) {
-        if (!event) return;
+        if (event == null) return;
 
         const { currentX: x, currentY: y } = event;
 
@@ -134,12 +134,12 @@ export class BandHighlight extends AbstractModuleInstance {
     }
 
     private layout({ series: { rect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {
-        if (!visible || !axes || !this.options?.enabled) return;
+        if (!visible || axes == null || !this.options?.enabled) return;
 
         const { position: axisPosition = 'left', axisId } = this.axisCtx;
 
         const axisLayout = axes[axisId];
-        if (!axisLayout) return;
+        if (axisLayout == null) return;
 
         this.axisLayout = axisLayout;
         this.bounds = rect.clone().grow(axisLayout.gridPadding, axisPosition);

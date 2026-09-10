@@ -194,7 +194,8 @@ export async function compareImageSnapshot(
         ...options,
         customSnapshotIdentifier: (parameters) => {
             if (typeof customSnapshotIdentifier === 'function') {
-                resolvedIdentifier = customSnapshotIdentifier(parameters) || parameters.defaultIdentifier;
+                const customIdentifier = customSnapshotIdentifier(parameters);
+                resolvedIdentifier = customIdentifier === '' ? parameters.defaultIdentifier : customIdentifier;
             } else if (typeof customSnapshotIdentifier === 'string' && customSnapshotIdentifier.length > 0) {
                 resolvedIdentifier = customSnapshotIdentifier;
             } else {
@@ -2013,7 +2014,7 @@ export function expectSceneTrajectory(
     if (violations.length > 0) {
         const details = violations
             .map((v) => {
-                const prop = v.prop ? '.' + v.prop : '';
+                const prop = v.prop == null ? '' : '.' + v.prop;
                 const header = `  ${v.key}${prop} — ${v.message}`;
                 if (v.values == null) return header;
                 return `${header}\n    ${sparkline(v.values)}  [${formatValues(v.values)}]`;

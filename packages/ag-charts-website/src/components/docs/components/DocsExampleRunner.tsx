@@ -98,7 +98,7 @@ const DocsExampleRunnerInner = ({
     );
 
     useEffect(() => {
-        if (!exampleName) {
+        if (exampleName === '') {
             return;
         }
 
@@ -144,7 +144,7 @@ const DocsExampleRunnerInner = ({
     }, [internalFramework, pageName, exampleName]);
 
     useEffect(() => {
-        if (!contents || contentsIsLoading || contentsIsError || !exampleFileHtml) {
+        if (!contents || contentsIsLoading || contentsIsError || exampleFileHtml == null || exampleFileHtml === '') {
             return;
         }
         const files = {

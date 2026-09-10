@@ -83,7 +83,7 @@ export class DomainInitializer<K extends string> {
         const stats = domain.getStats();
         const shouldReinit = stats.bandCount === 0 || stats.dataSize !== dataSize;
 
-        if (this.ctx.debug.check() && shouldReinit && propertyName) {
+        if (this.ctx.debug.check() && shouldReinit && propertyName != null) {
             this.ctx.debug(
                 `Reinitializing bands for ${propertyName}: bandCount=${stats.bandCount}, ` +
                     `dataSize=${stats.dataSize}, dataLength=${dataSize}`

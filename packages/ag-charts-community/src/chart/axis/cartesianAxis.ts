@@ -560,7 +560,7 @@ export abstract class CartesianAxis<
 
         const nextTick = ticks[index + 1];
         const startOffset = translation;
-        const endOffset = nextTick ? nextTick.translation : range[1];
+        const endOffset = nextTick == null ? range[1] : nextTick.translation;
 
         const [x1, y1, x2, y2] = horizontal
             ? [startOffset, Math.max(p1, p2), endOffset, Math.min(p1, p2)]
@@ -752,7 +752,8 @@ export abstract class CartesianAxis<
     }
 
     private wrapTitleText(caption: Caption) {
-        const axisLength = Math.abs(this.range[1] - this.range[0]) || Infinity;
+        const rangeLength = Math.abs(this.range[1] - this.range[0]);
+        const axisLength = rangeLength === 0 || Number.isNaN(rangeLength) ? Infinity : rangeLength;
         const thickness = this.options.thickness ?? Infinity;
         const orientation = this.options.title.orientation ?? defaultTitleOrientation(this.position);
         if (isTitleAcrossAxis(this.position, orientation)) {
@@ -841,7 +842,7 @@ export abstract class CartesianAxis<
                 tempText.setProperties(datum);
 
                 const box = tempText.getBBox();
-                if (box) {
+                if (box != null) {
                     boxes.push(box);
                 }
             }
@@ -1049,7 +1050,7 @@ export abstract class CartesianAxis<
                 seriesAreaPadding +
                 this.labelBoxOffset(label));
 
-        if (scrollbarThickness) {
+        if (scrollbarThickness !== 0) {
             labelOffset += sideFlag * scrollbarThickness;
         }
         const visible = text !== '';

@@ -61,10 +61,10 @@ export class Color implements IColor {
      */
     constructor(r: number, g: number, b: number, a: number = 1) {
         // NaN is treated as 0
-        this.r = clamp(0, r || 0, 1);
-        this.g = clamp(0, g || 0, 1);
-        this.b = clamp(0, b || 0, 1);
-        this.a = clamp(0, a || 0, 1);
+        this.r = clamp(0, Number.isNaN(r) ? 0 : r, 1);
+        this.g = clamp(0, Number.isNaN(g) ? 0 : g, 1);
+        this.b = clamp(0, Number.isNaN(b) ? 0 : b, 1);
+        this.a = clamp(0, Number.isNaN(a) ? 0 : a, 1);
     }
 
     /**
@@ -134,7 +134,7 @@ export class Color implements IColor {
 
         // color name
         const hex = Color.nameToHex.get(token);
-        if (hex) {
+        if (hex != null) {
             return Color.fromHexString(hex);
         }
 

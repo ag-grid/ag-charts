@@ -81,7 +81,7 @@ export class Graph<V, E = undefined> {
     removeVertex(vertex: Vertex<V>): void {
         this._vertexCount--;
         const edges = vertex.edges;
-        if (!edges) return;
+        if (edges == null) return;
         for (const [, adjacentVertices] of edges) {
             this._vertexCount -= adjacentVertices.length;
         }

@@ -244,7 +244,7 @@ function formatSingleSegmentsLabel<Meta>(
         overflow: props.overflowStrategy ?? 'hide',
     });
 
-    if (!wrapped.length) return;
+    if (wrapped.length === 0) return;
 
     const { width, height } = measureTextSegments(wrapped, baseFont);
 
@@ -287,7 +287,7 @@ export function formatSingleLabel<Meta>(
                 overflow: (allowTruncation ? props.overflowStrategy : null) ?? 'hide',
             });
 
-            if (!lines.length) return;
+            if (lines.length === 0) return;
 
             const { width, height } = measurer.measureLines(lines);
             const text = lines.join('\n');
@@ -487,7 +487,7 @@ function wrapLabel(
 ) {
     const lines = wrapLines(text, { maxWidth, maxHeight, font, textWrap, overflow });
 
-    if (!lines.length) return;
+    if (lines.length === 0) return;
 
     const measurer = cachedTextMeasurer(font);
     const lineHeight = props.lineHeight ?? measurer.lineHeight();

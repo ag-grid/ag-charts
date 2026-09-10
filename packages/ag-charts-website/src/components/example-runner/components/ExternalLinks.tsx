@@ -33,7 +33,7 @@ export function ExternalLinks({
 
     return (
         <>
-            {!options?.noCodeSandbox && codeSandboxHtmlUrl && exampleFiles ? (
+            {!options?.noCodeSandbox && codeSandboxHtmlUrl != null && codeSandboxHtmlUrl !== '' && exampleFiles ? (
                 <li>
                     <OpenInCodeSandbox
                         title={title}
@@ -45,7 +45,7 @@ export function ExternalLinks({
                     />
                 </li>
             ) : undefined}
-            {!options?.noPlunker && plunkrHtmlUrl && exampleFiles ? (
+            {!options?.noPlunker && plunkrHtmlUrl != null && plunkrHtmlUrl !== '' && exampleFiles ? (
                 <li>
                     <OpenInPlunkr
                         title={title}

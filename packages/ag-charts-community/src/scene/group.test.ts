@@ -46,7 +46,7 @@ class MockLayersManager {
     removeLayer(canvas: HdpiOffscreenCanvas) {
         if (this.layersMap.has(canvas)) {
             this.layersMap.delete(canvas);
-            if (canvas && typeof (canvas as any).destroy === 'function') {
+            if (typeof (canvas as any).destroy === 'function') {
                 (canvas as any).destroy();
             }
         }

@@ -176,7 +176,7 @@ function tooltipRowContentHtml(ctx: TooltipHtmlContext, content: GroupedStructur
     let html = '';
 
     // Skip the row if all data is missing (not just empty strings)
-    if (content.data?.length && content.data.every((datum) => datum.missing === true)) {
+    if (content.data != null && content.data.length > 0 && content.data.every((datum) => datum.missing === true)) {
         return html;
     }
 
@@ -185,7 +185,7 @@ function tooltipRowContentHtml(ctx: TooltipHtmlContext, content: GroupedStructur
     const dataInline = !titleDefined && content.data?.length === 1;
 
     const symbol = content.symbol == null ? undefined : legendSymbolSvg(content.symbol, 12);
-    if (symbol != null && (titleDefined || content.data?.length)) {
+    if (symbol != null && (titleDefined || (content.data?.length ?? 0) > 0)) {
         html += `<span class="${DEFAULT_TOOLTIP_CLASS}-symbol">${symbol}</span>`;
     }
 
@@ -276,7 +276,7 @@ function tooltipContentHtml(
 
     const paginationContent =
         mode !== 'compact' && pagination != null ? tooltipPaginationContentHtml(ctx, pagination) : undefined;
-    if (paginationContent! + null) {
+    if (paginationContent != null) {
         html += paginationContent;
     }
 

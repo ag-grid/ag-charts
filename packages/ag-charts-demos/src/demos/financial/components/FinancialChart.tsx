@@ -117,7 +117,7 @@ export function FinancialChart({ bars, rangeMinutes, ticker, onRetainFrom }: Fin
     propsRef.current = { bars, rangeMinutes, onRetainFrom };
 
     const scheduleFlush = useCallback(() => {
-        if (flushRef.current) return;
+        if (flushRef.current !== 0) return;
         // Out of the update cycle that raised the zoom event, so the catch-up is not re-entrant.
         flushRef.current = requestAnimationFrame(() => {
             flushRef.current = 0;
@@ -150,7 +150,7 @@ export function FinancialChart({ bars, rangeMinutes, ticker, onRetainFrom }: Fin
 
     useEffect(() => {
         return () => {
-            if (flushRef.current) cancelAnimationFrame(flushRef.current);
+            if (flushRef.current !== 0) cancelAnimationFrame(flushRef.current);
             flushRef.current = 0;
         };
     }, []);

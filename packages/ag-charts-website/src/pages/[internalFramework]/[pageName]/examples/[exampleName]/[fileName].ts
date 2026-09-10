@@ -54,7 +54,7 @@ export async function GET({ params }: { params: Params }) {
     // Examples are authored in TypeScript but loaded natively by the browser, so a request
     // for `main.js` is served by transpiling `main.ts`
     const moduleSourceFileName = getModuleSourceFileName(fileName, Object.keys(files));
-    if (moduleSourceFileName) {
+    if (moduleSourceFileName != null && moduleSourceFileName !== '') {
         const code = transformExampleModule({
             fileName: moduleSourceFileName,
             source: files[moduleSourceFileName],
@@ -67,7 +67,7 @@ export async function GET({ params }: { params: Params }) {
         });
     }
 
-    const file = files ? files[fileName] : undefined;
+    const file = files[fileName];
     const body = file ?? createErrorBody({ availableFiles: files });
 
     const response = new Response(body, {

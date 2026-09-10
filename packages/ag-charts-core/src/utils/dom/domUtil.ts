@@ -24,7 +24,7 @@ export function parseColor(color: string): string | null {
         styleDeclaration = new OptionConstructor().style;
     }
     styleDeclaration.color = color;
-    const result = styleDeclaration.color || null;
+    const result = styleDeclaration.color === '' ? null : styleDeclaration.color;
     styleDeclaration.color = '';
 
     if (parseColorCache.size < PARSE_COLOR_CACHE_LIMIT) {

@@ -118,7 +118,7 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         } = this;
         if (!label) return;
 
-        if (!label.text) return;
+        if (label.text == null || label.text === '') return;
 
         labelNode.fill = label.color;
         labelNode.text = label.text;
@@ -139,7 +139,7 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         const anchor = this.getAnchor();
 
         const bbox = labelNode.getBBox();
-        if (!bbox) return;
+        if (bbox == null) return;
 
         const { width, height } = bbox;
 

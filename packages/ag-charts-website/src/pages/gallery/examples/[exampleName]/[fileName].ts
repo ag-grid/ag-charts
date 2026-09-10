@@ -42,7 +42,7 @@ export async function GET({ params }: { params: Params }) {
             type: 'gallery',
             exampleName,
         })) ?? {};
-    const file = files ? files[fileName] : undefined;
+    const file = files[fileName];
     const body = file ?? createErrorBody({ availableFiles: files });
 
     return new Response(body, {

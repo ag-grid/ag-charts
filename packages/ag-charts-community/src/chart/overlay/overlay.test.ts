@@ -18,7 +18,7 @@ describe('Overlay', () => {
     let chart: Chart;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
         }
     });

@@ -295,7 +295,7 @@ export class LegendDOMProxy {
     }
 
     private getItemAriaText(label: string | undefined, index: number, count: number): string {
-        if (index >= 0 && label) {
+        if (index >= 0 && label != null && label !== '') {
             index++;
             return this.ctx.localeManager.t('ariaLabelLegendItem', { label, index, count });
         }

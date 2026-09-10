@@ -17,7 +17,7 @@ describe('LineUtil', () => {
     setupMockConsole();
 
     afterEach(() => {
-        if (chart) chart.destroy();
+        if (chart != null) chart.destroy();
     });
 
     const compare = async () => {

@@ -153,7 +153,7 @@ export class AnnotationsToolbar extends BaseProperties {
 
     public refreshButtonsEnabled(enabled: boolean) {
         for (const [index, button] of this.buttons.entries()) {
-            if (!button) continue;
+            if (button == null) continue;
             this.toolbar.toggleButtonEnabledByIndex(index, enabled);
         }
     }

@@ -200,7 +200,7 @@ export class AxisTicks {
     public padding: number = 0;
 
     private generateTicks() {
-        if (this.namedLabels?.length) {
+        if (this.namedLabels != null && this.namedLabels.length > 0) {
             return this.generateNamedTicks(this.namedLabels);
         }
 
@@ -271,7 +271,7 @@ export class AxisTicks {
 
     private getTicksData(tickParams: ScaleTickParams<any>) {
         const ticks: TickDatum[] = [];
-        const domain = tickParams.nice ? this.scale.niceDomain(tickParams) : this.scale.domain;
+        const domain = this.scale.niceDomain(tickParams);
         const rawTicks = this.scale.ticks(tickParams, domain)?.ticks ?? [];
         const numericTicks = rawTicks.map(Number);
         const fractionDigits = numericTicks.reduce<number>((max, tick) => Math.max(max, countFractionDigits(tick)), 0);
