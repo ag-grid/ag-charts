@@ -8,16 +8,9 @@ import GithubSlugger from 'github-slugger';
 
 import styles from './Footer.module.scss';
 
-/**
- * A footer group renders as a menu column unless its `placement` moves it into the legal strip
- * under the columns. Declared here so a site whose footer type predates `placement` still renders
- * every group as a column.
- */
-type FooterGroup = FooterItem & { placement?: 'legal' };
-
 interface FooterProps {
     showMicrosoftMessage?: boolean;
-    footerItems: FooterGroup[];
+    footerItems: FooterItem[];
 }
 
 const toggleCookiesPrefs = (event) => {
@@ -28,7 +21,7 @@ const toggleCookiesPrefs = (event) => {
     window.__enzuzoApi.prefCenter.show();
 };
 
-const MenuColumns = ({ footerItems }: { footerItems: FooterGroup[] }) => {
+const MenuColumns = ({ footerItems }: { footerItems: FooterItem[] }) => {
     const slugger = new GithubSlugger();
 
     return footerItems.map(({ title, links }) => {
@@ -62,7 +55,7 @@ const MenuColumns = ({ footerItems }: { footerItems: FooterGroup[] }) => {
 };
 
 // Separators between the links are drawn in CSS so they stay out of the accessibility tree.
-const LegalLinks = ({ group }: { group: FooterGroup }) => {
+const LegalLinks = ({ group }: { group: FooterItem }) => {
     const slugger = new GithubSlugger();
 
     return (
