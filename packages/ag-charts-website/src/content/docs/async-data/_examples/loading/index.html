@@ -1,7 +1,7 @@
 <div class="example-controls">
     <div class="controls-row">
         Loading:
-        <div class="button-group" role="group" aria-label="Loading">
+        <div class="button-group gap-right" role="group" aria-label="Loading">
             <input type="radio" id="loading-true" name="loading-state" value="true" onchange="loadingChange(event)" />
             <label for="loading-true"><code>true</code></label>
             <input type="radio" id="loading-false" name="loading-state" value="false" onchange="loadingChange(event)" />
@@ -16,8 +16,6 @@
             />
             <label for="loading-undefined"><code>undefined</code></label>
         </div>
-    </div>
-    <div class="controls-row">
         <button onclick="reload()">Reload</button>
     </div>
 </div>
