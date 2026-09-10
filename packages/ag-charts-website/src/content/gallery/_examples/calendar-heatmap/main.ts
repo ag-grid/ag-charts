@@ -26,7 +26,8 @@ const options: AgChartOptions = {
             yName: 'Week',
             colorKey: 'steps',
             colorName: 'Steps',
-            strokeWidth: 1,
+            strokeWidth: 3,
+            cornerRadius: 12,
         },
     ],
     gradientLegend: {
@@ -36,6 +37,9 @@ const options: AgChartOptions = {
         y: {
             type: 'category',
             label: {
+                enabled: false,
+            },
+            line: {
                 enabled: false,
             },
         },
