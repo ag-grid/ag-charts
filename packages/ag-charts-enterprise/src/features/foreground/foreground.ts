@@ -45,7 +45,7 @@ export class Foreground extends _ModuleSupport.Background {
         const { width, height } = event.chart;
         const placement = this.image.performLayout(width, height);
 
-        if (this.textNode.text) {
+        if (this.textNode.text != null && this.textNode.text !== '') {
             this.updateTextNode(placement);
         }
     }

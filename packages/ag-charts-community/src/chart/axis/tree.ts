@@ -178,7 +178,7 @@ function apportion(v: TreeNode, defaultAncestor: TreeNode) {
 function firstWalk(node: TreeNode) {
     const { children } = node;
 
-    if (children.length) {
+    if (children.length > 0) {
         let [defaultAncestor] = children;
         for (const child of children) {
             firstWalk(child);
@@ -216,14 +216,14 @@ function thirdWalk(v: TreeNode) {
     let leafCount = 0;
     for (const w of children) {
         thirdWalk(w);
-        if (w.children.length) {
+        if (w.children.length > 0) {
             leafCount += w.leafCount;
         } else {
             leafCount++;
         }
     }
     v.leafCount = leafCount;
-    if (children.length) {
+    if (children.length > 0) {
         v.subtreeLeft = children[0].subtreeLeft;
         v.subtreeRight = children.at(-1)!.subtreeRight;
         v.position = (v.subtreeLeft + v.subtreeRight) / 2;

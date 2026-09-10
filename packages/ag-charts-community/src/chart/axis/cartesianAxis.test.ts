@@ -500,7 +500,7 @@ describe('CartesianAxis', () => {
     let chart: AgChartInstance;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -2313,7 +2313,7 @@ describe('CartesianAxis', () => {
             async (position) => {
                 const factory = position === 'bottom' ? bottomAxisOptions : topAxisOptions;
                 for (const verticalAlign of ['top', 'middle', 'bottom'] as const) {
-                    if (chart) {
+                    if (chart != null) {
                         chart.destroy();
                         (chart as unknown) = undefined;
                     }
@@ -2847,7 +2847,11 @@ describe('CartesianAxis', () => {
                         x: {
                             type: 'category',
                             position: 'bottom',
-                            label: { rotation: 45, avoidCollisions: true, ...(verticalAlign ? { verticalAlign } : {}) },
+                            label: {
+                                rotation: 45,
+                                avoidCollisions: true,
+                                ...(verticalAlign == null ? {} : { verticalAlign }),
+                            },
                         },
                         y: { type: 'number', position: 'left' },
                     },
@@ -2912,7 +2916,7 @@ describe('CartesianAxis', () => {
                         label: {
                             avoidCollisions: true,
                             autoRotate: false,
-                            ...(verticalAlign ? { verticalAlign } : {}),
+                            ...(verticalAlign == null ? {} : { verticalAlign }),
                         },
                     },
                     y: { type: 'number', position: 'left' },
@@ -2969,7 +2973,7 @@ describe('CartesianAxis', () => {
                         label: {
                             rotation: 45,
                             avoidCollisions,
-                            ...(verticalAlign ? { verticalAlign } : {}),
+                            ...(verticalAlign == null ? {} : { verticalAlign }),
                         },
                     },
                     y: { type: 'number', position: 'left' },
@@ -3026,7 +3030,7 @@ describe('CartesianAxis', () => {
                         position: 'left',
                         label: {
                             avoidCollisions,
-                            ...(verticalAlign ? { verticalAlign } : {}),
+                            ...(verticalAlign == null ? {} : { verticalAlign }),
                             formatter: ({ value, index }: { value: unknown; index: number }) => [
                                 { text: String(value), fontSize: index === 0 ? 100 : 10 },
                             ],

@@ -338,7 +338,7 @@ export const LINE_CROSSLINES: AgCartesianChartOptions = {
                 text: 'Week',
             },
             label: {
-                formatter: (params) => (params.index % 3 ? '' : params.value),
+                formatter: (params) => (params.index % 3 === 0 ? params.value : ''),
             },
             crossLines: [
                 {

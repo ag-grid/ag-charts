@@ -625,7 +625,9 @@ export class DOMManager extends BaseManager {
         key: string,
         modifier: string | undefined
     ) {
-        return `${prefix}${component ? '__' : ''}${component ?? ''}-${kebabCase(key)}${modifier ? '--' : ''}${modifier ?? ''}`;
+        const componentPart = component == null || component === '' ? '' : `__${component}`;
+        const modifierPart = modifier == null || modifier === '' ? '' : `--${modifier}`;
+        return `${prefix}${componentPart}-${kebabCase(key)}${modifierPart}`;
     }
 
     updateCanvasLabel(ariaLabel: string) {
@@ -945,7 +947,7 @@ export class DOMManager extends BaseManager {
     addChild(domElementClass: DOMElementClass, id: string, child?: HTMLElement, insert?: DOMInsertOption) {
         const { element, children } = this.rootElements[domElementClass];
 
-        if (!children) {
+        if (children == null) {
             throw new Error('AG Charts - unable to create DOM elements after destroy()');
         }
         if (children.has(id)) {
@@ -1003,7 +1005,7 @@ export class DOMManager extends BaseManager {
 
     removeChild(domElementClass: DOMElementClass, id: string) {
         const { children } = this.rootElements[domElementClass];
-        if (!children) return;
+        if (children == null) return;
 
         children.get(id)?.remove();
         children.delete(id);

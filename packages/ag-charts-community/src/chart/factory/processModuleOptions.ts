@@ -184,7 +184,7 @@ export function processModuleOptions<T extends Partial<AgChartOptions>>(
         }
     }
 
-    if (!missingModules.length) return;
+    if (missingModules.length === 0) return;
 
     const installationReferenceUrl = ModuleRegistry.isIntegrated()
         ? 'https://www.ag-grid.com/data-grid/integrated-charts-installation/'
@@ -225,7 +225,8 @@ function bundlerMissingModulesMessage(
     installationReferenceUrl: string,
     instanceModules: boolean
 ): string {
-    const packageName = ModuleRegistry.isEnterprise() || missingOptions.enterprise?.length ? 'enterprise' : 'community';
+    const packageName =
+        ModuleRegistry.isEnterprise() || (missingOptions.enterprise?.length ?? 0) > 0 ? 'enterprise' : 'community';
     return [
         'required modules are not registered. Check if you have registered the modules:',
         '',
@@ -249,9 +250,9 @@ function formatImportItem(name: string) {
 }
 
 function formatImports(imports: string[], packageName: string) {
-    return imports.length
-        ? `import {\n${imports.map(formatImportItem).join('\n')}\n} from 'ag-charts-${packageName}';`
-        : null;
+    return imports.length === 0
+        ? null
+        : `import {\n${imports.map(formatImportItem).join('\n')}\n} from 'ag-charts-${packageName}';`;
 }
 
 function createRegistrySnippet(moduleNames: string[], packageName: string, instanceModules: boolean): string {

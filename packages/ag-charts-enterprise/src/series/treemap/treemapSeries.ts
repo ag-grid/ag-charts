@@ -511,7 +511,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
     protected override getActiveHighlightNode(): TreemapNode | undefined {
         const highlightedNode = super.getActiveHighlightNode();
-        if (highlightedNode?.children.length && !this.options.group.interactive) {
+        if (highlightedNode != null && highlightedNode.children.length > 0 && !this.options.group.interactive) {
             return undefined;
         }
         return highlightedNode;

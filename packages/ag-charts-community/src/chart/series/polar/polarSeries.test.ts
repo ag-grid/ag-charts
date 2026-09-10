@@ -113,7 +113,7 @@ describe('PolarSeries', () => {
     let chart: ChartOrProxy;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -259,7 +259,7 @@ describe('PolarSeries', () => {
                 : { enabled: false };
 
             const listeners = params.onNodeClick ? { seriesNodeClick: params.onNodeClick } : undefined;
-            const nodeClickRangeParams = params.nodeClickRange ? { nodeClickRange: params.nodeClickRange } : {};
+            const nodeClickRangeParams = params.nodeClickRange == null ? {} : { nodeClickRange: params.nodeClickRange };
             const options: AgPolarChartOptions = {
                 container: document.body,
                 series: [

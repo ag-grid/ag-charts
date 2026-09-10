@@ -60,7 +60,7 @@ describe('gauge preset fast path', () => {
     });
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }

@@ -194,10 +194,10 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
     }
 
     private runOutsideAngular<T>(callback: () => T): T {
-        return this.ngZone ? this.ngZone.runOutsideAngular(callback) : callback();
+        return this.ngZone == null ? callback() : this.ngZone.runOutsideAngular(callback);
     }
 
     private runInsideAngular<T>(callback: () => T): T {
-        return this.ngZone ? this.ngZone.run(callback) : callback();
+        return this.ngZone == null ? callback() : this.ngZone.run(callback);
     }
 }

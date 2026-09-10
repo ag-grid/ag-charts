@@ -30,7 +30,8 @@ export default function agDemosStatic(): Plugin {
                     return next();
                 }
                 // sirv resolves paths relative to the dist root, so strip the mount prefix.
-                req.url = req.url.slice(mountPath.length) || '/';
+                const mountRelativeUrl = req.url.slice(mountPath.length);
+                req.url = mountRelativeUrl === '' ? '/' : mountRelativeUrl;
                 serve(req, res, next);
             });
         },

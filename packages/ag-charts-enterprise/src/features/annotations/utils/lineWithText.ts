@@ -24,7 +24,7 @@ export function updateLineText(
     text?: string,
     lineWidth?: number
 ) {
-    if (!text || !textNode || !textProperties) {
+    if (text == null || text === '' || !textNode || !textProperties) {
         line.setClipMask(id);
         return;
     }
@@ -62,7 +62,7 @@ export function updateChannelText(
     textNode?: CollidableText<never>,
     text?: string
 ) {
-    if (!text || !textNode) return;
+    if (text == null || text === '' || !textNode) return;
 
     const { alignment, position } = textProperties;
 

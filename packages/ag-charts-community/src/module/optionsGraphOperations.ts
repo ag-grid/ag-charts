@@ -100,7 +100,7 @@ function getPublicOperation(
         // operation will also be merged into the object as the last key. It can be safely ignored.
         let privateOperation = 0;
         const lastKey = keys.at(-1);
-        if (lastKey && operationTypes.has(lastKey)) {
+        if (lastKey != null && operationTypes.has(lastKey)) {
             privateOperation = 1;
         }
 
@@ -441,7 +441,7 @@ const fontOperations: Record<FontOperation, OperationFns> = {
 function remOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [valueVertex, paramVertex] = values;
     const value = graph.getVertexValue(valueVertex);
-    const param = paramVertex ? (graph.getVertexValue(paramVertex) as string) : 'fontSize';
+    const param = paramVertex == null ? 'fontSize' : (graph.getVertexValue(paramVertex) as string);
     const fontSize = graph.getParamValue(param);
 
     if (typeof fontSize === 'number' && typeof value === 'number') {
@@ -538,7 +538,7 @@ function ifOperation(graph: OptionsGraphInterface, vertex: VertexInterface, valu
 
     const condition = Boolean(graph.resolveVertexValue(vertex, conditionVertex));
     const branchVertex = condition ? thenVertex : elseVertex;
-    if (!branchVertex) return condition;
+    if (branchVertex == null) return condition;
 
     return resolveConditionalBranch(graph, vertex, branchVertex);
 }
@@ -588,7 +588,7 @@ function isTypeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, 
         : isValueType(graph, vertex, value, type);
 
     const branchVertex = matched ? thenVertex : elseVertex;
-    if (!branchVertex) return matched;
+    if (branchVertex == null) return matched;
 
     return resolveConditionalBranch(graph, vertex, branchVertex);
 }
@@ -614,7 +614,7 @@ function lessThanOperation(graph: OptionsGraphInterface, vertex: VertexInterface
 
 function notOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [valueVertex] = values;
-    if (!valueVertex) return;
+    if (valueVertex == null) return;
     return !graph.resolveVertexValue(vertex, valueVertex);
 }
 
@@ -721,7 +721,7 @@ function isUserOptionOperation(graph: OptionsGraphInterface, vertex: VertexInter
     }
 
     const branchVertex = matched ? thenVertex : elseVertex;
-    if (!branchVertex) return matched;
+    if (branchVertex == null) return matched;
 
     return graph.resolveVertexValue(vertex, branchVertex);
 }
@@ -905,7 +905,7 @@ function pathStringOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     }
 
     let variables;
-    if (variablesVertex) {
+    if (variablesVertex != null) {
         variables = graph.graftAndResolveOrphan(vertex, variablesVertex) as PlainObject;
     }
 
@@ -929,7 +929,7 @@ function presetOperation(graph: OptionsGraphInterface, vertex: VertexInterface, 
 
     const presetValue = graph.getPresetValue(resolvedPath);
     if (presetValue == null) {
-        return defaultValueVertex ? graph.getVertexValue(defaultValueVertex) : undefined;
+        return defaultValueVertex == null ? undefined : graph.getVertexValue(defaultValueVertex);
     }
 
     return presetValue;
@@ -983,7 +983,7 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
     const object = graph.getVertexValue(objectVertex);
     if (!isPlainObject(object)) return;
 
-    const defaultValue = defaultValueVertex ? graph.getVertexValue(defaultValueVertex) : undefined;
+    const defaultValue = defaultValueVertex == null ? undefined : graph.getVertexValue(defaultValueVertex);
     const children = graph.neighboursWithEdgeValue(vertex, PATH_EDGE);
 
     const hasChildren = children && children.length > 0;
@@ -992,12 +992,14 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
         return RESOLVED_TO_BRANCH;
     }
 
-    const overridesPath1 = overridesPathVertex1
-        ? (graph.resolveVertexValue(vertex, overridesPathVertex1) as Array<string>)
-        : undefined;
-    const overridesPath2 = overridesPathVertex2
-        ? (graph.resolveVertexValue(vertex, overridesPathVertex2) as Array<string>)
-        : undefined;
+    const overridesPath1 =
+        overridesPathVertex1 == null
+            ? undefined
+            : (graph.resolveVertexValue(vertex, overridesPathVertex1) as Array<string>);
+    const overridesPath2 =
+        overridesPathVertex2 == null
+            ? undefined
+            : (graph.resolveVertexValue(vertex, overridesPathVertex2) as Array<string>);
 
     if (!hasChildren && defaultValue != null) {
         if (getOperation(defaultValue, graph)) {
@@ -1040,7 +1042,7 @@ function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     const cycledValues = userOption ?? graph.resolveVertexValue(vertex, defaultValuesVertex);
     if (!Array.isArray(cycledValues)) return;
 
-    const operation = operationVertex ? graph.getVertexValue(operationVertex) : undefined;
+    const operation = operationVertex == null ? undefined : graph.getVertexValue(operationVertex);
 
     for (let index = 0; index < size; index++) {
         const value = cycledValues[index % cycledValues.length];
@@ -1130,7 +1132,7 @@ function applyThemeOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     if (!Array.isArray(fromPaths)) return;
 
     const children = graph.neighboursWithEdgeValue(vertex, PATH_EDGE);
-    const ignorePathsValue = ignorePathsVertex ? graph.getVertexValue(ignorePathsVertex) : [];
+    const ignorePathsValue = ignorePathsVertex == null ? [] : graph.getVertexValue(ignorePathsVertex);
     const ignorePaths = Array.isArray(ignorePathsValue) ? new Set(ignorePathsValue) : new Set();
 
     if (!children) return RESOLVED_TO_BRANCH;

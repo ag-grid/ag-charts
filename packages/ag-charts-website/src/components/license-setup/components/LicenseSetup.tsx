@@ -67,7 +67,12 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework }) =
             getBootstrapSnippet({
                 framework,
                 importType,
-                license: (licenseState.chartsNoGridEnterpriseError ? '' : userLicense) || 'your License Key',
+                license:
+                    (licenseState.chartsNoGridEnterpriseError == null ||
+                        licenseState.chartsNoGridEnterpriseError === '') &&
+                    userLicense !== ''
+                        ? userLicense
+                        : 'your License Key',
                 isIntegratedCharts,
             }),
         [framework, licenseState, importType, userLicense, isIntegratedCharts]
@@ -116,7 +121,9 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework }) =
                             <label>Licence key expires: </label>
                             <b
                                 className={
-                                    (licenseState.expiredError ?? licenseState.expiredTrialError) && styles.expired
+                                    (licenseState.expiredError ?? licenseState.expiredTrialError ?? '').length > 0
+                                        ? styles.expired
+                                        : undefined
                                 }
                             >
                                 {userLicenseExpiry ?? '--'}
@@ -131,18 +138,22 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework }) =
                         <LinkIcon href={`#${LICENSE_SETUP_HEADINGS.dependencies.id}`} />
                     </h3>
 
-                    {licenseState.chartsNoGridEnterpriseError && (
-                        <Warning>
-                            {licenseState.chartsNoGridEnterpriseError}. <EmailSales />
-                        </Warning>
-                    )}
-                    {licenseState.gridNoChartsEnterpriseError && (
-                        <Warning>
-                            {licenseState.gridNoChartsEnterpriseError}. <EmailSales />
-                        </Warning>
-                    )}
+                    {licenseState.chartsNoGridEnterpriseError != null &&
+                        licenseState.chartsNoGridEnterpriseError !== '' && (
+                            <Warning>
+                                {licenseState.chartsNoGridEnterpriseError}. <EmailSales />
+                            </Warning>
+                        )}
+                    {licenseState.gridNoChartsEnterpriseError != null &&
+                        licenseState.gridNoChartsEnterpriseError !== '' && (
+                            <Warning>
+                                {licenseState.gridNoChartsEnterpriseError}. <EmailSales />
+                            </Warning>
+                        )}
 
-                    {licenseState.minimalModulesInfo && <Note>{licenseState.minimalModulesInfo}</Note>}
+                    {licenseState.minimalModulesInfo != null && licenseState.minimalModulesInfo !== '' && (
+                        <Note>{licenseState.minimalModulesInfo}</Note>
+                    )}
 
                     <p>
                         {LICENSE_SETUP_COPY.dependenciesLead.before}{' '}
@@ -150,7 +161,7 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework }) =
                         {LICENSE_SETUP_COPY.dependenciesLead.after}
                     </p>
 
-                    {dependenciesSnippet && (
+                    {dependenciesSnippet != null && dependenciesSnippet !== '' && (
                         <Snippet shiki={true} framework={framework} content={dependenciesSnippet} copyToClipboard />
                     )}
 
@@ -164,7 +175,7 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework }) =
 
                     <p>{LICENSE_SETUP_COPY.npmLead}</p>
 
-                    {npmInstallSnippet && (
+                    {npmInstallSnippet != null && npmInstallSnippet !== '' && (
                         <Snippet
                             shiki={true}
                             framework={framework}
@@ -179,16 +190,18 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework }) =
                         <LinkIcon href={`#${LICENSE_SETUP_HEADINGS.bootstrap.id}`} />
                     </h3>
 
-                    {licenseState.chartsNoGridEnterpriseError && (
-                        <Warning>
-                            {licenseState.chartsNoGridEnterpriseError}. <EmailSales />
-                        </Warning>
-                    )}
-                    {licenseState.gridNoChartsEnterpriseError && (
-                        <Warning>
-                            {licenseState.gridNoChartsEnterpriseError}. <EmailSales />
-                        </Warning>
-                    )}
+                    {licenseState.chartsNoGridEnterpriseError != null &&
+                        licenseState.chartsNoGridEnterpriseError !== '' && (
+                            <Warning>
+                                {licenseState.chartsNoGridEnterpriseError}. <EmailSales />
+                            </Warning>
+                        )}
+                    {licenseState.gridNoChartsEnterpriseError != null &&
+                        licenseState.gridNoChartsEnterpriseError !== '' && (
+                            <Warning>
+                                {licenseState.gridNoChartsEnterpriseError}. <EmailSales />
+                            </Warning>
+                        )}
 
                     <p>{LICENSE_SETUP_COPY.bootstrapLead}</p>
 

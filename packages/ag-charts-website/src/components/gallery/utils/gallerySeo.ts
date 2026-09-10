@@ -8,7 +8,7 @@ export type GallerySeo = GalleryExampleCopy;
  */
 export function resolveGallerySeo(exampleName: string): GallerySeo {
     const copy = GALLERY_EXAMPLE_COPY[exampleName];
-    if (!copy) {
+    if (copy == null) {
         throw new Error(
             `No gallery copy for example "${exampleName}". ` +
                 `Add a row to GALLERY_EXAMPLE_COPY in components/gallery/galleryCopy.ts.`

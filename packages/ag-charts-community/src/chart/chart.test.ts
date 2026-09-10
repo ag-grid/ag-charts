@@ -44,7 +44,7 @@ describe('Chart', () => {
     let chart: Chart;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -164,7 +164,7 @@ describe('Chart', () => {
                 : { enabled: false };
 
             const listeners = params.onNodeClick ? { seriesNodeClick: params.onNodeClick } : undefined;
-            const nodeClickRangeParams = params.nodeClickRange ? { nodeClickRange: params.nodeClickRange } : {};
+            const nodeClickRangeParams = params.nodeClickRange == null ? {} : { nodeClickRange: params.nodeClickRange };
             const options: AgCartesianChartOptions | AgPolarChartOptions = {
                 container: document.body,
                 series: [
@@ -1943,7 +1943,7 @@ describe('Chart', () => {
             });
 
             afterEach(() => {
-                if (pieChartProxy) {
+                if (pieChartProxy != null) {
                     pieChartProxy.destroy();
                 }
             });
@@ -2085,7 +2085,7 @@ describe('validations.throwOn — runtime errors', () => {
     let chart: Chart;
     afterEach(() => {
         vi.restoreAllMocks();
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }

@@ -56,7 +56,7 @@ export class StandaloneChart extends Chart {
             if ('childrenKey' in source && typeof source.childrenKey === 'string') {
                 const dataIdKey = this.ctx.chartState.getValue('options', 'dataIdKey');
                 const ds = new HierarchyDataSet(data, dataIdKey, source.childrenKey, this.ctx.logger);
-                if (this.data) this.ctx.dataSelectionService?.transferDataSet(ds, this.data);
+                if (this.data != null) this.ctx.dataSelectionService?.transferDataSet(ds, this.data);
                 return ds;
             }
         }

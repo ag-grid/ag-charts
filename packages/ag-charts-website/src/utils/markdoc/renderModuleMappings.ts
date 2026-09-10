@@ -64,7 +64,7 @@ function collectLeaves(nodes: ModuleNode[], inheritedEnterprise: boolean, out: M
             continue;
         }
         const isEnterprise = Boolean(node.isEnterprise) || inheritedEnterprise;
-        if (node.moduleName) {
+        if (node.moduleName != null && node.moduleName !== '') {
             out.push({ name: node.name, moduleName: node.moduleName, path: node.path, isEnterprise });
         } else if (node.children) {
             collectLeaves(node.children, isEnterprise, out);

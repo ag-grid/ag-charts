@@ -824,7 +824,7 @@ describe('wrapTextSegments — block-leading image', () => {
 
         // Re-measure to confirm the structure: two block rows, one text line each.
         const remeasured = measureTextSegments(result, baseFont);
-        const markers = remeasured.lineMetrics.filter((l) => l.blockImages?.length);
+        const markers = remeasured.lineMetrics.filter((l) => (l.blockImages?.length ?? 0) > 0);
         expect(markers).toHaveLength(2);
         expect(markers[0].blockRowSpan).toBe(1);
         expect(markers[1].blockRowSpan).toBe(1);

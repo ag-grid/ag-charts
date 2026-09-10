@@ -96,7 +96,7 @@ const sorted = (values: Iterable<string>): string[] => [...new Set(values)].sort
 export function parseCspHashHint(consoleText: string, pageUrl: string): CspHashHint | undefined {
     const hash = /a hash \('((?:sha256|sha384|sha512)-[^']+)'\)/.exec(consoleText)?.[1];
     const directive = /directive:?\s*['"]([\w-]+)/.exec(consoleText)?.[1];
-    if (!hash || !directive) {
+    if (hash == null || hash === '' || directive == null || directive === '') {
         return undefined;
     }
     const disposition: CspDisposition = /report[ -]only/i.test(consoleText) ? 'report' : 'enforce';
@@ -177,7 +177,7 @@ export function aggregateCspViolations(
         }
         group.pagePaths.add(toPagePath(record.pageUrl));
         group.violation.tests.push(testTitle);
-        if (record.sourceFile) {
+        if (record.sourceFile != null && record.sourceFile !== '') {
             group.violation.sourceFiles.push(record.sourceFile);
         }
     }
@@ -193,10 +193,10 @@ export function aggregateCspViolations(
         return reason === undefined ? aggregated : { ...aggregated, accepted: reason };
     });
 
-    return violations.sort(
-        (a, b) =>
-            Number(a.disposition === 'report') - Number(b.disposition === 'report') ||
-            a.directive.localeCompare(b.directive) ||
-            a.blockedUri.localeCompare(b.blockedUri)
-    );
+    return violations.sort((a, b) => {
+        const byDisposition = Number(a.disposition === 'report') - Number(b.disposition === 'report');
+        if (byDisposition !== 0) return byDisposition;
+        const byDirective = a.directive.localeCompare(b.directive);
+        return byDirective === 0 ? a.blockedUri.localeCompare(b.blockedUri) : byDirective;
+    });
 }

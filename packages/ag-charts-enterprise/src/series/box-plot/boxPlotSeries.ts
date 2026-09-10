@@ -515,7 +515,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         } = this;
         const { xKey, yName, showInLegend, legendItemName } = this.options;
 
-        if (!xKey || legendType !== 'category') {
+        if (xKey == null || xKey === '' || legendType !== 'category') {
             return [];
         }
 

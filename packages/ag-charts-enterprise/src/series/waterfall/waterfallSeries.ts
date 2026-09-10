@@ -929,7 +929,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         }
 
         const itemTypes = processedData?.domain.values[totalTypeIndex];
-        if (!itemTypes) {
+        if (itemTypes == null) {
             return;
         }
 

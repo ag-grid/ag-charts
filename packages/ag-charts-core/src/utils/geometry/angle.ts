@@ -100,5 +100,5 @@ export function angularPadding(hPadding: number, vPadding: number, angle: number
 }
 
 export function normalizeAngle360FromDegrees(degrees?: number): number {
-    return degrees ? normalizeAngle360(toRadians(degrees)) : 0;
+    return degrees == null ? 0 : normalizeAngle360(toRadians(degrees));
 }

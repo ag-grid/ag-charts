@@ -151,7 +151,7 @@ export class DragInterpreter {
             this.events.emit('click', click);
         }
         // ignore 'drag-end' events from 'touchstart' or 'touchcancel'
-        else if (event.device satisfies 'touch') {
+        else if ((event.device satisfies 'touch') === 'touch') {
             if (checkDragDistance(this.touch.distanceTravelledX, this.touch.distanceTravelledY)) {
                 return; // this is a drag not a click, do not dispatch a 'click' event.
             }

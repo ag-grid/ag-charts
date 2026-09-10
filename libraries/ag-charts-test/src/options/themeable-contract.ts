@@ -281,7 +281,7 @@ function expand(
         if (name === 'Omit') {
             const [target, keys] = (heritage as { typeArguments?: unknown[] }).typeArguments ?? [];
             const targetEntry = contract[typeName(target) ?? ''];
-            if (targetEntry && !seen.has(targetEntry.name)) {
+            if (targetEntry != null && !seen.has(targetEntry.name)) {
                 const targetScope = {
                     entry: targetEntry,
                     bindings: bindTypeArguments(contract, targetEntry, target as TypeNode, scope),
@@ -293,7 +293,7 @@ function expand(
         }
 
         const base = contract[name ?? ''];
-        if (base && !seen.has(base.name)) {
+        if (base != null && !seen.has(base.name)) {
             const baseScope = {
                 entry: base,
                 bindings: bindTypeArguments(contract, base, heritage, scope),

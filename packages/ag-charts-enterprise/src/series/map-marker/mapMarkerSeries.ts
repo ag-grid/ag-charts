@@ -284,11 +284,15 @@ export class MapMarkerSeries
                           valueProperty(longitudeKey, mercatorScaleType, { id: 'lonValue' }),
                       ]
                     : []),
-                ...(labelKey ? [valueProperty(labelKey, 'category', { id: 'labelValue' })] : []),
-                ...(sizeKey ? [valueProperty(sizeKey, sizeScaleType, { id: 'sizeValue' })] : []),
-                ...(colorKey
-                    ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue', invalidValue: undefined })]
-                    : []),
+                ...(labelKey == null || labelKey === ''
+                    ? []
+                    : [valueProperty(labelKey, 'category', { id: 'labelValue' })]),
+                ...(sizeKey == null || sizeKey === ''
+                    ? []
+                    : [valueProperty(sizeKey, sizeScaleType, { id: 'sizeValue' })]),
+                ...(colorKey == null || colorKey === ''
+                    ? []
+                    : [valueProperty(colorKey, colorScaleType, { id: 'colorValue', invalidValue: undefined })]),
             ],
         });
 
@@ -335,7 +339,7 @@ export class MapMarkerSeries
 
     private isColorScaleValid() {
         const { colorKey } = this.options;
-        if (!colorKey) {
+        if (colorKey == null || colorKey === '') {
             return false;
         }
 

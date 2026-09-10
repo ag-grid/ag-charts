@@ -408,7 +408,7 @@ export class BandedDomain<T = any> extends BandedStructure<DomainBand<T>> implem
      * Check if all sub-domains support fast sorted concatenation.
      */
     private canUseSortedConcatenation(): boolean {
-        if (!this.sortOrder || !this.isUnique || !this.isDiscrete) return false;
+        if (this.sortOrder == null || !this.isUnique || !this.isDiscrete) return false;
 
         for (const band of this.bands) {
             if (!DiscreteDomain.is(band.subDomain)) return false;

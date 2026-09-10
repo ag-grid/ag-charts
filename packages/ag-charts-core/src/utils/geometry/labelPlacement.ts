@@ -1226,7 +1226,7 @@ export function placeLabels(
         placementData
     )) {
         const labels: PlacedLabel[] = [];
-        if (!datums[0]?.label) continue;
+        if (datums[0]?.label == null) continue;
         for (let index = 0, ln = datums.length; index < ln; index++) {
             const d = datums[index];
             // Series emit a datum per point; unlabelled points measure to an empty box. Skip them so
@@ -1859,7 +1859,7 @@ function tryPlaceLabel(
             height,
             datum: d,
             placement,
-            rotation: rotation || undefined,
+            rotation: rotation === 0 ? undefined : rotation,
             fontSize: candidateFontSize,
         };
     }
@@ -1981,7 +1981,7 @@ function placeBestChoice(index: number, d: PointLabelDatum): PlacedLabel | undef
         height: bestChoice.height,
         datum: d,
         placement: bestChoice.placement,
-        rotation: bestChoice.rotation || undefined,
+        rotation: bestChoice.rotation === 0 ? undefined : bestChoice.rotation,
         offsetX: bestChoice.offsetX,
         offsetY: bestChoice.offsetY,
         candidate: bestChoice.candidate,
@@ -2040,7 +2040,7 @@ function cascadeCandidates(): PlacedLabel | undefined {
                         height,
                         datum: d,
                         placement,
-                        rotation: rotation || undefined,
+                        rotation: rotation === 0 ? undefined : rotation,
                         offsetX,
                         offsetY,
                         fontSize: candidateFontSize,

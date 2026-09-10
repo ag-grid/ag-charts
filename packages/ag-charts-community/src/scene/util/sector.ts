@@ -239,32 +239,32 @@ export function boxOverlapsSector(box: BoxBounds, sector: SectorBoundaries, edge
     }
     // Check if the lines of `box` and the lines of `sector` cross-over:
     if (
-        segmentIntersection(left, top, right, top, startX0, startY0, startX1, startY1) ||
-        segmentIntersection(left, top, right, top, endX0, endY0, endX1, endY1) ||
-        segmentIntersection(left, bottom, right, bottom, startX0, startY0, startX1, startY1) ||
-        segmentIntersection(left, bottom, right, bottom, endX0, endY0, endX1, endY1) ||
-        segmentIntersection(left, top, left, bottom, startX0, startY0, startX1, startY1) ||
-        segmentIntersection(left, top, left, bottom, endX0, endY0, endX1, endY1) ||
-        segmentIntersection(right, top, right, bottom, startX0, startY0, startX1, startY1) ||
-        segmentIntersection(right, top, right, bottom, endX0, endY0, endX1, endY1)
+        segmentIntersection(left, top, right, top, startX0, startY0, startX1, startY1) > 0 ||
+        segmentIntersection(left, top, right, top, endX0, endY0, endX1, endY1) > 0 ||
+        segmentIntersection(left, bottom, right, bottom, startX0, startY0, startX1, startY1) > 0 ||
+        segmentIntersection(left, bottom, right, bottom, endX0, endY0, endX1, endY1) > 0 ||
+        segmentIntersection(left, top, left, bottom, startX0, startY0, startX1, startY1) > 0 ||
+        segmentIntersection(left, top, left, bottom, endX0, endY0, endX1, endY1) > 0 ||
+        segmentIntersection(right, top, right, bottom, startX0, startY0, startX1, startY1) > 0 ||
+        segmentIntersection(right, top, right, bottom, endX0, endY0, endX1, endY1) > 0
     ) {
         return true;
     }
     // Check if the lines of `box` and the arcs of `sector` cross over:
     if (
-        arcIntersections(0, 0, outerRadius, startAngle, endAngle, false, left, top, right, top) ||
-        arcIntersections(0, 0, outerRadius, startAngle, endAngle, false, left, bottom, right, bottom) ||
-        arcIntersections(0, 0, outerRadius, startAngle, endAngle, false, left, top, left, bottom) ||
-        arcIntersections(0, 0, outerRadius, startAngle, endAngle, false, right, top, right, bottom)
+        arcIntersections(0, 0, outerRadius, startAngle, endAngle, false, left, top, right, top) > 0 ||
+        arcIntersections(0, 0, outerRadius, startAngle, endAngle, false, left, bottom, right, bottom) > 0 ||
+        arcIntersections(0, 0, outerRadius, startAngle, endAngle, false, left, top, left, bottom) > 0 ||
+        arcIntersections(0, 0, outerRadius, startAngle, endAngle, false, right, top, right, bottom) > 0
     ) {
         return true;
     }
     if (innerRadius > 0) {
         if (
-            arcIntersections(0, 0, innerRadius, startAngle, endAngle, false, left, top, right, top) ||
-            arcIntersections(0, 0, innerRadius, startAngle, endAngle, false, left, bottom, right, bottom) ||
-            arcIntersections(0, 0, innerRadius, startAngle, endAngle, false, left, top, left, bottom) ||
-            arcIntersections(0, 0, innerRadius, startAngle, endAngle, false, right, top, right, bottom)
+            arcIntersections(0, 0, innerRadius, startAngle, endAngle, false, left, top, right, top) > 0 ||
+            arcIntersections(0, 0, innerRadius, startAngle, endAngle, false, left, bottom, right, bottom) > 0 ||
+            arcIntersections(0, 0, innerRadius, startAngle, endAngle, false, left, top, left, bottom) > 0 ||
+            arcIntersections(0, 0, innerRadius, startAngle, endAngle, false, right, top, right, bottom) > 0
         ) {
             return true;
         }

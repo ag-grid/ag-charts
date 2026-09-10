@@ -51,7 +51,7 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
         const path = new ExtendedPath2D();
 
         let renderPattern = PATTERNS[pattern] != null;
-        if (svgPath) {
+        if (svgPath != null && svgPath !== '') {
             renderPattern &&= !path.appendSvg(svgPath);
         }
 
@@ -64,7 +64,7 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
 
     private renderStroke(path2d: Path2D, ctx: OffscreenCanvasRenderingContext2D) {
         const { stroke, strokeWidth, strokeOpacity } = this;
-        if (!strokeWidth) return;
+        if (strokeWidth === 0 || Number.isNaN(strokeWidth)) return;
         ctx.strokeStyle = stroke;
         ctx.lineWidth = strokeWidth;
         ctx.globalAlpha = strokeOpacity;

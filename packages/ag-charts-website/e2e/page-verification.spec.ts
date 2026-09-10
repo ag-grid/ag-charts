@@ -78,13 +78,15 @@ function setupPageVerificationAssertions() {
             if (msg.type() === 'log') {
                 const text = msg.text();
                 if (text.startsWith('[Violation]') || text.startsWith('[Intervention]')) {
-                    handle(text, '[Console]', msg.location()?.url || page.url());
+                    const locationUrl = msg.location()?.url;
+                    handle(text, '[Console]', locationUrl != null && locationUrl !== '' ? locationUrl : page.url());
                 }
                 return;
             }
             if (msg.type() !== 'warning' && msg.type() !== 'error') return;
             // The message's own location, not page.url(): an iframe violation names its own document.
-            handle(msg.text(), '[Console]', msg.location()?.url || page.url());
+            const locationUrl = msg.location()?.url;
+            handle(msg.text(), '[Console]', locationUrl != null && locationUrl !== '' ? locationUrl : page.url());
         });
 
         page.on('pageerror', (err) => {
@@ -107,7 +109,7 @@ async function watchCspViolations(page: Page, testInfo: TestInfo): Promise<void>
         document.addEventListener('securitypolicyviolation', (event) => {
             const report = (window as unknown as Record<string, (violation: CspViolationRecord) => void>)[binding];
             report({
-                directive: event.effectiveDirective || event.violatedDirective,
+                directive: event.effectiveDirective === '' ? event.violatedDirective : event.effectiveDirective,
                 blockedUri: event.blockedURI,
                 disposition: event.disposition,
                 sourceFile: event.sourceFile,
