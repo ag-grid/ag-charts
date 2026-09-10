@@ -6,6 +6,7 @@ import type {
     ChartUpdateType,
     DeepReadonly,
     DefinedZoomState,
+    LogIssue,
     Scale,
     ZoomMinMax,
     ZoomMinMaxDirection,
@@ -182,6 +183,10 @@ export interface EventsHubMap {
     'update:pre-series': PreSeriesUpdateEvent;
     'update:pre-scene-render': PreSceneRenderEvent;
     'update:process-data': ProcessDataEvent;
+    /** Every `ctx.logger` error, warning and deprecation, at the severity the console used. */
+    'validation:issue': LogIssue;
+    /** The validation overlay's visible content may have changed: issues, selection or dismissal. */
+    'validation:change': null;
     'zoom:save-memento': ZoomSaveMementoEvent;
     'zoom:load-memento': ZoomLoadMementoEvent;
     /**

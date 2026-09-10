@@ -67,7 +67,9 @@ $breakpoint-demo-fits: $demo-held-width + $hero-max-width + $demo-column-gap + $
 
     @media screen and (min-width: $breakpoint-hero-large) {
         width: clamp(360px, 34vw, 480px);
-        align-items: center;
+        align-items: flex-start;
+        // Scrolls in-column rather than growing the page, which is pinned to the viewport.
+        overflow-y: auto;
     }
 }
 
@@ -96,7 +98,7 @@ $breakpoint-demo-fits: $demo-held-width + $hero-max-width + $demo-column-gap + $
 }
 
 .title {
-    margin: 0 0 $spacing-size-5;
+    margin: 0 0 $spacing-size-4;
     font-size: var(--text-fs-3xl);
     line-height: var(--text-lh-3xl);
     font-weight: var(--text-bold);
@@ -105,53 +107,103 @@ $breakpoint-demo-fits: $demo-held-width + $hero-max-width + $demo-column-gap + $
 }
 
 .description {
-    margin: 0 0 $spacing-size-8;
+    margin: 0 0 $spacing-size-6;
     font-size: var(--text-fs-base);
     line-height: var(--text-lh-base);
     color: var(--color-fg-secondary);
 }
 
-// Doubles as the demo switcher. A shared rule runs down the left; each item's own
-// transparent border overlays it, colouring in when active.
+// Doubles as the demo switcher, so each item is carded up to read as a button.
 .featureList {
     list-style: none;
-    margin: 0 0 $spacing-size-8;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-size-2;
+    // Only bites in the stacked layout, where the hero has the whole page width.
+    max-width: 560px;
+    margin: 0 0 $spacing-size-6;
     padding: 0;
-    border-left: 2px solid var(--color-border-primary);
 }
 
 .featureItem {
     display: flex;
-    flex-direction: column;
-    gap: $spacing-size-1;
-    margin-left: -2px;
-    padding: $spacing-size-3 0 $spacing-size-3 $spacing-size-8;
-    border-left: 2px solid transparent;
+    align-items: center;
+    gap: $spacing-size-3;
+    padding: $spacing-size-2;
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-lg);
+    background-color: var(--color-bg-primary);
     text-decoration: none;
+    transition:
+        border-color $transition-default-timing,
+        background-color $transition-default-timing,
+        box-shadow $transition-default-timing;
 
-    &:hover .featureTitle {
-        color: var(--color-brand-500);
+    &:hover,
+    &:focus-visible {
+        border-color: var(--color-brand-500);
+        background-color: var(--color-bg-secondary);
+        box-shadow: var(--shadow-sm);
+
+        .featureTitle {
+            color: var(--color-brand-500);
+        }
     }
 
-    #{$selector-darkmode} &:hover .featureTitle {
-        color: var(--color-brand-300);
+    #{$selector-darkmode} &:hover,
+    #{$selector-darkmode} &:focus-visible {
+        border-color: var(--color-brand-300);
+
+        .featureTitle {
+            color: var(--color-brand-300);
+        }
     }
 }
 
 .featureItemActive {
-    border-left-color: var(--color-brand-600);
+    border-color: var(--color-brand-600);
+    // Tinted rather than filled: the button still has to carry a screenshot legibly.
+    background-color: color-mix(in srgb, var(--color-brand-500) 8%, var(--color-bg-primary));
 
     .featureTitle {
         color: var(--color-brand-600);
     }
 
     #{$selector-darkmode} & {
-        border-left-color: var(--color-brand-300);
+        border-color: var(--color-brand-300);
+        background-color: color-mix(in srgb, var(--color-brand-300) 12%, var(--color-bg-primary));
 
         .featureTitle {
             color: var(--color-brand-300);
         }
     }
+}
+
+// Fixed px, not a share of the button: the panel must not widen, so the text wraps into
+// whatever is left beside this.
+.featureImage {
+    flex-shrink: 0;
+    width: 160px;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border: 1px solid var(--color-border-secondary);
+    border-radius: var(--radius-md);
+    background-color: var(--color-bg-secondary);
+
+    img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.featureBody {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-size-1;
+    // Lets the text wrap rather than pushing the button wider.
+    min-width: 0;
 }
 
 .featureTitle {
@@ -163,8 +215,8 @@ $breakpoint-demo-fits: $demo-held-width + $hero-max-width + $demo-column-gap + $
 }
 
 .featureDescription {
-    font-size: var(--text-fs-base);
-    line-height: var(--text-lh-base);
+    font-size: var(--text-fs-sm);
+    line-height: var(--text-lh-sm);
     // Undo the global `a` rule's semibold so the title carries the weight.
     font-weight: var(--text-regular);
     color: var(--color-fg-tertiary);

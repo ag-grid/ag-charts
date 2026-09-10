@@ -80,11 +80,16 @@ function sanitizeThemeModulesUncached(theme: ChartTheme, moduleRegistry: ModuleS
 
     if (missingModules.size === 0) return theme;
 
-    function prunePlugins(target?: PlainObject) {
+    // A template default is never a user request; only user-supplied `enabled: true` should still report.
+    function isPrunable(entry: PlainObject, userSupplied: boolean) {
+        return !userSupplied || entry.enabled !== true;
+    }
+
+    function prunePlugins(target: PlainObject | undefined, userSupplied: boolean) {
         const missingPlugins = missingModules.get(ModuleType.Plugin);
         if (!isObject(target) || !missingPlugins) return;
         for (const pluginName of missingPlugins) {
-            if (pluginName in target && target[pluginName].enabled !== true) {
+            if (pluginName in target && isPrunable(target[pluginName], userSupplied)) {
                 delete target[pluginName];
             }
         }
@@ -100,31 +105,31 @@ function sanitizeThemeModulesUncached(theme: ChartTheme, moduleRegistry: ModuleS
         }
     }
 
-    function pruneAxisPlugins(target?: PlainObject) {
+    function pruneAxisPlugins(target: PlainObject | undefined, userSupplied: boolean) {
         const missingAxisPlugins = missingModules.get(ModuleType.AxisPlugin);
         if (!isObject(target) || !missingAxisPlugins) return;
         for (const pluginName of missingAxisPlugins) {
-            if (pluginName in target && target[pluginName].enabled !== true) {
+            if (pluginName in target && isPrunable(target[pluginName], userSupplied)) {
                 delete target[pluginName];
             }
         }
     }
 
-    function pruneAxes(axes?: PlainObject) {
+    function pruneAxes(axes: PlainObject | undefined, userSupplied: boolean) {
         if (!isObject(axes)) return;
         for (const axisName of Object.keys(axes)) {
             if (missingModules.get(ModuleType.Axis)?.has(axisName)) {
                 delete axes[axisName];
                 continue;
             }
-            pruneAxisPlugins(axes[axisName] as PlainObject);
+            pruneAxisPlugins(axes[axisName] as PlainObject, userSupplied);
         }
     }
 
-    function pruneSeriesEntry(entry?: PlainObject) {
+    function pruneSeriesEntry(entry: PlainObject | undefined, userSupplied: boolean) {
         if (!isObject(entry)) return;
-        pruneAxes(entry.axes as PlainObject);
-        prunePlugins(entry);
+        pruneAxes(entry.axes as PlainObject, userSupplied);
+        prunePlugins(entry, userSupplied);
         pruneSeriesPlugins(entry.series as PlainObject);
     }
 
@@ -137,14 +142,14 @@ function sanitizeThemeModulesUncached(theme: ChartTheme, moduleRegistry: ModuleS
             delete config[seriesType];
             continue;
         }
-        pruneSeriesEntry(config[seriesType]);
+        pruneSeriesEntry(config[seriesType], false);
     }
 
     if (isObject(overrides)) {
         const overridesObj = overrides as PlainObject;
         if (isObject(overridesObj.common)) {
-            pruneAxes(overridesObj.common.axes);
-            prunePlugins(overridesObj.common);
+            pruneAxes(overridesObj.common.axes, true);
+            prunePlugins(overridesObj.common, true);
         }
         for (const seriesType of Object.keys(overridesObj)) {
             if (seriesType === 'common') continue;
@@ -152,7 +157,7 @@ function sanitizeThemeModulesUncached(theme: ChartTheme, moduleRegistry: ModuleS
                 delete overridesObj[seriesType];
                 continue;
             }
-            pruneSeriesEntry(overridesObj[seriesType] as PlainObject);
+            pruneSeriesEntry(overridesObj[seriesType] as PlainObject, true);
         }
     }
 
@@ -166,8 +171,8 @@ function sanitizeThemeModulesUncached(theme: ChartTheme, moduleRegistry: ModuleS
                 delete presetsObj[presetName];
                 continue;
             }
-            prunePlugins(presetsObj[presetName] as PlainObject);
-            pruneAxes(presetsObj[presetName]?.axes);
+            prunePlugins(presetsObj[presetName] as PlainObject, true);
+            pruneAxes(presetsObj[presetName]?.axes, true);
         }
     }
 
@@ -178,24 +183,18 @@ function sanitizeThemeModulesUncached(theme: ChartTheme, moduleRegistry: ModuleS
     });
 }
 
-/** What `processModuleOptions` wrote to the console, and the full set of modules it dropped for it. */
-export interface ProcessModuleOptionsReport {
-    message: string;
-    missingModules: ModulePlaceholder[];
-}
-
 export function processModuleOptions<T extends Partial<AgChartOptions>>(
     chartType: string | undefined,
     options: T,
     additionalMissingModules: ModulePlaceholder[],
     logger: Logger,
     moduleRegistry: ModuleScope
-): ProcessModuleOptionsReport | undefined {
+): void {
     const missingModules = unique(
         removeUnregisteredModuleOptions(chartType, options, moduleRegistry).concat(additionalMissingModules)
     );
 
-    if (!missingModules.length) return undefined;
+    if (!missingModules.length) return;
 
     const installationReferenceUrl = ModuleRegistry.isIntegrated()
         ? 'https://www.ag-grid.com/data-grid/integrated-charts-installation/'
@@ -203,12 +202,10 @@ export function processModuleOptions<T extends Partial<AgChartOptions>>(
 
     const missingOptions = groupBy(missingModules, (module) => (module.enterprise ? 'enterprise' : 'community'));
 
-    let message: string;
     if (ModuleRegistry.isUmd()) {
-        message = umdMissingModulesMessage(missingOptions.enterprise ?? []);
-        logger.warnOnce(message);
+        logger.warnOnce(umdMissingModulesMessage(missingOptions.enterprise ?? []));
     } else {
-        message = bundlerMissingModulesMessage(
+        const message = bundlerMissingModulesMessage(
             missingModules,
             missingOptions,
             installationReferenceUrl,
@@ -216,8 +213,6 @@ export function processModuleOptions<T extends Partial<AgChartOptions>>(
         );
         logger.errorOnce(message);
     }
-
-    return { message, missingModules };
 }
 
 function umdMissingModulesMessage(enterpriseModules: ModulePlaceholder[]): string {

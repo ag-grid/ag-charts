@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import type { LogIssue } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 
 import { DataController } from './dataController';
@@ -252,7 +253,9 @@ describe('DataController', () => {
         expect(results[0].processedData.columns).toEqual([[100, 200, 300]]);
     });
 
-    it('records a warning issue when a requested key is missing from every datum', async () => {
+    it('reports a key missing from every datum through the logger as a warning', async () => {
+        const issues: LogIssue[] = [];
+        const stop = testLogger.onIssue((issue) => issues.push(issue));
         const rows: Record<string, unknown>[] = [{ keyProp1: '2020' }];
         const promise = controller.request('test1', new DataSet(rows, testLogger), {
             props: [
@@ -263,10 +266,11 @@ describe('DataController', () => {
 
         controller.execute(undefined, undefined);
         await promise;
+        stop();
 
-        expect(controller.validationIssues).toHaveLength(1);
-        expect(controller.validationIssues[0].severity).toBe('warning');
-        expect(controller.validationIssues[0].message).toContain("the key 'valueProp1' was not found");
+        expect(issues).toHaveLength(1);
+        expect(issues[0].severity).toBe('warning');
+        expect(issues[0].message).toContain("the key 'valueProp1' was not found");
     });
 
     describe('with multiple data sources', () => {

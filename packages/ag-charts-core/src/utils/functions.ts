@@ -129,14 +129,12 @@ export function safeCall<T = unknown>(
     callback: Function,
     args: any[],
     logger: Logger | undefined,
-    errorPath = '',
-    onError?: (error: unknown, errorPath: string) => void
+    errorPath = ''
 ): T | undefined {
     try {
         return callback(...args);
     } catch (error) {
         const postfix = errorPath ? ` \`${errorPath}\`` : '';
         logger?.warnOnce(`Uncaught exception in user callback${postfix}`, error);
-        onError?.(error, errorPath);
     }
 }

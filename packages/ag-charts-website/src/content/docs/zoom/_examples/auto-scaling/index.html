@@ -1,6 +1,24 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button id="autoScalingToggle" aria-pressed="true" onclick="setAutoScaling()">Auto Scaling</button>
+        <div class="button-group" role="group" aria-label="Auto Scaling">
+            <input
+                type="radio"
+                id="auto-scaling-disabled"
+                name="auto-scaling"
+                value="false"
+                onchange="setAutoScaling(event)"
+            />
+            <label for="auto-scaling-disabled">Disabled</label>
+            <input
+                type="radio"
+                id="auto-scaling-enabled"
+                name="auto-scaling"
+                value="true"
+                checked
+                onchange="setAutoScaling(event)"
+            />
+            <label for="auto-scaling-enabled">Enabled</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

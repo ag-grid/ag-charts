@@ -8,6 +8,7 @@ import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import { LineSeriesModule } from '../chart/series/cartesian/lineSeriesModule';
 import {
     deproxy,
+    expectErrorsCalls,
     expectWarningsCalls,
     prepareTestOptions,
     resetMockConsole,
@@ -415,14 +416,6 @@ describe('AgCharts', () => {
         });
     });
     describe('invalid options', () => {
-        // `setupMockConsole` asserts `console.error` is clean at teardown, so reading through here consumes the reports.
-        function expectErrorCalls() {
-            const errorMock = console.error as Mock;
-            const { calls } = errorMock.mock;
-            errorMock.mockClear();
-            return expect(calls);
-        }
-
         const expectedError =
             /^AG Charts - AgCharts\.create\(\) requires a non-empty options object; a minimal chart specifies a `container` and `series` \(or `data`\)\./;
 
@@ -439,7 +432,7 @@ describe('AgCharts', () => {
         ])('logs a descriptive error for %s and still returns an instance', (_name, options) => {
             expect(() => (chart = AgCharts.create(options as any))).not.toThrow();
             expect(chart).toBeDefined();
-            expectErrorCalls().toEqual([[expect.stringMatching(expectedError)]]);
+            expectErrorsCalls().toEqual([[expect.stringMatching(expectedError)]]);
             expect(console.warn).not.toHaveBeenCalled();
         });
 
@@ -462,11 +455,11 @@ describe('AgCharts', () => {
 
         it('records the error as a validation issue the overlay can show', () => {
             chart = AgCharts.create(undefined as any);
-            expectErrorCalls().toHaveLength(1);
-            const { validationCollector } = deproxy(chart);
-            validationCollector.setShowOverlayOn(['error']);
-            expect(validationCollector.hasVisibleIssues()).toBe(true);
-            expect(validationCollector.getVisibleIssues().error).toEqual([
+            expectErrorsCalls().toHaveLength(1);
+            const { validations } = deproxy(chart).ctx;
+            validations.setShowOverlayOn(['error']);
+            expect(validations.hasVisibleIssues()).toBe(true);
+            expect(validations.getVisibleIssues().error).toEqual([
                 { severity: 'error', message: expect.stringMatching(/^AgCharts\.create\(\) requires a non-empty/) },
             ]);
         });
@@ -478,7 +471,7 @@ describe('AgCharts', () => {
                 'AgCharts `options` prop'
             );
             chart = AgCharts.create({ ...wrapperOptions, container } as any);
-            expectErrorCalls().toEqual([
+            expectErrorsCalls().toEqual([
                 [
                     expect.stringMatching(
                         /^AG Charts - AgCharts `options` prop requires a non-empty options object.*Received undefined\.$/
@@ -498,7 +491,7 @@ describe('AgCharts', () => {
             );
             await chart.update({ ...wrapperOptions, container } as AgChartOptions);
 
-            expectErrorCalls().toEqual([
+            expectErrorsCalls().toEqual([
                 [expect.stringMatching(/^AG Charts - AgCharts `options` prop requires a non-empty options object/)],
             ]);
         });
@@ -521,7 +514,7 @@ describe('AgCharts', () => {
             ['__createSparkline', () => AgCharts.__createSparkline(undefined as any), []],
         ])('names %s in the error it reports', (methodName, call, missingModules) => {
             expect(() => (chart = call() as AgChartInstance)).not.toThrow();
-            expectErrorCalls().toEqual([
+            expectErrorsCalls().toEqual([
                 ...missingModules.map((moduleId) => [expect.stringContaining(moduleId)]),
                 [
                     expect.stringMatching(
@@ -535,7 +528,7 @@ describe('AgCharts', () => {
 
         it('rejects a sparkline whose only option is `pool`', () => {
             chart = AgCharts.__createSparkline({ pool: true } as any) as AgChartInstance;
-            expectErrorCalls().toEqual([
+            expectErrorsCalls().toEqual([
                 [
                     expect.stringMatching(
                         /^AG Charts - AgCharts\.__createSparkline\(\) requires a non-empty options object/

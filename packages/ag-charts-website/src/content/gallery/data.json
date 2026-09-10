@@ -304,6 +304,29 @@
         ],
         [
             {
+                "title": "Quadrant",
+                "seriesName": "quadrant",
+                "seriesLink": "./quadrant-chart/",
+                "icon": "chartsQuadrant",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Quadrant Chart",
+                        "name": "quadrant-chart"
+                    },
+                    {
+                        "title": "Quadrant Chart With Varying Size",
+                        "name": "quadrant-chart-with-size"
+                    },
+                    {
+                        "title": "Quadrant Chart With Large Data",
+                        "name": "quadrant-chart-with-large-data"
+                    }
+                ]
+            }
+        ],
+        [
+            {
                 "title": "Histogram",
                 "seriesName": "histogram",
                 "icon": "chartsHistogram",

@@ -1,6 +1,24 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button id="navigatorToggle" aria-pressed="true" onclick="toggleEnabled()">Navigator</button>
+        <div class="button-group" role="group" aria-label="Navigator">
+            <input
+                type="radio"
+                id="navigator-enabled"
+                name="navigator-enabled"
+                value="true"
+                checked
+                onchange="toggleEnabled(event)"
+            />
+            <label for="navigator-enabled">Enable Navigator</label>
+            <input
+                type="radio"
+                id="navigator-disabled"
+                name="navigator-enabled"
+                value="false"
+                onchange="toggleEnabled(event)"
+            />
+            <label for="navigator-disabled">Disable Navigator</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

@@ -74,6 +74,7 @@ import { type Node, PointerEvents } from '../../scene/node';
 import type { Selection } from '../../scene/selection';
 import type { Path } from '../../scene/shape/path';
 import { Transformable } from '../../scene/transformable';
+import { rethrowFailFast } from '../../util/failFastError';
 import type { ChartAxis } from '../chartAxis';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
@@ -1770,6 +1771,7 @@ export abstract class Series<
             datumCallbackCache.set(id, value);
             return value;
         } catch (error) {
+            rethrowFailFast(error);
             this.ctx.logger.error(String(error));
         }
     }

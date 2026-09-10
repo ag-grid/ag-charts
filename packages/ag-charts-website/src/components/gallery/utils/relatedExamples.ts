@@ -28,7 +28,8 @@ export interface GalleryFamilyExamples {
     title: string;
     /** The family's section on the gallery hub. */
     hubUrl: string;
-    examples: { label: string; url: string }[];
+    /** `name` is the example's key, which the card's thumbnail is resolved from. */
+    examples: { label: string; name: string; url: string }[];
 }
 
 /** Fewest links a strip carries: three families hold one example, so siblings alone leave them empty. */
@@ -75,8 +76,8 @@ export function getRelatedExamples({
         return [];
     }
 
-    const toRelated = (example: { title: string; name: string }, isFamilySibling: boolean) => ({
-        label: resolveGalleryH1(example),
+    const toRelated = (example: { name: string }, isFamilySibling: boolean) => ({
+        label: resolveGalleryH1(example.name),
         name: example.name,
         isFamilySibling,
     });
@@ -138,7 +139,8 @@ export function getFamilyExamples({
         title: family.title,
         hubUrl: getPageHashUrl({ chartSeriesName: family.seriesName }),
         examples: visibleExamples(family).map((example) => ({
-            label: resolveGalleryH1(example),
+            label: resolveGalleryH1(example.name),
+            name: example.name,
             url: getPageUrl(example.name),
         })),
     };

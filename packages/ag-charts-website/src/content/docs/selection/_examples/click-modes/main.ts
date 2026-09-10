@@ -40,8 +40,6 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-let enableClickAwayToClear = true;
-
 function setClickMode(event: Event) {
     const clickMode = (event.target as HTMLInputElement).value as AgSelectionClickMode;
     options.selection = { ...options.selection, clickMode };
@@ -51,12 +49,8 @@ function setClickMode(event: Event) {
     chart.update(options);
 }
 
-function setClickAway() {
-    enableClickAwayToClear = !enableClickAwayToClear;
-    (document.getElementById('clickAwayToggle') as HTMLButtonElement).setAttribute(
-        'aria-pressed',
-        String(enableClickAwayToClear)
-    );
+function setClickAway(event: Event) {
+    const enableClickAwayToClear = (event.target as HTMLInputElement).value === 'true';
 
     options.selection = { ...options.selection, enableClickAwayToClear };
     options.subtitle = {

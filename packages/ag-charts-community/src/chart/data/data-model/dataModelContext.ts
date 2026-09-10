@@ -1,7 +1,6 @@
 import type { Debug, Logger } from 'ag-charts-core';
 
 import type { ChartMode } from '../../chartMode';
-import type { ValidationSink } from '../../validation/validationIssueCollector';
 import type { BandedDomainConfig } from '../dataDomain';
 import type {
     AggregatePropertyDefinition,
@@ -61,9 +60,6 @@ export interface DataModelContext<D extends object, K extends keyof D & string> 
 
     /** Chart-scoped logger for data-pipeline warnings/errors */
     readonly logger: Logger;
-
-    /** Optional sink that surfaces data-key/invalid-value warnings on the validation overlay. */
-    readonly validationSink?: ValidationSink;
 
     /** Chart operating mode (standalone/integrated) */
     mode: ChartMode;

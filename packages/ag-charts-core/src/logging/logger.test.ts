@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Logger, reset, warn, warnOnce } from './logger';
+import { type LogIssue, Logger, reset, warn, warnOnce } from './logger';
 
 describe('Logger', () => {
     beforeEach(() => {
@@ -155,6 +155,194 @@ describe('Logger', () => {
             logger.setEnabledLevels(['error', 'warning', 'deprecation']);
             logger.deprecationOnce('y');
             expect(console.warn).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('onIssue', () => {
+        it('reports every warn, error and deprecation at the severity of its console channel', () => {
+            const logger = new Logger();
+            const issues: LogIssue[] = [];
+            logger.onIssue((issue) => issues.push(issue));
+
+            logger.warn('w');
+            logger.error('e');
+            logger.deprecation('d');
+
+            expect(issues).toEqual([
+                { severity: 'warning', message: 'w' },
+                { severity: 'error', message: 'e' },
+                { severity: 'deprecation', message: 'd' },
+            ]);
+        });
+
+        it('reports a message the enabled levels keep off the console', () => {
+            const logger = new Logger();
+            const listener = vi.fn();
+            logger.onIssue(listener);
+            logger.setEnabledLevels([]);
+
+            logger.warn('silenced');
+
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(listener).toHaveBeenCalledWith({ severity: 'warning', message: 'silenced' });
+        });
+
+        it('reports every call of a *Once message, the once-cache gating the console only', () => {
+            const logger = new Logger();
+            const listener = vi.fn();
+            logger.onIssue(listener);
+
+            logger.warnOnce('repeat');
+            logger.warnOnce('repeat');
+
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            expect(listener).toHaveBeenCalledTimes(2);
+        });
+
+        it('derives message, detail and cause from a logged Error', () => {
+            const logger = new Logger();
+            const listener = vi.fn();
+            logger.onIssue(listener);
+            const error = new Error('boom');
+
+            logger.error(error);
+
+            expect(listener).toHaveBeenCalledWith({
+                severity: 'error',
+                message: 'boom',
+                detail: error.stack,
+                cause: error,
+            });
+        });
+
+        it('appends further console arguments to detail, on repeats too', () => {
+            const logger = new Logger();
+            const listener = vi.fn();
+            logger.onIssue(listener);
+            const error = new Error('callback failed');
+
+            logger.warnOnce('Uncaught exception', error);
+            logger.warnOnce('Uncaught exception', error);
+            logger.warn('Invalid value', '[abc]', { key: 1 });
+
+            expect(listener).toHaveBeenNthCalledWith(2, {
+                severity: 'warning',
+                message: 'Uncaught exception',
+                detail: 'Error: callback failed',
+            });
+            expect(listener).toHaveBeenLastCalledWith({
+                severity: 'warning',
+                message: 'Invalid value',
+                detail: '[abc]\n{"key":1}',
+            });
+        });
+
+        it('falls back to String() for an argument JSON cannot serialise, rather than throwing out of the logging call', () => {
+            const logger = new Logger();
+            const listener = vi.fn();
+            logger.onIssue(listener);
+            const circular: Record<string, unknown> = {};
+            circular.self = circular;
+
+            expect(() => logger.warn('Uncaught exception', circular, { big: 1n })).not.toThrow();
+            expect(() => logger.warnOnce(circular)).not.toThrow();
+
+            expect(listener).toHaveBeenNthCalledWith(1, {
+                severity: 'warning',
+                message: 'Uncaught exception',
+                detail: '[object Object]\n[object Object]',
+            });
+            expect(listener).toHaveBeenNthCalledWith(2, { severity: 'warning', message: '[object Object]' });
+        });
+
+        it('serialises a null-prototype object, which has no toString, rather than throwing', () => {
+            const logger = new Logger();
+            const listener = vi.fn();
+            logger.onIssue(listener);
+            const bare = Object.assign(Object.create(null), { code: 1 });
+
+            expect(() => logger.warn('callback threw', bare)).not.toThrow();
+
+            expect(listener).toHaveBeenCalledWith({
+                severity: 'warning',
+                message: 'callback threw',
+                detail: '{"code":1}',
+            });
+        });
+
+        it('keeps two distinct object messages apart, rather than collapsing both to [object Object]', () => {
+            const logger = new Logger();
+            const listener = vi.fn();
+            logger.onIssue(listener);
+
+            logger.errorOnce({ a: 1 });
+            logger.errorOnce({ a: 2 });
+
+            expect(listener).toHaveBeenNthCalledWith(1, { severity: 'error', message: '{"a":1}' });
+            expect(listener).toHaveBeenNthCalledWith(2, { severity: 'error', message: '{"a":2}' });
+        });
+
+        it('emits the same issue object for a repeat of a *Once message', () => {
+            const logger = new Logger();
+            const listener = vi.fn();
+            logger.onIssue(listener);
+
+            logger.warnOnce('repeated', 'detail');
+            logger.warnOnce('repeated', 'detail');
+            logger.warnOnce('repeated', 'detail');
+
+            expect(listener).toHaveBeenCalledTimes(3);
+            expect(listener.mock.calls[1][0]).toEqual({ severity: 'warning', message: 'repeated', detail: 'detail' });
+            expect(listener.mock.calls[1][0]).toBe(listener.mock.calls[2][0]);
+        });
+
+        it('stops emitting once the last subscriber unsubscribes', () => {
+            const logger = new Logger();
+            const listener = vi.fn();
+            const unsubscribe = logger.onIssue(listener);
+            const emit = vi.spyOn((logger as any).issues, 'emit');
+            unsubscribe();
+
+            logger.warn('after');
+
+            expect(emit).not.toHaveBeenCalled();
+            expect(listener).not.toHaveBeenCalled();
+        });
+
+        it('does not throw for a console argument JSON cannot serialise', () => {
+            const logger = new Logger();
+            const listener = vi.fn();
+            logger.onIssue(listener);
+            const cyclic: Record<string, unknown> = {};
+            cyclic.self = cyclic;
+
+            expect(() => logger.warn('callback threw', cyclic, { big: 1n })).not.toThrow();
+            expect(listener).toHaveBeenCalledWith({
+                severity: 'warning',
+                message: 'callback threw',
+                detail: '[object Object]\n[object Object]',
+            });
+        });
+
+        it('writes the console record before a throwing subscriber unwinds the logging call', () => {
+            const logger = new Logger();
+            logger.onIssue(() => {
+                throw new Error('fail fast');
+            });
+
+            expect(() => logger.warn('problem')).toThrow('fail fast');
+            expect(console.warn).toHaveBeenCalledWith('AG Charts - problem');
+        });
+
+        it('stops reporting once unsubscribed', () => {
+            const logger = new Logger();
+            const listener = vi.fn();
+            const stop = logger.onIssue(listener);
+
+            stop();
+            logger.warn('unheard');
+
+            expect(listener).not.toHaveBeenCalled();
         });
     });
 

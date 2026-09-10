@@ -33,14 +33,21 @@ describe('buildGalleryExampleMarkdown', () => {
 
     it("emits frontmatter, heading and intro matching the page's own copy", async () => {
         const { page } = EXAMPLES.find((example) => example.exampleName === 'simple-bar')!;
-        const seo = resolveGallerySeo(page);
+        const seo = resolveGallerySeo(page.name);
         const output = await buildFor('simple-bar');
 
         expect(output.startsWith('---\n')).toBe(true);
         expect(output).toContain(`title: ${JSON.stringify(seo.title)}`);
         expect(output).toContain(`description: ${JSON.stringify(seo.description)}`);
         expect(output).toContain(`\n# ${seo.h1}`);
-        expect(output).toContain(seo.intro);
+        // The intro's own links are absolute here, so it is emitted rewritten rather than verbatim.
+        expect(output).toContain(seo.intro.replace(/\]\(\//g, '](https://www.ag-grid.com/'));
+    });
+
+    it("makes the intro's inline links absolute, so the file reads out of context", async () => {
+        const output = await buildFor('simple-bar');
+        expect(output).toContain('[rounded bars](https://www.ag-grid.com/r/bar-series/)');
+        expect(output).toContain('[React](https://www.ag-grid.com/react/quick-start/)');
     });
 
     it('names the chart type and links its documentation page', async () => {

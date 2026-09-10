@@ -122,6 +122,12 @@ const pureTopLevelSideEffectsPlugin = {
 
                 const code = fsSync.readFileSync(file, 'utf8');
                 const annotated = annotatePureToplevel(code);
+                const corrupted = annotated.match(/\.className = "_c\$\d+"/);
+                if (corrupted) {
+                    throw new Error(
+                        `pure-toplevel-side-effects rewrote a className literal in ${file}: ${corrupted[0]}`
+                    );
+                }
                 if (annotated !== code) {
                     await fs.writeFile(file, annotated);
                 }
@@ -158,8 +164,46 @@ function hasSideEffect(node) {
     return false;
 }
 
-function escapeRegExp(s) {
-    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+/**
+ * Rename every reference to `from` inside `node` to `to`, using identifier positions from
+ * the AST. Property names and string contents are left alone, so a static such as
+ * `Foo.className = "Foo"` keeps its literal.
+ */
+function renameReferences(code, node, from, to) {
+    const ranges = [];
+    const visit = (n, parent, key) => {
+        if (!n || typeof n !== 'object') return;
+        if (Array.isArray(n)) {
+            for (const item of n) visit(item, parent, key);
+            return;
+        }
+        if (!n.type) return;
+        if (n.type === 'Property' && n.shorthand && n.value.type === 'Identifier') {
+            // `{ Foo }` shares one range between key and value, so expand it to `Foo: _c$0`.
+            if (n.value.name === from) ranges.push([n.start, n.end, `${from}: ${to}`]);
+            return;
+        }
+        if (n.type === 'Identifier') {
+            const isPropertyName =
+                (parent?.type === 'MemberExpression' && key === 'property' && !parent.computed) ||
+                (parent?.type === 'Property' && key === 'key' && !parent.computed);
+            if (n.name === from && !isPropertyName) ranges.push([n.start, n.end, to]);
+            return;
+        }
+        for (const childKey of Object.keys(n)) {
+            if (childKey === 'type' || childKey === 'start' || childKey === 'end') continue;
+            visit(n[childKey], n, childKey);
+        }
+    };
+    visit(node, null, null);
+
+    let result = code.slice(node.start, node.end);
+    for (const [start, end, text] of ranges.reverse()) {
+        const s = start - node.start;
+        const e = end - node.start;
+        result = result.slice(0, s) + text + result.slice(e);
+    }
+    return result;
 }
 
 const CALL_LIKE = new Set(['CallExpression', 'NewExpression', 'TaggedTemplateExpression']);
@@ -247,10 +291,7 @@ function annotatePureToplevel(code) {
                     //        var _Foo = /*#__PURE__*/ (() => { var _c$0 = <init>; <expr1_rewritten>; return _c$0; })();
                     const initCode = code.slice(decl.init.start, decl.init.end);
                     const tmpVar = `_c$${tmpVarCounter++}`;
-                    const varNameRe = new RegExp(`\\b${escapeRegExp(varName)}\\b`, 'g');
-                    const exprsCode = trailingExprs
-                        .map((e) => code.slice(e.start, e.end).replace(varNameRe, tmpVar))
-                        .join(' ');
+                    const exprsCode = trailingExprs.map((e) => renameReferences(code, e, varName, tmpVar)).join(' ');
                     const lastExpr = trailingExprs[trailingExprs.length - 1];
                     edits.push({
                         pos: decl.init.start,

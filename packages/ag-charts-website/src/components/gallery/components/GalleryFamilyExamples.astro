@@ -1,7 +1,9 @@
 ---
 import { getEntry, type CollectionEntry } from 'astro:content';
+import { GALLERY_IMAGE_DPR_ENHANCEMENT } from '@constants';
 import { galleryFamilyName } from '../utils/gallerySeo';
 import { getFamilyExamples } from '../utils/relatedExamples';
+import { GalleryExampleLink } from './GalleryExampleLink';
 
 interface Props {
     /** Chart family key, as `seriesName` in `content/gallery/data.json`. */
@@ -18,12 +20,29 @@ const family = getFamilyExamples({ galleryData: galleryEntry.data, seriesName: s
     Every {galleryFamilyName(family.title)} example in the <a href={family.hubUrl}>AG Charts gallery</a>:
 </p>
 
-<ul>
+<div class="cards">
     {
-        family.examples.map(({ label, url }) => (
-            <li>
-                <a href={url}>{label}</a>
-            </li>
+        family.examples.map(({ label, name }) => (
+            <GalleryExampleLink
+                client:visible
+                label={label}
+                exampleName={name}
+                enableDprScaling={GALLERY_IMAGE_DPR_ENHANCEMENT}
+                layout="fill"
+            />
         ))
     }
-</ul>
+</div>
+
+<style lang="scss">
+    @use 'design-system' as *;
+
+    // Auto-filled rather than a fixed column count: a family holds anywhere from one example
+    // to a dozen, and a part-filled last row is fine.
+    .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: $spacing-size-4;
+        margin-bottom: $spacing-size-6;
+    }
+</style>

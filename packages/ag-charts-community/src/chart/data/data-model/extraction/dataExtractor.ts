@@ -656,7 +656,6 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                 const scopeHint = scope == null ? '' : ` for ${scope}`;
                 const message = `the key '${def.property}' was not found in any data element${scopeHint}.`;
                 this.ctx.logger.warnOnce(message);
-                this.ctx.validationSink?.recordIssue({ severity: 'warning', message });
             }
         }
     }

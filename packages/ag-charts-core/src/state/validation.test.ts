@@ -270,30 +270,24 @@ describe('Validation utils', () => {
             expect(console.warn).not.toHaveBeenCalled();
         });
 
-        test('reports the deprecation to onDeprecation with the notice and path', () => {
-            const onDeprecation = vi.fn();
+        test('reports the deprecation to the console with the notice and path', () => {
             validate<{ colorScale: string }>(
                 { colorScale: 'red' },
-                { colorScale: deprecated(string, 'Use `colorScale.fills` instead.') },
-                '',
-                { onDeprecation }
+                { colorScale: deprecated(string, 'Use `colorScale.fills` instead.') }
             );
-            expect(onDeprecation).toHaveBeenCalledTimes(1);
-            expect(onDeprecation).toHaveBeenCalledWith(
-                'Option `colorScale` is deprecated. Use `colorScale.fills` instead.',
-                'colorScale'
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            expect((console.warn as Mock).mock.calls[0][0]).toContain(
+                'Option `colorScale` is deprecated. Use `colorScale.fills` instead.'
             );
         });
 
-        test('stays silent to onDeprecation under silentAdvisories', () => {
-            const onDeprecation = vi.fn();
+        test('stays silent under silentAdvisories', () => {
             validate<{ colorScale: string }>(
                 { colorScale: 'red' },
                 { colorScale: deprecated(string, 'Use `colorScale.range` instead.') },
                 '',
-                { onDeprecation, silentAdvisories: true }
+                { silentAdvisories: true }
             );
-            expect(onDeprecation).not.toHaveBeenCalled();
             expect(console.warn).not.toHaveBeenCalled();
         });
 
@@ -306,24 +300,12 @@ describe('Validation utils', () => {
             );
 
             test('passes the deprecated value through and warns once', () => {
-                const onDeprecation = vi.fn();
-                const { cleared, invalid } = validate<{ placement: string }>(
-                    { placement: 'before' },
-                    { placement },
-                    '',
-                    {
-                        onDeprecation,
-                    }
-                );
+                const { cleared, invalid } = validate<{ placement: string }>({ placement: 'before' }, { placement });
                 expect(cleared).toEqual({ placement: 'before' });
                 expect(invalid).toEqual([]);
                 expect(console.warn).toHaveBeenCalledTimes(1);
                 expect((console.warn as Mock).mock.calls[0][0]).toContain(
                     'Value `"before"` of option `placement` is deprecated. Use `before-center` instead.'
-                );
-                expect(onDeprecation).toHaveBeenCalledWith(
-                    'Value `"before"` of option `placement` is deprecated. Use `before-center` instead.',
-                    'placement'
                 );
             });
 
@@ -339,20 +321,15 @@ describe('Validation utils', () => {
             });
 
             test('stays silent for a supported value', () => {
-                const onDeprecation = vi.fn();
-                validate<{ placement: string }>({ placement: 'before-center' }, { placement }, '', { onDeprecation });
-                expect(onDeprecation).not.toHaveBeenCalled();
+                validate<{ placement: string }>({ placement: 'before-center' }, { placement });
                 expect(console.warn).not.toHaveBeenCalled();
             });
 
             test('stays silent for a theme-injected value under silentAdvisories', () => {
-                const onDeprecation = vi.fn();
                 const { cleared } = validate<{ placement: string }>({ placement: 'before' }, { placement }, '', {
-                    onDeprecation,
                     silentAdvisories: true,
                 });
                 expect(cleared).toEqual({ placement: 'before' });
-                expect(onDeprecation).not.toHaveBeenCalled();
                 expect(console.warn).not.toHaveBeenCalled();
             });
 
