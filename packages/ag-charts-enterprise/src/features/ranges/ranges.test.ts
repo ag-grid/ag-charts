@@ -14,7 +14,7 @@ describe('Ranges', () => {
     setupMockCanvas();
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as any) = undefined;
         }

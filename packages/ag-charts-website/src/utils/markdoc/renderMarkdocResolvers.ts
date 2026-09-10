@@ -66,7 +66,7 @@ export function createChartsMarkdownResolvers({ siteRoot }: { siteRoot?: string 
                 // identical source.
                 const { files } = getExampleViewerFiles(contents, internalFramework);
                 const fileName = contents.entryFileName;
-                if (!fileName || !files[fileName]) {
+                if (fileName === '' || (files[fileName] ?? '') === '') {
                     return null;
                 }
                 const cleanCode = files[fileName].trim();
@@ -103,7 +103,7 @@ export function createChartsMarkdownResolvers({ siteRoot }: { siteRoot?: string 
                 return { code: transformed, language: FRAMEWORK_LANGUAGES[framework] };
             } catch {
                 // The snippet transformer only handles options-shaped snippets; fall back to raw.
-                return { code, language: language || FRAMEWORK_LANGUAGES[framework] };
+                return { code, language: language === '' ? FRAMEWORK_LANGUAGES[framework] : language };
             }
         },
 
@@ -114,7 +114,7 @@ export function createChartsMarkdownResolvers({ siteRoot }: { siteRoot?: string 
             try {
                 // Must go through Astro's asset pipeline; a naive /docs/<page>/<path> URL 404s.
                 const { imageSrc } = await getPageImages({ pageName, imagePath });
-                return imageSrc ? toAbsoluteUrl(imageSrc, siteRoot) : imagePath;
+                return imageSrc == null || imageSrc === '' ? imagePath : toAbsoluteUrl(imageSrc, siteRoot);
             } catch {
                 return imagePath;
             }

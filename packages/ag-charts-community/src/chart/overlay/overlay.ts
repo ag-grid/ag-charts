@@ -75,10 +75,11 @@ export class Overlay extends BaseProperties {
         if (isArray(this.text)) {
             return toPlainText(this.text);
         }
-        if (this.rendererAsText) {
+        if (this.rendererAsText != null && this.rendererAsText !== '') {
             return this.rendererAsText;
         }
-        return localeManager.t(toTextString(this.text) || this.defaultMessageId);
+        const text = toTextString(this.text);
+        return localeManager.t(text === '' ? this.defaultMessageId : text);
     }
 
     getElement(

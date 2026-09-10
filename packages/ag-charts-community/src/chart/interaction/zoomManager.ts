@@ -292,7 +292,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             }),
             ctx.eventsHub.on('update:complete', ({ wasShortcut }) => {
                 if (wasShortcut) return;
-                if (this.pendingZoomEventSource) {
+                if (this.pendingZoomEventSource != null) {
                     const source = this.pendingZoomEventSource;
                     this.ctx.chartService.callListener({ type: 'zoom', source, ...this.getMementoRanges() });
                     this.pendingZoomEventSource = undefined;
@@ -364,7 +364,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         // Do not reset the zoom if the memento is undefined. Only reset if an empty object is provided.
         if (memento == null) return;
 
-        if (!this.axes || !this.didLayoutAxes) {
+        if (this.axes == null || !this.didLayoutAxes) {
             this.pendingMemento = { version, mementoVersion, memento };
             return;
         }
@@ -575,7 +575,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         if (!axis) return;
 
         const extents = axis.scale.getDomainMinMax();
-        if (!extents) return;
+        if (extents == null) return;
 
         const [min, max] = axis.visibleRange;
         const range = this.getRange(axis.id, { min, max });
@@ -608,7 +608,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         if (!axis) return true;
 
         const extents = axis.scale.getDomainMinMax();
-        if (!extents) return true;
+        if (extents == null) return true;
 
         const [min, max] = axis.visibleRange;
         const range = this.getRange(axis.id, { min, max });

@@ -72,7 +72,7 @@ export const getBootstrapSnippet = ({
     const gridSnippet = gridTemplate ? gridTemplate({ license, isIntegratedCharts }).trim() : '';
 
     const chartsTemplate = CHARTS_LICENSE_TEMPLATES[framework];
-    const chartsSnippet = chartsTemplate ? chartsTemplate({ license }).trim() : '';
+    const chartsSnippet = chartsTemplate == null ? '' : chartsTemplate({ license }).trim();
 
     return {
         grid: gridSnippet ?? '',

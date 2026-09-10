@@ -444,10 +444,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     identifiers: new Set<string>(),
                     indices: new Set<number>(),
                 };
-                if (s.id) {
-                    this.seriesWithUserVisibility.identifiers.add(s.id);
-                } else {
+                if (s.id == null || s.id === '') {
                     this.seriesWithUserVisibility.indices.add(index);
+                } else {
+                    this.seriesWithUserVisibility.identifiers.add(s.id);
                 }
             }
         }
@@ -835,7 +835,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (
                 pluginKey in options &&
                 pluginDef.options != null &&
-                (!pluginDef.chartType || pluginDef.chartType === this.chartDef?.name)
+                (pluginDef.chartType == null || pluginDef.chartType === this.chartDef?.name)
             ) {
                 const { cleared, invalid } = validate(options[pluginKey], pluginDef.options, pluginDef.name, params);
                 this.logValidationErrors(invalid);
@@ -882,7 +882,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                             (def) =>
                                 def.type === ModuleType.Series &&
                                 (isEnterprise || !def.enterprise) &&
-                                (!chartType || def.chartType === chartType)
+                                (chartType == null || def.chartType === chartType)
                         )
                         .map((def) => def.name),
                     'or',
@@ -901,7 +901,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                         : `Unknown type \`${seriesOptions.type}\` at \`${keyPath}.type\`; expecting ${validSeriesTypes}, ignoring.`
                 );
                 continue;
-            } else if (chartType && seriesDef.chartType !== chartType) {
+            } else if (chartType != null && seriesDef.chartType !== chartType) {
                 this.logger.warn(
                     `Series type \`${seriesDef.name}\` at \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
                 );
@@ -936,7 +936,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         let validAxesTypes: string | undefined;
 
         for (const [key, axisOptions] of entries(options.axes)) {
-            if (!axisOptions) continue;
+            if (axisOptions == null) continue;
 
             // Without `type` the axis cannot be validated until the second pass infers it.
             if (axisOptions.type == null) {
@@ -1170,7 +1170,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         for (const seriesOptions of options.series ?? []) {
             for (const direction of directions) {
                 const directionAxisKey = this.getSeriesDirectionAxisKey(seriesOptions, direction);
-                if (!directionAxisKey || !isKeyOf(directionAxisKey, seriesOptions)) continue;
+                if (directionAxisKey == null || !isKeyOf(directionAxisKey, seriesOptions)) continue;
                 if ((seriesOptions[directionAxisKey] as string) === (direction as string)) continue;
 
                 count++;
@@ -1211,7 +1211,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     // Attempt to find primary axis by position, for cartesian axes only
                     if (
                         'position' in axisOptions &&
-                        axisOptions.position &&
+                        axisOptions.position != null &&
                         direction === POSITION_DIRECTIONS[axisOptions.position]
                     ) {
                         primaryAxisKeys.set(direction, axisKey);
@@ -1228,7 +1228,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
             for (const seriesOptions of options.series ?? []) {
                 const directionAxisKey = this.getSeriesDirectionAxisKey(seriesOptions, direction);
-                if (!directionAxisKey) continue;
+                if (directionAxisKey == null) continue;
 
                 const seriesAxisKey = (seriesOptions as any)[directionAxisKey];
 
@@ -1276,7 +1276,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             for (const direction of directions) {
                 for (const seriesOptions of options.series!) {
                     const directionAxisKey = this.getSeriesDirectionAxisKey(seriesOptions, direction);
-                    if (!directionAxisKey) continue;
+                    if (directionAxisKey == null) continue;
 
                     const seriesAxisKey = (seriesOptions as any)[directionAxisKey];
                     if (!axisKeys.has(seriesAxisKey)) continue;
@@ -1349,7 +1349,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         for (const seriesOptions of options.series ?? []) {
             for (const direction of directions) {
                 const directionAxisKey = this.getSeriesDirectionAxisKey(seriesOptions, direction);
-                if (!directionAxisKey) continue;
+                if (directionAxisKey == null) continue;
 
                 // Ensure there is at least a default axis for each direction required by the series.
                 newAxes[direction] ??= shallowClone(defaultAxes[direction]);
@@ -1394,7 +1394,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (!userSeriesOptions) return;
 
         const seriesData: DatumDefault[] = userSeriesOptions?.data ?? data;
-        if (!seriesData?.length) return;
+        if (seriesData == null || seriesData.length === 0) return;
 
         const predictAxis = this.moduleRegistry.getSeriesModule(seriesType)?.predictAxis;
         if (!predictAxis) return;
@@ -1514,7 +1514,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         for (const seriesOptions of options.series ?? []) {
             for (const direction of directions) {
                 const directionAxisKey = this.getSeriesDirectionAxisKey(seriesOptions, direction);
-                if (!directionAxisKey || !isKeyOf(directionAxisKey, seriesOptions)) continue;
+                if (directionAxisKey == null || !isKeyOf(directionAxisKey, seriesOptions)) continue;
                 if (seriesOptions[directionAxisKey] !== axisKey) continue;
 
                 axis.type ??= defaultAxes[direction].type;
@@ -1540,7 +1540,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
             const unmappedAxisKey = this.unmappedAxisKeys.get(axisKey);
             const unmappedAxis =
-                'axes' in options && options.axes && unmappedAxisKey && unmappedAxisKey in options.axes
+                'axes' in options && options.axes && unmappedAxisKey != null && unmappedAxisKey in options.axes
                     ? options.axes[unmappedAxisKey]
                     : undefined;
             const unmappedAxisPosition = unmappedAxis && 'position' in unmappedAxis ? unmappedAxis.position : undefined;
@@ -1576,7 +1576,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (series.grouped && !groupable) {
             this.logger.warnOnce(`unsupported grouping of series type "${series.type}".`);
         }
-        if ((series.stacked || series.stackGroup) && !stackable) {
+        if ((series.stacked || series.stackGroup != null) && !stackable) {
             this.logger.warnOnce(`unsupported stacking of series type "${series.type}".`);
         }
 
@@ -1809,7 +1809,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (fallback.startsWith('var(--')) {
                 return ChartOptions.resolveColorVar(fallback, container);
             }
-            propertyValue = computedStyle.getPropertyValue(fallback) || fallback;
+            const fallbackValue = computedStyle.getPropertyValue(fallback);
+            propertyValue = fallbackValue === '' ? fallback : fallbackValue;
             isValid = Color.validColorString(propertyValue);
         }
 

@@ -57,7 +57,7 @@ export function jsonDiff<T>(source: T, target: T, shallow?: Set<keyof T>, remove
                 result[key] = target[key];
             }
         }
-        return Object.keys(result).length ? result : null;
+        return Object.keys(result).length > 0 ? result : null;
     } else if (source !== target) {
         return target;
     }

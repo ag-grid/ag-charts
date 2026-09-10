@@ -768,7 +768,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         const orphan: PlainObject = {};
         const orphanVertex = this.addVertex(orphan);
         const contextPathArray = this.getPathArray(context);
-        const pathArray = path ? [...contextPathArray, path] : contextPathArray;
+        const pathArray = path == null ? contextPathArray : [...contextPathArray, path];
         const pathVertex = this.findVertexAtPath(pathArray) ?? this.addVertex(path);
 
         this.value$1.set(pathArray.join('.'), value);
@@ -1531,7 +1531,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
     private diagramKey(path: string) {
         let diagramKey = this.diagramKeys!.get(path);
-        if (!diagramKey) {
+        if (diagramKey == null) {
             diagramKey = `${this.diagramKeys!.size}`;
             this.diagramKeys!.set(path, diagramKey);
         }
@@ -1540,7 +1540,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
     private diagramLabel(path: string, vertex: Vertex<unknown, string>, edge?: string) {
         let diagramKey = this.diagramKeys!.get(path);
-        if (diagramKey) return diagramKey;
+        if (diagramKey != null) return diagramKey;
 
         diagramKey = this.diagramKey(path);
 
@@ -1552,7 +1552,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             [OPERATION_VALUE_EDGE]: 'OPV',
             [OVERRIDES_EDGE]: 'OV',
         };
-        let className = edge ? (classNames[edge] ?? undefined) : undefined;
+        let className = edge == null ? undefined : (classNames[edge] ?? undefined);
         className = className ? `:::${className}` : '';
 
         if (typeof vertex.value === 'symbol') {
@@ -1575,7 +1575,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         this.diagramNeighbours(diagram, path, vertex, depth + 1, maxDepth);
 
         let diagramKey = this.diagramKeys!.get(path);
-        if (!diagramKey) {
+        if (diagramKey == null) {
             diagramKey = this.diagramKey(path);
             diagram.push(`\t${diagramKey}["${vertex.value as any}"]`);
         }
@@ -1632,7 +1632,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         index = 0;
         // for (const operation of operationVertices) {
         const [operation] = operationVertices;
-        if (operation) {
+        if (operation != null) {
             this.diagramChildWithNeighbours(
                 diagram,
                 OPERATION_EDGE,

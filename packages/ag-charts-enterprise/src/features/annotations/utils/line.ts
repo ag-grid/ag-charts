@@ -32,7 +32,7 @@ export function getLineCap(
     lineStyle?: AgAnnotationLineStyleType
 ): _ModuleSupport.ShapeLineCap | undefined {
     const styleType = getLineStyle(lineDash, lineStyle);
-    return (lineCap ?? styleType === 'dotted') ? 'round' : undefined;
+    return lineCap != null || styleType === 'dotted' ? 'round' : undefined;
 }
 
 /**

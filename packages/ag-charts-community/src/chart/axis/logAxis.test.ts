@@ -115,7 +115,7 @@ describe('Log Axis Examples', () => {
     let chart: Chart;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -158,7 +158,7 @@ describe('Log Axis interval property handling', () => {
     let chart: Chart;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }

@@ -30,7 +30,7 @@ export function guessInvalidPositions(axes: ChartAxis[]) {
         let nextGuess: AgCartesianAxisPosition | undefined;
         do {
             nextGuess = guesses.pop();
-        } while (nextGuess && usedPositions.includes(nextGuess));
+        } while (nextGuess != null && usedPositions.includes(nextGuess));
         if (nextGuess == null) break;
         axis.position = nextGuess;
     }

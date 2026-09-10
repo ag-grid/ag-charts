@@ -23,9 +23,10 @@ export function buildCommunityBeyondThePromptMarkdown({ siteRoot }: { siteRoot?:
 
     const sessions = SESSIONS.map((session) => {
         const speakers = (session.speakers ?? []).map((speaker) => `${speaker.name} (${speaker.role})`).join(', ');
-        const who = speakers ? ` — ${speakers}` : '';
-        const description = session.description ? `: ${session.description}` : '';
-        const recording = session.youtubeUrl ? ` ([recording](${session.youtubeUrl}))` : '';
+        const who = speakers === '' ? '' : ` — ${speakers}`;
+        const description = session.description == null || session.description === '' ? '' : `: ${session.description}`;
+        const recording =
+            session.youtubeUrl == null || session.youtubeUrl === '' ? '' : ` ([recording](${session.youtubeUrl}))`;
         return `- **${session.title}**${who}${description}${recording}`;
     }).join('\n');
 

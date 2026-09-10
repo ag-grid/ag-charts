@@ -104,7 +104,7 @@ function isPrimaryTickInterval({ timeInterval, step }: TickInterval) {
     // I.e. not every 12 hours, because you'll have this interval twice within a day
     const milliseconds = intervalMilliseconds(timeInterval) * step;
     const hierarchy = intervalHierarchy(timeInterval);
-    const hierarchyMilliseconds = hierarchy ? intervalMilliseconds(hierarchy) : undefined;
+    const hierarchyMilliseconds = hierarchy == null ? undefined : intervalMilliseconds(hierarchy);
     return milliseconds <= (hierarchyMilliseconds ?? Infinity) * minPrimaryTickRatio;
 }
 
@@ -201,11 +201,11 @@ export function tickFormat(
     if (options == null) return;
 
     if (options.precision == null || Number.isNaN(options.precision)) {
-        if (!options.type || 'eEFgGnprs'.includes(options.type)) {
+        if (options.type == null || 'eEFgGnprs'.includes(options.type)) {
             options.precision = Math.max(
                 ...ticks.map((x) => {
                     if (!Number.isFinite(x)) return 0;
-                    const [integer, decimal] = x.toExponential((options.type ? 6 : 12) - 1).split(/[.e]/g);
+                    const [integer, decimal] = x.toExponential((options.type == null ? 12 : 6) - 1).split(/[.e]/g);
                     return (integer !== '1' && integer !== '-1' ? 1 : 0) + decimalPlaces(decimal) + 1;
                 })
             );
@@ -214,7 +214,7 @@ export function tickFormat(
                 ...ticks.map((x) => {
                     if (!Number.isFinite(x) || x === 0) return 0;
                     const l = Math.floor(Math.log10(Math.abs(x)));
-                    const digits = options.type ? 6 : 12;
+                    const digits = options.type == null ? 12 : 6;
                     const decimal = x.toExponential(digits - 1).split(/[.e]/g)[1];
                     const decimalLength = decimalPlaces(decimal);
                     return Math.max(0, decimalLength - l);

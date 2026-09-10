@@ -10,7 +10,7 @@ type DevFileKey = keyof typeof DEV_FILE_PATH_MAP;
 function getJsonFromDevFile(devFileKey: DevFileKey) {
     const file = pathJoin(getRootUrl().pathname, DEV_FILE_PATH_MAP[devFileKey]);
     const fileContents = readFileSync(file).toString();
-    return fileContents ? JSON.parse(fileContents) : null;
+    return fileContents === '' ? null : JSON.parse(fileContents);
 }
 
 /**

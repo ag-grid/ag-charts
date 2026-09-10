@@ -1081,7 +1081,7 @@ describe('OrganizationSeries', () => {
                         );
                     }
                 }
-                if (!example.warnings?.length) {
+                if (example.warnings == null || example.warnings.length === 0) {
                     expect(console.warn).not.toHaveBeenCalled();
                 }
             }
@@ -2693,7 +2693,7 @@ describe('OrganizationSeries', () => {
         function readLiveAnnouncement(): string {
             const announcer = document.querySelector<HTMLElement>('.ag-charts-swapchain[aria-hidden="false"]');
             const labelId = announcer?.getAttribute('aria-labelledby');
-            const label = labelId ? document.getElementById(labelId) : null;
+            const label = labelId == null ? null : document.getElementById(labelId);
             return label?.textContent ?? '';
         }
 

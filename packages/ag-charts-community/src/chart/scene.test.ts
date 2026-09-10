@@ -20,7 +20,7 @@ describe('Scene', () => {
     const ctx = setupMockCanvas();
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }

@@ -14,13 +14,13 @@ export const toDatum = (bar: Bar): ChartDatum => ({ ...bar, date: new Date(bar.t
  * ends keeps a tick independent of how much history is retained.
  */
 export function diffBars(data: ChartDatum[], bars: Bar[]): AgDataTransaction<ChartDatum> | undefined {
-    const oldest = bars.length ? bars[0].time : Number.POSITIVE_INFINITY;
+    const oldest = bars.length === 0 ? Number.POSITIVE_INFINITY : bars[0].time;
     let evicted = 0;
     while (evicted < data.length && data[evicted].time < oldest) {
         evicted++;
     }
 
-    const newest = data.length ? data[data.length - 1].time : Number.NEGATIVE_INFINITY;
+    const newest = data.length === 0 ? Number.NEGATIVE_INFINITY : data[data.length - 1].time;
     let appendFrom = bars.length;
     while (appendFrom > 0 && bars[appendFrom - 1].time > newest) {
         appendFrom--;

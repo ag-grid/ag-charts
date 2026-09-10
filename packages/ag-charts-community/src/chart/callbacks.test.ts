@@ -148,7 +148,7 @@ describe('AG-13024 API context', () => {
         expect(Object.isFrozen(seriesContext2)).toBe(false);
         expect(Object.isFrozen(axisContext)).toBe(false);
         expect(Object.isFrozen(rootContext)).toBe(false);
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -476,7 +476,7 @@ describe('AG-16613 null category callbacks', () => {
     let chart: Chart;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }

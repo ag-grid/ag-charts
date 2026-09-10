@@ -151,7 +151,7 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
     ) {
         const { activeHandle, dragState } = this;
 
-        if (!activeHandle || !dragState) return;
+        if (activeHandle == null || !dragState) return;
 
         this[activeHandle].toggleDragging(true);
         const point = snapping
@@ -172,7 +172,7 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
         const { activeHandle } = this;
 
         const handles: ActiveHandle[] = ['start', 'end', 'endRetracement'];
-        if (!activeHandle) return;
+        if (activeHandle == null) return;
 
         const index = (handles.indexOf(activeHandle) + 1) % handles.length;
         const fixedHandle = handles[index];

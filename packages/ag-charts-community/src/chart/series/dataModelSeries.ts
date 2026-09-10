@@ -248,7 +248,7 @@ export abstract class DataModelSeries<
     public getCategoryValue(datumIndex: number): any {
         const { processedData, dataModel } = this;
         const categoryKey = this.getCategoryKey();
-        if (!processedData || !dataModel || !categoryKey) return;
+        if (!processedData || !dataModel || categoryKey == null) return;
         const invalid = processedData.invalidData?.get(this.id)?.[datumIndex] ?? false;
         return invalid ? undefined : this.keysOrValues(categoryKey)[datumIndex];
     }
@@ -256,7 +256,7 @@ export abstract class DataModelSeries<
     public datumIndexForCategoryValue(categoryValue: any): number | undefined {
         const { processedData, dataModel } = this;
         const categoryKey = this.getCategoryKey();
-        if (!processedData || !dataModel || !categoryKey) return;
+        if (!processedData || !dataModel || categoryKey == null) return;
 
         categoryValue = categoryValue.valueOf();
         const invalidValues = processedData.invalidData?.get(this.id);

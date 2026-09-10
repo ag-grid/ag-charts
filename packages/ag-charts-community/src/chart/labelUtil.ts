@@ -1293,7 +1293,7 @@ function positionBarLabelCandidate<TPlacement extends string>(
         box: { x: centre.x - fw / 2, y: centre.y - fh / 2, width: fw, height: fh },
         region,
         flushToRegion: isInside ? undefined : false,
-        rotation: rotationDeg || undefined,
+        rotation: rotationDeg === 0 ? undefined : rotationDeg,
         anchor,
         placement: reportedPlacement,
         size: style == null ? undefined : { width, height },

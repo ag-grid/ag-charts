@@ -7,7 +7,7 @@ function loadEnvFile(filePath: string): Record<string, string> {
         return Object.fromEntries(
             readFileSync(filePath, 'utf-8')
                 .split('\n')
-                .filter((l) => l && !l.startsWith('#') && l.includes('='))
+                .filter((l) => l !== '' && !l.startsWith('#') && l.includes('='))
                 .map((l) => l.split('=', 2) as [string, string])
         );
     } catch {
@@ -17,15 +17,18 @@ function loadEnvFile(filePath: string): Record<string, string> {
 
 const localE2eEnv = loadEnvFile(join(__dirname, '.env.test:e2e'));
 
+/** An env var counts as set only when it is present and non-empty. */
+const isCI = process.env.CI != null && process.env.CI !== '';
+
 export default defineConfig({
     testDir: './e2e',
     testMatch: ['**/page-verification.spec.ts'],
     fullyParallel: true,
-    workers: process.env.CI ? 8 : undefined,
-    forbidOnly: !!process.env.CI,
-    retries: process.env.CI ? 2 : 0,
+    workers: isCI ? 8 : undefined,
+    forbidOnly: isCI,
+    retries: isCI ? 2 : 0,
     reporter: [
-        ['html', { open: process.env.CI ? 'never' : 'on-failure' }],
+        ['html', { open: isCI ? 'never' : 'on-failure' }],
         ['line'],
         [
             'playwright-ctrf-json-reporter',
@@ -50,9 +53,11 @@ export default defineConfig({
         // Skip the local dev server when an external URL is already provided — mirrors how
         // ag-grid works: set PUBLIC_SITE_URL=https://charts-staging.ag-grid.com and tests
         // run directly against that URL with no local server.
-        process.env.CI ||
+        isCI ||
         process.env.HOSTNAME === 'docker-desktop' ||
-        (process.env.PUBLIC_SITE_URL && !process.env.PUBLIC_SITE_URL.includes('localhost'))
+        (process.env.PUBLIC_SITE_URL != null &&
+            process.env.PUBLIC_SITE_URL !== '' &&
+            !process.env.PUBLIC_SITE_URL.includes('localhost'))
             ? undefined
             : {
                   env: {

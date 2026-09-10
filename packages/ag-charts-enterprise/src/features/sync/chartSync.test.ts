@@ -14,7 +14,7 @@ describe('ChartSync', () => {
     setupMockCanvas();
 
     afterEach(() => {
-        if (charts) {
+        if (charts != null) {
             for (const c of charts) {
                 c.destroy();
             }

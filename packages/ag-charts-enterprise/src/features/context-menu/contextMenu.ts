@@ -593,10 +593,10 @@ export class ContextMenu extends AbstractModuleInstance {
                         winner: 0,
                         coordinates,
                     });
-                if (apiEvent) {
-                    callWithContext(callers, callback, apiEvent);
-                } else {
+                if (apiEvent == null) {
                     this.ctx.logger.error('series node not found');
+                } else {
+                    callWithContext(callers, callback, apiEvent);
                 }
                 this.hide();
             };

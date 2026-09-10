@@ -180,7 +180,7 @@ export abstract class RadiusAxis<
 
         const { ticks, labels } = generatedTicks;
 
-        this.gridLineGroupSelection.update(this.gridLength ? ticks : []);
+        this.gridLineGroupSelection.update(this.gridLength > 0 ? ticks : []);
         this.tickLabelGroupSelection.update(labels);
         this.gridPathSelection.update(this.options.gridLine.enabled ? this.prepareGridPathTickData(ticks) : []);
 
@@ -210,7 +210,7 @@ export abstract class RadiusAxis<
     private updateGridLines(): void {
         const { shape, generatedTicks } = this;
         const { style, width } = this.options.gridLine;
-        if (!style || !generatedTicks) {
+        if (style == null || !generatedTicks) {
             return;
         }
 

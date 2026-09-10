@@ -197,7 +197,7 @@ export const useLicenseData = ({ library }: { library: Library }) => {
 
     const licenseDetails = useMemo<LicenseDetails>(() => LicenseManager.getLicenseDetails(userLicense), [userLicense]);
     const chartsLicenseDetails = useMemo<LicenseDetails>(
-        () => (AgCharts.getLicenseDetails(userLicense) as LicenseDetails) || {},
+        () => (AgCharts.getLicenseDetails(userLicense) as LicenseDetails | undefined) ?? {},
         [userLicense]
     );
 

@@ -26,7 +26,6 @@ export const getFolders = async (rootPath: string) => {
 };
 
 export async function getFilesRecursively(dir: string, allFiles: string[] = []) {
-    allFiles = allFiles || [];
     const files = await fs.readdir(dir);
 
     await Promise.all(
@@ -65,7 +64,6 @@ export async function getFoldersRecursively({ dir, allFolders = [] }: { dir: str
 }
 
 export async function getFilePathsRecursively(dir: string, allFiles: string[] = []) {
-    allFiles = allFiles || [];
     const files = await fs.readdir(dir);
 
     await Promise.all(

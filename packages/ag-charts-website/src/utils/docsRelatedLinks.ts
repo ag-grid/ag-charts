@@ -77,8 +77,8 @@ function findTitle(items: DocsNavItem[], pageName: string): string | undefined {
         if (item.path === pageName) {
             return item.title;
         }
-        const found = item.children && findTitle(item.children, pageName);
-        if (found) {
+        const found = item.children == null ? undefined : findTitle(item.children, pageName);
+        if (found != null && found !== '') {
             return found;
         }
     }
@@ -100,7 +100,7 @@ function resolveOverride(entry: RelatedLinkOverride, params: RelatedLinksParams)
 export function getDocsRelatedLinks(params: RelatedLinksParams): RelatedLink[] {
     const { navSections, pageName, framework, siteRoot, overrides } = params;
 
-    if (overrides?.length) {
+    if (overrides != null && overrides.length > 0) {
         return overrides.map((entry) => resolveOverride(entry, params));
     }
 
@@ -108,7 +108,7 @@ export function getDocsRelatedLinks(params: RelatedLinksParams): RelatedLink[] {
         const siblings = findSiblings(sections, pageName, framework);
         if (siblings) {
             return siblings
-                .filter((item) => item.title)
+                .filter((item) => item.title != null && item.title !== '')
                 .map((item) => ({ title: item.title!, url: toUrl(item, framework, siteRoot) }));
         }
     }

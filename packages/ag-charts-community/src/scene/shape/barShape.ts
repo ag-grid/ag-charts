@@ -145,7 +145,7 @@ export class BarShape<D = any> extends Rect<D> {
             path,
         } = this;
 
-        if (stroke && strokeWidth) {
+        if (stroke != null && stroke !== '' && strokeWidth > 0) {
             const { globalAlpha } = ctx;
 
             this.applyStrokeAndAlpha(ctx);
@@ -154,13 +154,13 @@ export class BarShape<D = any> extends Rect<D> {
             if (lineDash) {
                 ctx.setLineDash(lineDash);
             }
-            if (lineDashOffset) {
+            if (lineDashOffset !== 0) {
                 ctx.lineDashOffset = lineDashOffset;
             }
-            if (lineCap) {
+            if (lineCap != null) {
                 ctx.lineCap = lineCap;
             }
-            if (lineJoin) {
+            if (lineJoin != null) {
                 ctx.lineJoin = lineJoin;
             }
 

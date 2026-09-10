@@ -499,9 +499,10 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 processedData,
                 'mixed-numeric'
             ),
-            crossFilterSelectionValues: this.properties.selectedKey
-                ? dataModel.resolveColumnById(this, 'selectedRaw', processedData, 'boolean')
-                : undefined,
+            crossFilterSelectionValues:
+                this.properties.selectedKey == null
+                    ? undefined
+                    : dataModel.resolveColumnById(this, 'selectedRaw', processedData, 'boolean'),
             xScale,
             yScale,
             xOffset: (xScale.bandwidth ?? 0) / 2,

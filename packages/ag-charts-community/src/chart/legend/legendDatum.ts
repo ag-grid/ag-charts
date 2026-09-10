@@ -114,7 +114,8 @@ function deriveNamedLabels(
     const [d0, d1] = displayDomain
         ? [toNumber(displayDomain[0]), toNumber(displayDomain[1])]
         : [domain[0], domain.at(-1)!];
-    const extent = d1 - d0 || 1;
+    const span = d1 - d0;
+    const extent = span === 0 || Number.isNaN(span) ? 1 : span;
     const labels: GradientLegendNamedLabel[] = [];
 
     for (let i = 0; i < range.length; i++) {

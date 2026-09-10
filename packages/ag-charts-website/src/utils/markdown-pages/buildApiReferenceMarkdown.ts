@@ -84,13 +84,14 @@ export function buildOptionsApiMarkdown({
         pageUrl: '/options/',
         siteRoot,
         ...OPTIONS_API_PAGE_CONTENT,
-        sections: variants.length
-            ? [
-                  '## Options with a reference page per type',
-                  'Each of these properties is a union whose variants are documented separately.',
-                  variants.join('\n'),
-              ]
-            : [],
+        sections:
+            variants.length > 0
+                ? [
+                      '## Options with a reference page per type',
+                      'Each of these properties is a union whose variants are documented separately.',
+                      variants.join('\n'),
+                  ]
+                : [],
     });
 }
 
