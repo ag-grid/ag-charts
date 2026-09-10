@@ -2342,6 +2342,40 @@ describe('placeLabels obstacle-driven shrink', () => {
             placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 0, []).get('s')![0].text;
         expect(textAt(insideLabel({ threshold: 6 }))).toBe(textAt(insideLabel()));
     });
+
+    // With no `overflowStrategy` the re-fit hands back drawable text however little room is left, so
+    // the reduction must stay uncapped for such a policy however narrow the glyph already is.
+    it('keeps a label with no overflow strategy that an obstacle clips by more than its glyph width', () => {
+        const text = 'WW WW';
+        // `maxWidth` wraps this to 'WW\nWW' up front: a 20px glyph inside a 28px box.
+        const preserving: PointLabelDatum = {
+            point: { x: 200, y: 200, size: 1 },
+            label: { text, width: 50, height: 20 },
+            fit: {
+                text,
+                policy: { maxWidth: 30 },
+                font: FONT,
+                boxPadding: { top: 2, right: 4, bottom: 2, left: 4 },
+                boundByRegion: false,
+            },
+            anchor: undefined,
+            placement: 'inside',
+            placements: ['inside'],
+            gap: 1,
+            spacing: 0,
+            alwaysShow: false,
+        };
+        // Reaches 26px in: past the 20px glyph, but not past the box, so the retreat is affordable.
+        const clipping: LabelObstacle = {
+            kind: 'rect',
+            box: { x: 180, y: 217, width: 33, height: 35 },
+            category: 'label',
+        };
+
+        const placed = placeLabels(new Map([['s', seriesLabels([preserving])]]), bounds, 0, [clipping]).get('s')!;
+
+        expect(placed).toHaveLength(1);
+    });
 });
 
 describe('placeLabels candidate styles', () => {

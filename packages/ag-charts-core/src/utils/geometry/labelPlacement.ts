@@ -1,10 +1,11 @@
 import type { AgChartLabelOrientation, OverflowStrategy, PaddingOptions, TextWrap } from 'ag-charts-types';
 
-import { cachedTextMeasurer, measureTextSegments } from '../../rendering/textMeasurer';
+import { type TextMeasurer, cachedTextMeasurer, measureTextSegments } from '../../rendering/textMeasurer';
 import type { NormalisedTextOrSegments } from '../../types/normalised-options/normalisedCommonOptions';
 import type { Point, SizedPoint } from '../../types/scene';
 import type { FontOptions } from '../../types/text';
-import { toFontString, toTextString } from '../text/textUtils';
+import { LineSplitter } from '../../types/text';
+import { EllipsisChar, graphemeSegments, toFontString, toTextString } from '../text/textUtils';
 import {
     type LabelFit,
     type RegionAlign,
@@ -695,6 +696,11 @@ let cascadeOrientations: AgChartLabelOrientation[] | undefined;
 let cascadeSingleOrientation: AgChartLabelOrientation | undefined;
 let cascadeStyle: CandidateStyleResolver | undefined;
 let cascadeFitSource: { width: number; height: number } | undefined;
+// Measurer for the configured font, looked up once per label rather than per shrink attempt.
+let cascadeMeasurer: TextMeasurer | undefined;
+// Narrowest glyph budget a re-fit of the unstyled source text can keep a character in, `undefined` until
+// first needed and `Infinity` once it is known that the text has no floor that can be told cheaply.
+let cascadeMinRefitWidth: number | undefined;
 let cascadeGap = 0;
 let cascadeSpacing = 0;
 let cascadeInflate = 0;
@@ -852,6 +858,9 @@ type RetreatSide = 'left' | 'right' | 'top' | 'bottom';
 const shrinkIntrusion: Record<RetreatSide, number> = { left: 0, right: 0, top: 0, bottom: 0 };
 // Extent reduction and post-recentre translation those intrusions add up to.
 const shrinkReduction = { width: 0, height: 0 };
+// Intrusion beyond which the re-fit is known to erase the text, so the reduction query can stop early.
+let shrinkWidthCap = Infinity;
+let shrinkHeightCap = Infinity;
 const shrinkSlide: Point = { x: 0, y: 0 };
 // Which edge of the box the placement pins against its anchor: positive the min edge (left/top), negative
 // the max edge (right/bottom), zero neither — a centred box, whose every edge a shrink can move.
@@ -916,7 +925,7 @@ function affordableRetreat(retreat: number, extent: number, allowed: boolean, fl
 // Never returns a verdict: unlike the collision test this visits every obstacle, since the reduction has
 // to answer all of them. An obstacle sits in every grid cell it spans, so this visitor can see it more
 // than once: accumulating with `max` keeps the measurement idempotent.
-function accumulateObstacleReduction(o: LabelObstacle): void {
+function accumulateObstacleReduction(o: LabelObstacle): boolean | void {
     if (obstacleExcluded(o)) return;
     const testBox = candidateTestBox();
     if (testBox == null || !obstacleOverlapsBox(o, testBox)) return;
@@ -953,6 +962,14 @@ function accumulateObstacleReduction(o: LabelObstacle): void {
     // letting one unclearable obstacle suppress the reduction the others do have an answer for.
     if (best == null) return;
     shrinkIntrusion[best] = Math.max(shrinkIntrusion[best], sideRetreat[best]);
+    return shrinkExceedsCap();
+}
+
+function shrinkExceedsCap(): boolean {
+    return (
+        shrinkIntrusion.left + shrinkIntrusion.right > shrinkWidthCap ||
+        shrinkIntrusion.top + shrinkIntrusion.bottom > shrinkHeightCap
+    );
 }
 
 function spendableRetreat(retreat: number, floor: number): number {
@@ -987,7 +1004,8 @@ function accumulateRegionIntrusion(region: BoxBounds) {
 /**
  * Measures how far the candidate box has to shrink to clear the obstacles it hits and to come inside
  * `region`, into {@link shrinkReduction} and {@link shrinkSlide}. `false` when nothing it can shrink out
- * of the way intrudes.
+ * of the way intrudes, or when the intrusion passes `widthCap`/`heightCap`: the reduction the text can
+ * afford, beyond which the re-fit is known to fail and the remaining obstacles need not be visited.
  */
 function measureShrinkReduction(
     pinX: number,
@@ -995,8 +1013,12 @@ function measureShrinkReduction(
     inflate: number,
     floorX: number,
     floorY: number,
+    widthCap: number,
+    heightCap: number,
     region?: BoxBounds
 ): boolean {
+    shrinkWidthCap = widthCap;
+    shrinkHeightCap = heightCap;
     shrinkIntrusion.left = 0;
     shrinkIntrusion.right = 0;
     shrinkIntrusion.top = 0;
@@ -1009,7 +1031,7 @@ function measureShrinkReduction(
         accumulateRegionIntrusion(region);
     }
     inflateBoxInto(queryBox, candidateBox, inflate);
-    obstacleIndex.query(queryBox, accumulateObstacleReduction);
+    if (obstacleIndex.query(queryBox, accumulateObstacleReduction) || shrinkExceedsCap()) return false;
     shrinkReduction.width = shrinkIntrusion.left + shrinkIntrusion.right;
     shrinkReduction.height = shrinkIntrusion.top + shrinkIntrusion.bottom;
     // Only a centred box is moved: `positionCandidate` already re-hangs a pinned one off the same edge, so
@@ -1585,6 +1607,102 @@ function shrunkCandidateIsClear(region: BoxBounds, inflate: number): boolean {
 }
 
 /**
+ * The narrowest glyph budget a re-fit of the label's text can leave a character in, or `Infinity` when
+ * that cannot be told cheaply. `textWrap` breaks on the per-grapheme estimate and then confirms against the
+ * measured width, so the smaller of the two is what a budget has to reach. Under `'hide'` a word broken by
+ * the budget erases the label, so the widest word (the whole line, when wrapping is off) is the floor, but
+ * only for a single line: a line whose first grapheme overflows is dropped without an ellipsis, leaving the
+ * rest of a multi-line label drawn. Under `'ellipsis'` a truncation keeps a prefix of the line, so a
+ * character survives only when a line's first word fits whole or its first grapheme fits ahead of the
+ * ellipsis, and the cheapest line is the floor. Only an unstyled plain string at the configured font
+ * qualifies: a segmented or shape-bound label wraps by other rules and a hyphenating one can break inside a
+ * word.
+ */
+function minRefitWidth(fit: LabelFitDescriptor): number {
+    if (cascadeMinRefitWidth != null) return cascadeMinRefitWidth;
+    const { policy, text } = fit;
+    const { wrapping, overflowStrategy } = policy;
+    const hide = overflowStrategy === 'hide';
+    let floor = Infinity;
+    if (
+        (hide || overflowStrategy === 'ellipsis') &&
+        fit.fitOverflow == null &&
+        policy.region == null &&
+        !isArray(text) &&
+        (wrapping == null || wrapping === 'on-space' || wrapping === 'never')
+    ) {
+        const lines = toTextString(text).split(LineSplitter);
+        if (!hide) {
+            floor = narrowestLeadWidth(lines, wrapping);
+        } else if (lines.length === 1) {
+            floor = widestWordWidth(lines[0], wrapping);
+        }
+    }
+    cascadeMinRefitWidth = floor;
+    return floor;
+}
+
+type FitWrapping = LabelFitDescriptor['policy']['wrapping'];
+
+/** Width of `line`'s widest word, or of the whole line when wrapping is off; see {@link minRefitWidth}. */
+function widestWordWidth(line: string, wrapping: FitWrapping): number {
+    const measurer = cascadeMeasurer!;
+    let widest = 0;
+    for (const unit of wrapping === 'never' ? [line.trimEnd()] : line.split(' ')) {
+        if (unit !== '') {
+            widest = Math.max(widest, wordWidth(measurer, unit));
+        }
+    }
+    return widest;
+}
+
+/**
+ * The cheapest budget any of `lines` keeps a character in ahead of an ellipsis, or `Infinity` when none
+ * has a word; see {@link minRefitWidth}.
+ */
+function narrowestLeadWidth(lines: string[], wrapping: FitWrapping): number {
+    const measurer = cascadeMeasurer!;
+    const ellipsisWidth = measurer.textWidth(EllipsisChar);
+    let narrowest = Infinity;
+    for (const line of lines) {
+        // Only the line's leading word can survive a truncation, so the rest of the line is moot.
+        const lead = (wrapping === 'never' ? [line.trimEnd()] : line.split(' ')).find((unit) => unit !== '');
+        if (lead == null) continue;
+        const first = measurer.textWidth(graphemeSegments(lead)[0]) + ellipsisWidth;
+        narrowest = Math.min(narrowest, wordWidth(measurer, lead), first);
+    }
+    return narrowest;
+}
+
+/** The smaller of a word's per-grapheme estimate and its measured width, as `textWrap` judges a fit. */
+function wordWidth(measurer: TextMeasurer, word: string): number {
+    let estimate = 0;
+    for (const grapheme of graphemeSegments(word)) {
+        estimate += measurer.textWidth(grapheme);
+    }
+    return Math.min(estimate, measurer.textWidth(word));
+}
+
+/**
+ * Whether losing a line of height is certain to erase the label's text. A height reduction only counts
+ * from a whole line up, a single line re-wrapped narrower never needs fewer lines than the current fit,
+ * and `'hide'` erases the text once a line is clipped; so for a one-line plain string with no overflow
+ * fallback the re-fit can be failed without wrapping anything. A multi-line string is exempt: the wrap
+ * can drop whole lines silently (a line whose first grapheme overflows, or everything after a blank line
+ * when wrapping is off), so it may need fewer lines than it has now.
+ */
+function erasesOnLostLine(fit: LabelFitDescriptor): boolean {
+    const { policy, text } = fit;
+    return (
+        policy.overflowStrategy === 'hide' &&
+        fit.fitOverflow == null &&
+        policy.region == null &&
+        !isArray(text) &&
+        !toTextString(text).includes('\n')
+    );
+}
+
+/**
  * Second chance for a compass candidate that fits its region but hits an obstacle: the text is re-fitted to
  * the room the obstacles leave, and the candidate repositioned and re-tested. `true` leaves the shrunk
  * candidate in {@link candidateLabel}/{@link candidateBox} for the caller to record — a candidate that only
@@ -1609,11 +1727,24 @@ function shrinkCompassCandidate(
     // quarter-turned candidate.
     const upright = rotation % 180 === 0;
     const font = candidateFontAt(style?.font ?? fit.font);
-    const lineHeight = cachedTextMeasurer(font).lineHeight();
+    const unstyled = style == null && candidateTrialFontSize == null;
+    const lineHeight = (unstyled ? cascadeMeasurer! : cachedTextMeasurer(font)).lineHeight();
     const floorX = upright ? 0 : lineHeight;
     const floorY = upright ? lineHeight : 0;
-    if (!measureShrinkReduction(vec?.x ?? 0, vec?.y ?? 0, cascadeInflate, floorX, floorY)) return false;
-    const source = style == null && candidateTrialFontSize == null ? cascadeFitSource : styledFitSource(fit, font);
+    // Most re-fits fail by breaking a word the budget cannot hold, so the reduction the text can afford
+    // caps the query and rejects the candidate before any text is wrapped. A floor that cannot be told
+    // leaves the reduction uncapped: a preserving policy hands back its text however little room is left.
+    const floor = unstyled ? minRefitWidth(fit) : Infinity;
+    const affordableWidth = floor === Infinity ? Infinity : candidateLabel.glyphWidth - floor;
+    const affordableHeight = unstyled && erasesOnLostLine(fit) ? 0 : Infinity;
+    const widthCap = upright ? affordableWidth : affordableHeight;
+    const heightCap = upright ? affordableHeight : affordableWidth;
+    // Neither axis can give anything up, so no reduction the obstacles ask for is worth measuring.
+    if (widthCap <= 0 && heightCap <= 0) return false;
+    if (!measureShrinkReduction(vec?.x ?? 0, vec?.y ?? 0, cascadeInflate, floorX, floorY, widthCap, heightCap)) {
+        return false;
+    }
+    const source = unstyled ? cascadeFitSource : styledFitSource(fit, font);
     const reduceWidth = upright ? shrinkReduction.width : shrinkReduction.height;
     const reduceHeight = upright ? shrinkReduction.height : shrinkReduction.width;
     if (!refitCandidateShrunk(fit, font, source, style?.boxPadding ?? fit.boxPadding, reduceWidth, reduceHeight)) {
@@ -1660,7 +1791,18 @@ function shrinkPositionedCandidate(
     const fitTo = c.fitTo;
     if (fit == null || fitTo == null || (c.rotation ?? 0) % 360 !== 0) return false;
     const lineHeight = cachedTextMeasurer(fitTo.font ?? fit.font).lineHeight();
-    if (!measureShrinkReduction(anchorPinX(fitTo.anchor), anchorPinY(fitTo.anchor), inflate, 0, lineHeight, region)) {
+    if (
+        !measureShrinkReduction(
+            anchorPinX(fitTo.anchor),
+            anchorPinY(fitTo.anchor),
+            inflate,
+            0,
+            lineHeight,
+            Infinity,
+            Infinity,
+            region
+        )
+    ) {
         return false;
     }
     const styledFont = fitTo.font;
@@ -2031,6 +2173,8 @@ function placeAvoidingLabel(
     const styled = resolveCandidateStyle != null;
     cascadeFitSource = fit == null || styled ? undefined : measureLabelText(fit.text, fit.font);
     styledSourceFont = '';
+    cascadeMinRefitWidth = undefined;
+    cascadeMeasurer = fit == null ? undefined : cachedTextMeasurer(fit.font);
     cascadeDatum = d;
     cascadeIndex = index;
     cascadePlacements = placements;

@@ -67,7 +67,12 @@ import type { ChartAxis } from '../../chartAxis';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, processedDataIsAnimatable, valueProperty } from '../../data/processors';
-import { expandPlacementLabelBoxExtent, placedLabelTextOffset, styledLabelTextOffset } from '../../label';
+import {
+    expandPlacementLabelBoxExtent,
+    placedLabelTextOffset,
+    resolvePlacementLabelStyle,
+    styledLabelTextOffset,
+} from '../../label';
 import {
     boundLabelFit,
     compassCandidatePlacement,
@@ -1359,6 +1364,10 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         // A styled label's reservation was sized from the style resolved at its winning placement, so its
         // offset comes from that same style rather than the two placements' shared reservation.
         const styled = label.itemStyler != null;
+        // OPTIMIZATION: without a styler the resolved style is datum-independent, so the placement merge
+        // is done once per placement here rather than once per label inside `getLabelStyles`.
+        const insideLabel = styled ? label : resolvePlacementLabelStyle(label, insideStyle);
+        const outsideLabel = styled ? label : resolvePlacementLabelStyle(label, outsideStyle);
 
         opts.labelSelection.each((text, datum) => {
             const isInside = datum.placement === 'inside';
@@ -1368,11 +1377,11 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 this,
                 datum,
                 params,
-                label,
+                isInside ? insideLabel : outsideLabel,
                 isHighlight,
                 activeHighlight,
                 undefined,
-                placementStyle,
+                styled ? placementStyle : undefined,
                 { placement: datum.placement }
             );
             if (!style.enabled) {
