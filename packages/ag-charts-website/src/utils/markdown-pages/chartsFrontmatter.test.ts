@@ -17,6 +17,10 @@ describe('getFooterRelatedLinks', () => {
         expect(titlesFor('/contact/')).toContain('Privacy Policy');
     });
 
+    test('excludes the cookie-preferences control, which opens a dialog rather than a page', () => {
+        expect(titlesFor('/contact/')).not.toContain('Manage Cookies');
+    });
+
     test('excludes the page itself', () => {
         expect(titlesFor('/roadmap/')).not.toContain('Roadmap');
         expect(titlesFor('/contact/')).not.toContain('Contact Us');

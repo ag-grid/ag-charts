@@ -83,6 +83,11 @@
                 "url": "https://www.ag-grid.com/cookies/"
             },
             {
+                "name": "Manage Cookies",
+                "url": "#manage_cookies",
+                "showCookiesPrefs": true
+            },
+            {
                 "name": "Modern Slavery",
                 "url": "https://www.ag-grid.com/modern-slavery/"
             },
