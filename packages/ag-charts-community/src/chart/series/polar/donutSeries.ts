@@ -1929,6 +1929,8 @@ export class DonutSeries extends PolarSeries<
             text.y = 0;
             text.fill = color;
             text.textAlign = 'center';
+            // Lines are stacked by box bottom; the default `alphabetic` baseline drops each by a descent.
+            text.textBaseline = 'bottom';
             textBBoxes.push(text.getBBox());
             margins.push(datum.spacing);
         });
