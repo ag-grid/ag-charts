@@ -54,6 +54,8 @@ export interface ApiMenuItem {
 
 export interface FooterItem {
     title: string;
+    /** Where the group renders: the legal strip under the columns, or (default) a menu column. */
+    placement?: 'legal';
     links: {
         name: string;
         url: string;
