@@ -39,6 +39,7 @@ import {
     hasPathSafe,
     setPathSafe,
 } from './optionsGraphUtils';
+import { OptionsPartialCache, hasUnmergedCssVariables } from './optionsPartialCache';
 
 const debug = Debug.create('opts', 'options-graph');
 
@@ -200,6 +201,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
     private readonly cachedPathVertices: Map<string, Vertex<unknown>> = new Map();
 
+    private readonly cachedPartials = new OptionsPartialCache();
+
     private hasUnsafeClearKeys = false;
 
     private userPartialOptions?: PlainObject;
@@ -347,6 +350,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         debug.group('OptionsGraph.clear()', () => {
             super.clear();
             this.cachedPathVertices.clear();
+            this.cachedPartials.clear();
             this.root = undefined;
             this.params = undefined;
             this.annotations = undefined;
@@ -1369,6 +1373,34 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         // If the graph has been cleared, do not attempt to resolve. This will occur when no `styler` options are provided.
         if (!this.root) return;
 
+        if (cssVariables != null && hasUnmergedCssVariables(this.cssVariables, cssVariables)) {
+            this.cssVariables = { ...this.cssVariables, ...cssVariables };
+            this.cachedPartials.clear();
+        }
+
+        this.cachedPartials.invalidateIfStale(this.resolved);
+
+        const cacheKey = this.cachedPartials.keyFor(path, partialOptions, resolveOptions);
+        const cached = cacheKey == null ? undefined : this.cachedPartials.read(cacheKey);
+        if (cached) return cached.value as Resolved<Partial<T>> | undefined;
+
+        const resolved = this.resolvePartialUncached(path, partialOptions, resolveOptions);
+        if (cacheKey != null) {
+            this.cachedPartials.write(cacheKey, resolved);
+        }
+
+        return resolved as Resolved<Partial<T>> | undefined;
+    }
+
+    private resolvePartialUncached<T extends PlainObject>(
+        path: Array<string>,
+        partialOptions: T,
+        resolveOptions?: {
+            permissivePath?: boolean;
+            pick?: boolean;
+            proxyPaths?: Record<string, Array<string>>;
+        }
+    ): PlainObject | undefined {
         const { permissivePath, proxyPaths } = resolveOptions ?? {};
 
         const partialKeys = Object.keys(partialOptions);
@@ -1378,11 +1410,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         const debugLabel = debug.check() ? `OptionsGraph.resolvePartial() - ${path.join('.')} [${partialKeys}]` : '';
 
         return debug.group(debugLabel, () => {
-            if (partialKeys.length === 0) return {} as Resolved<Partial<T>>;
-
-            if (cssVariables) {
-                this.cssVariables = { ...this.cssVariables, ...cssVariables };
-            }
+            if (partialKeys.length === 0) return {};
 
             const parentVertex = this.findVertexAtPath(path);
             if (!parentVertex) {
@@ -1463,7 +1491,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             debug('edge count', this.getEdgeCount());
             debug('resolved partial', partial);
 
-            return partial as Resolved<Partial<T>>;
+            return partial;
         });
     }
 
