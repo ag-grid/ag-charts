@@ -289,3 +289,17 @@ exports[`aglint/validate-module-registration 1`] = `
 ",
 }
 `;
+
+exports[`aglint/validate-module-registration-implied 1`] = `
+{
+  "stderr": "",
+  "stdout": "
+<dirname>/lint-validate-module-registration-implied.data.ts
+  34:41  error  Module 'AxisInteractionModule' is required for axis listener 'click' but not registered  aglint/validate-module-registration
+
+✖ 1 problem (1 error, 0 warnings)
+  1 error and 0 warnings potentially fixable with the \`--fix\` option.
+
+",
+}
+`;

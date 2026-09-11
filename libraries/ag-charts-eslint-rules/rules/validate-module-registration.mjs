@@ -94,9 +94,12 @@ export default {
                     expanded.add(mod);
                 }
             }
-            for (const mod of [...expanded]) {
-                for (const implied of impliedBy(mod)) {
+            const pending = [...expanded];
+            while (pending.length > 0) {
+                for (const implied of impliedBy(pending.pop())) {
+                    if (expanded.has(implied)) continue;
                     expanded.add(implied);
+                    pending.push(implied);
                 }
             }
             return expanded;
@@ -856,7 +859,7 @@ export default {
                     if (node.value.type === 'ObjectExpression') {
                         processAxisObject(node.value, node);
                     }
-                } else if (pluginOptionToModule.has(keyName)) {
+                } else if (pluginOptionToModule.has(keyName) || keyName === 'listeners') {
                     processPluginOption(keyName, node.value, node);
                 } else if (keyName === 'type') {
                     // Handle type properties anywhere in the file
