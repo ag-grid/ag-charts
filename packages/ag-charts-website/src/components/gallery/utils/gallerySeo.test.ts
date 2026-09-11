@@ -101,7 +101,8 @@ describe('resolveGallerySeo', () => {
         );
         // `/r/<page>/` keeps a topic link framework-agnostic, as the gallery itself is;
         // `/<framework>/<page>/` is for the links that deliberately name one framework.
-        const INTRO_HREF = /^\/(r|javascript|react|angular|vue)\/([^/]+)\/$/;
+        // Either may carry a `#section` fragment, which the page owns rather than the router.
+        const INTRO_HREF = /^\/(r|javascript|react|angular|vue)\/([^/#]+)\/(?:#[^/#]+)?$/;
         const problems = RESOLVED.flatMap(({ exampleName, seo }) =>
             [...seo.intro.matchAll(/\]\(([^)]+)\)/g)]
                 .map(([, href]) => href)

@@ -46,7 +46,7 @@ describe('buildGalleryExampleMarkdown', () => {
 
     it("makes the intro's inline links absolute, so the file reads out of context", async () => {
         const output = await buildFor('simple-bar');
-        expect(output).toContain('[rounded bars](https://www.ag-grid.com/r/bar-series/)');
+        expect(output).toContain('[bar chart](https://www.ag-grid.com/r/bar-series/)');
         expect(output).toContain('[React](https://www.ag-grid.com/react/quick-start/)');
     });
 
