@@ -24,8 +24,21 @@ interface PartialCacheEntry {
  */
 export class OptionsPartialCache {
     private readonly entries = new LRUCache<PartialCacheEntry>(PARTIAL_CACHE_MAX);
+    private resolvedState: unknown;
 
     clear() {
+        this.entries.clear();
+    }
+
+    /**
+     * Drop everything resolved against a superseded root object. Checked on access rather than hooked to the call
+     * that replaces it, because the path that serves a chart from the structural cache never resolves the graph at
+     * all — an invalidation the graph has to remember to announce is one that path would silently skip.
+     */
+    invalidateIfStale(resolvedState: unknown) {
+        if (this.resolvedState === resolvedState) return;
+
+        this.resolvedState = resolvedState;
         this.entries.clear();
     }
 
@@ -51,18 +64,19 @@ export class OptionsPartialCache {
         const entry = this.entries.get(key);
         if (!entry) return;
 
-        return { value: copyResult(entry.value) };
+        return { value: entry.value && copyResult(entry.value) };
     }
 
     write(key: string, value: PlainObject | undefined) {
-        this.entries.set(key, { value: copyResult(value) });
+        this.entries.set(key, { value: value && copyResult(value) });
     }
 }
 
 // Line and area series set `marker ??= {}` on the result, so neither side may hold the object the other reads.
-// They only read below that, leaving the nested values safe to share.
-function copyResult(value: PlainObject | undefined) {
-    return value && { ...value };
+// The copy is shallow, so nested values stay shared and no caller may write through one.
+function copyResult(value: PlainObject): PlainObject {
+    // Spreading an array into an object would rewrite it as index keys.
+    return Array.isArray(value) ? [...value] : { ...value };
 }
 
 /**

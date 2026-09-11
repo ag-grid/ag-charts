@@ -378,7 +378,6 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
     resolve(logger: Logger | undefined) {
         return this.withLogger(logger, () =>
             debug.group('OptionsGraph.resolve()', () => {
-                this.cachedPartials.clear();
                 this.resolved = {};
                 this.resolvedParams = {};
                 this.resolvedAnnotations = {};
@@ -1378,6 +1377,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             this.cssVariables = { ...this.cssVariables, ...cssVariables };
             this.cachedPartials.clear();
         }
+
+        this.cachedPartials.invalidateIfStale(this.resolved);
 
         const cacheKey = this.cachedPartials.keyFor(path, partialOptions, resolveOptions);
         const cached = cacheKey == null ? undefined : this.cachedPartials.read(cacheKey);
