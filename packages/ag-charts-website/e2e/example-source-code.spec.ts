@@ -6,8 +6,8 @@ import { gotoUrl, toPageUrl } from './util';
 // Both halves matter: the raw HTML has to carry the code, and the page a user sees must not carry
 // it twice or show anything a crawler could not.
 
-// The HTML embeds the TypeScript variant, matching the markdown twin page. A first visit to a React
-// page shows the JavaScript variant in the code viewer (the docs default), so the two main files differ.
+// The HTML embeds the TypeScript variant, matching the markdown twin page. A first visit shows the
+// JavaScript variant in the code viewer (the docs default), so the two main files differ.
 const PAGES = [
     {
         path: 'react/quick-start/',
@@ -19,7 +19,7 @@ const PAGES = [
         path: 'javascript/quick-start/',
         exampleName: 'basic-example',
         embeddedMainFile: 'main.ts',
-        viewerMainFile: 'main.ts',
+        viewerMainFile: 'main.js',
     },
 ];
 
@@ -41,8 +41,8 @@ test.describe('Example source embedded for crawlers', () => {
             expect(panelHtml).toContain(' hidden');
             expect(panelHtml).toContain(`<figcaption>${embeddedMainFile}</figcaption>`);
             expect(panelHtml).toContain(`<code data-file-name="${embeddedMainFile}">`);
-            // The quick start example creates a bar chart of ice cream sales
-            expect(panelHtml).toContain('AgCharts.create');
+            // The quick start example charts ice cream sales, whichever framework renders it
+            expect(panelHtml).toContain('iceCreamSales');
             // The generator's harness is not part of what the Code button shows
             expect(panelHtml).not.toContain('DARK MODE');
         });
@@ -61,7 +61,7 @@ test.describe('Example source embedded for crawlers', () => {
 
             await codeButton.click();
             await expect(container.getByRole('button', { name: viewerMainFile })).toBeVisible();
-            await expect(container.locator('pre.code')).toContainText('AgCharts.create');
+            await expect(container.locator('pre.code')).toContainText('iceCreamSales');
         });
     }
 });

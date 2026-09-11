@@ -62,13 +62,13 @@ export function createChartsMarkdownResolvers({ siteRoot }: { siteRoot?: string 
                 if (!contents) {
                     return null;
                 }
-                const fileName = contents.entryFileName;
-                if (!fileName || !contents.files?.[fileName]) {
-                    return null;
-                }
                 // The same cleaned files the on-page code viewer shows, so the reader/LLM sees
                 // identical source.
                 const { files } = getExampleViewerFiles(contents, internalFramework);
+                const fileName = contents.entryFileName;
+                if (!fileName || !files[fileName]) {
+                    return null;
+                }
                 const cleanCode = files[fileName].trim();
                 const liveUrl = toAbsoluteUrl(
                     getExampleLinkUrl({ internalFramework, pageName, exampleName: name }),
