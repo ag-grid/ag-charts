@@ -7,7 +7,7 @@ import { useState } from 'react';
 
 import { PresetPreview } from './PresetPreview';
 import { setStoredPalette } from './paletteModel';
-import { setSelectedPresetId } from './presetModel';
+import { setImportedBaseTheme, setSelectedPresetId } from './presetModel';
 import { type ChartsPreset, PRESETS, toSharedPreset } from './presets';
 
 interface Props {
@@ -26,6 +26,8 @@ export const PresetSelector = ({ selectedId }: Props) => {
         // counter the guard below reads.
         setStoredPalette(store, preset.palette);
         setSelectedPresetId(store, preset.id);
+        // The preset's own base theme takes over from any imported one.
+        setImportedBaseTheme(store, undefined);
     };
 
     const selectPreset = (preset: ChartsPreset) => {

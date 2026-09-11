@@ -40,3 +40,9 @@ export const useStoredPalette = () => {
 };
 
 export const setStoredPalette = (store: Store, palette: Palette | undefined) => store.set(paletteAtom, palette);
+
+/** `useStoredPalette` for callers outside React, completions and all. */
+export const getStoredPalette = (store: Store) => {
+    const stored = store.get(paletteAtom);
+    return stored == null ? undefined : completed(stored);
+};

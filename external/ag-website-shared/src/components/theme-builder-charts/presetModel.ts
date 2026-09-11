@@ -1,5 +1,6 @@
 import { atomWithJSONStorage } from '@ag-website-shared/theming/JSONStorage';
 import type { Store } from '@ag-website-shared/theming/store';
+import type { AgChartThemeName } from 'ag-charts-community';
 import { useAtomValue } from 'jotai';
 
 /**
@@ -20,3 +21,26 @@ export const useSelectedPresetId = () => useAtomValue(selectedPresetAtom);
 export const setSelectedPresetId = (store: Store, id: string) => store.set(selectedPresetAtom, id);
 
 export const getSelectedPresetId = (store: Store) => store.get(selectedPresetAtom);
+
+/**
+ * A base theme that came from imported code rather than from a preset.
+ *
+ * The preset id above is the only other source of one, and an imported theme has
+ * no preset - so without somewhere of its own to sit, an imported dark theme
+ * would render on whichever base the last preset chose, taking the light theme's
+ * donut slice strokes and dark-mode overlay flag with it.
+ *
+ * Separate from the preset id rather than replacing it, because the two answer
+ * different questions: this is the base theme in force, while the preset id is
+ * the starting point the user picked and still the source of the palette and the
+ * page colour. Choosing a preset clears this, that being the point at which the
+ * imported theme stops being the one on screen.
+ */
+const importedBaseThemeAtom = atomWithJSONStorage<AgChartThemeName | undefined>('charts-base-theme', undefined);
+
+export const useImportedBaseTheme = () => useAtomValue(importedBaseThemeAtom);
+
+export const setImportedBaseTheme = (store: Store, baseTheme: AgChartThemeName | undefined) =>
+    store.set(importedBaseThemeAtom, baseTheme);
+
+export const getImportedBaseTheme = (store: Store) => store.get(importedBaseThemeAtom);

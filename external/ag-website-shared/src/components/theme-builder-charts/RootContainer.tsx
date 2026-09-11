@@ -11,7 +11,7 @@ import { PreviewPane } from './PreviewPane';
 import { PREVIEW_PANES } from './chartTypes';
 import { type ChartsThemeSelection, toChartTheme } from './chartsThemeOutput';
 import { setStoredPalette, useStoredPalette } from './paletteModel';
-import { getSelectedPresetId, setSelectedPresetId, useSelectedPresetId } from './presetModel';
+import { getSelectedPresetId, setSelectedPresetId, useImportedBaseTheme, useSelectedPresetId } from './presetModel';
 import { type ChartsPreset, findPreset } from './presets';
 
 export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }) => {
@@ -21,6 +21,7 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
     const storedPalette = useStoredPalette();
 
     const preset = findPreset(useSelectedPresetId()) ?? initialPreset;
+    const importedBaseTheme = useImportedBaseTheme();
 
     // A first visit: the provider has applied the starting preset's params, but
     // the palette and the preset itself live outside the shared param model, so
@@ -33,11 +34,13 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
 
     const selection: ChartsThemeSelection = useMemo(
         () => ({
-            baseTheme: preset.baseTheme,
+            // An imported theme names its own base and has no preset to take one
+            // from, so it wins here until a preset is chosen again.
+            baseTheme: importedBaseTheme ?? preset.baseTheme,
             params: overriddenParams,
             palette: storedPalette ?? preset.palette,
         }),
-        [preset, overriddenParams, storedPalette]
+        [importedBaseTheme, preset, overriddenParams, storedPalette]
     );
     const previewTheme = useMemo(() => toChartTheme(selection), [selection]);
 
