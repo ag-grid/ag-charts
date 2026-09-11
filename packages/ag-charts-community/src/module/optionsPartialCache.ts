@@ -1,4 +1,5 @@
 import { LRUCache, type PlainObject, isPlainObject } from 'ag-charts-core';
+import type { OptionsGraphAccessorResolvePartialOptions } from './optionsGraphTypes';
 
 // Sized for the handful of distinct styles a styler yields; one returning a distinct style per datum evicts
 // rather than growing without bound.
@@ -6,12 +7,6 @@ const PARTIAL_CACHE_MAX = 512;
 
 // Depth cap doubles as the cycle guard: a self-referential payload bails out as uncacheable.
 const CACHE_KEY_MAX_DEPTH = 6;
-
-export interface PartialCacheKeyOptions {
-    permissivePath?: boolean;
-    pick?: boolean;
-    proxyPaths?: Record<string, Array<string>>;
-}
 
 interface PartialCacheEntry {
     value: PlainObject | undefined;
@@ -46,7 +41,7 @@ export class OptionsPartialCache {
      * A key identifying the request, or `undefined` when it must not be cached: `proxyPaths` rewrites the caller's
      * own object rather than only reading it.
      */
-    keyFor(path: Array<string>, partialOptions: PlainObject, resolveOptions?: PartialCacheKeyOptions) {
+    keyFor(path: Array<string>, partialOptions: PlainObject, resolveOptions?: OptionsGraphAccessorResolvePartialOptions) {
         if (resolveOptions?.proxyPaths != null) return;
 
         const key: Array<string> = [
