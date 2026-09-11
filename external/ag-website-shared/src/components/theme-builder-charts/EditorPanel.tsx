@@ -8,12 +8,12 @@ import {
     verticalSpacingIcon,
 } from '@ag-website-shared/components/theme-builder/icons';
 import { useApplicationConfigAtom } from '@ag-website-shared/theming/application-config';
-import { useRenderedThemeInfo } from '@ag-website-shared/theming/rendered-theme';
 import styled from '@emotion/styled';
 import type { ReactNode } from 'react';
 
+import { InheritedValueNote } from './InheritedValueNote';
 import { usePalette } from './paletteModel';
-import { type ChartsParamConfig, INHERITED_KEYS, type LengthIcon, PARAM_GROUPS } from './params';
+import { type ChartsParamConfig, type LengthIcon, PARAM_GROUPS } from './params';
 
 const PALETTE_SECTION = 'Palette';
 const ALL_PARAMS_SECTION = 'All Parameters';
@@ -48,6 +48,10 @@ const paramEditor = (param: ChartsParamConfig) => (
         // sections have a "Background Color" - so the tooltip carries the part
         // the label leaves out: which of the chart's parts this one paints.
         showDocs
+        // Most of these params follow another one, and the editor shows the
+        // value that resolves to - so the field says so underneath until the
+        // param is given a value of its own.
+        note={<InheritedValueNote param={param.key} />}
         icon={iconFor(param.icon)}
         swipeAdjustmentDivisor={param.swipeAdjustmentDivisor}
         min={param.min}
@@ -58,7 +62,6 @@ const paramEditor = (param: ChartsParamConfig) => (
 export const EditorPanel = () => {
     const [expanded, setExpanded] = useApplicationConfigAtom('expandedEditors');
     const [palette, setPalette] = usePalette();
-    const { overriddenParams } = useRenderedThemeInfo();
     const openSections = expanded || DEFAULT_OPEN_SECTIONS;
 
     const toggleSection = (heading: string) => {
@@ -73,11 +76,6 @@ export const EditorPanel = () => {
         onToggle: () => toggleSection(heading),
     });
 
-    // A param that has been given a value is always shown, whether it inherits
-    // or not: that value is the preset's decision or the user's, and one they
-    // cannot see is one they cannot undo.
-    const isInherited = ({ key }: ChartsParamConfig) => INHERITED_KEYS.has(key) && overriddenParams[key] == null;
-
     return (
         <PanelWrapper>
             {/* Palette leads: for a chart theme it is the change with the most
@@ -86,23 +84,18 @@ export const EditorPanel = () => {
             <CollapsibleSection {...sectionProps(PALETTE_SECTION)}>
                 <PaletteEditor value={palette} onChange={setPalette} />
             </CollapsibleSection>
-            {PARAM_GROUPS.map((group) => {
-                const shown = group.params.filter((param) => !isInherited(param));
-                // Every param in the group follows another one, so the group has
-                // nothing to offer until one of them is asked for by name in the
-                // section below - and a heading over an empty body reads as a
-                // section that failed to load rather than one with nothing to say.
-                if (shown.length === 0) {
-                    return null;
-                }
-                return (
-                    <CollapsibleSection key={group.id} {...sectionProps(group.label)}>
-                        <Fields>{shown.map(paramEditor)}</Fields>
-                    </CollapsibleSection>
-                );
-            })}
-            {/* Last: every param by name, for the ones the curated sections keep
-                out of the way, and for anything a section does not name. */}
+            {/* Every group, and every param in it. A param that follows another
+                one is still worth a place: the panel is where you find out what
+                a theme can change, and hiding the followers hid three sections
+                of it - and with them the fact that a chart has menus, tooltips
+                and axes whose colours are yours to set. */}
+            {PARAM_GROUPS.map((group) => (
+                <CollapsibleSection key={group.id} {...sectionProps(group.label)}>
+                    <Fields>{group.params.map(paramEditor)}</Fields>
+                </CollapsibleSection>
+            ))}
+            {/* Last: the same params, searchable by name or by what they do -
+                for finding one without knowing which section holds it. */}
             <CollapsibleSection {...sectionProps(ALL_PARAMS_SECTION)}>
                 <AdvancedParamSelector />
             </CollapsibleSection>

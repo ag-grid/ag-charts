@@ -7,11 +7,16 @@ import { InfoTooltip } from './Tooltip';
 export type FormFieldProps = {
     label?: string | null;
     docs?: string | null;
+    /**
+     * A footnote under the control - a line saying where the value came from,
+     * say. Nothing by default.
+     */
+    note?: ReactNode;
     children?: ReactNode;
     onCloseClick?: () => void;
 };
 
-export const FormField = ({ label, children, docs, onCloseClick }: FormFieldProps) => (
+export const FormField = ({ label, children, docs, note, onCloseClick }: FormFieldProps) => (
     <StyledFormField>
         {(label || docs || onCloseClick) && (
             <Label>
@@ -21,6 +26,7 @@ export const FormField = ({ label, children, docs, onCloseClick }: FormFieldProp
             </Label>
         )}
         {children}
+        {note}
     </StyledFormField>
 );
 

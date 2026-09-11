@@ -5,10 +5,13 @@
  *
  * Every one of AG Charts' 46 public params appears in exactly one group -
  * asserted by `params.test.ts`, so a param added to the API cannot quietly go
- * missing from the builder. Which of them the panel shows without being asked
- * is decided at the foot of this file, from the defaults rather than by hand.
+ * missing from the builder. All of them are shown; which ones follow another
+ * param, and which they follow, is worked out at the foot of this file from the
+ * defaults rather than listed by hand.
  */
-import { CHARTS_PARAM_DEFAULTS } from './chartsTheme';
+import { paramToVariableName } from '@ag-website-shared/theming/utils';
+
+import { CHARTS_PARAM_DEFAULTS, PUBLIC_PARAM_NAMES } from './chartsTheme';
 
 export type LengthIcon = 'radius' | 'verticalSpacing' | 'horizontalSpacing';
 
@@ -159,15 +162,16 @@ export const inheritedKeysOf = (params: Record<string, unknown>): Set<string> =>
     );
 
 /**
- * The params the panel keeps out of the way until asked for: 35 of AG Charts'
- * 46, whose defaults follow another param.
+ * The params that follow another one rather than standing alone: 35 of AG
+ * Charts' 46.
  *
  * They are the ones a theme rarely has to state. Chrome's text colour is the
  * foreground colour, and the menu's and the tooltip's are the chrome's - so
- * setting the foreground colour alone recolours all four correctly, while a
- * panel that lists every link in that chain asks for four decisions where one
- * would do. Worse, each one answered is a colour pinned in place while the rest
- * of the theme moves around it.
+ * setting the foreground colour alone recolours all four correctly, and each of
+ * the three answered by hand is a colour pinned in place while the rest of the
+ * theme moves around it. The panel shows them all the same, and says under each
+ * one that its value is inherited, so that the difference is visible before it
+ * is a surprise.
  *
  * Read from the defaults rather than listed here, so a param whose default
  * becomes a reference - or stops being one - changes side on its own. The
@@ -176,3 +180,55 @@ export const inheritedKeysOf = (params: Record<string, unknown>): Set<string> =>
  * rather than replacing it with a literal.
  */
 export const INHERITED_KEYS = inheritedKeysOf(CHARTS_PARAM_DEFAULTS);
+
+/** `--ag-accent-color` back to `accentColor`, for a default written as raw CSS. */
+const PARAM_BY_VARIABLE: Record<string, string> = Object.fromEntries(
+    PUBLIC_PARAM_NAMES.map((property) => [paramToVariableName(property), property])
+);
+
+const collectSources = (value: unknown, found: string[]): void => {
+    if (typeof value === 'string') {
+        for (const [, variable] of value.matchAll(/var\((--ag-[a-z\d-]+)/g)) {
+            const property = PARAM_BY_VARIABLE[variable];
+            if (property) {
+                found.push(property);
+            }
+        }
+        return;
+    }
+    if (typeof value !== 'object' || value == null || Array.isArray(value)) {
+        return;
+    }
+    const { ref, onto } = value as { ref?: unknown; onto?: unknown };
+    if (typeof ref === 'string') {
+        found.push(ref);
+        if (typeof onto === 'string') {
+            found.push(onto);
+        }
+        return;
+    }
+    // A composite - a border's colour and width - each member of which may be a
+    // reference of its own.
+    for (const member of Object.values(value)) {
+        collectSources(member, found);
+    }
+};
+
+/**
+ * Which params a default follows, in the order it names them: the one a `{ ref }`
+ * points at, both ends of a blend, each member of a composite, and the
+ * `var(--ag-*)` names in a default written as raw CSS.
+ *
+ * Named so the panel can say what an unset param inherits from, rather than
+ * only that it inherits.
+ */
+export const inheritedSourcesOf = (value: unknown): string[] => {
+    const found: string[] = [];
+    collectSources(value, found);
+    return [...new Set(found)];
+};
+
+/** What each inherited param follows, for the editor panel's footnotes. */
+export const INHERITED_SOURCES: Record<string, string[]> = Object.fromEntries(
+    [...INHERITED_KEYS].map((key) => [key, inheritedSourcesOf(CHARTS_PARAM_DEFAULTS[key])])
+);
