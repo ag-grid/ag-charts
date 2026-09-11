@@ -57,7 +57,7 @@ export interface FooterLink {
     url: string;
     newTab?: boolean;
     showCookiesPrefs?: boolean;
-    iconName: string;
+    iconName?: IconName;
 }
 
 export interface FooterItem {
