@@ -27,7 +27,7 @@ export { RadiusNumberAxisModule } from './axes/radius-number/radiusNumberAxisMod
 export { PolarCrossLinesModule } from './axes/polar-crosslines/polarCrossLinesModule';
 export { AnimationModule } from './features/animation/animationModule';
 export { AnnotationsModule } from './features/annotations/annotationsModule';
-export { AxisDOMProxyModule as AxisInteractionModule } from './features/axis-dom-proxy/axisDomProxyModule';
+export { AxisInteractionModule } from './features/axis-interaction/axisInteractionModule';
 export { BandHighlightModule } from './features/band-highlight/bandHighlightModule';
 export { ChartToolbarModule } from './features/chart-toolbar/chartToolbarModule';
 export { ContextMenuModule } from './features/context-menu/contextMenuModule';

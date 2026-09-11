@@ -8,7 +8,7 @@ import {
 } from 'ag-charts-community';
 import type { AxisModuleDefinition } from 'ag-charts-core';
 
-import { AxisDOMProxyModule } from '../../features/axis-dom-proxy/axisDomProxyModule';
+import { AxisInteractionModule } from '../../features/axis-interaction/axisInteractionModule';
 
 // Same name and version as the community definition, so registering it replaces the community one.
 // The copy carries no community identity mark, so a chart using it is licensed as enterprise.
@@ -16,7 +16,7 @@ function withAxisInteraction<T extends AxisModuleDefinition<any, any>>(module: T
     return {
         ...module,
         enterprise: true,
-        dependencies: [...(module.dependencies ?? []), AxisDOMProxyModule],
+        dependencies: [...(module.dependencies ?? []), AxisInteractionModule],
     };
 }
 

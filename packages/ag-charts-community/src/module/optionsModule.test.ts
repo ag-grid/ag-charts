@@ -4971,7 +4971,7 @@ describe('ChartOptions', () => {
                     const registeredModules = [...ModuleRegistry.listModules()];
                     const axisInteraction: ModuleDefinition = {
                         type: ModuleType.Plugin,
-                        name: 'axis-dom-proxy',
+                        name: 'axis-interaction',
                         version: VERSION,
                         create: () => ({}),
                     };

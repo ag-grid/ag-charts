@@ -132,7 +132,7 @@ describe('enterprise cartesian axis modules', () => {
     it('registers axis interaction alongside the enterprise axis modules', () => {
         ModuleRegistry.registerModules([LineSeriesModule, EnterpriseNumberAxisModule]);
 
-        expect(ModuleRegistry.hasModule('axis-dom-proxy')).toBe(true);
+        expect(ModuleRegistry.hasModule('axis-interaction')).toBe(true);
     });
 
     it('replaces a community axis module regardless of registration order', () => {
@@ -174,7 +174,7 @@ describe('enterprise cartesian axis modules', () => {
             expect(
                 module?.dependencies?.map((dep) => dep.name),
                 community.name
-            ).toContain('axis-dom-proxy');
+            ).toContain('axis-interaction');
         }
     });
 });

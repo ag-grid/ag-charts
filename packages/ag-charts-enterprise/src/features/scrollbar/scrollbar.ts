@@ -189,7 +189,7 @@ export class Scrollbar extends AbstractModuleInstance {
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         const opts = this.opts;
-        this.ctx.eventsHub.emit('axis-dom-proxy:update', {
+        this.ctx.eventsHub.emit('axis-interaction:update', {
             source: 'scrollbar',
             enabled: opts.enabled,
             enableDoubleClick: false,

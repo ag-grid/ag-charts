@@ -429,7 +429,7 @@ export const ExpectedModules = new Map<string, ModulePlaceholder>(
             },
             {
                 type: 'plugin',
-                name: 'axis-dom-proxy',
+                name: 'axis-interaction',
                 chartType: 'cartesian',
                 enterprise: true,
                 moduleId: 'AxisInteractionModule',

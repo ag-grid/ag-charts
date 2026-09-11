@@ -996,7 +996,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     // Axis click listeners are dispatched by a plugin module whose presence no option key reveals.
     private removeAxisInteractionListeners(options: T): ModulePlaceholder | undefined {
-        const placeholder = ExpectedModules.get('axis-dom-proxy');
+        const placeholder = ExpectedModules.get('axis-interaction');
         if (placeholder == null || this.moduleRegistry.hasModule(placeholder.name)) return;
         if (placeholder.chartType != null && placeholder.chartType !== this.chartDef?.name) return;
 

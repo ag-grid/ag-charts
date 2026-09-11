@@ -32,13 +32,13 @@ function hasDraggableAxes(ctx: DynamicContext<_ModuleSupport.ChartRegistry>): bo
 }
 
 /**
- * The AxisDOMProxy module handles interactions with the axes. In most cases it does this via the dom events on proxy
+ * The AxisInteraction module handles interactions with the axes. In most cases it does this via the dom events on proxy
  * axis elements. However, in circumstances where the axes overlap the series area, such as when using the `crossAt`
  * option, we disable pointer events so we do not block other interactions, such as highlight. So it also listen to
  * events on the series area dom proxy and delegates them to the axes where appropriate. It does not handle any
  * effects of these interactions, those are expected to be handled by other modules.
  */
-export class AxisDOMProxy extends AbstractModuleInstance {
+export class AxisInteraction extends AbstractModuleInstance {
     private readonly enabled = new Map<string, boolean>();
     private readonly enableDoubleClick = new Map<string, boolean>();
     private readonly enableDragging = new Map<string, boolean>();
@@ -69,7 +69,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
 
         this.cleanup.register(
             ctx.eventsHub.on('layout:complete', (event) => this.onLayoutComplete(event)),
-            ctx.eventsHub.on('axis-dom-proxy:update', (event) => this.onUpdate(event)),
+            ctx.eventsHub.on('axis-interaction:update', (event) => this.onUpdate(event)),
             ctx.eventsHub.on('series-area:hover', (event) => this.onSeriesAreaHover(event)),
             ctx.eventsHub.on('series-area:click', (event) => this.onSeriesAreaClick(event)),
             ctx.eventsHub.on('series-area:contextmenu', (event) => this.onSeriesAreaContextMenu(event)),
@@ -88,7 +88,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         this.refresh();
     }
 
-    private onUpdate(event: _ModuleSupport.AxisDOMProxyUpdateEvent) {
+    private onUpdate(event: _ModuleSupport.AxisInteractionUpdateEvent) {
         const { enabled, enableDoubleClick, enableDragging, enableScrolling, enableContextMenu, source } = event;
 
         this.enabled.set(source, enabled);
@@ -146,7 +146,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
 
         for (const newAxisCtx of added) {
             const { axisId, direction } = newAxisCtx;
-            const proxyAxis = this.createAxisDOMProxy(axisId, direction);
+            const proxyAxis = this.createAxisInteraction(axisId, direction);
 
             this.axes.push(proxyAxis);
         }
@@ -172,7 +172,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         if (event.consumed) {
             if (this.hoveredAxisId) {
                 this.hoveredAxisId = undefined;
-                this.ctx.eventsHub.emit('axis-dom-proxy:mouseleave', { event });
+                this.ctx.eventsHub.emit('axis-interaction:mouseleave', { event });
             }
 
             return;
@@ -184,14 +184,14 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         const axis = this.pickAxisAtPoint(event);
         if (axis) {
             this.hoveredAxisId = axis.axisId;
-            this.ctx.eventsHub.emit('axis-dom-proxy:mouseenter', {
+            this.ctx.eventsHub.emit('axis-interaction:mouseenter', {
                 axisId: axis.axisId,
                 direction: axis.direction,
                 event,
             });
         } else {
             if (this.hoveredAxisId) {
-                this.ctx.eventsHub.emit('axis-dom-proxy:mouseleave', { event });
+                this.ctx.eventsHub.emit('axis-interaction:mouseleave', { event });
             }
             this.hoveredAxisId = undefined;
         }
@@ -210,7 +210,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         const axis = this.getAxis(this.hoveredAxisId);
         if (!axis) return;
 
-        this.ctx.eventsHub.emit('axis-dom-proxy:dblclick', {
+        this.ctx.eventsHub.emit('axis-interaction:dblclick', {
             event,
             axisId: axis.axisId,
             direction: axis.direction,
@@ -241,7 +241,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         const axis = this.getAxis(this.hoveredAxisId);
         if (!axis) return;
 
-        this.ctx.eventsHub.emit('axis-dom-proxy:dblclick', {
+        this.ctx.eventsHub.emit('axis-interaction:dblclick', {
             event,
             axisId: axis.axisId,
             direction: axis.direction,
@@ -261,7 +261,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
 
         this.draggingAxisId = hoveredAxis.axisId;
 
-        this.ctx.eventsHub.emit('axis-dom-proxy:drag-start', {
+        this.ctx.eventsHub.emit('axis-interaction:drag-start', {
             axisId: hoveredAxis.axisId,
             direction: hoveredAxis.direction,
             event,
@@ -283,7 +283,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         const draggingAxis = this.getAxis(this.draggingAxisId);
         if (!draggingAxis) return;
 
-        this.ctx.eventsHub.emit('axis-dom-proxy:drag-move', {
+        this.ctx.eventsHub.emit('axis-interaction:drag-move', {
             axisId: draggingAxis.axisId,
             direction: draggingAxis.direction,
             event,
@@ -301,7 +301,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         if (!draggingAxis) return;
 
         this.draggingAxisId = undefined;
-        this.ctx.eventsHub.emit('axis-dom-proxy:drag-end', {
+        this.ctx.eventsHub.emit('axis-interaction:drag-end', {
             axisId: draggingAxis.axisId,
             direction: draggingAxis.direction,
             event,
@@ -440,7 +440,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         }
     }
 
-    private createAxisDOMProxy(axisId: AxisID, direction: ChartAxisDirection): ProxyAxis {
+    private createAxisInteraction(axisId: AxisID, direction: ChartAxisDirection): ProxyAxis {
         const axisInteraction = this.ctx.widgets.axisWidgets.acquireRegion(axisId);
         const div = axisInteraction.widget;
         const dragInterpretation = axisInteraction.dragInterpreter.events;
@@ -451,35 +451,35 @@ export class AxisDOMProxy extends AbstractModuleInstance {
                 event.sourceEvent.preventDefault();
             }
             this.draggingAxisId = axisId;
-            this.ctx.eventsHub.emit('axis-dom-proxy:drag-start', { axisId, direction, event });
+            this.ctx.eventsHub.emit('axis-interaction:drag-start', { axisId, direction, event });
         });
         dragInterpretation.on('drag-move', (event) => {
             if (!this.isEnabled() || !this.isEnabledDragging()) return;
-            this.ctx.eventsHub.emit('axis-dom-proxy:drag-move', { axisId, direction, event });
+            this.ctx.eventsHub.emit('axis-interaction:drag-move', { axisId, direction, event });
         });
         dragInterpretation.on('drag-end', (event) => {
             if (!this.isEnabled() || !this.isEnabledDragging()) return;
             this.draggingAxisId = undefined;
-            this.ctx.eventsHub.emit('axis-dom-proxy:drag-end', { axisId, direction, event });
+            this.ctx.eventsHub.emit('axis-interaction:drag-end', { axisId, direction, event });
         });
         dragInterpretation.on('dblclick', (event) => {
             this.dispatchAxisClick(axisId, event);
             if (!this.isEnabled() || !this.isEnabledDoubleClick()) return;
-            this.ctx.eventsHub.emit('axis-dom-proxy:dblclick', { axisId, direction, event });
+            this.ctx.eventsHub.emit('axis-interaction:dblclick', { axisId, direction, event });
         });
         div.addListener('mouseenter', (event) => {
             if (!this.isEnabled()) return;
             this.hoveredAxisId = axisId;
-            this.ctx.eventsHub.emit('axis-dom-proxy:mouseenter', { axisId, direction, event });
+            this.ctx.eventsHub.emit('axis-interaction:mouseenter', { axisId, direction, event });
         });
         div.addListener('mouseleave', (event) => {
             if (!this.isEnabled()) return;
             this.hoveredAxisId = undefined;
-            this.ctx.eventsHub.emit('axis-dom-proxy:mouseleave', { event });
+            this.ctx.eventsHub.emit('axis-interaction:mouseleave', { event });
         });
         div.addListener('wheel', (event) => {
             if (!this.isEnabled() || !this.isEnabledScrolling()) return;
-            this.ctx.eventsHub.emit('axis-dom-proxy:wheel', { axisId, direction, event });
+            this.ctx.eventsHub.emit('axis-interaction:wheel', { axisId, direction, event });
         });
         dragInterpretation.on('click', (event) => {
             this.dispatchAxisClick(axisId, event);
@@ -512,7 +512,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
 
     /**
      * Deliberately not named `isEnabledClick`: unlike the `isEnabled*` methods it does not read a
-     * flag requested by another module via `axis-dom-proxy:update`. Click interaction has no
+     * flag requested by another module via `axis-interaction:update`. Click interaction has no
      * requester — it is implied by the presence of an `axes[].listeners` callback, or of a
      * chart-level `axisClick` / `axisDoubleClick` listener.
      */
