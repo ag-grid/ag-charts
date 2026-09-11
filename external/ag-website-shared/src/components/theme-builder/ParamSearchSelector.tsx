@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import { FloatingPortal, autoUpdate, offset, shift, useFloating } from '@floating-ui/react';
 import { useCombobox } from 'downshift';
-import { Fragment, type ReactElement, type ReactNode, useRef, useState } from 'react';
+import { Fragment, type ReactElement, type ReactNode, useCallback, useRef, useState } from 'react';
 
 import { StyledInput } from './Input';
 
@@ -105,11 +105,25 @@ export function ParamSearchSelector<T>({
 
     const inputProps = getInputProps();
 
-    // Floating UI and Downshift both want to set a ref, merge them into one
-    const inputRef = (instance: any) => {
-        refs.setReference(instance);
-        (inputProps as any).ref(instance);
-    };
+    // Floating UI and Downshift both want to set a ref, merge them into one.
+    //
+    // The merged callback has to keep the same identity across renders. React
+    // reattaches a function ref whose identity changed - calling it with `null`
+    // and then with the element - and Floating UI's `setReference` holds the
+    // element in state, so an inline callback writes state twice per commit.
+    // React counts those as nested updates and aborts the tree at 50, which is
+    // reached the moment anything outside Downshift re-renders this component.
+    // Downshift hands out a fresh ref each render, so the latest one is read
+    // through a ref rather than captured.
+    const downshiftInputRef = useRef<(instance: HTMLInputElement | null) => void>();
+    downshiftInputRef.current = (inputProps as any).ref;
+    const inputRef = useCallback(
+        (instance: HTMLInputElement | null) => {
+            refs.setReference(instance);
+            downshiftInputRef.current?.(instance);
+        },
+        [refs]
+    );
 
     const enabledItems = items.filter(isEnabled);
 
@@ -251,9 +265,8 @@ const EmphasiseMatches = ({ matcher, text }: EmphasiseMatchesProps) => {
 
 const FullHeightDropdown = styled('div')`
     z-index: 10010; // above a sticky site header (e.g. Studio's z-index:10002) so the popup isn't hidden
-    position: absolute;
     pointer-events: all;
-    height: calc(100vh);
+    height: 100vh;
     position: relative;
 `;
 
