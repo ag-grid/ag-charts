@@ -129,16 +129,16 @@ export interface EventsHubMap {
     'active:load-memento': ActiveLoadMementoEvent;
     'annotations:restore': AnnotationsRestoreEvent;
     'axis:change': null;
-    'axis-dom-proxy:cursor': { cursor: BaseStyleTypeMap['cursor'] | undefined };
-    'axis-dom-proxy:toggle-dragging-cursor': { direction: ChartAxisDirection; enabled: boolean };
-    'axis-dom-proxy:drag-start': AxisDOMProxyDragEvent<'drag-start'>;
-    'axis-dom-proxy:drag-move': AxisDOMProxyDragEvent<'drag-move'>;
-    'axis-dom-proxy:drag-end': AxisDOMProxyDragEvent<'drag-end'>;
-    'axis-dom-proxy:dblclick': AxisDOMProxyMouseEvent<'dblclick'>;
-    'axis-dom-proxy:mouseenter': AxisDOMProxyMouseEnterEvent;
-    'axis-dom-proxy:mouseleave': AxisDOMProxyMouseLeaveEvent;
-    'axis-dom-proxy:update': AxisDOMProxyUpdateEvent;
-    'axis-dom-proxy:wheel': AxisDOMProxyWheelEvent;
+    'axis-interaction:cursor': { cursor: BaseStyleTypeMap['cursor'] | undefined };
+    'axis-interaction:toggle-dragging-cursor': { direction: ChartAxisDirection; enabled: boolean };
+    'axis-interaction:drag-start': AxisInteractionDragEvent<'drag-start'>;
+    'axis-interaction:drag-move': AxisInteractionDragEvent<'drag-move'>;
+    'axis-interaction:drag-end': AxisInteractionDragEvent<'drag-end'>;
+    'axis-interaction:dblclick': AxisInteractionMouseEvent<'dblclick'>;
+    'axis-interaction:mouseenter': AxisInteractionMouseEnterEvent;
+    'axis-interaction:mouseleave': AxisInteractionMouseLeaveEvent;
+    'axis-interaction:update': AxisInteractionUpdateEvent;
+    'axis-interaction:wheel': AxisInteractionWheelEvent;
     'canvas:resize': { width: number; height: number };
     'chart:request-refresh': null;
     'chart:request-update': UpdateRequestEvent;
@@ -234,35 +234,35 @@ interface AnnotationsRestoreEvent {
     annotations: AgAnnotation[];
 }
 
-export interface AxisDOMProxyDragEvent<T extends 'drag-start' | 'drag-move' | 'drag-end'> {
+export interface AxisInteractionDragEvent<T extends 'drag-start' | 'drag-move' | 'drag-end'> {
     axisId: AxisID;
     direction: ChartAxisDirection;
     event: DragWidgetEvent<T>;
 }
 
-export interface AxisDOMProxyMouseEvent<T extends 'dblclick'> {
+export interface AxisInteractionMouseEvent<T extends 'dblclick'> {
     axisId: AxisID;
     direction: ChartAxisDirection;
     event: MouseWidgetEvent<T> | SeriesAreaClickEvent;
 }
 
-export interface AxisDOMProxyMouseEnterEvent {
+export interface AxisInteractionMouseEnterEvent {
     axisId: AxisID;
     direction: ChartAxisDirection;
     event: MouseWidgetEvent<'mouseenter'> | SeriesAreaHoverEvent;
 }
 
-export interface AxisDOMProxyMouseLeaveEvent {
+export interface AxisInteractionMouseLeaveEvent {
     event: MouseWidgetEvent<'mouseleave'> | SeriesAreaHoverEvent;
 }
 
-export interface AxisDOMProxyWheelEvent {
+export interface AxisInteractionWheelEvent {
     axisId: AxisID;
     direction: ChartAxisDirection;
     event: WheelWidgetEvent;
 }
 
-export interface AxisDOMProxyUpdateEvent {
+export interface AxisInteractionUpdateEvent {
     source: string;
     enabled: boolean;
     enableDoubleClick: boolean;

@@ -1,7 +1,7 @@
 import type { Mock } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Logger, ModuleRegistry, ambientLog, ambientLogger } from 'ag-charts-core';
+import { Logger, type ModuleDefinition, ModuleRegistry, ModuleType, ambientLog, ambientLogger } from 'ag-charts-core';
 import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
@@ -4914,6 +4914,78 @@ describe('ChartOptions', () => {
 
                 const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
                 expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+            });
+
+            describe('axis click listeners', () => {
+                const axisListenerOptions = (extra?: object): AgChartOptions =>
+                    ({
+                        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                        axes: {
+                            x: { type: 'category', position: 'bottom', listeners: { click: () => {} } },
+                            y: { type: 'number', position: 'left' },
+                        },
+                        ...extra,
+                    }) as any;
+
+                const moduleMessages = () =>
+                    (console.error as Mock).mock.calls
+                        .map(([m]) => String(m))
+                        .filter((m) => m.includes('required modules are not registered'));
+
+                it('reports AxisInteractionModule for an axis click listener and strips the listener', () => {
+                    const processed = prepareOptions(axisListenerOptions(), new Logger()) as any;
+
+                    expect(moduleMessages()).toEqual([expect.stringContaining('AxisInteractionModule')]);
+                    expect(Object.values(processed.axes).some((axis: any) => axis.listeners?.click)).toBe(false);
+                });
+
+                it('reports AxisInteractionModule for a chart-level axisDoubleClick listener', () => {
+                    const options = {
+                        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                        listeners: { axisDoubleClick: () => {} },
+                    } as AgChartOptions;
+                    const processed = prepareOptions(options, new Logger()) as any;
+
+                    expect(moduleMessages()).toEqual([expect.stringContaining('AxisInteractionModule')]);
+                    expect(processed.listeners?.axisDoubleClick).toBeUndefined();
+                });
+
+                it('leaves non-cartesian charts alone', () => {
+                    const options = {
+                        series: [{ type: 'pie', angleKey: 'y' }],
+                        listeners: { axisClick: () => {} },
+                    } as AgChartOptions;
+                    const processed = prepareOptions(options, new Logger()) as any;
+
+                    expect(moduleMessages()).toEqual([]);
+                    expect(processed.listeners?.axisClick).toBeDefined();
+                });
+
+                it("throws at `['error']` for the dropped axis click listener", () => {
+                    expect(() =>
+                        prepareOptions(axisListenerOptions({ validations: { throwOn: ['error'] } }), new Logger())
+                    ).toThrow(/required modules are not registered/);
+                });
+
+                it('keeps the listener quiet when the axis interaction plugin is registered', () => {
+                    const registeredModules = [...ModuleRegistry.listModules()];
+                    const axisInteraction: ModuleDefinition = {
+                        type: ModuleType.Plugin,
+                        name: 'axis-interaction',
+                        version: VERSION,
+                        create: () => ({}),
+                    };
+                    ModuleRegistry.registerModules([axisInteraction]);
+                    try {
+                        const processed = prepareOptions(axisListenerOptions(), new Logger()) as any;
+
+                        expect(moduleMessages()).toEqual([]);
+                        expect(Object.values(processed.axes).some((axis: any) => axis.listeners?.click)).toBe(true);
+                    } finally {
+                        ModuleRegistry.reset();
+                        ModuleRegistry.registerModules(registeredModules);
+                    }
+                });
             });
 
             // Asserted on the module message rather than on whether anything throws, so an unrelated

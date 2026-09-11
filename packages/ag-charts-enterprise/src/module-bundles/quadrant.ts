@@ -1,6 +1,7 @@
-import { BubbleSeriesModule, NumberAxisModule, ScatterSeriesModule } from 'ag-charts-community';
+import { BubbleSeriesModule, ScatterSeriesModule } from 'ag-charts-community';
 import type { ModuleDefinition } from 'ag-charts-core';
 
+import { NumberAxisModule } from '../axes/cartesian/cartesianAxisModules';
 import { AnimationModule } from '../features/animation/animationModule';
 import { AnnotationsModule } from '../features/annotations/annotationsModule';
 import { BandHighlightModule } from '../features/band-highlight/bandHighlightModule';

@@ -589,6 +589,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // The first pass validation of the axes, before they have been processed. At this point the axis keys are still
         // the ones provided by the user and have not been remapped. Any axes without a `type` property are skipped.
         const missingAxesModules = this.validateAxesOptions(options, this.validateParams);
+        const missingAxisInteractionModule = this.removeAxisInteractionListeners(options);
 
         this.removeDisabledOptions(options);
 
@@ -627,7 +628,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         processModuleOptions(
             this.chartDef.name,
             processedOptions,
-            missingSeriesModules.concat(missingAxesModules, missingPresetModule ?? []),
+            missingSeriesModules.concat(
+                missingAxesModules,
+                missingPresetModule ?? [],
+                missingAxisInteractionModule ?? []
+            ),
             this.logger,
             this.moduleRegistry
         );
@@ -987,6 +992,32 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         options.axes = validatedAxesOptions;
 
         return missingModules;
+    }
+
+    // Axis click listeners are dispatched by a plugin module whose presence no option key reveals.
+    private removeAxisInteractionListeners(options: T): ModulePlaceholder | undefined {
+        const placeholder = ExpectedModules.get('axis-interaction');
+        if (placeholder == null || this.moduleRegistry.hasModule(placeholder.name)) return;
+        if (placeholder.chartType != null && placeholder.chartType !== this.chartDef?.name) return;
+
+        let missing = false;
+        const strip = (listeners: PlainObject | undefined, ...events: string[]) => {
+            if (!isObject(listeners)) return;
+            for (const event of events) {
+                if (listeners[event] == null) continue;
+                delete listeners[event];
+                missing = true;
+            }
+        };
+
+        strip((options as PlainObject).listeners, 'axisClick', 'axisDoubleClick');
+        if ('axes' in options && options.axes) {
+            for (const [, axisOptions] of entries(options.axes)) {
+                strip((axisOptions as PlainObject | undefined)?.listeners, 'click', 'doubleClick');
+            }
+        }
+
+        return missing ? placeholder : undefined;
     }
 
     diffOptions(other?: ChartOptions): Partial<T> {

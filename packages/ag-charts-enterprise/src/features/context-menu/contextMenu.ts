@@ -163,13 +163,13 @@ export class ContextMenu extends AbstractModuleInstance {
 
         this.cleanup.register(
             this.ctx.eventsHub.on('context-menu:complete', (e) => this.onContext(e)),
-            this.ctx.eventsHub.on('layout:complete', () => this.updateAxisDOMProxy())
+            this.ctx.eventsHub.on('layout:complete', () => this.updateAxisInteraction())
         );
     }
 
-    private updateAxisDOMProxy() {
+    private updateAxisInteraction() {
         const enabled = this.opts.enabled ?? true;
-        this.ctx.eventsHub.emit('axis-dom-proxy:update', {
+        this.ctx.eventsHub.emit('axis-interaction:update', {
             source: moduleId,
             enabled,
             enableDoubleClick: false,

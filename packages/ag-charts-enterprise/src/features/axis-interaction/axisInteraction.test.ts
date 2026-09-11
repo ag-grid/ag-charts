@@ -38,7 +38,7 @@ function measureBandCentres(count: number): number[] {
     return Array.from({ length: count }, (_, i) => left + (width * (i + 0.5)) / count);
 }
 
-describe('AxisDOMProxy', () => {
+describe('AxisInteraction', () => {
     setupMockCanvas();
     setupMockConsole();
     let formatter: ReturnType<typeof vi.fn>;

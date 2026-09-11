@@ -482,7 +482,7 @@ describe('instance modules', () => {
         it('answers isModuleRegistered() for plugin modules by their exported name', async () => {
             const axisInteraction: ModuleDefinition = {
                 type: ModuleType.Plugin,
-                name: 'axis-dom-proxy',
+                name: 'axis-interaction',
                 version: LineSeriesModule.version,
                 enterprise: false,
                 create: () => ({}),
