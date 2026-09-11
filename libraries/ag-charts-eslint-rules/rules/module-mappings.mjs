@@ -284,6 +284,26 @@ export const enterpriseModules = new Set([
     'QuadrantPresetModule',
 ]);
 
+// Module ID → modules its own `dependencies` register alongside it, transitively. Only public module
+// IDs appear: internal intermediates such as the zoom-interaction plugin are folded into their dependents.
+export const impliedModules = new Map([
+    ['ContextMenuModule', ['AxisInteractionModule']],
+    ['OrdinalTimeAxisModule', ['AxisInteractionModule']],
+    ['ScrollbarModule', ['AxisInteractionModule']],
+    ['ZoomModule', ['AxisInteractionModule']],
+]);
+
+// As above, but only for imports from ag-charts-enterprise: the community module of the same name has no
+// such dependency.
+export const enterpriseImpliedModules = new Map([
+    ['CategoryAxisModule', ['AxisInteractionModule']],
+    ['GroupedCategoryAxisModule', ['AxisInteractionModule']],
+    ['LogAxisModule', ['AxisInteractionModule']],
+    ['NumberAxisModule', ['AxisInteractionModule']],
+    ['TimeAxisModule', ['AxisInteractionModule']],
+    ['UnitTimeAxisModule', ['AxisInteractionModule']],
+]);
+
 // Bundle definitions - what each bundle includes
 export const bundleContents = new Map([
     [

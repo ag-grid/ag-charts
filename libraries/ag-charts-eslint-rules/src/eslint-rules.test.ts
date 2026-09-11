@@ -34,3 +34,4 @@ testRule('no-unscoped-logger');
 testRule('require-explicit-generic');
 testRule('require-shared-renderer');
 testRule('validate-module-registration');
+testRule('validate-module-registration-implied');

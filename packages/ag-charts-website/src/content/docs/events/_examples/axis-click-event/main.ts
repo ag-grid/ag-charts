@@ -1,7 +1,6 @@
 import type { AgCartesianChartOptions } from 'ag-charts-enterprise';
 import {
     AgCharts,
-    AxisInteractionModule,
     LegendModule,
     LineSeriesModule,
     ModuleRegistry,
@@ -11,13 +10,7 @@ import {
 
 import { DataType, getData } from './data';
 
-ModuleRegistry.registerModules([
-    AxisInteractionModule,
-    LegendModule,
-    LineSeriesModule,
-    NumberAxisModule,
-    UnitTimeAxisModule,
-]);
+ModuleRegistry.registerModules([LegendModule, LineSeriesModule, NumberAxisModule, UnitTimeAxisModule]);
 
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
