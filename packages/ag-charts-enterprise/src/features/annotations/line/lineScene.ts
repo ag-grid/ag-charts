@@ -68,28 +68,28 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
     }
 
     private updateText(datum: LineTypeProperties, coords: Bounds4) {
-        this.text = this.updateNode(CollidableText<never>, this.text, !!datum.text.label);
+        this.text = this.updateNode(CollidableText<never>, this.text, datum.text.label !== '');
         updateLineText(this.line.id, this.line, coords, datum.text, this.text, datum.text.label, datum.strokeWidth);
     }
 
     private updateCaps(datum: LineTypeProperties, coords: Bounds4) {
-        if (!datum.startCap && this.startCap) {
+        if (datum.startCap == null && this.startCap) {
             this.startCap.remove();
             this.startCap = undefined;
         }
 
-        if (!datum.endCap && this.endCap) {
+        if (datum.endCap == null && this.endCap) {
             this.endCap.remove();
             this.endCap = undefined;
         }
 
-        if (!datum.startCap && !datum.endCap) return;
+        if (datum.startCap == null && datum.endCap == null) return;
 
         const { stroke, strokeWidth, strokeOpacity } = datum;
         const [start, end] = Vec2.from(coords);
         const angle = Vec2.angle(Vec2.sub(end, start));
 
-        if (datum.startCap) {
+        if (datum.startCap != null) {
             if (this.startCap && this.startCap.type !== datum.startCap) {
                 this.startCap.remove();
                 this.startCap = undefined;
@@ -110,7 +110,7 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
             });
         }
 
-        if (datum.endCap) {
+        if (datum.endCap != null) {
             if (this.endCap && this.endCap.type !== datum.endCap) {
                 this.endCap.remove();
                 this.endCap = undefined;

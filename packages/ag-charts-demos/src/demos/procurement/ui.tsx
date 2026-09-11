@@ -9,7 +9,12 @@ import { type ButtonHTMLAttributes, forwardRef } from 'react';
 // Forwards its ref so a caller can put focus back on the control it came from — see `AttentionAlert`.
 export const Button = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTMLButtonElement>>(
     ({ children, className, type = 'button', ...rest }, ref) => (
-        <button ref={ref} type={type} className={className ? `pc-btn ${className}` : 'pc-btn'} {...rest}>
+        <button
+            ref={ref}
+            type={type}
+            className={className == null || className === '' ? 'pc-btn' : `pc-btn ${className}`}
+            {...rest}
+        >
             {children}
         </button>
     )
@@ -53,7 +58,7 @@ export function Select({
             </RSelect.Portal>
         </RSelect.Root>
     );
-    if (!label) return trigger;
+    if (label == null || label === '') return trigger;
     return (
         <RLabel.Root className="pc-labeled-select">
             <span>{label}</span>
@@ -79,7 +84,9 @@ export function ToggleGroup({
             type="single"
             value={value}
             aria-label={ariaLabel}
-            onValueChange={(next) => next && onValueChange(next)}
+            onValueChange={(next) => {
+                if (next !== '') onValueChange(next);
+            }}
         >
             {options.map((option) => (
                 <RToggleGroup.Item key={option.value} className="pc-toggle-item" value={option.value}>

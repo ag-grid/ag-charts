@@ -43,7 +43,7 @@ export const getSeriesTypeName = ({ galleryData, exampleName }: { galleryData: G
 export const getSeriesTypeSlug = ({ galleryData, exampleName }: { galleryData: GalleryData; exampleName: string }) => {
     const slugger = new GithubSlugger();
     const name = getSeriesTypeName({ galleryData, exampleName });
-    const slug = name ? slugger.slug(name) : undefined;
+    const slug = name == null || name === '' ? undefined : slugger.slug(name);
     return slug;
 };
 

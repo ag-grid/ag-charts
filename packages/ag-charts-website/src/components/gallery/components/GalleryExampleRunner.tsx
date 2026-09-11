@@ -82,7 +82,7 @@ const GalleryExampleRunnerInner = ({
     );
 
     useEffect(() => {
-        if (!exampleName) {
+        if (exampleName === '') {
             return;
         }
 
@@ -121,7 +121,13 @@ const GalleryExampleRunnerInner = ({
     }, [exampleName]);
 
     useEffect(() => {
-        if (!contents || exampleFilesIsLoading || exampleFilesIsError || !exampleFileHtml) {
+        if (
+            !contents ||
+            exampleFilesIsLoading ||
+            exampleFilesIsError ||
+            exampleFileHtml == null ||
+            exampleFileHtml === ''
+        ) {
             return;
         }
         const files = {

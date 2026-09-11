@@ -47,7 +47,7 @@ export function groupSum(
     return {
         id,
         type: 'aggregate',
-        matchGroupIds: opts?.matchGroupId ? [opts?.matchGroupId] : undefined,
+        matchGroupIds: opts?.matchGroupId == null ? undefined : [opts.matchGroupId],
         aggregateFunction: (values) => sumValues(values),
         groupAggregateFunction: (next, acc = [0, 0]) => {
             if (visible) {
@@ -98,7 +98,7 @@ export function groupAverage(id: string, opts?: { matchGroupId?: string; visible
         [AgNumericValue, AgNumericValue, number]
     > = {
         id,
-        matchGroupIds: opts?.matchGroupId ? [opts?.matchGroupId] : undefined,
+        matchGroupIds: opts?.matchGroupId == null ? undefined : [opts.matchGroupId],
         type: 'aggregate',
         aggregateFunction: (values) => sumValues(values),
         groupAggregateFunction: (next, acc = [0, 0, -1]) => {
@@ -125,7 +125,7 @@ export function groupAverage(id: string, opts?: { matchGroupId?: string; visible
 export function area(id: string, aggFn: AggregatePropertyDefinition<any, any, any>, matchGroupId?: string) {
     const result: AggregatePropertyDefinition<any, any, [number, number]> = {
         id,
-        matchGroupIds: matchGroupId ? [matchGroupId] : undefined,
+        matchGroupIds: matchGroupId == null ? undefined : [matchGroupId],
         type: 'aggregate',
         aggregateFunction: (values, keyRange = []) => {
             // Subtract bigint key edges before narrowing: narrowing first collapses the width to 0 beyond a double's ULP.

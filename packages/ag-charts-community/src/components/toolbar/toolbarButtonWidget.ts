@@ -114,7 +114,7 @@ export class ToolbarButtonWidget extends ButtonWidget {
     public update(options: ToolbarButtonWidgetOptions, interactionOptions: { isRtl: boolean }) {
         const { localeManager } = this;
 
-        if (options.tooltip) {
+        if (options.tooltip != null) {
             const tooltip = localeManager.t(options.tooltip);
             if (tooltip !== this.lastTooltip) {
                 this.elem.title = tooltip;

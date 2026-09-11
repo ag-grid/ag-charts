@@ -151,7 +151,7 @@ export class DataModel<
         for (const def of opts.props) {
             const scopes = def.type === 'key' ? keyScopes : valueScopes;
             if (isScoped(def)) {
-                if (def.scopes) {
+                if (def.scopes != null) {
                     for (const s of def.scopes) {
                         scopes.add(s);
                     }
@@ -760,7 +760,7 @@ export class DataModel<
         if (processedData.type === 'grouped') {
             let sharedGroupCount = 0;
             const firstGroup = processedData.groups[0];
-            if (firstGroup) {
+            if (firstGroup != null) {
                 const sharedDatumIndices = firstGroup.datumIndices;
                 for (const group of processedData.groups) {
                     if (group.datumIndices === sharedDatumIndices) {
@@ -813,7 +813,7 @@ export class DataModel<
             }
 
             let stats: BandedReducerStats | undefined;
-            if (isBanded && bandManager) {
+            if (isBanded && bandManager != null) {
                 stats = bandManager.getStats();
             }
 
@@ -859,7 +859,7 @@ function logProcessedData(processedData: ProcessedData<any>, logger: Logger) {
 
         if (opt.reprocessing) {
             const symbol = opt.reprocessing.applied ? '✓' : '✗';
-            const reason = opt.reprocessing.reason ? ` (${opt.reprocessing.reason})` : '';
+            const reason = opt.reprocessing.reason == null ? '' : ` (${opt.reprocessing.reason})`;
             logger.log(`  Reprocessing: ${symbol}${reason}`);
         }
 

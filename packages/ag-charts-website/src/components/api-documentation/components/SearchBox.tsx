@@ -60,7 +60,7 @@ export function SearchBox({
             {searchQuery.length > 0 && inFocus && (
                 <div ref={dropdownRef} className={styles.searchDropdown} onMouseDown={(e) => e.preventDefault()}>
                     <div className={styles.searchOptions}>
-                        {data.length ? (
+                        {data.length > 0 ? (
                             data.map((innerData, index) => (
                                 <div
                                     // Sibling union variants can collapse to the same label, so the
@@ -73,7 +73,7 @@ export function SearchBox({
                                     onClick={() => handleClick(innerData)}
                                     onMouseEnter={() => selectFromPointer(index)}
                                 >
-                                    {markResults && searchQuery ? (
+                                    {markResults && searchQuery !== '' ? (
                                         <HighlightText text={innerData.label} searchTerm={searchQuery} />
                                     ) : (
                                         innerData.label
@@ -161,8 +161,10 @@ function useSearch(
                 setSelectedIndex(selectedIndex === data.length - 1 ? 0 : selectedIndex + 1);
                 break;
             case 'Enter':
-                if (data[selectedIndex]) {
-                    handleClick(data[selectedIndex]);
+                const selectedDatum =
+                    selectedIndex >= 0 && selectedIndex < data.length ? data[selectedIndex] : undefined;
+                if (selectedDatum != null) {
+                    handleClick(selectedDatum);
                 }
                 break;
         }

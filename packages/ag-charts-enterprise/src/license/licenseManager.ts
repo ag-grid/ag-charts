@@ -133,12 +133,6 @@ export class LicenseManager {
         let incorrectLicenseType = false;
         let suppliedLicenseType: undefined | string = undefined;
 
-        function handleTrial() {
-            const now = new Date();
-            trialExpired = expiry! < now;
-            expired = undefined;
-        }
-
         if (valid) {
             expiry = LicenseManager.extractExpiry(license);
             valid = !Number.isNaN(expiry.getTime());
@@ -161,7 +155,8 @@ export class LicenseManager {
                                 valid = false;
                                 incorrectLicenseType = true;
                             } else if (isTrial) {
-                                handleTrial();
+                                trialExpired = expiry < new Date();
+                                expired = undefined;
                             }
                         }
                     }
@@ -207,7 +202,7 @@ export class LicenseManager {
 
     public getWatermarkForegroundConfig(): object | undefined {
         const message = this.getWatermarkMessage();
-        if (!message) {
+        if (message === '') {
             return undefined;
         }
         return this.buildWatermarkConfig(message);
@@ -218,7 +213,7 @@ export class LicenseManager {
             return undefined;
         }
         const message = this.getWatermarkMessage();
-        if (!message) {
+        if (message === '') {
             return undefined;
         }
         return this.buildWatermarkConfig(message);
@@ -266,13 +261,13 @@ export class LicenseManager {
         if (!this.document) {
             return false;
         }
-        const win = (this.document?.defaultView ?? globalThis.window != undefined) ? globalThis : undefined;
+        const hasWindow = this.document?.defaultView != null || globalThis.window != undefined;
+        const win = hasWindow ? globalThis : undefined;
         if (!win) {
             return false;
         }
 
-        const pathname = win.location?.pathname;
-        return pathname ? pathname.includes('forceWatermark') : false;
+        return win.location?.pathname?.includes('forceWatermark') ?? false;
     }
 
     private isWebsiteUrl(): boolean {
@@ -366,7 +361,7 @@ export class LicenseManager {
     }
 
     public static setLicenseKey(licenseKey?: string): void {
-        if (this.licenseKey && this.licenseKey !== licenseKey) {
+        if (this.licenseKey != null && this.licenseKey !== '' && this.licenseKey !== licenseKey) {
             console.warn(
                 `License Key being set multiple times with different values. This can result in an incorrect license key being used.`
             );
@@ -386,13 +381,13 @@ export class LicenseManager {
 
         // eslint-disable-next-line sonarjs/slow-regex
         const matches = licenseKey.match(/\[(.*?)\]/g)!.map((match) => match.replace('[', '').replace(']', ''));
-        if (!matches || matches.length === 0) {
+        if (matches.length === 0) {
             return ['legacy', false, undefined];
         }
 
         const isTrial = matches.filter((match) => match === 'TRIAL').length === 1;
         const rawVersion = matches.find((match) => match.startsWith('v'));
-        const version = rawVersion ? rawVersion.replace('v', '') : 'legacy';
+        const version = rawVersion == null ? 'legacy' : rawVersion.replace('v', '');
         const type = (LICENSE_TYPES as any)[matches.find((match) => (LICENSE_TYPES as any)[match])!];
 
         return [version, isTrial, type];

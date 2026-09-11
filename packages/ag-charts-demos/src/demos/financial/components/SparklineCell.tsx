@@ -83,7 +83,7 @@ export function SparklineCell({ data: row }: CustomCellRendererProps<SparkRow>) 
         const { removed, appended } = scrollShift(pointsRef.current, history);
         const added = appended.map((y) => ({ x: seqRef.current++, y }));
         pointsRef.current = [...pointsRef.current.slice(removed.length), ...added];
-        if (removed.length || added.length) {
+        if (removed.length > 0 || added.length > 0) {
             chartRef.current?.applyTransaction({ remove: removed, add: added }).catch(logError);
         }
     }, [history, baseline]);

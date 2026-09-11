@@ -49,7 +49,7 @@ const Collapsible: FunctionComponent<Props> = ({
                 {...buttonDisabledProps}
             >
                 <div>
-                    {title && !isEmptyContent && title}
+                    {title !== '' && !isEmptyContent && title}
                     {!isEmptyContent && (
                         <span className={classNames(styles.collapseIndicator, showNotes ? styles.isOpen : undefined)}>
                             <Icon name={showNotes ? 'chevronDown' : 'chevronRight'} />
@@ -61,19 +61,17 @@ const Collapsible: FunctionComponent<Props> = ({
                         Version:
                     </label>
                     <select
-                        value={fixVersion || versions[0]}
+                        value={fixVersion === '' ? versions[0] : fixVersion}
                         aria-label={'Select Release Version'}
                         onChange={(event) => onChange(event.target.value)}
                         // eslint-disable-next-line no-restricted-properties
                         onClick={(event) => event.stopPropagation()} // Prevent event propagation
                     >
-                        {versions
-                            ? versions.map((version) => (
-                                  <option key={version} value={version}>
-                                      {version}
-                                  </option>
-                              ))
-                            : null}
+                        {versions.map((version) => (
+                            <option key={version} value={version}>
+                                {version}
+                            </option>
+                        ))}
                     </select>
                 </div>
             </button>

@@ -56,7 +56,7 @@ describe('AgChart', () => {
     let chartProxy: AgChartInstance;
 
     afterEach(() => {
-        if (chartProxy) {
+        if (chartProxy != null) {
             chartProxy.destroy();
             chartProxy = undefined as any;
         }

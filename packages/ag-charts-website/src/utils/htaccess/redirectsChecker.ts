@@ -32,7 +32,7 @@ const getErrors = (results: Result[]) => results.filter(({ type }) => type === '
 const getErrorOutput = (results: Result[]) => {
     const errorResults = getErrors(results);
     const errorOutput = errorResults.map(({ path: errorPath }) => `File not found: ${errorPath}`).join('\n');
-    return errorResults.length ? errorOutput : '';
+    return errorResults.length === 0 ? '' : errorOutput;
 };
 
 function getResultOutput(results: Result[]) {
@@ -44,7 +44,7 @@ function getResultOutput(results: Result[]) {
     const summary = `✅ Success ${successResults.length} / ⚠️  Ignored ${ignoredResults.length} / ❌ Errors ${errorResults.length} (Total: ${total})`;
     const ignoredOutput = ignoredResults.map(({ path: errorPath }) => `Ignored: ${errorPath}`).join('\n');
 
-    return `${ignoredResults.length ? `${ignoredOutput}\n\n` : ''}${summary}`;
+    return `${ignoredResults.length === 0 ? '' : `${ignoredOutput}\n\n`}${summary}`;
 }
 
 function checkPathExists(pathToCheck: string): Result {
@@ -65,7 +65,7 @@ export function redirectsChecker({ buildDir, logger }: { buildDir: string; logge
     const results: Result[] = SITE_301_REDIRECTS.map((redirect) => {
         const { to } = redirect as { to?: string };
         // Gone (410) rules have no `to` to validate.
-        if (!to) {
+        if (to == null || to === '') {
             const { from, fromPattern } = redirect as { from?: string; fromPattern?: string };
             return {
                 type: 'ignored',
@@ -113,7 +113,7 @@ export function redirectsChecker({ buildDir, logger }: { buildDir: string; logge
         .split('\n')
         .forEach((line) => logger.info(line));
     const errorResults = getErrors(results);
-    if (errorResults.length) {
+    if (errorResults.length > 0) {
         throw new Error(`Redirect target/s not found. Fix them in '${REDIRECTS_FILE}'.\n${getErrorOutput(results)}`);
     }
 }

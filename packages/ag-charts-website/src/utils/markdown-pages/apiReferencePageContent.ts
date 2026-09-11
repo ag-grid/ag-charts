@@ -35,7 +35,7 @@ export function optionsVariantPageContent({ name, type }: PageTitle) {
  * (`axes.key[type='number']`).
  */
 export function apiReferencePageHeading({ name, type }: PageTitle) {
-    if (!type) {
+    if (type == null || type === '') {
         return name;
     }
     return `${name}${name === 'axes' ? '.key' : ''}[type='${type}']`;

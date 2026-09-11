@@ -27,9 +27,10 @@ export function recordTiming(suitePath: string, name: string, measurement: Bench
     }
     records.get(suitePath)?.set(name, measurement);
 
-    const nativeMemory = measurement.memory.nativeAllocations
-        ? Object.values(measurement.memory.nativeAllocations).reduce((total, { bytes }) => total + bytes, 0)
-        : 0;
+    const nativeMemory =
+        measurement.memory.nativeAllocations == null
+            ? 0
+            : Object.values(measurement.memory.nativeAllocations).reduce((total, { bytes }) => total + bytes, 0);
 
     return {
         retainedSize: measurement.retainedSize?.size ?? 0,
@@ -40,7 +41,7 @@ export function recordTiming(suitePath: string, name: string, measurement: Bench
 
 function memoryUse(memory: BenchmarkMeasurement['memory'], format = false) {
     return Object.fromEntries(
-        (memory?.nativeAllocations ? Object.keys(memory.nativeAllocations) : []).flatMap((objectName) => {
+        (memory?.nativeAllocations == null ? [] : Object.keys(memory.nativeAllocations)).flatMap((objectName) => {
             const value = memory.nativeAllocations[objectName];
             return [
                 [`${objectName}Count`, value.count],
@@ -52,7 +53,7 @@ function memoryUse(memory: BenchmarkMeasurement['memory'], format = false) {
 
 export function logTimings() {
     const timings = collectTimings((measurement) => {
-        const memoryAnalysis = measurement.memory ? analyzeMemoryUsage(measurement.memory) : null;
+        const memoryAnalysis = measurement.memory == null ? null : analyzeMemoryUsage(measurement.memory);
         const nativeMemory = memoryAnalysis ? memoryAnalysis.nativeMemory : 0;
 
         return {
@@ -72,11 +73,11 @@ export function logTimings() {
 
 export function flushTimings() {
     const timings = collectTimings((measurement) => {
-        const memoryAnalysis = measurement.memory ? analyzeMemoryUsage(measurement.memory) : null;
+        const memoryAnalysis = measurement.memory == null ? null : analyzeMemoryUsage(measurement.memory);
         return {
             timeMs: measurement.timeMs,
-            memoryUsage: measurement.memory ? getTotalMemoryUsage(measurement.memory) : null,
-            heapUsed: measurement.memory ? measurement.memory.after.heapUsed : null,
+            memoryUsage: measurement.memory == null ? null : getTotalMemoryUsage(measurement.memory),
+            heapUsed: measurement.memory == null ? null : measurement.memory.after.heapUsed,
             relativeUsage: memoryAnalysis ? memoryAnalysis.relativeMemoryUse : null,
             jsHeapDiff: memoryAnalysis ? memoryAnalysis.jsHeapDiff : null,
             nativeMemory: memoryAnalysis ? memoryAnalysis.nativeMemory : null,
@@ -106,7 +107,7 @@ function collectTimings<T>(format: (measurement: BenchmarkMeasurement) => T): Ma
 
 function getTotalMemoryUsage(memoryStats: NonNullable<BenchmarkMeasurement['memory']>): number {
     const jsHeapSize = memoryStats.after.heapUsed;
-    if (!memoryStats.nativeAllocations) return jsHeapSize;
+    if (memoryStats.nativeAllocations == null) return jsHeapSize;
     return Object.values(memoryStats.nativeAllocations).reduce(
         (totalBytes, { bytes }) => totalBytes + bytes,
         jsHeapSize
@@ -123,9 +124,10 @@ interface MemoryAnalysis {
 
 function analyzeMemoryUsage(memoryStats: NonNullable<BenchmarkMeasurement['memory']>): MemoryAnalysis {
     const jsHeapDiff = memoryStats.after.heapUsed - memoryStats.before.heapUsed;
-    const nativeMemory = memoryStats.nativeAllocations
-        ? Object.values(memoryStats.nativeAllocations).reduce((total, { bytes }) => total + bytes, 0)
-        : 0;
+    const nativeMemory =
+        memoryStats.nativeAllocations == null
+            ? 0
+            : Object.values(memoryStats.nativeAllocations).reduce((total, { bytes }) => total + bytes, 0);
 
     // Use absolute value of heap difference plus native allocations for relative memory
     const relativeMemoryUse = Math.abs(jsHeapDiff) + nativeMemory;

@@ -104,7 +104,7 @@ export function uniqueChangeDescriptions(
 ): Set<DataChangeDescription> {
     const deduped = new Set<DataChangeDescription>();
     for (const changeDesc of scopeChanges.values()) {
-        if (changeDesc) {
+        if (changeDesc != null) {
             deduped.add(changeDesc);
         }
     }

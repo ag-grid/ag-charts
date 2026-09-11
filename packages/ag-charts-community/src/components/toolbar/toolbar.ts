@@ -215,7 +215,7 @@ export abstract class BaseToolbar<
             });
         });
 
-        if (button.section) {
+        if (button.section != null) {
             buttonWidget.section = button.section;
         }
 

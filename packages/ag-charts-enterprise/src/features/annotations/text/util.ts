@@ -11,7 +11,7 @@ type TextOptions = FontOptions & { textAlign: TextAlign; position: AnnotationTex
 export const ANNOTATION_TEXT_LINE_HEIGHT = 1.38;
 
 export function maybeWrapText(options: TextOptions, text: string, maxWidth: number) {
-    return maxWidth ? wrapText(text, { maxWidth, font: options, textWrap: 'always', avoidOrphans: false }) : text;
+    return maxWidth === 0 ? text : wrapText(text, { maxWidth, font: options, textWrap: 'always', avoidOrphans: false });
 }
 
 function measureAnnotationText(options: FontOptions, text: string) {

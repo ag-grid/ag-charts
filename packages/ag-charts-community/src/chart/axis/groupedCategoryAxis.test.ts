@@ -62,7 +62,7 @@ function disableLabelsDepth0<T extends AgCartesianChartOptions | AgPolarChartOpt
                 ? {
                       ...axis,
                       depthOptions: axis.depthOptions?.map((depthOpts, i) =>
-                          i ? depthOpts : { ...depthOpts, label: { enabled: false } }
+                          i === 0 ? { ...depthOpts, label: { enabled: false } } : depthOpts
                       ),
                   }
                 : axis
@@ -221,7 +221,7 @@ describe('Grouped Category Axis Examples', () => {
     let chart: ChartOrProxy;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }

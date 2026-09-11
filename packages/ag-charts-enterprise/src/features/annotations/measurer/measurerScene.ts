@@ -187,7 +187,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
             textCoords.y2 = center.y;
         }
 
-        this.text = this.updateNode(CollidableText<never>, this.text, !!datum.text.label);
+        this.text = this.updateNode(CollidableText<never>, this.text, datum.text.label !== '');
 
         const { id } = line;
 
@@ -368,7 +368,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
     private getDateRangeBars(coords: Bounds4, context: AnnotationContext) {
         const { step } = context.xAxis.scale;
         const sign = coords.x1 <= coords.x2 ? 1 : -1;
-        return step ? Math.round(Vec4.width(coords) / step) * sign : 0;
+        return step == null || step === 0 ? 0 : Math.round(Vec4.width(coords) / step) * sign;
     }
 
     private getDateRangeValue(datum: MeasurerTypeProperties) {

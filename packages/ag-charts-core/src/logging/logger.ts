@@ -123,7 +123,7 @@ export class Logger {
             message instanceof Error
                 ? { severity, message: message.message, cause: message }
                 : { severity, message: stringifyLogContent(message) };
-        if (message instanceof Error && message.stack) details.unshift(message.stack);
+        if (message instanceof Error && message.stack != null && message.stack !== '') details.unshift(message.stack);
         const detail = details.filter((part) => part !== '').join('\n');
         if (detail !== '') issue.detail = detail;
         if (cacheKey != null) this.onceIssues.set(cacheKey, issue);

@@ -83,7 +83,7 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
             }
 
             const parentVertex = this.verticesById[parentId];
-            if (!parentVertex) {
+            if (parentVertex == null) {
                 this.logger.warnOnce(`Could not find parentId [${parentId}] on node [${childId}], skipping.`);
                 return hasAnyKeyedValue;
             }

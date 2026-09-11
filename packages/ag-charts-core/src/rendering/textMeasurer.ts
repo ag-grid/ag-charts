@@ -325,7 +325,7 @@ export function measureTextSegments(
             if (j > 0) {
                 openNewLine();
             }
-            if (textLine) {
+            if (textLine !== '') {
                 currentLine.width += textMetrics.width;
                 currentLine.ascent = Math.max(currentLine.ascent, textMetrics.ascent);
                 currentLine.descent = Math.max(currentLine.descent, textMetrics.descent);
@@ -367,7 +367,7 @@ export function measureTextSegments(
     let totalHeight = 0;
     for (let i = 0; i < lineMetrics.length; ) {
         const line = lineMetrics[i];
-        if (line.blockImages?.length) {
+        if (line.blockImages != null && line.blockImages.length > 0) {
             const span = line.blockRowSpan ?? 1;
             const stripWidth = blockStripWidth(line.blockImages);
             const stripHeight = blockStripHeight(line.blockImages);

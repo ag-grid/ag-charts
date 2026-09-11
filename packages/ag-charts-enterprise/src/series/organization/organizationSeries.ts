@@ -434,11 +434,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
     override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
         const nodeData = this.contextNodeData?.nodeData;
-        if (!nodeData?.length) return;
+        if (nodeData == null || nodeData.length === 0) return;
 
         const currentNodeIdx = clamp(0, opts.datumIndex - opts.datumIndexDelta, nodeData.length - 1);
         const currentVertex = nodeData[currentNodeIdx]?.vertex;
-        if (!currentVertex) return;
+        if (currentVertex == null) return;
 
         const next = this.resolveFocusVertex(currentVertex, opts.datumIndexDelta, opts.otherIndexDelta);
         if (!next) return;
@@ -610,11 +610,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const parts: string[] = [];
         const title = toPlainText(fields.title).trim();
         const subtitle = toPlainText(fields.subtitle).trim();
-        if (title) parts.push(title);
-        if (subtitle) parts.push(subtitle);
+        if (title !== '') parts.push(title);
+        if (subtitle !== '') parts.push(subtitle);
         for (const label of fields.labels ?? []) {
             const labelText = toPlainText(label).trim();
-            if (labelText) parts.push(labelText);
+            if (labelText !== '') parts.push(labelText);
         }
         return parts.join(', ');
     }

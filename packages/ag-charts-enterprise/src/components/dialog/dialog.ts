@@ -261,7 +261,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     }
 
     protected createTextArea({ placeholder, value, onChange }: TextAreaOptions) {
-        const placeholderT = placeholder ? this.ctx.localeManager.t(placeholder) : undefined;
+        const placeholderT = placeholder === '' ? undefined : this.ctx.localeManager.t(placeholder);
         return createTextArea({ value, onChange }, { placeholder: placeholderT });
     }
 
@@ -334,7 +334,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
         if (isMultiColor) {
             colorEl.classList.toggle('ag-charts-dialog__color-picker-button--multi-color');
-        } else if (color) {
+        } else if (color != null && color !== '') {
             const hex = Color.fromString(color);
             const hexWithOpacity = new Color(hex.r, hex.g, hex.b, opacity);
             colorEl.style.setProperty('--color', hexWithOpacity.toHexString());

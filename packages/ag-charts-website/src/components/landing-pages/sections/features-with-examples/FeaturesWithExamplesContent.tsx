@@ -78,45 +78,46 @@ export const FeaturesWithExamplesContent: React.FC<FeaturesWithExamplesContentPr
         document.dispatchEvent(event);
     }, [features]);
 
-    const activeFeature = features[activeTab];
+    const activeFeature = features.at(activeTab);
 
-    const featureContent = activeFeature ? (
-        <div className={styles.contentContainer}>
-            <div className={styles.featureContainer}>
-                <h3 className={styles.title}>{activeFeature.title}</h3>
-                {activeFeature.features.map((feature, index) => (
-                    <div key={index} className={styles.feature}>
-                        <h5 className={styles.featureHeading}>{feature.heading}</h5>
-                        <span className={styles.featureDetail}>
-                            {feature.link ? (
-                                <a href={urlWithBaseUrl(feature.link)}>{feature.detail}</a>
-                            ) : (
-                                feature.detail
-                            )}
-                        </span>
-                    </div>
-                ))}
+    const featureContent =
+        activeFeature == null ? null : (
+            <div className={styles.contentContainer}>
+                <div className={styles.featureContainer}>
+                    <h3 className={styles.title}>{activeFeature.title}</h3>
+                    {activeFeature.features.map((feature, index) => (
+                        <div key={index} className={styles.feature}>
+                            <h5 className={styles.featureHeading}>{feature.heading}</h5>
+                            <span className={styles.featureDetail}>
+                                {feature.link == null || feature.link === '' ? (
+                                    feature.detail
+                                ) : (
+                                    <a href={urlWithBaseUrl(feature.link)}>{feature.detail}</a>
+                                )}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+                <div className={styles.buttonContainer}>
+                    {activeFeature.isEnterprise ? (
+                        <TrialButton
+                            id="request-trial-licence"
+                            className={`button-secondary ${styles.trialCta} plausible-event-name=landing-page-features-trial-cta`}
+                        >
+                            Start Free Trial
+                        </TrialButton>
+                    ) : (
+                        <a
+                            id="get-started"
+                            href={urlWithBaseUrl(`${activeFeature.docsLink}`)}
+                            className={`button-secondary ${styles.trialCta} plausible-event-name=landing-page-features-get-started-cta`}
+                        >
+                            Get Started
+                        </a>
+                    )}
+                </div>
             </div>
-            <div className={styles.buttonContainer}>
-                {activeFeature.isEnterprise ? (
-                    <TrialButton
-                        id="request-trial-licence"
-                        className={`button-secondary ${styles.trialCta} plausible-event-name=landing-page-features-trial-cta`}
-                    >
-                        Start Free Trial
-                    </TrialButton>
-                ) : (
-                    <a
-                        id="get-started"
-                        href={urlWithBaseUrl(`${activeFeature.docsLink}`)}
-                        className={`button-secondary ${styles.trialCta} plausible-event-name=landing-page-features-get-started-cta`}
-                    >
-                        Get Started
-                    </a>
-                )}
-            </div>
-        </div>
-    ) : null;
+        );
 
     return (
         <>

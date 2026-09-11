@@ -89,7 +89,7 @@ export class FibonacciRetracementScene extends FibonacciScene<FibonacciRetraceme
     dragHandle(datum: FibonacciRetracementProperties, target: Point, context: AnnotationContext, snapping: boolean) {
         const { activeHandle, dragState } = this;
 
-        if (!activeHandle || !dragState) return;
+        if (activeHandle == null || !dragState) return;
 
         this[activeHandle].toggleDragging(true);
         const point = snapping
@@ -112,7 +112,7 @@ export class FibonacciRetracementScene extends FibonacciScene<FibonacciRetraceme
         const handles: StartEndHandle[] = ['start', 'end'];
         const fixedHandle = handles.find((handle) => handle !== activeHandle);
 
-        if (!activeHandle || !fixedHandle) return;
+        if (activeHandle == null || fixedHandle == null) return;
 
         this[activeHandle].toggleDragging(true);
 

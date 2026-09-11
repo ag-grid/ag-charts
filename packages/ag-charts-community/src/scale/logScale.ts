@@ -90,7 +90,7 @@ export class LogScale extends ContinuousScale<number> {
         domain: number[] = this.domain,
         visibleRange?: [number, number]
     ): { ticks: number[]; count: number; firstTickIndex: number | undefined } | undefined {
-        if (!domain || domain.length < 2 || tickCount < 1) {
+        if (domain == null || domain.length < 2 || tickCount < 1) {
             return;
         }
         // See niceDomain: narrow a raw bigint domain to Number before Math.min/Math.log.
@@ -104,7 +104,7 @@ export class LogScale extends ContinuousScale<number> {
         let p0 = this.log(start);
         let p1 = this.log(stop);
 
-        if (interval) {
+        if (interval != null) {
             const inBounds = (tick: number) => tick >= start && tick <= stop;
             const step = Math.min(Math.abs(interval), Math.abs(p1 - p0));
             const { ticks: rangeTicks, count, firstTickIndex } = range(p0, p1, step, visibleRange);

@@ -21,7 +21,7 @@ function currentLocation(): ApiReferenceLocation | null {
 }
 
 function hrefFor({ pathname, hash }: NavigationData) {
-    return hash ? `${pathname}#${hash}` : pathname;
+    return hash === '' ? pathname : `${pathname}#${hash}`;
 }
 
 export function readSelection(): NavigationData | undefined {

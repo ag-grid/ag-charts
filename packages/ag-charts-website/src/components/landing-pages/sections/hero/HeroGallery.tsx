@@ -57,7 +57,7 @@ export function HeroGallery({ examples, height, autoAdvanceDelay = 7000, framewo
 
     // Build iframe URL based on whether it's a gallery or docs example
     const getExampleUrl = (example: HeroGalleryExample) => {
-        if (example.pageName) {
+        if (example.pageName != null && example.pageName !== '') {
             // Docs example: /{framework}/{pageName}/examples/{exampleName}/
             return urlWithPrefix({
                 url: `./${example.pageName}/examples/${example.exampleName}`,

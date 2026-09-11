@@ -32,10 +32,10 @@ export class LinearAngleScale extends LinearScale {
             return { ticks: [], count: 0 };
         }
 
-        const { nice, interval } = ticks;
+        const { interval } = ticks;
         const [d0, d1] = numericDomain;
 
-        if (interval) {
+        if (interval != null) {
             const step = Math.abs(toNumber(interval));
             const availableRange = this.getPixelRange();
             if (!isDenseInterval((d1 - d0) / step, availableRange, this.logger)) {
@@ -45,7 +45,7 @@ export class LinearAngleScale extends LinearScale {
         }
 
         let step: number;
-        if (nice && this.hasNiceRange()) {
+        if (this.hasNiceRange()) {
             const linearNiceDomain = super.niceDomain(ticks, domain);
             step = LinearAngleScale.getNiceStepAndTickCount(ticks, linearNiceDomain).step;
         } else {

@@ -42,7 +42,7 @@ export class ScopeCacheManager<K extends string> {
     valueGroupIdxLookup({ matchGroupIds }: PropertySelectors) {
         const result: number[] = [];
         for (const [index, def] of this.ctx.values.entries()) {
-            if (!matchGroupIds || (def.groupId && matchGroupIds.includes(def.groupId))) {
+            if (!matchGroupIds || (def.groupId != null && matchGroupIds.includes(def.groupId))) {
                 result.push(index);
             }
         }
@@ -67,7 +67,7 @@ export class ScopeCacheManager<K extends string> {
         const result = this.ctx.values.reduce((res, def, index) => {
             const validDefScopes =
                 def.scopes == null ||
-                (noScopesToMatch && !def.scopes.length) ||
+                (noScopesToMatch && def.scopes.length === 0) ||
                 def.scopes.some((s) => scopes?.includes(s));
 
             if (validDefScopes && (def.property === propId || def.id === propId || hasMatchingScopeId(def))) {

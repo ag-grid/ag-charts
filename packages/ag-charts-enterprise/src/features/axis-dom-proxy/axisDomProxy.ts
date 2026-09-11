@@ -170,7 +170,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
     private onSeriesAreaHover(event: _ModuleSupport.SeriesAreaHoverEvent) {
         // Ignore events that have already been consumed elsewhere.
         if (event.consumed) {
-            if (this.hoveredAxisId) {
+            if (this.hoveredAxisId != null) {
                 this.hoveredAxisId = undefined;
                 this.ctx.eventsHub.emit('axis-dom-proxy:mouseleave', { event });
             }
@@ -190,7 +190,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
                 event,
             });
         } else {
-            if (this.hoveredAxisId) {
+            if (this.hoveredAxisId != null) {
                 this.ctx.eventsHub.emit('axis-dom-proxy:mouseleave', { event });
             }
             this.hoveredAxisId = undefined;
@@ -273,7 +273,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
     }
 
     private onSeriesAreaDragMove(event: _Widget.DragWidgetEvent<'drag-move'>) {
-        if (!this.isEnabled() || !this.isEnabledDragging() || !this.draggingAxisId) return;
+        if (!this.isEnabled() || !this.isEnabledDragging() || this.draggingAxisId == null) return;
 
         // Check if the active axis is overlapping the series area, since it may have been set by dragging on the
         // axis dom element.
@@ -291,7 +291,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
     }
 
     private onSeriesAreaDragEnd(event: _Widget.DragWidgetEvent<'drag-end'>) {
-        if (!this.draggingAxisId) return;
+        if (this.draggingAxisId == null) return;
 
         // Check if the active axis is overlapping the series area, since it may have been set by dragging on the
         // axis dom element.
@@ -400,7 +400,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
     }
 
     private getAxis(axisId: string | undefined): AxisHit | undefined {
-        if (!axisId) return undefined;
+        if (axisId == null) return undefined;
         const axis = this.axes.find((a) => a.axisId === axisId);
         return axis ? { axisId: axis.axisId, direction: axis.direction } : undefined;
     }
@@ -409,7 +409,8 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         this.overlappingAxisIds.clear();
 
         const shouldEnableInteraction =
-            (this.isEnabledDragging() || this.isEnabledScrolling() || this.isEnabledContextMenu()) && this.seriesRect;
+            (this.isEnabledDragging() || this.isEnabledScrolling() || this.isEnabledContextMenu()) &&
+            this.seriesRect != null;
 
         for (const axis of this.axes) {
             if (!shouldEnableInteraction) {
@@ -432,10 +433,10 @@ export class AxisDOMProxy extends AbstractModuleInstance {
     }
 
     private cleanupAxisState() {
-        if (this.hoveredAxisId && !this.overlappingAxisIds.has(this.hoveredAxisId)) {
+        if (this.hoveredAxisId != null && !this.overlappingAxisIds.has(this.hoveredAxisId)) {
             this.hoveredAxisId = undefined;
         }
-        if (this.draggingAxisId && !this.overlappingAxisIds.has(this.draggingAxisId)) {
+        if (this.draggingAxisId != null && !this.overlappingAxisIds.has(this.draggingAxisId)) {
             this.draggingAxisId = undefined;
         }
     }

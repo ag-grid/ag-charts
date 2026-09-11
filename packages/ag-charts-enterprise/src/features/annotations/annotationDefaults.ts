@@ -203,7 +203,7 @@ export class AnnotationDefaults implements MementoOriginator<DefaultsMemento> {
             if (datum.type !== annotationType) continue;
 
             for (const [colorPickerType, [colorOpacity, color, opacity, isMultiColor] = []] of colors) {
-                if (colorOpacity && color && opacity != null && isMultiColor != null) {
+                if (colorOpacity != null && color != null && opacity != null && isMultiColor != null) {
                     setColor(datum, colorPickerType, colorOpacity, color, opacity, isMultiColor);
                 }
             }

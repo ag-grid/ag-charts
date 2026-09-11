@@ -189,7 +189,7 @@ describe('CartesianChart', () => {
     let chart: CartesianChart;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }

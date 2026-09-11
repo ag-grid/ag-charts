@@ -60,7 +60,7 @@ const FeatureLabel: React.FC<{ item: FeatureItem }> = ({ item }) => {
     const name = item.label?.name ?? item.name ?? '';
     const link = item.label?.link;
 
-    if (link) {
+    if (link != null && link !== '') {
         return (
             <a href={link} target="_blank" rel="noopener noreferrer">
                 {name}

@@ -412,7 +412,7 @@ export abstract class HierarchySeries<
     protected abstract computeFocusBounds(node: TNode): BBox | Path | undefined;
 
     public override pickFocus(opts: PickFocusInputs): PickFocusOutputs | undefined {
-        if (!this.rootNode?.children.length) return undefined;
+        if (this.rootNode == null || this.rootNode.children.length === 0) return undefined;
 
         const index = clamp(0, opts.datumIndex - opts.datumIndexDelta, this.datumSelection.length - 1);
         const { datumIndexDelta: childDelta, otherIndexDelta: depthDelta } = opts;

@@ -215,7 +215,7 @@ export class AgDocument {
             style = className;
             className = undefined;
         }
-        if (className) {
+        if (className != null && className !== '') {
             for (const name of className.split(' ')) {
                 element.classList.add(name);
             }

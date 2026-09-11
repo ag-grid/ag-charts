@@ -50,7 +50,7 @@ export function buildLicenseSetupMarkdown({
     ];
 
     const dependenciesSnippet = getDependenciesSnippet(snippetArgs);
-    if (dependenciesSnippet) {
+    if (dependenciesSnippet != null && dependenciesSnippet !== '') {
         sections.push(fencedCodeBlock(dependenciesSnippet, language));
     }
 
@@ -60,7 +60,7 @@ export function buildLicenseSetupMarkdown({
     );
 
     const npmInstallSnippet = getNpmInstallSnippet(snippetArgs);
-    if (npmInstallSnippet) {
+    if (npmInstallSnippet != null && npmInstallSnippet !== '') {
         sections.push(fencedCodeBlock(npmInstallSnippet, 'bash'));
     }
 
@@ -71,7 +71,7 @@ export function buildLicenseSetupMarkdown({
         license: LICENSE_PLACEHOLDER,
         isIntegratedCharts: false,
     });
-    if (bootstrapSnippet) {
+    if (bootstrapSnippet !== '') {
         sections.push(fencedCodeBlock(bootstrapSnippet, language));
     }
 

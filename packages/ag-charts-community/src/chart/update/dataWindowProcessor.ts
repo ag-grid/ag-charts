@@ -134,7 +134,7 @@ export class DataWindowProcessor implements UpdateProcessor {
             shouldRefresh = this.shouldRefresh(event, axis, zoom, window);
         }
 
-        const source: AgZoomEventSource = this.dirtyZoom && this.zoomSource ? this.zoomSource : 'chart-update';
+        const source: AgZoomEventSource = this.dirtyZoom && this.zoomSource != null ? this.zoomSource : 'chart-update';
 
         this.dirtyZoom = false;
         this.dirtyDataSource = false;

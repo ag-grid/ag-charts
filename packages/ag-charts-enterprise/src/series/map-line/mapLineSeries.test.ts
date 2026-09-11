@@ -448,7 +448,7 @@ describe('MapLineSeries', () => {
                 : { enabled: false };
 
             const listeners = params.onNodeClick ? { seriesNodeClick: params.onNodeClick } : undefined;
-            const nodeClickRangeParams = params.nodeClickRange ? { nodeClickRange: params.nodeClickRange } : {};
+            const nodeClickRangeParams = params.nodeClickRange == null ? {} : { nodeClickRange: params.nodeClickRange };
             const options: AgCartesianChartOptions | AgPolarChartOptions = {
                 container: document.body,
                 series: [

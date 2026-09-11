@@ -384,13 +384,13 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             if (lineDash) {
                 ctx.setLineDash(lineDash);
             }
-            if (lineDashOffset) {
+            if (lineDashOffset !== 0) {
                 ctx.lineDashOffset = lineDashOffset;
             }
-            if (lineCap) {
+            if (lineCap != null) {
                 ctx.lineCap = lineCap;
             }
-            if (lineJoin) {
+            if (lineJoin != null) {
                 ctx.lineJoin = lineJoin;
             }
             if (miterLimit != null) {

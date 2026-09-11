@@ -48,12 +48,12 @@ async function getUpdateExampleFunction({
 
     let dataJs = generatedFiles['data.js']?.trim();
 
-    if (replaceNewlineToken) {
+    if (replaceNewlineToken != null && replaceNewlineToken !== '') {
         mainJs = mainJs.replaceAll('\n', replaceNewlineToken);
         dataJs = dataJs?.replaceAll('\n', replaceNewlineToken);
     }
 
-    const exampleFunction = `() => {${dataJs ? dataJs : ''}${mainJs}}`;
+    const exampleFunction = `() => {${dataJs}${mainJs}}`;
 
     return startToken + exampleFunction + endToken;
 }

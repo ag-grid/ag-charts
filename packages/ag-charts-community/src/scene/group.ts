@@ -40,7 +40,8 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     }
 
     private static compareChildren(this: void, a: Node, b: Node) {
-        return compareZIndex(a.__zIndex, b.__zIndex) || a.serialNumber - b.serialNumber;
+        const zIndexOrder = compareZIndex(a.__zIndex, b.__zIndex);
+        return zIndexOrder === 0 ? a.serialNumber - b.serialNumber : zIndexOrder;
     }
 
     private readonly childNodes = new Set<Node>();
@@ -473,8 +474,6 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     }
 
     private sortChildren(compareFn?: (a: Node, b: Node) => number) {
-        if (!this.childNodes) return;
-
         // Sort children, and re-add in new order (Set preserves insertion order).
         const sortedChildren = [...this.childNodes].sort(compareFn);
         this.childNodes.clear();
@@ -491,7 +490,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         for (const child of this.children()) {
             if (
                 (exclude.instance && !(child instanceof exclude.instance)) ||
-                (exclude.name && child.name !== exclude.name)
+                (exclude.name != null && exclude.name !== '' && child.name !== exclude.name)
             ) {
                 yield child;
             }

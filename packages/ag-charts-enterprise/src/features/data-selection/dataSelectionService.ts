@@ -20,7 +20,7 @@ const candidacyInserter = (len: number) => new Bitfield(len);
 
 function getOrInsert<T>(map: Map<string, T>, key: string, data: DataSet, inserter: (len: number) => T): T {
     let entry: T | undefined = map.get(key);
-    if (!entry) {
+    if (entry == null) {
         entry = inserter(data.size());
         map.set(key, entry);
     }
@@ -154,7 +154,11 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
             return;
         }
 
-        if (!newDataSet.dataIdKey || newDataSet.dataIdKey !== oldDataSet.dataIdKey) {
+        if (
+            newDataSet.dataIdKey == null ||
+            newDataSet.dataIdKey === '' ||
+            newDataSet.dataIdKey !== oldDataSet.dataIdKey
+        ) {
             this.selections.clear();
             return;
         }
@@ -168,7 +172,7 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
             const selectedKeys = new Set<string | number>();
             for (let i = 0; i < oldSel.length; i++) {
                 const id = oldIds[i];
-                if (oldSel[i] && id != null) selectedKeys.add(id);
+                if (oldSel[i] !== 0 && id != null) selectedKeys.add(id);
             }
             if (selectedKeys.size === 0) continue;
 

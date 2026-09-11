@@ -21,7 +21,7 @@ const pathParams: Record<SVGCommand, RegExp[]> = {
 };
 
 export function parseSvg(d?: string): SVGPathSegment[] | undefined {
-    if (!d) return;
+    if (d == null || d === '') return;
 
     const segments: SVGPathSegment[] = [];
     let i = 0;
@@ -31,7 +31,7 @@ export function parseSvg(d?: string): SVGPathSegment[] | undefined {
         let command: SVGCommand;
 
         if (commandMatch == null) {
-            if (!currentCommand) {
+            if (currentCommand == null) {
                 ambientLog.warnOnce(`Invalid SVG path, error at index ${i}: Missing command.`);
                 return;
             }

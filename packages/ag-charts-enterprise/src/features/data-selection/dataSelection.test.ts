@@ -723,7 +723,7 @@ function createDiskUsageOptions(
                 type,
                 labelKey: 'name',
                 sizeKey: 'size',
-                ...(dataIdKey ? { dataIdKey } : {}),
+                ...(dataIdKey == null ? {} : { dataIdKey }),
             },
         ],
         title: {
@@ -860,7 +860,7 @@ describe('DataSelection', () => {
     const ctx = setupMockCanvas();
 
     afterEach(async () => {
-        if (chart) {
+        if (chart != null) {
             await waitForChartStability(chart);
             chart.destroy();
             (chart as unknown) = undefined;
@@ -3272,8 +3272,8 @@ describe('DataSelection', () => {
                 } as const;
                 const labelItemStyler = (params: AgChartLabelStylerParams<AccountingDatum, unknown>) => {
                     return {
-                        fill: params.candidateState ? candidacyFill[params.candidateState] : undefined,
-                        ...(params.selectionState ? selectionText[params.selectionState] : {}),
+                        fill: params.candidateState == null ? undefined : candidacyFill[params.candidateState],
+                        ...(params.selectionState == null ? {} : selectionText[params.selectionState]),
                     };
                 };
 

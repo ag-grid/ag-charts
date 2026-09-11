@@ -121,7 +121,7 @@ export function useStreamingMarket() {
             const mostActiveRows = mostActiveFeedRef.current!.tick();
 
             // Replace any pending flush so only the most recent state reaches React.
-            if (flushRef.current) cancelAnimationFrame(flushRef.current);
+            if (flushRef.current !== 0) cancelAnimationFrame(flushRef.current);
             flushRef.current = requestAnimationFrame(() => {
                 flushRef.current = 0;
                 setActive(readInstrument(feeds, tickerRef.current));
@@ -133,7 +133,7 @@ export function useStreamingMarket() {
         }, speedMs);
         return () => {
             window.clearInterval(id);
-            if (flushRef.current) cancelAnimationFrame(flushRef.current);
+            if (flushRef.current !== 0) cancelAnimationFrame(flushRef.current);
             flushRef.current = 0;
         };
     }, [running, speedMs]);

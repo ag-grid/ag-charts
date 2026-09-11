@@ -72,7 +72,7 @@ export function createNumberFormatter(format: string | FormatterOptions) {
 
     const precisionIsNaN = precision == null || Number.isNaN(precision);
     let formatBody: (n: number, f: number) => string;
-    if (!type) {
+    if (type == null) {
         formatBody = decimalTypes['g'];
         trim = true;
     } else if (type in decimalTypes && type in integerTypes) {
@@ -85,7 +85,7 @@ export function createNumberFormatter(format: string | FormatterOptions) {
         throw new Error(`The number formatter type is invalid: ${type}`);
     }
 
-    const defaultFormatterPrecision = type ? 6 : 12;
+    const defaultFormatterPrecision = type == null ? 12 : 6;
     let formatterPrecision: number | undefined;
     if (!precisionIsNaN) {
         formatterPrecision = precision;
@@ -93,7 +93,7 @@ export function createNumberFormatter(format: string | FormatterOptions) {
 
     let padAlign = align;
     let padFill = fill;
-    if (zero) {
+    if (zero != null) {
         padFill ??= '0';
         padAlign ??= '=';
     }
@@ -107,24 +107,22 @@ export function createNumberFormatter(format: string | FormatterOptions) {
         let effectivePrecision: number;
         if (formatterPrecision != null) {
             effectivePrecision = formatterPrecision;
-        } else if (type === 'f' || type === '%') {
+        } else if (type == null || type === 'f' || type === '%') {
             effectivePrecision = fractionDigits ?? defaultFormatterPrecision;
-        } else if (type) {
-            effectivePrecision = defaultFormatterPrecision;
         } else {
-            effectivePrecision = fractionDigits ?? defaultFormatterPrecision;
+            effectivePrecision = defaultFormatterPrecision;
         }
         let result = formatBody(n, effectivePrecision);
         if (trim) {
             result = removeTrailingZeros(result);
         }
-        if (comma) {
+        if (comma != null) {
             result = insertSeparator(result, comma);
         }
 
         const symbolPrefix = getSymbolPrefix(symbol, type);
         const symbolPrefixLength = symbolPrefix?.length ?? 0;
-        if (symbolPrefix) {
+        if (symbolPrefix !== '') {
             result = `${symbolPrefix}${result}`;
         }
 
@@ -260,7 +258,8 @@ function getSIPrefix(n: number) {
 }
 
 function getSIPrefixPower(n: number) {
-    return clamp(minSIPrefix, n ? Math.floor(Math.log10(Math.abs(n)) / 3) * 3 : 0, maxSIPrefix);
+    const power = n === 0 || Number.isNaN(n) ? 0 : Math.floor(Math.log10(Math.abs(n)) / 3) * 3;
+    return clamp(minSIPrefix, power, maxSIPrefix);
 }
 
 function addSign(num: number, numString: string, signType = ''): { value: string; prefixLength: number } {
@@ -297,7 +296,7 @@ function addPadding(numString: string, width: number, fill = ' ', align = '>', p
         return `${start}${padding}${rest}`;
     }
 
-    if (align === '>' || !align) {
+    if (align === '>' || align === '') {
         return padding + numString;
     } else if (align === '<') {
         return `${numString}${padding}`;

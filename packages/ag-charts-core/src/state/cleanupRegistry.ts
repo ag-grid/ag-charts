@@ -20,7 +20,7 @@ export class CleanupRegistry {
 
     public register(...callbacks: RegisteredCallback[]) {
         for (const cb of callbacks) {
-            if (!cb) continue;
+            if (cb == null || cb === false) continue;
             this.callbacks.add(cb);
         }
     }

@@ -143,7 +143,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         const { interval, maxTickCount, tickCount = maxTickCount } = params;
         const { bands, reversed } = this;
 
-        if (!bands.length) return;
+        if (bands.length === 0) return;
 
         if (reversed) {
             visibleRange = [1 - visibleRange[1], 1 - visibleRange[0]];

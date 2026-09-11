@@ -44,7 +44,11 @@ describe('resolveGallerySeo', () => {
     });
 
     it('serves a non-empty title, H1, description and intro on every page', () => {
-        expect(offenders(({ title, h1, description, intro }) => !title || !h1 || !description || !intro)).toEqual([]);
+        expect(
+            offenders(
+                ({ title, h1, description, intro }) => title === '' || h1 === '' || description === '' || intro === ''
+            )
+        ).toEqual([]);
     });
 
     it('never serves the "AG Charts Gallery: {name}" title pattern', () => {

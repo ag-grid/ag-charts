@@ -290,7 +290,10 @@ describe('label itemStyler participates in placement', () => {
             for (const { text, datum } of drawnLabelNodes(seriesIndex)) {
                 // Bar-family labels carry the resolved placement on their nested box, compass ones directly.
                 const { placement, rotation } = datum.label?.placement == null ? datum : datum.label;
-                placements[text] = rotation ? `${placement}/${Math.round((rotation * 180) / Math.PI)}` : placement;
+                placements[text] =
+                    rotation == null || rotation === 0
+                        ? placement
+                        : `${placement}/${Math.round((rotation * 180) / Math.PI)}`;
             }
             return placements;
         };

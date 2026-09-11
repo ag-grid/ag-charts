@@ -304,6 +304,6 @@ const DURATION_MINS: Record<string, number> = {
 };
 
 export const sessionDurationMins = (session: Session): number | null => {
-    const id = session.youtubeUrl ? youtubeId(session.youtubeUrl) : null;
-    return id ? (DURATION_MINS[id] ?? null) : null;
+    const id = session.youtubeUrl == null || session.youtubeUrl === '' ? null : youtubeId(session.youtubeUrl);
+    return id == null || id === '' ? null : (DURATION_MINS[id] ?? null);
 };

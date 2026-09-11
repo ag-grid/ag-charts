@@ -130,7 +130,7 @@ describe('Legend', () => {
     let chart: Chart;
 
     afterEach(async () => {
-        if (chart) {
+        if (chart != null) {
             await waitForChartStability(chart);
             chart.destroy();
             (chart as unknown) = undefined;

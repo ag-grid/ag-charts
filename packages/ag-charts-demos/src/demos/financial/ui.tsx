@@ -8,7 +8,11 @@ import { type ButtonHTMLAttributes } from 'react';
 
 export function Button({ children, className, type = 'button', ...rest }: ButtonHTMLAttributes<HTMLButtonElement>) {
     return (
-        <button type={type} className={className ? `fin-btn ${className}` : 'fin-btn'} {...rest}>
+        <button
+            type={type}
+            className={className == null || className === '' ? 'fin-btn' : `fin-btn ${className}`}
+            {...rest}
+        >
             {children}
         </button>
     );
@@ -75,7 +79,9 @@ export function ToggleGroup({
             type="single"
             value={value}
             aria-label={ariaLabel}
-            onValueChange={(next) => next && onValueChange(next)}
+            onValueChange={(next) => {
+                if (next !== '') onValueChange(next);
+            }}
         >
             {options.map((option) => (
                 <RToggleGroup.Item key={option.value} className="fin-toggle-item" value={option.value}>

@@ -63,7 +63,7 @@ function isMembersNode(node: NodeTypes): node is InterfaceNode | TypeLiteralNode
 function resolveNestedInterface(reference: ApiReferenceType, member: MemberNode) {
     const typeName = getMemberType(member);
     const resolved = resolveReferenceType(reference, typeName);
-    if (!resolved || Array.isArray(resolved) || !isMembersNode(resolved) || !resolved.members.length) {
+    if (!resolved || Array.isArray(resolved) || !isMembersNode(resolved) || resolved.members.length === 0) {
         return undefined;
     }
     return { node: resolved, typeName };
@@ -114,7 +114,7 @@ export function buildApiReferenceTable(
     const maxDepth = limits.maxDepth ?? MAX_DEPTH;
     const maxRows = limits.maxRows ?? MAX_ROWS;
     const id = interfaceId(attributes);
-    if (!id) {
+    if (id == null || id === '') {
         return '';
     }
 
@@ -158,7 +158,7 @@ export function buildApiReferenceTable(
                 return;
             }
 
-            const path = prefix ? `${prefix}.${cleanupName(member.name)}` : cleanupName(member.name);
+            const path = prefix === '' ? cleanupName(member.name) : `${prefix}.${cleanupName(member.name)}`;
             const required = !hideRequired && !member.optional ? ' (required)' : '';
             // markdownTable's cell escaping collapses newlines and escapes pipes, so the markdown
             // from parseJsDocs can be passed through as-is.

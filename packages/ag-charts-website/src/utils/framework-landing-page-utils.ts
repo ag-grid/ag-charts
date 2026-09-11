@@ -16,10 +16,10 @@ export const frameworkLogoMap: Record<string, { logo: string; name: string }> = 
  * Normalize framework key from JSON content to frameworkLogoMap key
  */
 export function normalizeFrameworkKey(frameworkKey: string | undefined): string {
-    if (!frameworkKey) return '';
+    if (frameworkKey == null || frameworkKey === '') return '';
 
     // Check if the key exists directly in the map
-    if (frameworkLogoMap[frameworkKey]) {
+    if (frameworkLogoMap[frameworkKey] != null) {
         return frameworkKey;
     }
 
@@ -33,12 +33,15 @@ export function normalizeFrameworkKey(frameworkKey: string | undefined): string 
     };
 
     const normalized = frameworkKey.toLowerCase();
-    if (variantMapping[frameworkKey] || variantMapping[normalized]) {
-        return variantMapping[frameworkKey] || variantMapping[normalized] || '';
+    const variantByKey = variantMapping[frameworkKey];
+    const variantByNormalized = variantMapping[normalized];
+    const variant = variantByKey != null && variantByKey !== '' ? variantByKey : (variantByNormalized ?? '');
+    if (variant !== '') {
+        return variant;
     }
 
     // Check lowercase version as fallback
-    if (frameworkLogoMap[normalized]) {
+    if (frameworkLogoMap[normalized] != null) {
         return normalized;
     }
 
@@ -55,7 +58,7 @@ export function getHeadingWithLogo(
     urlWithBaseUrl: (url: string) => string
 ): string {
     const normalizedKey = normalizeFrameworkKey(frameworkKey);
-    const frameworkInfo = frameworkLogoMap[normalizedKey] || frameworkLogoMap['react'];
+    const frameworkInfo = frameworkLogoMap[normalizedKey] ?? frameworkLogoMap['react'];
     const logoUrl = urlWithBaseUrl(`/images/fw-logos/${frameworkInfo.logo}`);
     const frameworkName = frameworkInfo.name;
 

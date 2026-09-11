@@ -42,7 +42,7 @@ function featureCell(value: FeatureValue): string {
     const included = typeof value === 'object' ? value.value : value;
     const detail = typeof value === 'object' ? value.detail : undefined;
     const mark = included ? '✓' : '✗';
-    return detail ? `${mark} (${htmlToText(detail)})` : mark;
+    return detail == null || detail === '' ? mark : `${mark} (${htmlToText(detail)})`;
 }
 
 function featureRow(leaf: FeatureLeaf, siteRoot?: string): string[] {
@@ -74,7 +74,7 @@ function renderPlans(siteRoot?: string): string {
     // Matches LicensePricing's defaultSelection: the charts plans plus the Enterprise Bundle.
     const chartsPlans = DEV_LICENSE_DATA.filter((plan) => plan.tabGroup === 'charts' || plan.tabGroup === 'both');
     const rows = chartsPlans.map((plan) => {
-        const suffix = plan.description ? ` (${htmlToText(plan.description)})` : '';
+        const suffix = plan.description === '' ? '' : ` (${htmlToText(plan.description)})`;
         const price = plan.priceFullDollars === '0' ? 'Free' : `$${plan.priceFullDollars} USD per developer`;
         const cta = plan.id === 'community' ? 'Get started' : 'Buy now';
         const buyLink = toAbsoluteUrl(plan.buyLink, siteRoot);

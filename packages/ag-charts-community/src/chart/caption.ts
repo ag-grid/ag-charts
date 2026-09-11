@@ -157,13 +157,13 @@ export class Caption extends BaseProperties implements CaptionLike {
     }
 
     private updateA11yText(moduleCtx: DynamicContext<ChartRegistry>, axisId: AxisID) {
-        if (!this.enabled || !this.text) {
+        if (!this.enabled || this.text == null || this.text === '') {
             this.destroyProxyText();
             return;
         }
 
         const bbox = Transformable.toCanvas(this.node);
-        if (!bbox) return;
+        if (bbox == null) return;
 
         if (this.proxyText == null) {
             this.proxyText = moduleCtx.widgets.axisWidgets.acquireTitle(axisId);
@@ -240,7 +240,7 @@ export class Caption extends BaseProperties implements CaptionLike {
 
     private handleFocus(moduleCtx: DynamicContext<ChartRegistry>) {
         const bbox = Transformable.toCanvas(this.node);
-        if (!bbox) return;
+        if (bbox == null) return;
 
         const canvasX = bbox.x + bbox.width / 2;
         const canvasY = bbox.y + bbox.height / 2;

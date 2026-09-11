@@ -69,14 +69,14 @@ export class TextInput {
             this.ctx.localeManager.t(opts.placeholderText ?? 'inputTextareaPlaceholder')
         );
 
-        if (opts.styles?.placeholderColor) {
+        if (opts.styles?.placeholderColor != null) {
             textArea.style.setProperty('--placeholder-text-color', opts.styles?.placeholderColor);
         }
 
         textArea.innerText = opts.text ?? '';
         textArea.style.color = opts.styles?.color ?? 'inherit';
         textArea.style.fontFamily = opts.styles?.fontFamily ?? 'inherit';
-        textArea.style.fontSize = opts.styles?.fontSize ? `${opts.styles.fontSize}px` : 'inherit';
+        textArea.style.fontSize = opts.styles?.fontSize == null ? 'inherit' : `${opts.styles.fontSize}px`;
         textArea.style.fontStyle = opts.styles?.fontStyle ?? 'inherit';
         textArea.style.fontWeight =
             typeof opts.styles?.fontWeight === 'number'
@@ -141,7 +141,7 @@ export class TextInput {
         const { width, getTextInputCoords, getTextPosition, alignment, textAlign } = this.layout;
 
         // must be set before getting `textArea` bounding rect
-        element.style.setProperty('width', width ? `${width}px` : 'unset');
+        element.style.setProperty('width', width == null || width === 0 ? 'unset' : `${width}px`);
 
         const textRect = textArea.getBoundingClientRect();
 

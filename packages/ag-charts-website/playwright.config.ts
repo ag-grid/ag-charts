@@ -7,7 +7,7 @@ function loadEnvFile(filePath: string): Record<string, string> {
         return Object.fromEntries(
             readFileSync(filePath, 'utf-8')
                 .split('\n')
-                .filter((l) => l && !l.startsWith('#') && l.includes('='))
+                .filter((l) => l !== '' && !l.startsWith('#') && l.includes('='))
                 .map((l) => l.split('=', 2) as [string, string])
         );
     } catch {
@@ -16,6 +16,9 @@ function loadEnvFile(filePath: string): Record<string, string> {
 }
 
 const localE2eEnv = loadEnvFile(join(__dirname, '.env.test:e2e'));
+
+/** An env var counts as set only when it is present and non-empty. */
+const isCI = process.env.CI != null && process.env.CI !== '';
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -27,17 +30,17 @@ export default defineConfig({
     /* Run tests in files in parallel */
     fullyParallel: true,
     /* Fail the build on CI if you accidentally left test.only in the source code. */
-    forbidOnly: !!process.env.CI,
+    forbidOnly: isCI,
     /* Retry on CI only */
-    retries: process.env.CI ? 2 : 0,
+    retries: isCI ? 2 : 0,
     /* Limit parallel tests on CI. */
-    workers: process.env.CI ? 2 : undefined,
+    workers: isCI ? 2 : undefined,
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
     reporter: [
         [
             'html',
             {
-                open: process.env.CI ? 'never' : 'on-failure',
+                open: isCI ? 'never' : 'on-failure',
                 outputFolder: '../../reports/ag-charts-website-e2e-html/',
             },
         ],
@@ -111,7 +114,7 @@ export default defineConfig({
 
     /* Run your local dev server before starting the tests */
     webServer:
-        process.env.HOSTNAME === 'docker-desktop' || process.env.CI
+        process.env.HOSTNAME === 'docker-desktop' || isCI
             ? undefined
             : {
                   env: {
@@ -121,6 +124,6 @@ export default defineConfig({
                   command: 'npx astro dev --port=4601 --host',
                   url: 'http://localhost:4601/',
                   ignoreHTTPSErrors: true,
-                  reuseExistingServer: !process.env.CI,
+                  reuseExistingServer: !isCI,
               },
 });

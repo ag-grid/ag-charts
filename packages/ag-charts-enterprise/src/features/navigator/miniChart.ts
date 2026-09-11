@@ -159,7 +159,7 @@ export class MiniChart extends AbstractModuleInstance {
     }
 
     protected destroySeries(allSeries: _ModuleSupport.UnknownSeries[]): void {
-        if (allSeries) {
+        if (allSeries != null) {
             for (const series of allSeries) {
                 series.destroy();
                 series.detachSeries(this.seriesRoot, this.seriesRoot, undefined);

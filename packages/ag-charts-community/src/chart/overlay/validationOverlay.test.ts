@@ -30,7 +30,7 @@ describe('ValidationOverlay', () => {
 
     let chart: Chart;
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }

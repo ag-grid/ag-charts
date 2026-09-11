@@ -258,7 +258,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const startGuess = Math.floor(domain[0]);
         const stop = domain[1];
 
-        const segments = binCount || 1;
+        const segments = binCount === 0 ? 1 : binCount;
         const { start, binSize } = this.calculateNiceStart(startGuess, stop, segments);
 
         return this.getBins(start, stop, binSize, segments);
@@ -397,7 +397,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 // addAccumulated keeps bigint sums exact and tolerates a Number-seeded unused-sign accumulator.
                 const total = addAccumulated(groupAgg[0], groupAgg[1]);
                 // `aggregatedValue` ignores areaPlot's width-division (see `rawAgg` in processData).
-                const aggregatedValue = rawAgg ? addAccumulated(rawAgg[0], rawAgg[1]) : total;
+                const aggregatedValue = rawAgg == null ? total : addAccumulated(rawAgg[0], rawAgg[1]);
                 return { domain, datum, binIndex, frequency, total, aggregatedValue };
             } else {
                 return { domain, datum: [], binIndex, frequency: 0, total: 0, aggregatedValue: 0 };
@@ -418,7 +418,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { processedData, dataModel } = this;
 
-        if (!processedData || !dataModel || !this.calculatedBins.length) return { domain: [] };
+        if (!processedData || !dataModel || this.calculatedBins.length === 0) return { domain: [] };
 
         const yDomain = dataModel.getDomain(this, `groupAgg`, 'aggregate', processedData).domain;
         const xDomainMin = this.calculatedBins[0].domain[0];

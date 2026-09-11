@@ -57,7 +57,7 @@ function isPageLink(link: FooterLink): boolean {
 
 /** None for a page the footer does not list — the gallery examples and session pages. */
 export function getFooterRelatedLinks({ pageUrl, siteRoot }: { pageUrl?: string; siteRoot?: string }): RelatedLink[] {
-    if (!pageUrl) {
+    if (pageUrl == null || pageUrl === '') {
         return [];
     }
     const path = toComparablePath(pageUrl);

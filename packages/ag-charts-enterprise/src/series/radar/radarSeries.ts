@@ -282,7 +282,7 @@ export abstract class RadarSeries<
                     { value: radiusDatum, datum, angleKey, radiusKey, angleName, radiusName, legendItemName }
                 );
 
-                if (labelText) {
+                if (labelText != null && labelText !== '') {
                     let textAlign: CanvasTextAlign = 'right';
                     if (isNumberEqual(cos, 0)) {
                         textAlign = 'center';
@@ -342,7 +342,7 @@ export abstract class RadarSeries<
         this.contentGroup.translationY = this.centerY;
         this.highlightGroup.translationX = this.centerX;
         this.highlightGroup.translationY = this.centerY;
-        if (this.labelGroup) {
+        if (this.labelGroup != null) {
             this.labelGroup.translationX = this.centerX;
             this.labelGroup.translationY = this.centerY;
         }
@@ -402,7 +402,7 @@ export abstract class RadarSeries<
         const markersEnabled = styler == null ? marker.enabled : this.getStyle(undefined).marker.enabled;
         const highlighted = this.ctx.highlightManager?.getActiveHighlight();
         const data =
-            this.visible && marker.shape && markersEnabled && highlighted?.datum
+            this.visible && marker.shape != null && markersEnabled && highlighted?.datum
                 ? [{ ...highlighted } as RadarNodeDatum]
                 : [];
         this.highlightSelection.update(data);

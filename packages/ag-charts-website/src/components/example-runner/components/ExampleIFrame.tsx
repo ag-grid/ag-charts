@@ -20,20 +20,22 @@ export const ExampleIFrame: FunctionComponent<Props> = ({ title, isHidden, url, 
     useIntersectionObserver({
         elementRef: iFrameRef,
         onChange: ({ isIntersecting: newIsIntersecting }) => {
-            if (url != null && newIsIntersecting && iFrameRef.current && !iFrameRef.current.src) {
-                iFrameRef.current.src = url;
+            const iFrame = iFrameRef.current;
+            if (url != null && newIsIntersecting && iFrame?.src === '') {
+                iFrame.src = url;
             }
             setIsIntersecting(newIsIntersecting);
         },
     });
 
     useEffect(() => {
-        const currentSrc = iFrameRef.current?.src && new URL(iFrameRef.current.src);
-        if (!isIntersecting || !url || !iFrameRef.current || (currentSrc as URL)?.pathname === url) {
+        const currentSrcValue = iFrameRef.current?.src;
+        const currentSrc = currentSrcValue == null || currentSrcValue === '' ? undefined : new URL(currentSrcValue);
+        if (!isIntersecting || url == null || url === '' || !iFrameRef.current || currentSrc?.pathname === url) {
             return;
         }
 
-        if (currentSrc) {
+        if (currentSrc != null) {
             // Post before navigating, otherwise the stale example stays visible until the loading
             // logo island handles the message
             window.postMessage({ type: EXAMPLE_RELOADING_MESSAGE_TYPE, loadingIFrameId });

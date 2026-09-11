@@ -468,7 +468,7 @@ export class AnnotationOptionsToolbar extends BaseProperties {
         const locked = datum.locked ?? false;
 
         for (const [index, button] of this.visibleButtons.entries()) {
-            if (!button) continue;
+            if (button == null) continue;
             if (button.type === 'switch') {
                 this.toolbar.toggleSwitchCheckedByIndex(index, locked);
                 this.updateButtonByIndex(index, locked ? button.checkedOverrides.toJson() : button.toJson());
