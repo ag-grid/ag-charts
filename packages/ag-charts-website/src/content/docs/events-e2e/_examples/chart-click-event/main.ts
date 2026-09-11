@@ -30,11 +30,11 @@ const options: AgChartOptions = {
     ],
 
     listeners: {
-        click: (event: AgChartClickEvent) => {
-            console.log('[click]', event);
+        click: (_event: AgChartClickEvent) => {
+            console.log('[click]');
         },
-        doubleClick: (event: AgChartDoubleClickEvent) => {
-            console.log('[double click]', event);
+        doubleClick: (_event: AgChartDoubleClickEvent) => {
+            console.log('[double click]');
         },
     },
 };

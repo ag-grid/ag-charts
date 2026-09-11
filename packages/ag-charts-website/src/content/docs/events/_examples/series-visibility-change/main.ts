@@ -1,8 +1,7 @@
-import { AgChartLegendClickEvent, AgCharts, AgPolarChartOptions, AgSeriesVisibilityChange } from 'ag-charts-community';
+import { AgCharts, AgPolarChartOptions, AgSeriesVisibilityChange } from 'ag-charts-community';
 import { LegendModule, ModuleRegistry, PieSeriesModule } from 'ag-charts-community';
 
 ModuleRegistry.registerModules([LegendModule, PieSeriesModule]);
-let counter = 1;
 
 let options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
@@ -16,23 +15,9 @@ let options: AgPolarChartOptions = {
         { expense: 'Travel', percentage: 5 },
     ],
     series: [{ type: 'pie', angleKey: 'percentage', legendItemKey: 'expense' }],
-    legend: {
-        listeners: {
-            legendItemClick: (event: AgChartLegendClickEvent) => {
-                console.log(`legendItemClick - itemId: ${event.itemId}, visible: ${event.visible}`);
-                counter = (counter + 1) % 2;
-                document.getElementById('myCounter')!.textContent = `${counter}`;
-                if (counter !== 1) {
-                    event.preventDefault();
-                }
-            },
-        },
-    },
     listeners: {
-        seriesVisibilityChange: ({ seriesId, itemId, legendItemName, visible }: AgSeriesVisibilityChange) => {
-            console.log(
-                `seriesId: ${seriesId}, itemId: ${itemId}, legendItemName: ${legendItemName}, visible: ${visible}`
-            );
+        seriesVisibilityChange: (event: AgSeriesVisibilityChange) => {
+            console.log('[series visibility change]', event);
         },
     },
 };

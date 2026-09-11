@@ -1,9 +1,4 @@
-import {
-    AgCartesianChartOptions,
-    AgChartLegendClickEvent,
-    AgChartLegendDoubleClickEvent,
-    AgCharts,
-} from 'ag-charts-community';
+import { AgCartesianChartOptions, AgChartLegendClickEvent, AgCharts } from 'ag-charts-community';
 import {
     CategoryAxisModule,
     LegendModule,
@@ -13,6 +8,8 @@ import {
 } from 'ag-charts-community';
 
 ModuleRegistry.registerModules([CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
+let counter = 1;
+
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: [
@@ -49,15 +46,20 @@ const options: AgCartesianChartOptions = {
             yKey: 'diesel',
         },
     ],
-
     legend: {
         listeners: {
             legendItemClick: (event: AgChartLegendClickEvent) => {
-                console.log('[click]', event);
+                counter = (counter + 1) % 2;
+                document.getElementById('myCounter')!.textContent = `${counter}`;
+                if (counter !== 1) {
+                    event.preventDefault();
+                }
             },
-            legendItemDoubleClick: (event: AgChartLegendDoubleClickEvent) => {
-                console.log('[double click]', event);
-            },
+        },
+    },
+    listeners: {
+        seriesVisibilityChange: (event) => {
+            console.log('[series visibility change]', event);
         },
     },
 };
