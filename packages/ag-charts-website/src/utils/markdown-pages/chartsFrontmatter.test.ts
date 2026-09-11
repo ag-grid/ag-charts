@@ -14,7 +14,15 @@ describe('getFooterRelatedLinks', () => {
         expect(titlesFor('/roadmap/')).toContain('Changelog');
         expect(titlesFor('/roadmap/')).toContain('Documentation Archive');
         expect(titlesFor('/contact/')).toContain('About');
-        expect(titlesFor('/contact/')).toContain('Privacy Policy');
+        expect(titlesFor('/sitemap/')).toContain('Privacy Policy');
+    });
+
+    test('keeps legal pages out of the company group now that the footer lists them separately', () => {
+        expect(titlesFor('/sitemap/')).not.toContain('About');
+    });
+
+    test('excludes the cookie-preferences control, which opens a dialog rather than a page', () => {
+        expect(titlesFor('/sitemap/')).not.toContain('Manage Cookies');
     });
 
     test('excludes the page itself', () => {
@@ -33,7 +41,7 @@ describe('getFooterRelatedLinks', () => {
     test('matches a footer entry written with the origin and the /charts base path', () => {
         // The footer lists the sitemap as a full production URL, so the comparison has to ignore
         // both the origin and the base path the charts site is served under.
-        expect(titlesFor('/sitemap/')).toContain('About');
+        expect(titlesFor('/sitemap/')).toContain('Privacy Policy');
     });
 
     test('returns nothing for a page the footer does not list, or when no page is given', () => {

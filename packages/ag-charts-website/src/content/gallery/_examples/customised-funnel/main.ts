@@ -31,9 +31,10 @@ const options: AgChartOptions<DataType> = {
             dropOff: {
                 fillOpacity: 0.3,
             },
-            spacingRatio: 0.02,
+            spacingRatio: 0.1,
             strokeWidth: 2,
             strokeOpacity: 0.3,
+            cornerRadius: 12,
             itemStyler: ({ datum }) => {
                 const performance = datum.q2_2024 / datum.target;
 

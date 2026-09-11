@@ -7,100 +7,86 @@ import {
     ScatterSeriesModule,
 } from 'ag-charts-enterprise';
 
-import { penguinSeries } from './data';
+import { dealSeries } from './data';
 
 ModuleRegistry.registerModules([LegendModule, NumberAxisModule, ScatterSeriesModule]);
-
-function quantileSorted(sorted: number[], p: number) {
-    const i = (sorted.length - 1) * p;
-    const lo = Math.floor(i);
-    const hi = Math.ceil(i);
-    return sorted[lo] + (sorted[hi] - sorted[lo]) * (i - lo);
-}
-
-function percentileRange(values: number[], coverage = 0.8) {
-    if (!values.length) return { start: NaN, end: NaN };
-    const sorted = [...values].sort((a, b) => a - b);
-    const tail = (1 - coverage) / 2;
-    return { start: quantileSorted(sorted, tail), end: quantileSorted(sorted, 1 - tail) };
-}
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Penguin Size',
+        text: 'Deal Size by Segment',
     },
     seriesArea: {
         backgroundRegions: [
             {
                 fill: '#5090dc',
                 fillOpacity: 0.2,
-                stroke: '#2b5c95',
+                stroke: { ref: 'foregroundColor', mix: 0.35, ontoColor: '#5090dc' },
                 strokeWidth: 2,
-                xRange: percentileRange(penguinSeries.Adelie.map((d) => d.flipperLength)),
-                yRange: percentileRange(penguinSeries.Adelie.map((d) => d.bodyMass)),
+                xRange: { start: 14, end: 31 },
+                yRange: { start: 27500, end: 63000 },
                 label: {
-                    text: 'Adelie',
-                    position: 'inside-top',
-                    yOffset: 8,
-                    color: '#2b5c95',
+                    text: 'Retail',
+                    position: 'top-left',
+                    yOffset: -4,
+                    color: { ref: 'foregroundColor', mix: 0.35, ontoColor: '#5090dc' },
                     fontSize: 13,
                     fontWeight: 'bold',
-                    fill: '#ffffff',
+                    fill: { ref: 'backgroundColor' },
                     fillOpacity: 0.85,
                     cornerRadius: 4,
                     padding: { top: 4, right: 8, bottom: 4, left: 8 },
                     border: {
                         enabled: true,
-                        stroke: '#2b5c95',
+                        stroke: { ref: 'foregroundColor', mix: 0.35, ontoColor: '#5090dc' },
                     },
                 },
             },
             {
                 fill: '#ffa03a',
                 fillOpacity: 0.2,
-                stroke: '#cc6f10',
+                stroke: { ref: 'foregroundColor', mix: 0.35, ontoColor: '#ffa03a' },
                 strokeWidth: 2,
-                xRange: percentileRange(penguinSeries.Chinstrap.map((d) => d.flipperLength)),
-                yRange: percentileRange(penguinSeries.Chinstrap.map((d) => d.bodyMass)),
+                xRange: { start: 43, end: 67 },
+                yRange: { start: 76500, end: 129500 },
                 label: {
-                    text: 'Chinstrap',
-                    position: 'inside-top',
-                    yOffset: 8,
-                    color: '#cc6f10',
+                    text: 'Mid-Market',
+                    position: 'top-left',
+                    yOffset: -4,
+                    color: { ref: 'foregroundColor', mix: 0.35, ontoColor: '#ffa03a' },
                     fontSize: 13,
                     fontWeight: 'bold',
-                    fill: '#ffffff',
+                    fill: { ref: 'backgroundColor' },
                     fillOpacity: 0.85,
                     cornerRadius: 4,
                     padding: { top: 4, right: 8, bottom: 4, left: 8 },
                     border: {
                         enabled: true,
-                        stroke: '#cc6f10',
+                        stroke: { ref: 'foregroundColor', mix: 0.35, ontoColor: '#ffa03a' },
                     },
                 },
             },
             {
                 fill: '#459d55',
                 fillOpacity: 0.2,
-                stroke: '#1e652e',
+                stroke: { ref: 'foregroundColor', mix: 0.35, ontoColor: '#459d55' },
                 strokeWidth: 2,
-                xRange: percentileRange(penguinSeries.Gentoo.map((d) => d.flipperLength)),
-                yRange: percentileRange(penguinSeries.Gentoo.map((d) => d.bodyMass)),
+                xRange: { start: 95, end: 135 },
+                yRange: { start: 170500, end: 233000 },
                 label: {
-                    text: 'Gentoo',
-                    position: 'inside-top',
-                    yOffset: 8,
-                    color: '#1e652e',
+                    text: 'Enterprise',
+                    position: 'top-left',
+                    yOffset: -4,
+                    color: { ref: 'foregroundColor', mix: 0.35, ontoColor: '#459d55' },
                     fontSize: 13,
                     fontWeight: 'bold',
-                    fill: '#ffffff',
+                    fill: { ref: 'backgroundColor' },
                     fillOpacity: 0.85,
                     cornerRadius: 4,
                     padding: { top: 4, right: 8, bottom: 4, left: 8 },
                     border: {
                         enabled: true,
-                        stroke: '#1e652e',
+                        stroke: { ref: 'foregroundColor', mix: 0.35, ontoColor: '#459d55' },
                     },
                 },
             },
@@ -109,36 +95,30 @@ const options: AgCartesianChartOptions = {
     series: [
         {
             type: 'scatter',
-            title: 'Adelie',
-            data: penguinSeries.Adelie,
-            xKey: 'flipperLength',
-            xName: 'Flipper Length',
-            yKey: 'bodyMass',
-            yName: 'Body Mass',
-            size: 3,
-            strokeWidth: 0,
+            title: 'Retail',
+            data: dealSeries.Retail,
+            xKey: 'cycleDays',
+            xName: 'Sales Cycle',
+            yKey: 'dealValue',
+            yName: 'Deal Value',
         },
         {
             type: 'scatter',
-            title: 'Chinstrap',
-            data: penguinSeries.Chinstrap,
-            xKey: 'flipperLength',
-            xName: 'Flipper Length',
-            yKey: 'bodyMass',
-            yName: 'Body Mass',
-            size: 3,
-            strokeWidth: 0,
+            title: 'Mid-Market',
+            data: dealSeries.MidMarket,
+            xKey: 'cycleDays',
+            xName: 'Sales Cycle',
+            yKey: 'dealValue',
+            yName: 'Deal Value',
         },
         {
             type: 'scatter',
-            title: 'Gentoo',
-            data: penguinSeries.Gentoo,
-            xKey: 'flipperLength',
-            xName: 'Flipper Length',
-            yKey: 'bodyMass',
-            yName: 'Body Mass',
-            size: 3,
-            strokeWidth: 0,
+            title: 'Enterprise',
+            data: dealSeries.Enterprise,
+            xKey: 'cycleDays',
+            xName: 'Sales Cycle',
+            yKey: 'dealValue',
+            yName: 'Deal Value',
         },
     ],
     axes: {
@@ -147,11 +127,11 @@ const options: AgCartesianChartOptions = {
             position: 'bottom',
             nice: false,
             title: {
-                text: 'Flipper Length (mm)',
+                text: 'Sales Cycle (days)',
             },
             label: {
                 formatter: (params) => {
-                    return params.value + ' mm';
+                    return params.value + ' days';
                 },
             },
         },
@@ -160,11 +140,11 @@ const options: AgCartesianChartOptions = {
             position: 'left',
             nice: false,
             title: {
-                text: 'Body Mass (g)',
+                text: 'Deal Value',
             },
             label: {
                 formatter: (params) => {
-                    return params.value + ' g';
+                    return '$' + params.value / 1000 + 'k';
                 },
             },
         },

@@ -41,6 +41,9 @@ const options: AgChartOptions = {
             sizeName: 'Passengers',
             node: {
                 width: 45,
+                cornerRadius: 8,
+                strokeWidth: 1,
+                strokeOpacity: 1,
             },
             link: {
                 fillOpacity: 0.4,

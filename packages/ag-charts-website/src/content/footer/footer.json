@@ -69,26 +69,6 @@
             {
                 "name": "Contact Us",
                 "url": "/contact/"
-            },
-            {
-                "name": "Terms of Use",
-                "url": "https://www.ag-grid.com/terms-of-use/"
-            },
-            {
-                "name": "Privacy Policy",
-                "url": "https://www.ag-grid.com/privacy/"
-            },
-            {
-                "name": "Cookies Policy",
-                "url": "https://www.ag-grid.com/cookies/"
-            },
-            {
-                "name": "Modern Slavery",
-                "url": "https://www.ag-grid.com/modern-slavery/"
-            },
-            {
-                "name": "Sitemap",
-                "url": "https://www.ag-grid.com/charts/sitemap/"
             }
         ]
     },
@@ -114,6 +94,37 @@
                 "name": "LinkedIn",
                 "url": "https://www.linkedin.com/company/ag-grid",
                 "iconName": "linkedin"
+            }
+        ]
+    },
+    {
+        "title": "Legal",
+        "placement": "legal",
+        "links": [
+            {
+                "name": "Terms of Use",
+                "url": "https://www.ag-grid.com/terms-of-use/"
+            },
+            {
+                "name": "Privacy Policy",
+                "url": "https://www.ag-grid.com/privacy/"
+            },
+            {
+                "name": "Cookies Policy",
+                "url": "https://www.ag-grid.com/cookies/"
+            },
+            {
+                "name": "Manage Cookies",
+                "url": "#manage_cookies",
+                "showCookiesPrefs": true
+            },
+            {
+                "name": "Modern Slavery",
+                "url": "https://www.ag-grid.com/modern-slavery/"
+            },
+            {
+                "name": "Sitemap",
+                "url": "https://www.ag-grid.com/charts/sitemap/"
             }
         ]
     }

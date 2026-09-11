@@ -1,10 +1,4 @@
-import type {
-    AgAxisValue,
-    AgCartesianChartOptions,
-    AgCrossLineClickEvent,
-    AgCrossLineDoubleClickEvent,
-    AgCrossLineListeners,
-} from 'ag-charts-community';
+import type { AgCartesianChartOptions, AgCrossLineListeners } from 'ag-charts-community';
 import {
     AgCharts,
     AreaSeriesModule,
@@ -26,29 +20,12 @@ ModuleRegistry.registerModules([
 ]);
 
 const lockdownLabelStyle = { fontStyle: 'italic', position: 'bottom' } as const;
-const variantLineStyle = { stroke: '#F59E0B', strokeWidth: 2, lineDash: [6, 4] };
-const variantLabelStyle = { color: '#F59E0B', position: 'top' } as const;
-
-function formatValue(value: AgAxisValue | undefined) {
-    if (value instanceof Date) {
-        return value.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-    }
-    return String(value);
-}
-
-function toString(ev: AgCrossLineClickEvent | AgCrossLineDoubleClickEvent) {
-    // A `line` Cross Line carries `value`; a `range` Cross Line carries `range` instead.
-    const at = ev.range != null ? `${formatValue(ev.range[0])} to ${formatValue(ev.range[1])}` : formatValue(ev.value);
-    // `allMatchedParams` also reports any series node under the click point, so pick the right identifier.
-    const allMatched = ev.allMatchedParams
-        .map((params) => ('crossLineId' in params ? params.crossLineId : params.seriesId))
-        .join(', ');
-    return `crossLineId: ${ev.crossLineId} (${ev.crossLineType}) on ${ev.axisId}, at: ${at}, allMatchedParams: [${allMatched}]`;
-}
+const variantLineStyle = { strokeWidth: 2, lineDash: [6, 4] };
+const variantLabelStyle = { position: 'top' } as const;
 
 const lockdownListeners: AgCrossLineListeners = {
-    click: (ev) => console.log('[lockdown click]', toString(ev)),
-    doubleClick: (ev) => console.log('[lockdown double click]', toString(ev)),
+    click: (event) => console.log('[lockdown click]', event),
+    doubleClick: (event) => console.log('[lockdown double click]', event),
 };
 
 const options: AgCartesianChartOptions<DataType> = {
@@ -130,8 +107,8 @@ const options: AgCartesianChartOptions<DataType> = {
                 },
             ],
             listeners: {
-                crossLineClick: (ev) => console.log('[x axis cross line click]', toString(ev)),
-                crossLineDoubleClick: (ev) => console.log('[x axis cross line double click]', toString(ev)),
+                crossLineClick: (event) => console.log('[x axis cross line click]', event),
+                crossLineDoubleClick: (event) => console.log('[x axis cross line double click]', event),
             },
         },
         y: {
@@ -145,7 +122,6 @@ const options: AgCartesianChartOptions<DataType> = {
                     id: 'icu-capacity',
                     type: 'line',
                     value: 700,
-                    stroke: '#EF4444',
                     strokeWidth: 2,
                     lineDash: [8, 4],
                     label: {
@@ -153,8 +129,8 @@ const options: AgCartesianChartOptions<DataType> = {
                         position: 'top-right',
                     },
                     listeners: {
-                        click: (ev) => console.log('[capacity click]', toString(ev)),
-                        doubleClick: (ev) => console.log('[capacity double click]', toString(ev)),
+                        click: (event) => console.log('[capacity click]', event),
+                        doubleClick: (event) => console.log('[capacity double click]', event),
                     },
                 },
             ],
@@ -168,19 +144,11 @@ const options: AgCartesianChartOptions<DataType> = {
             yName: 'ICU beds occupied',
             strokeWidth: 1,
             fillOpacity: 0.5,
-            fill: {
-                type: 'gradient',
-                colorStops: [
-                    { color: '#ffffff', stop: 0 },
-                    { color: '#7da9e8', stop: 0.75 },
-                    { color: '#2c6ed5', stop: 1 },
-                ],
-            },
         },
     ],
     listeners: {
-        crossLineClick: (ev) => console.log('[chart cross line click]', toString(ev)),
-        crossLineDoubleClick: (ev) => console.log('[chart cross line double click]', toString(ev)),
+        crossLineClick: (event) => console.log('[chart cross line click]', event),
+        crossLineDoubleClick: (event) => console.log('[chart cross line double click]', event),
     },
 };
 

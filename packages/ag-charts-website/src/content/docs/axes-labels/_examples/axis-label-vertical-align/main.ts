@@ -5,6 +5,12 @@ import { getData } from './data';
 
 ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
 
+type VerticalAlign = 'top' | 'middle' | 'bottom';
+
+// The alignment each axis derives from its position, so the labels start unchanged.
+const initialXVerticalAlign: VerticalAlign = 'top';
+const initialYVerticalAlign: VerticalAlign = 'middle';
+
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -19,20 +25,29 @@ const options: AgCartesianChartOptions = {
         x: {
             type: 'category',
             label: {
-                // Region names of differing lengths wrap onto a differing number of lines. Flush
-                // the bottom of every label to a common line, rather than leaving each one
-                // anchored around its own centre.
+                // Region names wrap onto a differing number of lines, so alignment matters here.
                 wrapping: 'always',
-                verticalAlign: 'bottom',
+                verticalAlign: initialXVerticalAlign,
             },
         } as AgCategoryAxisOptions,
         y: {
             type: 'number',
             label: {
+                verticalAlign: initialYVerticalAlign,
                 formatter: ({ value }) => `$${value.toLocaleString()}`,
             },
         },
     },
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+function setXVerticalAlign(event: Event) {
+    options.axes!.x!.label!.verticalAlign = (event.target as HTMLInputElement).value as VerticalAlign;
+    chart.update(options);
+}
+
+function setYVerticalAlign(event: Event) {
+    options.axes!.y!.label!.verticalAlign = (event.target as HTMLInputElement).value as VerticalAlign;
+    chart.update(options);
+}

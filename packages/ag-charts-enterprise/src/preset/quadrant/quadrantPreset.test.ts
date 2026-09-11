@@ -331,6 +331,29 @@ describe('Quadrant Preset', () => {
         }
     );
 
+    it('forwards overrideDevicePixelRatio to the cartesian chart options', () => {
+        const cartesianOptions = createQuadrant(
+            { ...BUBBLE_SIZED_NUMERIC, overrideDevicePixelRatio: 2 } as AgQuadrantChartOptions,
+            undefined,
+            undefined,
+            undefined,
+            new Logger(),
+            () => undefined
+        );
+
+        expect(cartesianOptions).toMatchObject({ overrideDevicePixelRatio: 2 });
+    });
+
+    it('accepts overrideDevicePixelRatio without a validation warning', async () => {
+        const options = { ...BUBBLE_SIZED_NUMERIC, overrideDevicePixelRatio: 2 } as AgQuadrantChartOptions;
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.createQuadrantChart(options);
+        await waitForChartStability(chart);
+
+        expect(console.warn).not.toHaveBeenCalled();
+    });
+
     it('forwards sizeName to the tooltip renderer params', () => {
         const rendererParams: unknown[] = [];
 

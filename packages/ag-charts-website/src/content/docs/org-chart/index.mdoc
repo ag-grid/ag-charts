@@ -133,7 +133,10 @@ In this configuration:
 }
 ```
 
-## Stacked
+## Stacked Layout
+
+The `'stacked'` layout lists a node's children in a single indented column beneath their parent,
+starting at a given depth. This stops wide hierarchies growing wider at their lower levels.
 
 {% chartExampleRunner title="Stacked" name="org-chart-stacked" type="generated" /%}
 
@@ -144,9 +147,9 @@ In this configuration:
             type: 'organization',
             layout: {
                 type: 'stacked',
+                stackFromDepth: 4,
                 linkIndentation: 26,
                 nodeIndentation: 26,
-                stackFromDepth: 4,
             },
         },
     ],
@@ -155,9 +158,10 @@ In this configuration:
 
 In this example:
 
-- The series is set to switch to the `'stacked'` layout from a depth of `4` given by the `stackFromDepth` option.
-- `linkIndentation` sets the number of pixels to indent the link from the edge of the parent node.
-- `nodeIndentation` sets the number of pixels to indent the child node from the link.
+- `stackFromDepth` is the first depth to be stacked, with levels above it keeping the tree layout. The root node, 'Ashley Rivers', is at depth `1`, so in this case stacking starts at the fourth level, with the reports under 'Nathan Jones' listed in a column.
+- `linkIndentation` indents the [connector lines](#connectors) from the parent's leading edge. Every connector from a parent shares this line, so it reads as a single trunk running down the stack.
+- `nodeIndentation` indents each child card from the [connector lines](#connectors).
+- Stacking follows [direction](#direction), with children listed downwards and indented right for a vertical direction, or listed right and indented downwards for a horizontal one.
 
 ## Expander
 

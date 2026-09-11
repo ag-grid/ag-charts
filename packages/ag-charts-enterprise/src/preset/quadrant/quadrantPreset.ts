@@ -155,6 +155,7 @@ export function createQuadrant(
         'locale',
         'minHeight',
         'minWidth',
+        'overrideDevicePixelRatio',
         'padding',
         'selection',
         'subtitle',
