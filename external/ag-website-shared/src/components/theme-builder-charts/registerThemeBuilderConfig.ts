@@ -18,6 +18,8 @@ setRenderedFeatures([]);
 
 setFontFamilyOptions(CHARTS_FONT_FAMILY_OPTIONS);
 
-// Not registered: setParamDocsProvider. Grid feeds it a build-time JSON import;
-// the charts site serves its generated reference over fetch instead, which the
-// synchronous provider cannot consume. Params fall back to no doc tooltip.
+// Not registered here: setParamDocsProvider. The param descriptions are the
+// JSDoc on `AgChartThemeParams`, which reaches the browser only through the
+// site's generated interface reference - 4MB of it - so the host extracts the
+// ~5KB the builder needs at build time and registers that. A host that does not
+// leaves every param without a tooltip, which is the only thing lost.

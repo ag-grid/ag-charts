@@ -1,6 +1,12 @@
 ---
 import Layout from '@layouts/Layout.astro';
 import { ThemeBuilderShared as ThemeBuilder } from '@components/theme-builder/ThemeBuilderShared';
+import { getThemeParamDocs } from '@utils/server/getThemeParamDocs';
+
+// Read here rather than in the builder: the descriptions come from the
+// generated interface reference, which is 4MB and read from disk, so the
+// builder gets the few kilobytes of it that describe theme params.
+const paramDocs = getThemeParamDocs();
 ---
 
 <Layout
@@ -10,5 +16,5 @@ import { ThemeBuilderShared as ThemeBuilder } from '@components/theme-builder/Th
     hideFooter
     noIndex
 >
-    <ThemeBuilder client:only="react" />
+    <ThemeBuilder client:only="react" paramDocs={paramDocs} />
 </Layout>

@@ -44,6 +44,10 @@ const paramEditor = (param: ChartsParamConfig) => (
         key={param.key}
         param={param.key}
         label={param.label}
+        // The curated labels are short and repeat between sections - three
+        // sections have a "Background Color" - so the tooltip carries the part
+        // the label leaves out: which of the chart's parts this one paints.
+        showDocs
         icon={iconFor(param.icon)}
         swipeAdjustmentDivisor={param.swipeAdjustmentDivisor}
         min={param.min}
