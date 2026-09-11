@@ -41,16 +41,20 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
             { key: 'backgroundColor', label: 'Background Color' },
             { key: 'foregroundColor', label: 'Foreground Color' },
             { key: 'accentColor', label: 'Accent Color' },
+            { key: 'chartPadding', label: 'Chart Padding', icon: 'horizontalSpacing', min: 0, max: 60 },
+            {
+                key: 'borderRadius',
+                label: 'Border Radius',
+                icon: 'radius',
+                swipeAdjustmentDivisor: 20,
+                min: 0,
+                max: 24,
+            },
             { key: 'textColor', label: 'Text Color' },
             { key: 'subtleTextColor', label: 'Subtle Text Color' },
-        ],
-    },
-    {
-        id: 'chart',
-        label: 'Chart',
-        params: [
+            // Follows the background colour by default, so it sits with the colour
+            // it mirrors rather than in a section of its own.
             { key: 'chartBackgroundColor', label: 'Chart Background' },
-            { key: 'chartPadding', label: 'Chart Padding', icon: 'horizontalSpacing', min: 0, max: 60 },
         ],
     },
     {
@@ -66,23 +70,15 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
     },
     {
         id: 'borders',
-        label: 'Borders',
+        label: 'Borders & Spacing',
         params: [
             { key: 'borderColor', label: 'Border Color' },
             { key: 'borderWidth', label: 'Border Width', min: 0, max: 8 },
-            {
-                key: 'borderRadius',
-                label: 'Border Radius',
-                icon: 'radius',
-                swipeAdjustmentDivisor: 20,
-                min: 0,
-                max: 24,
-            },
         ],
     },
     {
-        id: 'chrome',
-        label: 'Chrome',
+        id: 'ui',
+        label: 'UI Elements',
         collapsed: true,
         params: [
             { key: 'chromeBackgroundColor', label: 'Background Color' },
@@ -91,6 +87,12 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
             { key: 'chromeFontFamily', label: 'Font Family' },
             { key: 'chromeFontSize', label: 'Font Size', min: 8, max: 24 },
             { key: 'chromeFontWeight', label: 'Font Weight' },
+            { key: 'menuBackgroundColor', label: 'Menu Background' },
+            { key: 'menuTextColor', label: 'Menu Text' },
+            { key: 'menuBorder', label: 'Menu Border' },
+            { key: 'menuBorderRadius', label: 'Menu Radius', icon: 'radius', min: 0, max: 24 },
+            { key: 'panelBackgroundColor', label: 'Panel Background' },
+            { key: 'panelSubtleTextColor', label: 'Panel Subtle Text' },
         ],
     },
     {
@@ -119,19 +121,6 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
             { key: 'inputTextColor', label: 'Input Text' },
             { key: 'inputBorder', label: 'Input Border' },
             { key: 'inputBorderRadius', label: 'Input Radius', icon: 'radius', min: 0, max: 24 },
-        ],
-    },
-    {
-        id: 'surfaces',
-        label: 'Menus & Panels',
-        collapsed: true,
-        params: [
-            { key: 'menuBackgroundColor', label: 'Menu Background' },
-            { key: 'menuTextColor', label: 'Menu Text' },
-            { key: 'menuBorder', label: 'Menu Border' },
-            { key: 'menuBorderRadius', label: 'Menu Radius', icon: 'radius', min: 0, max: 24 },
-            { key: 'panelBackgroundColor', label: 'Panel Background' },
-            { key: 'panelSubtleTextColor', label: 'Panel Subtle Text' },
         ],
     },
     {
