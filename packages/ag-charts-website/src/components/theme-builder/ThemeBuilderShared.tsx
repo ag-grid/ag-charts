@@ -1,9 +1,10 @@
 import { ThemeBuilder } from '@ag-website-shared/components/theme-builder-charts/ThemeBuilder';
-import { setParamDocsProvider } from '@ag-website-shared/theming/ParamModel';
+import { setParamDocsProvider, setParamDocsUrlProvider } from '@ag-website-shared/theming/ParamModel';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
 import { useStore } from '@nanostores/react';
 import { $darkmode } from '@stores/darkmodeStore';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { useMemo } from 'react';
 
 /**
@@ -24,6 +25,27 @@ import { useMemo } from 'react';
 let siteParamDocs: Record<string, string> = {};
 
 setParamDocsProvider((property) => siteParamDocs[property]);
+
+/**
+ * A param's row in the Themes API reference, which the page expands and scrolls
+ * to on a matching hash.
+ *
+ * The shape is the reference's own, from `anchorId` in `ApiReference.tsx`:
+ * `reference-<root interface>-<member>`, then a segment per level below it. The
+ * docs pages write these by hand too - `/themes-api/#reference-AgChartTheme-params`
+ * in the themes page - so this follows the site's convention rather than
+ * introducing one.
+ *
+ * Linked only for the params the reference is known to carry - the descriptions
+ * are read from it, so a param with one has a row to anchor on. A param without
+ * would otherwise get a link to a hash that exists nowhere on the page, which
+ * loads the reference and quietly leaves the reader at the top of it.
+ */
+const paramAnchor = (property: string) => `reference-AgChartTheme-params-${property}`;
+
+setParamDocsUrlProvider((property) =>
+    siteParamDocs[property] ? `${urlWithBaseUrl('/themes-api/')}#${paramAnchor(property)}` : undefined
+);
 
 export function ThemeBuilderShared({ paramDocs }: { paramDocs: Record<string, string> }) {
     siteParamDocs = paramDocs;

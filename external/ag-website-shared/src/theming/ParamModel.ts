@@ -80,6 +80,22 @@ export const setParamDocsProvider = (provider: ParamDocsProvider) => {
     paramDocsProvider = provider;
 };
 
+type ParamDocsUrlProvider = (property: string) => string | undefined;
+
+let paramDocsUrlProvider: ParamDocsUrlProvider = () => undefined;
+
+/**
+ * Hosts can plug in a page to send the reader to for a param's full
+ * documentation - the site's API reference, anchored on the param itself. Read
+ * on demand, and separate from the descriptions rather than bundled with them,
+ * because a host can well have the text without having a page to link to.
+ * Registering neither leaves a param's tooltip explaining without linking,
+ * which is what it did before this existed.
+ */
+export const setParamDocsUrlProvider = (provider: ParamDocsUrlProvider) => {
+    paramDocsUrlProvider = provider;
+};
+
 export class ParamModel<T> {
     readonly label: string;
     readonly type: ParamType;
@@ -93,6 +109,10 @@ export class ParamModel<T> {
 
     get docs(): string {
         return paramDocsProvider(this.property) || '';
+    }
+
+    get docsUrl(): string | undefined {
+        return paramDocsUrlProvider(this.property);
     }
 
     hasValue = (store: Store) => store.get(this.valueAtom) != null;

@@ -7,6 +7,8 @@ import { InfoTooltip } from './Tooltip';
 export type FormFieldProps = {
     label?: string | null;
     docs?: string | null;
+    /** Where the docs are published, if the host has a page to link to. */
+    docsUrl?: string | null;
     /**
      * A footnote under the control - a line saying where the value came from,
      * say. Nothing by default.
@@ -16,12 +18,14 @@ export type FormFieldProps = {
     onCloseClick?: () => void;
 };
 
-export const FormField = ({ label, children, docs, note, onCloseClick }: FormFieldProps) => (
+export const FormField = ({ label, children, docs, docsUrl, note, onCloseClick }: FormFieldProps) => (
     <StyledFormField>
-        {(label || docs || onCloseClick) && (
+        {(label || docs || docsUrl || onCloseClick) && (
             <Label>
                 {label}
-                {docs && <InfoTooltip title={docs} />}
+                {(docs || docsUrl) && (
+                    <InfoTooltip title={docs || null} href={docsUrl ?? undefined} linkSubject={label ?? undefined} />
+                )}
                 {onCloseClick && <CloseButton onClick={onCloseClick} />}
             </Label>
         )}

@@ -54,6 +54,7 @@ export const ParamEditor = withErrorBoundary((props: ParamEditorProps) => {
         <FormField
             label={props.label || param.label}
             docs={props.showDocs ? param.docs : null}
+            docsUrl={props.showDocs ? param.docsUrl : null}
             note={props.note}
             onCloseClick={
                 props.isAdvancedSection

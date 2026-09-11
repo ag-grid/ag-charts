@@ -18,8 +18,9 @@ setRenderedFeatures([]);
 
 setFontFamilyOptions(CHARTS_FONT_FAMILY_OPTIONS);
 
-// Not registered here: setParamDocsProvider. The param descriptions are the
-// JSDoc on `AgChartThemeParams`, which reaches the browser only through the
-// site's generated interface reference - 4MB of it - so the host extracts the
-// ~5KB the builder needs at build time and registers that. A host that does not
-// leaves every param without a tooltip, which is the only thing lost.
+// Not registered here: setParamDocsProvider and setParamDocsUrlProvider. The
+// param descriptions are the JSDoc on `AgChartThemeParams`, which reaches the
+// browser only through the site's generated interface reference - 4MB of it - so
+// the host extracts the ~5KB the builder needs at build time and registers that,
+// along with the page it can send a reader to for the rest. A host that does
+// neither leaves every param without a tooltip, which is the only thing lost.
