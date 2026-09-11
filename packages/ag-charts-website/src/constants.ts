@@ -10,6 +10,9 @@ export const ENABLE_HOT_RELOAD = import.meta.env?.PUBLIC_ENABLE_HOT_RELOAD === '
 // emitted and docs pages omit the markdown affordances (see the docs Header / Layout).
 export const DISABLE_MARKDOWN_DOCS = ['1', 'true'].includes(import.meta.env?.DISABLE_MARKDOWN_DOCS);
 
+// Turn off the hidden, crawlable copy of each example's source that docs pages embed at build time
+export const DISABLE_EXAMPLE_SOURCE_EMBED = ['1', 'true'].includes(import.meta.env?.DISABLE_EXAMPLE_SOURCE_EMBED);
+
 export const INTERNAL_FRAMEWORKS: readonly InternalFramework[] = [
     'vanilla',
     'typescript',
