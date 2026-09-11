@@ -40,6 +40,7 @@ import {
     setPathSafe,
 } from './optionsGraphUtils';
 import { OptionsPartialCache, hasUnmergedCssVariables } from './optionsPartialCache';
+import type { OptionsGraphAccessorResolvePartialOptions } from './optionsGraphTypes';
 
 const debug = Debug.create('opts', 'options-graph');
 
@@ -56,12 +57,6 @@ export interface OptionsGraphAccessor {
         csssVariables?: Record<string, string>
     ): Resolved<Partial<T>> | undefined;
     clearSafe(): void;
-}
-
-export interface OptionsGraphAccessorResolvePartialOptions {
-    permissivePath?: boolean;
-    pick?: boolean;
-    proxyPaths?: Record<string, Array<string>>;
 }
 
 export const createOptionsGraphMemoised = simpleMemorize(createOptionsGraph);
