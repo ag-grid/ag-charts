@@ -1,3 +1,4 @@
+import { AdvancedParamSelector } from '@ag-website-shared/components/theme-builder/AdvancedParamSelector';
 import { CollapsibleSection } from '@ag-website-shared/components/theme-builder/CollapsibleSection';
 import { PaletteEditor } from '@ag-website-shared/components/theme-builder/PaletteEditor';
 import { ParamEditor } from '@ag-website-shared/components/theme-builder/ParamEditor';
@@ -15,10 +16,14 @@ import { usePalette } from './paletteModel';
 import { type ChartsParamConfig, INHERITED_KEYS, type LengthIcon, PARAM_GROUPS } from './params';
 
 const PALETTE_SECTION = 'Palette';
+const ALL_PARAMS_SECTION = 'All Parameters';
 
 const DEFAULT_OPEN_SECTIONS = [
     PALETTE_SECTION,
     ...PARAM_GROUPS.filter((group) => !group.collapsed).map((group) => group.label),
+    // Open by default, as in the grid builder: a param pinned here has been asked
+    // for explicitly, and a closed section would hide it along with the box.
+    ALL_PARAMS_SECTION,
 ];
 
 const iconFor = (icon?: LengthIcon): ReactNode => {
@@ -103,6 +108,11 @@ export const EditorPanel = () => {
                     </CollapsibleSection>
                 );
             })}
+            {/* Last: every param by name, for the ones the curated sections keep
+                out of the way, and for anything a section does not name. */}
+            <CollapsibleSection {...sectionProps(ALL_PARAMS_SECTION)}>
+                <AdvancedParamSelector />
+            </CollapsibleSection>
         </PanelWrapper>
     );
 };

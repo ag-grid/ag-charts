@@ -40,6 +40,7 @@
     "dompurify": "^3.4.1",
     "dotenv": "10.0.0",
     "dotenv-expand": "10.0.0",
+    "downshift": "^9.0.6",
     "esprima": "4.0.1",
     "flexsearch": "^0.7.43",
     "fs-extra": "11.2.0",
