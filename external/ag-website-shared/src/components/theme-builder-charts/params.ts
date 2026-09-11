@@ -15,6 +15,13 @@ import { CHARTS_PARAM_DEFAULTS, PUBLIC_PARAM_NAMES } from './chartsTheme';
 
 export type LengthIcon = 'radius' | 'verticalSpacing' | 'horizontalSpacing';
 
+/**
+ * Named because the preview watches for it: editing these params holds a tooltip
+ * open in the chart, since otherwise they change something no part of the screen
+ * is showing. See `editedGroup.ts`.
+ */
+export const TOOLTIPS_GROUP_ID = 'tooltips';
+
 export interface ChartsParamConfig {
     key: string;
     label: string;
@@ -99,7 +106,7 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
         ],
     },
     {
-        id: 'tooltips',
+        id: TOOLTIPS_GROUP_ID,
         label: 'Tooltips',
         collapsed: true,
         params: [

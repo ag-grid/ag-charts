@@ -12,6 +12,7 @@ import styled from '@emotion/styled';
 import type { ReactNode } from 'react';
 
 import { InheritedValueNote } from './InheritedValueNote';
+import { useSetEditedGroup } from './editedGroup';
 import { usePalette } from './paletteModel';
 import { type ChartsParamConfig, type LengthIcon, PARAM_GROUPS } from './params';
 
@@ -62,6 +63,7 @@ const paramEditor = (param: ChartsParamConfig) => (
 export const EditorPanel = () => {
     const [expanded, setExpanded] = useApplicationConfigAtom('expandedEditors');
     const [palette, setPalette] = usePalette();
+    const setEditedGroup = useSetEditedGroup();
     const openSections = expanded || DEFAULT_OPEN_SECTIONS;
 
     const toggleSection = (heading: string) => {
@@ -76,8 +78,27 @@ export const EditorPanel = () => {
         onToggle: () => toggleSection(heading),
     });
 
+    // Which group is being worked in, for the preview to answer with - see
+    // `editedGroup.ts`. Capture handlers, so that an interaction inside a group
+    // is seen here first and by the group second: the panel clears the group and
+    // the group then names itself, and an interaction anywhere else in the panel
+    // - another section, its heading, the search box - clears it and stops there.
+    //
+    // Deliberately no release on blur. A colour picker is rendered in a portal,
+    // outside this element, so the moment a swatch was clicked the panel would
+    // read as abandoned and the tooltip would close - exactly when the user is
+    // dragging a colour they want to see land.
+    const releaseGroup = {
+        onFocusCapture: () => setEditedGroup(null),
+        onPointerDownCapture: () => setEditedGroup(null),
+    };
+    const holdGroup = (id: string) => ({
+        onFocusCapture: () => setEditedGroup(id),
+        onPointerDownCapture: () => setEditedGroup(id),
+    });
+
     return (
-        <PanelWrapper>
+        <PanelWrapper {...releaseGroup}>
             {/* Palette leads: for a chart theme it is the change with the most
                 visible effect, and unlike the params below it has no default
                 surfaced anywhere else in the panel. */}
@@ -91,7 +112,7 @@ export const EditorPanel = () => {
                 and axes whose colours are yours to set. */}
             {PARAM_GROUPS.map((group) => (
                 <CollapsibleSection key={group.id} {...sectionProps(group.label)}>
-                    <Fields>{group.params.map(paramEditor)}</Fields>
+                    <Fields {...holdGroup(group.id)}>{group.params.map(paramEditor)}</Fields>
                 </CollapsibleSection>
             ))}
             {/* Last: the same params, searchable by name or by what they do -

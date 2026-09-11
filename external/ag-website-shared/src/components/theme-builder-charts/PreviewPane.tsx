@@ -11,6 +11,7 @@ import {
     usePreviewSeriesCount,
 } from './chartTypes';
 import type { ChartsTheme } from './chartsThemeOutput';
+import { useSetEditedGroup } from './editedGroup';
 
 interface Props {
     pane: PreviewPaneId;
@@ -31,6 +32,7 @@ export const PreviewPane = ({ pane, theme, strokesEnabled }: Props) => {
     const [chartType, setChartType] = usePreviewChartType(pane);
     const [seriesCount, setSeriesCount] = usePreviewSeriesCount(pane);
     const [features, setFeatures] = usePreviewFeatures(pane);
+    const setEditedGroup = useSetEditedGroup();
 
     // With the palette's strokes off, an outline would be drawn in the fill's
     // own colour - so the feature is neither offered nor applied, rather than
@@ -48,7 +50,12 @@ export const PreviewPane = ({ pane, theme, strokesEnabled }: Props) => {
     );
 
     return (
-        <Pane>
+        // Reaching for the preview - the chart or the controls above it - lets go
+        // of any tooltip the panel is holding open here. A held tooltip is frozen
+        // and so ignores the mouse, which would otherwise leave the user unable
+        // to hover their own chart; and switching the type or the series count
+        // rebuilds what the tooltip was pointing at.
+        <Pane onPointerDownCapture={() => setEditedGroup(null)}>
             <Toolbar>
                 <PreviewOptions
                     paneLabel={PREVIEW_PANE_LABELS[pane]}

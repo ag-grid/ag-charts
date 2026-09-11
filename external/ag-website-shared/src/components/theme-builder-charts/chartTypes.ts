@@ -31,6 +31,29 @@ export type PreviewChartOptions = AgChartOptions | AgFinancialChartOptions;
 export type PreviewPreset = 'price-volume';
 
 /**
+ * A stable id for the nth series of a preview.
+ *
+ * Set by hand because the panel has to be able to name a series back to the
+ * chart - `setState` takes a `seriesId` - and AG Charts' own ids are generated,
+ * `BarSeries-3` and the like, which its options documentation says outright may
+ * change between releases.
+ */
+export const previewSeriesId = (index: number) => `preview-series-${index}`;
+
+/**
+ * A datum the preview can ask the chart to open a tooltip on: a series this file
+ * named, and the datum's index within it.
+ */
+export type PreviewTooltipTarget = { seriesId: string; itemId: number };
+
+/**
+ * Q2 of the first series. One of the four quarters rather than the axis or the
+ * padding, so every cartesian type has a datum there, and left of centre so the
+ * tooltip opens over the chart rather than off its right edge.
+ */
+const CARTESIAN_TOOLTIP_TARGET: PreviewTooltipTarget = { seriesId: previewSeriesId(0), itemId: 1 };
+
+/**
  * The chart types the preview can be switched between.
  *
  * A theme is not only a bar chart: markers, area fills, callout labels and the
@@ -70,6 +93,14 @@ export type PreviewChartType = {
      * switching in or out of it remounts rather than updates.
      */
     preset?: PreviewPreset;
+    /**
+     * The datum whose tooltip is held open while the tooltip params are being
+     * edited, so that what those params change is on screen while it changes.
+     *
+     * Absent where the preview cannot name a series to point at: the
+     * price-volume preset assembles its own, and their ids are generated.
+     */
+    tooltipTarget?: PreviewTooltipTarget;
     /** The main preview: the full chart, titled and with a legend. */
     buildOptions: (seriesCount: number, features: ChartFeatures) => PreviewChartOptions;
 };
@@ -179,7 +210,10 @@ const cartesian = (
     data: PREVIEW_DATA,
     title: TITLE,
     subtitle: SUBTITLE,
-    series: seriesFor(seriesCount).map(({ key, name }) => series(key, name)),
+    series: seriesFor(seriesCount).map(({ key, name }, index) => ({
+        ...series(key, name),
+        id: previewSeriesId(index),
+    })),
     axes: cartesianAxes(features),
     ...commonOptions(features),
 });
@@ -191,6 +225,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
         icon: 'chartsColumn',
         countLabel: 'Series',
         features: CARTESIAN_FEATURES,
+        tooltipTarget: CARTESIAN_TOOLTIP_TARGET,
         buildOptions: (count, features) =>
             cartesian(count, features, (key, name) => ({
                 type: 'bar',
@@ -206,6 +241,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
         icon: 'chartsColumnStacked',
         countLabel: 'Series',
         features: CARTESIAN_FEATURES,
+        tooltipTarget: CARTESIAN_TOOLTIP_TARGET,
         buildOptions: (count, features) =>
             cartesian(count, features, (key, name) => ({
                 type: 'bar',
@@ -222,6 +258,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
         icon: 'chartsLine',
         countLabel: 'Series',
         features: CARTESIAN_FEATURES,
+        tooltipTarget: CARTESIAN_TOOLTIP_TARGET,
         buildOptions: (count, features) =>
             cartesian(count, features, (key, name) => ({
                 type: 'line',
@@ -237,6 +274,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
         icon: 'chartsArea',
         countLabel: 'Series',
         features: CARTESIAN_FEATURES,
+        tooltipTarget: CARTESIAN_TOOLTIP_TARGET,
         buildOptions: (count, features) =>
             cartesian(count, features, (key, name) => ({
                 type: 'area',
@@ -254,6 +292,8 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
         countLabel: 'Slices',
         // No crosshairs: they belong to an axis, and a donut has none.
         features: COMMON_FEATURES,
+        // The second slice, for the same reason as the second quarter above.
+        tooltipTarget: { seriesId: previewSeriesId(0), itemId: 1 },
         buildOptions: (count, features) => ({
             data: totalsFor(count),
             title: { text: 'Revenue by Country' },
@@ -261,6 +301,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
             series: [
                 {
                     type: 'donut',
+                    id: previewSeriesId(0),
                     angleKey: 'revenue',
                     calloutLabelKey: 'country',
                     innerRadiusRatio: 0.6,
