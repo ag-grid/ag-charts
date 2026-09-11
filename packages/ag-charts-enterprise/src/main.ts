@@ -13,6 +13,14 @@ export * from 'ag-charts-community';
 
 export { AngleCategoryAxisModule } from './axes/angle-category/angleCategoryAxisModule';
 export { AngleNumberAxisModule } from './axes/angle-number/angleNumberAxisModule';
+export {
+    CategoryAxisModule,
+    GroupedCategoryAxisModule,
+    LogAxisModule,
+    NumberAxisModule,
+    TimeAxisModule,
+    UnitTimeAxisModule,
+} from './axes/cartesian/cartesianAxisModules';
 export { OrdinalTimeAxisModule } from './axes/ordinal/ordinalTimeAxisModule';
 export { RadiusCategoryAxisModule } from './axes/radius-category/radiusCategoryAxisModule';
 export { RadiusNumberAxisModule } from './axes/radius-number/radiusNumberAxisModule';

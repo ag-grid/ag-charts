@@ -1,15 +1,25 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     type AgCartesianChartOptions,
     type AgChartInstance,
+    AllCartesianAxesModule as AllCommunityCartesianAxesModule,
     CategoryAxisModule,
+    LineSeriesModule,
     NumberAxisModule,
 } from 'ag-charts-community';
-import { expectErrorsCalls, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
+import {
+    clickAction,
+    expectErrorsCalls,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from 'ag-charts-community-test';
 import { type ModuleDefinition, ModuleRegistry } from 'ag-charts-core';
 
+import { NumberAxisModule as EnterpriseNumberAxisModule } from './axes/cartesian/cartesianAxisModules';
 import { AgCharts, RangeBarSeriesModule } from './main';
+import { AllCartesianAxesModule } from './module-bundles/cartesian-axes';
 import { prepareEnterpriseTestOptions } from './test/utils';
 
 describe('instance modules', () => {
@@ -97,5 +107,74 @@ describe('theme defaults for unregistered modules', () => {
         });
 
         expectErrorsCalls().toContainEqual([expect.stringContaining('CrosshairModule')]);
+    });
+});
+
+describe('enterprise cartesian axis modules', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: AgChartInstance | undefined;
+    let registeredModules: ModuleDefinition[];
+
+    beforeEach(() => {
+        registeredModules = [...ModuleRegistry.listModules()];
+        ModuleRegistry.reset();
+    });
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+        ModuleRegistry.reset();
+        ModuleRegistry.registerModules(registeredModules);
+    });
+
+    it('registers axis interaction alongside the enterprise axis modules', () => {
+        ModuleRegistry.registerModules([LineSeriesModule, EnterpriseNumberAxisModule]);
+
+        expect(ModuleRegistry.hasModule('axis-dom-proxy')).toBe(true);
+    });
+
+    it('replaces a community axis module regardless of registration order', () => {
+        ModuleRegistry.registerModules([NumberAxisModule, EnterpriseNumberAxisModule]);
+        expect(ModuleRegistry.getAxisModule('number')?.enterprise).toBe(true);
+
+        ModuleRegistry.reset();
+        ModuleRegistry.registerModules([EnterpriseNumberAxisModule, NumberAxisModule]);
+        expect(ModuleRegistry.getAxisModule('number')?.enterprise).toBe(true);
+    });
+
+    it('fires axis click listeners without registering AxisInteractionModule by hand', async () => {
+        ModuleRegistry.registerModules([LineSeriesModule, EnterpriseNumberAxisModule]);
+        const click = vi.fn();
+        chart = AgCharts.create(
+            prepareEnterpriseTestOptions({
+                data: Array.from({ length: 11 }, (_, i) => ({ x: i * 100, y: i })),
+                axes: {
+                    x: { type: 'number', listeners: { click } },
+                    y: { type: 'number' },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            })
+        );
+        await waitForChartStability(chart);
+
+        expect(chart.isModuleRegistered('AxisInteractionModule')).toBe(true);
+
+        await clickAction(418, 560)(chart);
+        expect(click).toHaveBeenCalledTimes(1);
+    });
+
+    it('wraps every community cartesian axis module', () => {
+        const wrapped = new Map(AllCartesianAxesModule.map((module) => [module.name, module]));
+
+        for (const community of AllCommunityCartesianAxesModule) {
+            const module = wrapped.get(community.name);
+            expect(module?.enterprise, community.name).toBe(true);
+            expect(
+                module?.dependencies?.map((dep) => dep.name),
+                community.name
+            ).toContain('axis-dom-proxy');
+        }
     });
 });

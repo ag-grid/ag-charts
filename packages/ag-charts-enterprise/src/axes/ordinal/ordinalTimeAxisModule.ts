@@ -6,6 +6,7 @@ import {
     mergeDefaults,
 } from 'ag-charts-core';
 
+import { AxisDOMProxyModule } from '../../features/axis-dom-proxy/axisDomProxyModule';
 import { OrdinalTimeAxis } from './ordinalTimeAxis';
 
 export const OrdinalTimeAxisModule: AxisModuleDefinition<AgOrdinalTimeAxisOptions, OrdinalTimeAxis> = {
@@ -14,7 +15,7 @@ export const OrdinalTimeAxisModule: AxisModuleDefinition<AgOrdinalTimeAxisOption
     chartType: 'cartesian',
     enterprise: true,
     version: VERSION,
-    dependencies: [CartesianChartModule],
+    dependencies: [CartesianChartModule, AxisDOMProxyModule],
 
     options: _ModuleSupport.ordinalTimeAxisOptionsDefs,
     themeTemplate: mergeDefaults(

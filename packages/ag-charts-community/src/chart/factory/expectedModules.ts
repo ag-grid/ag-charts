@@ -433,6 +433,7 @@ export const ExpectedModules = new Map<string, ModulePlaceholder>(
                 chartType: 'cartesian',
                 enterprise: true,
                 moduleId: 'AxisInteractionModule',
+                apiName: 'axes[].listeners.click / doubleClick',
             },
             {
                 type: 'plugin',
