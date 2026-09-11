@@ -67,18 +67,24 @@ describe('label shrink pass overflow caps', () => {
             .map((node) => String(node.text ?? ''));
     };
 
-    // 'MMMM' is wider than the room left over, so its line is dropped without an ellipsis — not the
-    // truncation `'hide'` erases on — leaving 'i', which is narrower than a single 'M', to draw.
-    it('keeps the lines of a multi-line hide label that still fit the room an obstacle leaves', async () => {
+    // A dropped line is lost text, which 'hide' erases the whole label on.
+    it('hides a multi-line hide label whose line the room an obstacle leaves cannot hold', async () => {
         await renderTwoLabelledPoints({ x: 408, y: 200 }, { wrapping: 'on-space', formatter: () => 'MMMM\ni' });
 
-        expect(renderedLabelTexts()).toEqual(['MMMM\ni', 'i']);
+        expect(renderedLabelTexts()).toEqual(['MMMM\ni']);
     });
 
-    // A blank line ends a `'never'` wrap early, so losing a line of height leaves 'a' drawn whole.
-    it('keeps the first line of a hide label whose blank line ends the wrap', async () => {
+    // The floor is the widest word on any line, not the widest line, so narrowing past 'MM MM' still re-wraps.
+    it('re-wraps a multi-line hide label that an obstacle narrows to its widest word', async () => {
+        await renderTwoLabelledPoints({ x: 424, y: 200 }, { wrapping: 'on-space', formatter: () => 'MM MM\ni' });
+
+        expect(renderedLabelTexts()).toEqual(['MM MM\ni', 'MM\nMM\ni']);
+    });
+
+    // A blank line ends a 'never' wrap early, dropping 'b' without an ellipsis: still lost text.
+    it('hides a multi-line hide label that an obstacle costs a line of height', async () => {
         await renderTwoLabelledPoints({ x: 400, y: 184 }, { wrapping: 'never', formatter: () => 'a\n\nb' });
 
-        expect(renderedLabelTexts()).toEqual(['a\n\nb', 'a']);
+        expect(renderedLabelTexts()).toEqual(['a\n\nb']);
     });
 });

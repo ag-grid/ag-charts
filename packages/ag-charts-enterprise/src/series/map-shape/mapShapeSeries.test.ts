@@ -240,6 +240,64 @@ describe('MapShapeSeries', () => {
                 failureThreshold: 1,
             });
         });
+
+        // setupMockConsole() fails on any unasserted warning, so each case here must consume its deprecation notice.
+        describe('deprecated overflowStrategy', () => {
+            const render = async (label: object) => {
+                const options: AgChartOptions = {
+                    data: usData.map((d) => ({ ...d, label: `${d.name} ${d.name}` })),
+                    topology: usTopology,
+                    series: [
+                        { type: 'map-shape', idKey: 'name', labelKey: 'label', label: { fontSize: 10, ...label } },
+                    ],
+                } as AgChartOptions;
+                prepareEnterpriseTestOptions(options);
+                chart = deproxy(AgCharts.create(options));
+                await waitForChartStability(chart);
+                return (chart.series[0].contextNodeData?.labelData ?? []).map((d: { text: string }) => d.text);
+            };
+
+            const resolvedTruncate = () => chart.series[0].properties.label.truncate;
+
+            it('warns and maps `ellipsis` onto `truncate`', async () => {
+                const texts = await render({ overflowStrategy: 'ellipsis' });
+                expectWarningsCalls().toMatchInlineSnapshot(`
+                  [
+                    [
+                      "AG Charts - Option \`series[0].label.overflowStrategy\` is deprecated. Use \`truncate\` instead.",
+                    ],
+                  ]
+                `);
+                expect(resolvedTruncate()).toBe(true);
+                expect(texts.some((text: string) => text.includes('…'))).toBe(true);
+            });
+
+            it('keeps `hide` when another fit option would otherwise default `truncate` on', async () => {
+                const texts = await render({ overflowStrategy: 'hide', minimumFontSize: 8 });
+                expectWarningsCalls().toMatchInlineSnapshot(`
+                  [
+                    [
+                      "AG Charts - Option \`series[0].label.overflowStrategy\` is deprecated. Use \`truncate\` instead.",
+                    ],
+                  ]
+                `);
+                expect(resolvedTruncate()).toBe(false);
+                expect(texts.some((text: string) => text.includes('…'))).toBe(false);
+            });
+
+            it('lets an explicit `truncate` win over the deprecated value', async () => {
+                const texts = await render({ wrapping: 'never', overflowStrategy: 'ellipsis', truncate: false });
+                expectWarningsCalls().toMatchInlineSnapshot(`
+                  [
+                    [
+                      "AG Charts - Option \`series[0].label.overflowStrategy\` is deprecated. Use \`truncate\` instead.",
+                    ],
+                  ]
+                `);
+                expect(resolvedTruncate()).toBe(false);
+                expect(texts.some((text: string) => text.includes('…'))).toBe(false);
+            });
+        });
     });
 
     const testPointerEvents = (testParams: {

@@ -9,16 +9,25 @@ import type {
 import { _ModuleSupport } from 'ag-charts-community';
 import type { FeatureCollection, Geometry, InternalAgColorType, NormalisedTextOrSegments } from 'ag-charts-core';
 import { Property } from 'ag-charts-core';
+import type { OverflowStrategy } from 'ag-charts-types';
 
-import { AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
+const { ColorScaleProperties, Label, SeriesProperties, makeSeriesTooltip } = _ModuleSupport;
 
-const { ColorScaleProperties, SeriesProperties, makeSeriesTooltip } = _ModuleSupport;
+export class MapShapeSeriesLabel<FormatterParams> extends Label<FormatterParams> {
+    @Property
+    lineHeight?: number;
+
+    /** @deprecated The theme maps it onto `truncate`. */
+    @Property
+    overflowStrategy?: OverflowStrategy;
+}
+
 export interface MapShapeNodeLabelDatum {
     readonly x: number;
     readonly y: number;
     readonly text: NormalisedTextOrSegments;
     readonly fontSize: number;
-    readonly lineHeight: number;
+    readonly lineHeight: number | undefined;
     readonly datumIndex: number;
     readonly idValue: string;
     readonly datumId: string | number | boolean;
@@ -95,7 +104,7 @@ export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesO
     itemStyler?: Styler<AgMapShapeSeriesItemStylerParams<unknown>, AgMapShapeSeriesStyle>;
 
     @Property
-    readonly label = new AutoSizedSecondaryLabel<AgMapShapeSeriesLabelFormatterParams>();
+    readonly label = new MapShapeSeriesLabel<AgMapShapeSeriesLabelFormatterParams>();
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgMapShapeSeriesTooltipRendererParams<any>>();

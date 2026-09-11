@@ -453,6 +453,7 @@ export {
     PlacedSeriesLabel,
     expandLabelBoxExtent,
     expandPlacementLabelBoxExtent,
+    labelHasBox,
     placedLabelTextOffset,
     resolvePlacementLabelBoxExtent,
     styledLabelTextOffset,

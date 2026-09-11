@@ -45,6 +45,8 @@ export interface LabelFit {
      * {@link overflowStrategy} applies, which it does only once the minimum size still does not fit.
      */
     readonly minimumFontSize?: number;
+    /** Line height the label is drawn at, when it overrides the font's own. */
+    readonly lineHeight?: number;
     /**
      * The shape the label sits in, when it is not a rectangle. Each line is then wrapped to the width the
      * shape offers where that line lands, instead of every line sharing one inscribed rectangle's width.
@@ -57,6 +59,11 @@ export interface LabelFit {
      * it. The shape offers different room at different heights, so this decides which room the text gets.
      */
     readonly regionAlign?: RegionAlign;
+    /**
+     * The label draws one rectangle round the whole block, so every line is held to the narrowest band
+     * the block spans rather than to the room its own row offers.
+     */
+    readonly boxed?: boolean;
 }
 
 /** Where a region-bounded block of text sits against its anchor; see {@link LabelFit.regionAlign}. */
@@ -100,8 +107,18 @@ function lineMaxWidth(options: WrapOptions, top: number, bottom: number) {
     return Math.min(options.maxWidth, options.maxWidthAt(top, bottom));
 }
 
-function shouldHideOverflow(clippedResult: string[], options: WrapOptions) {
-    return options.overflow === 'hide' && clippedResult.some(isTextTruncated);
+/**
+ * Whether a `'hide'` label lost any of `source`. A shape can narrow a band to nothing and the wrap then
+ * drops the word that landed there without an ellipsis, so loss is counted rather than read off the marker.
+ */
+function shouldHideOverflow(clippedResult: string[], options: WrapOptions, source: string) {
+    if (options.overflow !== 'hide') return false;
+    if (clippedResult.some(isTextTruncated)) return true;
+    return keptCharacterCount(clippedResult.join('')) < keptCharacterCount(source);
+}
+
+function keptCharacterCount(text: string) {
+    return survivingCharacters(unguardTextEdges(text));
 }
 
 function preservesText(options: WrapOptions) {
@@ -130,7 +147,7 @@ export function fitLabelText(
     font: FontOptions
 ): NormalisedTextOrSegments {
     if (fit == null) return text;
-    const { maxWidth, maxHeight, wrapping, overflowStrategy, region } = fit;
+    const { maxWidth, maxHeight, wrapping, overflowStrategy, region, lineHeight } = fit;
     if (maxWidth == null && maxHeight == null && region == null) return text;
     const overflow = overflowStrategy ?? 'preserve';
     const options: WrapOptions = {
@@ -138,6 +155,7 @@ export function fitLabelText(
         maxWidth: maxWidth ?? Infinity,
         // A height bound can only be honoured by dropping lines, which 'preserve' forbids.
         maxHeight: overflow === 'preserve' ? undefined : maxHeight,
+        lineHeight,
         textWrap: wrapping,
         overflow,
     };
@@ -146,7 +164,7 @@ export function fitLabelText(
     // A caller that can move the label as well calls {@link fitLabelTextToRegion} instead.
     return region == null
         ? wrapTextOrSegments(text, options)
-        : wrapTextToRegion(text, options, region, fit.regionAlign ?? 'center', true).text;
+        : wrapTextToRegion(text, options, region, fit.regionAlign ?? 'center', true, fit.boxed).text;
 }
 
 /**
@@ -169,12 +187,14 @@ export function fitLabelTextToRegion(
             font,
             maxWidth: fit.maxWidth ?? Infinity,
             maxHeight: overflow === 'preserve' ? undefined : fit.maxHeight,
+            lineHeight: fit.lineHeight,
             textWrap: fit.wrapping,
             overflow,
         },
         fit.region,
         fit.regionAlign ?? 'center',
-        anchored
+        anchored,
+        fit.boxed
     );
 }
 
@@ -238,16 +258,23 @@ function wrapBlockToRegion(
     limit: number,
     lineHeight: number,
     lines: number,
-    anchored: boolean
+    anchored: boolean,
+    boxed: boolean
 ) {
     const height = Math.min(lines * lineHeight, limit);
     const blockTop = blockTopFor(align, height, region, limit);
     const bands: (readonly [number, number])[] = [];
-    for (let i = 0; i < lines; i += 1) {
-        bands.push([blockTop + i * lineHeight, blockTop + (i + 1) * lineHeight] as const);
+    if (boxed) {
+        bands.push([blockTop, blockTop + height] as const);
+    } else {
+        for (let i = 0; i < lines; i += 1) {
+            bands.push([blockTop + i * lineHeight, blockTop + (i + 1) * lineHeight] as const);
+        }
     }
     const offsetX = anchored ? 0 : blockOffsetX(region, bands);
-    const widthAt = (top: number, bottom: number) => regionWidthAt(region, blockTop + top, blockTop + bottom, offsetX);
+    const widthAt = boxed
+        ? () => regionWidthAt(region, blockTop, blockTop + height, offsetX)
+        : (top: number, bottom: number) => regionWidthAt(region, blockTop + top, blockTop + bottom, offsetX);
     const wrapped = wrapTextOrSegments(text, {
         ...options,
         // The band a line occupies must be the one it will be drawn in, so the width the shape offers is
@@ -258,13 +285,16 @@ function wrapBlockToRegion(
         maxWidthAt: widthAt,
     });
     const marked = markLostText(String(wrapped), text, options, widthAt, lineHeight);
-    // A candidate whose text did not wrap into the block it was measured for was fitted to the wrong
-    // bands, so it only stands until a line count that agrees with itself keeps as much.
+    const drawnLines = marked.split('\n').length;
+    // A block shorter than it was measured for fills the top bands of the taller one: a movable label is drawn
+    // there, while an anchored one would land in bands it was never fitted to, so it only stands provisionally.
+    const shorter = !anchored && marked !== '' && drawnLines < lines;
+    const drawnHeight = shorter ? drawnLines * lineHeight : height;
     return {
         text: marked,
         offsetX,
-        offsetY: blockTop + height / 2,
-        consistent: marked.split('\n').length === lines,
+        offsetY: blockTop + drawnHeight / 2,
+        consistent: shorter || drawnLines === lines,
     };
 }
 
@@ -301,16 +331,17 @@ function wrapTextToRegion(
     options: WrapOptions,
     region: FitRegion,
     align: RegionAlign,
-    anchored = false
+    anchored = false,
+    boxed = false
 ): FittedRegionText {
     const limit = Math.min(options.maxHeight ?? Infinity, region.extentAbove + region.extentBelow);
     if (isArray(text)) {
-        return { text: refineSegmentsToRegion(text, options, region, align, limit), offsetX: 0, offsetY: 0 };
+        return refineSegmentsToRegion(text, options, region, align, limit, boxed);
     }
 
     // One line's height, not the measured block's: a source carrying its own line breaks would otherwise
     // size every band to the whole block and wrap each line against a row it never occupies.
-    const lineHeight = cachedTextMeasurer(options.font).lineHeight();
+    const lineHeight = options.lineHeight ?? cachedTextMeasurer(options.font).lineHeight();
     const source = toTextString(text);
     const wanted = survivingCharacters(source);
     // A line holds at least one character, so more lines than the source has cannot keep more of it —
@@ -320,7 +351,7 @@ function wrapTextToRegion(
     let best: { text: string; offsetX: number; offsetY: number; consistent: boolean } | undefined;
     let bestKept = 0;
     for (let lines = 1; lines <= maxLines; lines += 1) {
-        const candidate = wrapBlockToRegion(source, options, region, align, limit, lineHeight, lines, anchored);
+        const candidate = wrapBlockToRegion(source, options, region, align, limit, lineHeight, lines, anchored, boxed);
         const kept = survivingCharacters(candidate.text);
         if (isBetterCandidate(candidate.consistent, kept, best?.consistent, bestKept)) {
             bestKept = kept;
@@ -353,25 +384,31 @@ function refineSegmentsToRegion(
     options: WrapOptions,
     region: FitRegion,
     align: RegionAlign,
-    limit: number
+    limit: number,
+    boxed: boolean
 ) {
     let height = measureText(text, options.font).height;
     let lines = 1;
     let result: NormalisedTextOrSegments = text;
+    let blockTop = 0;
     for (let i = 0; i < MAX_REGION_REFINEMENTS; i += 1) {
-        const blockTop = blockTopFor(align, Math.min(height, limit), region, limit);
+        const blockHeight = Math.min(height, limit);
+        blockTop = blockTopFor(align, blockHeight, region, limit);
         result = wrapTextOrSegments(text, {
             ...options,
             lineHeight: height / lines,
             maxHeight: limit,
-            maxWidthAt: (top, bottom) => regionWidthAt(region, blockTop + top, blockTop + bottom),
+            maxWidthAt: boxed
+                ? () => regionWidthAt(region, blockTop, blockTop + blockHeight)
+                : (top, bottom) => regionWidthAt(region, blockTop + top, blockTop + bottom),
         });
         const next = measureText(result, options.font).height;
         lines = Math.max(1, Math.round(next / (height / lines)));
         if (next === height) break;
         height = next;
     }
-    return result;
+    // Segments are centred on the anchor's column, so the block only moves along the bands it was fitted to.
+    return { text: result, offsetX: 0, offsetY: blockTop + Math.min(height, limit) / 2 };
 }
 
 /** Attaches the shape a label is bounded by to its fit policy; see {@link LabelFit.region}. */
@@ -596,22 +633,47 @@ export function fitLabelTextAutoSize(
     fit: LabelFit | undefined,
     font: FontOptions
 ): AutoSizedLabelText {
+    const { text: fitted, fontSize } = fitLabelTextToRegionAutoSize(text, fit, font, true);
+    return { text: fitted, fontSize };
+}
+
+/** A region-fitted label that may also have shrunk: {@link FittedRegionText} with {@link AutoSizedLabelText.fontSize}. */
+export interface AutoSizedRegionText extends FittedRegionText {
+    readonly fontSize?: number;
+}
+
+/**
+ * {@link fitLabelTextAutoSize} for a caller that can place the label as well as write it, as
+ * {@link fitLabelTextToRegion} is to {@link fitLabelText}: the offset each candidate size was fitted at
+ * comes back with the text that fits.
+ */
+export function fitLabelTextToRegionAutoSize(
+    text: NormalisedTextOrSegments,
+    fit: LabelFit | undefined,
+    font: FontOptions,
+    anchored = false
+): AutoSizedRegionText {
     const driver = fit == null ? undefined : autoSizeDriver(text, fit, font);
-    if (fit == null || driver == null) return { text: fitLabelText(text, fit, font) };
+    if (fit == null || driver == null) return fitLabelTextToRegion(text, fit, font, anchored);
     const { minimumFontSize } = fit;
     // Above the floor the text must fit whole; 'hide' erases it otherwise so the search steps down.
     const wholeTextFit: LabelFit = { ...fit, overflowStrategy: 'hide' };
-    const found = findLargestFittingFontSize<AutoSizedLabelText>(driver.min, driver.max, (driverSize, atFloor) => {
+    const found = findLargestFittingFontSize<AutoSizedRegionText>(driver.min, driver.max, (driverSize, atFloor) => {
         const ratio = (driverSize - driver.min) / (driver.max - driver.min);
         const sized = labelTextAtShrinkRatio(text, minimumFontSize, font, ratio);
-        const fitted = fitLabelText(sized.text, atFloor ? fit : wholeTextFit, fontWithSize(font, sized.fontSize));
-        if (isErased(fitted)) return undefined;
-        return { text: fitted, fontSize: sized.fontSize === font.fontSize ? undefined : sized.fontSize };
+        const fitted = fitLabelTextToRegion(
+            sized.text,
+            atFloor ? fit : wholeTextFit,
+            fontWithSize(font, sized.fontSize),
+            anchored
+        );
+        if (isErased(fitted.text)) return undefined;
+        return { ...fitted, fontSize: sized.fontSize === font.fontSize ? undefined : sized.fontSize };
     });
     // Not even the floor holds anything, so the label is whatever its overflow strategy leaves: nothing.
     if (found) return found;
     const floor = labelTextAtShrinkRatio(text, minimumFontSize, font, 0);
-    return { text: fitLabelText(floor.text, fit, fontWithSize(font, floor.fontSize)) };
+    return fitLabelTextToRegion(floor.text, fit, fontWithSize(font, floor.fontSize), anchored);
 }
 
 /** {@link fitLabelTextAutoSize} with the never-erase fallback of {@link fitLabelTextOrOverflow}. */
@@ -679,7 +741,7 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
             result.push(truncatedLine);
             widthOffset = 0;
         }
-        return shouldHideOverflow(result, options) ? [] : result;
+        return shouldHideOverflow(result, options, text) ? [] : result;
     }
 
     const wrapHyphenate = options.textWrap === 'hyphenate';
@@ -819,7 +881,7 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
 
     avoidOrphans(result, measurer, options);
     const clippedResult = clipLines(result, measurer, options);
-    return shouldHideOverflow(clippedResult, options) ? [] : clippedResult;
+    return shouldHideOverflow(clippedResult, options, text) ? [] : clippedResult;
 }
 
 function getWordAt(text: string, position: number) {
