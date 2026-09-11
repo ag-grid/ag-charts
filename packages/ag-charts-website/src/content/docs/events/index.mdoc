@@ -369,7 +369,7 @@ This event contains:
 
 - A `ratioX` and `ratioY` with `start` and `end` properties with values between `0` and `1`. These represent a proportion of the width or height of the chart.
 - A `rangeX` and `rangeY` which contain values that match the [axis type](./axes-types/), e.g. a date for an [Ordinal Time Axis](./axes-types/#time).
-- `source` - the source of the event, either `'user-interaction'` or `'state-change'`.
+- `source` - the source of the event: `'user-interaction'`, `'state-change'`, `'chart-update'`, `'data-update'` or `'sync'`.
 - The [`context`](./context/) object, if set.
 
 {% chartExampleRunner title="Zoom" name="zoom-event" type="generated" /%}
@@ -395,7 +395,6 @@ This is fired when the [annotations](./annotations/) are changed, added or remov
 This event contains:
 
 - The array of all the `annotations` with their current state.
-- `source` - the source of the event, either `'user-interaction'` or `'state-change'`.
 - The [`context`](./context/) object, if set.
 
 {% chartExampleRunner title="Annotations" name="annotations-event" type="generated" /%}
