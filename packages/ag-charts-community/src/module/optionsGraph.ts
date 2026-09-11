@@ -113,6 +113,59 @@ export const SHALLOW_OPTION_KEYS = new Set<string>(['context', 'data', 'topology
 // wholesale rather than merging index-by-index. Non-array values are still descended.
 const ATOMIC_LIST_OPTION_KEYS = new Set<string>(['placement', 'orientation']);
 
+// Depth cap doubles as the cycle guard: a self-referential payload bails out as uncacheable.
+const CACHE_KEY_MAX_DEPTH = 6;
+
+/**
+ * Append a value to a cache key, returning `false` if it cannot be represented. Type tags keep distinct values
+ * distinct once joined, so differing key order costs a miss rather than risking a false hit.
+ */
+function appendCacheKey(key: Array<string>, value: unknown, depth: number): boolean {
+    if (depth > CACHE_KEY_MAX_DEPTH) return false;
+
+    if (value === null) {
+        key.push('null');
+        return true;
+    }
+
+    switch (typeof value) {
+        case 'undefined':
+            key.push('undefined');
+            return true;
+        case 'string':
+            key.push('s', value);
+            return true;
+        case 'number':
+        case 'bigint':
+        case 'boolean':
+            key.push(typeof value, String(value));
+            return true;
+        case 'object':
+            break;
+        default:
+            return false;
+    }
+
+    if (Array.isArray(value)) {
+        key.push('[');
+        for (const item of value) {
+            if (!appendCacheKey(key, item, depth + 1)) return false;
+        }
+        key.push(']');
+        return true;
+    }
+
+    if (!isPlainObject(value)) return false;
+
+    key.push('{');
+    for (const objectKey of Object.keys(value)) {
+        key.push(objectKey);
+        if (!appendCacheKey(key, value[objectKey], depth + 1)) return false;
+    }
+    key.push('}');
+    return true;
+}
+
 /**
  * The OptionsGraph combines the theme config, params, palette, overrides and user options into a graph which can then
  * be resolved down into an object.
@@ -157,6 +210,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
     // A cache of values that persists between chart updates, use sparingly.
     private static readonly valueCache = new Map();
 
+    private static readonly PARTIAL_CACHE_LIMIT = 512;
+
     public static clearValueCache() {
         OptionsGraph.valueCache.clear();
     }
@@ -199,6 +254,9 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
     private readonly value$1: Map<string, unknown> = new Map();
 
     private readonly cachedPathVertices: Map<string, Vertex<unknown>> = new Map();
+
+    // Resolved partials, keyed by request. Bounded because a styler can return a distinct style per datum.
+    private readonly cachedPartials: Map<string, PlainObject | undefined> = new Map();
 
     private hasUnsafeClearKeys = false;
 
@@ -347,6 +405,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         debug.group('OptionsGraph.clear()', () => {
             super.clear();
             this.cachedPathVertices.clear();
+            this.cachedPartials.clear();
             this.root = undefined;
             this.params = undefined;
             this.annotations = undefined;
@@ -374,6 +433,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
     resolve(logger: Logger | undefined) {
         return this.withLogger(logger, () =>
             debug.group('OptionsGraph.resolve()', () => {
+                this.cachedPartials.clear();
                 this.resolved = {};
                 this.resolvedParams = {};
                 this.resolvedAnnotations = {};
@@ -1369,6 +1429,81 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         // If the graph has been cleared, do not attempt to resolve. This will occur when no `styler` options are provided.
         if (!this.root) return;
 
+        this.mergeCssVariables(cssVariables);
+
+        // A styler resolves once per datum against a graph that resolution itself mutates and then rolls back, so
+        // an identical request must reuse its answer rather than rebuild and re-resolve the same branches.
+        const cacheKey = this.partialCacheKey(path, partialOptions, resolveOptions);
+        if (cacheKey != null) {
+            const cached = this.cachedPartials.get(cacheKey);
+            if (cached !== undefined || this.cachedPartials.has(cacheKey)) {
+                return (cached && { ...cached }) as Resolved<Partial<T>> | undefined;
+            }
+        }
+
+        const resolved = this.resolvePartialUncached(path, partialOptions, resolveOptions);
+
+        if (cacheKey != null && this.cachedPartials.size < OptionsGraph.PARTIAL_CACHE_LIMIT) {
+            this.cachedPartials.set(cacheKey, resolved && { ...resolved });
+        }
+
+        return resolved as Resolved<Partial<T>> | undefined;
+    }
+
+    /**
+     * Callers re-derive these from the partial on each request, so the map arrives fresh every time and is almost
+     * always a repeat. Rebuilding the graph's copy regardless would allocate per datum and strand every partial
+     * already resolved against the identical set.
+     */
+    private mergeCssVariables(cssVariables: Record<string, string> | undefined) {
+        if (cssVariables == null) return;
+
+        let changed = false;
+        for (const key of Object.keys(cssVariables)) {
+            if (this.cssVariables[key] !== cssVariables[key]) {
+                changed = true;
+                break;
+            }
+        }
+        if (!changed) return;
+
+        this.cssVariables = { ...this.cssVariables, ...cssVariables };
+        this.cachedPartials.clear();
+    }
+
+    /**
+     * Build a key identifying a partial request, or `undefined` when it must not be cached: `proxyPaths` rewrites
+     * the caller's own object rather than only reading it.
+     */
+    private partialCacheKey(
+        path: Array<string>,
+        partialOptions: PlainObject,
+        resolveOptions?: {
+            permissivePath?: boolean;
+            pick?: boolean;
+            proxyPaths?: Record<string, Array<string>>;
+        }
+    ): string | undefined {
+        if (resolveOptions?.proxyPaths != null) return;
+
+        const key: Array<string> = [
+            path.join('.'),
+            resolveOptions?.permissivePath === true ? 'P' : '-',
+            resolveOptions?.pick === false ? 'K' : '-',
+        ];
+        if (!appendCacheKey(key, partialOptions, 0)) return;
+        return key.join('\u0000');
+    }
+
+    private resolvePartialUncached<T extends PlainObject>(
+        path: Array<string>,
+        partialOptions: T,
+        resolveOptions?: {
+            permissivePath?: boolean;
+            pick?: boolean;
+            proxyPaths?: Record<string, Array<string>>;
+        }
+    ): PlainObject | undefined {
         const { permissivePath, proxyPaths } = resolveOptions ?? {};
 
         const partialKeys = Object.keys(partialOptions);
@@ -1378,11 +1513,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         const debugLabel = debug.check() ? `OptionsGraph.resolvePartial() - ${path.join('.')} [${partialKeys}]` : '';
 
         return debug.group(debugLabel, () => {
-            if (partialKeys.length === 0) return {} as Resolved<Partial<T>>;
-
-            if (cssVariables) {
-                this.cssVariables = { ...this.cssVariables, ...cssVariables };
-            }
+            if (partialKeys.length === 0) return {};
 
             const parentVertex = this.findVertexAtPath(path);
             if (!parentVertex) {
@@ -1463,7 +1594,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             debug('edge count', this.getEdgeCount());
             debug('resolved partial', partial);
 
-            return partial as Resolved<Partial<T>>;
+            return partial;
         });
     }
 
