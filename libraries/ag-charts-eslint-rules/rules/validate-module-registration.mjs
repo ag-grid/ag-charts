@@ -10,7 +10,9 @@ import {
     bundleContents,
     cartesianSeriesModules,
     chartListenerToModule,
+    enterpriseImpliedModules,
     enterpriseModules,
+    impliedModules,
     intrinsicDefaults,
     moduleToPackage,
     pluginOptionToModule,
@@ -77,7 +79,7 @@ export default {
         let importDeclarations = new Map(); // packageName -> ImportDeclaration node
 
         /**
-         * Expand bundle modules to their contents
+         * Expand bundle modules to their contents, then add the modules those bring in as dependencies
          */
         function expandBundles(modules) {
             const expanded = new Set();
@@ -92,7 +94,21 @@ export default {
                     expanded.add(mod);
                 }
             }
+            for (const mod of [...expanded]) {
+                for (const implied of impliedBy(mod)) {
+                    expanded.add(implied);
+                }
+            }
             return expanded;
+        }
+
+        /**
+         * The modules registering `moduleId` also pulls in via its own `dependencies`
+         */
+        function impliedBy(moduleId) {
+            const implied = impliedModules.get(moduleId) ?? [];
+            if (importedModules.get(moduleId)?.packageName !== 'ag-charts-enterprise') return implied;
+            return [...implied, ...(enterpriseImpliedModules.get(moduleId) ?? [])];
         }
 
         /**

@@ -284,6 +284,23 @@ export const enterpriseModules = new Set([
     'QuadrantPresetModule',
 ]);
 
+// Module ID → modules its own `dependencies` register alongside it. The enterprise map applies only
+// to imports from ag-charts-enterprise: the community module of the same name has no such dependency.
+export const impliedModules = new Map([
+    ['ContextMenuModule', ['AxisInteractionModule']],
+    ['ZoomInteractionModule', ['AxisInteractionModule']],
+]);
+
+export const enterpriseImpliedModules = new Map([
+    ['CategoryAxisModule', ['AxisInteractionModule']],
+    ['GroupedCategoryAxisModule', ['AxisInteractionModule']],
+    ['LogAxisModule', ['AxisInteractionModule']],
+    ['NumberAxisModule', ['AxisInteractionModule']],
+    ['OrdinalTimeAxisModule', ['AxisInteractionModule']],
+    ['TimeAxisModule', ['AxisInteractionModule']],
+    ['UnitTimeAxisModule', ['AxisInteractionModule']],
+]);
+
 // Bundle definitions - what each bundle includes
 export const bundleContents = new Map([
     [
