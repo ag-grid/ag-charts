@@ -1,4 +1,4 @@
-import type { AgAxisDirection, AgAxisValue, AgCartesianChartOptions } from 'ag-charts-enterprise';
+import type { AgCartesianChartOptions } from 'ag-charts-enterprise';
 import {
     AgCharts,
     AxisInteractionModule,
@@ -19,22 +19,6 @@ ModuleRegistry.registerModules([
     UnitTimeAxisModule,
 ]);
 
-const profitColor = '#8B5CF6';
-const ordersColor = '#F59E0B';
-const salesColor = '#0EA5E9';
-
-function formatValue(value: AgAxisValue) {
-    if (value instanceof Date) {
-        return value.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
-    }
-    // Clicks on a continuous axis resolve to a fractional value, so round it for display.
-    return typeof value === 'number' ? value.toFixed(2) : String(value);
-}
-
-function toString(ev: { axisId: string; direction: AgAxisDirection; value: AgAxisValue }) {
-    return `axisId: ${ev.axisId}, direction: ${ev.direction}, value: ${formatValue(ev.value)}`;
-}
-
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
@@ -49,8 +33,8 @@ const options: AgCartesianChartOptions<DataType> = {
             type: 'unit-time',
             position: 'bottom',
             listeners: {
-                click: (ev) => console.log('[x axis click]', toString(ev)),
-                doubleClick: (ev) => console.log('[x axis double click]', toString(ev)),
+                click: (event) => console.log('[x axis click]', event),
+                doubleClick: (event) => console.log('[x axis double click]', event),
             },
         },
         yProfit: {
@@ -58,14 +42,10 @@ const options: AgCartesianChartOptions<DataType> = {
             position: 'left',
             title: {
                 text: 'Profit',
-                color: profitColor,
             },
-            label: { color: profitColor },
-            line: { stroke: profitColor },
-            tick: { stroke: profitColor },
             listeners: {
-                click: (ev) => console.log('[profit axis click]', toString(ev)),
-                doubleClick: (ev) => console.log('[profit axis double click]', toString(ev)),
+                click: (event) => console.log('[profit axis click]', event),
+                doubleClick: (event) => console.log('[profit axis double click]', event),
             },
         },
         ySales: {
@@ -73,22 +53,14 @@ const options: AgCartesianChartOptions<DataType> = {
             position: 'right',
             title: {
                 text: 'Sales',
-                color: salesColor,
             },
-            label: { color: salesColor },
-            line: { stroke: salesColor },
-            tick: { stroke: salesColor },
         },
         yOrders: {
             type: 'number',
             position: 'right',
             title: {
                 text: 'Orders',
-                color: ordersColor,
             },
-            label: { color: ordersColor },
-            line: { stroke: ordersColor },
-            tick: { stroke: ordersColor },
         },
     },
 
@@ -99,8 +71,6 @@ const options: AgCartesianChartOptions<DataType> = {
             yKey: 'profit',
             yName: 'Profit',
             yKeyAxis: 'yProfit',
-            stroke: profitColor,
-            marker: { fill: profitColor },
         },
         {
             type: 'line',
@@ -108,8 +78,6 @@ const options: AgCartesianChartOptions<DataType> = {
             yKey: 'orders',
             yName: 'Orders',
             yKeyAxis: 'yOrders',
-            stroke: ordersColor,
-            marker: { fill: ordersColor },
         },
         {
             type: 'line',
@@ -117,13 +85,11 @@ const options: AgCartesianChartOptions<DataType> = {
             yKey: 'sales',
             yName: 'Sales',
             yKeyAxis: 'ySales',
-            stroke: salesColor,
-            marker: { fill: salesColor },
         },
     ],
     listeners: {
-        axisClick: (ev) => console.log('[chart axis click]', toString(ev)),
-        axisDoubleClick: (ev) => console.log('[chart axis double click]', toString(ev)),
+        axisClick: (event) => console.log('[chart axis click]', event),
+        axisDoubleClick: (event) => console.log('[chart axis double click]', event),
     },
 };
 

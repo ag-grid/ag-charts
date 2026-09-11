@@ -1,165 +1,61 @@
 ---
 title: 'Events'
+description: 'Listen and respond to $framework Chart events. Handle clicks on series nodes, legend items, axes, Cross Lines and captions, or react to state changes such as series visibility, selection and zoom.'
 hidePageMenu: true
 ---
 
-This section explains how to listen and respond to various chart and series events.
+This section explains how to listen and respond to various chart and series events. Most are either clicks or state changes, and listeners live in a `listeners` option, either on the chart or on individual elements.
 
-## Chart Events
+## Click Events
 
-These events are raised by interactions across the entire chart.
+Each clickable part of the chart has its own click event, these are detailed below. Listen on the chart for every occurrence, or on an individual element for just that one.
 
-### click and doubleClick
+Every click event has a double-click form which carries the same payload. A double-click fires the single-click event on both clicks, then the double-click event on the second.
 
-These are fired on click or double-click on any empty part of the chart. When a user double-clicks, the `click` event will be fired on the first click, then both the `click` and `doubleClick` will be fired on the second click.
+Some clicks can also be stopped from applying their built-in behaviour - see [Prevent Default](#prevent-default).
 
-These events may be prevented by other clickable parts of the chart, such as series nodes and legend items which have their own events.
+## click and doubleClick
 
-{% chartExampleRunner title="Chart Single & Double Click Events" name="chart-click-event" type="generated" /%}
-
-In this example:
-
-- When a blank area on a chart is clicked, a message is shown in the console.
-- When a blank area on a chart is double-clicked, a different message is shown.
-
-### seriesVisibilityChange
-
-This is fired when the visibility of a series or data item is toggled. This is usually triggered by user interaction with a legend item.
-
-This event contains:
-
-- The `seriesId` of the series.
-- The [`itemId`](#item-identifiers), `legendItemName` or other identifiers of the changed item.
-- `visible` - the new visibility state of the series or item.
-
-{% chartExampleRunner title="Series Visibility Changed" name="series-visibility-change" type="generated" /%}
-
-```js format="snippet"
-{
-    listeners: {
-        seriesVisibilityChange: ({ seriesId, visible }) => {
-            console.log(`seriesId: ${seriesId}, visible: ${visible}`);
-        },
-    },
-}
-```
-
-In this example:
-
-- When a legend item is clicked, the visibility change is prevented and a counter decreases.
-  This is done by using `preventDefault` on the [legendItemClick](#legenditemclick-and-legenditemdoubleclick) event.
-- When the counter hits zero, the series toggle is allowed to occur.
-- The series visibility change is fired, with the relevant information shown in the console.
-
-### activeChange
-
-This event is fired when the [active](./api-state/#active) state is changed.
-This occurs when a user interaction (mouse, touch, keyboard) on a series node or legend causes a highlight or tooltip change.
-
-The event contains:
-
-- `activeItem` - the item that is now active, or `undefined` if no item is active.
-- The `activeItem` contains:
-    - `type` - the type of the active item, either `'series-node'` or `'legend'`.
-    - `seriesId` and [`itemId`](#item-identifiers) identifying the active item.
-- `datum` - the data from the chart data array for the active item.
-- `source` - the source of the event, either `'user-interaction'` or `'state-change'`.
-
-{% chartExampleRunner title="Active Change Event" name="active-change-event" type="generated" /%}
-
-```js format="snippet"
-{
-    listeners: {
-        activeChange: (ev) => {
-            if (ev.activeItem === undefined) {
-                console.log(`[inactive], event:`, ev);
-            } else {
-                const { type: t, seriesId: s, itemId: i } = ev.activeItem;
-                console.log(`[${t}], seriesId: ${s}, itemId: ${i}, event:`, ev);
-            }
-        },
-    },
-}
-```
-
-In this example:
-
-- Whenever a user interaction (mouse, touch, keyboard) on the series-area or legend changes the highlight state, a message is shown in the console.
-
-### selectionChange
-
-This is fired when the [Data Selection](./selection/) is updated by either user interaction or an API call. See [Selection Change Event](./selection/#selection-change-event) for full details.
-
-### collapsedChange
-
-This is fired when an item in an [Org Chart](./org-chart/) is expanded or collapsed, by either user interaction or an API call.
-
-The event contains:
-
-- `collapsed` - array of the items newly collapsed by this change, each with `itemId` and `datum`:
-    - `itemId` - the unique identifier of the datum.
-    - `datum` - the data from the chart data array for the collapsed item.
-- `expanded` - array of the items newly expanded by this change, each with `itemId` and `datum`:
-    - `itemId` - the unique identifier of the datum.
-    - `datum` - the data from the chart data array for the expanded item.
-- `source` - the source of the event, either `'user-interaction'` or `'api-call'`.
-
-{% note %}
-`collapsed` and `expanded` contain only the items changed by this event, not the full set of collapsed or expanded items. Use `chart.getState()` to get the current state of all items.
-{% /note %}
-
-{% chartExampleRunner title="Collapsed Change Event" name="collapsed-change-event" type="generated" /%}
-
-In this example:
-
-- Whenever a node is collapsed or expanded, a message is shown in the console.
-
-### annotations
-
-This is fired when the [annotations](./annotations/) are changed, added or removed in either cartesian charts or with the [financial charts toolbar](./financial-charts-toolbar/).
-
-{% chartExampleRunner title="Annotations" name="annotations-event" type="generated" /%}
-
-This event contains:
-
-- The array of `annotations`.
-
-In this example:
-
-- When an annotation is changed, added or removed, the event is output to the console.
-
-### zoom
-
-This is fired when the zoom level or position changes. This is triggered when [zooming in or out of the chart](./zoom/), [panning](./zoom/#panning) or using the [Navigator](./navigator/).
-
-{% chartExampleRunner title="Zoom" name="zoom-event" type="generated" /%}
-
-This event contains:
-
-- A `ratioX` and `ratioY` with `start` and `end` properties with values between `0` and `1`. These represent a proportion of the width or height of the chart.
-- Any non-category axes also include `rangeX` or `rangeY` properties. These contain values that match the [axis type](./axes-types/), e.g. a date for an [Ordinal Time Axis](./axes-types/#time).
-
-In this example:
-
-- When the zoom level is changed or the chart is panned, the event is output to the console.
-
-## Series Events
-
-These are fired on click or double-click of the series node. Depending on the type of series, a node can mean a bar or a pie sector, or a marker, such as a Line or an Area series marker.
+These are fired on click or double-click on any empty part of the chart.
 
 These events contain:
 
-- The `series` the node belongs to.
-- The piece of chart data or `datum`.
+- `coordinates` - for cartesian series types, the coordinates of the click point as plotted against each axis.
+- These are keyed by axis, with each axis providing `direction`, the `value` at the clicked position and its `index` within the axis `domain`.
+- The [`context`](./context/) object, if set.
+
+{% chartExampleRunner title="Chart Single & Double Click Events" name="chart-click-event" type="generated" /%}
+
+```js format="snippet"
+{
+    listeners: {
+        click: (event) => {
+            console.log('[click]', event);
+        },
+        doubleClick: (event) => {
+            console.log('[double click]', event);
+        },
+    },
+}
+```
+
+In this example:
+
+- When a blank area on a chart is clicked, a message is shown in the console along with the event details.
+- When a blank area on a chart is double-clicked, a different message is shown along with the event details. The single-click event is also fired on both clicks.
+
+## seriesNodeClick and seriesNodeDoubleClick
+
+These are fired on click or double-click of a series node such as a bar or marker and are defined on the series or chart options.
+
+The parameters of these events differ depending on the series type, but always include:
+
+- The `seriesId` the node belongs to and the [`itemId`](#item-identifiers) of the clicked node.
+- The data object being visualised, usually `datum`.
 - The specific keys in that `datum` that were used to fetch the values represented by the clicked node.
-
-### seriesNodeClick and seriesNodeDoubleClick
-
-These are fired on click or double-click of a series node in the chart.
-
-Listeners can be added either to the chart-level `listeners` option to listen to all series, or to the `series[].listeners` options to listen to individual series separately.
-
-The contents of the event object passed to the listener will depend on the type of series the clicked node belongs to.
+- `allMatchedParams` - every other node matched at the click point. See [allMatchedParams](#allmatchedparams).
+- `coordinates` - the coordinates of the click point, in the same form as the [chart click](#click-and-doubleclick) events.
+- The [`context`](./context/) object, if set.
 
 {% chartExampleRunner title="Node Click Event" name="series-node-click-event" type="generated" /%}
 
@@ -169,85 +65,74 @@ The contents of the event object passed to the listener will depend on the type 
         {
             type: 'line',
             listeners: {
-                seriesNodeClick: (ev) => console.log('[line click]', toString(ev)),
-                seriesNodeDoubleClick: (ev) => console.log('[line double click]', toString(ev)),
+                seriesNodeClick: (event) => console.log('[line click]', event),
+                seriesNodeDoubleClick: (event) => console.log('[line double click]', event),
             },
             // ...
         },
         {
             type: 'bar',
             listeners: {
-                seriesNodeClick: (ev) => console.log('[bar click]', toString(ev)),
-                seriesNodeDoubleClick: (ev) => console.log('[bar double click]', toString(ev)),
+                seriesNodeClick: (event) => console.log('[bar click]', event),
+                seriesNodeDoubleClick: (event) => console.log('[bar double click]', event),
             },
             // ...
         },
     ],
     listeners: {
-        seriesNodeClick: (ev) => console.log('[chart click]', toString(ev)),
-        seriesNodeDoubleClick: (ev) => console.log('[chart double click]', toString(ev)),
+        seriesNodeClick: (event) => console.log('[chart click]', event),
+        seriesNodeDoubleClick: (event) => console.log('[chart double click]', event),
     },
 }
 ```
 
 In this example:
 
-- Whenever a bar is clicked or double-clicked, the Bar Series listener prints a message to the console.
-- Whenever a marker is clicked or double-clicked, the Line Series listener prints a message to the console.
-- Whenever any series nodes (bar or marker) is clicked or double-clicked, the Chart listener prints a message to the console.
+- Whenever any series node (bar or marker) is clicked or double-clicked, the Chart listener prints a message to the console with the event details.
+- Whenever a bar is clicked or double-clicked, the Bar Series listener prints a message to the console with the event details.
+- Whenever a marker is clicked or double-clicked, the Line Series listener prints a message to the console with the event details.
 
-## Legend Events
+### Interaction Ranges
 
-### legendItemClick and legendItemDoubleClick
+By default, the `seriesNodeClick` event is only triggered when the user clicks exactly on a node.
 
-These are fired on click or double-click of a legend item.
+Use the `nodeClickRange` option to instead define a range at which the event is triggered.
 
-These events contain:
-
-- The `seriesId` of the series associated with the legend item.
-- The [`itemId`](#item-identifiers), usually the `yKey` value for cartesian series.
-
-{% chartExampleRunner title="Legend Item Click Event" name="legend-item-click-event" type="generated" /%}
+{% chartExampleRunner title="Interaction Ranges" name="interaction-ranges" type="generated" /%}
 
 ```js format="snippet"
 {
-    legend: {
-        listeners: {
-            legendItemClick: ({ seriesId, itemId }) => {
-                console.log(`seriesId: ${seriesId}, itemId: ${itemId}`);
+    series: [
+        {
+            type: 'line',
+            nodeClickRange: 'exact',
+            listeners: {
+                seriesNodeClick: ({ datum }) => console.log(`petrol - ${datum.petrol}`),
             },
+            // ...
         },
-    },
+    ],
 }
 ```
 
 In this example:
 
-- When a legend item is clicked, a message is logged to the console with the `legendItemClick` event contents.
-- When a legend item is double clicked, a message is logged to the console with the `legendItemDoubleClick` event contents.
+- `'exact'` (default) will trigger the event if the user clicks exactly on a node.
+- `'nearest'` will trigger the event for whichever node is nearest to the click.
+- Given a number it will trigger the event when the click is made within that many pixels of a node.
+- [Area Series](./area-series/) also supports `'area'` as a value for `nodeClickRange`. This triggers the event when the click is made anywhere within the filled area of the series.
 
-### Series Visibility Toggling
+## axisClick and axisDoubleClick {% enterpriseIcon /%}
 
-Although clicking a legend item will usually toggle the series visibility, this is not included in the legend events. Use the chart [seriesVisibilityChange](#seriesvisibilitychange) event to listen for this.
-
-The legend item click events include a `preventDefault` function that can be called to stop the default series visibility toggling. See the [seriesVisibilityChange](#seriesvisibilitychange) event documentation for an example of this.
-
-## Axis Events {% enterpriseIcon /%}
-
-These are fired on click or double-click of an axis area, which covers the axis line, its ticks, labels and title.
+These are fired on click or double-click of an axis area or any of its elements and are defined on the axes or chart options.
 
 These events contain:
 
-- The `axisId` of the axis, as specified in `axes`.
+- The `axisId` of the axis, as specified on the axis or automatically generated.
 - The `direction` of the axis.
 - The `value` on the axis at the clicked point, matching the [axis type](./axes-types/), along with its `index` in the axis `domain`.
-- The `boundSeries` bound to the axis.
-
-### axisClick and axisDoubleClick
-
-These are fired on click or double-click of an axis in the chart.
-
-Listeners can be added either to the chart-level `listeners` option to listen to all axes, or to an individual axis' `listeners` option in `axes` to listen to that axis separately. As with [seriesNodeClick](#seriesnodeclick-and-seriesnodedoubleclick), the chart-level listener is fired alongside the axis-level one.
+- The `boundSeries` listing all series that are using the axis.
+- The [`context`](./context/) object, if set.
 
 {% chartExampleRunner title="Axis Click Event" name="axis-click-event" type="generated" /%}
 
@@ -256,53 +141,45 @@ Listeners can be added either to the chart-level `listeners` option to listen to
     axes: {
         x: {
             listeners: {
-                click: (ev) => console.log('[x axis click]', toString(ev)),
-                doubleClick: (ev) => console.log('[x axis double click]', toString(ev)),
+                click: (event) => console.log('[x axis click]', event),
+                doubleClick: (event) => console.log('[x axis double click]', event),
             },
             // ...
         },
         yProfit: {
             listeners: {
-                click: (ev) => console.log('[profit axis click]', toString(ev)),
-                doubleClick: (ev) => console.log('[profit axis double click]', toString(ev)),
+                click: (event) => console.log('[profit axis click]', event),
+                doubleClick: (event) => console.log('[profit axis double click]', event),
             },
             // ...
         },
     },
     listeners: {
-        axisClick: (ev) => console.log('[chart axis click]', toString(ev)),
-        axisDoubleClick: (ev) => console.log('[chart axis double click]', toString(ev)),
+        axisClick: (event) => console.log('[chart axis click]', event),
+        axisDoubleClick: (event) => console.log('[chart axis double click]', event),
     },
 }
 ```
 
 In this example:
 
-- Whenever the X Axis is clicked or double-clicked, the X Axis listener prints a message to the console.
-- Whenever the Profit Axis is clicked or double-clicked, the Profit Axis listener prints a message to the console.
-- Whenever any axis is clicked or double-clicked, the Chart listener prints a message to the console. The Sales and Orders axes have no listeners of their own, so this is the only listener they fire.
+- Whenever the x-axis is clicked or double-clicked, the x-axis listener prints a message to the console.
+- Whenever the left hand "Profit" axis is clicked or double-clicked, the `yProfit` Axis listener prints a message to the console.
+- Whenever any x-axis or y-axis is clicked or double-clicked, the Chart listener prints a message to the console.
 
-{% note %}
-When an axis has no listener for the event, and the chart-level `axisClick` or `axisDoubleClick` is not set either, a click on that axis area falls back to the chart [click and doubleClick](#click-and-doubleclick) events instead.
-{% /note %}
-
-## Cross Line Events
+## crossLineClick and crossLineDoubleClick
 
 These are fired on click or double-click of a [Cross Line](./axes-cross-lines/), including its label.
+This can be defined on the Cross Line itself, the axis or the chart.
 
 These events contain:
 
-- The `crossLineId`, from the Cross Line's `id`, or a generated one if it has none.
+- The `crossLineId`, as specified on the Cross Line or automatically generated.
 - The `axisId` and `direction` of the axis the Cross Line belongs to.
 - The `crossLineType`, either `'line'` or `'range'`.
-- The `value` of a `line` Cross Line, or the `[start, end]` `range` of a `range` Cross Line.
-- `allMatchedParams` - every element under the click point, including Cross Lines on other axes and any series node beneath them. Each entry is identified by its own `type`.
-
-### crossLineClick and crossLineDoubleClick
-
-These are fired on click or double-click of a Cross Line in the chart.
-
-Listeners can be added at three levels: a single Cross Line's `listeners` option, an axis' `listeners` option to listen to every Cross Line on that axis, or the chart-level `listeners` option to listen to every Cross Line in the chart. One click reaches all three.
+- The `value` of a `line` Cross Line, or the `range` of a `range` Cross Line.
+- `allMatchedParams` - every element under the click point, including other Cross Lines or series node. See [allMatchedParams](#allmatchedparams).
+- The [`context`](./context/) object, if set.
 
 {% chartExampleRunner title="Cross Line Click Event" name="cross-line-click-event" type="generated" /%}
 
@@ -314,22 +191,22 @@ Listeners can be added at three levels: a single Cross Line's `listeners` option
                 {
                     id: 'winter-lockdown',
                     listeners: {
-                        click: (ev) => console.log('[lockdown click]', toString(ev)),
-                        doubleClick: (ev) => console.log('[lockdown double click]', toString(ev)),
+                        click: (event) => console.log('[lockdown click]', event),
+                        doubleClick: (event) => console.log('[lockdown double click]', event),
                     },
                     // ...
                 },
             ],
             listeners: {
-                crossLineClick: (ev) => console.log('[x axis cross line click]', toString(ev)),
-                crossLineDoubleClick: (ev) => console.log('[x axis cross line double click]', toString(ev)),
+                crossLineClick: (event) => console.log('[x axis cross line click]', event),
+                crossLineDoubleClick: (event) => console.log('[x axis cross line double click]', event),
             },
             // ...
         },
     },
     listeners: {
-        crossLineClick: (ev) => console.log('[chart cross line click]', toString(ev)),
-        crossLineDoubleClick: (ev) => console.log('[chart cross line double click]', toString(ev)),
+        crossLineClick: (event) => console.log('[chart cross line click]', event),
+        crossLineDoubleClick: (event) => console.log('[chart cross line double click]', event),
     },
 }
 ```
@@ -337,25 +214,292 @@ Listeners can be added at three levels: a single Cross Line's `listeners` option
 In this example:
 
 - Whenever a lockdown range or the ICU capacity line is clicked or double-clicked, that Cross Line's own listener prints a message to the console.
-- Whenever a Cross Line on the X Axis is clicked or double-clicked, the X Axis listener prints a message to the console. The variant lines have no listeners of their own, so they reach only the X Axis and Chart listeners.
+- Whenever a Cross Line on the x-axis is clicked or double-clicked, the x-axis listener prints a message to the console.
 - Whenever any Cross Line is clicked or double-clicked, the Chart listener prints a message to the console.
-- Clicking where a variant line crosses a lockdown range lists both Cross Lines in `allMatchedParams`.
+- Clicking where a variant line crosses a lockdown range, lists both Cross Lines in `allMatchedParams`.
+
+## legendItemClick and legendItemDoubleClick
+
+These are fired on click or double-click of a legend item.
+
+These events contain:
+
+- The `seriesId` of the series associated with the legend item.
+- The [`itemId`](#item-identifiers), usually the `yKey` value for cartesian series.
+- The current `visible` state of the series or item.
+- The [`preventDefault()`](#prevent-default) method to stop any built-in series visibility toggle that would otherwise occur.
+- The [`context`](./context/) object, if set.
 
 {% note %}
-When a Cross Line has no listener for the event, and neither the axis nor the chart has one either, a click on that Cross Line falls back to the chart [click and doubleClick](#click-and-doubleclick) events instead.
+Although clicking a legend item usually toggles the series visibility, this change is not included in the legend event.
+Use the chart [seriesVisibilityChange](#seriesvisibilitychange) event to listen for this.
 {% /note %}
 
-## Interaction Ranges
+{% chartExampleRunner title="Legend Item Click Event" name="legend-item-click-event" type="generated" /%}
 
-By default, the `seriesNodeClick` event is only triggered when the user clicks exactly on a node. You can use the `nodeClickRange` option to instead define a range at which the event is triggered. This can be set to one of three values: `'nearest'`, `'exact'` or a number as a distance in pixels.
-
-{% chartExampleRunner title="Interaction Ranges" name="interaction-ranges" type="generated" /%}
+```js format="snippet"
+{
+    legend: {
+        listeners: {
+            legendItemClick: (event) => {
+                console.log('[click]', event);
+            },
+            legendItemDoubleClick: (event) => {
+                console.log('[double click]', event);
+            },
+        },
+    },
+}
+```
 
 In this example:
 
-- `'exact'` (default) will trigger the event if the user clicks exactly on a node.
-- `'nearest'` will trigger the event for whichever node is nearest to the click.
-- Given a number it will trigger the event when the click is made within that many pixels of a node.
+- When a legend item is clicked, a message is logged to the console with the `legendItemClick` event contents.
+- When a legend item is double clicked, a message is logged to the console with the `legendItemDoubleClick` event contents.
+
+## captionClick and captionDoubleClick
+
+These are fired on click or double-click of the chart's `title`, `subtitle` or `footnote`. These are defined on the caption itself or on the chart.
+
+These events contain:
+
+- The `captionType`, either `'title'`, `'subtitle'` or `'footnote'`.
+- The `text` of the clicked caption.
+- The [`context`](./context/) object, if set.
+
+{% chartExampleRunner title="Caption Click Event" name="caption-click-event" type="generated" /%}
+
+```js format="snippet"
+{
+    title: {
+        text: 'Number of Cars Sold',
+        listeners: {
+            click: (event) => console.log('[title click]', event),
+            doubleClick: (event) => console.log('[title double click]', event),
+        },
+    },
+    // ...
+    listeners: {
+        captionClick: (event) => console.log('[chart caption click]', event),
+        captionDoubleClick: (event) => console.log('[chart caption double click]', event),
+    },
+}
+```
+
+In this example:
+
+- Whenever the title, subtitle or footnote is clicked or double-clicked, the Chart listener prints a message to the console with the event details.
+- The title has its own listeners, so clicking or double-clicking on it prints a second message.
+
+## allMatchedParams
+
+Most click events include an `allMatchedParams` array listing every element found at the click point, not only the one that won the event. This is useful for scenarios where multiple elements overlap, such as a Cross Line and a series node.
+
+Each entry is identified by its own `type`, matching the specific event it would have delivered for that interaction and includes the same properties as it would have carried. The winning event is also included in the array.
+
+See the [Cross Line Click Event](#crosslineclick-and-crosslinedoubleclick) example above: clicking where a variant line crosses a lockdown range lists both Cross Lines in `allMatchedParams`.
+
+## State Change Events
+
+These are raised when the [chart state](./api-state/) changes, by either user interaction or an API call and are always defined on the chart options.
+
+### seriesVisibilityChange
+
+This is fired when the visibility of a series or data item is toggled. This is usually triggered by user interaction with a legend item.
+
+This event contains:
+
+- The `seriesId` of the series.
+- The [`itemId`](#item-identifiers), `legendItemName` or other identifiers of the changed item.
+- `visible` - the new visibility state of the series or item.
+- The [`context`](./context/) object, if set.
+
+{% chartExampleRunner title="Series Visibility Changed" name="series-visibility-change" type="generated" /%}
+
+```js format="snippet"
+{
+    listeners: {
+        seriesVisibilityChange: (event) => {
+            console.log('[series visibility change]', event);
+        },
+    },
+}
+```
+
+In this example:
+
+- When a legend item is clicked, its series or item visibility toggles and this event fires with the details shown in the console.
+
+### activeChange
+
+This event is fired when the [active](./api-state/#active) state is changed. This occurs when a user interaction (mouse, touch, keyboard) on a series node or legend causes a highlight or tooltip change.
+
+This event contains:
+
+- `activeItem` - the item that is now active, or `undefined` if no item is active.
+- The `activeItem` contains:
+    - `type` - the type of the active item, either `'series-node'` or `'legend'`.
+    - `seriesId` and [`itemId`](#item-identifiers) identifying the active item.
+- `datum` - the data from the chart data array for the active item.
+- `source` - the source of the event, either `'user-interaction'` or `'state-change'`.
+- The [`preventDefault()`](#prevent-default) method to stop the highlight/tooltip change that would otherwise occur.
+- The [`context`](./context/) object, if set.
+
+{% chartExampleRunner title="Active Change Event" name="active-change-event" type="generated" /%}
+
+```js format="snippet"
+{
+    listeners: {
+        activeChange: (event) => {
+            console.log('[active change]', event);
+        },
+    },
+}
+```
+
+In this example:
+
+- Whenever a user interaction (mouse, touch, keyboard) on the series-area or legend changes the highlight state, a message is shown in the console.
+
+### zoom
+
+This is fired when the zoom level or position changes. This is triggered when [zooming in or out of the chart](./zoom/), [panning](./zoom/#panning), or using the [Navigator](./navigator/), [Scrollbar](./scrollbar/) or [Range Buttons](./range-buttons/).
+
+This event contains:
+
+- A `ratioX` and `ratioY` with `start` and `end` properties with values between `0` and `1`. These represent a proportion of the width or height of the chart.
+- A `rangeX` and `rangeY` which contain values that match the [axis type](./axes-types/), e.g. a date for an [Ordinal Time Axis](./axes-types/#time).
+- `source` - the source of the event, either `'user-interaction'` or `'state-change'`.
+- The [`context`](./context/) object, if set.
+
+{% chartExampleRunner title="Zoom" name="zoom-event" type="generated" /%}
+
+```js format="snippet"
+{
+    listeners: {
+        zoom: (event) => {
+            console.log(event);
+        },
+    },
+}
+```
+
+In this example:
+
+- When the zoom level is changed or the chart is panned, the event is output to the console.
+
+### annotations
+
+This is fired when the [annotations](./annotations/) are changed, added or removed in either cartesian charts or with the [financial charts toolbar](./financial-charts-toolbar/).
+
+This event contains:
+
+- The array of all the `annotations` with their current state.
+- `source` - the source of the event, either `'user-interaction'` or `'state-change'`.
+- The [`context`](./context/) object, if set.
+
+{% chartExampleRunner title="Annotations" name="annotations-event" type="generated" /%}
+
+```js format="snippet"
+{
+    listeners: {
+        annotations: (event) => {
+            console.log(event);
+        },
+    },
+}
+```
+
+In this example:
+
+- When an annotation is changed, added or removed, the event is output to the console.
+
+### selectionChange
+
+This is fired when the [Data Selection](./selection/) is updated by either user interaction or an API call. See [Selection Change Event](./selection/#selection-change-event) for full details.
+
+### collapsedChange
+
+This is fired when an item in an [Org Chart](./org-chart/) is expanded or collapsed, by either user interaction or an API call.
+
+{% chartExampleRunner title="Collapsed Change Event" name="collapsed-change-event" type="generated" /%}
+
+```js format="snippet"
+{
+    listeners: {
+        collapsedChange: (event) => {
+            console.log(
+                `source: ${event.source},`,
+                'just collapsed:',
+                event.collapsed.map(({ itemId }) => itemId),
+                'just expanded:',
+                event.expanded.map(({ itemId }) => itemId)
+            );
+        },
+    },
+}
+```
+
+This event contains:
+
+- `collapsed` - array of the items newly collapsed by this change, each with `itemId` and `datum`:
+    - [`itemId`](#item-identifiers) - the unique identifier of the datum.
+    - `datum` - the data from the chart data array for the collapsed item.
+- `expanded` - array of the items newly expanded by this change, each with `itemId` and `datum`:
+    - [`itemId`](#item-identifiers) - the unique identifier of the datum.
+    - `datum` - the data from the chart data array for the expanded item.
+- `source` - the source of the event, either `'user-interaction'` or `'api-call'`.
+- The [`context`](./context/) object, if set.
+
+In this example:
+
+- Whenever a node is collapsed or expanded, a message is shown in the console.
+
+{% note %}
+`collapsed` and `expanded` contain only the items changed by this event, not the full set of collapsed or expanded items. Use `chart.getState()` to get the current state of all items.
+{% /note %}
+
+## Validation Issues
+
+Option misconfiguration and caught runtime errors are reported through the `validations.issueRaised` event.
+
+See [Issue Raised Events](./dev-validation/#issue-raised-events).
+
+## Prevent Default
+
+Some events include a `preventDefault()` method to stop the built-in behaviour that would otherwise follow the interaction.
+
+Call `event.preventDefault()` from within the listener, and check `event.defaultPrevented` to see whether an earlier listener already called it.
+
+The events that can be prevented are:
+
+- `legendItemClick` and `legendItemDoubleClick` - stops the [series visibility toggle](#seriesvisibilitychange) that a legend click would otherwise trigger.
+- `seriesNodeClick`, `seriesNodeDoubleClick` - stops any [tooltip pagination](./tooltip/#pagination) or [selection](./selection/) that a node click would otherwise trigger.
+- `activeChange` - stops the highlight/tooltip change itself from being applied.
+- `selectionChange` - stops the [Data Selection](./selection/) update.
+- `collapsedChange` - stops the [Org Chart](./org-chart/) node from expanding or collapsing.
+
+{% chartExampleRunner title="Prevent Default" name="prevent-default-event" type="generated" /%}
+
+```js format="snippet"
+{
+    legend: {
+        listeners: {
+            legendItemClick: (event) => {
+                counter = (counter + 1) % 2;
+                if (counter !== 1) {
+                    event.preventDefault();
+                }
+            },
+        },
+    },
+}
+```
+
+In this example:
+
+- When a legend item is clicked, the visibility change is prevented and a counter decreases instead, by calling `preventDefault` on the `legendItemClick` event.
+- When the counter hits zero, the toggle is allowed to occur and the [seriesVisibilityChange](#seriesvisibilitychange) event fires.
 
 ## Item Identifiers
 
@@ -390,6 +534,12 @@ All series event options have similar interface contracts. See the series-specif
 Cross Line listeners can also be set on the axis that owns the Cross Line.
 {% apiReference id="AgCrossLineListeners" /%}
 {% apiReference id="AgAxisListeners" include=["crossLineClick", "crossLineDoubleClick"] /%}
+{% /tabItem %}
+
+{% tabItem id="AgCaptionListeners" label="Caption Events" %}
+Caption listeners can be set on the chart's `title`, `subtitle` and `footnote`.
+{% apiReference id="AgCaptionListeners" /%}
+{% apiReference id="AgBaseChartListeners" include=["captionClick", "captionDoubleClick"] /%}
 {% /tabItem %}
 
 {% tabItem id="AgBaseChartListeners" label="Chart Events" %}
