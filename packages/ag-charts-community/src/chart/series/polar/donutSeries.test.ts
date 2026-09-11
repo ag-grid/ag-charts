@@ -1376,6 +1376,42 @@ describe('DonutSeries', () => {
         });
     });
 
+    describe('AG-18500 removing inner labels on update', () => {
+        const donutOptions = (innerLabels?: AgDonutSeriesOptions['innerLabels']): AgPolarChartOptions => ({
+            ...options,
+            data: [
+                { asset: 'Stocks', amount: 60000 },
+                { asset: 'Bonds', amount: 40000 },
+            ],
+            series: [
+                {
+                    type: 'donut',
+                    angleKey: 'amount',
+                    innerRadiusRatio: 0.7,
+                    // Spread rather than assign: an absent key and an explicit `undefined` reach
+                    // the options delta differently.
+                    ...(innerLabels && { innerLabels }),
+                },
+            ],
+        });
+
+        it('hides the inner labels when innerLabels is omitted from the updated options', async () => {
+            chart = await createChart(
+                donutOptions([
+                    { text: 'Total Investment', fontSize: 14 },
+                    { text: '$100,000', fontSize: 20, spacing: 8 },
+                ])
+            );
+            expect(classCast(chart.series[0], DonutSeries).innerLabelsSelection.nodes()).toHaveLength(2);
+
+            await chart.publicApi!.update(prepareTestOptions(donutOptions()) as AgChartOptions);
+            await waitForChartStability(chart);
+
+            expect(classCast(chart.series[0], DonutSeries).innerLabelsSelection.nodes()).toHaveLength(0);
+            expectWarningsCalls().toEqual([]);
+        });
+    });
+
     describe('inner circle with rounded corners', () => {
         const data = [
             { asset: 'Stocks', amount: 30 },
