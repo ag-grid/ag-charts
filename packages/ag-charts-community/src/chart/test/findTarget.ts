@@ -163,10 +163,10 @@ function findNavigatorTarget(navigatorModule: unknown, clientX: number, clientY:
  * and `isClickable` covers the cases where it does not (hidden, or pointer events disabled because
  * the axis overlaps the series area).
  */
-function findAxisTarget(axisDOMProxyModule: unknown, clientX: number, clientY: number): MockEvent | undefined {
-    if (axisDOMProxyModule === undefined) return undefined;
+function findAxisTarget(axisInteractionModule: unknown, clientX: number, clientY: number): MockEvent | undefined {
+    if (axisInteractionModule === undefined) return undefined;
 
-    const domProxy = new Caster(axisDOMProxyModule)
+    const domProxy = new Caster(axisInteractionModule)
         .findProperty('axes')
         .castProperty('axes', Array)
         .findArrayElementProperties('axes', 'div')
@@ -209,7 +209,7 @@ export function findChartTarget(chart: Chart, clientX: number, clientY: number):
     return (
         findLegendTarget(getModule('legend'), clientX, clientY) ??
         findNavigatorTarget(getModule('navigator'), clientX, clientY) ??
-        findAxisTarget(getModule('axis-dom-proxy'), clientX, clientY) ??
+        findAxisTarget(getModule('axis-interaction'), clientX, clientY) ??
         findSeriesAreaTarget(chart, widgets, clientX, clientY)
     );
 }

@@ -94,39 +94,65 @@ If `autoRotate` is enabled, rotation will be attempted before label skipping app
 
 ## Alignment
 
-Axis labels are aligned within the space the axis reserves for them, using an alignment derived from the axis position and any label rotation. Both directions can be set explicitly.
+Axis labels are aligned within the axis thickness and bands, with a default alignment derived from the axis position and label rotation. Both directions can be set explicitly.
 
 ### Text Alignment
 
-Use `label.textAlign` to control the horizontal alignment of the labels, which is most useful on a vertical axis, where labels of differing width would otherwise be anchored individually.
+Use `label.textAlign` to control the horizontal alignment of labels. This is most useful on a vertical axis containing labels of differing width.
 
 {% chartExampleRunner title="Axis Label Text Alignment" name="axis-label-text-align" type="generated" /%}
 
 ```js format="snippet"
 {
-    label: {
-        textAlign: 'right',
+    axes: {
+        x: {
+            label: {
+                textAlign: 'center',
+            },
+        },
+        y: {
+            label: {
+                textAlign: 'left',
+            },
+        },
     },
 }
 ```
 
+In this example:
+
+- Use the buttons to see the `textAlign` options for each axis.
+- On the vertical number axis, labels are horizontally aligned within the axis thickness.
+- On the horizontal category axis, labels are horizontally aligned within each category band.
+
 ### Vertical Alignment
 
-Use `label.verticalAlign` to control the vertical alignment of the labels, which is most useful on a horizontal axis, where labels wrapping onto a differing number of lines would otherwise be anchored individually.
+Use `label.verticalAlign` to control the vertical alignment of labels. This is most useful on a horizontal axis containing labels of differing height.
 
 {% chartExampleRunner title="Axis Label Vertical Alignment" name="axis-label-vertical-align" type="generated" /%}
 
 ```js format="snippet"
 {
-    label: {
-        verticalAlign: 'bottom',
+    axes: {
+        x: {
+            label: {
+                verticalAlign: 'top',
+            },
+        },
+        y: {
+            label: {
+                verticalAlign: 'middle',
+            },
+        },
     },
 }
 ```
 
-Labels are aligned within the band the axis reserved for them, so neither option can move a label across the axis line and into the series area. Where the requested alignment is the one the axis already computes, the option has no effect - `verticalAlign: 'top'` on a bottom axis, for instance.
+In this example:
 
-On a vertical axis with a continuous scale, `verticalAlign: 'top'` places each label above the tick it labels and `'bottom'` places it below.
+- Use the buttons to see the `verticalAlign` options for each axis.
+- On the horizontal category axis, labels are vertically aligned within the axis thickness.
+- On the vertical number axis, labels are vertically aligned around the tick they label.
 
 ## Label Text Formatting
 
@@ -200,22 +226,6 @@ In the above example:
 The syntax used in the format strings depends on the axis type.
 
 See the [Formatters](./formatters/#format-strings) page for a full list of the available formats.
-
-### Text Alignment
-
-By default, an axis label's text alignment is derived from the axis's position. Set `label.textAlign` to override this and align the label text explicitly, regardless of axis position.
-
-{% chartExampleRunner title="Axis Label Text Align" name="axis-label-text-align" type="generated" /%}
-
-```js format="snippet"
-{
-    label: {
-        textAlign: 'right',
-    },
-}
-```
-
-In the above example, the right-hand number axis's labels are right-aligned rather than using the alignment derived from the axis position.
 
 ## Customisation
 

@@ -75,25 +75,32 @@ In this configuration:
 
 ## Labels
 
-Each stage can show its value with `label`, positioned inside or outside the stage.
+The values can be displayed inside or outside each stage using the `label` option, and the stage name can be shown with the `stageLabel` option.
+
+{% chartExampleRunner title="Funnel Label Placement" name="funnel-label-placement" type="generated" /%}
 
 ```js format="snippet"
 {
     label: {
         enabled: true,
-        placement: ['inside-center', 'outside-end'],
+        placement: 'inside-center',
+    },
+    stageLabel: {
+        placement: 'before',
     },
 }
 ```
 
 In this configuration:
 
-- `inside-center` centres the label in the stage, and `outside-end` places it after the stage along the stage axis.
-- Providing `placement` as an ordered array allows a label that does not fit inside its stage to fall back to the outside position.
+- The label is positioned as `inside-center`. Use the dropdown to see all available placements.
+    - `start` and `end` are above and below the bar when vertical, left and right of it when horizontal.
+    - `before` and `after` are the other two sides, matching `stageLabel.placement`.
+- `stageLabel.placement` positions the stage names on either side of the chart.
+- On a vertical funnel, `before` and `after` are mirrored when [RTL Layout](./rtl/) is enabled.
+- Providing `placement` as an ordered array (e.g. `['inside-center', 'outside-end']`) lets a label that does not fit inside its stage fall back to an outside position.
 
-`start` and `end` run along the stage axis and swap when that axis is reversed. `before` and `after` sit on the same sides as `stageLabel.placement`: left and right of a vertical funnel's stage, mirrored in a right-to-left chart, and above and below a horizontal one's.
-
-See [Series Labels](./series-labels/) for the full set of label, placement and collision options.
+See [Series Labels](./series-labels/) for the full set of label placement and collision avoidance options, and the [API Reference](#api-reference) for additional customisation options.
 
 ## Funnel Chart Examples
 

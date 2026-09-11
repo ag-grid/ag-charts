@@ -5,7 +5,7 @@ import { createConsoleLogs, gotoExample, setupIntrinsicAssertions, toExamplePage
 
 async function openExample(
     page: Page,
-    pageName: 'events' | 'events-e2e',
+    pageName: 'events-e2e',
     exampleName: 'chart-click-event' | 'series-node-click-event' | 'node-click-event'
 ) {
     await gotoExample(page, toExamplePageUrl(pageName, exampleName, 'vanilla').url);
@@ -22,7 +22,7 @@ test.describe('api-events', () => {
         const east = { x: 500, y: 150 };
 
         test.beforeEach(async ({ page }) => {
-            await openExample(page, 'events', 'chart-click-event');
+            await openExample(page, 'events-e2e', 'chart-click-event');
         });
         test.describe('mouse', () => {
             test('click', async ({ page }) => {

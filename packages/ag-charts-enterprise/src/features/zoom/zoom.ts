@@ -787,7 +787,7 @@ export class Zoom extends AbstractModuleInstance {
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         const { enabled, enableDoubleClickToReset, enableAxisDragging, enableAxisScrolling } = this.opts;
 
-        this.ctx.eventsHub.emit('axis-dom-proxy:update', {
+        this.ctx.eventsHub.emit('axis-interaction:update', {
             source: 'zoom',
             enabled,
             enableDoubleClick: enableDoubleClickToReset,

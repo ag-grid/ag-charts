@@ -8,10 +8,10 @@ interface Props {
 }
 
 /**
- * Links only. An intro is copy, not a document: anything else an author writes renders as its own
- * text rather than as markup, so a stray `**` cannot restyle the page.
+ * Links and hard line breaks only. An intro is copy, not a document: anything else an author
+ * writes renders as its own text rather than as markup, so a stray `**` cannot restyle the page.
  */
-const INTRO_ELEMENTS = ['p', 'a'];
+const INTRO_ELEMENTS = ['p', 'a', 'br'];
 
 const INTRO_COMPONENTS: Components = {
     // The page supplies the paragraph this sits in, and a <p> cannot nest inside one.

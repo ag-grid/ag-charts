@@ -1,1 +1,61 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <span>X Axis:</span>
+        <div class="button-group" role="group" aria-label="X Axis Vertical Alignment">
+            <input
+                type="radio"
+                id="x-vertical-align-top"
+                name="xVerticalAlign"
+                value="top"
+                checked
+                onchange="setXVerticalAlign(event)"
+            />
+            <label for="x-vertical-align-top"><code>top</code></label>
+            <input
+                type="radio"
+                id="x-vertical-align-middle"
+                name="xVerticalAlign"
+                value="middle"
+                onchange="setXVerticalAlign(event)"
+            />
+            <label for="x-vertical-align-middle"><code>middle</code></label>
+            <input
+                type="radio"
+                id="x-vertical-align-bottom"
+                name="xVerticalAlign"
+                value="bottom"
+                onchange="setXVerticalAlign(event)"
+            />
+            <label for="x-vertical-align-bottom"><code>bottom</code></label>
+        </div>
+        <span class="gap-left">Y Axis:</span>
+        <div class="button-group" role="group" aria-label="Y Axis Vertical Alignment">
+            <input
+                type="radio"
+                id="y-vertical-align-top"
+                name="yVerticalAlign"
+                value="top"
+                onchange="setYVerticalAlign(event)"
+            />
+            <label for="y-vertical-align-top"><code>top</code></label>
+            <input
+                type="radio"
+                id="y-vertical-align-middle"
+                name="yVerticalAlign"
+                value="middle"
+                checked
+                onchange="setYVerticalAlign(event)"
+            />
+            <label for="y-vertical-align-middle"><code>middle</code></label>
+            <input
+                type="radio"
+                id="y-vertical-align-bottom"
+                name="yVerticalAlign"
+                value="bottom"
+                onchange="setYVerticalAlign(event)"
+            />
+            <label for="y-vertical-align-bottom"><code>bottom</code></label>
+        </div>
+    </div>
+</div>
 <div id="myChart"></div>

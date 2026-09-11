@@ -12,39 +12,39 @@ export class ZoomInteraction extends AbstractModuleInstance {
         super();
 
         this.cleanup.register(
-            ctx.eventsHub.on('axis-dom-proxy:mouseenter', (event) => this.onAxisMouseEnter(event)),
-            ctx.eventsHub.on('axis-dom-proxy:mouseleave', (event) => this.onAxisMouseLeave(event)),
-            ctx.eventsHub.on('axis-dom-proxy:drag-start', (event) => this.onAxisDragStart(event)),
-            ctx.eventsHub.on('axis-dom-proxy:drag-move', (event) => this.onAxisDragMove(event)),
-            ctx.eventsHub.on('axis-dom-proxy:drag-end', (event) => this.onAxisDragEnd(event)),
-            ctx.eventsHub.on('axis-dom-proxy:dblclick', (event) => this.onAxisDoubleClick(event)),
-            ctx.eventsHub.on('axis-dom-proxy:wheel', (event) => this.onAxisWheel(event)),
+            ctx.eventsHub.on('axis-interaction:mouseenter', (event) => this.onAxisMouseEnter(event)),
+            ctx.eventsHub.on('axis-interaction:mouseleave', (event) => this.onAxisMouseLeave(event)),
+            ctx.eventsHub.on('axis-interaction:drag-start', (event) => this.onAxisDragStart(event)),
+            ctx.eventsHub.on('axis-interaction:drag-move', (event) => this.onAxisDragMove(event)),
+            ctx.eventsHub.on('axis-interaction:drag-end', (event) => this.onAxisDragEnd(event)),
+            ctx.eventsHub.on('axis-interaction:dblclick', (event) => this.onAxisDoubleClick(event)),
+            ctx.eventsHub.on('axis-interaction:wheel', (event) => this.onAxisWheel(event)),
             ctx.eventsHub.on('scrollbar:wheel', (event) => this.onScrollbarWheel(event)),
             ctx.widgets.seriesWidget.addListener('wheel', (event) => this.onSeriesAreaWheel(event))
         );
     }
 
-    private onAxisMouseEnter(event: _ModuleSupport.AxisDOMProxyMouseEnterEvent) {
+    private onAxisMouseEnter(event: _ModuleSupport.AxisInteractionMouseEnterEvent) {
         this.processEvent('axis-mouseenter', event);
     }
 
-    private onAxisMouseLeave(event: _ModuleSupport.AxisDOMProxyMouseLeaveEvent) {
+    private onAxisMouseLeave(event: _ModuleSupport.AxisInteractionMouseLeaveEvent) {
         this.processEvent('axis-mouseleave', event);
     }
 
-    private onAxisDragStart(event: _ModuleSupport.AxisDOMProxyDragEvent<'drag-start'>) {
+    private onAxisDragStart(event: _ModuleSupport.AxisInteractionDragEvent<'drag-start'>) {
         this.processEvent('axis-drag-start', event);
     }
 
-    private onAxisDragMove(event: _ModuleSupport.AxisDOMProxyDragEvent<'drag-move'>) {
+    private onAxisDragMove(event: _ModuleSupport.AxisInteractionDragEvent<'drag-move'>) {
         this.processEvent('axis-drag-move', event);
     }
 
-    private onAxisDragEnd(event: _ModuleSupport.AxisDOMProxyDragEvent<'drag-end'>) {
+    private onAxisDragEnd(event: _ModuleSupport.AxisInteractionDragEvent<'drag-end'>) {
         this.processEvent('axis-drag-end', event);
     }
 
-    private onAxisDoubleClick(event: _ModuleSupport.AxisDOMProxyMouseEvent<'dblclick'>) {
+    private onAxisDoubleClick(event: _ModuleSupport.AxisInteractionMouseEvent<'dblclick'>) {
         this.processEvent('axis-dblclick', event);
     }
 
@@ -52,7 +52,7 @@ export class ZoomInteraction extends AbstractModuleInstance {
         this.wheelSequencer.onWheel(event, () => this.handleWheelSequencer('wheel', { event }));
     }
 
-    private onAxisWheel({ event, direction }: _ModuleSupport.AxisDOMProxyWheelEvent) {
+    private onAxisWheel({ event, direction }: _ModuleSupport.AxisInteractionWheelEvent) {
         this.wheelSequencer.onWheel(event, () => this.handleWheelSequencer('axis-wheel', { event, direction }));
     }
 

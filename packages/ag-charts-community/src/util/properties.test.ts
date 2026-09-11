@@ -192,6 +192,25 @@ describe('PropertiesArray', () => {
 `);
         expect(instance.props).toHaveLength(0);
     });
+
+    it('should clear the array when set to undefined', () => {
+        class MyProperties extends BaseProperties<{ value: string }> {
+            @Property
+            value!: string;
+        }
+        class MyClass extends BaseProperties<{ props: { value: string }[] }> {
+            @Property
+            props = new PropertiesArray(MyProperties);
+        }
+        const instance = new MyClass().set({ props: [{ value: 'item1' }, { value: 'item2' }] });
+        expect(instance.props).toHaveLength(2);
+
+        // @ts-expect-error undefined is outside the declared option type
+        instance.set({ props: undefined });
+
+        expect(instance.props).toHaveLength(0);
+        expectWarningsCalls().toEqual([]);
+    });
 });
 
 describe('isProperties', () => {

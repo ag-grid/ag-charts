@@ -31,7 +31,7 @@ In this example:
 
 - Any errors or warnings present would be shown in the overlay, but deprecations would not, since `showOverlayOn` only lists `'error'` and `'warning'`.
 - Issues are grouped and sorted by severity, with a count in each group's heading.
-- Each issue shows a message and the relevant code block.
+- Each issue shows a message with relevant information to enable easy debugging.
 - There is a Copy button for pasting into a bug report and dismissing the overlay hides it without suppressing future issues.
 - While shown, the validation overlay takes priority over the loading and no-data overlays.
 
@@ -56,7 +56,8 @@ In the above example:
 
 ## Throwing on Validation Issues
 
-Use `validations.throwOn` to make the chart throw an exception and fail-fast, instead of warning and falling back to a default. Console output still follows `consoleOn` and is never suppressed by this option.
+Use `validations.throwOn` to make the chart throw an exception and fail-fast, instead of warning and falling back to a default.
+This suits automated workflows (for example, end-to-end test runs or AI-assisted development) where a hard failure should be surfaced for immediate attention.
 
 ```js format="snippet"
 {
@@ -65,6 +66,9 @@ Use `validations.throwOn` to make the chart throw an exception and fail-fast, in
     },
 }
 ```
+
+- Issues can arise at any point, not just when the chart is created, so a throw may interrupt an update part-way and leave the chart in an inconsistent state. Use `throwOn` during development only, never in production.
+- Console output still follows `consoleOn` and is never suppressed by this option.
 
 ## Issue Raised Events
 

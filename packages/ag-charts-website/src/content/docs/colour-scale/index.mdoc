@@ -128,13 +128,13 @@ With `stop` values, each colour is positioned at an explicit point in the domain
 }
 ```
 
-In continuous mode, colours blend smoothly between stops:
+In continuous mode, each stop positions its colour at that value, and colours blend smoothly between stops:
 
-- 0 → 7 interpolates from `tomato` to `gold`.
-- 7 → 9 interpolates from `gold` to `seagreen`.
-- 9 → 10 is solid `seagreen`.
+- 0 → 7 is solid `tomato`.
+- 7 → 9 interpolates from `tomato` to `gold`.
+- 9 → 10 interpolates from `gold` to `seagreen`.
 
-In discrete mode, each stop marks a bin boundary:
+In discrete mode, each stop instead marks the start of the next bin:
 
 - 0–6 is solid `tomato`.
 - 7–8 is solid `gold`.
@@ -211,7 +211,7 @@ In the above example:
 
 - `position` places the legend at the `'bottom'`, `'top'`, `'left'`, or `'right'` of the chart.
     - When the position is `left` or `right`, values are displayed in descending order. Use `reverseOrder` to change this.
-- `gradient.thickness` controls the width of the gradient bar.
+- `gradient.thickness` controls the thickness of the gradient bar — its width when positioned left or right, its height when positioned top or bottom.
 - `gradient.preferredLength` sets the initial length of the gradient bar. The actual length may be adjusted to fit the chart dimensions or domain.
 - Customise label appearance with `scale.label` (font, colour) and `scale.padding` (distance between bar and labels).
 

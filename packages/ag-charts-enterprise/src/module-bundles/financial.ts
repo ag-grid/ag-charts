@@ -1,6 +1,7 @@
-import { BarSeriesModule, LineSeriesModule, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
+import { BarSeriesModule, LineSeriesModule } from 'ag-charts-community';
 import type { ModuleDefinition } from 'ag-charts-core';
 
+import { NumberAxisModule, TimeAxisModule } from '../axes/cartesian/cartesianAxisModules';
 import { OrdinalTimeAxisModule } from '../axes/ordinal/ordinalTimeAxisModule';
 import { AnimationModule } from '../features/animation/animationModule';
 import { AnnotationsModule } from '../features/annotations/annotationsModule';

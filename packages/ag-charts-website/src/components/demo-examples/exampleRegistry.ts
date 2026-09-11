@@ -12,7 +12,7 @@ export interface DemoExample extends DemoPageExample {
  * Listed in feature-list order; paths stay flat so the site needs no redirects.
  *
  * To refresh an `image`, screenshot `/demos/<demoAppId>/` off a running `nx dev` at 1600x1000
- * (16:10, matching the button) and save it 480px wide.
+ * (16:10, matching the button) and save it 320px wide (2x the 160px feature-list thumbnail).
  */
 export const DEMO_EXAMPLES: DemoExample[] = [
     {

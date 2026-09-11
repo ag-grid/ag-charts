@@ -1,3 +1,4 @@
+import type { IconName } from '@ag-website-shared/components/icon/Icon';
 import { FRAMEWORKS, INTERNAL_FRAMEWORKS } from '@constants';
 // NOTE: Use glob, instead of file for single object files unless the file is an
 // array of objects
@@ -83,12 +84,17 @@ const footer = defineCollection({
     schema: z.array(
         z.object({
             title: z.string(),
+            /** Where the group renders: the legal strip under the columns, or (default) a menu column. */
+            placement: z.enum(['legal']).optional(),
             links: z.array(
                 z.object({
                     name: z.string(),
                     url: z.string(),
                     newTab: z.boolean().optional(),
-                    iconName: z.string().optional(),
+                    showCookiesPrefs: z.boolean().optional(),
+                    // Typed as IconName without importing the icon map, which would pull the SVG and React icon
+                    // modules into content config loading. Names are not validated at load time.
+                    iconName: z.custom<IconName>((value) => typeof value === 'string').optional(),
                 })
             ),
         })
