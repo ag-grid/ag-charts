@@ -42,14 +42,14 @@ export const GALLERY_EXAMPLE_COPY: Record<string, GalleryExampleCopy> = {
         h1: 'Grouped Stacked Bar Chart Example',
         description:
             'An interactive grouped stacked bar chart built with AG Charts, comparing two measures side by side as separate stacks, with error bars and a secondary axis. Explore the live example.',
-        intro: 'This example shows a [grouped stacked bar chart](/r/bar-series/#grouped-stacks) built with AG Charts, comparing two measures across categories by splitting them into two side-by-side stacks with the [`stackGroup`](/r/bar-series/#grouped-stacks) property. [Error bars](/r/error-bars/#single-error-bars) mark the upper and lower bounds of each series in one group, a [secondary axis](/r/axes-secondary/#creating-a-secondary-axis) scales the other, and a [shared tooltip](/r/tooltips/#tooltip-modes) reads every value at once. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
+        intro: 'This example shows a [grouped stacked bar chart](/r/bar-series/#grouped-stacks) built with AG Charts, comparing two measures across categories by splitting them into two side-by-side stacks. [Error bars](/r/error-bars/#single-error-bars) mark the upper and lower bounds of each series in one group, a [secondary axis](/r/axes-secondary/#creating-a-secondary-axis) scales the other, and a [shared tooltip](/r/tooltips/#tooltip-modes) reads every value at once. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'stacked-bar': {
         title: 'Stacked Bar Chart Example - JavaScript Data Visualization | AG Charts',
         h1: 'Stacked Bar Chart Example',
         description:
             'An interactive stacked bar chart built with AG Charts, showing each category as a share of 100% of its total, with labels on the bars and a floating legend. Explore the live example.',
-        intro: 'This example shows a [stacked bar chart](/r/bar-series/#stacked-bar) built with AG Charts, showing a part-to-whole breakdown of each category by [normalising every stack to 100%](/r/bar-series/#normalised-bar) with the `stacked` and `normalizedTo` series options. [Data labels](/r/series-labels/#styling) sit on the bars, a [floating legend](/r/legend/#floating) overlays the series area, and an [axis label formatter](/r/axes-labels/#formatter) renders the shares as percentages. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
+        intro: 'This example shows a [stacked bar chart](/r/bar-series/#stacked-bar) built with AG Charts, showing a part-to-whole breakdown of each category by [normalising every stack to 100%](/r/bar-series/#normalised-bar). [Data labels](/r/series-labels/#styling) sit on the bars, a [floating legend](/r/legend/#floating) overlays the series area, and an [axis label formatter](/r/axes-labels/#formatter) renders the shares as percentages. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'simple-horizontal-bar': {
         title: 'Horizontal Bar Chart Example - JavaScript Data Visualization | AG Charts',
@@ -70,7 +70,7 @@ export const GALLERY_EXAMPLE_COPY: Record<string, GalleryExampleCopy> = {
         h1: 'Grouped Horizontal Bar Chart Example',
         description:
             'An interactive grouped horizontal bar chart built with AG Charts, comparing two series side by side per category, with cross lines replacing the axis labels. Explore the live example.',
-        intro: 'This example shows a [grouped horizontal bar chart](/r/bar-series/#horizontal-bar) built with AG Charts, placing two series side by side within each category for direct comparison. The category [axis labels are switched off](/r/axes-labels/#customisation) and [cross lines](/r/axes-cross-lines/#adding-cross-lines) label the groups instead, with a large [corner radius](/r/bar-series/#corner-radius) on each bar and a [floating legend](/r/legend/#floating). Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
+        intro: 'This example shows a [grouped horizontal bar chart](/r/bar-series/#horizontal-bar) built with AG Charts, placing two series side by side within each category for direct comparison. The category axis labels are switched off and [cross lines](/r/axes-cross-lines/#adding-cross-lines) label the groups instead, with a large [corner radius](/r/bar-series/#corner-radius) on each bar and a [floating legend](/r/legend/#floating). Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
 
     // ── Line ─────────────────────────────────────────────────────────────
@@ -211,7 +211,7 @@ export const GALLERY_EXAMPLE_COPY: Record<string, GalleryExampleCopy> = {
         h1: 'Bubble Chart Example',
         description:
             'An interactive bubble chart built with AG Charts, positioning points by two variables and sizing them by a third, with cross lines marking zero on both axes. Explore the live example.',
-        intro: 'This example shows a [bubble chart](/r/bubble-series/) built with AG Charts, adding a third dimension to a scatter plot by [sizing each marker](/r/bubble-series/#size) between a `minSize` and `maxSize`. Points sit either side of zero on both axes, with [cross lines](/r/axes-cross-lines/#adding-cross-lines) marking the origin and [property formatters](/r/formatters/#property-formatters) labelling the axes and the bubble size in their own units. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
+        intro: 'This example shows a [bubble chart](/r/bubble-series/) built with AG Charts, adding a third dimension to a scatter plot by [sizing each marker](/r/bubble-series/#size). Points sit either side of zero on both axes, with [cross lines](/r/axes-cross-lines/#adding-cross-lines) marking the origin and [property formatters](/r/formatters/#property-formatters) labelling the axes and the bubble size in their own units. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'multiple-bubble-series': {
         title: 'Multiple Bubble Series Chart Example - JavaScript | AG Charts',
@@ -260,7 +260,7 @@ export const GALLERY_EXAMPLE_COPY: Record<string, GalleryExampleCopy> = {
         h1: 'Bubble Chart With Labels Example',
         description:
             'An interactive bubble chart built with AG Charts, sharing one size domain across every series so bubbles stay comparable between groups, with a label on each. Explore the live example.',
-        intro: 'This example shows a [bubble chart](/r/bubble-series/) built with AG Charts, comparing groups where the [bubble size](/r/bubble-series/#size) must mean the same thing in each: a shared `sizeDomain` fixes one scale across every series, so areas are comparable between groups rather than only within one. Each bubble carries a formatted [label](/r/bubble-series/#labels) and the [legend](/r/legend/#placement) sits above the chart. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
+        intro: 'This example shows a [bubble chart](/r/bubble-series/) built with AG Charts, comparing groups where the [bubble size](/r/bubble-series/#size) must mean the same thing in each: a shared size domain fixes one scale across every series, so areas are comparable between groups rather than only within one. Each bubble carries a formatted [label](/r/bubble-series/#labels) and the [legend](/r/legend/#placement) sits above the chart. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
 
     // ── Pie ──────────────────────────────────────────────────────────────
@@ -269,21 +269,21 @@ export const GALLERY_EXAMPLE_COPY: Record<string, GalleryExampleCopy> = {
         h1: 'Pie Chart Example',
         description:
             'An interactive pie chart built with AG Charts, breaking a total into proportional slices, with callout labels, sector labels and spacing between the slices. Explore the live example.',
-        intro: 'This example shows a [pie chart](/r/pie-series/) built with AG Charts, breaking a single total into proportional slices so each part reads as a share of the whole. [Callout and sector labels](/r/pie-series/#labels) name and quantify the slices, with formatters hiding both on slices too small to label, `sectorSpacing` separating the slices, and a [tooltip renderer](/r/tooltips/#modifying-content) reporting each value with its share. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
+        intro: 'This example shows a [pie chart](/r/pie-series/) built with AG Charts, breaking a single total into proportional slices so each part reads as a share of the whole. [Callout and sector labels](/r/pie-series/#labels) name and quantify the slices, with formatters hiding both on slices too small to label, sector spacing separating the slices, and a [tooltip renderer](/r/tooltips/#modifying-content) reporting each value with its share. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'pie-with-variable-radius': {
         title: 'Pie Chart With Variable Radius Example - JavaScript | AG Charts',
         h1: 'Pie Chart With Variable Radius Example',
         description:
             'A pie chart built with AG Charts encoding two measures per sector, one as the slice angle and a second as a variable sector radius. Explore the live example and copy the code.',
-        intro: 'This example shows a [pie chart](/r/pie-series/) built with AG Charts, encoding two measures per sector instead of one: the slice angle carries a part-to-whole share while a [variable sector radius](/r/pie-series/#variable-sector-radius) set by `radiusKey` carries a second, independent measure. [Sector labels](/r/pie-series/#labels) and a [custom tooltip](/r/tooltips/#modifying-content) report both. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
+        intro: 'This example shows a [pie chart](/r/pie-series/) built with AG Charts, encoding two measures per sector instead of one: the slice angle carries a part-to-whole share while a [variable sector radius](/r/pie-series/#variable-sector-radius) carries a second, independent measure. [Sector labels](/r/pie-series/#labels) and a [custom tooltip](/r/tooltips/#modifying-content) report both. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'pie-in-a-donut': {
         title: 'Pie Chart In A Donut Example - JavaScript | AG Charts',
         h1: 'Pie Chart In A Donut Example',
         description:
             'A pie chart nested inside a donut chart with AG Charts, comparing two part-to-whole breakdowns as concentric rings with one shared legend. Explore the live example.',
-        intro: 'This example shows a [pie chart](/r/pie-series/) nested inside a [donut chart](/r/donut-series/) with AG Charts, comparing two part-to-whole breakdowns of the same categories as concentric rings, so a shift in composition reads as a change between rings. It uses the [nested-series technique](/r/donut-series/#multiple-donuts), sizing the inner pie with `outerRadiusRatio` and sharing one `legendItemKey`, with [sector labels](/r/donut-series/#labels) and a [comparison tooltip](/r/tooltips/#modifying-content). Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
+        intro: 'This example shows a [pie chart](/r/pie-series/) nested inside a [donut chart](/r/donut-series/) with AG Charts, comparing two part-to-whole breakdowns of the same categories as concentric rings, so a shift in composition reads as a change between rings. It uses the [nested-series technique](/r/donut-series/#multiple-donuts) with [sector labels](/r/donut-series/#labels) and a [comparison tooltip](/r/tooltips/#modifying-content). Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
 
     // ── Donut ────────────────────────────────────────────────────────────
@@ -299,14 +299,14 @@ export const GALLERY_EXAMPLE_COPY: Record<string, GalleryExampleCopy> = {
         h1: 'Donut Chart With Variable Radius Example',
         description:
             'A donut chart built with AG Charts encoding two measures per sector, one as the slice angle and a second as a variable sector radius, with rounded corners. Explore the live example.',
-        intro: 'This example shows a [donut chart](/r/donut-series/) built with AG Charts, encoding two measures per sector: the slice angle carries a part-to-whole share while a [variable sector radius](/r/pie-series/#variable-sector-radius) set by `radiusKey` carries a second measure, so an outlier on either reads at a glance. An [inner label](/r/donut-series/#inner-labels) states the total, `cornerRadius` rounds each sector, and a [detailed tooltip](/r/tooltips/#modifying-content) reports both values. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
+        intro: 'This example shows a [donut chart](/r/donut-series/) built with AG Charts, encoding two measures per sector: the slice angle carries a part-to-whole share while a [variable sector radius](/r/pie-series/#variable-sector-radius) carries a second measure, so an outlier on either reads at a glance. An [inner label](/r/donut-series/#inner-labels) states the total, a corner radius rounds each sector, and a [detailed tooltip](/r/tooltips/#modifying-content) reports both values. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'multiple-donuts': {
         title: 'Multiple Donut Charts Example - JavaScript | AG Charts',
         h1: 'Multiple Donut Charts Example',
         description:
             "Two donut series nested as concentric rings with AG Charts, comparing a hierarchy's parts against its totals in a single part-to-whole chart. Explore the live example.",
-        intro: "This example shows a [donut chart](/r/donut-series/) built with AG Charts, nesting [multiple donut series](/r/donut-series/#multiple-donuts) as concentric rings so each part sits inside the total it belongs to. `outerRadiusRatio` and `innerRadiusRatio` size the two rings, `cornerRadius` rounds the sectors, a [global formatter](/r/formatters/#global-formatter) adds units to every value, and [tooltips](/r/tooltips/#modifying-content) report each slice's share. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).",
+        intro: "This example shows a [donut chart](/r/donut-series/) built with AG Charts, nesting [multiple donut series](/r/donut-series/#multiple-donuts) as concentric rings so each part sits inside the total it belongs to. An outer radius ratio and inner radius ratio size the two rings, corner radius rounds the sectors, a [global formatter](/r/formatters/#global-formatter) adds units to every value, and [tooltips](/r/tooltips/#modifying-content) report each slice's share. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).",
     },
 
     // ── Map ──────────────────────────────────────────────────────────────
@@ -315,7 +315,7 @@ export const GALLERY_EXAMPLE_COPY: Record<string, GalleryExampleCopy> = {
         h1: 'Map Chart With Multiple Shape Series Example',
         description:
             'An interactive world map chart built with AG Charts, drawing one map shape series per region over a shape background, with labels, a legend and zoom. Explore the live example.',
-        intro: 'This example shows a [map chart](/r/maps/) built with AG Charts, grouping geographic areas by drawing a separate [map shape series](/r/map-shapes/#simple-map-shapes) per region over a [map shape background](/r/map-shapes/#background-shapes), so each group takes its own colour and legend entry. `topologyIdKey` joins the data to the topology, [shape labels](/r/map-shapes/#labels) mark each area, [zoom](/r/zoom/) explores the detail, and a [tooltip renderer](/r/tooltips/#modifying-content) reports two measures per area. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
+        intro: 'This example shows a [map chart](/r/maps/) built with AG Charts, grouping geographic areas by drawing a separate [map shape series](/r/map-shapes/#simple-map-shapes) per region over a [map shape background](/r/map-shapes/#background-shapes), so each group takes its own colour and legend entry. [Shape labels](/r/map-shapes/#labels) mark each area, [zoom](/r/zoom/) explores the detail, and a [tooltip renderer](/r/tooltips/#modifying-content) reports two measures per area. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'multiple-map-series': {
         title: 'Multiple Map Chart Series Example - JavaScript | AG Charts',
@@ -329,7 +329,7 @@ export const GALLERY_EXAMPLE_COPY: Record<string, GalleryExampleCopy> = {
         h1: 'Map Chart with Heatmap Example',
         description:
             'A map chart built with AG Charts shading each region by value on a colour scale, with a gradient legend and source-aware value formatting. Explore the live example.',
-        intro: 'This example shows a [map chart](/r/maps/) built with AG Charts, comparing a measure across regions by shading each area rather than placing marks on it: `colorKey` drives the [colour scale](/r/map-shapes/#colour-scale) so magnitude reads straight off the fill. A [gradient legend](/r/colour-scale/#gradient-legend) gives the scale, [shape labels](/r/map-shapes/#labels) identify the regions, and a [property formatter](/r/formatters/#property-formatters) abbreviates the values differently in the tooltip and the legend. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
+        intro: 'This example shows a [map chart](/r/maps/) built with AG Charts, comparing a measure across regions by shading each area rather than placing marks on it: a color key drives the [colour scale](/r/map-shapes/#colour-scale) so magnitude reads straight off the fill. A [gradient legend](/r/colour-scale/#gradient-legend) gives the scale, [shape labels](/r/map-shapes/#labels) identify the regions, and a [property formatter](/r/formatters/#property-formatters) abbreviates the values differently in the tooltip and the legend. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'map-shapes-lines': {
         title: 'Map Chart With Shapes and Lines Example - JavaScript | AG Charts',
@@ -412,7 +412,7 @@ export const GALLERY_EXAMPLE_COPY: Record<string, GalleryExampleCopy> = {
         h1: 'Histogram Chart With Specified Bins Example',
         description:
             'A histogram chart built with AG Charts replacing automatic binning with explicit boundaries, giving one series per band so each can be named and styled. Explore the live example.',
-        intro: 'This example shows a [histogram chart](/r/histogram-series/) built with AG Charts, replacing automatic binning with [explicit bin boundaries](/r/histogram-series/#bin-customisation) so each band matches a meaningful cut-off rather than an even division. One series covers each band, which lets every band be named in the legend and styled in its own right, with [`areaPlot`](/r/histogram-series#reference-AgHistogramSeriesOptions-areaPlot) showing frequency density across unevenly sized bands, [pattern fills](/r/fills/#patterns) on some series and a [floating legend](/r/legend/#floating). Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
+        intro: 'This example shows a [histogram chart](/r/histogram-series/) built with AG Charts, replacing automatic binning with [explicit bin boundaries](/r/histogram-series/#bin-customisation) so each band matches a meaningful cut-off rather than an even division. One series covers each band, which lets every band be named in the legend and styled in its own right, with [area plot](/r/histogram-series#reference-AgHistogramSeriesOptions-areaPlot) showing frequency density across unevenly sized bands, [pattern fills](/r/fills/#patterns) on some series and a [floating legend](/r/legend/#floating). Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'histogram-with-missing-bins': {
         title: 'Histogram Chart With Missing Bins Example | AG Charts',
@@ -532,7 +532,7 @@ export const GALLERY_EXAMPLE_COPY: Record<string, GalleryExampleCopy> = {
         h1: 'Horizontal Box Plot Chart Example',
         description:
             'An interactive horizontal box plot chart built with AG Charts, comparing distributions by category against a computed median line and shaded value bands. Explore the live example.',
-        intro: "This example shows a [horizontal box plot chart](/r/box-plot-series/#horizontal-box-plot) built with AG Charts, running the boxes across the chart so each category's median, quartiles and whiskers sit beside a readable name. [Whisker and cap](/r/box-plot-series/#customisation) styling shapes the boxes, [cross lines](/r/axes-cross-lines/#adding-cross-lines) mark the median computed across every category and shade a low and a high band, and the category axis takes a [fixed thickness](/r/axes-configuration/). Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).",
+        intro: "This example shows a [horizontal box plot chart](/r/box-plot-series/#horizontal-box-plot) built with AG Charts, running the boxes across the chart so each category's median, quartiles and whiskers sit beside a readable name. [Whisker and cap](/r/box-plot-series/#customisation) styling shapes the boxes, [cross lines](/r/axes-cross-lines/#adding-cross-lines) mark the median computed across every category and shade a low and a high band, and the category axis takes a fixed thickness. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).",
     },
 
     // ── Candlestick ──────────────────────────────────────────────────────
@@ -566,7 +566,7 @@ export const GALLERY_EXAMPLE_COPY: Record<string, GalleryExampleCopy> = {
         h1: 'Radar Line Chart Example',
         description:
             'An interactive radar line chart built with AG Charts, comparing several profiles across shared metrics as closed outlines on one angle axis. Explore the live example.',
-        intro: 'This example shows a [radar line chart](/r/radar-line-series/) built with AG Charts, comparing profiles across a shared set of metrics: each series closes into an outline whose shape, not its height, is what the reader compares. One series is drawn solid and the others dashed, the radius axis [labels are hidden](/r/axes-labels/#customisation) so the outlines dominate, a [property formatter](/r/formatters/#property-formatters) renders every value as a percentage, and a [floating legend](/r/legend/#floating) sits inside the series area. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
+        intro: 'This example shows a [radar line chart](/r/radar-line-series/) built with AG Charts, comparing profiles across a shared set of metrics: each series closes into an outline whose shape, not its height, is what the reader compares. One series is drawn solid and the others dashed, the radius axis labels are hidden so the outlines dominate, a [property formatter](/r/formatters/#property-formatters) renders every value as a percentage, and a [floating legend](/r/legend/#floating) sits inside the series area. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'radar-with-markers': {
         title: 'Radar Chart With Markers Example - JavaScript | AG Charts',
@@ -619,7 +619,7 @@ export const GALLERY_EXAMPLE_COPY: Record<string, GalleryExampleCopy> = {
         h1: 'Nightingale Chart with Multiple Series Example',
         description:
             'An interactive Nightingale chart built with AG Charts, grouping three series per sector against a fixed radius domain, with shaded target bands. Explore the live example.',
-        intro: 'This example shows a [Nightingale chart](/r/nightingale-series/) built with AG Charts, grouping three series within each sector so parts are compared cycle position by cycle position. The radius axis is [pinned to a fixed domain](/r/axes-domain/) so groups stay comparable and uses an [inner radius](/r/nightingale-series/#inner-radius), the angle axis adds [category padding](/r/nightingale-series/#category-padding), [polar cross lines](/r/axes-cross-lines/#polar-axes-cross-lines) shade target bands, and a [theme override](/r/themes/#overrides) styles every series at once. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
+        intro: 'This example shows a [Nightingale chart](/r/nightingale-series/) built with AG Charts, grouping three series within each sector so parts are compared cycle position by cycle position. The radius axis is [pinned to a fixed domain](/r/axes-domain/#domain-min--max) so groups stay comparable and uses an [inner radius](/r/nightingale-series/#inner-radius), the angle axis adds [category padding](/r/nightingale-series/#category-padding), [polar cross lines](/r/axes-cross-lines/#polar-axes-cross-lines) shade target bands, and a [theme override](/r/themes/#overrides) styles every series at once. Get started with [JavaScript](/javascript/quick-start/), [React](/react/quick-start/), [Angular](/angular/quick-start/) or [Vue](/vue/quick-start/).',
     },
     'reversed-nightingale': {
         title: 'Reversed Nightingale Chart Example - JavaScript | AG Charts',
