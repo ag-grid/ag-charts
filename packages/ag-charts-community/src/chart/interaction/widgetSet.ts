@@ -5,7 +5,7 @@ import type { AxisWidget } from '../../widget/axisWidget';
 import type { BoundedTextWidget } from '../../widget/boundedTextWidget';
 import { NativeWidget } from '../../widget/nativeWidget';
 import { type Widget } from '../../widget/widget';
-import { DragInterpreter } from './dragInterpreter';
+import { DragInterpreter, LongTapInterpreter } from './dragInterpreter';
 
 class DOMManagerWidget extends NativeWidget {
     constructor(elem: HTMLElement) {
@@ -198,6 +198,7 @@ export class WidgetSet {
     readonly chartWidget: Widget;
     readonly containerWidget: Widget;
     readonly seriesDragInterpreter?: DragInterpreter;
+    readonly longTapInterpreter?: LongTapInterpreter;
     readonly axisWidgets: AxisWidgets;
 
     constructor(ctx: DynamicContext<ChartRegistry>, opts: { withDragInterpretation: boolean }) {
@@ -209,12 +210,15 @@ export class WidgetSet {
         this.chartWidget.addChild(this.seriesWidget);
         if (opts.withDragInterpretation) {
             this.seriesDragInterpreter = new DragInterpreter(this.seriesWidget);
+            // Not the container: that would also cover the overlay holding the popovers a long tap opens.
+            this.longTapInterpreter = new LongTapInterpreter(this.chartWidget);
         }
         this.axisWidgets = new AxisWidgets(ctx);
     }
 
     destroy(): void {
         this.axisWidgets.destroy();
+        this.longTapInterpreter?.destroy();
         this.seriesDragInterpreter?.destroy();
         this.seriesWidget.destroy();
         this.chartWidget.destroy();
