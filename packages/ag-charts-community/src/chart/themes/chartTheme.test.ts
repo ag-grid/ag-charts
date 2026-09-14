@@ -944,7 +944,7 @@ describe('ChartTheme', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
               [
                 [
-                  "AG Charts - Option \`axes.x.line.width\` is deprecated. Use \`strokeWidth\` instead.",
+                  "AG Charts - Option \`theme.overrides.common.axes.category.line.width\` is deprecated. Use \`strokeWidth\` instead.",
                 ],
               ]
             `);
@@ -1001,7 +1001,7 @@ describe('ChartTheme', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
               [
                 [
-                  "AG Charts - Option \`axes.x.line.width\` is deprecated. Use \`strokeWidth\` instead.",
+                  "AG Charts - Option \`theme.overrides.common.axes.number.bottom.line.width\` is deprecated. Use \`strokeWidth\` instead.",
                 ],
               ]
             `);

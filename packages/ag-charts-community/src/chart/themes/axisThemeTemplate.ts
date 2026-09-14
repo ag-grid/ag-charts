@@ -87,7 +87,13 @@ export const commonAxisThemeTemplate = {
     },
     line: {
         enabled: true,
-        strokeWidth: { $isUserOption: ['./width', { $path: './width' }, 1] },
+        // `width` is the deprecated name for `strokeWidth`. Keeping it in the template and
+        // deriving `strokeWidth` from it means the old name keeps working through every route
+        // that can set it — a direct user option, a type-level theme override and a positional
+        // one — while a user-set `strokeWidth` still wins on edge priority. Mirrors the
+        // `gridLine.style[].strokeWidth: { $path: '../../width' }` derivation below.
+        width: 1,
+        strokeWidth: { $path: './width' },
         strokeOpacity: 1,
         lineDash: [],
         stroke: { $ref: 'axisLineColor' },
