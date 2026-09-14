@@ -19,11 +19,9 @@ const options: AgChartOptions<DataType> = {
                     if (datum.group === 'Lower Middle Class' || datum.group === 'Bottom 50%') {
                         return `${datum.percentage}\n${value.toLocaleString()}`;
                     }
-                    if (datum.group === 'Upper Middle Class') {
-                        return datum.percentage;
-                    }
-                    return '';
+                    return datum.percentage;
                 },
+                placement: ['inside-center', 'outside-after', 'outside-before', 'outside-start'],
             },
             tooltip: {
                 renderer: ({ datum }) => {
