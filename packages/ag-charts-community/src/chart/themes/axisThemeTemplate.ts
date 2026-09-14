@@ -87,7 +87,9 @@ export const commonAxisThemeTemplate = {
     },
     line: {
         enabled: true,
-        width: 1,
+        strokeWidth: { $isUserOption: ['./width', { $path: './width' }, 1] },
+        strokeOpacity: 1,
+        lineDash: [],
         stroke: { $ref: 'axisLineColor' },
     },
     tick: {
