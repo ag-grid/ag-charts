@@ -548,12 +548,7 @@ export class SeriesAreaManager extends BaseManager {
         // from outside the series area would widen the axis region, which is beyond this handoff's purpose.
         const collectEvent = this.collectContextMenuRegions(event, pointerEvent);
         if (collectEvent.crossLine.length > 0) {
-            this.chart.ctx.contextMenuRegistry?.dispatchContextRegions(
-                'cross-line',
-                ['cross-line'],
-                { 'cross-line': collectEvent.crossLine },
-                pointerEvent
-            );
+            this.chart.ctx.contextMenuRegistry?.dispatchContext('cross-line', pointerEvent, collectEvent.crossLine);
         } else {
             this.chart.ctx.contextMenuRegistry?.dispatchContext('always', pointerEvent, undefined);
         }
