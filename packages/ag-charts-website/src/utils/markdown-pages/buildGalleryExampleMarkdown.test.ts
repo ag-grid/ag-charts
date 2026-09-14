@@ -77,11 +77,11 @@ describe('buildGalleryExampleMarkdown', () => {
     });
 
     it('names the chart family when every related example is a sibling', async () => {
-        const output = await buildFor('simple-bar');
-        expect(output).toContain('## More Bar Chart Examples');
+        const output = await buildFor('bar-line-combination');
+        expect(output).toContain('## More Combination Chart Examples');
     });
 
-    it('falls back to a generic heading where the family is too small to fill the strip', async () => {
+    it('falls back to a generic heading once the strip is topped up from other families', async () => {
         const output = await buildFor('ohlc');
         expect(output).toContain('## More Chart Examples');
     });

@@ -3,7 +3,12 @@ import { describe, expect, it } from 'vitest';
 import galleryData from '../../../content/gallery/data.json';
 import { getGalleryExamples } from './filesData';
 import { resolveGallerySeo } from './gallerySeo';
-import { getFamilyExamples, getRelatedExamples, relatedExamplesHeading } from './relatedExamples';
+import {
+    type RelatedGalleryData,
+    getFamilyExamples,
+    getRelatedExamples,
+    relatedExamplesHeading,
+} from './relatedExamples';
 
 const EXAMPLES = getGalleryExamples({ galleryData });
 const FAMILIES = galleryData.series.flat();
@@ -13,9 +18,19 @@ const visibleNames = (seriesName: string) =>
         .examples.filter(({ hidden }) => hidden !== true)
         .map(({ name }) => name);
 
+/** Two families of real examples, the second holding one, so topping it up has to wrap round. */
+const WRAPPING_GALLERY: RelatedGalleryData = {
+    series: [
+        [
+            { title: 'Bar', seriesName: 'bar', examples: visibleNames('bar').map((name) => ({ title: name, name })) },
+            { title: 'Pie', seriesName: 'pie', examples: [{ title: 'simple-pie', name: 'simple-pie' }] },
+        ],
+    ],
+};
+
 describe('getRelatedExamples', () => {
-    it('links at least three examples from every gallery page', () => {
-        const short = EXAMPLES.filter(({ relatedExamples }) => relatedExamples.length < 3).map(
+    it('links at least six examples from every gallery page', () => {
+        const short = EXAMPLES.filter(({ relatedExamples }) => relatedExamples.length < 6).map(
             ({ exampleName }) => exampleName
         );
         expect(short).toEqual([]);
@@ -35,38 +50,55 @@ describe('getRelatedExamples', () => {
         expect(duplicated).toEqual([]);
     });
 
-    it('links every sibling, and only siblings, where the family can fill the strip', () => {
+    it('links every sibling before topping the strip up', () => {
         const related = getRelatedExamples({ galleryData, exampleName: 'simple-bar' });
-        expect(related.map(({ name }) => name)).toEqual(visibleNames('bar').filter((name) => name !== 'simple-bar'));
+        const siblings = visibleNames('bar').filter((name) => name !== 'simple-bar');
+
+        expect(related.map(({ name }) => name)).toEqual([...siblings, 'simple-line']);
+        expect(related.map(({ isFamilySibling }) => isFamilySibling)).toEqual([...siblings.map(() => true), false]);
+    });
+
+    it('links only siblings where the family alone fills the strip', () => {
+        const related = getRelatedExamples({ galleryData, exampleName: 'bar-line-combination' });
+
+        expect(related.map(({ name }) => name)).toEqual(
+            visibleNames('combination').filter((name) => name !== 'bar-line-combination')
+        );
         expect(related.every(({ isFamilySibling }) => isFamilySibling)).toBe(true);
     });
 
-    it('tops up where a family holds a single example', () => {
+    it('fills the remaining slots from the families that follow, in gallery order', () => {
+        const related = getRelatedExamples({ galleryData, exampleName: 'chord' });
+
+        expect(related.map(({ name }) => name)).toEqual([
+            'chord-customisation',
+            'simple-funnel',
+            'customised-funnel',
+            'simple-cone-funnel',
+            'simple-pyramid',
+            'simple-radial-gauge',
+        ]);
+    });
+
+    it('fills the whole strip from the next family where a family holds a single example', () => {
         expect(visibleNames('ohlc')).toEqual(['ohlc']);
+
         const related = getRelatedExamples({ galleryData, exampleName: 'ohlc' });
-        expect(related).toHaveLength(3);
+        expect(related.map(({ name }) => name)).toEqual([
+            'simple-radar-line',
+            'radar-with-markers',
+            'reversed-radar-with-markers',
+            'simple-radar-area',
+            'radar-area-with-labels',
+            'reversed-radar-area',
+        ]);
         expect(related.some(({ isFamilySibling }) => isFamilySibling)).toBe(false);
     });
 
-    it('tops up from the family a one-example family specialises', () => {
-        const names = (exampleName: string) => getRelatedExamples({ galleryData, exampleName }).map(({ name }) => name);
-        expect(names('ohlc')).toContain('candlestick-hollow');
-        expect(names('simple-cone-funnel')).toEqual(expect.arrayContaining(['customised-funnel', 'simple-funnel']));
-        expect(names('simple-pyramid')).toContain('simple-cone-funnel');
-    });
+    it('wraps round to the first family when topping up the last one', () => {
+        const related = getRelatedExamples({ galleryData: WRAPPING_GALLERY, exampleName: 'simple-pie' });
 
-    it('keeps the siblings it has when topping a small family up', () => {
-        const related = getRelatedExamples({ galleryData, exampleName: 'candlestick' });
-        const siblings = visibleNames('candlestick').filter((name) => name !== 'candlestick');
-        expect(related.filter(({ isFamilySibling }) => isFamilySibling).map(({ name }) => name)).toEqual(siblings);
-        expect(related).toHaveLength(3);
-    });
-
-    it('prefers a group-mate over an unrelated family when topping up', () => {
-        const related = getRelatedExamples({ galleryData, exampleName: 'simple-radar-line' });
-        const groupMates = new Set(visibleNames('radar-area'));
-        expect(related).toHaveLength(3);
-        expect(related.filter(({ name }) => groupMates.has(name))).toHaveLength(1);
+        expect(related.map(({ name }) => name)).toEqual(visibleNames('bar'));
     });
 
     it('anchors each link on the H1 the target page serves', () => {
