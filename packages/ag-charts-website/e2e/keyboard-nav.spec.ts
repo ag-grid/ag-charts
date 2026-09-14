@@ -810,4 +810,35 @@ test.describe('keyboard-nav', () => {
             await expectChartScreenshot(page, canvas, 'initial-focus-viewport-start.png');
         });
     });
+
+    test('CRT-1212 keyboard navigation color sliders', async ({ page }) => {
+        await gotoExample(page, toExamplePageUrl('financial-charts-e2e', 'toolbar', 'vanilla').url);
+
+        // Open color picker:
+        await page.getByTitle('Trend Lines').click();
+        await page.getByText('Horizontal Line').click();
+        await page.mouse.click(400, 300);
+        await page.getByTitle('Line Color').click();
+
+        // Test Hue:
+        await page.locator('[aria-label="Hue"]').click();
+        await repeat(15, async () => await page.keyboard.press('ArrowLeft'));
+        await expect(page).toHaveScreenshot('CRT-1212-hue-moved.png');
+
+        // Test Alpha:
+        await page.locator('[aria-label="Transparency"]').click();
+        await repeat(15, async () => await page.keyboard.press('ArrowLeft'));
+        await expect(page).toHaveScreenshot('CRT-1212-alpha-moved.png');
+
+        // Test Color:
+        await page.locator('[aria-label="Color"]').click();
+        await page.keyboard.down('Home');
+        await page.keyboard.press('ArrowRight');
+        await page.keyboard.press('ArrowRight');
+        await page.keyboard.down('Shift');
+        await page.keyboard.press('ArrowRight');
+        await page.keyboard.press('ArrowRight');
+        await page.keyboard.up('Shift');
+        await expect(page).toHaveScreenshot('CRT-1212-color-selection.png');
+    });
 });
