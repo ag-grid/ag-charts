@@ -51,6 +51,7 @@ const options: AgChartOptions<DataType> = {
                     const achievement = ((datum.q2_2024 / datum.target) * 100).toFixed(0);
                     return `${datum.q2_2024.toLocaleString()}\n${achievement}% of target`;
                 },
+                placement: ['inside-center', 'outside-after', 'outside-before'],
             },
             tooltip: {
                 enabled: true,
