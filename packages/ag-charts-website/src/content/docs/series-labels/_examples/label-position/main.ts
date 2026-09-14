@@ -163,6 +163,6 @@ function setSpacing(event: Event) {
 
 /** inScope */
 function updateSpacingSlider(placement: Placement) {
-    const isCenter = placement === 'inside' || placement === 'inside-center';
-    (document.getElementById('spacingSlider') as HTMLInputElement).disabled = isCenter;
+    const isCentred = placement === 'inside' || placement === 'inside-center';
+    (document.getElementById('spacingSlider') as HTMLInputElement).disabled = isCentred;
 }
