@@ -11,7 +11,10 @@ import type {
 import { AgCharts } from 'ag-charts-community';
 import {
     compareImageSnapshot,
+    deproxy,
     hoverAction,
+    mouseDownAction,
+    mouseUpAction,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -762,6 +765,118 @@ describe('Crosshair', () => {
                 "46px 250px (-100% -50%)",
               ]
             `);
+        });
+    });
+    describe('CRT-1234 cross-line annotation drag', () => {
+        // A dragged cross-line's own axis label already reports the value, so the crosshair label on that axis
+        // would only cover it. Every other annotation drag, and plain hovering, keeps the crosshair labels.
+        // `moved` reads the annotation back after the drag: a negative case only counts if the drag really took it.
+        type Case = { annotation: object; hidden: string[]; shown: string[]; moved: (state: any) => boolean };
+
+        const withAnnotation = (annotation: object, snap: boolean): AgCartesianChartOptions => ({
+            data: [
+                { x: 0, y: 0 },
+                { x: 5, y: 5 },
+                { x: 10, y: 10 },
+            ],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            axes: {
+                x: { type: 'number', position: 'bottom', crosshair: { enabled: true, snap } },
+                y: { type: 'number', position: 'left', crosshair: { enabled: true, snap } },
+            },
+            annotations: { enabled: true, toolbar: { enabled: false } },
+            initialState: { annotations: [annotation as any] },
+        });
+
+        const visibleLabels = (axisId: string) =>
+            document.querySelectorAll(
+                `.ag-charts-crosshair-label[data-axis-id="${axisId}"]:not(.ag-charts-crosshair-label--hidden)`
+            ).length;
+
+        const expectLabels = ({ hidden, shown }: Pick<Case, 'hidden' | 'shown'>) => {
+            for (const axisId of hidden) expect(visibleLabels(axisId), `${axisId} label`).toBe(0);
+            for (const axisId of shown) expect(visibleLabels(axisId), `${axisId} label`).toBe(1);
+        };
+
+        // Canvas position of a data point, read from the axes so the test does not encode layout sizes.
+        const toCanvas = (x: number, y: number) => {
+            const axes = (deproxy(chart) as any).axes;
+            const xAxis = axes.find((axis: any) => axis.direction === 'x');
+            const yAxis = axes.find((axis: any) => axis.direction === 'y');
+            return {
+                x: xAxis.translation.x + xAxis.scale.convert(x),
+                y: yAxis.translation.y + yAxis.scale.convert(y),
+            };
+        };
+
+        const createChart = async (annotation: object, snap: boolean) => {
+            const options = withAnnotation(annotation, snap);
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+        };
+
+        // Every annotation under test passes through the datum at (5, 5); hovering there first is what marks it
+        // as the drag target. The drag ends near (8, 8), along the series and far enough that a snapping
+        // crosshair changes its highlighted datum mid-drag.
+        const startDragging = async () => {
+            const from = toCanvas(5, 5);
+            const to = toCanvas(8, 8);
+            await hoverAction(from.x, from.y)(chart);
+            await mouseDownAction(from.x, from.y)(chart);
+            await hoverAction(to.x, to.y)(chart);
+            await waitForChartStability(chart);
+            return to;
+        };
+
+        const DRAG_CASES: Record<string, Case> = {
+            'vertical line yields the x-axis label': {
+                annotation: { type: 'vertical-line', value: 5 },
+                hidden: ['x'],
+                shown: ['y'],
+                moved: (state) => state.value > 5,
+            },
+            'horizontal line yields the y-axis label': {
+                annotation: { type: 'horizontal-line', value: 5 },
+                hidden: ['y'],
+                shown: ['x'],
+                moved: (state) => state.value > 5,
+            },
+            'cross-line without an axis label keeps both labels': {
+                annotation: { type: 'vertical-line', value: 5, axisLabel: { enabled: false } },
+                hidden: [],
+                shown: ['x', 'y'],
+                moved: (state) => state.value > 5,
+            },
+            'trend line keeps both labels': {
+                annotation: { type: 'line', start: { x: 2, y: 2 }, end: { x: 8, y: 8 } },
+                hidden: [],
+                shown: ['x', 'y'],
+                moved: (state) => state.start.x > 2,
+            },
+        };
+
+        describe.each([true, false])('snap: %s', (snap) => {
+            it.each(Object.entries(DRAG_CASES))('%s while dragging', async (_name, testCase) => {
+                await createChart(testCase.annotation, snap);
+                const to = await startDragging();
+                expectLabels(testCase);
+
+                // Releasing restores both labels on the next pointer move.
+                await mouseUpAction(to.x, to.y)(chart);
+                await hoverAction(to.x + 10, to.y)(chart);
+                await waitForChartStability(chart);
+                expectLabels({ hidden: [], shown: ['x', 'y'] });
+                expect(testCase.moved(chart.getState().annotations[0]), 'annotation moved').toBe(true);
+            });
+
+            it('hovering a labelled cross-line without dragging keeps both labels', async () => {
+                await createChart(DRAG_CASES['vertical line yields the x-axis label'].annotation, snap);
+                const over = toCanvas(5, 5);
+                await hoverAction(over.x, over.y)(chart);
+                await waitForChartStability(chart);
+                expectLabels({ hidden: [], shown: ['x', 'y'] });
+            });
         });
     });
 });
