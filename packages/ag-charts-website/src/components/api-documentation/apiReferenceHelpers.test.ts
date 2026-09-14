@@ -81,6 +81,12 @@ describe('formatUnionSignature', () => {
             AgGradientColor: iface('AgGradientColor'),
             // Pure interface-only union: nothing is lost, so no signature is needed.
             PureUnion: alias('PureUnion', union('AgGradientColor', 'TextSegment')),
+            // AgContextMenuItem-like: a nested alias whose inline form overflows the code block.
+            MenuItem: alias('MenuItem', union('MenuItemLiteral', 'TextSegment')),
+            MenuItemLiteral: alias(
+                'MenuItemLiteral',
+                union("'defaults'", "'download'", "'zoom-to-cursor'", "'pan-to-cursor'", "'reset-zoom'", "'separator'")
+            ),
         })
     );
 
@@ -91,11 +97,20 @@ describe('formatUnionSignature', () => {
         expect(signature).toContain('type TextOrSegments =');
         expect(signature).toContain('TextValue');
         expect(signature).toContain('ContentSegment[]');
-        expect(signature).toContain('type TextValue =\n    string \n  | number \n  | Date;');
-        expect(signature).toContain('type ContentSegment =\n    TextSegment \n  | ImageSegment;');
+        expect(signature).toContain('type TextValue = string | number | Date;');
+        expect(signature).toContain('type ContentSegment = TextSegment | ImageSegment;');
         // Interfaces are represented as variant rows, never inlined here.
         expect(signature).not.toContain('interface TextSegment');
         expect(signature).not.toContain('interface ImageSegment');
+    });
+
+    it('wraps a long nested union alias one member per line', () => {
+        const node = reference.get('MenuItem');
+        const signature = formatUnionSignature(node.type, 'MenuItem', reference as any)!;
+
+        expect(signature).toContain(
+            "type MenuItemLiteral =\n    'defaults' \n  | 'download' \n  | 'zoom-to-cursor' \n  | 'pan-to-cursor' \n  | 'reset-zoom' \n  | 'separator';"
+        );
     });
 
     it('keeps a hidden alias member visible by name without expanding it', () => {
