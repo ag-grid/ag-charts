@@ -91,8 +91,8 @@ describe('formatUnionSignature', () => {
         expect(signature).toContain('type TextOrSegments =');
         expect(signature).toContain('TextValue');
         expect(signature).toContain('ContentSegment[]');
-        expect(signature).toContain('type TextValue = string | number | Date;');
-        expect(signature).toContain('type ContentSegment = TextSegment | ImageSegment;');
+        expect(signature).toContain('type TextValue =\n    string \n  | number \n  | Date;');
+        expect(signature).toContain('type ContentSegment =\n    TextSegment \n  | ImageSegment;');
         // Interfaces are represented as variant rows, never inlined here.
         expect(signature).not.toContain('interface TextSegment');
         expect(signature).not.toContain('interface ImageSegment');

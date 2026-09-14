@@ -782,7 +782,10 @@ export function formatUnionSignature(
         if (node?.kind !== 'typeAlias') {
             continue;
         }
-        lines.push(`type ${name} = ${normalizeType(node.type)};`);
+        const aliasType = isUnionNode(node.type)
+            ? `\n    ${addNewLineOnPipe(normalizeType(node.type))}`
+            : ` ${normalizeType(node.type)}`;
+        lines.push(`type ${name} =${aliasType};`);
         queue.push(...referencedMemberNames(node.type, reference));
     }
 
