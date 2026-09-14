@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Color, type DynamicContext, clamp } from 'ag-charts-core';
+import { Color, type DynamicContext, clamp, setAttribute } from 'ag-charts-core';
 
 import colorPickerTemplate from './colorPickerTemplate.html';
 
@@ -192,11 +192,13 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
             h = (e.currentTarget as HTMLInputElement).valueAsNumber ?? 0;
             update();
         });
+        setAttribute(hueInput, 'data-preventdefault', false); // TODO(AG-18361) Use Widget.setPreventsDefault(false)
         alphaInput.addEventListener('input', (e) => {
             isMultiColor = false;
             a = (e.currentTarget as HTMLInputElement).valueAsNumber ?? 0;
             update();
         });
+        setAttribute(alphaInput, 'data-preventdefault', false); // TODO(AG-18361) Use Widget.setPreventsDefault(false)
         colorInput.addEventListener('input', (e) => {
             isMultiColor = false;
             const hsva = getHsva((e.currentTarget as HTMLInputElement).value);
@@ -204,6 +206,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
             [h, s, v, a] = hsva;
             update();
         });
+        setAttribute(colorInput, 'data-preventdefault', false); // TODO(AG-18361) Use Widget.setPreventsDefault(false)
         colorInput.addEventListener('blur', () => update());
         colorInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
