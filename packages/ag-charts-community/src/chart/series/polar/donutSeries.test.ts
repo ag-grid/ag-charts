@@ -37,7 +37,7 @@ import {
     tapAction,
     waitForChartStability,
 } from '../../test/utils';
-import { DonutSeries } from './donutSeries';
+import { DonutNodeTag, DonutSeries } from './donutSeries';
 
 function* iterLegendMarkerLabels(myChart: Chart) {
     for (const { legend } of deproxy(myChart).modulesManager.legends()) {
@@ -723,6 +723,78 @@ describe('DonutSeries', () => {
   ],
 ]
 `);
+        });
+    });
+
+    describe('CRT-1205 legend-linked label highlight', () => {
+        // The outer series is the one linked through `legendItemKey` because an inner series' callout labels
+        // are hidden when they overlap the surrounding series, which would leave the callout paths unasserted.
+        const data = [
+            { browser: 'Chrome', share: 0.6 },
+            { browser: 'Safari', share: 0.3 },
+            { browser: 'Other', share: 0.1 },
+        ];
+
+        const sectorLabelOpacities = (series: any): number[] => {
+            const result: number[] = [];
+            series.labelSelection.each((node: Text, datum: any) => {
+                result[datum.datumIndex] = node.fillOpacity;
+            });
+            return result;
+        };
+        const calloutOpacities = (series: any, tag: DonutNodeTag, property: 'fillOpacity' | 'strokeOpacity') => {
+            const result: number[] = [];
+            for (const node of series.calloutLabelSelection.selectByTag(tag)) {
+                expect(node.visible).toBe(true);
+                result[node.unsafeClosestDatum().datumIndex] = node[property];
+            }
+            return result;
+        };
+
+        beforeEach(async () => {
+            chart = await createChart({
+                series: [
+                    {
+                        type: 'pie',
+                        data,
+                        angleKey: 'share',
+                        legendItemKey: 'browser',
+                        sectorLabelKey: 'share',
+                        outerRadiusRatio: 0.5,
+                    },
+                    {
+                        type: 'donut',
+                        data,
+                        angleKey: 'share',
+                        legendItemKey: 'browser',
+                        sectorLabelKey: 'share',
+                        calloutLabelKey: 'browser',
+                        innerRadiusRatio: 0.6,
+                        showInLegend: false,
+                    },
+                ],
+            });
+        });
+
+        test('lights the linked series labels with the legend owner on legend hover', async () => {
+            const [owner, linked] = (chart as any).series as any[];
+            const [{ x, y }] = [...iterLegendMarkerLabels(chart)];
+
+            await hoverAction(x, y)(chart);
+            await waitForChartStability(chart);
+
+            const ownerSector = sectorLabelOpacities(owner);
+
+            // The hovered item's label must be brighter than the others on the owning series.
+            expect(ownerSector[0]).toBeGreaterThan(ownerSector[1]);
+            expect(ownerSector[1]).toBe(ownerSector[2]);
+
+            // The linked series must resolve every label exactly as the legend owner does.
+            expect(sectorLabelOpacities(linked)).toEqual(ownerSector);
+            expect(calloutOpacities(linked, DonutNodeTag.CalloutLabel, 'fillOpacity')).toEqual(ownerSector);
+            expect(calloutOpacities(linked, DonutNodeTag.CalloutLine, 'strokeOpacity')).toEqual(ownerSector);
+
+            await compare('donut-series-test-ts-legend-linked-label-highlight');
         });
     });
 
