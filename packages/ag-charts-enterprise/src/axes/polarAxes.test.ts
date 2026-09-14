@@ -91,6 +91,41 @@ describe('Polar Axes', () => {
         await compare();
     });
 
+    it(`should render polar axes with a faint dashed angle axis line as expected`, async () => {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            axes: {
+                angle: {
+                    type: 'angle-category',
+                    line: { enabled: true, stroke: 'black', strokeOpacity: 0.2, lineDash: [4, 4] },
+                },
+                radius: { type: 'radius-number', title: { text: 'Skill Score' } },
+            },
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render polar axes with a faint dashed radius axis line as expected`, async () => {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            axes: {
+                angle: { type: 'angle-category' },
+                radius: {
+                    type: 'radius-number',
+                    title: { text: 'Skill Score' },
+                    line: { enabled: true, stroke: 'black', strokeOpacity: 0.2, lineDash: [4, 4] },
+                },
+            },
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
     it(`should render polar axes with circle shape as expected`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,

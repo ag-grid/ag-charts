@@ -43,7 +43,7 @@ const options: AgCartesianChartOptions = {
                         groupPaddingInner: 0,
                         paddingInner: 0.3,
                         line: {
-                            width: 2,
+                            strokeWidth: 2,
                         },
                         gridLine: {
                             enabled: false,

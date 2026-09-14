@@ -87,10 +87,12 @@ export abstract class RadiusAxis<
         this.updateTitle();
         this.updateGridLines();
 
-        const { enabled, stroke, width } = this.options.line;
+        const { enabled, stroke, strokeWidth, strokeOpacity, lineDash } = this.options.line;
         this.lineNode.setProperties({
             stroke,
-            strokeWidth: enabled ? width : 0,
+            strokeWidth: enabled ? strokeWidth : 0,
+            strokeOpacity,
+            lineDash,
             x1: 0,
             y1: this.range[0],
             x2: 0,

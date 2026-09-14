@@ -24,7 +24,7 @@ const options: AgQuadrantChartOptions = {
     xAxis: {
         title: { text: 'Temperature anomaly (°C)' },
         label: { formatter: (params) => `${params.value} °C` },
-        line: { enabled: false, width: 0 },
+        line: { enabled: false, strokeWidth: 0 },
         gridLine: { enabled: false },
     },
     yAxis: {

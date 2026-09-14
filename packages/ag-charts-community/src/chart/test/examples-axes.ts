@@ -547,7 +547,7 @@ const extremeAxisConfig = {
     },
     line: {
         stroke: 'yellow',
-        width: 20,
+        strokeWidth: 20,
     },
     tick: {
         stroke: 'blue',

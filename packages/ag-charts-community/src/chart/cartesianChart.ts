@@ -714,7 +714,7 @@ export class CartesianChart extends Chart {
 
     private clipAxis(axis: CartesianAxis, seriesRect: BBox, layoutBBox: BBox) {
         const gridLinePadding = Math.ceil(axis.options.gridLine.width);
-        const axisLinePadding = Math.ceil(axis.options.line.width);
+        const axisLinePadding = Math.ceil(axis.options.line.strokeWidth);
 
         let { width, height } = seriesRect;
 

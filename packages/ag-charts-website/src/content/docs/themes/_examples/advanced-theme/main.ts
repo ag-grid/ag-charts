@@ -45,12 +45,12 @@ const myTheme: AgChartTheme = {
             axes: {
                 category: {
                     line: {
-                        width: 4,
+                        strokeWidth: 4,
                     },
                 },
                 number: {
                     line: {
-                        width: 2,
+                        strokeWidth: 2,
                     },
                 },
             },

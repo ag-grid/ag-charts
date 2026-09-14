@@ -1744,6 +1744,23 @@ describe('OptionsGraph', () => {
                 });
             });
 
+            it('should resolve a user-supplied `ref` on an axis line stroke', () => {
+                const userOptions = prepareOptions({
+                    axes: {
+                        x: { type: 'category', position: 'bottom', line: { stroke: { ref: 'axisLineColor' } } },
+                        y: { type: 'number', position: 'left' },
+                    },
+                });
+                const params = { axisLineColor: 'grey' };
+                const options = new OptionsGraph({}, userOptions, params).resolve(testLogger);
+                expect(options).toStrictEqual({
+                    axes: {
+                        x: { type: 'category', position: 'bottom', line: { stroke: 'grey' } },
+                        y: { type: 'number', position: 'left' },
+                    },
+                });
+            });
+
             it('should resolve public `ref` operation on `$ref` operation', () => {
                 const themeConfig = { line: { one: { ref: 'second' } } };
                 const params = { first: 'value', second: { $ref: 'first' } };

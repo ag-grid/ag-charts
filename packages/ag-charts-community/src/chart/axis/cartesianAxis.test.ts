@@ -1024,6 +1024,36 @@ describe('CartesianAxis', () => {
         });
     });
 
+    describe('line', () => {
+        const options = (line: AgCartesianChartOptions['axes']): AgCartesianChartOptions => ({
+            data: NUMERIC_DATA,
+            axes: line,
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+        });
+
+        it('renders a fainter axis line with strokeOpacity', async () => {
+            await renderAndSnapshot(
+                () =>
+                    options({
+                        x: { type: 'number', position: 'bottom', line: { stroke: 'black', strokeOpacity: 0.2 } },
+                        y: { type: 'number', position: 'left', line: { stroke: 'black', strokeOpacity: 0.2 } },
+                    }),
+                'cartesian-axis-line-stroke-opacity'
+            );
+        });
+
+        it('renders a dashed axis line with lineDash', async () => {
+            await renderAndSnapshot(
+                () =>
+                    options({
+                        x: { type: 'number', position: 'bottom', line: { stroke: 'black', lineDash: [4, 4] } },
+                        y: { type: 'number', position: 'left', line: { stroke: 'black', lineDash: [4, 4] } },
+                    }),
+                'cartesian-axis-line-dash'
+            );
+        });
+    });
+
     describe('label wrapping', () => {
         it('should avoid premature truncation for rotated category labels', async () => {
             const options: AgCartesianChartOptions = {

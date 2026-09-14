@@ -493,6 +493,8 @@ describe('Quadrant Preset', () => {
 // The preset `themeTemplate` is baked into the resolved `ChartTheme`, so charts sharing a theme
 // value must not inherit each other's preset template.
 describe('Quadrant Preset theme isolation', () => {
+    setupMockConsole();
+
     const DATA = NUMERIC.data;
 
     const resolveAxes = (options: AgChartOptions, presetType?: 'quadrant') => {
@@ -513,6 +515,7 @@ describe('Quadrant Preset theme isolation', () => {
     const expectQuadrantStyling = (axes: Record<'x' | 'y', Record<string, any>>) => {
         expect(axes.x.line.enabled).toBe(true);
         expect(axes.x.line.stroke).toBe('#8c8e8f');
+        expect(axes.x.line.strokeWidth).toBe(1);
     };
 
     const expectPlainStyling = (axes: Record<'x' | 'y', Record<string, any>>) => {
@@ -528,6 +531,24 @@ describe('Quadrant Preset theme isolation', () => {
     it('does not lose the preset template to a plain chart created beforehand', () => {
         expectPlainStyling(resolveAxes(plainOptions()));
         expectQuadrantStyling(resolveAxes(quadrantOptions(), 'quadrant'));
+    });
+
+    // The preset omits an axis-line strokeWidth so the common template's width alias survives the merge.
+    it('still resolves a deprecated line.width theme override to strokeWidth on a quadrant chart', () => {
+        const axes = resolveAxes(
+            {
+                ...quadrantOptions(),
+                theme: { overrides: { scatter: { axes: { number: { line: { width: 3 } } } } } },
+            },
+            'quadrant'
+        );
+
+        expect(axes.x.line.strokeWidth).toBe(3);
+        expectWarningsCalls().toEqual([
+            [
+                'AG Charts - Option `theme.overrides.scatter.axes.number.line.width` is deprecated. Use `strokeWidth` instead.',
+            ],
+        ]);
     });
 });
 

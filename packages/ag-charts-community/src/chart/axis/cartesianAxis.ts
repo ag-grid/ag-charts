@@ -628,9 +628,9 @@ export abstract class CartesianAxis<
             }
         }
 
-        const { enabled, stroke, width } = this.options.line;
+        const { enabled, stroke, strokeWidth, strokeOpacity, lineDash } = this.options.line;
         // Without this the layout isn't consistent when enabling/disabling the line, padding configurations are not respected.
-        this.lineNode.setProperties({ stroke, strokeWidth: enabled ? width : 0 });
+        this.lineNode.setProperties({ stroke, strokeWidth: enabled ? strokeWidth : 0, strokeOpacity, lineDash });
 
         this.updateTickLines();
         this.updateGridLines();

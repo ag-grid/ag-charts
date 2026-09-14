@@ -123,7 +123,11 @@ export type NormalisedAngleAxisFormattableLabelOptions<TContext = ContextDefault
 >;
 
 // --- Line / tick / gridLine normalised shapes ---
-export type NormalisedAxisLineOptions = Normalised<AgAxisLineOptions, 'enabled' | 'width'>;
+export type NormalisedAxisLineOptions = Normalised<
+    Omit<AgAxisLineOptions, 'width'>,
+    'enabled' | 'strokeWidth' | 'strokeOpacity' | 'lineDash',
+    { stroke?: CssColor }
+>;
 
 export type NormalisedAxisGridLineOptions = Normalised<AgAxisGridLineOptions, 'enabled' | 'width' | 'style'>;
 

@@ -28,7 +28,7 @@ const options: AgCartesianChartOptions = {
             title: { text: 'Revenue ($M)' },
             line: {
                 stroke: 'red',
-                width: 3,
+                strokeWidth: 3,
             },
         },
         ySecondary: {
@@ -40,7 +40,7 @@ const options: AgCartesianChartOptions = {
             },
             line: {
                 stroke: 'red',
-                width: 3,
+                strokeWidth: 3,
             },
         },
     },

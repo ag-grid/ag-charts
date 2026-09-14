@@ -194,7 +194,9 @@ export abstract class AngleAxis<
         const { line } = this.options;
         node.visible = line.enabled;
         node.stroke = line.stroke;
-        node.strokeWidth = line.width;
+        node.strokeWidth = line.strokeWidth;
+        node.strokeOpacity = line.strokeOpacity;
+        node.lineDash = line.lineDash;
         node.fill = undefined;
     }
 

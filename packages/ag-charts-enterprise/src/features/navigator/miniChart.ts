@@ -267,7 +267,7 @@ export class MiniChart extends AbstractModuleInstance {
                 size = thickness;
             } else {
                 size =
-                    (line.enabled ? line.width : 0) +
+                    (line.enabled ? line.strokeWidth : 0) +
                     (label.enabled ? calcLineHeight(label.fontSize) + label.spacing : 0);
             }
 
