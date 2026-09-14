@@ -1,3 +1,4 @@
+import { GALLERY_GET_STARTED_COPY } from '@components/gallery/galleryCopy';
 import { getGalleryExamples } from '@components/gallery/utils/filesData';
 import { resolveGallerySeo } from '@components/gallery/utils/gallerySeo';
 import { existsSync, readFileSync } from 'node:fs';
@@ -42,6 +43,17 @@ describe('buildGalleryExampleMarkdown', () => {
         expect(output).toContain(`\n# ${seo.h1}`);
         // The intro's own links are absolute here, so it is emitted rewritten rather than verbatim.
         expect(output).toContain(seo.intro.replace(/\]\(\//g, '](https://www.ag-grid.com/'));
+    });
+
+    it('closes the intro with the get-started line as a paragraph of its own', async () => {
+        const { page } = EXAMPLES.find((example) => example.exampleName === 'simple-bar')!;
+        const seo = resolveGallerySeo(page.name);
+        const output = await buildFor('simple-bar');
+
+        // The blank line between the two is the point: the line is a paragraph, not a hard break
+        // on the end of the intro, which read as a new line with no gap before it.
+        const absolute = (copy: string) => copy.replace(/\]\(\//g, '](https://www.ag-grid.com/');
+        expect(output).toContain(`${absolute(seo.intro)}\n\n${absolute(GALLERY_GET_STARTED_COPY)}`);
     });
 
     it("makes the intro's inline links absolute, so the file reads out of context", async () => {
