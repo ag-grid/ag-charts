@@ -28,9 +28,9 @@ const blockText = (label: string) => [
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    title: { textAlign: 'left', text: blockText('Aligned left') },
-    subtitle: { textAlign: 'center', text: blockText('Aligned center') },
-    footnote: { textAlign: 'right', text: blockText('Aligned right') },
+    title: { textAlign: 'left', text: blockText('Aligned left'), maxHeight: 60 },
+    subtitle: { textAlign: 'center', text: blockText('Aligned center'), maxHeight: 60 },
+    footnote: { textAlign: 'right', text: blockText('Aligned right'), maxHeight: 60 },
     data: [
         { x: 'A', y: 3 },
         { x: 'B', y: 6 },
