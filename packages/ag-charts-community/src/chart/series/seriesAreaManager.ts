@@ -462,14 +462,7 @@ export class SeriesAreaManager extends BaseManager {
         if (sourceEvent.currentTarget != current.getElement()) return;
 
         if (current !== this.chart.ctx.widgets.seriesWidget) {
-            if (this.isState(InteractionState.ContextMenuable)) {
-                const { currentX: canvasX, currentY: canvasY } = event;
-                this.chart.ctx.contextMenuRegistry?.dispatchContext(
-                    'always',
-                    { widgetEvent: event, canvasX, canvasY },
-                    undefined
-                );
-            }
+            this.onContainerContextMenu(event);
             return;
         }
 
@@ -510,13 +503,7 @@ export class SeriesAreaManager extends BaseManager {
 
         // Ask axis-owning modules whether an axis overlaps this point (mirrors the hover/drag handoff). They
         // annotate `axis` rather than dispatching, so a single menu can offer both the series and axis regions.
-        const collectEvent: Writeable<SeriesAreaContextMenuEvent> = {
-            canvasX,
-            canvasY,
-            widgetEvent: event,
-            crossLine: [],
-        };
-        this.chart.ctx.eventsHub.emit('series-area:contextmenu', collectEvent);
+        const collectEvent = this.collectContextMenuRegions(event, { canvasX, canvasY });
         if (collectEvent.axis) {
             regions.push('axis');
             contexts.axis = collectEvent.axis;
@@ -544,6 +531,47 @@ export class SeriesAreaManager extends BaseManager {
             { widgetEvent: event, canvasX, canvasY },
             position
         );
+    }
+
+    // A cross-line label positioned outside the series area is drawn on the container, so it must be hit-tested here.
+    private onContainerContextMenu(event: MouseWidgetEvent<'contextmenu'>): void {
+        // The series widget is nested inside the container, so its right-clicks bubble here after being dispatched.
+        const seriesElement = this.chart.ctx.widgets.seriesWidget.getElement();
+        if (seriesElement.contains(event.sourceEvent.target as Node | null)) return;
+        if (!this.isState(InteractionState.ContextMenuable)) return;
+
+        // Container-widget coordinates are already canvas-relative (matches the container branch of `onClick`).
+        const { currentX: canvasX, currentY: canvasY } = event;
+        const pointerEvent = { widgetEvent: event, canvasX, canvasY };
+
+        // Only the cross-line annotation is honoured here. An overlapping axis is annotated too, but offering it
+        // from outside the series area would widen the axis region, which is beyond this handoff's purpose.
+        const collectEvent = this.collectContextMenuRegions(event, pointerEvent);
+        if (collectEvent.crossLine.length > 0) {
+            this.chart.ctx.contextMenuRegistry?.dispatchContextRegions(
+                'cross-line',
+                ['cross-line'],
+                { 'cross-line': collectEvent.crossLine },
+                pointerEvent
+            );
+        } else {
+            this.chart.ctx.contextMenuRegistry?.dispatchContext('always', pointerEvent, undefined);
+        }
+    }
+
+    /** Lets the axis and cross-line owners annotate the regions overlapping `point`; they never dispatch themselves. */
+    private collectContextMenuRegions(
+        event: MouseWidgetEvent<'contextmenu'>,
+        { canvasX, canvasY }: CanvasPoint
+    ): Writeable<SeriesAreaContextMenuEvent> {
+        const collectEvent: Writeable<SeriesAreaContextMenuEvent> = {
+            canvasX,
+            canvasY,
+            widgetEvent: event,
+            crossLine: [],
+        };
+        this.chart.ctx.eventsHub.emit('series-area:contextmenu', collectEvent);
+        return collectEvent;
     }
 
     private onLeave(event: MouseWidgetEvent<'mouseleave'>): void {
