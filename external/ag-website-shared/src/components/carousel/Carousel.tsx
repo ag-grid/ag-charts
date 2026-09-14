@@ -15,7 +15,7 @@ interface Props {
     /** Accessible names for the controls, where the defaults are too vague for the context. */
     previousLabel?: string;
     nextLabel?: string;
-    /** Prev/next buttons either side of the track. */
+    /** Prev/next buttons over either edge of the track, shown only once the slides overflow it. */
     showControls?: boolean;
     /** Fade the overflowing edges, shown only while there is more to scroll to that way. */
     showFades?: boolean;
@@ -29,8 +29,9 @@ const SCROLL_END_EPSILON = 1;
  * Horizontal scroll-snap strip with optional prev/next controls and fading edges.
  *
  * Slide sizing, spacing and content belong to the caller: set a width on the children and
- * `--carousel-gap` on the carousel itself. One click of a control scrolls by a full track
- * width, so the strip pages rather than stepping slide by slide.
+ * `--carousel-gap` on the carousel itself. A slide width that divides the track (`calc((100% -
+ * gap) / 2)`, say) pages a whole number of slides at a time. One click of a control scrolls by
+ * a full track width, so the strip pages rather than stepping slide by slide.
  */
 export function Carousel({
     children,
@@ -75,12 +76,15 @@ export function Carousel({
         track.scrollBy({ left: direction * track.clientWidth, behavior: 'smooth' });
     };
 
+    // Both flags start false, so server-rendered markup carries no controls either.
+    const hasOverflow = canScrollBack || canScrollOn;
+
     return (
         <div className={classnames(styles.carousel, className)}>
-            {showControls && (
+            {showControls && hasOverflow && (
                 <button
                     type="button"
-                    className={styles.control}
+                    className={classnames(styles.control, styles.controlPrevious)}
                     onClick={() => scrollByPage(-1, canScrollBack)}
                     // `aria-disabled`, not `disabled`: the element styles drop pointer events from a
                     // disabled button, so a control switching off under the pointer would leave the
@@ -109,10 +113,10 @@ export function Carousel({
                 {showFades && canScrollOn && <div className={styles.fadeEnd} aria-hidden="true" />}
             </div>
 
-            {showControls && (
+            {showControls && hasOverflow && (
                 <button
                     type="button"
-                    className={styles.control}
+                    className={classnames(styles.control, styles.controlNext)}
                     onClick={() => scrollByPage(1, canScrollOn)}
                     aria-disabled={canScrollOn ? undefined : true}
                     aria-label={nextLabel}
