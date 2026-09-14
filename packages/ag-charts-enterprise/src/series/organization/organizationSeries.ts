@@ -496,12 +496,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const isCollapsed = this.ctx.collapsedManager.isCollapsed(itemId);
         const collapsedState = this.ctx.localeManager.t(isCollapsed ? 'ariaOrgChartCollapsed' : 'ariaOrgChartExpanded');
         // Enter/Space only toggle when `clickToExpand` is enabled (see `hasBuiltinListener`).
-        const instructions = [
-            this.ctx.localeManager.t(isCollapsed ? 'ariaDescriptionExpandNode' : 'ariaDescriptionCollapseNode'),
-        ];
-        if (this.properties.node.clickToExpand) {
-            instructions.push(this.ctx.localeManager.t('ariaDescriptionToggleNode'));
-        }
+        const instructions = this.properties.node.clickToExpand
+            ? [this.ctx.localeManager.t('ariaDescriptionToggleNode')]
+            : undefined;
         // Locale tooling has no `[plural]` annotation, so split the key by child count.
         const key = childCount === 1 ? 'ariaAnnounceOrgChartParentSingular' : 'ariaAnnounceOrgChartParent';
         return {
@@ -513,6 +510,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 childCount,
                 collapsedState,
             }),
+            collapsedState,
             instructions,
         };
     }

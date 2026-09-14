@@ -233,6 +233,7 @@ export class SeriesAreaManager extends BaseManager {
         datumIndex: 0,
         datum: undefined as SeriesNodeDatum | undefined,
         pendingViewportFocus: undefined as PickViewportFocusInputs['where'] | undefined,
+        collapseChanged: false,
     };
 
     private cachedTooltipContent:
@@ -778,6 +779,7 @@ export class SeriesAreaManager extends BaseManager {
             this.focus.pendingViewportFocus = undefined;
             this.pickViewportFocus(pendingViewportFocus);
         }
+        this.focus.collapseChanged = false;
     }
 
     private onBlur(event: FocusEvent) {
@@ -787,6 +789,7 @@ export class SeriesAreaManager extends BaseManager {
             this.clearAll(true); // true = delayed
         }
         this.focusIndicator?.onBlur();
+        this.focus.collapseChanged = false;
     }
 
     private onKeyDown(widgetEvent: KeyboardWidgetEvent<'keydown'>): void {
@@ -847,6 +850,7 @@ export class SeriesAreaManager extends BaseManager {
         this.setHoverDevice('keyboard');
         this.focusIndicator?.overrideFocusVisible(true);
         event.sourceEvent.preventDefault();
+        this.focus.collapseChanged = false;
         return true;
     }
 
@@ -914,6 +918,7 @@ export class SeriesAreaManager extends BaseManager {
     ) {
         const nodeDatum = this.focus.datum;
         if (nodeDatum) {
+            this.focus.collapseChanged = true;
             this.chart.ctx.eventsHub.emit(type, { nodeDatum, widgetEvent });
         }
     }
@@ -1255,7 +1260,12 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         if (mode === 'always') {
-            this.swapChain.update(this.getDatumAriaText('keynav', pick.datum, tooltipContent));
+            if (this.focus.collapseChanged) {
+                this.swapChain.update(this.getDatumAriaText('collapseChange', pick.datum, tooltipContent));
+                this.focus.collapseChanged = false;
+            } else {
+                this.swapChain.update(this.getDatumAriaText('keynav', pick.datum, tooltipContent));
+            }
         }
     }
 
@@ -1268,7 +1278,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private getDatumAriaText(
-        source: 'keynav' | 'selectionChange',
+        source: 'collapseChange' | 'keynav' | 'selectionChange',
         datum: SeriesNodeDatum,
         tooltipContent: TooltipContent[]
     ): string {
@@ -1278,6 +1288,7 @@ export class SeriesAreaManager extends BaseManager {
         const datumText = this.chart.ctx.localeManager.t('ariaAnnounceHoverDatum', {
             datum: ariaMeta?.text ?? description,
         });
+        const dataSelectionStateText = this.getSelectedStateAriaText(datum);
 
         // TODO: We may want to use the 'aria-describedby' attribute for interaction instructions (similar to how we do
         // it with legend items).
@@ -1285,21 +1296,24 @@ export class SeriesAreaManager extends BaseManager {
             return ariaMeta?.instructions ? [text, ...ariaMeta.instructions].join('. ') : text;
         };
 
-        const dataSelectionStateText = this.getSelectedStateAriaText(datum);
-        if (dataSelectionStateText === undefined) {
-            return withInstructions(datumText);
-        } else {
-            // Screenreaders lead with selection state on native controls, so Space/Enter announces
-            // it first; arrow/tab navigation announces it last.
+        const parts: readonly (string | undefined)[] = (() => {
+            // Screenreaders must announce the most relevant information first.
+            // Examples:
+            //  - If the user pressed Space to toggle the data-selection, then announce the new selection-state first.
+            //  - If the user pressed Alt+Down to expand a node, then announce the new collapsed-state first.
             switch (source) {
+                case 'collapseChange':
+                    return [ariaMeta?.collapsedState, datumText, dataSelectionStateText];
                 case 'keynav':
-                    return withInstructions([datumText, dataSelectionStateText].join(', '));
+                    return [datumText, dataSelectionStateText, ariaMeta?.collapsedState];
                 case 'selectionChange':
-                    return withInstructions([dataSelectionStateText, datumText].join(', '));
+                    return [dataSelectionStateText, datumText, ariaMeta?.collapsedState];
                 default:
                     return source satisfies never; // check for exhaustiveness
             }
-        }
+        })();
+        const joinedParts = parts.filter((s): s is string => s !== undefined).join(', ');
+        return withInstructions(joinedParts);
     }
 
     private getSelectedStateAriaText(datum: SeriesNodeDatum): string | undefined {

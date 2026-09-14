@@ -96,6 +96,7 @@ export interface BucketLookupFeature {
 export interface ISeriesAriaMeta {
     readonly text: string;
     readonly instructions?: string[];
+    readonly collapsedState?: string;
 }
 
 export type FireNodeEventParams = {
