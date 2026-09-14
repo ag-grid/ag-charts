@@ -109,8 +109,9 @@ export class LicenseManager {
         return { md5, license, version, isTrial, type };
     }
 
-    public hasLicenseKey(): boolean {
-        return !missingOrEmpty(LicenseManager.licenseKey);
+    // An empty key still counts as supplied: the caller is owed a verdict, and it is reported as missing.
+    public isLicenseKeySupplied(): boolean {
+        return LicenseManager.licenseKey != null;
     }
 
     public getLicenseDetails(licenseKey: string, gridContext = false) {

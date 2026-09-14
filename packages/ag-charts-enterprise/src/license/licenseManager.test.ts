@@ -80,9 +80,30 @@ describe('LicenseManager', () => {
         });
     });
 
+    describe('isLicenseKeySupplied', () => {
+        it('is false until a key is set', () => {
+            expect(new LicenseManager().isLicenseKeySupplied()).toBe(false);
+        });
+
+        it.each(['', 'not-a-key'])('is true once %j has been set', (key) => {
+            LicenseManager.setLicenseKey(key);
+            expect(new LicenseManager().isLicenseKeySupplied()).toBe(true);
+        });
+    });
+
     describe('validateLicense', () => {
         afterEach(() => {
             LicenseManager.setGridContext(false);
+        });
+
+        it('reports an empty key as a missing licence key', () => {
+            LicenseManager.setLicenseKey('');
+            const manager = new LicenseManager(documentIn(windowAt('app.example.com')));
+            manager.validateLicense();
+
+            const output = vi.mocked(console.error).mock.calls.map(([line]) => String(line));
+            expect(output.some((line) => line.includes('License Key Not Found'))).toBe(true);
+            expect(manager.getWatermarkMessage()).toBe('For Trial Use Only');
         });
 
         it('re-validates when the grid context changes', () => {
