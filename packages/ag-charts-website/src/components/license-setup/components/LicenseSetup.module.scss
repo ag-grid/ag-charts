@@ -26,7 +26,7 @@
     word-break: break-all;
     font-family: var(--text-monospace-font-family);
     font-size: 15px;
-    line-height: var(--text-lh-base);
+    line-height: var(--text-lh-ratio-base);
 }
 
 .license {
@@ -180,7 +180,7 @@
     strong {
         position: relative;
         font-size: var(--text-fs-lg);
-        line-height: var(--text-lh-ultra-tight);
+        line-height: var(--text-lh-ratio-ultra-tight);
 
         &::after {
             position: absolute;
@@ -267,7 +267,7 @@
 
         td {
             padding: 0;
-            line-height: var(--text-lh-tight);
+            line-height: var(--text-lh-ratio-tight);
             font-weight: var(--text-bold);
 
             &:not(:last-child) {

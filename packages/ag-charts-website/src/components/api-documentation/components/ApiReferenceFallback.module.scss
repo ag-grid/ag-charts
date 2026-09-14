@@ -12,7 +12,9 @@
     @media screen and (max-width: $breakpoint-options-medium) {
         /* Reserves the stacked search box's height (nav top padding + text line-box + padding +
             borders) so the content does not drop on hydration. */
-        min-height: calc(#{$spacing-size-5} + var(--text-fs-base) * var(--text-lh-base) + #{$spacing-size-3} + 2px);
+        min-height: calc(
+            #{$spacing-size-5} + var(--text-fs-base) * var(--text-lh-body-base) + #{$spacing-size-3} + 2px
+        );
     }
 
     @media screen and (min-width: $breakpoint-options-medium) {
