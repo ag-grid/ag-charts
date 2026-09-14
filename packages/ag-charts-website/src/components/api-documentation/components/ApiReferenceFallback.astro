@@ -1,12 +1,8 @@
 ---
 import type { PageTitle } from '@components/api-documentation/apiReferenceHelpers';
-import {
-    cleanupName,
-    normalizeType,
-    parseJsDocs,
-    processMembers,
-} from '@components/api-documentation/apiReferenceHelpers';
+import { parseJsDocs, processMembers } from '@components/api-documentation/apiReferenceHelpers';
 import { getInterfacesReference } from '@utils/server/getInterfacesReference';
+import ApiReferenceFallbackList from './ApiReferenceFallbackList.astro';
 import styles from './ApiReferenceFallback.module.scss';
 
 interface Props {
@@ -55,27 +51,6 @@ const members = interfaceRef ? processMembers(interfaceRef, {}) : [];
             {description && <p class="text-secondary">{description}</p>}
         </header>
 
-        <dl class={styles.referenceList}>
-            {
-                members.map((member) => {
-                    const memberDocs = parseJsDocs(member.docs);
-                    return (
-                        <div class={styles.referenceRow} id={`reference-${id}-${member.name}`}>
-                            <dt>
-                                <span class={styles.propertyName}>{cleanupName(member.name)}</span>
-                                {!member.optional && <span class={styles.required}>required</span>}
-                                <code class={styles.propertyType}>{normalizeType(member.type)}</code>
-                                {member.defaultValue != null && (
-                                    <span class={styles.propertyDefault}>default: {member.defaultValue}</span>
-                                )}
-                            </dt>
-                            {/* Always rendered: a definition-list group needs both a term and a
-                                description, even for undocumented members. */}
-                            <dd class="text-secondary">{memberDocs}</dd>
-                        </div>
-                    );
-                })
-            }
-        </dl>
+        <ApiReferenceFallbackList id={id} members={members} />
     </div>
 </div>
