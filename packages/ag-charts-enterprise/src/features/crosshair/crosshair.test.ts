@@ -11,7 +11,10 @@ import type {
 import { AgCharts } from 'ag-charts-community';
 import {
     compareImageSnapshot,
+    deproxy,
     hoverAction,
+    mouseDownAction,
+    mouseUpAction,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -762,6 +765,68 @@ describe('Crosshair', () => {
                 "46px 250px (-100% -50%)",
               ]
             `);
+        });
+    });
+    describe('CRT-1234 cross-line annotation drag', () => {
+        // A dragged cross-line's own axis label already reports the value, so the crosshair label on that axis
+        // would only cover it. The other axis keeps its label, and everything returns once the drag ends.
+        const LINE_VALUE = 5;
+
+        const withVerticalLine = (snap: boolean): AgCartesianChartOptions => ({
+            data: [
+                { x: 0, y: 0 },
+                { x: 5, y: 5 },
+                { x: 10, y: 10 },
+            ],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            axes: {
+                x: { type: 'number', position: 'bottom', crosshair: { enabled: true, snap } },
+                y: { type: 'number', position: 'left', crosshair: { enabled: true, snap } },
+            },
+            annotations: { enabled: true, toolbar: { enabled: false } },
+            initialState: {
+                annotations: [{ type: 'vertical-line', value: LINE_VALUE, axisLabel: { enabled: true } }],
+            },
+        });
+
+        const visibleLabels = (axisId: string) =>
+            document.querySelectorAll(
+                `.ag-charts-crosshair-label[data-axis-id="${axisId}"]:not(.ag-charts-crosshair-label--hidden)`
+            ).length;
+
+        // Read the line's canvas position from the x axis so the test does not encode layout sizes.
+        const lineCanvasX = () => {
+            const xAxis = (deproxy(chart) as any).axes.find((axis: any) => axis.direction === 'x');
+            return xAxis.translation.x + xAxis.scale.convert(LINE_VALUE);
+        };
+
+        const startDraggingLine = async (snap: boolean) => {
+            const options = withVerticalLine(snap);
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const from = { x: lineCanvasX(), y: 300 };
+            // Along the series and far enough that a snapping crosshair changes its highlighted datum mid-drag.
+            const to = { x: from.x + 200, y: from.y - 200 };
+            // Hovering first is what marks the line as the drag target.
+            await hoverAction(from.x, from.y)(chart);
+            await mouseDownAction(from.x, from.y)(chart);
+            await hoverAction(to.x, to.y)(chart);
+            await waitForChartStability(chart);
+            return to;
+        };
+
+        it.each([true, false])('yields only the dragged line axis label (snap: %s)', async (snap) => {
+            const to = await startDraggingLine(snap);
+            expect(visibleLabels('x')).toBe(0);
+            expect(visibleLabels('y')).toBe(1);
+
+            await mouseUpAction(to.x, to.y)(chart);
+            await hoverAction(to.x + 10, to.y)(chart);
+            await waitForChartStability(chart);
+            expect(visibleLabels('x')).toBe(1);
+            expect(visibleLabels('y')).toBe(1);
         });
     });
 });
