@@ -27,26 +27,14 @@ const options: AgLinearGaugeOptions = {
         enabled: true,
         placement: 'inside-start',
         avoidCollisions: true,
+        color: { ref: 'textColor' },
     },
 };
 
 const chart = AgCharts.createGauge(options);
 
-const placementColors: Record<AgLinearGaugeLabelPlacement, string> = {
-    'inside-start': 'white',
-    'outside-start': '#888',
-    'inside-end': '#888',
-    'outside-end': '#888',
-    'inside-center': 'white',
-    'bar-inside': 'white',
-    'bar-inside-end': 'white',
-    'bar-outside-end': '#888',
-    'bar-end': 'white',
-};
-
 function setLabelPlacement(placement: AgLinearGaugeLabelPlacement) {
     options.label!.placement = placement;
-    options.label!.color = placementColors[placement];
     chart.update(options);
 }
 
