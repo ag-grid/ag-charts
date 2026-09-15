@@ -448,4 +448,45 @@ describe('themes.ts', () => {
             expect(getChartTheme('ag-sheets')).toBe(getChartTheme('ag-sheets'));
         });
     });
+
+    // `config` holds the per-series-type defaults, which depend on the theme class, the preset and the module
+    // registry but not on the instance's own overrides, so distinct inline themes share one frozen object.
+    describe('defaults config sharing', () => {
+        setupMockConsole();
+
+        const inlineTheme = (strokeWidth: number): AgChartTheme => ({
+            overrides: { line: { series: { strokeWidth } } },
+        });
+
+        it('shares one frozen config between themes that differ only in overrides', () => {
+            const first = getChartTheme(inlineTheme(1));
+            const second = getChartTheme(inlineTheme(2));
+
+            expect(first).not.toBe(second);
+            expect(first.config).toBe(second.config);
+            expect(Object.isFrozen(first.config)).toBe(true);
+            expect(first.overrides).not.toEqual(second.overrides);
+        });
+
+        it('does not share config across theme classes or presets', () => {
+            const plain = getChartTheme(inlineTheme(1));
+
+            expect(getChartTheme({ ...inlineTheme(1), baseTheme: 'ag-vivid' }).config).not.toBe(plain.config);
+            expect(getChartTheme(inlineTheme(1), undefined, 'test-preset').config).not.toBe(plain.config);
+        });
+
+        it('rebuilds the config once the module registry changes', () => {
+            const before = getChartTheme(inlineTheme(1)).config;
+
+            ModuleRegistry.register({
+                type: 'preset',
+                name: 'test-preset-registered-late',
+                version: VERSION,
+                options: {},
+                create: (options: unknown) => options,
+            } as PresetModuleDefinition<unknown>);
+
+            expect(getChartTheme(inlineTheme(2)).config).not.toBe(before);
+        });
+    });
 });
