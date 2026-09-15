@@ -10,6 +10,7 @@ import { AnimationModule } from '../features/animation/animationModule';
 import { ContextMenuModule } from '../features/context-menu/contextMenuModule';
 import { SelectionModule } from '../features/data-selection/dataSelectionModule';
 import { DataSourceModule } from '../features/data-source/dataSourceModule';
+import { SeriesAreaModule } from '../features/series-area/seriesAreaModule';
 import { GradientLegendModule } from '../gradient-legend/gradientLegendModule';
 import { NightingaleSeriesModule } from '../series/nightingale/nightingaleModule';
 import { RadarAreaSeriesModule } from '../series/radar-area/radarAreaModule';
@@ -25,6 +26,7 @@ export const AllPolarModule: ModuleDefinition[] = [
     RadiusNumberAxisModule,
     RadiusCategoryAxisModule,
     PolarCrossLinesModule,
+    SeriesAreaModule,
 
     NightingaleSeriesModule,
     RadarAreaSeriesModule,

@@ -10,6 +10,7 @@ import {
     bundleContents,
     cartesianSeriesModules,
     chartListenerToModule,
+    enterpriseBundleContents,
     enterpriseImpliedModules,
     enterpriseModules,
     impliedModules,
@@ -85,7 +86,7 @@ export default {
             const expanded = new Set();
             for (const mod of modules) {
                 if (bundleContents.has(mod)) {
-                    for (const contained of bundleContents.get(mod)) {
+                    for (const contained of contentsOfBundle(mod)) {
                         expanded.add(contained);
                     }
                     // Also add the bundle itself as registered
@@ -103,6 +104,14 @@ export default {
                 }
             }
             return expanded;
+        }
+
+        /** A bundle exported by both packages carries more when imported from ag-charts-enterprise. */
+        function contentsOfBundle(bundleId) {
+            if (importedModules.get(bundleId)?.packageName === 'ag-charts-enterprise') {
+                return enterpriseBundleContents.get(bundleId) ?? bundleContents.get(bundleId);
+            }
+            return bundleContents.get(bundleId);
         }
 
         /**

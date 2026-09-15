@@ -1,6 +1,7 @@
 import { AllCommunityModule } from 'ag-charts-community';
 import type { ModuleDefinition } from 'ag-charts-core';
 
+import { SeriesAreaModule } from '../features/series-area/seriesAreaModule';
 import { ChordSeriesModule } from '../series/chord/chordModule';
 import { OrganizationSeriesModule } from '../series/organization/organizationSeriesModule';
 import { PyramidSeriesModule } from '../series/pyramid/pyramidModule';
@@ -23,6 +24,7 @@ export const AllEnterpriseModule: ModuleDefinition[] = [
     AllGaugeModule,
     FinancialChartModule,
     QuadrantChartModule,
+    SeriesAreaModule,
 
     ChordSeriesModule,
     OrganizationSeriesModule,

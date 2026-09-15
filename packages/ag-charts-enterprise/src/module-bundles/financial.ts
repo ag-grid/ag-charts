@@ -14,6 +14,7 @@ import { DataSourceModule } from '../features/data-source/dataSourceModule';
 import { ErrorBarsModule } from '../features/error-bar/errorBarModule';
 import { NavigatorModule } from '../features/navigator/navigatorModule';
 import { RangesModule } from '../features/ranges/rangesModule';
+import { SeriesAreaModule } from '../features/series-area/seriesAreaModule';
 import { SyncModule } from '../features/sync/syncModule';
 import { ZoomModule } from '../features/zoom/zoomModule';
 import { GradientLegendModule } from '../gradient-legend/gradientLegendModule';
@@ -44,6 +45,7 @@ export const FinancialChartModule: ModuleDefinition[] = [
     NavigatorModule,
     RangesModule,
     SelectionModule,
+    SeriesAreaModule,
     SyncModule,
     ZoomModule,
 

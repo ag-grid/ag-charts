@@ -6,6 +6,7 @@ import {
     backgroundRegionStyle,
     backgroundRegionsTheme,
 } from '../../features/background-regions/backgroundRegionsTheme';
+import { SeriesAreaModule } from '../../features/series-area/seriesAreaModule';
 import { createQuadrant } from './quadrantPreset';
 import { quadrantOptionsDefs } from './quadrantPresetOptionsDefs';
 
@@ -41,8 +42,9 @@ const sharedThemeTemplate: ExtensibleSeriesTheme<'bubble' | 'scatter'> = {
 export const QuadrantPresetModule: PresetModuleDefinition<AgQuadrantChartOptions> = {
     type: 'preset',
     name: 'quadrant',
+    apiName: 'AgCharts.createQuadrantChart',
     enterprise: true,
-    dependencies: [],
+    dependencies: [SeriesAreaModule],
     version: VERSION,
 
     options: quadrantOptionsDefs,

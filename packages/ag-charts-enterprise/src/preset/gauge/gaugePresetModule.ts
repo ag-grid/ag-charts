@@ -52,6 +52,7 @@ commonGaugeOptions.withinStudio = undocumented(boolean);
 export const GaugePresetModule: PresetModuleDefinition<AgGaugeOptions> = {
     type: 'preset',
     name: 'gauge-preset',
+    apiName: 'AgCharts.createGauge',
     enterprise: true,
     version: VERSION,
     dependencies: [StandaloneChartModule],

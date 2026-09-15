@@ -14,6 +14,7 @@ import { FlashOnUpdateModule } from '../features/flash-on-update/flashOnUpdateMo
 import { NavigatorModule } from '../features/navigator/navigatorModule';
 import { RangesModule } from '../features/ranges/rangesModule';
 import { ScrollbarModule } from '../features/scrollbar/scrollbarModule';
+import { SeriesAreaModule } from '../features/series-area/seriesAreaModule';
 import { StatusBarModule } from '../features/status-bar/statusBarModule';
 import { SyncModule } from '../features/sync/syncModule';
 import { ZoomModule } from '../features/zoom/zoomModule';
@@ -40,6 +41,7 @@ export const AllCartesianModule: ModuleDefinition[] = [
     RangesModule,
     ScrollbarModule,
     SelectionModule,
+    SeriesAreaModule,
     StatusBarModule,
     SyncModule,
     ZoomModule,

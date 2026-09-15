@@ -1,21 +1,22 @@
 import { type ChartModuleDefinition, ValidationError, isObject, validate, without } from 'ag-charts-core';
-import type { AgCartesianChartOptions } from 'ag-charts-types';
 
 import { communityModule } from '../module/moduleIdentity';
 import type { ChartOptions } from '../module/optionsModule';
 import { VERSION } from '../version';
 import { CartesianChart } from './cartesianChart';
 import type { TransferableResources } from './chart';
-import { cartesianChartOptionsDefs } from './chartOptionsDefs';
+import { type CartesianChartDefOptions, cartesianChartOptionsDefs } from './chartOptionsDefs';
+import { SeriesAreaModule } from './series-area/seriesAreaModule';
 import { commonChartThemeTemplate } from './themes/chartThemeTemplate';
 
 const histogramAxisTypes = new Set(['number', 'log', 'time']);
 const invalidHistogramAxis = (axis: any) => isObject(axis) && axis.type != null && !histogramAxisTypes.has(axis.type);
 
-export const CartesianChartModule: ChartModuleDefinition<AgCartesianChartOptions> = /* #__PURE__ */ communityModule({
+export const CartesianChartModule: ChartModuleDefinition<CartesianChartDefOptions> = /* #__PURE__ */ communityModule({
     type: 'chart',
     name: 'cartesian',
     version: VERSION,
+    dependencies: [SeriesAreaModule],
 
     options: cartesianChartOptionsDefs,
 
