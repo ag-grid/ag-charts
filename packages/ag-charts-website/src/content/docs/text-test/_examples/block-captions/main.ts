@@ -51,7 +51,7 @@ const options: AgChartOptions = {
             { text: 'Q4 Highlights', fontStyle: 'italic', verticalAlign: 'middle' },
         ],
         fontSize: 22,
-        maxHeight: 100,
+        maxHeight: 120,
     },
     // Subtitle: block image followed by an inline image inside the same line.
     subtitle: {

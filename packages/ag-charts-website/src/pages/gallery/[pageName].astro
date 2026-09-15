@@ -7,6 +7,7 @@ import { getGalleryPages } from '@components/gallery/utils/pageData';
 import { GalleryExampleCarousel } from '@components/gallery/components/GalleryExampleCarousel';
 import { GalleryIntro } from '@components/gallery/components/GalleryIntro';
 import { GallerySeriesLink } from '@components/gallery/components/GallerySeriesLink';
+import { GALLERY_GET_STARTED_COPY } from '@components/gallery/galleryCopy';
 import { resolveGallerySeo } from '@components/gallery/utils/gallerySeo';
 import { relatedExamplesHeading } from '@components/gallery/utils/relatedExamples';
 import { GALLERY_IMAGE_DPR_ENHANCEMENT } from '@constants';
@@ -43,13 +44,16 @@ const relatedHeading = relatedExamplesHeading({ seriesTitle: page.seriesTitle, r
             <GallerySeriesLink client:only="react" series={page.seriesTitle} link={page.seriesLink} />
         </div>
 
-        <p class="intro"><GalleryIntro intro={seo.intro} /></p>
+        <div class="intro">
+            <p><GalleryIntro intro={seo.intro} /></p>
+            <p><GalleryIntro intro={GALLERY_GET_STARTED_COPY} /></p>
+        </div>
 
         <GalleryExampleRunner exampleName={exampleName} />
 
         {
             relatedExamples.length > 0 && (
-                <Fragment>
+                <section class="related">
                     <h2 class="moreExampleLabel">{relatedHeading}</h2>
 
                     <p class="moreExampleHubLink text-secondary">
@@ -62,7 +66,7 @@ const relatedHeading = relatedExamplesHeading({ seriesTitle: page.seriesTitle, r
                         enableDprScaling={GALLERY_IMAGE_DPR_ENHANCEMENT}
                         label={relatedHeading}
                     />
-                </Fragment>
+                </section>
             )
         }
     </div>
@@ -71,12 +75,15 @@ const relatedHeading = relatedExamplesHeading({ seriesTitle: page.seriesTitle, r
 <style lang="scss">
     @use 'design-system' as *;
 
+    // A column so `.intro` can be shown after the example while staying under the H1 in the markup.
     .gallery-page-container {
-        padding-top: $spacing-size-10;
+        display: flex;
+        flex-direction: column;
+        padding-top: $spacing-size-6;
         padding-bottom: $spacing-size-32;
 
         @media screen and (min-width: $breakpoint-gallery-small) {
-            padding-top: $spacing-size-16;
+            padding-top: $spacing-size-10;
         }
     }
 
@@ -90,13 +97,23 @@ const relatedHeading = relatedExamplesHeading({ seriesTitle: page.seriesTitle, r
 
     // Sits directly under the title, styled to match the intro below it.
     .seriesDocsLink {
-        margin-bottom: $spacing-size-4;
+        margin-bottom: $spacing-size-6;
         font-size: var(--text-fs-sm);
     }
 
+    // The intro and the get-started line it closes with, each its own paragraph.
     .intro {
-        margin-bottom: $spacing-size-6;
+        order: 1;
+        margin-top: $spacing-size-6;
         font-size: var(--text-fs-sm);
+
+        p:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    .related {
+        order: 2;
     }
 
     h1 {

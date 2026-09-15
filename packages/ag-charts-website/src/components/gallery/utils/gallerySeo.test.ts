@@ -2,7 +2,12 @@ import { readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import galleryData from '../../../content/gallery/data.json';
-import { GALLERY_EXAMPLE_COPY, GALLERY_HUB_COPY, type GalleryExampleCopy } from '../galleryCopy';
+import {
+    GALLERY_EXAMPLE_COPY,
+    GALLERY_GET_STARTED_COPY,
+    GALLERY_HUB_COPY,
+    type GalleryExampleCopy,
+} from '../galleryCopy';
 import { getGalleryExamples } from './filesData';
 import { galleryFamilyHeading, galleryFamilyName, resolveGalleryH1, resolveGallerySeo } from './gallerySeo';
 import { galleryPageSeoProblems } from './gallerySeoChecker';
@@ -93,7 +98,14 @@ describe('resolveGallerySeo', () => {
         expect(new Set(titles).size).toBe(titles.length);
     });
 
-    it('links intros to docs pages that exist, without the site base', () => {
+    it('leaves the get-started line to the shared copy, out of every intro', () => {
+        expect(offenders(({ intro }) => intro.includes('Get started with'))).toEqual([]);
+        // A hard line break is what put that line on a new line with no gap before it; the page
+        // and its `.md` twin now serve it as a paragraph of its own instead.
+        expect(offenders(({ intro }) => intro.includes('  \n'))).toEqual([]);
+    });
+
+    it('links intro and get-started copy to docs pages that exist, without the site base', () => {
         const docsPages = new Set(
             readdirSync(new URL('../../../content/docs', import.meta.url), { withFileTypes: true })
                 .filter((entry) => entry.isDirectory())
@@ -103,14 +115,19 @@ describe('resolveGallerySeo', () => {
         // `/<framework>/<page>/` is for the links that deliberately name one framework.
         // Either may carry a `#section` fragment, which the page owns rather than the router.
         const INTRO_HREF = /^\/(r|javascript|react|angular|vue)\/([^/#]+)\/(?:#[^/#]+)?$/;
-        const problems = RESOLVED.flatMap(({ exampleName, seo }) =>
-            [...seo.intro.matchAll(/\]\(([^)]+)\)/g)]
+        // The get-started line is served on every example page, so it is checked alongside them.
+        const COPY = [
+            ...RESOLVED.map(({ exampleName, seo }) => ({ source: exampleName, copy: seo.intro })),
+            { source: 'GALLERY_GET_STARTED_COPY', copy: GALLERY_GET_STARTED_COPY },
+        ];
+        const problems = COPY.flatMap(({ source, copy }) =>
+            [...copy.matchAll(/\]\(([^)]+)\)/g)]
                 .map(([, href]) => href)
                 .filter((href) => {
                     const match = INTRO_HREF.exec(href);
                     return !match || !docsPages.has(match[2]);
                 })
-                .map((href) => `${exampleName} -> ${href}`)
+                .map((href) => `${source} -> ${href}`)
         );
         expect(problems).toEqual([]);
     });

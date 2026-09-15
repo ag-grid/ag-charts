@@ -124,7 +124,8 @@ function validatedLicenseManager(options: AgChartOptions, keyRequired: boolean):
         if (licenseManager == null) return;
         licenseManagers.set(cacheKey, licenseManager);
     }
-    if (keyRequired && !licenseManager.hasLicenseKey()) return;
+    // A supplied key is always validated, even an empty or undefined one: only a page that never set a key is silent.
+    if (keyRequired && !licenseManager.isLicenseKeySupplied()) return;
 
     licenseManager.validateLicense();
     return licenseManager;

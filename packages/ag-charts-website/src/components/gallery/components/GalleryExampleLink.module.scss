@@ -62,12 +62,18 @@
     }
 }
 
-// A carousel slide: fixed width so a partly-visible neighbour signals more to scroll to.
+// A carousel slide, on the hub grid's column count so a page of the strip is a hub row.
 .layout-thumbnail {
-    width: 240px;
+    --slides-per-page: 1;
 
-    .image {
-        padding: $spacing-size-3;
+    width: calc((100% - var(--carousel-gap) * (var(--slides-per-page) - 1)) / var(--slides-per-page));
+
+    @media screen and (min-width: 720px) {
+        --slides-per-page: 2;
+    }
+
+    @media screen and (min-width: 1120px) {
+        --slides-per-page: 3;
     }
 }
 

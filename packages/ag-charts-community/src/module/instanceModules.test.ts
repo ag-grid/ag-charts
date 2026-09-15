@@ -200,7 +200,7 @@ describe('instance modules', () => {
             let licenseKeySupplied = true;
             const createLicenseManager = vi.fn((_document?: Document) => ({
                 validateLicense,
-                hasLicenseKey: () => licenseKeySupplied,
+                isLicenseKeySupplied: () => licenseKeySupplied,
                 isDisplayWatermark: () => true,
                 getWatermarkMessage: () => 'watermark',
                 getWatermarkForegroundConfig: () => undefined,

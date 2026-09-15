@@ -33,8 +33,8 @@ function formatDate(date: Date) {
 function formatBoundsSubtitle(mode: string) {
     const { xRange, yRange } = bounds[mode];
 
-    const x = `${xRange?.start ? formatDate(xRange.start) : 'undefined'} – ${xRange?.end ? formatDate(xRange.end) : 'undefined'}`;
-    const y = `${yRange?.start ?? 'undefined'} – ${yRange?.end ?? 'undefined'}`;
+    const x = `${xRange?.start ? formatDate(xRange.start) : 'start'} – ${xRange?.end ? formatDate(xRange.end) : 'end'}`;
+    const y = `${yRange?.start ?? 'start'} – ${yRange?.end ?? 'end'}`;
 
     return `X: ${x}   Y: ${y}`;
 }

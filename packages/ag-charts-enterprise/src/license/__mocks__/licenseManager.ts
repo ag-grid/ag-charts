@@ -11,7 +11,7 @@ export class LicenseManager {
         // No-op.
     }
 
-    public hasLicenseKey() {
+    public isLicenseKeySupplied() {
         return false;
     }
 
