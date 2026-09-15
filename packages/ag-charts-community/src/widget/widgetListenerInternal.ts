@@ -97,6 +97,9 @@ export class WidgetListenerInternal {
 
     private startPointerDrag<T extends Targetable>(current: T, downEvent: PointerEvent) {
         const elem = current.getElement();
+        // setPointerCapture prevents click events on descendant elements.
+        // Therefore, only capture the pointer when we are on-target:
+        if (elem !== downEvent.target) return;
 
         const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(current.getElement(), downEvent);
         const origin: DragOrigin = {
