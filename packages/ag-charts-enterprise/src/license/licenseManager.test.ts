@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LicenseManager } from './licenseManager';
+import { clearLicenseKey } from './test/licenseTestUtils';
 
 // The suite-wide mock stands in for this module everywhere else; these tests need the real one.
 vi.unmock('./licenseManager');
@@ -30,11 +31,11 @@ describe('LicenseManager', () => {
     beforeEach(() => {
         vi.spyOn(console, 'error').mockImplementation(() => {});
         vi.spyOn(console, 'warn').mockImplementation(() => {});
-        LicenseManager.clearLicenseKey();
+        clearLicenseKey();
     });
 
     afterEach(() => {
-        LicenseManager.clearLicenseKey();
+        clearLicenseKey();
         vi.restoreAllMocks();
     });
 
@@ -92,7 +93,7 @@ describe('LicenseManager', () => {
 
         it('is false again once cleared', () => {
             LicenseManager.setLicenseKey('not-a-key');
-            LicenseManager.clearLicenseKey();
+            clearLicenseKey();
             expect(new LicenseManager().isLicenseKeySupplied()).toBe(false);
         });
     });

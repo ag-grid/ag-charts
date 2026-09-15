@@ -391,13 +391,6 @@ export class LicenseManager {
         LicenseManager.licenseKey = key;
     }
 
-    /** Returns to the never-supplied state. For tests, which share the static key across suites. */
-    public static clearLicenseKey(): void {
-        LicenseManager.licenseKey = undefined;
-        LicenseManager.licenseKeySupplied = false;
-        LicenseManager.licenseOutputLogged = false;
-    }
-
     private static extractBracketedInformation(licenseKey: string): [string | null, boolean | null, string?] {
         // legacy no trial key
         if (!licenseKey.includes('[')) {

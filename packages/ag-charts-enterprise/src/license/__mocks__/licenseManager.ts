@@ -7,10 +7,6 @@ export class LicenseManager {
         // No-op.
     }
 
-    public static clearLicenseKey(): void {
-        // No-op.
-    }
-
     public static setGridContext(): void {
         // No-op.
     }
