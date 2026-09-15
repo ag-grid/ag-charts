@@ -289,9 +289,7 @@ export class Zoom extends AbstractModuleInstance {
         return isMaxZoom(this.getZoom());
     }
 
-    private onSeriesAreaDoubleClick(
-        event?: _ModuleSupport.DragInterpreterDblClickEvent & { preventZoomDblClick?: boolean }
-    ) {
+    private onSeriesAreaDoubleClick(event?: _Widget.DblClickWidgetEvent & { preventZoomDblClick?: boolean }) {
         const { enabled, enableDoubleClickToReset } = this.opts;
 
         if (!enabled || !enableDoubleClickToReset) return;

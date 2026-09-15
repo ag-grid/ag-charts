@@ -27,10 +27,6 @@ true satisfies AreExact<MouseWidgetEventType, DerivedKeysForWidgetEvent<MouseWid
 true satisfies AreExact<TouchWidgetEventType, DerivedKeysForWidgetEvent<TouchWidgetEvent>>;
 true satisfies AreExact<DragWidgetEventType, DerivedKeysForWidgetEvent<DragWidgetEvent>>;
 
-// Synthetic types
-type KeyboardSyntheticMouseWidgetEventType = 'click';
-type TouchSyntheticMouseWidgetEventType = 'click' | 'dblclick';
-
 export type WidgetEvent<T extends WidgetEventType = WidgetEventType> = {
     readonly type: T;
     readonly sourceEvent: Event;
@@ -46,9 +42,7 @@ export type KeyboardWidgetEvent<T extends KeyboardWidgetEventType = KeyboardWidg
     readonly sourceEvent: KeyboardEvent;
 };
 
-export type KeyboardSyntheticMouseWidgetEvent<
-    T extends MouseWidgetEventType & KeyboardSyntheticMouseWidgetEventType = KeyboardSyntheticMouseWidgetEventType,
-> = {
+export type KeyboardSyntheticWidgetEvent<T extends 'click'> = {
     readonly type: T;
     readonly device: 'keyboard';
     readonly sourceEvent: KeyboardEvent;
@@ -59,18 +53,16 @@ export type TouchWidgetEvent<T extends TouchWidgetEventType = TouchWidgetEventTy
     readonly sourceEvent: TouchEvent;
 };
 
-export type TouchSyntheticMouseWidgetEvent<
-    T extends MouseWidgetEventType & TouchSyntheticMouseWidgetEventType = TouchSyntheticMouseWidgetEventType,
-> = {
+export type PointerSyntheticWidgetEvent<T extends 'click' | 'dblclick'> = {
     readonly type: T;
-    readonly device: 'touch';
+    readonly device: 'touch' | 'mouse' | 'pen';
     readonly offsetX: number;
     readonly offsetY: number;
     readonly clientX: number;
     readonly clientY: number;
     readonly currentX: number;
     readonly currentY: number;
-    readonly sourceEvent: TouchEvent;
+    readonly sourceEvent: PointerEvent;
 };
 
 export type MouseWidgetEvent<T extends MouseWidgetEventType = MouseWidgetEventType> = {
@@ -87,9 +79,9 @@ export type MouseWidgetEvent<T extends MouseWidgetEventType = MouseWidgetEventTy
 
 export type ClickWidgetEvent =
     | MouseWidgetEvent<'click'>
-    | KeyboardSyntheticMouseWidgetEvent<'click'>
-    | TouchSyntheticMouseWidgetEvent<'click'>;
-export type DblClickWidgetEvent = MouseWidgetEvent<'dblclick'> | TouchSyntheticMouseWidgetEvent<'dblclick'>;
+    | KeyboardSyntheticWidgetEvent<'click'>
+    | PointerSyntheticWidgetEvent<'click'>;
+export type DblClickWidgetEvent = MouseWidgetEvent<'dblclick'> | PointerSyntheticWidgetEvent<'dblclick'>;
 
 export type WheelWidgetEvent = {
     readonly type: 'wheel';

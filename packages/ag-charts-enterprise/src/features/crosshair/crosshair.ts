@@ -27,7 +27,7 @@ const { Group, TranslatableGroup, Line, BBox, FormatManager, InteractionState } 
 type HoverLikeEvent =
     | _Widget.DragWidgetEvent
     | _Widget.MouseWidgetEvent<'mousemove'>
-    | _ModuleSupport.DragInterpreterClickEvent;
+    | Extract<_Widget.ClickWidgetEvent, CurrentPoint>;
 
 interface FormatterCache {
     type: string;
@@ -264,7 +264,7 @@ export class Crosshair
         return toPlainText(this.axisCtx.formatScaleValue(value, 'crosshair', this));
     }
 
-    private onClick(event: _ModuleSupport.DragInterpreterClickEvent) {
+    private onClick(event: _Widget.ClickWidgetEvent) {
         if (event.device === 'touch') {
             this.onMouseHoverLike(event);
         }

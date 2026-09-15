@@ -79,7 +79,7 @@ export class AxisButton extends AbstractModuleInstance {
         if (this.ctx.interactionManager.isState(InteractionState.Hoverable)) this.hide();
     }
 
-    private onClick(e: _ModuleSupport.DragInterpreterClickEvent) {
+    private onClick(e: _Widget.ClickWidgetEvent) {
         if (this.ctx.interactionManager.isState(InteractionState.Clickable) && e.device === 'touch') this.show(e);
     }
 
