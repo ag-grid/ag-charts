@@ -14,6 +14,7 @@ Build dependency chain: `ag-charts-core` → `ag-charts-types` → `ag-charts-lo
 -   **Zero runtime dependencies:** Community and enterprise runtime bundles must have ZERO third-party dependencies beyond AG Charts packages.
 -   **Language conventions:** UK/British English for documentation text, comments, and JSDocs; US English for API option names.
 -   **Terminology:** never use "plot" or "plot area" — in prose, comments, identifiers and test-case names. Say "chart", or "series area" for the region bounded by the axes, matching the `seriesArea` option.
+-   **Module ownership:** a module declares the option locations it owns (`contributes`); validation, missing-module reports, theme defaults and the generated module tables derive from it. Invoke the `/module-definitions` skill before adding or moving a module.
 
 ## Pre-Commit Requirements
 

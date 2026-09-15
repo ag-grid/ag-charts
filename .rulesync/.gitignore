@@ -11,6 +11,7 @@ mcp.json
 !/skills/chart-defaults/
 !/skills/technology-stack/
 !/skills/hot-paths/
+!/skills/module-definitions/
 
 # Plugin-delivered agents — all agents live in plugins
 /subagents/*.md
@@ -29,6 +30,7 @@ mcp.json
 !/rules/defaults.md
 !/rules/dom-performance.md
 !/rules/entry-point-hygiene.md
+!/rules/module-definitions.md
 !/rules/module-support.md
 !/rules/numeric-values.md
 !/rules/series.md

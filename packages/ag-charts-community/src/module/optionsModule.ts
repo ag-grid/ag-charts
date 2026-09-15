@@ -17,6 +17,7 @@ import {
     type PresetModuleDefinition,
     type ValidateParams,
     type ValidationError,
+    contributionMatchesChartType,
     deepClone,
     deepFreeze,
     distribute,
@@ -26,6 +27,7 @@ import {
     groupBy,
     hasRequiredInPath,
     isArray,
+    isFunction,
     isKeyOf,
     isNumericValue,
     isObject,
@@ -45,6 +47,7 @@ import {
     toFontString,
     unique,
     validate,
+    visitOptionsPath,
 } from 'ag-charts-core';
 import {
     type AgChartModule,
@@ -61,6 +64,7 @@ import {
 
 import { ExpectedModules, type ModulePlaceholder } from '../chart/factory/expectedModules';
 import {
+    composeChartOptionsDefs,
     processModuleOptions,
     removeIncompatibleModuleOptions,
     sanitizeThemeModules,
@@ -90,8 +94,6 @@ import {
     setStructuralCacheEntry,
 } from './optionsStructuralCache';
 import type { SeriesGrouping } from './seriesGrouping';
-
-const CARTESIAN_ONLY_SERIES_AREA_OPTIONS = ['backgroundRegions'];
 
 interface FontAccumulator {
     /** Google font families to load from the CDN (gated by `loadGoogleFonts`). */
@@ -563,9 +565,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             activeTheme.templateTheme(options, false);
         }
 
-        // Must run before chart validation to cleanup invalid types.
-        removeIncompatibleModuleOptions(undefined, options, this.moduleRegistry);
-
         const missingSeriesModules = this.validateSeriesOptions(options, this.validateParams);
 
         const chartType = detectChartType(options, this.moduleRegistry);
@@ -573,11 +572,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.chartDef = this.moduleRegistry.getChartModule(chartType);
 
         // Must run before chart validation, which would otherwise report these as unknown options.
-        this.removeIncompatibleSeriesAreaOptions(options);
+        removeIncompatibleModuleOptions(chartType, options, this.moduleRegistry, this.logger);
 
         if (!this.chartDef.placeholder) {
             const { validate: validateChart = validate } = this.chartDef;
-            const { cleared, invalid } = validateChart(options, this.chartDef.options, '', this.validateParams);
+            const chartDefs = composeChartOptionsDefs(chartType, this.chartDef.options, this.moduleRegistry);
+            const { cleared, invalid } = validateChart(options, chartDefs, '', this.validateParams);
             // Without the preset's option defs every preset option reads as unknown; the
             // missing-module report below is the accurate diagnostic.
             if (missingPresetModule == null) {
@@ -589,7 +589,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // The first pass validation of the axes, before they have been processed. At this point the axis keys are still
         // the ones provided by the user and have not been remapped. Any axes without a `type` property are skipped.
         const missingAxesModules = this.validateAxesOptions(options, this.validateParams);
-        const missingAxisInteractionModule = this.removeAxisInteractionListeners(options);
 
         this.removeDisabledOptions(options);
 
@@ -628,11 +627,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         processModuleOptions(
             this.chartDef.name,
             processedOptions,
-            missingSeriesModules.concat(
-                missingAxesModules,
-                missingPresetModule ?? [],
-                missingAxisInteractionModule ?? []
-            ),
+            missingSeriesModules.concat(missingAxesModules, missingPresetModule ?? []),
             this.logger,
             this.moduleRegistry
         );
@@ -650,7 +645,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Second pass: axis keys are remapped and missing `type` properties inferred, so axes validate.
         this.validateAxesOptions(processedOptions, secondPassParams);
 
-        this.validatePluginOptions(processedOptions, secondPassParams);
+        this.validateContributedOptions(processedOptions, secondPassParams);
         this.processMiniChartSeriesOptions(processedOptions);
 
         if (!processedOptions.loadGoogleFonts) {
@@ -813,34 +808,20 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.logger.error(message);
     }
 
-    private removeIncompatibleSeriesAreaOptions(options: T) {
+    // Module-owned subtrees validate again once the theme has resolved them, as their defs may depend
+    // on theme-filled values such as the mini chart series `type`.
+    private validateContributedOptions(options: T, params: ValidateParams) {
         const chartType = this.chartDef?.name;
-        const seriesArea = options.seriesArea as Record<string, unknown> | undefined;
-        if (seriesArea == null || chartType == null || chartType === 'cartesian') return;
-
-        for (const optionsKey of CARTESIAN_ONLY_SERIES_AREA_OPTIONS) {
-            if (seriesArea[optionsKey] == null) continue;
-
-            delete seriesArea[optionsKey];
-
-            const seriesTypeMessage =
-                options.series?.at(0)?.type == null ? 'this series type' : `\`${options.series?.at(0)?.type}\` series`;
-            this.logger.warn(`Option \`seriesArea.${optionsKey}\` is not supported by ${seriesTypeMessage}, ignoring.`);
-        }
-    }
-
-    private validatePluginOptions(options: T, params: ValidateParams) {
-        for (const pluginDef of this.moduleRegistry.listModulesByType(ModuleType.Plugin)) {
-            const pluginKey = pluginDef.name as keyof T;
-            if (
-                pluginKey in options &&
-                pluginDef.options != null &&
-                (!pluginDef.chartType || pluginDef.chartType === this.chartDef?.name)
-            ) {
-                const { cleared, invalid } = validate(options[pluginKey], pluginDef.options, pluginDef.name, params);
+        for (const { contribution, path, host } of this.moduleRegistry.optionsContributions()) {
+            const defs = contribution.options;
+            if (host !== 'chart' || defs == null || isFunction(defs)) continue;
+            if (!contributionMatchesChartType(contribution, chartType)) continue;
+            visitOptionsPath(options, path, (target, key, location) => {
+                if (target[key] == null) return;
+                const { cleared, invalid } = validate(target[key], defs, location, params);
                 this.logValidationErrors(invalid);
-                options[pluginKey] = cleared as T[keyof T];
-            }
+                target[key] = cleared;
+            });
         }
     }
 
@@ -992,32 +973,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         options.axes = validatedAxesOptions;
 
         return missingModules;
-    }
-
-    // Axis click listeners are dispatched by a plugin module whose presence no option key reveals.
-    private removeAxisInteractionListeners(options: T): ModulePlaceholder | undefined {
-        const placeholder = ExpectedModules.get('axis-interaction');
-        if (placeholder == null || this.moduleRegistry.hasModule(placeholder.name)) return;
-        if (placeholder.chartType != null && placeholder.chartType !== this.chartDef?.name) return;
-
-        let missing = false;
-        const strip = (listeners: PlainObject | undefined, ...events: string[]) => {
-            if (!isObject(listeners)) return;
-            for (const event of events) {
-                if (listeners[event] == null) continue;
-                delete listeners[event];
-                missing = true;
-            }
-        };
-
-        strip((options as PlainObject).listeners, 'axisClick', 'axisDoubleClick');
-        if ('axes' in options && options.axes) {
-            for (const [, axisOptions] of entries(options.axes)) {
-                strip((axisOptions as PlainObject | undefined)?.listeners, 'click', 'doubleClick');
-            }
-        }
-
-        return missing ? placeholder : undefined;
     }
 
     diffOptions(other?: ChartOptions): Partial<T> {

@@ -1,9 +1,7 @@
 import { ModuleRegistry, enterpriseRegistry } from 'ag-charts-core';
 
-import { backgroundRegionsTheme } from './features/background-regions/backgroundRegionsTheme';
 import { Background } from './features/background/background';
 import { Foreground } from './features/foreground/foreground';
-import { SeriesArea } from './features/series-area/seriesArea';
 import { LicenseManager } from './license/licenseManager';
 import { injectWatermark } from './license/watermark';
 import styles from './styles.css';
@@ -28,6 +26,7 @@ export { PolarCrossLinesModule } from './axes/polar-crosslines/polarCrossLinesMo
 export { AnimationModule } from './features/animation/animationModule';
 export { AnnotationsModule } from './features/annotations/annotationsModule';
 export { AxisInteractionModule } from './features/axis-interaction/axisInteractionModule';
+export { SeriesAreaModule } from './features/series-area/seriesAreaModule';
 export { BandHighlightModule } from './features/band-highlight/bandHighlightModule';
 export { ChartToolbarModule } from './features/chart-toolbar/chartToolbarModule';
 export { ContextMenuModule } from './features/context-menu/contextMenuModule';
@@ -90,5 +89,3 @@ enterpriseRegistry.licenseManager = (document) => new LicenseManager(document);
 enterpriseRegistry.injectWatermark = injectWatermark;
 enterpriseRegistry.createBackground = (ctx) => new Background(ctx);
 enterpriseRegistry.createForeground = (ctx) => new Foreground(ctx);
-enterpriseRegistry.createSeriesArea = (ctx) => new SeriesArea(ctx);
-enterpriseRegistry.seriesAreaThemeTemplate = { backgroundRegions: backgroundRegionsTheme };

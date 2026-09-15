@@ -32,7 +32,9 @@ export {
     radiusCategoryAxisOptionsDefs,
     radiusNumberAxisOptionsDefs,
 } from './chart/axesOptionsEnterpriseDefs';
+export { seriesAreaBackgroundRegionLabelDef, seriesAreaBackgroundRegionRangeDef } from './chart/themes/themeOptionsDef';
 export {
+    type ModuleOwnedChartOptions,
     standaloneChartOptionsDefs,
     topologyChartOptionsDefs,
     initialStatePickedOptionsDef,

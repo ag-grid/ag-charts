@@ -14,6 +14,7 @@ import type { AxisID } from '../types/idBranding';
 import type { Normalised } from '../types/normalised-options/normalise';
 import type { ScaleType } from '../types/scales';
 import type { Point } from '../types/scene';
+import type { OptionsContribution } from './optionsContribution';
 
 export enum ModuleType {
     Chart = 'chart',
@@ -96,6 +97,11 @@ export interface ModuleDefinition<
     readonly enterprise?: boolean;
     readonly dependencies?: ModuleDefinition[];
     readonly placeholder?: boolean;
+    /**
+     * Option locations this module owns. Omit to derive the single location the module type implies
+     * (see `contributionsOf`); declare it to own options anywhere else in the tree.
+     */
+    readonly contributes?: readonly OptionsContribution[];
 
     options?: OptionsDefs<TOptions>; // options definitions validation
     themeTemplate?: ExtensibleSeriesTheme<any>; // module's default theme template
@@ -125,6 +131,8 @@ export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<
     options: OptionsDefs<TOptions>;
     baseTheme?: AgChartThemeName;
     themeTemplate?: ExtensibleTheme;
+    /** The public entry point the preset is reached through, named in the missing-module warning. */
+    readonly apiName?: string;
 
     // Remove these keys from the compiled theme to treat them as `undefined` with priority over the series theme.
     removeThemeSeriesKeys?: string[];

@@ -128,7 +128,7 @@ describe('instance modules', () => {
 
             const [message] = takeConsoleMessages('warn');
             expect(message).toContain('Unknown type `nonsense` at `series[0].type`');
-            expect(message).toContain("expecting 'bar'");
+            expect(message).toMatch(/expecting .*'bar'.* or '[a-z-]+', ignoring/);
         });
 
         it('builds separate themes for different module sets', () => {

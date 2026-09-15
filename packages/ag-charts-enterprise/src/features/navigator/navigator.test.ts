@@ -438,6 +438,21 @@ describe('Navigator', () => {
         );
     });
 
+    describe('mini chart series validation', () => {
+        it('validates an untyped mini chart series against the type the theme fills in', async () => {
+            const options: AgCartesianChartOptions = {
+                ...NAVIGATOR_MINICHART_EXAMPLES.MINI_CHART_SERIES_OVERRIDE.options,
+                navigator: { miniChart: { series: [{ strokeWidth: 'thick' } as any] } },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([[expect.stringContaining('.strokeWidth` cannot be set to `"thick"`')]]);
+        });
+    });
+
     describe('AG-17456 mini-chart axis nice', () => {
         const getMiniChartAxes = (c: any) => {
             const miniChart = deproxy(c).modulesManager.getModule<any>('navigator').miniChart;

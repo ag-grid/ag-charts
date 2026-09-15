@@ -23,8 +23,10 @@ import {
     isInputPending,
     mergeDefaults,
     pause,
+    readContributedValue,
     roundTo,
     toPlainText,
+    visitOptionsPath,
 } from 'ag-charts-core';
 import type {
     AgBaseAxisOptions,
@@ -76,7 +78,7 @@ import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
 import { getValidationOverlay } from './overlay/validationOverlay';
-import { SeriesArea } from './series-area/seriesArea';
+import type { SeriesArea } from './series-area/seriesArea';
 import { Series, SeriesGroupingChangedEvent, type UnknownSeries } from './series/series';
 import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/seriesAreaManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
@@ -273,7 +275,13 @@ export abstract class Chart implements ModuleInstance, ChartService {
     readonly highlight: ChartHighlight;
     private readonly sharedCategoryGroup = new SharedCategoryGroup();
     readonly background: Background;
-    readonly seriesArea: SeriesArea;
+    get seriesArea(): SeriesArea | undefined {
+        return this.modulesManager.getModule<SeriesArea>('series-area');
+    }
+
+    getSeriesAreaPadding() {
+        return this.seriesArea?.getPadding() ?? { top: 0, right: 0, bottom: 0, left: 0 };
+    }
     foreground?: Background;
 
     protected readonly debug = Debug.create(true, 'chart');
@@ -550,7 +558,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
         const moduleContext = this.getModuleContext();
         this.background = enterpriseRegistry.createBackground?.(moduleContext) ?? new Background(moduleContext);
         this.foreground = enterpriseRegistry.createForeground?.(moduleContext);
-        this.seriesArea = enterpriseRegistry.createSeriesArea?.(moduleContext) ?? new SeriesArea(moduleContext);
 
         // The 'data-animating' is used by e2e tests to wait for the animation to end before starting kbm interactions
         ctx.domManager.setDataBoolean('animating', false);
@@ -567,10 +574,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
             ctx.chartState.observe((get) => {
                 const opts = get('options', 'highlight');
                 if (opts != null) this.highlight.set(opts);
-            }),
-            ctx.chartState.observe((get) => {
-                const opts = get('options', 'seriesArea');
-                if (opts != null) this.seriesArea.set(opts);
             }),
             ctx.chartState.observe((get) => {
                 const opts = get('options', 'overlays');
@@ -842,7 +845,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
         this.modulesManager.destroy();
         this.background.destroy();
         this.foreground?.destroy();
-        this.seriesArea.destroy();
 
         if (!keepTransferableResources) {
             this.ctx.scene.destroy();
@@ -1328,7 +1330,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 get: () => this.seriesRect,
             });
             Object.defineProperty(series.chart, 'seriesAreaPadding', {
-                get: () => this.seriesArea?.getPadding(),
+                get: () => this.getSeriesAreaPadding(),
             });
 
             series.resetAnimation(this.chartAnimationPhase);
@@ -1828,9 +1830,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         }
 
         // Applied after the axes so that the enterprise series area can resolve them.
-        this.seriesArea.applyOptions();
-
-        // Apply the series area modules after the axes to ensure the axes are available for these modules.
+        this.seriesArea?.applyOptions();
 
         // Only reset data if the user explicitly passed 'data' in their delta.
         const { userDeltaKeys } = newChartOptions;
@@ -2204,8 +2204,11 @@ export abstract class Chart implements ModuleInstance, ChartService {
         const moduleContext = series.createModuleContext();
         const moduleMap = series.getModuleMap();
 
-        for (const module of this.ctx.moduleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
-            if (module.name in options && (module.seriesTypes?.includes(series.type) ?? true)) {
+        const { moduleRegistry } = this.ctx;
+        for (const module of moduleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
+            const contributions = moduleRegistry.moduleContributions(module.name);
+            const requested = readContributedValue(contributions, 'series', options) != null;
+            if (requested && (module.seriesTypes?.includes(series.type) ?? true)) {
                 moduleMap.addModule(module.name, module.create(moduleContext));
             }
         }
@@ -2216,14 +2219,16 @@ export abstract class Chart implements ModuleInstance, ChartService {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { type, data, seriesGrouping, showInMiniChart, ...seriesOptions } = options as any;
 
-        for (const module of this.ctx.moduleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
-            if (module.name in seriesOptions) {
-                const moduleInstance: any = moduleMap.getModule(module.name);
-                if (moduleInstance) {
-                    const moduleOptions = seriesOptions[module.name];
-                    moduleInstance.properties.set(moduleOptions);
-                    delete seriesOptions[module.name];
-                }
+        const { moduleRegistry } = this.ctx;
+        for (const module of moduleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
+            const moduleInstance: any = moduleMap.getModule(module.name);
+            for (const { host: owner, relative } of moduleRegistry.moduleContributions(module.name)) {
+                if (owner !== 'series') continue;
+                visitOptionsPath(seriesOptions, relative, (host, key) => {
+                    if (!(key in host)) return;
+                    moduleInstance?.properties.set(host[key]);
+                    delete host[key];
+                });
             }
         }
 
@@ -2269,11 +2274,11 @@ export abstract class Chart implements ModuleInstance, ChartService {
         const moduleMap = axis.getModuleMap();
         const { type: chartType } = this.constructor as any;
 
-        for (const module of this.ctx.moduleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
+        const { moduleRegistry } = this.ctx;
+        for (const module of moduleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
             if (module.chartType && module.chartType !== chartType) continue;
 
-            const optionsKey = module.optionsKey ?? module.name;
-            const pluginOpts = (options as any)[optionsKey];
+            const pluginOpts = readContributedValue(moduleRegistry.moduleContributions(module.name), 'axis', options);
             const shouldBeEnabled = pluginOpts != null;
             const isEnabled = moduleMap.isEnabled(module.name);
 

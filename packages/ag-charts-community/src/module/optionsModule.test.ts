@@ -1,7 +1,22 @@
 import type { Mock } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Logger, type ModuleDefinition, ModuleRegistry, ModuleType, ambientLog, ambientLogger } from 'ag-charts-core';
+import {
+    Logger,
+    type ModuleDefinition,
+    ModuleRegistry,
+    ModuleType,
+    type OptionsContribution,
+    ambientLog,
+    ambientLogger,
+    contributionHost,
+    contributionMatchesChartType,
+    contributionsOf,
+    describeValidator,
+    nestAtOptionsPath,
+    parseOptionsPath,
+    visitOptionsPath,
+} from 'ag-charts-core';
 import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
@@ -15,7 +30,9 @@ import type {
     SeriesType,
 } from 'ag-charts-types';
 
-import { sanitizeThemeModules } from '../chart/factory/processModuleOptions';
+import { CrossLinesModule } from '../chart/crossline/crossLinesModule';
+import { ExpectedModules, type ModulePlaceholder } from '../chart/factory/expectedModules';
+import { removeUnregisteredModuleOptions, sanitizeThemeModules } from '../chart/factory/processModuleOptions';
 import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import * as examples from '../chart/test/examples';
 import { ChartTheme } from '../chart/themes/chartTheme';
@@ -25,6 +42,11 @@ import { CategoryAxisModule } from './axis-modules/categoryAxisModule';
 import { NumberAxisModule } from './axis-modules/numberAxisModule';
 import { ChartOptions } from './optionsModule';
 import { __clearStructuralCacheForTests } from './optionsStructuralCache';
+
+const moduleMessages = () =>
+    (console.error as Mock).mock.calls
+        .map(([m]) => String(m))
+        .filter((m) => m.includes('required modules are not registered'));
 
 function runtimeFor(logger?: Logger) {
     return logger == null ? undefined : createProvisionalRuntime(logger);
@@ -673,7 +695,7 @@ describe('ChartOptions', () => {
 
             const errors = (console.error as Mock).mock.calls.map(([m]) => String(m));
             expect(errors.some((m) => m.includes('required modules are not registered'))).toBe(true);
-            expect(errors.some((m) => m.includes('GaugePresetModule'))).toBe(true);
+            expect(errors.some((m) => m.includes('AllGaugeModule'))).toBe(true);
             expect((console.warn as Mock).mock.calls.every(([m]) => !String(m).includes('Unknown option'))).toBe(true);
         });
 
@@ -683,21 +705,11 @@ describe('ChartOptions', () => {
                 seriesArea: { backgroundRegions: [{ xRange: { start: 0, end: 1 } }] },
             }) as AgCartesianChartOptions;
 
-        it('warns and drops `seriesArea.backgroundRegions` outside enterprise', () => {
-            const logger = new Logger();
-            const instanceWarnOnce = vi.spyOn(logger, 'warnOnce');
-            const ambientWarnOnce = vi.spyOn(ambientLogger, 'warnOnce');
+        it('reports SeriesAreaModule for `seriesArea.backgroundRegions` and drops it outside enterprise', () => {
+            const processedOptions = prepareOptions(backgroundRegionsOptions(), new Logger());
 
-            const processedOptions = prepareOptions(backgroundRegionsOptions(), logger);
-
-            const warnings = instanceWarnOnce.mock.calls.map(([m]) => String(m));
-            expect(
-                warnings.some((m) =>
-                    m.includes('Option `seriesArea.backgroundRegions` is an AG Charts Enterprise feature')
-                )
-            ).toBe(true);
-            expect(ambientWarnOnce).not.toHaveBeenCalled();
-            expect(processedOptions.seriesArea?.backgroundRegions).toBeNull();
+            expect(moduleMessages()).toEqual([expect.stringContaining('SeriesAreaModule')]);
+            expect(processedOptions.seriesArea?.backgroundRegions).toBeUndefined();
         });
 
         it('leaves the community `seriesArea` options alongside it untouched', () => {
@@ -707,7 +719,7 @@ describe('ChartOptions', () => {
             } as AgCartesianChartOptions);
 
             expect(processedOptions.seriesArea?.clip).toBe(true);
-            expect(processedOptions.seriesArea?.backgroundRegions).toBeNull();
+            expect(processedOptions.seriesArea?.backgroundRegions).toBeUndefined();
         });
 
         it('stays silent when `backgroundRegions` appears only as a theme override', () => {
@@ -716,10 +728,7 @@ describe('ChartOptions', () => {
                 theme: { overrides: { line: { seriesArea: { backgroundRegions: { fill: '#f00' } } } } },
             } as AgCartesianChartOptions);
 
-            const messages = (console.error as Mock).mock.calls
-                .concat((console.warn as Mock).mock.calls)
-                .map(([m]) => String(m));
-            expect(messages.every((m) => !m.includes('AG Charts Enterprise feature'))).toBe(true);
+            expect(moduleMessages()).toEqual([]);
         });
     });
 
@@ -4872,6 +4881,80 @@ describe('ChartOptions', () => {
         });
 
         describe('unregistered modules (AC5)', () => {
+            describe('a path owned by modules of different chart types', () => {
+                const crossLineOptions = () =>
+                    ({
+                        axes: { angle: { crossLines: [{ type: 'line', value: 'a' }] } },
+                    }) as any;
+                const scope = ModuleRegistry.resolveModuleScope([CrossLinesModule]);
+
+                it('reports the polar owner when only the cartesian owner is registered', () => {
+                    const options = crossLineOptions();
+                    const missing = removeUnregisteredModuleOptions('polar', options, scope);
+
+                    expect(missing.map(({ module }) => module.moduleId)).toEqual(['PolarCrossLinesModule']);
+                    expect(options.axes.angle.crossLines).toBeUndefined();
+                });
+
+                it('treats the path as covered on the chart type the registered owner supports', () => {
+                    const options = crossLineOptions();
+                    const missing = removeUnregisteredModuleOptions('cartesian', options, scope);
+
+                    expect(missing).toEqual([]);
+                    expect(options.axes.angle.crossLines).toHaveLength(1);
+                });
+            });
+
+            describe('every enterprise option contribution', () => {
+                beforeEach(() => {
+                    __clearStructuralCacheForTests();
+                    ambientLog.reset();
+                });
+
+                const requestedValue = (contribution: OptionsContribution) => {
+                    const description = contribution.options && describeValidator(contribution.options);
+                    if (description === 'a function') return () => {};
+                    if (description === 'an array' || description === 'an object array') return [{}];
+                    return { enabled: true };
+                };
+
+                const cases: [string, ModulePlaceholder, OptionsContribution][] = [];
+                for (const module of ExpectedModules.values()) {
+                    if (!module.enterprise) continue;
+                    for (const contribution of contributionsOf(module)) {
+                        if (!contributionMatchesChartType(contribution, 'cartesian')) continue;
+                        cases.push([`${module.moduleId} owns \`${contribution.path}\``, module, contribution]);
+                    }
+                }
+
+                it.each(cases)(
+                    '%s: a community chart reports the module and drops the option',
+                    (_, module, contribution) => {
+                        const path = parseOptionsPath(contribution.path);
+                        const { host, relative } = contributionHost(path);
+                        const options = {
+                            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                            axes: {
+                                x: { type: 'category', position: 'bottom' },
+                                y: { type: 'number', position: 'left' },
+                            },
+                        } as any;
+                        const hosts = { chart: options, axis: options.axes.x, series: options.series[0] };
+                        const target = hosts[host];
+                        Object.assign(target, nestAtOptionsPath(relative, requestedValue(contribution)));
+
+                        const processed = prepareOptions(options as AgChartOptions, new Logger());
+
+                        expect(moduleMessages()).toEqual([expect.stringContaining(module.moduleId)]);
+                        const remaining: unknown[] = [];
+                        visitOptionsPath(processed, path, (owner, key) => {
+                            if (owner[key] != null) remaining.push(owner[key]);
+                        });
+                        expect(remaining).toEqual([]);
+                    }
+                );
+            });
+
             const unregisteredAxisOptions = (extra?: object): AgChartOptions =>
                 ({
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
@@ -4927,11 +5010,6 @@ describe('ChartOptions', () => {
                         ...extra,
                     }) as any;
 
-                const moduleMessages = () =>
-                    (console.error as Mock).mock.calls
-                        .map(([m]) => String(m))
-                        .filter((m) => m.includes('required modules are not registered'));
-
                 it('reports AxisInteractionModule for an axis click listener and strips the listener', () => {
                     const processed = prepareOptions(axisListenerOptions(), new Logger()) as any;
 
@@ -4950,7 +5028,7 @@ describe('ChartOptions', () => {
                     expect(processed.listeners?.axisDoubleClick).toBeUndefined();
                 });
 
-                it('leaves non-cartesian charts alone', () => {
+                it('strips the listener from a non-cartesian chart as unsupported rather than as a missing module', () => {
                     const options = {
                         series: [{ type: 'pie', angleKey: 'y' }],
                         listeners: { axisClick: () => {} },
@@ -4958,7 +5036,12 @@ describe('ChartOptions', () => {
                     const processed = prepareOptions(options, new Logger()) as any;
 
                     expect(moduleMessages()).toEqual([]);
-                    expect(processed.listeners?.axisClick).toBeDefined();
+                    expect(processed.listeners?.axisClick).toBeUndefined();
+                    expect((console.warn as Mock).mock.calls.map(([m]) => String(m))).toEqual([
+                        expect.stringContaining(
+                            'Option `listeners.axisClick` is not supported by `pie` series, ignoring.'
+                        ),
+                    ]);
                 });
 
                 it("throws at `['error']` for the dropped axis click listener", () => {
@@ -4967,12 +5050,13 @@ describe('ChartOptions', () => {
                     ).toThrow(/required modules are not registered/);
                 });
 
-                it('keeps the listener quiet when the axis interaction plugin is registered', () => {
+                it('keeps the listener quiet when a registered module contributes the listener path', () => {
                     const registeredModules = [...ModuleRegistry.listModules()];
                     const axisInteraction: ModuleDefinition = {
                         type: ModuleType.Plugin,
                         name: 'axis-interaction',
                         version: VERSION,
+                        contributes: [{ path: 'axes[].listeners.click' }],
                         create: () => ({}),
                     };
                     ModuleRegistry.registerModules([axisInteraction]);

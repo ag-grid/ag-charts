@@ -22,11 +22,6 @@ export class SeriesArea extends BaseProperties {
     });
     private readonly borderNode = this.seriesAreaGroup.appendChild(new Rect());
 
-    // Declared so that setting the option does not warn in community, where the enterprise series
-    // area that renders the regions is absent.
-    @Property
-    backgroundRegions: any;
-
     @Property
     border = new Border(this.borderNode);
 
@@ -60,7 +55,11 @@ export class SeriesArea extends BaseProperties {
             ctx.scene.attachNode(this.seriesAreaGroup),
             ctx.scene.attachNode(this.overlayGroup),
             ctx.scene.attachNode(this.underlayGroup),
-            ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e))
+            ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)),
+            ctx.chartState.observe((get) => {
+                const opts = get('options', 'seriesArea');
+                if (opts != null) this.set(opts);
+            })
         );
     }
 

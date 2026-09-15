@@ -339,6 +339,11 @@ function findSuggestions(value: string, suggestions: string[], maxDistance: numb
     });
 }
 
+/** The description attached to a validator or defs object, as used in its validation messages. */
+export function describeValidator(validatorOrDefs: Validator | OptionsDefs<any>): string | undefined {
+    return (validatorOrDefs as { [descriptionSymbol]?: string })[descriptionSymbol];
+}
+
 /**
  * Attaches a descriptive message to a validator function.
  * @param validator The validator function to which to attach a description.

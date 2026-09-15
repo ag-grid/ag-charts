@@ -8,8 +8,6 @@ import {
     callback,
     commonChartOptionsDefs,
     defined,
-    enterprise,
-    fillOptionsDef,
     geoJson,
     htmlElement,
     nonNegativeInteger,
@@ -21,7 +19,6 @@ import {
     required,
     strictUnion,
     string,
-    strokeOptionsDef,
     themeOperator,
     undocumented,
     union,
@@ -30,15 +27,21 @@ import type {
     AgActiveItemState,
     AgActiveState,
     AgCartesianChartOptions,
+    AgCartesianSeriesAreaThemableOptions,
     AgChartValidationSeverity,
     AgInitialStateLegendOptions,
     AgPolarChartOptions,
-    AgSeriesAreaBackgroundRegion,
     AgStandaloneChartOptions,
     AgTopologyChartOptions,
 } from 'ag-charts-types';
 
-import { seriesAreaBackgroundRegionLabelDef, seriesAreaBackgroundRegionRangeDef } from './themes/themeOptionsDef';
+/** Chart-level keys owned by plugin modules; their defs arrive through the modules' contributions. */
+export type ModuleOwnedChartOptions = 'annotations' | 'navigator' | 'scrollbar';
+
+/** `seriesArea.backgroundRegions` is owned by the enterprise series area module. */
+export type CartesianChartDefOptions = Omit<AgCartesianChartOptions, ModuleOwnedChartOptions | 'seriesArea'> & {
+    seriesArea?: Omit<AgCartesianSeriesAreaThemableOptions, 'backgroundRegions'>;
+};
 
 export const initialStatePickedOptionsDef: OptionsDefs<AgActiveState> = {
     activeItem: {
@@ -73,9 +76,6 @@ export const commonChartOptions = {
     context: () => true,
     theme: defined,
     series: array,
-    annotations: object,
-    navigator: object,
-    scrollbar: object,
     initialState: {
         active: initialStatePickedOptionsDef,
         chartType: string,
@@ -95,7 +95,7 @@ export const commonChartOptions = {
     },
 };
 
-export const cartesianChartOptionsDefs: OptionsDefs<AgCartesianChartOptions> = {
+export const cartesianChartOptionsDefs: OptionsDefs<CartesianChartDefOptions> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     axes: object,
@@ -106,21 +106,10 @@ export const cartesianChartOptionsDefs: OptionsDefs<AgCartesianChartOptions> = {
         clip: boolean,
         cornerRadius: number,
         padding: or(themeOperator, padding),
-        // Enterprise-only: the community bundle has no implementation for it, so a community user
-        // supplying it gets the standard enterprise-feature warning and the value is dropped.
-        backgroundRegions: enterprise(
-            arrayOfDefs<AgSeriesAreaBackgroundRegion>({
-                ...fillOptionsDef,
-                ...strokeOptionsDef,
-                xRange: seriesAreaBackgroundRegionRangeDef,
-                yRange: seriesAreaBackgroundRegionRangeDef,
-                label: seriesAreaBackgroundRegionLabelDef,
-            })
-        ),
     },
 };
 
-export const polarChartOptionsDefs: OptionsDefs<AgPolarChartOptions> = {
+export const polarChartOptionsDefs: OptionsDefs<Omit<AgPolarChartOptions, ModuleOwnedChartOptions>> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     axes: object,
@@ -128,7 +117,7 @@ export const polarChartOptionsDefs: OptionsDefs<AgPolarChartOptions> = {
     dataIdKey: string,
 };
 
-export const topologyChartOptionsDefs: OptionsDefs<AgTopologyChartOptions> = {
+export const topologyChartOptionsDefs: OptionsDefs<Omit<AgTopologyChartOptions, ModuleOwnedChartOptions>> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     data: array,
@@ -136,7 +125,7 @@ export const topologyChartOptionsDefs: OptionsDefs<AgTopologyChartOptions> = {
     topology: geoJson,
 };
 
-export const standaloneChartOptionsDefs: OptionsDefs<AgStandaloneChartOptions> = {
+export const standaloneChartOptionsDefs: OptionsDefs<Omit<AgStandaloneChartOptions, ModuleOwnedChartOptions>> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     data: array,

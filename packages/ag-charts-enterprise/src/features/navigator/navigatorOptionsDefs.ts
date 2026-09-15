@@ -9,13 +9,17 @@ import {
 import {
     type OptionsDefs,
     array,
-    arrayOfDefs,
+    arrayOf,
+    attachDescription,
     boolean,
     callbackOf,
     color,
     fontOptionsDef,
+    isObject,
     number,
     numberFormatValidator,
+    optionsDefs,
+    or,
     padding,
     positiveNumber,
     ratio,
@@ -140,6 +144,28 @@ export const waterfallIgnoredMiniChartProperties: WaterfallIgnoredProperties[] =
     'direction',
 ];
 
+const miniChartSeriesDefs = typeUnion<Required<AgMiniChartSeriesOptions>>(
+    {
+        area: without(AreaSeriesModule.options, [...commonIgnoredMiniChartProperties, 'type']),
+        bar: without(BarSeriesModule.options, [...barIgnoredMiniChartProperties, 'type']),
+        'box-plot': without(BoxPlotSeriesModule.options, [...boxPlotIngnoredMiniChartProperties, 'type']),
+        bubble: without(BubbleSeriesModule.options, [...bubbleIgnoredMiniChartProperties, 'type']),
+        candlestick: without(CandlestickSeriesModule.options, [...commonIgnoredMiniChartProperties, 'type']),
+        heatmap: without(HeatmapSeriesModule.options, [...heatmapIgnoredMiniChartProperties, 'type']),
+        histogram: without(HistogramSeriesModule.options, [...histogramIgnoredMiniChartProperties, 'type']),
+        line: without(LineSeriesModule.options, [...lineIgnoredMiniChartProperties, 'type']),
+        ohlc: without(OhlcSeriesModule.options, [...commonIgnoredMiniChartProperties, 'type']),
+        'range-area': without(RangeAreaSeriesModule.options, [...rangeAreaIgnoredMiniChartProperties, 'type']),
+        'range-bar': without(RangeBarSeriesModule.options, [...rangeBarIgnoredMiniChartProperties, 'type']),
+        scatter: without(ScatterSeriesModule.options, [...scatterIgnoredMiniChartProperties, 'type']),
+        waterfall: without(WaterfallSeriesModule.options, [...waterfallIgnoredMiniChartProperties, 'type']),
+    },
+    'miniChart series options'
+);
+
+// The theme fills `type` from the main series, so an untyped item is only checked for shape here.
+const untypedMiniChartSeries = attachDescription((value) => isObject(value) && value.type == null, 'an object');
+
 export const navigatorOptionsDef: OptionsDefs<AgNavigatorOptions> = {
     enabled: boolean,
     height: positiveNumber,
@@ -170,31 +196,6 @@ export const navigatorOptionsDef: OptionsDefs<AgNavigatorOptions> = {
             },
             ...fontOptionsDef,
         },
-        series: arrayOfDefs(
-            typeUnion<Required<AgMiniChartSeriesOptions>>(
-                {
-                    area: without(AreaSeriesModule.options, [...commonIgnoredMiniChartProperties, 'type']),
-                    bar: without(BarSeriesModule.options, [...barIgnoredMiniChartProperties, 'type']),
-                    'box-plot': without(BoxPlotSeriesModule.options, [...boxPlotIngnoredMiniChartProperties, 'type']),
-                    bubble: without(BubbleSeriesModule.options, [...bubbleIgnoredMiniChartProperties, 'type']),
-                    candlestick: without(CandlestickSeriesModule.options, [
-                        ...commonIgnoredMiniChartProperties,
-                        'type',
-                    ]),
-                    heatmap: without(HeatmapSeriesModule.options, [...heatmapIgnoredMiniChartProperties, 'type']),
-                    histogram: without(HistogramSeriesModule.options, [...histogramIgnoredMiniChartProperties, 'type']),
-                    line: without(LineSeriesModule.options, [...lineIgnoredMiniChartProperties, 'type']),
-                    ohlc: without(OhlcSeriesModule.options, [...commonIgnoredMiniChartProperties, 'type']),
-                    'range-area': without(RangeAreaSeriesModule.options, [
-                        ...rangeAreaIgnoredMiniChartProperties,
-                        'type',
-                    ]),
-                    'range-bar': without(RangeBarSeriesModule.options, [...rangeBarIgnoredMiniChartProperties, 'type']),
-                    scatter: without(ScatterSeriesModule.options, [...scatterIgnoredMiniChartProperties, 'type']),
-                    waterfall: without(WaterfallSeriesModule.options, [...waterfallIgnoredMiniChartProperties, 'type']),
-                },
-                'miniChart series options'
-            )
-        ),
+        series: arrayOf(or(untypedMiniChartSeries, optionsDefs(miniChartSeriesDefs)), 'miniChart series options'),
     },
 };

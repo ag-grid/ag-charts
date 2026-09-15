@@ -28,6 +28,12 @@ export class SeriesArea extends _ModuleSupport.SeriesArea {
         });
     }
 
+    override set(options: object) {
+        // The regions are read from chart state in `applyOptions`, not retained as a property.
+        const { backgroundRegions: _regions, ...ownOptions } = options as { backgroundRegions?: unknown };
+        return super.set(ownOptions);
+    }
+
     override applyOptions() {
         // Read from chart state rather than the retained property: `set()` leaves a property untouched
         // when a full update omits it, which would keep stale regions alive.
