@@ -1,8 +1,10 @@
+import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     type ChartTestCase,
+    PATTERN_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     compareImageSnapshot,
     deproxy,
@@ -256,7 +258,12 @@ const EXAMPLES: Record<string, QuadrantTestCase> = {
     NO_PIVOT_NUMERIC: { options: NO_PIVOT_NUMERIC, assertions },
     PIVOT_NUMERIC: { options: PIVOT_NUMERIC, assertions },
     UNALIGNED_AXES_NUMERIC: { options: UNALIGNED_AXES_NUMERIC, assertions },
-    ITEM_STYLERS_NUMERIC: { options: ITEM_STYLERS_NUMERIC, assertions },
+    // The pattern tile is resampled at a fractional offset; its edge pixels sit on the default threshold.
+    ITEM_STYLERS_NUMERIC: {
+        options: ITEM_STYLERS_NUMERIC,
+        assertions,
+        imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
+    },
     BUBBLE_SIZED_NUMERIC: {
         options: BUBBLE_SIZED_NUMERIC,
         assertions: cartesianChartAssertions({ seriesTypes: ['bubble'], axisTypes: { x: 'number', y: 'number' } }),
@@ -287,8 +294,8 @@ describe('Quadrant Preset', () => {
 
     const ctx = setupMockCanvas();
 
-    const compare = async () => {
-        await compareImageSnapshot(chart, ctx);
+    const compare = async (imageSnapshotDefaults?: MatchImageSnapshotOptions) => {
+        await compareImageSnapshot(chart, ctx, imageSnapshotDefaults);
     };
 
     it.each(Object.entries(EXAMPLES))(
@@ -322,11 +329,11 @@ describe('Quadrant Preset', () => {
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.createQuadrantChart(options);
-            await compare();
+            await compare(example.imageSnapshotDefaults);
 
             if (example.extraScreenshotActions) {
                 await example.extraScreenshotActions(chart);
-                await compare();
+                await compare(example.imageSnapshotDefaults);
             }
         }
     );
