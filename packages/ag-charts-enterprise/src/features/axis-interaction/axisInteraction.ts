@@ -231,7 +231,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         event.axis = this.pickAxisValue(axis.axisId, event);
     }
 
-    private onSeriesAreaDoubleClick(event: _ModuleSupport.DragInterpreterDblClickEvent) {
+    private onSeriesAreaDoubleClick(event: _Widget.DblClickWidgetEvent) {
         if (!this.isEnabled() || !this.isEnabledDoubleClick()) return;
 
         // Only continue if we know we have axes that overlap the series area.

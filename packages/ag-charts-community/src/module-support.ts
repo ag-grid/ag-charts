@@ -224,7 +224,6 @@ export type {
     ContextMenuItemContract,
     ContextMenuItemContractNonRecursive,
 } from './chart/interaction/contextMenuTypes';
-export type { DragInterpreterClickEvent, DragInterpreterDblClickEvent } from './chart/interaction/dragInterpreter';
 export { HighlightManager } from './chart/interaction/highlightManager';
 export { InteractionManager, InteractionState } from './chart/interaction/interactionManager';
 export { TooltipManager } from './chart/interaction/tooltipManager';

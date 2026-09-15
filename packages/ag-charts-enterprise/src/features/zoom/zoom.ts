@@ -289,9 +289,7 @@ export class Zoom extends AbstractModuleInstance {
         return isMaxZoom(this.getZoom());
     }
 
-    private onSeriesAreaDoubleClick(
-        event?: _ModuleSupport.DragInterpreterDblClickEvent & { preventZoomDblClick?: boolean }
-    ) {
+    private onSeriesAreaDoubleClick(event?: _Widget.DblClickWidgetEvent & { preventZoomDblClick?: boolean }) {
         const { enabled, enableDoubleClickToReset } = this.opts;
 
         if (!enabled || !enableDoubleClickToReset) return;
@@ -325,7 +323,7 @@ export class Zoom extends AbstractModuleInstance {
 
         const selectionOpts = this.selectionOpts;
         const hasDataSelection: boolean = !!(selectionOpts?.enabled && selectionOpts?.enableDrag);
-        const panKeyPressed = this.isPanningKeyPressed(event.sourceEvent as MouseEvent);
+        const panKeyPressed = this.isPanningKeyPressed(event.sourceEvent);
         const modifierlessDragInUse = enableSelecting || hasDataSelection;
         // Allow panning if either selection is disabled or the panning key is pressed.
         if (enablePanning && (!modifierlessDragInUse || panKeyPressed)) {
@@ -835,7 +833,7 @@ export class Zoom extends AbstractModuleInstance {
         }
     }
 
-    private isPanningKeyPressed(event: MouseEvent | WheelEvent) {
+    private isPanningKeyPressed(event: PointerEvent) {
         switch (this.opts.panKey) {
             case 'alt':
                 return event.altKey;

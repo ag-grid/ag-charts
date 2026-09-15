@@ -79,7 +79,7 @@ export class AxisButton extends AbstractModuleInstance {
         if (this.ctx.interactionManager.isState(InteractionState.Hoverable)) this.hide();
     }
 
-    private onClick(e: _ModuleSupport.DragInterpreterClickEvent) {
+    private onClick(e: _Widget.ClickWidgetEvent) {
         if (this.ctx.interactionManager.isState(InteractionState.Clickable) && e.device === 'touch') this.show(e);
     }
 
@@ -165,7 +165,6 @@ export class AxisButton extends AbstractModuleInstance {
         const { button } = this;
         button.addListener('click', () => this.onButtonClick(this.coords));
         button.addListener('touchend', () => this.onButtonClick(this.coords));
-        button.addListener('drag-start', () => {}); // ignore drag events on this button.
         button.setInnerHTML(
             `<span class="${getIconClassNames('zoom-in')} ${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-icon"></span>`
         );

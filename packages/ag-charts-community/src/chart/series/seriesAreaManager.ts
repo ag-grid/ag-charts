@@ -35,8 +35,10 @@ import { BaseManager } from '../../util/baseManager';
 import { debouncedAnimationFrame } from '../../util/render';
 import type { Widget } from '../../widget/widget';
 import type {
+    ClickWidgetEvent,
+    DblClickWidgetEvent,
     DragWidgetEvent,
-    KeyboardSyntheticMouseWidgetEvent,
+    KeyboardSyntheticWidgetEvent,
     KeyboardWidgetEvent,
     MouseWidgetEvent,
     WheelWidgetEvent,
@@ -69,13 +71,12 @@ import type { DatumIndex, FireNodeEventParams, SeriesNodeDatum } from './seriesT
 import { SelectionState } from './seriesTypes';
 import { getDatumRefPoint, isDatumHighlight } from './util';
 
-type MouseOrTouchEvent<T> = Readonly<CurrentPoint> & {
-    readonly type: T;
-    readonly device: 'mouse' | 'touch';
-    readonly sourceEvent: MouseEvent | TouchEvent;
+type ClickLikeEvent = ClickWidgetEvent | DblClickWidgetEvent;
+type HoverLikeEvent = Readonly<CurrentPoint> & {
+    readonly type: 'click' | 'dblclick' | 'mousemove' | 'drag-move';
+    readonly device: 'mouse' | 'touch' | 'pen';
+    readonly sourceEvent: PointerEvent | MouseEvent | TouchEvent;
 };
-type ClickLikeEvent = MouseOrTouchEvent<'click' | 'dblclick'> | KeyboardSyntheticMouseWidgetEvent<'click'>;
-type HoverLikeEvent = MouseOrTouchEvent<'click' | 'dblclick' | 'mousemove' | 'drag-move'>;
 
 type FocusAnnounceMode = 'always' | 'never' | 'when-changed';
 
@@ -725,7 +726,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private emitSeriesAreaClickEvent(
-        event: ClickLikeEvent | KeyboardSyntheticMouseWidgetEvent,
+        event: ClickLikeEvent,
         consumed: boolean,
         clickedNode?: PickedNode,
         target?: SceneNode<unknown>
@@ -878,7 +879,7 @@ export class SeriesAreaManager extends BaseManager {
                 coordinates,
             });
             if (!defaultPrevented) {
-                const syntheticEvent: KeyboardSyntheticMouseWidgetEvent = {
+                const syntheticEvent: KeyboardSyntheticWidgetEvent<'click'> = {
                     type: 'click',
                     device: 'keyboard',
                     sourceEvent,
@@ -980,7 +981,7 @@ export class SeriesAreaManager extends BaseManager {
                 firesUserClickListeners && updated.active.series.fireNodeDoubleClickEvent(nodeEventOpts);
             return { node: updated.active, target: pickedNodes.target, defaultPrevented };
         } else {
-            return event.type satisfies never;
+            return event satisfies never;
         }
     }
 

@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     ChartAxisDirection,
@@ -20,7 +20,7 @@ const {
 } = _ModuleSupport;
 
 type HoverLikeEvent =
-    | _ModuleSupport.DragInterpreterClickEvent
+    | _Widget.ClickWidgetEvent
     | _ModuleSupport.MouseWidgetEvent<'mousemove'>
     | _ModuleSupport.DragWidgetEvent<'drag-move'>;
 
@@ -106,7 +106,7 @@ export class BandHighlight extends AbstractModuleInstance {
         );
     }
 
-    private onClick(event: _ModuleSupport.DragInterpreterClickEvent) {
+    private onClick(event: _Widget.ClickWidgetEvent) {
         if (event.device === 'touch') {
             this.onHoverLikeEvent(event);
         }
@@ -131,7 +131,7 @@ export class BandHighlight extends AbstractModuleInstance {
     }
 
     private handleHoverHighlight(event: HoverLikeEvent) {
-        if (!event) return;
+        if (!event || event.device === 'keyboard') return;
 
         const { currentX: x, currentY: y } = event;
 

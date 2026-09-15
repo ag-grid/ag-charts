@@ -9,6 +9,12 @@ export interface Point {
     y: number;
 }
 
+// XY coordinates relative the web page.
+export interface PagePoint {
+    pageX: number;
+    pageY: number;
+}
+
 // XY coordinates relative the client (user-agent / browser) viewport.
 export interface ClientPoint {
     clientX: number;

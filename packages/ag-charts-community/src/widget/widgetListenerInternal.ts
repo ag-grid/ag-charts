@@ -1,9 +1,8 @@
-import type { AnyFn, OffsetPoint } from 'ag-charts-core';
-import { CleanupRegistry, attachListener, boxContains, partialAssign } from 'ag-charts-core';
+import type { AnyFn, CurrentPoint, OffsetPoint, PagePoint } from 'ag-charts-core';
+import { attachListener, partialAssign } from 'ag-charts-core';
 
-import { type MouseDragCallbacks, type MouseDragger, startMouseDrag } from './mouseDragger';
-import { type TouchDragCallbacks, type TouchDragger, startOneFingerTouch } from './touchDragger';
-import { type DragWidgetEvent, type WidgetEventMap_Internal, WidgetEventUtil } from './widgetEvents';
+import type { DragWidgetEvent, WidgetEventMap_Internal } from './widgetEvents';
+import { WidgetEventUtil } from './widgetEvents';
 
 type EventMap = WidgetEventMap_Internal;
 type EventType = keyof WidgetEventMap_Internal;
@@ -11,16 +10,8 @@ type EventHandler<T, K extends EventType = EventType> = (event: EventMap[K], cur
 type Targetable = { getElement(): HTMLElement };
 
 type DragEvents = 'drag-start' | 'drag-move' | 'drag-end';
-type DragOrigin = {
-    pageX: number;
-    pageY: number;
-    currentX: number;
-    currentY: number;
-    offsetX: number;
-    offsetY: number;
-};
-
-function makeMouseDrag<K extends DragEvents>(type: K, origin: DragOrigin, sourceEvent: MouseEvent): DragWidgetEvent<K> {
+type DragOrigin = CurrentPoint & OffsetPoint & PagePoint;
+function makeDrag<K extends DragEvents>(type: K, origin: DragOrigin, sourceEvent: PointerEvent): DragWidgetEvent<K> {
     // sourceEvent's [offsetX, offsetY] is relative to its own target (which may be e.g. a legend
     // button), so re-base it on the element that fired the 'mousedown'.
     const originDeltaX = sourceEvent.pageX - origin.pageX;
@@ -31,9 +22,11 @@ function makeMouseDrag<K extends DragEvents>(type: K, origin: DragOrigin, source
     const currentX = origin.currentX + originDeltaX;
     const currentY = origin.currentY + originDeltaY;
 
+    // https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent/pointerType
+    type PointerType = 'mouse' | 'touch' | 'pen';
     return {
         type,
-        device: 'mouse',
+        device: sourceEvent.pointerType as PointerType,
         offsetX: origin.offsetX + originDeltaX,
         offsetY: origin.offsetY + originDeltaY,
         clientX: sourceEvent.clientX,
@@ -46,61 +39,10 @@ function makeMouseDrag<K extends DragEvents>(type: K, origin: DragOrigin, source
     };
 }
 
-export function getTouchOffsets(current: Targetable, touch: Touch): OffsetPoint {
-    const elem = current.getElement();
-    const rect = elem.getBoundingClientRect();
-    // clientX/Y matches rect.x/y's coordinate space; pageX/Y would be wrong by the page scroll offset.
-    const clientWidth = elem.clientWidth;
-    const clientHeight = elem.clientHeight;
-    const scaleX = rect.width > 0 && clientWidth > 0 ? clientWidth / rect.width : 1;
-    const scaleY = rect.height > 0 && clientHeight > 0 ? clientHeight / rect.height : 1;
-    return {
-        offsetX: (touch.clientX - rect.x) * scaleX,
-        offsetY: (touch.clientY - rect.y) * scaleY,
-    };
-}
-
-function makeTouchDrag<K extends DragEvents>(
-    type: K,
-    origin: DragOrigin,
-    sourceEvent: TouchEvent,
-    touch: Touch
-): DragWidgetEvent<K> {
-    const originDeltaX = touch.pageX - origin.pageX;
-    const originDeltaY = touch.pageY - origin.pageY;
-
-    // FIXME: Same as makeMouseDrag
-    const currentX = origin.currentX + originDeltaX;
-    const currentY = origin.currentY + originDeltaY;
-
-    return {
-        type,
-        device: 'touch',
-        offsetX: origin.offsetX + originDeltaX,
-        offsetY: origin.offsetY + originDeltaY,
-        clientX: touch.clientX,
-        clientY: touch.clientY,
-        currentX,
-        currentY,
-        originDeltaX,
-        originDeltaY,
-        sourceEvent,
-    };
-}
-
-const GlobalCallbacks: {
-    // Static because a drag adds temporary capture listeners on `window`, so exactly one element may
-    // own it — which is why the widget `'drag-*'` events do not support propagation.
-    globalMouseDragCallbacks?: MouseDragCallbacks;
-    globalTouchDragCallbacks?: TouchDragCallbacks;
-} = {};
-
 export class WidgetListenerInternal {
     public dragTouchEnabled = true;
     private dragTriggerRemover?: () => void;
     private listeners?: Map<EventType, Set<AnyFn>>;
-    public mouseDragger?: MouseDragger;
-    public touchDragger?: TouchDragger;
 
     constructor(private readonly dispatchCallback: (type: EventType, event: EventMap[EventType]) => void) {}
 
@@ -108,8 +50,6 @@ export class WidgetListenerInternal {
         this.dragTriggerRemover?.();
         this.dragTriggerRemover = undefined;
         this.listeners?.clear();
-        this.mouseDragger?.destroy();
-        this.touchDragger?.destroy();
     }
 
     private getListenerSet<T extends Targetable, K extends EventType>(type: K): Set<EventHandler<T, K>> {
@@ -143,25 +83,25 @@ export class WidgetListenerInternal {
     private registerDragTrigger<T extends Targetable>(target: T) {
         if (this.dragTriggerRemover == null) {
             const element = target.getElement();
-            const cleanup = new CleanupRegistry();
-            cleanup.register(
-                attachListener(element, 'mousedown', (event: MouseEvent) => this.triggerMouseDrag(target, event)),
-                attachListener(element, 'touchstart', (event: TouchEvent) => this.triggerTouchDrag(target, event), {
-                    passive: false,
-                })
+            this.dragTriggerRemover = attachListener(element, 'pointerdown', (event: PointerEvent) =>
+                this.onPointerDown(target, event)
             );
-            this.dragTriggerRemover = () => cleanup.flush();
         }
     }
 
-    private triggerMouseDrag<T extends Targetable>(current: T, downEvent: MouseEvent) {
-        if (downEvent.button === 0) {
-            this.startMouseDrag(current, downEvent);
+    private onPointerDown<T extends Targetable>(current: T, downEvent: PointerEvent) {
+        if (downEvent.button === 0 || downEvent.pointerType !== 'mouse') {
+            this.startPointerDrag(current, downEvent);
         }
     }
 
-    private startMouseDrag<T extends Targetable>(current: T, initialDownEvent: MouseEvent) {
-        const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(current.getElement(), initialDownEvent);
+    private startPointerDrag<T extends Targetable>(current: T, downEvent: PointerEvent) {
+        const elem = current.getElement();
+        // setPointerCapture prevents click events on descendant elements.
+        // Therefore, only capture the pointer when we are on-target:
+        if (elem !== downEvent.target) return;
+
+        const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(current.getElement(), downEvent);
         const origin: DragOrigin = {
             pageX: Number.NaN,
             pageY: Number.NaN,
@@ -170,69 +110,29 @@ export class WidgetListenerInternal {
             currentX,
             currentY,
         };
-        partialAssign(['pageX', 'pageY', 'offsetX', 'offsetY'], origin, initialDownEvent);
+        partialAssign(['pageX', 'pageY', 'offsetX', 'offsetY'], origin, downEvent);
 
-        const dragCallbacks: MouseDragCallbacks = {
-            mousedown: (downEvent: MouseEvent) => {
-                const dragStartEvent = makeMouseDrag('drag-start', origin, downEvent);
-                this.dispatch('drag-start', current, dragStartEvent);
-            },
-            mousemove: (moveEvent: MouseEvent) => {
-                const dragMoveEvent = makeMouseDrag('drag-move', origin, moveEvent);
-                this.dispatch('drag-move', current, dragMoveEvent);
-            },
-            mouseup: (upEvent: MouseEvent) => {
-                const dragEndEvent = makeMouseDrag('drag-end', origin, upEvent);
-                this.dispatch('drag-end', current, dragEndEvent);
-                this.endDrag(current, dragEndEvent);
-            },
+        elem.setPointerCapture(downEvent.pointerId);
+        const onPointerMove = (moveEvent: PointerEvent) => {
+            if (moveEvent.pointerId !== downEvent.pointerId) return;
+            const dragMoveEvent = makeDrag('drag-move', origin, moveEvent);
+            this.dispatch('drag-move', current, dragMoveEvent);
         };
-
-        this.mouseDragger = startMouseDrag(GlobalCallbacks, this, dragCallbacks, initialDownEvent);
-    }
-
-    private endDrag(target: Targetable, { sourceEvent, clientX, clientY }: DragWidgetEvent<'drag-end'>) {
-        const elem = target.getElement();
-        const rect = elem.getBoundingClientRect();
-        if (!boxContains(rect, clientX, clientY)) {
-            elem.dispatchEvent(new MouseEvent('mouseleave', sourceEvent));
-            sourceEvent.target?.dispatchEvent(new MouseEvent('mouseenter', sourceEvent));
-        }
-    }
-
-    private triggerTouchDrag<T extends Targetable>(current: T, startEvent: TouchEvent) {
-        const touch: Touch | null = startEvent.targetTouches[0];
-        if (startEvent.targetTouches.length === 1 && touch != null) {
-            this.startOneFingerTouch(current, startEvent, touch);
-        }
-    }
-
-    private startOneFingerTouch<T extends Targetable>(current: T, initialEvent: TouchEvent, initialTouch: Touch) {
-        const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(current.getElement(), initialTouch);
-        const origin: DragOrigin = {
-            pageX: Number.NaN,
-            pageY: Number.NaN,
-            currentX,
-            currentY,
-            ...getTouchOffsets(current, initialTouch),
+        const onPointerUp = (upEvent: PointerEvent) => {
+            if (upEvent.pointerId !== downEvent.pointerId) return;
+            if (downEvent.pointerType === 'mouse' && downEvent.button !== 0) return;
+            elem.removeEventListener('pointermove', onPointerMove);
+            elem.removeEventListener('pointerup', onPointerUp);
+            elem.removeEventListener('lostpointercapture', onPointerUp);
+            const dragEndEvent = makeDrag('drag-end', origin, upEvent);
+            this.dispatch('drag-end', current, dragEndEvent);
+            elem.releasePointerCapture(upEvent.pointerId);
         };
-        partialAssign(['pageX', 'pageY'], origin, initialTouch);
+        elem.addEventListener('pointermove', onPointerMove);
+        elem.addEventListener('pointerup', onPointerUp);
+        elem.addEventListener('lostpointercapture', onPointerUp);
 
-        const dragCallbacks: TouchDragCallbacks = {
-            touchmove: (moveEvent: TouchEvent, touch: Touch) => {
-                const dragMoveEvent = makeTouchDrag('drag-move', origin, moveEvent, touch);
-                this.dispatch('drag-move', current, dragMoveEvent);
-            },
-            touchend: (cancelEvent: TouchEvent, touch: Touch) => {
-                const dragMoveEvent = makeTouchDrag('drag-end', origin, cancelEvent, touch);
-                this.dispatch('drag-end', current, dragMoveEvent);
-            },
-        };
-
-        const target = current.getElement();
-        this.touchDragger = startOneFingerTouch(GlobalCallbacks, this, dragCallbacks, initialTouch, target);
-
-        const dragStartEvent = makeTouchDrag('drag-start', origin, initialEvent, initialTouch);
+        const dragStartEvent = makeDrag('drag-start', origin, downEvent);
         this.dispatch('drag-start', current, dragStartEvent);
     }
 
