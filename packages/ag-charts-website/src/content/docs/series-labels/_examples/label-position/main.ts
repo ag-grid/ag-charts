@@ -60,13 +60,15 @@ const options: AgCartesianChartOptions<BubbleDataType | BarDataType> = {
 
 const chart = AgCharts.create(options);
 
-function parsePlacement(value: string) {
+type Placement =
+    | AgChartLabelCollisionPlacement
+    | AgChartLabelCollisionPlacement[]
+    | AgBarSeriesLabelPlacement
+    | AgBarSeriesLabelPlacement[];
+
+function parsePlacement(value: string): Placement {
     const placements = value.split(/,\s*/g);
-    return (placements.length > 1 ? placements : placements[0]) as
-        | AgChartLabelCollisionPlacement
-        | AgChartLabelCollisionPlacement[]
-        | AgBarSeriesLabelPlacement
-        | AgBarSeriesLabelPlacement[];
+    return (placements.length > 1 ? placements : placements[0]) as Placement;
 }
 
 function setSeriesType(event: Event) {
@@ -75,6 +77,10 @@ function setSeriesType(event: Event) {
     (document.getElementById('bubblePlacementGroup') as HTMLFieldSetElement).disabled = seriesType !== 'bubble';
     (document.getElementById('barPlacementGroup') as HTMLFieldSetElement).disabled = seriesType === 'bubble';
 
+    const bubblePlacementSelect = document.getElementById('bubblePlacementSelect') as HTMLSelectElement;
+    const barPlacementSelect = document.getElementById('barPlacementSelect') as HTMLSelectElement;
+    let placement: Placement;
+
     if (seriesType === 'bubble') {
         options.title = { text: 'Weather Station Readings' };
         options.data = bubbleData;
@@ -82,7 +88,7 @@ function setSeriesType(event: Event) {
             x: { type: 'number', title: { text: 'Temperature (°C)' } },
             y: { type: 'number', title: { text: 'Humidity (%)' } },
         };
-        const bubblePlacementSelect = document.getElementById('bubblePlacementSelect') as HTMLSelectElement;
+        placement = parsePlacement(bubblePlacementSelect.value);
         options.series = [
             {
                 type: 'bubble',
@@ -93,9 +99,7 @@ function setSeriesType(event: Event) {
                 maxSize: 60,
                 label: {
                     enabled: true,
-                    placement: parsePlacement(bubblePlacementSelect.value) as
-                        | AgChartLabelCollisionPlacement
-                        | AgChartLabelCollisionPlacement[],
+                    placement: placement as AgChartLabelCollisionPlacement | AgChartLabelCollisionPlacement[],
                     spacing,
                 },
             },
@@ -114,7 +118,7 @@ function setSeriesType(event: Event) {
                       x: { type: 'category' },
                       y: { type: 'number', title: { text: 'Profit Change ($m)' } },
                   };
-        const barPlacementSelect = document.getElementById('barPlacementSelect') as HTMLSelectElement;
+        placement = parsePlacement(barPlacementSelect.value);
         options.series = [
             {
                 type: 'bar',
@@ -123,9 +127,7 @@ function setSeriesType(event: Event) {
                 yKey: 'profitChange',
                 label: {
                     enabled: true,
-                    placement: parsePlacement(barPlacementSelect.value) as
-                        | AgBarSeriesLabelPlacement
-                        | AgBarSeriesLabelPlacement[],
+                    placement: placement as AgBarSeriesLabelPlacement | AgBarSeriesLabelPlacement[],
                     spacing,
                     truncate: false,
                     formatter: ({ value }) => formatCurrency(value),
@@ -140,14 +142,15 @@ function setSeriesType(event: Event) {
     }
 
     chart.update(options);
-    updateSpacingSlider();
+    updateSpacingSlider(placement);
 }
 
-function setPlacement(placement: string) {
+function setPlacement(value: string) {
+    const placement = parsePlacement(value);
     const series = options.series![0] as AgBubbleSeriesOptions<BubbleDataType> | AgBarSeriesOptions<BarDataType>;
-    series.label!.placement = parsePlacement(placement);
+    series.label!.placement = placement;
     chart.update(options);
-    updateSpacingSlider();
+    updateSpacingSlider(placement);
 }
 
 function setSpacing(event: Event) {
@@ -159,9 +162,7 @@ function setSpacing(event: Event) {
 }
 
 /** inScope */
-function updateSpacingSlider() {
-    const series = options.series![0] as AgBubbleSeriesOptions<BubbleDataType> | AgBarSeriesOptions<BarDataType>;
-    const placement = series.label!.placement;
+function updateSpacingSlider(placement: Placement) {
     const isCentred = placement === 'inside' || placement === 'inside-center';
     (document.getElementById('spacingSlider') as HTMLInputElement).disabled = isCentred;
 }

@@ -748,6 +748,9 @@ function referencedMemberNames(type: TypeNode, reference: ApiReferenceType): str
         .filter((name): name is string => Boolean(name) && reference.has(name!) && !isInterfaceHidden(name!));
 }
 
+/** Nested union aliases longer than this wrap one member per line in the signature code block. */
+const MAX_INLINE_ALIAS_LENGTH = 80;
+
 /**
  * Builds the type-signature code for a *mixed* union — one with members that are not rendered as
  * interface variant rows (primitives, hidden aliases like `CssColor`, or nested type aliases). It
@@ -782,7 +785,12 @@ export function formatUnionSignature(
         if (node?.kind !== 'typeAlias') {
             continue;
         }
-        lines.push(`type ${name} = ${normalizeType(node.type)};`);
+        const inline = `type ${name} = ${normalizeType(node.type)};`;
+        lines.push(
+            isUnionNode(node.type) && inline.length > MAX_INLINE_ALIAS_LENGTH
+                ? `type ${name} =\n    ${addNewLineOnPipe(normalizeType(node.type))};`
+                : inline
+        );
         queue.push(...referencedMemberNames(node.type, reference));
     }
 

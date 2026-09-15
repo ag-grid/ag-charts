@@ -1,6 +1,6 @@
 export interface LicenseManager {
     validateLicense: () => void;
-    hasLicenseKey: () => boolean;
+    isLicenseKeySupplied: () => boolean;
     isDisplayWatermark: () => boolean;
     getWatermarkMessage: () => string;
     getWatermarkForegroundConfig: () => object | undefined;

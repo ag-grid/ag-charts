@@ -10,7 +10,6 @@ interface PropertyTitleOptions {
     name: string;
     anchorId: string;
     prefixPath?: string[];
-    nameSeparator?: string;
     required?: boolean;
     hasChildProps?: boolean;
     isExpandable?: boolean;
@@ -23,7 +22,6 @@ export function PropertyTitle({
     name,
     anchorId,
     prefixPath,
-    nameSeparator,
     required,
     hasChildProps,
     isExpandable,
@@ -33,12 +31,12 @@ export function PropertyTitle({
         hasChildProps || isExpandable ? (
             <span className={styles.propNameExpander} onClick={childPropsOnClick}>
                 <Icon svgClasses={styles.propNameChevron} name="chevronRight" />
-                <PropertyNamePrefix prefixPath={prefixPath} separator={nameSeparator} />
+                <PropertyNamePrefix prefixPath={prefixPath} nextSegment={name} />
                 <PropertyName>{name}</PropertyName>
             </span>
         ) : (
             <span>
-                <PropertyNamePrefix prefixPath={prefixPath} separator={nameSeparator} />
+                <PropertyNamePrefix prefixPath={prefixPath} nextSegment={name} />
                 <PropertyName>{name}</PropertyName>
             </span>
         );
@@ -57,20 +55,20 @@ export function PropertyTitle({
 export function PropertyNamePrefix({
     as: Component = PropertyName,
     prefixPath,
-    separator = '.',
+    nextSegment,
 }: {
     as?: string | FunctionComponent<AllHTMLAttributes<Element>>;
     prefixPath?: string[];
-    separator?: string;
+    nextSegment?: string;
 }) {
-    // Discriminator segments (`[type='x']`) attach to the preceding property without a dot and keep
-    // their quotes, so a nested path reads `subtitle.text[type='text'].lineHeight`.
+    // Variant segments (`[type='x']`, `[AgColorRef]`) attach without a dot: `text[type='text'].lineHeight`.
     const parentPrefix = prefixPath?.reduce((acc, segment) => {
         if (segment.startsWith('[')) {
             return `${acc}${segment}`;
         }
         return acc ? `${acc}.${cleanupName(segment)}` : cleanupName(segment);
     }, '');
+    const separator = nextSegment?.startsWith('[') ? '' : '.';
     return (
         <>
             {parentPrefix && <Component className={styles.parentProperties}>{`${parentPrefix}${separator}`}</Component>}

@@ -1,6 +1,12 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="toggleMode()">Toggle Mode</button>
+        <span>Mode:</span>
+        <div class="button-group" role="group" aria-label="Mode">
+            <input type="radio" id="mode-discrete" name="mode" value="discrete" checked onchange="modeChange(event)" />
+            <label for="mode-discrete">Discrete</label>
+            <input type="radio" id="mode-continuous" name="mode" value="continuous" onchange="modeChange(event)" />
+            <label for="mode-continuous">Continuous</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

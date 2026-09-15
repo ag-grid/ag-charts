@@ -1,6 +1,7 @@
 import { toAbsoluteUrl } from '@ag-website-shared/markdoc/toAbsoluteUrl';
 import { getGeneratedContents } from '@components/example-generator';
 import { stripOutExampleGeneratorCode } from '@components/example-runner/components/stripOutExampleGeneratorCode';
+import { GALLERY_GET_STARTED_COPY } from '@components/gallery/galleryCopy';
 import { galleryFamilyHeading, resolveGallerySeo } from '@components/gallery/utils/gallerySeo';
 import { type GalleryRelatedExample, relatedExamplesHeading } from '@components/gallery/utils/relatedExamples';
 import { getExampleFileUrl, getExampleUrl, getPageUrl } from '@components/gallery/utils/urlPaths';
@@ -33,15 +34,15 @@ export interface BuildGalleryExampleMarkdownOptions {
     siteRoot?: string;
 }
 
-/** Site-relative markdown link, as an intro carries: `[tooltips](/r/tooltips/)`. */
-const INTRO_LINK = /\]\((\/[^)]*)\)/g;
+/** Site-relative markdown link, as the page's copy carries: `[tooltips](/r/tooltips/)`. */
+const COPY_LINK = /\]\((\/[^)]*)\)/g;
 
 /**
- * Absolute-ise the inline links an intro carries, as every other link in the document is: the
- * `.md` is read out of context, where a root-relative href resolves against the wrong origin.
+ * Absolute-ise the inline links a line of copy carries, as every other link in the document is:
+ * the `.md` is read out of context, where a root-relative href resolves against the wrong origin.
  */
-function withAbsoluteIntroLinks(intro: string, siteRoot?: string): string {
-    return intro.replace(INTRO_LINK, (_match, href: string) => `](${toAbsoluteUrl(urlWithBaseUrl(href), siteRoot)})`);
+function withAbsoluteCopyLinks(copy: string, siteRoot?: string): string {
+    return copy.replace(COPY_LINK, (_match, href: string) => `](${toAbsoluteUrl(urlWithBaseUrl(href), siteRoot)})`);
 }
 
 /** Matches GallerySeriesLink: an explicit `seriesLink`, else the chart type's default docs slug. */
@@ -77,7 +78,8 @@ export async function buildGalleryExampleMarkdown({
             description: seo.description,
         }),
         `# ${seo.h1}`,
-        withAbsoluteIntroLinks(seo.intro, siteRoot),
+        withAbsoluteCopyLinks(seo.intro, siteRoot),
+        withAbsoluteCopyLinks(GALLERY_GET_STARTED_COPY, siteRoot),
     ];
 
     const chartType = page.enterprise ? `${page.seriesTitle} (Enterprise)` : page.seriesTitle;

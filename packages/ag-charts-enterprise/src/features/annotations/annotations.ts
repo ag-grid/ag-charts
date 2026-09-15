@@ -38,6 +38,7 @@ import { AnnotationsStateMachine } from './annotationsStateMachine';
 import type { AnnotationProperties, AnnotationScene as AnnotationSceneUnion } from './annotationsSuperTypes';
 import { AnnotationsToolbar } from './annotationsToolbar';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
+import { HorizontalLineProperties, VerticalLineProperties } from './cross-line/crossLineProperties';
 import type { AnnotationScene as AnnotationSceneNode } from './scenes/annotationScene';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
 import { calculateAxisLabelPadding } from './utils/axis';
@@ -263,6 +264,10 @@ export class Annotations extends AbstractModuleInstance {
 
             stopInteracting: () => {
                 this.popAnnotationState(InteractionState.Annotations);
+            },
+
+            startDragging: (index: number) => {
+                this.onStartDragging(index);
             },
 
             create: (type: AnnotationType, datum: AnnotationProperties) => {
@@ -1244,6 +1249,20 @@ export class Annotations extends AbstractModuleInstance {
         this.settingsDialog.hide();
         this.toolbar.hideOverlays();
         this.optionsToolbar.hideOverlays();
+    }
+
+    // A cross-line's own axis label already reports the value being dragged, so the crosshair label on that axis
+    // would only cover it.
+    private onStartDragging(index: number) {
+        const datum = this.annotationData.at(index);
+        const isHorizontal = HorizontalLineProperties.is(datum);
+        if (!isHorizontal && !VerticalLineProperties.is(datum)) return;
+        if (!datum.axisLabel.enabled) return;
+
+        const axis = isHorizontal ? this.yAxis : this.xAxis;
+        if (!axis) return;
+
+        this.ctx.eventsHub.emit('annotations:axis-label-drag-start', { axisId: axis.context.axisId });
     }
 
     private pushAnnotationState(

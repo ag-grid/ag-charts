@@ -7,7 +7,7 @@ import styles from './GalleryExampleLink.module.scss';
 
 /**
  * How the card sizes itself: `grid` is the gallery hub's three-column measure, `thumbnail` a
- * fixed-width carousel slide, and `fill` takes whatever cell its container gives it.
+ * carousel slide on that same measure, and `fill` takes whatever cell its container gives it.
  */
 export type GalleryExampleLinkLayout = 'grid' | 'thumbnail' | 'fill';
 

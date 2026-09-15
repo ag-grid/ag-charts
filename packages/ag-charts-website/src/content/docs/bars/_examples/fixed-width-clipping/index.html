@@ -1,18 +1,26 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="toggleFixedWidth()">Toggle Fixed Width</button>
-        <label for="fixedWidthSliderInput">Fixed Width:</label>
-        <input
-            type="range"
-            id="fixedWidthSliderInput"
-            min="5"
-            max="60"
-            value="30"
-            step="1"
-            oninput="updateFixedWidth(event)"
-            onchange="updateFixedWidth(event)"
-        />
-        <span id="fixedWidthSliderValue">30</span>
+        <span>Bar Width:</span>
+        <div class="button-group" role="group" aria-label="Bar Width">
+            <input type="radio" id="width-auto" name="width" value="auto" onchange="setWidthMode(event)" />
+            <label for="width-auto">Auto</label>
+            <input type="radio" id="width-fixed" name="width" value="fixed" checked onchange="setWidthMode(event)" />
+            <label for="width-fixed">Fixed</label>
+        </div>
+        <fieldset id="fixedWidthGroup" class="control-group">
+            <label for="fixedWidthSliderInput" class="gap-left">Fixed Width:</label>
+            <input
+                type="range"
+                id="fixedWidthSliderInput"
+                min="5"
+                max="60"
+                value="30"
+                step="1"
+                oninput="updateFixedWidth(event)"
+                onchange="updateFixedWidth(event)"
+            />
+            <span id="fixedWidthSliderValue">30</span>
+        </fieldset>
     </div>
 </div>
 <div id="myChart"></div>

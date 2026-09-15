@@ -19,9 +19,16 @@ const LICENSE_TYPES = {
 
 const LICENSING_HELP_URL = 'https://www.ag-grid.com/charts/licensing/';
 
+function normaliseLicenseKey(licenseKey: unknown): string | undefined {
+    if (licenseKey == null) return undefined;
+    return typeof licenseKey === 'string' ? licenseKey : String(licenseKey);
+}
+
 export class LicenseManager {
     private static readonly RELEASE_INFORMATION: string = 'MTc4NzkzMjI4NjQxMg==';
     private static licenseKey?: string;
+    // Latched by any `setLicenseKey` call, whatever it was passed: only a page that never called it is exempt.
+    private static licenseKeySupplied = false;
     private static gridContext: boolean = false;
     private static licenseOutputLogged = false;
     private watermarkMessage: string | undefined = undefined;
@@ -109,8 +116,10 @@ export class LicenseManager {
         return { md5, license, version, isTrial, type };
     }
 
-    public hasLicenseKey(): boolean {
-        return !missingOrEmpty(LicenseManager.licenseKey);
+    // Any `setLicenseKey` call counts as supplying a key, even with an empty or nullish value: the caller is
+    // owed a verdict, and such a key is reported as missing.
+    public isLicenseKeySupplied(): boolean {
+        return LicenseManager.licenseKeySupplied;
     }
 
     public getLicenseDetails(licenseKey: string, gridContext = false) {
@@ -365,17 +374,21 @@ export class LicenseManager {
         LicenseManager.gridContext = gridContext;
     }
 
-    public static setLicenseKey(licenseKey?: string): void {
-        if (this.licenseKey && this.licenseKey !== licenseKey) {
+    // Typed as a string, but a page passes whatever it read from its config: a nullish value is reported as a
+    // missing key, and any other non-string as an invalid one, rather than throwing during validation.
+    public static setLicenseKey(licenseKey?: string | null): void {
+        const key = normaliseLicenseKey(licenseKey);
+        if (this.licenseKey && this.licenseKey !== key) {
             console.warn(
                 `License Key being set multiple times with different values. This can result in an incorrect license key being used.`
             );
         }
 
-        if (this.licenseKey !== licenseKey) {
+        if (this.licenseKey !== key) {
             LicenseManager.licenseOutputLogged = false;
         }
-        LicenseManager.licenseKey = licenseKey;
+        LicenseManager.licenseKeySupplied = true;
+        LicenseManager.licenseKey = key;
     }
 
     private static extractBracketedInformation(licenseKey: string): [string | null, boolean | null, string?] {
