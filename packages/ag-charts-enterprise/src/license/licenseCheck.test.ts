@@ -54,7 +54,7 @@ describe('licence check for a community-only chart', () => {
     afterEach(() => {
         chart?.destroy();
         chart = undefined;
-        LicenseManager.setLicenseKey();
+        LicenseManager.clearLicenseKey();
         enterpriseRegistry.licenseManager = originalLicenseManager;
         ModuleRegistry.reset();
         ModuleRegistry.registerModules(registeredModules);
@@ -66,8 +66,8 @@ describe('licence check for a community-only chart', () => {
         return chart;
     }
 
-    it('reports an empty licence key as missing', async () => {
-        LicenseManager.setLicenseKey('');
+    it.each(['', undefined, null])('reports the licence key %s as missing', async (key) => {
+        LicenseManager.setLicenseKey(key);
         await createChart();
 
         const messages = takeErrorMessages();
