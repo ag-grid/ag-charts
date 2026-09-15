@@ -150,6 +150,9 @@ export interface ResolvedContribution<TDefinition extends ContributingDefinition
     readonly definition: TDefinition;
     readonly contribution: OptionsContribution;
     readonly path: OptionsPath;
+    readonly host: ContributionHost;
+    /** `path` relative to one instance of `host`; the same as `path` for the chart host. */
+    readonly relative: OptionsPath;
 }
 
 /** Whether `contribution` applies to a chart of `chartType`; an undeclared chart type applies to all. */
@@ -171,7 +174,8 @@ export function resolveContributions<TDefinition extends ContributingDefinition>
     const resolved: ResolvedContribution<TDefinition>[] = [];
     for (const definition of definitions) {
         for (const contribution of contributionsOf(definition)) {
-            resolved.push({ definition, contribution, path: parseOptionsPath(contribution.path) });
+            const path = parseOptionsPath(contribution.path);
+            resolved.push({ definition, contribution, path, ...contributionHost(path) });
         }
     }
     return resolved;
@@ -239,10 +243,9 @@ export function readContributedValue(
     hostOptions: unknown
 ): unknown {
     let found: unknown;
-    for (const { path } of contributions) {
-        const location = contributionHost(path);
-        if (location.host !== host) continue;
-        visitOptionsPath(hostOptions, location.relative, (target, key) => {
+    for (const contribution of contributions) {
+        if (contribution.host !== host) continue;
+        visitOptionsPath(hostOptions, contribution.relative, (target, key) => {
             found ??= target[key];
         });
         if (found != null) break;
@@ -271,8 +274,8 @@ export function composeContributedDefs<T>(
     contributions: Iterable<ResolvedContribution>
 ): OptionsDefs<T> {
     let composed: Record<string, unknown> | undefined;
-    for (const { contribution, path } of contributions) {
-        if (contributionHost(path).host !== 'chart') continue;
+    for (const { contribution, path, host } of contributions) {
+        if (host !== 'chart') continue;
         composed ??= { ...defs };
 
         let target = composed;

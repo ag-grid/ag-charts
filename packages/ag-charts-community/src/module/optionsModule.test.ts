@@ -30,8 +30,9 @@ import type {
     SeriesType,
 } from 'ag-charts-types';
 
+import { CrossLinesModule } from '../chart/crossline/crossLinesModule';
 import { ExpectedModules, type ModulePlaceholder } from '../chart/factory/expectedModules';
-import { sanitizeThemeModules } from '../chart/factory/processModuleOptions';
+import { removeUnregisteredModuleOptions, sanitizeThemeModules } from '../chart/factory/processModuleOptions';
 import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import * as examples from '../chart/test/examples';
 import { ChartTheme } from '../chart/themes/chartTheme';
@@ -4880,6 +4881,30 @@ describe('ChartOptions', () => {
         });
 
         describe('unregistered modules (AC5)', () => {
+            describe('a path owned by modules of different chart types', () => {
+                const crossLineOptions = () =>
+                    ({
+                        axes: { angle: { crossLines: [{ type: 'line', value: 'a' }] } },
+                    }) as any;
+                const scope = ModuleRegistry.resolveModuleScope([CrossLinesModule]);
+
+                it('reports the polar owner when only the cartesian owner is registered', () => {
+                    const options = crossLineOptions();
+                    const missing = removeUnregisteredModuleOptions('polar', options, scope);
+
+                    expect(missing.map(({ module }) => module.moduleId)).toEqual(['PolarCrossLinesModule']);
+                    expect(options.axes.angle.crossLines).toBeUndefined();
+                });
+
+                it('treats the path as covered on the chart type the registered owner supports', () => {
+                    const options = crossLineOptions();
+                    const missing = removeUnregisteredModuleOptions('cartesian', options, scope);
+
+                    expect(missing).toEqual([]);
+                    expect(options.axes.angle.crossLines).toHaveLength(1);
+                });
+            });
+
             describe('every enterprise option contribution', () => {
                 beforeEach(() => {
                     __clearStructuralCacheForTests();

@@ -8,6 +8,7 @@ import {
     ModuleType,
     type OptionsDefs,
     type Validator,
+    contributionHost,
     contributionsOf,
     describeValidator,
     isFunction,
@@ -100,7 +101,9 @@ function collectExports(namespace: Record<string, unknown>): PackageExports {
 async function collectEnterpriseExports(): Promise<PackageExports> {
     const source = readFileSync(paths.enterpriseMain, 'utf-8');
     const namespace: Record<string, unknown> = {};
-    for (const match of source.matchAll(/^export \{([^}]+)\} from '(\.\/[^']+)';/gm)) {
+    const statements = [...source.matchAll(/^export \{([^}]+)\} from '(\.\/[^']+)';/gm)];
+    expect(statements).toHaveLength(source.match(/^export \{/gm)?.length ?? 0);
+    for (const match of statements) {
         const imported = await import(resolve(here, `${match[2]}.ts`));
         for (const name of match[1].split(',').map(
             (part) =>
@@ -406,18 +409,18 @@ function eslintMappings(catalogue: ModuleCatalogue): EslintMappings {
             case ModuleType.AxisPlugin:
             case ModuleType.SeriesPlugin:
                 for (const contribution of contributionsOf(definition)) {
-                    const { segments } = parseOptionsPath(contribution.path);
-                    const keys = segments.map((segment) => segment.key);
+                    const { host, relative } = contributionHost(parseOptionsPath(contribution.path));
+                    const keys = relative.segments.map((segment) => segment.key);
                     const [head, ...rest] = keys;
-                    if (segments[0].each && head === 'axes') {
-                        if (rest.length === 1) {
+                    if (host === 'axis') {
+                        if (keys.length === 1) {
                             const polar = definition.chartType === 'polar';
-                            (polar ? tables.polarAxisPluginToModule : tables.axisPluginToModule).set(rest[0], id);
-                        } else if (rest.length === 2 && rest[0] === 'listeners') {
-                            tables.axisListenerToModule.set(rest[1], id);
+                            (polar ? tables.polarAxisPluginToModule : tables.axisPluginToModule).set(head, id);
+                        } else if (keys.length === 2 && head === 'listeners') {
+                            tables.axisListenerToModule.set(rest[0], id);
                         }
-                    } else if (segments[0].each && head === 'series') {
-                        if (rest.length === 1) tables.seriesPluginToModule.set(rest[0], id);
+                    } else if (host === 'series') {
+                        if (keys.length === 1) tables.seriesPluginToModule.set(head, id);
                     } else if (keys.length === 1) {
                         tables.pluginOptionToModule.set(head, id);
                     } else if (keys.length === 2 && head === 'listeners') {

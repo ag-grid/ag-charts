@@ -10,7 +10,6 @@ import {
     type PlainObject,
     type ResolvedContribution,
     composeContributedDefs,
-    contributionHost,
     contributionMatchesChartType,
     contributionsOf,
     createScopedCache,
@@ -78,9 +77,7 @@ function sanitizeThemeModulesUncached(theme: ChartTheme, moduleRegistry: ModuleS
         }
     }
 
-    const missingContributions = uncoveredContributions(missingPlaceholders, moduleRegistry).map(
-        ({ contribution, path }) => ({ contribution, ...contributionHost(path) })
-    );
+    const missingContributions = uncoveredContributions(missingPlaceholders, moduleRegistry, undefined);
 
     if (missingByType.size === 0 && missingContributions.length === 0) return theme;
 
@@ -291,7 +288,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
         }
     }
 
-    const uncovered = uncoveredContributions(ExpectedModules.values(), moduleRegistry);
+    const uncovered = uncoveredPlaceholderContributions(moduleRegistry, chartType);
 
     for (const module of ExpectedModules.values()) {
         if (SkippedModules.has(module.name)) continue;
@@ -324,8 +321,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
                 break;
 
             default:
-                for (const { definition, contribution, path } of uncovered) {
-                    if (definition !== module) continue;
+                for (const { contribution, path } of uncovered.get(module) ?? []) {
                     if (!contributionMatchesChartType(contribution, chartType)) continue;
                     visitOptionsPath(options, path, (host, key) => {
                         const value = host[key];
@@ -344,27 +340,60 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
 }
 
 /**
- * Placeholder contributions whose path no registered module owns. Ownership is by path, not by name:
- * `CrossLinesModule` and `PolarCrossLinesModule` share `axes[].crossLines`, and a community
- * `series-area` registration does not cover the enterprise `seriesArea.backgroundRegions`.
+ * Placeholder contributions whose path no registered module owns for `chartType`. Ownership is by
+ * path, not by name: a community `series-area` registration does not cover the enterprise
+ * `seriesArea.backgroundRegions`, while `CrossLinesModule` covers `axes[].crossLines` on a cartesian
+ * chart but not on a polar one, where `PolarCrossLinesModule` is still missing.
  */
 function uncoveredContributions(
     placeholders: Iterable<ModulePlaceholder>,
-    moduleRegistry: ModuleScope
+    moduleRegistry: ModuleScope,
+    chartType: string | undefined
 ): ResolvedContribution<ModulePlaceholder>[] {
     const coveredPaths = new Set<string>();
     for (const { contribution } of moduleRegistry.optionsContributions()) {
-        coveredPaths.add(contribution.path);
+        if (contributionMatchesChartType(contribution, chartType)) {
+            coveredPaths.add(contribution.path);
+        }
     }
     return resolveContributions(placeholders).filter(({ contribution }) => !coveredPaths.has(contribution.path));
 }
 
+const placeholderContributionCaches = createScopedCache(
+    () => ({
+        byChartType: new Map<string | undefined, Map<ModulePlaceholder, ResolvedContribution<ModulePlaceholder>[]>>(),
+    }),
+    (cache) => {
+        cache.byChartType = new Map();
+    }
+);
+
+/** The uncovered contributions of every expected module, grouped by placeholder and cached per scope revision. */
+function uncoveredPlaceholderContributions(moduleRegistry: ModuleScope, chartType: string | undefined) {
+    const cache = placeholderContributionCaches.for(moduleRegistry);
+    let grouped = cache.byChartType.get(chartType);
+    if (grouped == null) {
+        grouped = new Map();
+        for (const entry of uncoveredContributions(ExpectedModules.values(), moduleRegistry, chartType)) {
+            let entries = grouped.get(entry.definition);
+            if (entries == null) {
+                entries = [];
+                grouped.set(entry.definition, entries);
+            }
+            entries.push(entry);
+        }
+        cache.byChartType.set(chartType, grouped);
+    }
+    return grouped;
+}
+
 /** Contributions of every module the chart could use: registered ones, then unregistered placeholders. */
-function knownContributions(moduleRegistry: ModuleScope): ResolvedContribution[] {
-    return [
-        ...moduleRegistry.optionsContributions(),
-        ...uncoveredContributions(ExpectedModules.values(), moduleRegistry),
-    ];
+function knownContributions(moduleRegistry: ModuleScope, chartType: string): ResolvedContribution[] {
+    const known: ResolvedContribution[] = [...moduleRegistry.optionsContributions()];
+    for (const entries of uncoveredPlaceholderContributions(moduleRegistry, chartType).values()) {
+        known.push(...entries);
+    }
+    return known;
 }
 
 /**
@@ -379,7 +408,7 @@ export function removeIncompatibleModuleOptions<T extends Partial<AgChartOptions
 ): string[] {
     if (chartType == null) return [];
 
-    const table = knownContributions(moduleRegistry);
+    const table = knownContributions(moduleRegistry, chartType);
     // Two modules can own one path for different chart types (`crossLines` cartesian/polar), so a
     // path is only stripped when no compatible owner claims it.
     const supportedPaths = new Set<string>();
@@ -431,7 +460,7 @@ export function composeChartOptionsDefs<T>(
     }
     let composed = byChartType.get(chartType) as OptionsDefs<T> | undefined;
     if (composed == null) {
-        const applicable = knownContributions(moduleRegistry).filter(({ contribution }) =>
+        const applicable = knownContributions(moduleRegistry, chartType).filter(({ contribution }) =>
             contributionMatchesChartType(contribution, chartType)
         );
         composed = composeContributedDefs(chartDefs, applicable);

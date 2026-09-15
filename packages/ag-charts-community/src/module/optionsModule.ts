@@ -17,6 +17,7 @@ import {
     type PresetModuleDefinition,
     type ValidateParams,
     type ValidationError,
+    contributionMatchesChartType,
     deepClone,
     deepFreeze,
     distribute,
@@ -26,6 +27,7 @@ import {
     groupBy,
     hasRequiredInPath,
     isArray,
+    isFunction,
     isKeyOf,
     isNumericValue,
     isObject,
@@ -45,6 +47,7 @@ import {
     toFontString,
     unique,
     validate,
+    visitOptionsPath,
 } from 'ag-charts-core';
 import {
     type AgChartModule,
@@ -642,6 +645,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Second pass: axis keys are remapped and missing `type` properties inferred, so axes validate.
         this.validateAxesOptions(processedOptions, secondPassParams);
 
+        this.validateContributedOptions(processedOptions, secondPassParams);
         this.processMiniChartSeriesOptions(processedOptions);
 
         if (!processedOptions.loadGoogleFonts) {
@@ -802,6 +806,23 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     recordOptionsArgumentError(message: string) {
         this.issues = [...this.issues, { severity: 'error', message }];
         this.logger.error(message);
+    }
+
+    // Module-owned subtrees validate again once the theme has resolved them, as their defs may depend
+    // on theme-filled values such as the mini chart series `type`.
+    private validateContributedOptions(options: T, params: ValidateParams) {
+        const chartType = this.chartDef?.name;
+        for (const { contribution, path, host } of this.moduleRegistry.optionsContributions()) {
+            const defs = contribution.options;
+            if (host !== 'chart' || defs == null || isFunction(defs)) continue;
+            if (!contributionMatchesChartType(contribution, chartType)) continue;
+            visitOptionsPath(options, path, (target, key, location) => {
+                if (target[key] == null) return;
+                const { cleared, invalid } = validate(target[key], defs, location, params);
+                this.logValidationErrors(invalid);
+                target[key] = cleared;
+            });
+        }
     }
 
     private validateSeriesOptions(options: T, params: ValidateParams): ModulePlaceholder[] {

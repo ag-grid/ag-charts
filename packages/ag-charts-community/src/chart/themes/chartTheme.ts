@@ -41,7 +41,6 @@ import {
     PALETTE_UP_FILL,
     PALETTE_UP_STROKE,
     type PlainObject,
-    contributionHost,
     contributionMatchesAxisType,
     contributionMatchesSeriesType,
     deepClone,
@@ -605,11 +604,10 @@ function contributedThemeTemplates(
     applies: (contribution: OptionsContribution) => boolean = () => true
 ): PlainObject[] {
     const templates: PlainObject[] = [];
-    for (const { contribution, path } of moduleRegistry.optionsContributions()) {
-        if (contribution.themeTemplate == null || !applies(contribution)) continue;
-        const location = contributionHost(path);
-        if (location.host !== host) continue;
-        templates.push(nestAtOptionsPath(location.relative, contribution.themeTemplate));
+    for (const entry of moduleRegistry.optionsContributions()) {
+        const { contribution } = entry;
+        if (entry.host !== host || contribution.themeTemplate == null || !applies(contribution)) continue;
+        templates.push(nestAtOptionsPath(entry.relative, contribution.themeTemplate));
     }
     return templates;
 }

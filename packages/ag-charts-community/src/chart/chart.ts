@@ -15,7 +15,6 @@ import {
     ModuleType,
     ZIndexMap,
     callWithContext,
-    contributionHost,
     createId,
     enterpriseRegistry,
     entries,
@@ -2223,10 +2222,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
         const { moduleRegistry } = this.ctx;
         for (const module of moduleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
             const moduleInstance: any = moduleMap.getModule(module.name);
-            for (const { path } of moduleRegistry.moduleContributions(module.name)) {
-                const location = contributionHost(path);
-                if (location.host !== 'series') continue;
-                visitOptionsPath(seriesOptions, location.relative, (host, key) => {
+            for (const { host: owner, relative } of moduleRegistry.moduleContributions(module.name)) {
+                if (owner !== 'series') continue;
+                visitOptionsPath(seriesOptions, relative, (host, key) => {
                     if (!(key in host)) return;
                     moduleInstance?.properties.set(host[key]);
                     delete host[key];
