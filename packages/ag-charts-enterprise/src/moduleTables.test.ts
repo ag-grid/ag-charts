@@ -490,13 +490,7 @@ describe('module tables', async () => {
     const placeholders = sortedPlaceholders(catalogue);
     const mappings = eslintMappings(catalogue);
 
-    it('names every reachable module definition', () => {
-        if (update) {
-            const indirect = [...catalogue.idOf]
-                .filter(([, id]) => !catalogue.definitionIds.has(id))
-                .map(([definition, id]) => `${definition.name} -> ${id}`);
-            console.log(`indirectly exported: ${indirect.join(', ')}`);
-        }
+    it('derives placeholders from the exported definitions', () => {
         expect(placeholders.length).toBeGreaterThan(50);
     });
 
