@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test';
+import { beforeEach } from 'node:test';
 
 import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
@@ -10,6 +11,7 @@ import {
     gotoExample,
     hoverCanvas,
     locateCanvas,
+    readSwapchainText,
     setupIntrinsicAssertions,
     toExamplePageUrl,
     toExamplePageUrls,
@@ -175,5 +177,45 @@ test.describe('organization-series', () => {
                 animations: 'disabled',
             });
         });
+    });
+
+    test('CRT-1211', async ({ page }) => {
+        await gotoExample(page, toExamplePageUrl('org-chart-e2e', 'e2e-org-chart-collapse', 'vanilla').url);
+
+        // Tab into root node:
+        await page.keyboard.press('Tab');
+        expect(await readSwapchainText(page)).toBe(
+            'Henry VII, 1457 - 1509, King 1485 - 1509, level 1, 1 of 1, 4 children, expanded'
+        );
+
+        // Navigate to 3rd child:
+        await page.keyboard.press('ArrowDown');
+        expect(await readSwapchainText(page)).toBe('Arthur Tudor, 1486 - 1502, Prince of Wales, level 2, 1 of 4');
+        await page.keyboard.press('ArrowRight');
+        expect(await readSwapchainText(page)).toBe(
+            'Henry VIII, 1491 - 1547, King 1509 - 1547, level 2, 2 of 4, 3 children, expanded'
+        );
+        await page.keyboard.press('ArrowRight');
+        expect(await readSwapchainText(page)).toBe(
+            'Margaret Tudor, 1489 - 1541, Queen of Scots, level 2, 3 of 4, 1 child, expanded'
+        );
+
+        // Collapse this 3rd child:
+        await page.keyboard.press('Alt+ArrowUp');
+        expect(await readSwapchainText(page)).toBe(
+            'collapsed, Margaret Tudor, 1489 - 1541, Queen of Scots, level 2, 3 of 4, 1 child'
+        );
+
+        // Expand this 3rd child:
+        await page.keyboard.press('Alt+ArrowDown');
+        expect(await readSwapchainText(page)).toBe(
+            'expanded, Margaret Tudor, 1489 - 1541, Queen of Scots, level 2, 3 of 4, 1 child'
+        );
+
+        // Navigate deepest into this 3rd child:
+        await page.keyboard.press('ArrowDown');
+        expect(await readSwapchainText(page)).toBe(
+            'James V, 1512 - 1542, King of Scotland 1513 - 1542, level 3, 1 of 1, 1 child, expanded'
+        );
     });
 });
