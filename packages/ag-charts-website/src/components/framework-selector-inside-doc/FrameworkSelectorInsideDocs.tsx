@@ -59,7 +59,7 @@ export const FrameworkSelectorInsideDocs = ({ path, currentFramework, menuItems 
     };
 
     return (
-        currentFramework && (
+        currentFramework !== '' && (
             <div className={styles.frameworkSelector}>
                 <Select
                     isLarge

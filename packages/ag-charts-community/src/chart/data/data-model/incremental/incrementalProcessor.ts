@@ -215,7 +215,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
             const result = this.reducerManager.evaluate(def, processedData, {
                 reuseCleanBands: true,
                 beforeEvaluate: (bandManager, context) => {
-                    if (!context.scopeId) return;
+                    if (context.scopeId == null) return;
                     const changeDesc = scopeChanges.get(context.scopeId);
                     if (changeDesc) {
                         bandManager.applyIndexMap(changeDesc.indexMap);
@@ -492,7 +492,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                     const sourceScope = Array.from(processedData.keys[defIndex].entries()).find(
                         ([_, arr]) => arr === keysArray
                     )?.[0];
-                    if (sourceScope && sourceScope !== scope && removedByScope.has(sourceScope)) {
+                    if (sourceScope != null && sourceScope !== scope && removedByScope.has(sourceScope)) {
                         // Copy removed metadata from the scope that processed this array
                         removedByScope.set(scope, removedByScope.get(sourceScope)!);
                     }
@@ -514,9 +514,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                     },
                     (removedValues) => {
                         for (const value of removedValues) {
-                            if (!removedMetadata.tuples[removalCursor]) {
-                                removedMetadata.tuples[removalCursor] = new Array(this.ctx.keys.length);
-                            }
+                            removedMetadata.tuples[removalCursor] ??= new Array(this.ctx.keys.length);
 
                             removedMetadata.tuples[removalCursor][defIndex] = value;
                             removalCursor += 1;
@@ -831,7 +829,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                     for (let i = 0; i < op.insertCount; i++) {
                         const datumIndex = op.index + i;
                         const keyStr = getKeyString(scope, datumIndex);
-                        if (keyStr) {
+                        if (keyStr != null) {
                             diff.added.add(keyStr);
                         }
                     }
@@ -845,19 +843,19 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
             } else if (isPrependOnly(changeDesc.indexMap) && originalLength > 0) {
                 for (let destIndex = totalPrependCount; destIndex < totalPrependCount + originalLength; destIndex++) {
                     const keyStr = getKeyString(scope, destIndex);
-                    if (keyStr) diff.moved.add(keyStr);
+                    if (keyStr != null) diff.moved.add(keyStr);
                 }
             } else if (hasNoRemovals(changeDesc.indexMap) && totalPrependCount > 0) {
                 for (let sourceIndex = 0; sourceIndex < originalLength; sourceIndex++) {
                     const destIndex = sourceIndex + totalPrependCount;
                     const keyStr = getKeyString(scope, destIndex);
-                    if (keyStr) diff.moved.add(keyStr);
+                    if (keyStr != null) diff.moved.add(keyStr);
                 }
             } else {
                 changeDesc.forEachPreservedIndex((sourceIndex, destIndex) => {
                     if (sourceIndex !== destIndex) {
                         const keyStr = getKeyString(scope, destIndex);
-                        if (keyStr) diff.moved.add(keyStr);
+                        if (keyStr != null) diff.moved.add(keyStr);
                     }
                 });
             }
@@ -972,7 +970,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
 
             // Get any scope's keys array (they share the same data)
             const keysArray = first(keysMap.values());
-            if (!keysArray || keysArray.length <= originalLength) continue;
+            if (keysArray == null || keysArray.length <= originalLength) continue;
 
             // Get last existing value and appended values
             const lastExistingValue = originalLength > 0 ? keysArray[originalLength - 1] : undefined;
@@ -1058,7 +1056,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
 
             // Get any scope's keys array (they share the same data)
             const keysArray = first(keysMap.values());
-            if (!keysArray || keysArray.length === 0) continue;
+            if (keysArray == null || keysArray.length === 0) continue;
 
             // The rolling window dropped `removedCount` from the start, so appends begin here.
             const appendStartIndex = originalLength - removedCount;

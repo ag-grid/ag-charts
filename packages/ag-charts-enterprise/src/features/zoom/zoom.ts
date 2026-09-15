@@ -229,7 +229,7 @@ export class Zoom extends AbstractModuleInstance {
                 this.panner.deceleration = opts.deceleration;
 
                 // ZoomToolbar still uses @Property/@ActionOnSet — sync options via set()
-                if (opts.buttons) {
+                if (opts.buttons != null) {
                     this.buttons.set(opts.buttons);
                 }
 

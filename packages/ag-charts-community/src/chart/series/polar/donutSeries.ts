@@ -546,18 +546,18 @@ export class DonutSeries extends PolarSeries<
         const extraProps = [];
 
         // Order here should match `getDatumIdFromData()`.
-        if (legendItemKey) {
+        if (legendItemKey != null && legendItemKey !== '') {
             extraKeyProps.push(keyProperty(legendItemKey, 'category', { id: `legendItemKey`, allowNullKey }));
-        } else if (calloutLabelKey) {
+        } else if (calloutLabelKey != null && calloutLabelKey !== '') {
             extraKeyProps.push(keyProperty(calloutLabelKey, 'category', { id: `calloutLabelKey`, allowNullKey }));
-        } else if (sectorLabelKey) {
+        } else if (sectorLabelKey != null && sectorLabelKey !== '') {
             extraKeyProps.push(keyProperty(sectorLabelKey, 'category', { id: `sectorLabelKey`, allowNullKey }));
         }
 
         const radiusScaleType = this.radiusScale.type;
         const angleScaleType = this.angleScale.type;
 
-        if (radiusKey) {
+        if (radiusKey != null && radiusKey !== '') {
             extraProps.push(
                 rangedValueProperty(radiusKey, {
                     id: 'radiusValue',
@@ -570,16 +570,16 @@ export class DonutSeries extends PolarSeries<
                 normalisePropertyTo('radiusValue', [0, 1], 1, this.properties.radiusMin ?? 0, this.properties.radiusMax)
             );
         }
-        if (calloutLabelKey) {
+        if (calloutLabelKey != null && calloutLabelKey !== '') {
             extraProps.push(valueProperty(calloutLabelKey, 'category', { id: `calloutLabelValue`, allowNullKey }));
         }
-        if (sectorLabelKey) {
+        if (sectorLabelKey != null && sectorLabelKey !== '') {
             extraProps.push(valueProperty(sectorLabelKey, 'category', { id: `sectorLabelValue`, allowNullKey }));
         }
-        if (legendItemKey) {
+        if (legendItemKey != null && legendItemKey !== '') {
             extraProps.push(valueProperty(legendItemKey, 'category', { id: `legendItemValue`, allowNullKey }));
         }
-        if (angleFilterKey) {
+        if (angleFilterKey != null && angleFilterKey !== '') {
             extraProps.push(
                 accumulativeValueProperty(angleFilterKey, angleScaleType, {
                     id: `angleFilterValue`,
@@ -655,21 +655,25 @@ export class DonutSeries extends PolarSeries<
             this.properties.angleFilterKey == null
                 ? undefined
                 : dataModel.resolveColumnById(this, `angleFilterRaw`, processedData, 'number');
-        const radiusValues = this.properties.radiusKey
+        const hasRadiusKey = this.properties.radiusKey != null && this.properties.radiusKey !== '';
+        const radiusValues = hasRadiusKey
             ? dataModel.resolveColumnById(this, `radiusValue`, processedData, 'number')
             : undefined;
-        const radiusRawValues = this.properties.radiusKey
+        const radiusRawValues = hasRadiusKey
             ? dataModel.resolveColumnById(this, `radiusRaw`, processedData, 'mixed-numeric')
             : undefined;
-        const calloutLabelValues = this.properties.calloutLabelKey
-            ? dataModel.resolveColumnById<string>(this, `calloutLabelValue`, processedData, 'object')
-            : undefined;
-        const sectorLabelValues = this.properties.sectorLabelKey
-            ? dataModel.resolveColumnById<string>(this, `sectorLabelValue`, processedData, 'object')
-            : undefined;
-        const legendItemValues = this.properties.legendItemKey
-            ? dataModel.resolveColumnById<string>(this, `legendItemValue`, processedData, 'object')
-            : undefined;
+        const calloutLabelValues =
+            this.properties.calloutLabelKey == null || this.properties.calloutLabelKey === ''
+                ? undefined
+                : dataModel.resolveColumnById<string>(this, `calloutLabelValue`, processedData, 'object');
+        const sectorLabelValues =
+            this.properties.sectorLabelKey == null || this.properties.sectorLabelKey === ''
+                ? undefined
+                : dataModel.resolveColumnById<string>(this, `sectorLabelValue`, processedData, 'object');
+        const legendItemValues =
+            this.properties.legendItemKey == null || this.properties.legendItemKey === ''
+                ? undefined
+                : dataModel.resolveColumnById<string>(this, `legendItemValue`, processedData, 'object');
 
         return {
             angleValues,
@@ -826,7 +830,7 @@ export class DonutSeries extends PolarSeries<
             legendItem: undefined,
         };
 
-        if (calloutLabelKey) {
+        if (calloutLabelKey != null && calloutLabelKey !== '') {
             result.callout = this.getLabelText<PieDonutSeriesLabelFormatterParams>(
                 calloutLabelValue,
                 datum,
@@ -839,7 +843,7 @@ export class DonutSeries extends PolarSeries<
             );
         }
 
-        if (sectorLabelKey) {
+        if (sectorLabelKey != null && sectorLabelKey !== '') {
             result.sector = this.getLabelText<PieDonutSeriesLabelFormatterParams>(
                 sectorLabelValue,
                 datum,
@@ -883,7 +887,12 @@ export class DonutSeries extends PolarSeries<
             legendItem?: { key: string; text: string };
         } = {};
 
-        if (calloutLabel.enabled && formats.callout && span >= toRadians(calloutLabel.minAngle)) {
+        if (
+            calloutLabel.enabled &&
+            formats.callout != null &&
+            formats.callout !== '' &&
+            span >= toRadians(calloutLabel.minAngle)
+        ) {
             result.calloutLabel = {
                 ...this.getTextAlignment(midAngle),
                 text: formats.callout,
@@ -895,11 +904,11 @@ export class DonutSeries extends PolarSeries<
             };
         }
 
-        if (sectorLabel.enabled && formats.sector) {
+        if (sectorLabel.enabled && formats.sector != null && formats.sector !== '') {
             result.sectorLabel = { text: formats.sector };
         }
 
-        if (legendItemKey && formats.legendItem) {
+        if (legendItemKey != null && legendItemKey !== '' && formats.legendItem != null && formats.legendItem !== '') {
             result.legendItem = { key: legendItemKey, text: formats.legendItem };
         }
 
@@ -1140,12 +1149,12 @@ export class DonutSeries extends PolarSeries<
         this.highlightGroup.translationY = this.centerY;
         this.backgroundGroup.translationX = this.centerX;
         this.backgroundGroup.translationY = this.centerY;
-        if (this.labelGroup) {
+        if (this.labelGroup != null) {
             this.labelGroup.translationX = this.centerX;
             this.labelGroup.translationY = this.centerY;
         }
 
-        if (title) {
+        if (title != null) {
             const dy = this.getTitleTranslationY();
             title.node.y = Number.isFinite(dy) ? dy : 0;
 
@@ -1176,7 +1185,7 @@ export class DonutSeries extends PolarSeries<
                 oldTitle.node.remove();
             }
 
-            if (title) {
+            if (title != null) {
                 title.node.textBaseline = 'bottom';
                 this.labelGroup?.appendChild(title.node);
             }
@@ -1305,7 +1314,7 @@ export class DonutSeries extends PolarSeries<
             radius = Math.ceil(this.getInnerCircleFillRadius() * 2 + antiAliasingPadding);
         }
 
-        const datums = innerCircle ? [{ radius }] : [];
+        const datums = innerCircle == null ? [] : [{ radius }];
         this.innerCircleSelection.update(datums);
     }
 
@@ -1464,7 +1473,7 @@ export class DonutSeries extends PolarSeries<
             const calloutColors: string[] = isStringFillArray(colors) ? colors : strokes;
             const { calloutLabel: label, outerRadius, datumIndex } = datum;
 
-            if (label?.text && !label.hidden && outerRadius !== 0) {
+            if (label?.text != null && label.text !== '' && !label.hidden && outerRadius !== 0) {
                 line.visible = true;
                 line.strokeWidth = calloutStrokeWidth;
                 line.stroke = color ?? calloutColors[datumIndex % calloutColors.length];
@@ -1477,7 +1486,7 @@ export class DonutSeries extends PolarSeries<
                 let x2 = datum.midCos * lineEndRadius;
                 let y2 = datum.midSin * lineEndRadius;
 
-                const isMoved = label.collisionTextAlign ?? label.collisionOffsetY !== 0;
+                const isMoved = label.collisionTextAlign != null || label.collisionOffsetY !== 0;
                 if (isMoved && label.box != null) {
                     // Get the closest point to the text bounding box
                     const box = label.box;
@@ -2050,7 +2059,7 @@ export class DonutSeries extends PolarSeries<
             const radius = radiusScale.convert(datum.radius);
             const outerRadius = Math.max(0, radius);
 
-            if (!label?.text || outerRadius === 0 || label.hidden) {
+            if (label?.text == null || label.text === '' || outerRadius === 0 || label.hidden) {
                 text.visible = false;
                 continue;
             }
@@ -2131,7 +2140,7 @@ export class DonutSeries extends PolarSeries<
 
         let titleBox: BBox | undefined = undefined;
         const { title } = this.properties;
-        if (title?.text && title.enabled) {
+        if (title?.text != null && title.text !== '' && title.enabled) {
             const dy = this.getTitleTranslationY();
             if (Number.isFinite(dy)) {
                 text.text = title.text;
@@ -2483,9 +2492,9 @@ export class DonutSeries extends PolarSeries<
         const { angleKey, calloutLabelKey, sectorLabelKey, legendItemKey, showInLegend } = this.properties;
 
         if (
-            !legendItemKey &&
-            (!calloutLabelKey || calloutLabelKey === angleKey) &&
-            (!sectorLabelKey || sectorLabelKey === angleKey)
+            (legendItemKey == null || legendItemKey === '') &&
+            (calloutLabelKey == null || calloutLabelKey === '' || calloutLabelKey === angleKey) &&
+            (sectorLabelKey == null || sectorLabelKey === '' || sectorLabelKey === angleKey)
         ) {
             return [];
         }
@@ -2493,7 +2502,8 @@ export class DonutSeries extends PolarSeries<
         const processedDataValues = this.getProcessedDataValues(dataModel, processedData);
         const { angleRawValues } = processedDataValues;
 
-        const titleText = this.properties.title?.showInLegend && this.properties.title.text;
+        const legendTitle = this.properties.title;
+        const titleText = legendTitle?.showInLegend === true ? legendTitle.text : undefined;
         const legendData: CategoryLegendDatum[] = [];
 
         const hideZeros = this.properties.hideZeroValueSectorsInLegend;
@@ -2508,16 +2518,26 @@ export class DonutSeries extends PolarSeries<
             }
 
             const labelParts = [];
-            if (titleText) {
+            if (titleText != null && titleText !== '') {
                 labelParts.push(titleText);
             }
             const labels = this.getLabelContent(datumIndex, datum, processedDataValues);
 
-            if (legendItemKey && labels.legendItem !== undefined) {
+            if (legendItemKey != null && legendItemKey !== '' && labels.legendItem !== undefined) {
                 labelParts.push(labels.legendItem);
-            } else if (calloutLabelKey && calloutLabelKey !== angleKey && labels.callout !== undefined) {
+            } else if (
+                calloutLabelKey != null &&
+                calloutLabelKey !== '' &&
+                calloutLabelKey !== angleKey &&
+                labels.callout !== undefined
+            ) {
                 labelParts.push(labels.callout);
-            } else if (sectorLabelKey && sectorLabelKey !== angleKey && labels.sector !== undefined) {
+            } else if (
+                sectorLabelKey != null &&
+                sectorLabelKey !== '' &&
+                sectorLabelKey !== angleKey &&
+                labels.sector !== undefined
+            ) {
                 labelParts.push(labels.sector);
             }
 
@@ -2715,13 +2735,13 @@ export class DonutSeries extends PolarSeries<
             return `${datumIndex}`;
         }
 
-        if (legendItemKey) {
+        if (legendItemKey != null && legendItemKey !== '') {
             const legendItemKeys = dataModel.resolveKeysById(this, 'legendItemKey', processedData);
             return createDatumId(legendItemKeys[datumIndex]);
-        } else if (calloutLabelKey) {
+        } else if (calloutLabelKey != null && calloutLabelKey !== '') {
             const calloutLabelKeys = dataModel.resolveKeysById(this, 'calloutLabelKey', processedData);
             return createDatumId(calloutLabelKeys[datumIndex]);
-        } else if (sectorLabelKey) {
+        } else if (sectorLabelKey != null && sectorLabelKey !== '') {
             const sectorLabelKeys = dataModel.resolveKeysById(this, 'sectorLabelKey', processedData);
             return createDatumId(sectorLabelKeys[datumIndex]);
         }

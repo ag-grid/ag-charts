@@ -269,10 +269,10 @@ export class Tooltip extends BaseProperties {
             position = calculatePlacement(elementSize.width, elementSize.height, relativeRect, tooltipBounds);
 
             constrained = false;
-            if (directionChecks[placement] & DirectionCheck.Horizontal) {
+            if ((directionChecks[placement] & DirectionCheck.Horizontal) !== 0) {
                 constrained ||= position.x < minX || position.x > maxX;
             }
-            if (directionChecks[placement] & DirectionCheck.Vertical) {
+            if ((directionChecks[placement] & DirectionCheck.Vertical) !== 0) {
                 constrained ||= position.y < minY || position.y > maxY;
             }
         } while (i < placements.length && constrained);
@@ -281,7 +281,7 @@ export class Tooltip extends BaseProperties {
         const top = clamp(minY, position.y, maxY);
 
         constrained ||= left !== position.x || top !== position.y;
-        const defaultShowArrow = anchorTo !== 'chart' && !constrained && !xOffset && !yOffset;
+        const defaultShowArrow = anchorTo !== 'chart' && !constrained && xOffset === 0 && yOffset === 0;
         const showArrow = meta.showArrow ?? this.showArrow ?? defaultShowArrow;
         this.arrowPosition = showArrow ? arrowPositions[placement] : undefined;
         this.updateClassModifiers();

@@ -302,7 +302,7 @@ export async function waitForChartUpdate(wrapper: Locator) {
 
 export async function getAnimationTime(wrapper: Locator): Promise<number> {
     const timeAttr = await wrapper.getAttribute('data-animation-time-ms');
-    return timeAttr ? parseFloat(timeAttr) : 0;
+    return timeAttr == null || timeAttr === '' ? 0 : parseFloat(timeAttr);
 }
 
 export async function expectAnimationOccurred(wrapper: Locator, minTimeMs: number = 10) {

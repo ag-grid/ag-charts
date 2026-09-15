@@ -22,7 +22,11 @@ export default function agAutoRedirect(redirectPathsIter: Iterable<string> = [])
                 server.middlewares.stack.unshift({
                     route: '',
                     handle(req: IncomingMessage, res: ServerResponse, next: () => void) {
-                        if (PUBLIC_BASE_URL && (req.url === '/' || (req.url != null && isRedirectPath(req.url)))) {
+                        if (
+                            PUBLIC_BASE_URL != null &&
+                            PUBLIC_BASE_URL !== '' &&
+                            (req.url === '/' || (req.url != null && isRedirectPath(req.url)))
+                        ) {
                             res.writeHead(302, {
                                 Location: `${PUBLIC_BASE_URL}${req.url}`,
                             });

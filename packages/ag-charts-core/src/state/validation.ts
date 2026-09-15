@@ -137,7 +137,7 @@ function extendPath(path: string, key: string | number) {
     if (isFiniteNumber(key)) {
         return `${path}[${key}]`;
     }
-    return path ? `${path}.${key}` : key;
+    return path === '' ? key : `${path}.${key}`;
 }
 
 export class ValidationError {
@@ -160,8 +160,8 @@ export class ValidationError {
 
     getPrefix(): string {
         const { altPath: path = this.path, key } = this;
-        if (!path && !key) return 'Value';
-        return `Option \`${key ? extendPath(path, key) : path}\``;
+        if (path === '' && (key == null || key === '')) return 'Value';
+        return `Option \`${key == null || key === '' ? path : extendPath(path, key)}\``;
     }
 
     toString() {
@@ -192,7 +192,7 @@ export class UnknownError extends ValidationError {
 
     getPostfix() {
         const suggestions = joinFormatted(findSuggestions(this.key, this.suggestions), 'or', (val) => `\`${val}\``);
-        return suggestions ? `; Did you mean ${suggestions}? Ignoring.` : ', ignoring.';
+        return suggestions === '' ? ', ignoring.' : `; Did you mean ${suggestions}? Ignoring.`;
     }
 
     override toString() {
@@ -881,9 +881,9 @@ function warnCallbackErrors(
         }
         const errorValue = stringifyValue(error.value, 50);
         context.params.logger.warnOnce(
-            error.key
-                ? `Callback \`${context.path}\` returned an invalid property \`${extendPath(error.path, error.key)}\`: \`${errorValue}\`; expecting ${error.description}, ignoring.`
-                : `Callback \`${context.path}\` returned an invalid value \`${errorValue}\`; expecting ${description ?? error.description}, ignoring.`
+            error.key == null || error.key === ''
+                ? `Callback \`${context.path}\` returned an invalid value \`${errorValue}\`; expecting ${description ?? error.description}, ignoring.`
+                : `Callback \`${context.path}\` returned an invalid property \`${extendPath(error.path, error.key)}\`: \`${errorValue}\`; expecting ${error.description}, ignoring.`
         );
     }
 }

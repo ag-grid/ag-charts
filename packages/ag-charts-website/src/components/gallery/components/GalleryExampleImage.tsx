@@ -56,7 +56,7 @@ export const GalleryExampleImage: FunctionComponent<Props> = ({ label, exampleNa
 
     return (
         <div className={styles.imageWrapper}>
-            {srcSet && (
+            {srcSet !== '' && (
                 <img
                     src={src}
                     srcSet={srcSet}

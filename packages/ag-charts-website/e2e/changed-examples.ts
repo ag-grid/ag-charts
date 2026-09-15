@@ -30,7 +30,7 @@ export function exampleDir(path: string): string | undefined {
  */
 export function getChangedExamples(): ChangedExamples | undefined {
     const base = process.env.NX_BASE;
-    if (!base) return undefined;
+    if (base == null || base === '') return undefined;
 
     // An UNUSABLE base is the same situation as an absent one — see gitChangedFiles.
     const pluginChanges = gitChangedFiles(base, '../../plugins/ag-charts-generate-example-files/');

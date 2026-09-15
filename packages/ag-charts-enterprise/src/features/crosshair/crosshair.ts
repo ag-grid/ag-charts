@@ -163,7 +163,7 @@ export class Crosshair
 
     private layout({ series: { rect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {
         const options = this.options;
-        if (!visible || !axes || !options?.enabled) return;
+        if (!visible || axes == null || !options?.enabled) return;
 
         this.seriesRect = rect;
 
@@ -171,7 +171,7 @@ export class Crosshair
 
         const axisLayout = axes[axisId];
 
-        if (!axisLayout) return;
+        if (axisLayout == null) return;
 
         this.axisLayout = axisLayout;
         this.bounds = rect.clone().grow(axisLayout.gridPadding + axisLayout.seriesAreaPadding, axisPosition);
@@ -212,7 +212,7 @@ export class Crosshair
                 labels[key] ??= new CrosshairLabel(ctx.domManager, key, this.axisCtx.axisId);
             }
 
-            if (labels[key]) {
+            if (labels[key] != null) {
                 this.updateLabel(labels[key]);
             }
         }
@@ -349,7 +349,7 @@ export class Crosshair
         const labelEnabled = this.options?.label.enabled ?? false;
         lineGroupSelection.each((line, key) => {
             const lineData = data[key];
-            if (!lineData) {
+            if (lineData == null) {
                 line.visible = false;
                 this.hideLabel(key);
                 return;

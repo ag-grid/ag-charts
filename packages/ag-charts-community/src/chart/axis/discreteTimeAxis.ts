@@ -26,7 +26,7 @@ export class DiscreteTimeAxis<
         }
 
         const prevTick = ticks[index - 1];
-        const offset = prevTick ? translation - (translation - prevTick.translation) / 2 : range[0];
+        const offset = prevTick == null ? range[0] : translation - (translation - prevTick.translation) / 2;
         const [x1, y1, x2, y2] = horizontal
             ? [offset, Math.max(p1, p2), offset, Math.min(p1, p2)]
             : [Math.min(p1, p2), offset, Math.max(p1, p2), offset];
@@ -60,8 +60,8 @@ export class DiscreteTimeAxis<
 
         const prevTick = ticks[index - 1];
         const nextTick = ticks[index + 1];
-        const startOffset = prevTick ? translation - (translation - prevTick.translation) / 2 : range[0];
-        const endOffset = nextTick ? translation + (nextTick.translation - translation) / 2 : range[1];
+        const startOffset = prevTick == null ? range[0] : translation - (translation - prevTick.translation) / 2;
+        const endOffset = nextTick == null ? range[1] : translation + (nextTick.translation - translation) / 2;
 
         const [x1, y1, x2, y2] = horizontal
             ? [startOffset, Math.max(p1, p2), endOffset, Math.min(p1, p2)]
@@ -94,7 +94,7 @@ export class DiscreteTimeAxis<
         const datumTick = isPrimary && primaryTick?.enabled ? primaryTick : tick;
         const h = -direction * this.getTickSize(datumTick);
         const prevTick = ticks[index - 1];
-        const offset = prevTick ? translation - (translation - prevTick.translation) / 2 : range[0];
+        const offset = prevTick == null ? range[0] : translation - (translation - prevTick.translation) / 2;
         const tickOffset = -direction * (scrollbarThickness + this.getTickSpacing(datumTick));
         const [x1, y1, x2, y2] = horizontal
             ? [offset, tickOffset, offset, tickOffset + h]

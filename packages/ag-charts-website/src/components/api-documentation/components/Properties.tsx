@@ -69,11 +69,13 @@ export function PropertyNamePrefix({
         if (segment.startsWith('[')) {
             return `${acc}${segment}`;
         }
-        return acc ? `${acc}.${cleanupName(segment)}` : cleanupName(segment);
+        return acc === '' ? cleanupName(segment) : `${acc}.${cleanupName(segment)}`;
     }, '');
     return (
         <>
-            {parentPrefix && <Component className={styles.parentProperties}>{`${parentPrefix}${separator}`}</Component>}
+            {parentPrefix != null && parentPrefix !== '' && (
+                <Component className={styles.parentProperties}>{`${parentPrefix}${separator}`}</Component>
+            )}
         </>
     );
 }
@@ -140,10 +142,10 @@ export function PropertyType({
     return (
         <div className={styles.metaItem}>
             <div className={styles.metaRow}>
-                {name && showCodeButton && (
+                {name != null && name !== '' && showCodeButton && (
                     <CodeCollapsibleButton name={name} isExpanded={codeButtonExpanded} onClick={codeButtonOnClick} />
                 )}
-                {typeUrl && isCollapsibleCode ? (
+                {typeUrl != null && typeUrl !== '' && isCollapsibleCode ? (
                     <a
                         className={styles.metaValue}
                         href={typeUrl}
@@ -208,5 +210,7 @@ function PropertyName({
 function wbrInject(text: string, splitRegex: RegExp) {
     return text
         .split(splitRegex)
-        .reduce<ReactNode[]>((result, part, index) => result.concat(index ? [<wbr key={index} />, part] : part), []);
+        .reduce<
+            ReactNode[]
+        >((result, part, index) => result.concat(index === 0 ? part : [<wbr key={index} />, part]), []);
 }

@@ -12,7 +12,7 @@ export function validateDatumPoint(
     warningPrefix?: string
 ) {
     if (point.x == null || point.y == null) {
-        if (warningPrefix) {
+        if (warningPrefix != null) {
             context.logger.warnOnce(`${warningPrefix}requires both an [x] and [y] property, ignoring.`);
         }
         return false;
@@ -28,7 +28,7 @@ export function validateDatumPoint(
 
     if (validX && validY) return true;
 
-    if (warningPrefix) {
+    if (warningPrefix != null) {
         let text = 'x & y domains';
         if (validX) text = 'y domain';
         if (validY) text = 'x domain';
@@ -43,7 +43,7 @@ export function validateDatumPoint(
 function validateDatumPointDirection(d: any, context: AnnotationAxisContext) {
     const { domain } = context.scale;
     const value = getGroupingValue(d);
-    if (domain && value != null && context.continuous) {
+    if (domain != null && value != null && context.continuous) {
         return value >= domain[0] && value <= domain.at(-1);
     }
     return true; // domain.includes(value); // TODO: does not work with dates

@@ -281,6 +281,23 @@ export default [
             '@typescript-eslint/no-shadow': 2,
             '@typescript-eslint/prefer-as-const': 2,
             '@typescript-eslint/prefer-nullish-coalescing': 2,
+            // A `string` or `number` in a boolean position is almost always a nullish check written
+            // as a truthiness check, which then also rejects the legitimate values `''`, `0` and
+            // `NaN` — the AG-18413 crash on `sizeKey: ''` was exactly this. Write `x != null`.
+            // Nullable booleans, enums, objects and `any` keep the ordinary truthiness shorthand.
+            '@typescript-eslint/strict-boolean-expressions': [
+                2,
+                {
+                    allowString: false,
+                    allowNumber: false,
+                    allowNullableString: false,
+                    allowNullableNumber: false,
+                    allowNullableObject: true,
+                    allowNullableBoolean: true,
+                    allowNullableEnum: true,
+                    allowAny: true,
+                },
+            ],
             '@typescript-eslint/prefer-optional-chain': 2,
             '@typescript-eslint/prefer-readonly': 2,
             '@typescript-eslint/prefer-ts-expect-error': 2,

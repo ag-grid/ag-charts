@@ -756,7 +756,7 @@ export abstract class Series<
     public getOpacity(): number {
         const defaultOpacity = 1;
 
-        if (!this.properties.highlight) {
+        if (this.properties.highlight == null) {
             return defaultOpacity;
         }
 
@@ -1566,7 +1566,7 @@ export abstract class Series<
             inheritedStyle
         );
 
-        if (itemStyler && params) {
+        if (itemStyler != null && params != null) {
             const highlightStateString =
                 highlightState === undefined
                     ? this.getHighlightStateString(

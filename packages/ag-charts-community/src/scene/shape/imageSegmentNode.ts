@@ -54,13 +54,14 @@ export class ImageSegmentNode extends Node {
         const previousAlpha = ctx.globalAlpha;
         ctx.globalAlpha = previousAlpha * opacity;
 
-        if (this.backgroundFill) {
+        if (this.backgroundFill != null && this.backgroundFill !== '') {
             this.tracePath(ctx, x, y, boxWidth, boxHeight, cornerRadius);
             ctx.fillStyle = this.backgroundFill;
             ctx.fill();
         }
 
-        if (this.url) {
+        const hasUrl = this.url !== '';
+        if (hasUrl) {
             const loader = this.imageLoader;
             if (loader !== this.registeredLoader) {
                 this.registeredLoader?.unregisterNode(this);

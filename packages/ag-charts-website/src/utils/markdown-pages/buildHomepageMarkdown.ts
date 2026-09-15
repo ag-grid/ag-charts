@@ -63,12 +63,15 @@ type CtaSectionBlock = Partial<Omit<CtaSection, 'heading'>> & { heading: string;
 
 function ctaSectionBlock(section: CtaSectionBlock, siteRoot?: string): string {
     const parts = [`## ${section.heading}`];
-    if (section.subHeading) {
+    if (section.subHeading != null && section.subHeading !== '') {
         parts.push(section.subHeading);
     }
     const ctas =
-        section.ctas ?? (section.ctaTitle && section.ctaUrl ? [{ title: section.ctaTitle, url: section.ctaUrl }] : []);
-    if (ctas.length) {
+        section.ctas ??
+        (section.ctaTitle != null && section.ctaTitle !== '' && section.ctaUrl != null && section.ctaUrl !== ''
+            ? [{ title: section.ctaTitle, url: section.ctaUrl }]
+            : []);
+    if (ctas.length > 0) {
         parts.push(ctas.map((cta) => ctaLink(cta.title, cta.url, siteRoot)).join(' | '));
     }
     return parts.join('\n\n');

@@ -266,7 +266,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         // The label is only rendered under the same conditions `updateNodes` applies, so an
         // unlabelled cross line must not report a hit on its zero-sized label node.
         const { label } = this;
-        if (!this.labelGroup.visible || label.enabled === false || !label.text) {
+        if (!this.labelGroup.visible || label.enabled === false || label.text == null || label.text === '') {
             return false;
         }
         return Transformable.toCanvas(this.crossLineLabel).containsPoint(point.canvasX, point.canvasY);
@@ -367,7 +367,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
         this.data = [clampedYStart, clampedYEnd];
 
-        if (this.label.enabled === false || !this.label.text) return;
+        if (this.label.enabled === false || this.label.text == null || this.label.text === '') return;
     }
 
     get reservesLabelSpace(): boolean {
@@ -377,7 +377,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     /** Taken from the drawn node, so whatever `positionLabel` and `clipLabelText` settled on is reserved. */
     getLabelBox(): BoxBounds | undefined {
         const { crossLineLabel, label } = this;
-        if (label.enabled === false || !label.text || !this.labelGroup.visible) return;
+        if (label.enabled === false || label.text == null || label.text === '' || !this.labelGroup.visible) return;
 
         return Transformable.toCanvas(crossLineLabel);
     }
@@ -404,7 +404,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         this.updateRangeNode(bounds);
 
         const { label } = this;
-        if (label.enabled !== false && label.text) {
+        if (label.enabled !== false && label.text != null && label.text !== '') {
             this.updateLabel();
             if (label.overflow === 'clip-text') {
                 this.clipLabelText(bounds);
@@ -449,7 +449,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     private updateLabel() {
         const { crossLineLabel, label } = this;
 
-        if (!label.text) return;
+        if (label.text == null || label.text === '') return;
 
         crossLineLabel.fill = label.color;
         crossLineLabel.text = label.text;
@@ -498,10 +498,10 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     private clipLabelText(bounds: BBox) {
         const { crossLineLabel, containerBox, label, anchor } = this;
         const { text } = label;
-        if (containerBox == null || !text) return;
+        if (containerBox == null || text == null || text === '') return;
 
         const bbox = crossLineLabel.getBBox();
-        if (!bbox) return;
+        if (bbox == null) return;
 
         const { x, y, width, height } = containerBox;
         const container = Transformable.fromCanvas(this.labelGroup, new BBox(x, y, width, height));
@@ -538,7 +538,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         const { crossLineLabel, anchor } = this;
 
         const bbox = crossLineLabel.getBBox();
-        if (!bbox) return;
+        if (bbox == null) return;
         const { width, height } = bbox;
 
         const { pad, xPaddingDiff, yPaddingDiff } = this.labelAnchorOffsets();
@@ -556,7 +556,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
     private computeLabelSize(): { width: number; height: number } | undefined {
         const { label } = this;
-        if (label.enabled === false || !label.text) return;
+        if (label.enabled === false || label.text == null || label.text === '') return;
         const tempText = new TransformableText();
         tempText.fontFamily = label.fontFamily;
         tempText.fontSize = label.fontSize;
@@ -568,7 +568,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         tempText.textAlign = 'center';
 
         const bbox = tempText.getBBox();
-        if (!bbox) return;
+        if (bbox == null) return;
 
         const { width, height } = bbox;
         return { width, height };

@@ -45,7 +45,7 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
             for (const datum of memento) {
                 const { seriesId, data } = this.getRestoredData(datum) ?? {};
 
-                if (!seriesId || !data) {
+                if (seriesId == null || !data) {
                     continue;
                 }
 
@@ -57,11 +57,11 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
     private getRestoredData(datum: AgInitialStateLegendOptions) {
         const { seriesId, itemId, legendItemName, visible } = datum;
 
-        if (seriesId) {
+        if (seriesId != null) {
             const legendData = this.legendDataRecord[seriesId] ?? [];
 
             const data = legendData.map((d) => {
-                const match = d.seriesId === seriesId && (!itemId || d.itemId === itemId);
+                const match = d.seriesId === seriesId && (itemId == null || d.itemId === itemId);
                 if (match && d.isFixed) {
                     this.warnFixed(d.seriesId, d.itemId);
                 }
@@ -118,7 +118,7 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
     }
 
     public toggleItem(enabled: boolean, seriesId: string, itemId?: any, legendItemName?: string) {
-        if (legendItemName) {
+        if (legendItemName != null && legendItemName !== '') {
             const record = this.legendDataRecord;
             for (const datum of this.getData()) {
                 const newData = (record[datum.seriesId] ?? []).map((d) =>
@@ -143,7 +143,7 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
     public getData(seriesId?: string) {
         const record = this.legendDataRecord;
 
-        if (seriesId) {
+        if (seriesId != null) {
             return record[seriesId] ?? [];
         }
 

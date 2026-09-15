@@ -247,7 +247,7 @@ export abstract class OhlcSeriesBase<
         if (animationEnabled) {
             extraProps.push(animationValidation());
         }
-        if (openKey) {
+        if (openKey != null && openKey !== '') {
             extraProps.push(
                 valueProperty(openKey, yScaleType, {
                     id: `openValue`,

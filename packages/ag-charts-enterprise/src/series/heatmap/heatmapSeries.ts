@@ -207,9 +207,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             props: [
                 valueProperty(xKey, xScaleType, { id: 'xValue', allowNullKey }),
                 valueProperty(yKey, yScaleType, { id: 'yValue', allowNullKey }),
-                ...(colorKey
-                    ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue', invalidValue: undefined })]
-                    : []),
+                ...(colorKey == null || colorKey === ''
+                    ? []
+                    : [valueProperty(colorKey, colorScaleType, { id: 'colorValue', invalidValue: undefined })]),
             ],
         });
 
@@ -240,7 +240,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
     private isColorScaleValid() {
         const { colorKey } = this.properties;
-        if (!colorKey) {
+        if (colorKey == null || colorKey === '') {
             return false;
         }
 
@@ -372,11 +372,15 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         const xValues = dataModel.resolveColumnById(this, `xValue`, processedData, 'object');
         const yValues = dataModel.resolveColumnById(this, `yValue`, processedData, 'object');
-        const colorValues = colorKey
-            ? dataModel.resolveColumnById(this, `colorValue`, processedData, 'number')
-            : undefined;
+        const colorValues =
+            colorKey == null || colorKey === ''
+                ? undefined
+                : dataModel.resolveColumnById(this, `colorValue`, processedData, 'number');
 
-        const colorDomain = colorKey ? dataModel.getDomain(this, 'colorValue', 'value', processedData).domain : [];
+        const colorDomain =
+            colorKey == null || colorKey === ''
+                ? []
+                : dataModel.getDomain(this, 'colorValue', 'value', processedData).domain;
 
         const width = xScale.bandwidth ?? 10;
         const height = yScale.bandwidth ?? 10;

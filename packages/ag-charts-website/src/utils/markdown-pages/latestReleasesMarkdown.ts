@@ -31,8 +31,8 @@ export function latestReleasesMarkdown({ versionsData, count }: LatestReleasesOp
         .filter((version) => version.highlights)
         .map((version) => {
             const { major, minor } = parseVersion(version.version);
-            const blogUrl = `${minor ? `${blogPrefix}${major}-${minor}` : `${blogPrefix}${major}`}/`;
-            const date = version.date ? ` — ${version.date}` : '';
+            const blogUrl = `${minor === 0 ? `${blogPrefix}${major}` : `${blogPrefix}${major}-${minor}`}/`;
+            const date = version.date == null || version.date === '' ? '' : ` — ${version.date}`;
             const highlights = version.highlights!.map((highlight) => `- ${highlight.text}`).join('\n');
             return `### [${version.version}${date}](${blogUrl})\n\n${highlights}`;
         })

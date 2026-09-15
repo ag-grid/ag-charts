@@ -36,7 +36,7 @@ export abstract class ContinuousScale<D extends number | bigint | Date, I = numb
     }
 
     set domain(values: readonly (D | bigint)[]) {
-        if (!values || values.length < 2) {
+        if (values == null || values.length < 2) {
             this._domain = narrowStoredDomain(values);
             this.d0Big = this.d1Big = undefined;
             this.d0Cache = Number.NaN;
@@ -111,7 +111,7 @@ export abstract class ContinuousScale<D extends number | bigint | Date, I = numb
 
     convert(value: D | AgNumericValue, options?: { clamp?: boolean }) {
         const { domain } = this;
-        if (!domain || domain.length < 2 || value == null) {
+        if (domain == null || domain.length < 2 || value == null) {
             return Number.NaN;
         }
 

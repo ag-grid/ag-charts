@@ -25,7 +25,7 @@ describe('Tooltip', () => {
     let chart: AgChartProxy | Chart;
 
     afterEach(async () => {
-        if (chart) {
+        if (chart != null) {
             await waitForChartStability(chart);
             chart.destroy();
         }

@@ -114,7 +114,7 @@ export function getMemberType(member: MemberNode): string {
             type.type.map((subType) => getReferencedTypeName(isArrayNode(subType) ? subType.type : subType))
         );
         const [only] = names;
-        if (names.size === 1 && only) {
+        if (names.size === 1 && only != null && only !== '') {
             return only;
         }
     }
@@ -133,7 +133,7 @@ export function normalizeType(refType: TypeNode, keepGenerics?: boolean): string
 
     if (isTypeReferenceNode(refType)) {
         const showArgs = keepGenerics === true || refType.type === 'Omit' || refType.type === 'Pick';
-        return showArgs && refType.typeArguments?.length
+        return showArgs && refType.typeArguments != null && refType.typeArguments.length > 0
             ? `${refType.type}<${refType.typeArguments.map((typeArg) => normalizeType(typeArg)).join(', ')}>`
             : refType.type;
     }
@@ -174,7 +174,7 @@ export function processMembers(
 ) {
     const { prioritise, include, exclude } = config;
     const members = Array.isArray(interfaceRef.members) ? interfaceRef.members : [];
-    if (!members.length) {
+    if (members.length === 0) {
         return [];
     }
 
@@ -230,8 +230,8 @@ export function getNavigationDataFromPath([basePath, ...path]: NavigationPath[],
     for (let i = 0; i < path.length; i++) {
         const item = path[i];
         if (isArrayOrRecordSpecialType(specialType, item.type)) {
-            const child = path[i + 1];
-            if (child) {
+            const child = path.at(i + 1);
+            if (child != null) {
                 if (data.hash.startsWith(baseHash)) {
                     const prePath = data.hash
                         .slice(baseHash.length + 1)
@@ -255,8 +255,8 @@ export function getNavigationDataFromPath([basePath, ...path]: NavigationPath[],
         }
 
         if (specialType?.[item.type] === 'NestedPage') {
-            const child = path[i + 1];
-            if (child) {
+            const child = path.at(i + 1);
+            if (child != null) {
                 data.pathname += `${item.name}/${child.name}/`;
                 data.hash = `reference-${child.type}`;
                 data.pageTitle = { name: child.name };
@@ -357,7 +357,7 @@ export function parseJsDocs(docs?: string[]) {
 }
 
 function filterMembers(members: MemberNode[], include?: string[], exclude?: string[]) {
-    if (!include?.length && !exclude?.length) {
+    if ((include?.length ?? 0) === 0 && (exclude?.length ?? 0) === 0) {
         return members;
     }
     return members.filter((member) => !exclude?.includes(member.name) && (include?.includes(member.name) ?? true));
@@ -426,7 +426,7 @@ function substituteGenerics(type: TypeNode, genericsMap: Map<unknown, unknown>):
         });
         return changed ? { ...type, type: subTypes } : type;
     }
-    if (isTypeReferenceNode(type) && type.typeArguments?.length) {
+    if (isTypeReferenceNode(type) && type.typeArguments != null && type.typeArguments.length > 0) {
         let changed = false;
         const typeArguments = type.typeArguments.map((arg) => {
             const resolved = substituteGenerics(arg, genericsMap);
@@ -441,7 +441,12 @@ function substituteGenerics(type: TypeNode, genericsMap: Map<unknown, unknown>):
 }
 
 function extractOmitType(memberType: TypeNode) {
-    if (!isTypeReferenceNode(memberType) || memberType.type !== 'Omit' || !memberType.typeArguments?.length) {
+    if (
+        !isTypeReferenceNode(memberType) ||
+        memberType.type !== 'Omit' ||
+        memberType.typeArguments == null ||
+        memberType.typeArguments.length === 0
+    ) {
         return null;
     }
 
@@ -458,10 +463,10 @@ function formatInterfaceCode(
     const genericsMap = new Map<string, unknown>(entries(apiNode.genericsMap ?? {}));
     const additionalTypes = new Set<string>();
     const typesList = apiNode.members.map((nodeMember) => {
-        const resolved = genericsMap.size ? applyGenericsToMember(nodeMember, genericsMap) : nodeMember;
+        const resolved = genericsMap.size === 0 ? nodeMember : applyGenericsToMember(nodeMember, genericsMap);
         const memberString = `${resolved.name}${resolved.optional ? '?' : ''}: ${normalizeType(resolved.type)};`;
         collectAdditionalTypes(resolved, additionalTypes, seen);
-        if (resolved.docs?.length && resolved.docs[0] !== '') {
+        if (resolved.docs != null && resolved.docs.length > 0 && resolved.docs[0] !== '') {
             return resolved.docs
                 .map((docsLine: string) => `// ${docsLine}`)
                 .concat(memberString)
@@ -530,10 +535,10 @@ function formatUnionTypeAlias(
         if (shouldFormatAdditionalType(type, reference, seen)) {
             const subType = reference.get(type)!;
             const codeResult = formatTypeToCode(subType, member, reference, seen);
-            if (codeResult) {
+            if (codeResult !== '') {
                 result.push(codeResult);
             }
-            if (subType.kind === 'interface' && subType.members.length) {
+            if (subType.kind === 'interface' && subType.members.length > 0) {
                 for (const subMember of subType.members) {
                     additionalTypes.add(
                         normalizeType(isArrayNode(subMember.type) ? subMember.type.type : subMember.type)
@@ -581,11 +586,11 @@ function formatFunctionCode(name: string, apiNode: FunctionNode, member: MemberN
     const codeSample = `function ${name}(${paramsString}): ${normalizeType(normalizedReturn, true)};`;
     const additionalSeen = new Set<string>();
 
-    return additionalTypes.length
-        ? [codeSample]
+    return additionalTypes.length === 0
+        ? codeSample
+        : [codeSample]
               .concat(additionalTypes.map((type) => formatTypeToCode(type, member, reference, additionalSeen)))
-              .join('\n\n')
-        : codeSample;
+              .join('\n\n');
 }
 
 function applyTypeArgumentsToFunction(apiNode: FunctionNode, member: MemberNode, reference: ApiReferenceType) {
@@ -597,8 +602,9 @@ function applyTypeArgumentsToFunction(apiNode: FunctionNode, member: MemberNode,
 
         if (typeParams) {
             params = apiNode.params?.map((nodeParam) => {
-                const genericValue = typeArguments[typeParams.findIndex((param) => param.name === nodeParam.type)];
-                return genericValue ? { ...nodeParam, type: genericValue } : nodeParam;
+                const genericIndex = typeParams.findIndex((param) => param.name === nodeParam.type);
+                const genericValue = genericIndex === -1 ? undefined : typeArguments[genericIndex];
+                return genericValue == null ? nodeParam : { ...nodeParam, type: genericValue };
             });
 
             if (isUnionNode(returnType)) {
@@ -725,7 +731,7 @@ export function resolveUnionAliases(
     const aliases = [...new Set(names)]
         .map((name) => reference.get(name)!)
         .filter((node): node is TypeAliasNode => node.kind === 'typeAlias' && !isDeprecated(node));
-    return aliases.length ? aliases : undefined;
+    return aliases.length === 0 ? undefined : aliases;
 }
 
 /** The generator marks deprecation only through the doc tag, which its own filters also key on. */
@@ -736,7 +742,7 @@ function isDeprecated(node: NodeTypes): boolean {
 /** A union member is "lost" when it is not rendered as an interface variant row (see `toUnionVariant`). */
 function isVariantInterface(member: TypeNode, reference: ApiReferenceType): boolean {
     const name = getReferencedTypeName(isArrayNode(member) ? member.type : member);
-    const node = name ? reference.get(name) : undefined;
+    const node = name == null ? undefined : reference.get(name);
     return node?.kind === 'interface' && !isInterfaceHidden(name!);
 }
 
@@ -768,11 +774,11 @@ export function formatUnionSignature(
     }
 
     const signature = addNewLineOnPipe(normalizeType(unionType));
-    const lines = [aliasName ? `type ${aliasName} =\n    ${signature};` : signature];
+    const lines = [aliasName == null ? signature : `type ${aliasName} =\n    ${signature};`];
 
-    const seen = new Set<string>(aliasName ? [aliasName] : []);
+    const seen = new Set<string>(aliasName == null ? [] : [aliasName]);
     const queue = referencedMemberNames(unionType, reference);
-    while (queue.length) {
+    while (queue.length > 0) {
         const name = queue.shift()!;
         if (seen.has(name)) {
             continue;
@@ -811,7 +817,7 @@ export function resolveAliasedUnion(
     ) {
         const [heritage] = interfaceRef.heritage;
         const heritageName = getReferencedTypeName(heritage);
-        const target = heritageName ? reference?.get(heritageName) : undefined;
+        const target = heritageName == null ? undefined : reference?.get(heritageName);
         if (isUnionTypeAlias(target)) {
             return { unionType: target.type, genericsMap: interfaceRef.genericsMap };
         }
@@ -876,7 +882,7 @@ export function getAliasedUnionVariants(
     }
 
     const variants = collectAliasedVariants(aliasedUnion.unionType.type, reference);
-    if (!variants.length) {
+    if (variants.length === 0) {
         return undefined;
     }
 
@@ -886,9 +892,8 @@ export function getAliasedUnionVariants(
     const isArray = variantMembers.length > 0 && variantMembers.every((member) => isArrayNode(member));
 
     const primitiveMembers = aliasedUnion.unionType.type.filter((member) => !memberYieldsVariants(member, reference));
-    const primitive = primitiveMembers.length
-        ? primitiveMembers.map((member) => normalizeType(member)).join(' | ')
-        : undefined;
+    const primitive =
+        primitiveMembers.length === 0 ? undefined : primitiveMembers.map((member) => normalizeType(member)).join(' | ');
 
     return { variants, genericsMap: aliasedUnion.genericsMap, primitive, isArray };
 }
@@ -903,7 +908,7 @@ function collectAliasedVariants(unionTypes: TypeNode[], reference: ApiReferenceT
     return unionTypes.flatMap((subType) => {
         const elementType = isArrayNode(subType) ? subType.type : subType;
         const subtypeName = getReferencedTypeName(elementType);
-        const node = subtypeName ? reference.get(subtypeName) : undefined;
+        const node = subtypeName == null ? undefined : reference.get(subtypeName);
         if (isUnionTypeAlias(node)) {
             return collectAliasedVariants(node.type.type, reference);
         }
@@ -925,11 +930,11 @@ function collectAliasedVariants(unionTypes: TypeNode[], reference: ApiReferenceT
 function memberYieldsVariants(member: TypeNode, reference: ApiReferenceType): boolean {
     const elementType = isArrayNode(member) ? member.type : member;
     const name = getReferencedTypeName(elementType);
-    const node = name ? reference.get(name) : undefined;
+    const node = name == null ? undefined : reference.get(name);
     if (isUnionTypeAlias(node)) {
         return node.type.type.some((nested) => memberYieldsVariants(nested, reference));
     }
-    return Boolean(name && !isInterfaceHidden(name) && getVariantDiscriminator(node));
+    return name != null && !isInterfaceHidden(name) && getVariantDiscriminator(node) != null;
 }
 
 /** Builds positional type arguments for an interface from a generics map keyed by type-param name. */
@@ -1016,7 +1021,7 @@ function collectInterfaceSearchData(
         });
 
         const referenceTarget = resolveMemberReference(member, reference, genericsMap);
-        if (referenceTarget) {
+        if (referenceTarget != null) {
             collectSearchData(out, reference, referenceTarget, navPath, `${label}.`);
         }
     }
@@ -1032,7 +1037,7 @@ function resolveMemberReference(
         element = element.type;
     }
     const resolvedType = getReferencedTypeName(element);
-    return resolvedType && reference?.get(resolvedType);
+    return resolvedType == null ? undefined : reference?.get(resolvedType);
 }
 
 function collectUnionSearchData(
@@ -1057,7 +1062,7 @@ function collectUnionSearchEntries(
     parentGenericsMap?: Record<string, TypeNode>
 ): void {
     const subtypeName = getReferencedTypeName(typeName);
-    if (!subtypeName || isInterfaceHidden(subtypeName)) {
+    if (subtypeName == null || isInterfaceHidden(subtypeName)) {
         return;
     }
 
@@ -1100,7 +1105,7 @@ function findRequiredRefs(reference: ApiReferenceType) {
     const annotationRef = tryGet('AgAnnotation')!;
     const miniChartSeriesRef = tryGet('AgMiniChartSeriesOptions')!;
 
-    if (typeNamesNotFound.length) {
+    if (typeNamesNotFound.length > 0) {
         throw new Error(`Cannot find types: ${typeNamesNotFound.join(', ')}`);
     }
     return { axesRef, seriesRef, annotationRef, miniChartSeriesRef };

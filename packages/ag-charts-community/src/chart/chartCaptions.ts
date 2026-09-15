@@ -98,7 +98,7 @@ export class ChartCaptions {
         caption.node.x = this.computeX(textAlign, layoutBox) + xInset;
         caption.node.y = layoutBox.y + (vAlign === 'top' ? top : layoutBox.height - bottom);
         caption.node.textBaseline = vAlign;
-        if (!text) return;
+        if (text == null || text === '') return;
         // One line of text is the floor, measured at the size the caption can shrink to: at its configured
         // size the floor is a budget the text already fits, so nothing would ever shrink.
         const floor = labelTextAtShrinkRatio(text, opts.minimumFontSize, font, 0);

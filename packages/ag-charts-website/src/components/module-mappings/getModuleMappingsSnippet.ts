@@ -8,9 +8,9 @@ function formatImportItem(name: string) {
 }
 
 function formatImports(imports: string[], packageName: string) {
-    return imports.length
-        ? `import {\n${imports.map(formatImportItem).join('\n')}\n} from 'ag-charts-${packageName}';`
-        : null;
+    return imports.length === 0
+        ? null
+        : `import {\n${imports.map(formatImportItem).join('\n')}\n} from 'ag-charts-${packageName}';`;
 }
 
 export function getModuleMappingsSnippet({
@@ -22,10 +22,11 @@ export function getModuleMappingsSnippet({
     const allSelectedModules = community.concat(enterprise);
     const imports = formatImports(
         ['ModuleRegistry'].concat(allSelectedModules),
-        enterprise.length ? 'enterprise' : 'community'
+        enterprise.length === 0 ? 'community' : 'enterprise'
     );
-    const moduleList = allSelectedModules.length
-        ? allSelectedModules.map(formatImportItem).join('\n')
-        : '    // no modules selected';
+    const moduleList =
+        allSelectedModules.length === 0
+            ? '    // no modules selected'
+            : allSelectedModules.map(formatImportItem).join('\n');
     return `${imports}\n\nModuleRegistry.registerModules([\n${moduleList}\n]);`;
 }
