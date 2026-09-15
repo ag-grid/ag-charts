@@ -10,9 +10,11 @@ import {
     bundleContents,
     cartesianSeriesModules,
     chartListenerToModule,
+    chartOptionsMarkers,
     enterpriseModules,
     intrinsicDefaults,
     moduleToPackage,
+    nestedListenerOwners,
     pluginOptionToModule,
     polarAxisPluginToModule,
     polarSeriesModules,
@@ -288,6 +290,88 @@ export default {
             return node;
         }
 
+        /** Resolve to an object literal, following a `const` when the option was factored out. */
+        function resolveObjectExpression(node) {
+            node = unwrapExpressions(node);
+            if (!node) return undefined;
+            if (node.type === 'ObjectExpression') return node;
+            if (node.type !== 'Identifier') return undefined;
+
+            let variable;
+            for (let scope = context.sourceCode.getScope(node); scope && !variable; scope = scope.upper) {
+                variable = scope.variables.find((v) => v.name === node.name);
+            }
+            const declarator = variable?.defs?.[0]?.node;
+            if (declarator?.type !== 'VariableDeclarator') return undefined;
+            const init = unwrapExpressions(declarator.init);
+            return init?.type === 'ObjectExpression' ? init : undefined;
+        }
+
+        /** A chart's own options, as opposed to a factored-out axis or series that also has `listeners`. */
+        function isChartOptionsObject(objectNode) {
+            if (objectNode?.type !== 'ObjectExpression') return false;
+            return objectNode.properties.some(
+                (p) => p.type === 'Property' && p.key.type === 'Identifier' && chartOptionsMarkers.has(p.key.name)
+            );
+        }
+
+        /** Whether these options are a polar chart's, judged from their own axes and series. */
+        function isPolarOptions(optionsNode) {
+            for (const prop of optionsNode.properties) {
+                if (prop.type !== 'Property' || prop.key.type !== 'Identifier') continue;
+
+                if (prop.key.name === 'axes' && prop.value.type === 'ObjectExpression') {
+                    for (const axis of prop.value.properties) {
+                        if (axis.type !== 'Property' || axis.key.type !== 'Identifier') continue;
+                        if (axis.key.name === 'angle' || axis.key.name === 'radius') return true;
+                    }
+                }
+
+                if (prop.key.name === 'series' && prop.value.type === 'ArrayExpression') {
+                    for (const element of prop.value.elements) {
+                        const series = unwrapExpressions(element);
+                        if (series?.type !== 'ObjectExpression') continue;
+                        for (const p of series.properties) {
+                            if (p.type !== 'Property' || p.key.type !== 'Identifier' || p.key.name !== 'type') continue;
+                            const seriesType = getStringValue(p.value);
+                            if (seriesType && seriesChartType.get(seriesType) === 'polar') return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        /** Chart-level listener mapping, with the polar Cross Lines module for a polar chart. */
+        function chartListenerModules(optionsNode) {
+            if (!isPolarOptions(optionsNode)) return chartListenerToModule;
+
+            const polarCrossLines = polarAxisPluginToModule.get('crossLines');
+            return new Map(
+                [...chartListenerToModule].map(([event, moduleId]) => [
+                    event,
+                    moduleId === 'CrossLinesModule' ? polarCrossLines : moduleId,
+                ])
+            );
+        }
+
+        /** Require each listener event's module, using the caller's mapping for its own level. */
+        function requireListenerModules(listenersProp, eventToModule, describeEvent) {
+            const listeners = resolveObjectExpression(listenersProp.value);
+            if (!listeners) return;
+
+            // `ownerOf` attributes a requirement to the chart containing the reported node, so a node
+            // inside a shared const would be attributed to that const instead of to the chart.
+            const inline = listeners === unwrapExpressions(listenersProp.value);
+
+            for (const prop of listeners.properties) {
+                if (prop.type !== 'Property') continue;
+                const eventName = prop.key.type === 'Identifier' ? prop.key.name : getStringValue(prop.key);
+                if (!eventName || !eventToModule.has(eventName)) continue;
+                requireModule(eventToModule.get(eventName), describeEvent(eventName), inline ? prop : listenersProp);
+            }
+        }
+
         /**
          * Process a single series object to find required modules
          */
@@ -446,20 +530,8 @@ export default {
 
                 // Check for axis listeners, whose events map to different modules. `listeners` is a
                 // Cartesian-only axis option, so there is no polar variant to account for here.
-                if (keyName === 'listeners' && prop.value.type === 'ObjectExpression') {
-                    for (const listenerProp of prop.value.properties) {
-                        if (listenerProp.type !== 'Property') continue;
-                        const eventName =
-                            listenerProp.key.type === 'Identifier'
-                                ? listenerProp.key.name
-                                : getStringValue(listenerProp.key);
-                        if (!eventName || !axisListenerToModule.has(eventName)) continue;
-                        requireModule(
-                            axisListenerToModule.get(eventName),
-                            `axis listener '${eventName}'`,
-                            listenerProp
-                        );
-                    }
+                if (keyName === 'listeners') {
+                    requireListenerModules(prop, axisListenerToModule, (e) => `axis listener '${e}'`);
                 }
             }
         }
@@ -475,19 +547,6 @@ export default {
                 }
                 const moduleId = pluginOptionToModule.get(keyName);
                 requireModule(moduleId, `option '${keyName}'`, propNode);
-            }
-
-            // Check for chart-level listeners whose events are dispatched by a plugin
-            if (keyName === 'listeners' && valueNode.type === 'ObjectExpression') {
-                for (const nestedProp of valueNode.properties) {
-                    if (nestedProp.type !== 'Property') continue;
-                    const eventName =
-                        nestedProp.key.type === 'Identifier' ? nestedProp.key.name : getStringValue(nestedProp.key);
-                    if (eventName && chartListenerToModule.has(eventName)) {
-                        const listenerModuleId = chartListenerToModule.get(eventName);
-                        requireModule(listenerModuleId, `listeners.${eventName} option`, nestedProp);
-                    }
-                }
             }
 
             // Check for nested options under annotations
@@ -842,6 +901,20 @@ export default {
                     }
                 } else if (pluginOptionToModule.has(keyName)) {
                     processPluginOption(keyName, node.value, node);
+                } else if (keyName === 'listeners') {
+                    // Nested `listeners` are handled where their owning object is processed.
+                    const nested = context.sourceCode
+                        .getAncestors(node)
+                        .some(
+                            (a) =>
+                                a.type === 'Property' &&
+                                a.key.type === 'Identifier' &&
+                                nestedListenerOwners.has(a.key.name)
+                        );
+                    if (!nested && isChartOptionsObject(node.parent)) {
+                        const modules = chartListenerModules(node.parent);
+                        requireListenerModules(node, modules, (e) => `listeners.${e} option`);
+                    }
                 } else if (keyName === 'type') {
                     // Handle type properties anywhere in the file
                     const typeValue = getStringValue(node.value);
