@@ -1393,20 +1393,22 @@ export class DonutSeries extends PolarSeries<
             node.visible = datum.datumIndex === highlightedDatum?.datumIndex;
         });
 
-        this.updateCalloutLineNodes();
-        this.updateCalloutLabelNodes(seriesRect);
-        this.updateSectorLabelNodes();
+        // The labels resolve legend-linked highlights the same way the sectors do, so a label on a series that
+        // does not own the hovered legend item is lit with its sector rather than dimmed as another series.
+        this.updateCalloutLineNodes(legendItemValues);
+        this.updateCalloutLabelNodes(seriesRect, legendItemValues);
+        this.updateSectorLabelNodes(legendItemValues);
         this.updateInnerLabelNodes();
         this.updateZerosumRings();
 
         this.animationState.transition('update');
     }
 
-    updateCalloutLineNodes() {
+    private updateCalloutLineNodes(legendItemValues: string[] | undefined) {
         const { strokes } = this.properties;
         const { offset } = this.properties.calloutLabel;
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
+        const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum, legendItemValues);
 
         for (const line of this.calloutLabelSelection.selectByTag<Line>(DonutNodeTag.CalloutLine)) {
             const datum = line.unsafeClosestDatum() as PieDonutNodeDatum;
@@ -1421,7 +1423,9 @@ export class DonutSeries extends PolarSeries<
                 line.visible = true;
                 line.strokeWidth = calloutStrokeWidth;
                 line.stroke = color ?? calloutColors[datumIndex % calloutColors.length];
-                line.strokeOpacity = this.getHighlightStyle(isDatumHighlighted, datum.datumIndex).opacity ?? 1;
+                line.strokeOpacity =
+                    this.getHighlightStyle(isDatumHighlighted, datum.datumIndex, undefined, legendItemValues).opacity ??
+                    1;
                 line.fill = undefined;
 
                 const x1 = datum.midCos * outerRadius;
@@ -1654,13 +1658,13 @@ export class DonutSeries extends PolarSeries<
         ]);
     }
 
-    private updateCalloutLabelNodes(seriesRect: BBox) {
+    private updateCalloutLabelNodes(seriesRect: BBox, legendItemValues: string[] | undefined) {
         const { radiusScale } = this;
         const { calloutLabel } = this.properties;
 
         const tempTextNode = new Text();
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
+        const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum, legendItemValues);
 
         for (const text of this.calloutLabelSelection.selectByTag<Text>(DonutNodeTag.CalloutLabel)) {
             const datum: PieDonutNodeDatum = text.unsafeClosestDatum();
@@ -1721,7 +1725,8 @@ export class DonutSeries extends PolarSeries<
             text.setAlign(align);
             text.setBoxing(style);
             text.fill = style.color;
-            text.fillOpacity = this.getHighlightStyle(isDatumHighlighted, datum.datumIndex).opacity ?? 1;
+            text.fillOpacity =
+                this.getHighlightStyle(isDatumHighlighted, datum.datumIndex, undefined, legendItemValues).opacity ?? 1;
             text.visible = visible;
         }
     }
@@ -1827,7 +1832,7 @@ export class DonutSeries extends PolarSeries<
         return BBox.merge(textBoxes);
     }
 
-    private updateSectorLabelNodes() {
+    private updateSectorLabelNodes(legendItemValues: string[] | undefined) {
         const { properties } = this;
         const { positionOffset, positionRatio } = this.properties.sectorLabel;
         // Fitting only engages when the user opts into wrapping/truncation; otherwise the sector text renders in
@@ -1837,7 +1842,7 @@ export class DonutSeries extends PolarSeries<
         const labelPadding = expandLabelBoxExtent(this.properties.sectorLabel);
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
+        const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum, legendItemValues);
 
         const innerRadius = this.radiusScale.convert(0);
         const shouldPutTextInCenter =
@@ -1861,7 +1866,9 @@ export class DonutSeries extends PolarSeries<
                     const sectorBounds = { startAngle, endAngle, innerRadius, outerRadius };
 
                     text.fill = style.color;
-                    text.fillOpacity = this.getHighlightStyle(isDatumHighlighted, datum.datumIndex).opacity ?? 1;
+                    text.fillOpacity =
+                        this.getHighlightStyle(isDatumHighlighted, datum.datumIndex, undefined, legendItemValues)
+                            .opacity ?? 1;
                     if (sectorFit == null) {
                         text.x = shouldPutTextInCenter ? 0 : datum.midCos * labelRadius;
                         text.y = shouldPutTextInCenter ? 0 : datum.midSin * labelRadius;
