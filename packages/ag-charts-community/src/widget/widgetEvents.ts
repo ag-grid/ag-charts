@@ -19,7 +19,7 @@ type WidgetEventType =
     | DragWidgetEventType
     | (CollapseWidgetEvent | ExpandControlledWidgetEvent | ExpandWidgetEvent)['type'];
 
-// Verify that `WIDGET_META` has no missing event-type and no spurious entries:
+// Verify that `WIDGET_META` has no missing event-type and no spurious entries
 true satisfies AreExact<WidgetEventType, WidgetMetaKeys>;
 true satisfies AreExact<FocusWidgetEventType, DerivedKeysForWidgetEvent<FocusWidgetEvent>>;
 true satisfies AreExact<KeyboardWidgetEventType, DerivedKeysForWidgetEvent<KeyboardWidgetEvent>>;
@@ -73,7 +73,7 @@ export type TouchSyntheticMouseWidgetEvent<
     readonly sourceEvent: TouchEvent;
 };
 
-export type NativeMouseWidgetEvent<T extends MouseWidgetEventType = MouseWidgetEventType> = {
+export type MouseWidgetEvent<T extends MouseWidgetEventType = MouseWidgetEventType> = {
     readonly type: T;
     readonly device: 'mouse';
     readonly offsetX: number;
@@ -85,10 +85,11 @@ export type NativeMouseWidgetEvent<T extends MouseWidgetEventType = MouseWidgetE
     readonly sourceEvent: MouseEvent;
 };
 
-export type MouseWidgetEvent<T extends MouseWidgetEventType = MouseWidgetEventType> =
-    | NativeMouseWidgetEvent<T>
-    | (T extends TouchSyntheticMouseWidgetEventType ? TouchSyntheticMouseWidgetEvent<T> : never)
-    | (T extends KeyboardSyntheticMouseWidgetEventType ? KeyboardSyntheticMouseWidgetEvent<T> : never);
+export type ClickWidgetEvent =
+    | MouseWidgetEvent<'click'>
+    | KeyboardSyntheticMouseWidgetEvent<'click'>
+    | TouchSyntheticMouseWidgetEvent<'click'>;
+export type DblClickWidgetEvent = MouseWidgetEvent<'dblclick'> | TouchSyntheticMouseWidgetEvent<'dblclick'>;
 
 export type WheelWidgetEvent = {
     readonly type: 'wheel';
@@ -102,9 +103,6 @@ export type WheelWidgetEvent = {
     readonly deltaY: number;
     readonly sourceEvent: WheelEvent;
 };
-
-export type ClickLikeEvent = MouseWidgetEvent<'click' | 'dblclick'> & { device: 'mouse' | 'touch' };
-export type HoverLikeEvent = ClickLikeEvent | MouseWidgetEvent<'mousemove'> | DragWidgetEvent<'drag-move'>;
 
 // `originDelta` is the offset relative to position of the HTML element when the drag initiated.
 // This is helpful for elements that move during drag actions, like navigator sliders.
@@ -206,12 +204,14 @@ const WIDGET_META = {
         allocator(sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'click'> {
             return allocMouseEvent('click', sourceEvent, current);
         },
+        sythetics: undefined as ClickWidgetEvent | undefined,
     },
     dblclick: {
         isNative: true,
         allocator(sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'dblclick'> {
             return allocMouseEvent('dblclick', sourceEvent, current);
         },
+        sythetics: undefined as DblClickWidgetEvent | undefined,
     },
     mouseenter: {
         isNative: true,
@@ -310,6 +310,7 @@ const WIDGET_META = {
                   | ((sourceEvent: MouseEvent, current: HTMLElement) => MouseWidgetEvent)
                   | ((sourceEvent: WheelEvent, current: HTMLElement) => WheelWidgetEvent)
                   | ((sourceEvent: TouchEvent, current: HTMLElement) => TouchWidgetEvent);
+              readonly sythetics?: { readonly type: K };
           }
         | {
               readonly isNative?: never;
@@ -343,11 +344,14 @@ type DerivedSourceEventsWhereIsNative = {
     [K in DerivedKeysWhereIsNative]: Parameters<WidgetMeta[K]['allocator']>[0];
 };
 type DerivedWidgetEventsWhereIsNative = {
-    [K in DerivedKeysWhereIsNative]: ReturnType<WidgetMeta[K]['allocator']>;
+    [K in DerivedKeysWhereIsNative]: WidgetMeta[K] extends { sythetics?: any }
+        ? NonNullable<WidgetMeta[K]['sythetics']>
+        : ReturnType<WidgetMeta[K]['allocator']>;
 };
 type DerivedWidgetEventsWhereIsInternal = {
     [K in DerivedKeysWhereIsInternal]: WidgetMeta[K]['typeDerivation'];
 };
+
 type DerivedWidgetEvents = DerivedWidgetEventsWhereIsNative & DerivedWidgetEventsWhereIsInternal;
 
 type _DerivedKeysForWidgetEvent_HTML_branch<TWidgetEvent> = {

@@ -273,7 +273,7 @@ export class AnnotationsToolbar extends BaseProperties {
     }
 
     private onToolbarButtonPressShowMenu(
-        event: _ModuleSupport.MouseWidgetEvent<'click'>,
+        event: _Widget.ClickWidgetEvent,
         buttonBounds: BoxBounds,
         controller: _Widget.ExpansionControllerWidget,
         menu: AnnotationsToolbarButtonValue,

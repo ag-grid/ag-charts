@@ -35,9 +35,7 @@ import { BaseManager } from '../../util/baseManager';
 import { debouncedAnimationFrame } from '../../util/render';
 import type { Widget } from '../../widget/widget';
 import type {
-    ClickLikeEvent,
     DragWidgetEvent,
-    HoverLikeEvent,
     KeyboardSyntheticMouseWidgetEvent,
     KeyboardWidgetEvent,
     MouseWidgetEvent,
@@ -70,6 +68,14 @@ import {
 import type { DatumIndex, FireNodeEventParams, SeriesNodeDatum } from './seriesTypes';
 import { SelectionState } from './seriesTypes';
 import { getDatumRefPoint, isDatumHighlight } from './util';
+
+type MouseOrTouchEvent<T> = Readonly<CurrentPoint> & {
+    readonly type: T;
+    readonly device: 'mouse' | 'touch';
+    readonly sourceEvent: MouseEvent | TouchEvent;
+};
+type ClickLikeEvent = MouseOrTouchEvent<'click' | 'dblclick'> | KeyboardSyntheticMouseWidgetEvent<'click'>;
+type HoverLikeEvent = MouseOrTouchEvent<'click' | 'dblclick' | 'mousemove' | 'drag-move'>;
 
 type FocusAnnounceMode = 'always' | 'never' | 'when-changed';
 
@@ -618,7 +624,7 @@ export class SeriesAreaManager extends BaseManager {
         this.emitSeriesAreaHoverEvent(event, consumed);
     }
 
-    private onClick(event: ClickLikeEvent | KeyboardSyntheticMouseWidgetEvent, current: Widget) {
+    private onClick(event: ClickLikeEvent, current: Widget) {
         if (event.device === 'keyboard') {
             return; // already handled natively by 'keydown' listener
         }
@@ -904,7 +910,7 @@ export class SeriesAreaManager extends BaseManager {
         return allMatchedParams.length > 0 && (axes.size > 0 || crossLines.size > 0 || chartListener != null);
     }
 
-    private pickSeriesNodeHitParams(event: ClickLikeEvent): AgMatchedParams<unknown>[] {
+    private pickSeriesNodeHitParams(event: ClickLikeEvent & CurrentPoint): AgMatchedParams<unknown>[] {
         const pickedNodes = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
         if (pickedNodes == null || pickedNodes.matches.length === 0) return [];
         const { matches, target } = pickedNodes;
@@ -917,7 +923,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private checkSeriesNodeClick(
-        event: ClickLikeEvent & { preventZoomDblClick?: boolean },
+        event: ClickLikeEvent & CurrentPoint & { preventZoomDblClick?: boolean },
         crossLineParams: AgMatchedParams<unknown>[]
     ): SeriesNodeClickCheck | undefined {
         const pickedNodes = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');

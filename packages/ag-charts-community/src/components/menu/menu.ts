@@ -4,7 +4,7 @@ import { createElement, getIconClassNames } from 'ag-charts-core';
 import type { ExpansionControllerWidget } from '../../widget/expandableWidget';
 import { MenuItemRadioWidget, MenuItemWidget } from '../../widget/menuItemWidget';
 import { MenuWidget } from '../../widget/menuWidget';
-import type { MouseWidgetEvent } from '../../widget/widgetEvents';
+import type { ClickWidgetEvent } from '../../widget/widgetEvents';
 import { AnchoredPopover, type AnchoredPopoverOptions } from '../popover/anchoredPopover';
 
 export interface MenuOptions<Value = any> extends AnchoredPopoverOptions {
@@ -82,7 +82,7 @@ export class Menu extends AnchoredPopover {
             row.setAriaLabel(this.ctx.localeManager.t(item.altText));
         }
 
-        row.addListener('click', ({ sourceEvent }: MouseWidgetEvent<'click'>) => {
+        row.addListener('click', ({ sourceEvent }: ClickWidgetEvent) => {
             options.onPress?.(item);
             sourceEvent.preventDefault();
             menu.collapse();

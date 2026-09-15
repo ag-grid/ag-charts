@@ -37,7 +37,13 @@ import type { AxisValuePick } from '../module/axisContext';
 import type { BBox } from '../scene/bbox';
 import type { Node } from '../scene/node';
 import type { SelectionInterface } from '../scene/selection';
-import type { DragWidgetEvent, KeyboardWidgetEvent, MouseWidgetEvent, WheelWidgetEvent } from '../widget/widgetEvents';
+import type {
+    DblClickWidgetEvent,
+    DragWidgetEvent,
+    KeyboardWidgetEvent,
+    MouseWidgetEvent,
+    WheelWidgetEvent,
+} from '../widget/widgetEvents';
 
 export type EventsHub = EventEmitter<EventsHubMap>;
 
@@ -240,10 +246,10 @@ export interface AxisInteractionDragEvent<T extends 'drag-start' | 'drag-move' |
     event: DragWidgetEvent<T>;
 }
 
-export interface AxisInteractionMouseEvent<T extends 'dblclick'> {
+export interface AxisInteractionMouseEvent<_T extends 'dblclick'> {
     axisId: AxisID;
     direction: ChartAxisDirection;
-    event: MouseWidgetEvent<T> | SeriesAreaClickEvent;
+    event: DblClickWidgetEvent | SeriesAreaClickEvent;
 }
 
 export interface AxisInteractionMouseEnterEvent {
