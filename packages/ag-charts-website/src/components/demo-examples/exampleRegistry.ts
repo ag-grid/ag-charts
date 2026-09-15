@@ -17,9 +17,9 @@ export interface DemoExample extends DemoPageExample {
 export const DEMO_EXAMPLES: DemoExample[] = [
     {
         id: 'financial',
-        title: 'Financial Dashboard',
+        title: 'Trading Terminal',
         path: './examples/',
-        description: 'Candlestick and volume series driven by a live price feed.',
+        description: 'Candlestick and volume series driven by streaming market data.',
         demoAppId: 'financial',
         image: '/images/demos/financial.webp',
     },
@@ -27,7 +27,7 @@ export const DEMO_EXAMPLES: DemoExample[] = [
         id: 'web-analytics',
         title: 'Web Analytics',
         path: './examples-web-analytics/',
-        description: 'Traffic, funnel and retention charts over a shared date range.',
+        description: 'Traffic, funnel and sankey charts over a shared date range.',
         demoAppId: 'web-analytics',
         image: '/images/demos/web-analytics.webp',
     },
