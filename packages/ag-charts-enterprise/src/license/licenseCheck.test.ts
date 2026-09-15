@@ -13,6 +13,7 @@ import { prepareTestOptions, setupMockCanvas, setupMockConsole, waitForChartStab
 import { type ModuleDefinition, ModuleRegistry, enterpriseRegistry } from 'ag-charts-core';
 
 import { LicenseManager } from './licenseManager';
+import { clearLicenseKey } from './test/licenseTestUtils';
 
 // The suite-wide mock stands in for this module everywhere else; these tests need the real one.
 vi.unmock('./licenseManager');
@@ -54,7 +55,7 @@ describe('licence check for a community-only chart', () => {
     afterEach(() => {
         chart?.destroy();
         chart = undefined;
-        LicenseManager.setLicenseKey();
+        clearLicenseKey();
         enterpriseRegistry.licenseManager = originalLicenseManager;
         ModuleRegistry.reset();
         ModuleRegistry.registerModules(registeredModules);
@@ -66,8 +67,8 @@ describe('licence check for a community-only chart', () => {
         return chart;
     }
 
-    it('reports an empty licence key as missing', async () => {
-        LicenseManager.setLicenseKey('');
+    it.each(['', undefined, null])('reports the licence key %s as missing', async (key) => {
+        LicenseManager.setLicenseKey(key);
         await createChart();
 
         const messages = takeErrorMessages();

@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LicenseManager } from './licenseManager';
+import { clearLicenseKey } from './test/licenseTestUtils';
 
 // The suite-wide mock stands in for this module everywhere else; these tests need the real one.
 vi.unmock('./licenseManager');
@@ -30,11 +31,11 @@ describe('LicenseManager', () => {
     beforeEach(() => {
         vi.spyOn(console, 'error').mockImplementation(() => {});
         vi.spyOn(console, 'warn').mockImplementation(() => {});
-        LicenseManager.setLicenseKey();
+        clearLicenseKey();
     });
 
     afterEach(() => {
-        LicenseManager.setLicenseKey();
+        clearLicenseKey();
         vi.restoreAllMocks();
     });
 
@@ -85,9 +86,15 @@ describe('LicenseManager', () => {
             expect(new LicenseManager().isLicenseKeySupplied()).toBe(false);
         });
 
-        it.each(['', 'not-a-key'])('is true once %j has been set', (key) => {
+        it.each(['', undefined, null, 'not-a-key'])('is true once %s has been set', (key) => {
             LicenseManager.setLicenseKey(key);
             expect(new LicenseManager().isLicenseKeySupplied()).toBe(true);
+        });
+
+        it('is false again once cleared', () => {
+            LicenseManager.setLicenseKey('not-a-key');
+            clearLicenseKey();
+            expect(new LicenseManager().isLicenseKeySupplied()).toBe(false);
         });
     });
 
@@ -96,14 +103,24 @@ describe('LicenseManager', () => {
             LicenseManager.setGridContext(false);
         });
 
-        it('reports an empty key as a missing licence key', () => {
-            LicenseManager.setLicenseKey('');
+        const errorOutput = () => vi.mocked(console.error).mock.calls.map(([line]) => String(line));
+
+        it.each(['', undefined, null])('reports %s as a missing licence key', (key) => {
+            LicenseManager.setLicenseKey(key);
             const manager = new LicenseManager(documentIn(windowAt('app.example.com')));
             manager.validateLicense();
 
-            const output = vi.mocked(console.error).mock.calls.map(([line]) => String(line));
-            expect(output.some((line) => line.includes('License Key Not Found'))).toBe(true);
+            expect(errorOutput().some((line) => line.includes('License Key Not Found'))).toBe(true);
             expect(manager.getWatermarkMessage()).toBe('For Trial Use Only');
+        });
+
+        it.each([12345, {}, true])('reports the non-string key %s as an invalid licence key', (key) => {
+            LicenseManager.setLicenseKey(key as any);
+            const manager = new LicenseManager(documentIn(windowAt('app.example.com')));
+            manager.validateLicense();
+
+            expect(errorOutput().some((line) => line.includes('Invalid License Key'))).toBe(true);
+            expect(manager.getWatermarkMessage()).toBe('Invalid License');
         });
 
         it('re-validates when the grid context changes', () => {
