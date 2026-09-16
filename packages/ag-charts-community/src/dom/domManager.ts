@@ -30,7 +30,6 @@ import NORMAL_DOM from './domLayout.html';
 const DOM_ELEMENT_CLASSES = [
     'styles',
     'canvas',
-    'canvas-background',
     'canvas-center',
     'canvas-container',
     'canvas-overlay',
