@@ -56,7 +56,7 @@ In the above example:
 
 ## Throwing on Validation Issues
 
-Use `validations.throwOn` to make the chart throw an exception and fail-fast, instead of warning and falling back to a default.
+Use `validations.throwOn` to make the chart throw an exception for each issue, in addition to reporting it.
 This suits automated workflows (for example, end-to-end test runs or AI-assisted development) where a hard failure should be surfaced for immediate attention.
 
 ```js format="snippet"
@@ -67,7 +67,8 @@ This suits automated workflows (for example, end-to-end test runs or AI-assisted
 }
 ```
 
-- Issues can arise at any point, not just when the chart is created, so a throw may interrupt an update part-way and leave the chart in an inconsistent state. Use `throwOn` during development only, never in production.
+- The exception is thrown asynchronously, after the chart has finished reporting the issue and applying its usual fallback, so it never interrupts an update. It cannot be caught around `AgCharts.create()` or `update()`; it surfaces as an uncaught error, which reaches the console, `window.onerror` and test runners.
+- Issues can arise at any point, not just when the chart is created. Use `throwOn` during development only, never in production.
 - Console output still follows `consoleOn` and is never suppressed by this option.
 
 ## Issue Raised Events

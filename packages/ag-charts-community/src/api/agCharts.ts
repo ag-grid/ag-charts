@@ -403,7 +403,7 @@ class AgChartsInternal {
                 chart?.ctx
             );
         } catch (e) {
-            // Options processing can throw (`validations.throwOn`), and a chart already taken out of
+            // Options processing can throw (a datum getter that throws), and a chart already taken out of
             // the pool above would otherwise stay in the busy pool for the rest of the page's life.
             poolResult?.release();
             throw e;

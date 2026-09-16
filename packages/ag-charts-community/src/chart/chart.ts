@@ -49,7 +49,6 @@ import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
 import { DebugSelectors } from '../scene/sceneDebug';
-import { FailFastError } from '../util/failFastError';
 import { Mutex } from '../util/mutex';
 import { debouncedCallback } from '../util/render';
 import { Background } from './background/background';
@@ -898,7 +897,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
     private readonly updateMutex = new Mutex();
     private clearCallbackCacheOnUpdate: boolean = false;
     private updateRequestors: Record<string, ChartUpdateType> = {};
-    private pendingFailFastError?: Error;
 
     private readonly performUpdateTrigger = debouncedCallback(({ count }) => {
         if (this.destroyed) return;
@@ -985,7 +983,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
             this.clearCallbackCacheOnUpdate && this.performUpdateType <= ChartUpdateType.PROCESS_DATA;
         this.ctx.validations.beginPass('update');
         let completed = false;
-        this.pendingFailFastError = undefined;
         try {
             const status = `${ChartUpdateType[this.performUpdateType]} ${this.updateShortcutCount > 0 ? '⚠️ redo #' + this.updateShortcutCount + ' ⚠️ ' : ''}`;
             await this.debug.group(`Chart.performUpdate() ${status}`, async () => {
@@ -1001,25 +998,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
         }
     }
 
-    /** Nothing here can throw to the API caller, so a fail-fast throw is held for the proxy's next `takeFailFastError()`. */
     private reportAsyncError(error: unknown) {
-        if (error instanceof FailFastError) {
-            this.pendingFailFastError = error;
-            return;
-        }
-        try {
-            this.ctx.logger.error(error);
-        } catch (failFast) {
-            if (!(failFast instanceof FailFastError)) throw failFast;
-            this.pendingFailFastError = failFast;
-        }
-    }
-
-    /** Clear-on-read so a stale runtime failure cannot be redelivered to a later, unrelated caller. */
-    takeFailFastError(): Error | undefined {
-        const error = this.pendingFailFastError;
-        this.pendingFailFastError = undefined;
-        return error;
+        this.ctx.logger.error(error);
     }
 
     private async performUpdate(count: number) {

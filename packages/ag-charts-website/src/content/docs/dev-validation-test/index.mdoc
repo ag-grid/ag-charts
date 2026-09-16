@@ -11,9 +11,9 @@ validation examples.
 
 What to test:
 
-- With `throwOn: ['warning']` selected, clicking "Apply Invalid Options" logs `threw: ...` and leaves
-  the chart container empty.
-- With `throwOn: []` selected, clicking "Apply Invalid Options" logs `chart created` and the chart
-  re-renders with the invalid option applied.
+- With `throwOn: ['warning']` selected, clicking "Apply Invalid Options" logs `chart created`, the chart
+  re-renders with the invalid option falling back, and an uncaught `AG Charts - validations.throwOn: warning - ...`
+  error follows, which the page's `error` listener logs as `uncaught: ...`.
+- With `throwOn: []` selected, clicking "Apply Invalid Options" logs `chart created` only.
 
 {% chartExampleRunner title="Throwing on Validation Issues" name="validation-throw" /%}

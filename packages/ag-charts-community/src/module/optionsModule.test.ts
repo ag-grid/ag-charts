@@ -18,6 +18,7 @@ import type {
 import { sanitizeThemeModules } from '../chart/factory/processModuleOptions';
 import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import * as examples from '../chart/test/examples';
+import { captureUncaught } from '../chart/test/utils';
 import { ChartTheme } from '../chart/themes/chartTheme';
 import { createProvisionalRuntime } from '../chart/validation/chartValidations';
 import { VERSION } from '../version';
@@ -4598,27 +4599,43 @@ describe('ChartOptions', () => {
     });
 
     describe('validations.throwOn', () => {
-        it('does not throw for the default (option absent), and still logs the existing warning', () => {
+        let capture: ReturnType<typeof captureUncaught>;
+        beforeEach(() => {
+            capture = captureUncaught(globalThis);
+        });
+        afterEach(() => capture.restore());
+
+        const uncaughtMessages = async () => {
+            await capture.settle();
+            return capture.uncaught.map(String);
+        };
+
+        // The pass under test is run for what it logs and throws, not for the instance it yields.
+        const construct = (userOptions: AgChartOptions, base?: ChartOptions) =>
+            base == null
+                ? new ChartOptions(userOptions, {} as AgChartOptions, {}, {}, {})
+                : new ChartOptions(base, userOptions, {}, {}, {});
+
+        it('does not throw for the default (option absent), and still logs the existing warning', async () => {
             const chartOptions = new ChartOptions(invalidOptions(), {} as AgChartOptions, {}, {}, {});
 
             expect(console.warn).toHaveBeenCalled();
             expect(chartOptions.issues.length).toBeGreaterThan(0);
+            expect(await uncaughtMessages()).toEqual([]);
         });
 
-        it('honours an explicit `[]`, which never throws and is not reported as unusable', () => {
-            let chartOptions!: ChartOptions<AgChartOptions>;
-            expect(() => {
-                chartOptions = new ChartOptions(
-                    invalidOptions({ validations: { throwOn: [] } }),
-                    {} as AgChartOptions,
-                    {},
-                    {},
-                    {}
-                );
-            }).not.toThrow();
+        it('honours an explicit `[]`, which never throws and is not reported as unusable', async () => {
+            const chartOptions = new ChartOptions(
+                invalidOptions({ validations: { throwOn: [] } }),
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
 
             expect(console.warn).toHaveBeenCalled();
             expect(chartOptions.issues.some((issue) => issue.message.includes('validations.throwOn'))).toBe(false);
+            expect(await uncaughtMessages()).toEqual([]);
         });
 
         // A bad element rejects the whole array, so the key is dropped and the default (off) applies -
@@ -4630,24 +4647,25 @@ describe('ChartOptions', () => {
             { label: "['loud']", value: ['loud'] },
             { label: "['error', 'loud']", value: ['error', 'loud'] },
             { label: "'error' (not an array)", value: 'error' },
-        ])('does not throw for an unusable throwOn value ($label), and the validator still reports it', ({ value }) => {
-            let chartOptions!: ChartOptions<AgChartOptions>;
-            expect(() => {
-                chartOptions = new ChartOptions(
+        ])(
+            'does not throw for an unusable throwOn value ($label), and the validator still reports it',
+            async ({ value }) => {
+                const chartOptions = new ChartOptions(
                     invalidOptions({ validations: { throwOn: value } }),
                     {} as AgChartOptions,
                     {},
                     {},
                     {}
                 );
-            }).not.toThrow();
 
-            expect(chartOptions.issues.some((issue) => issue.message.includes('validations.throwOn'))).toBe(true);
-            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
-            expect(messages.some((m) => m.includes('validations.throwOn'))).toBe(true);
-        });
+                expect(chartOptions.issues.some((issue) => issue.message.includes('validations.throwOn'))).toBe(true);
+                const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+                expect(messages.some((m) => m.includes('validations.throwOn'))).toBe(true);
+                expect(await uncaughtMessages()).toEqual([]);
+            }
+        );
 
-        it('throws on a warning-severity option error, naming the option path in the message', () => {
+        it('returns from the options pass, then throws uncaught for a warning-severity option error, naming the option path', async () => {
             expect(
                 () =>
                     new ChartOptions(
@@ -4657,46 +4675,31 @@ describe('ChartOptions', () => {
                         {},
                         {}
                     )
-            ).toThrowError(
-                /^AG Charts - validations\.throwOn: warning - Option `series\[0\]\.strokeWidth` cannot be set/
-            );
+            ).not.toThrow();
+
+            expect(await uncaughtMessages()).toEqual([
+                expect.stringMatching(
+                    /^Error: AG Charts - validations\.throwOn: warning - Option `series\[0\]\.strokeWidth` cannot be set/
+                ),
+            ]);
         });
 
-        it('writes the console record before throwing (AC2)', () => {
-            expect(
-                () =>
-                    new ChartOptions(
-                        invalidOptions({ validations: { throwOn: ['warning'] } }),
-                        {} as AgChartOptions,
-                        {},
-                        {},
-                        {}
-                    )
-            ).toThrow();
+        it('writes the console record as well as throwing (AC2)', async () => {
+            construct(invalidOptions({ validations: { throwOn: ['warning'] } }));
 
             const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
             expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
+            expect(await uncaughtMessages()).toHaveLength(1);
         });
 
-        it('does not claim the option was ignored in the thrown message, while the console record still does (TC2)', () => {
-            let thrown!: Error;
-            try {
-                new ChartOptions(
-                    invalidOptions({ validations: { throwOn: ['warning'] } }),
-                    {} as AgChartOptions,
-                    {},
-                    {},
-                    {}
-                );
-            } catch (e) {
-                thrown = e as Error;
-            }
+        it('does not claim the option was ignored in the thrown message, while the console record still does (TC2)', async () => {
+            construct(invalidOptions({ validations: { throwOn: ['warning'] } }));
 
-            // Nothing was ignored under an armed `throwOn` - the pass aborted instead of defaulting.
-            expect(thrown).toBeDefined();
-            expect(thrown.message).not.toMatch(/ignoring/i);
-            expect(thrown.message).toMatch(
-                /^AG Charts - validations\.throwOn: warning - Option `series\[0\]\.strokeWidth` cannot be set .*expecting a number greater than or equal to 0$/
+            // The thrown copy names the problem only; the fallback clause belongs to the console record.
+            const [thrown] = await uncaughtMessages();
+            expect(thrown).not.toMatch(/ignoring/i);
+            expect(thrown).toMatch(
+                /^Error: AG Charts - validations\.throwOn: warning - Option `series\[0\]\.strokeWidth` cannot be set .*expecting a number greater than or equal to 0$/
             );
 
             // AC2: the console record is untouched by fail-fast, trailing clause included.
@@ -4704,7 +4707,7 @@ describe('ChartOptions', () => {
             expect(messages.some((m) => /notanumber/.test(m) && /, ignoring\.$/.test(m))).toBe(true);
         });
 
-        it('throws for the first qualifying issue rather than collecting the whole batch first (AC3)', () => {
+        it('throws once per qualifying issue, so every issue of the pass is both reported and thrown (AC3)', async () => {
             const options: AgChartOptions = {
                 series: [
                     {
@@ -4718,43 +4721,37 @@ describe('ChartOptions', () => {
                 validations: { throwOn: ['warning'] },
             } as AgChartOptions;
 
-            expect(() => new ChartOptions(options, {} as AgChartOptions, {}, {}, {})).toThrow();
+            construct(options);
 
-            expect(console.warn).toHaveBeenCalledTimes(1);
+            expect(console.warn).toHaveBeenCalledTimes(2);
+            expect(await uncaughtMessages()).toEqual([
+                expect.stringContaining('series[0].strokeWidth'),
+                expect.stringContaining('series[0].lineDash'),
+            ]);
         });
 
-        it("does not throw at `['error']` for a warning-severity option error (nothing in the option pass is error-severity)", () => {
-            expect(
-                () =>
-                    new ChartOptions(
-                        invalidOptions({ validations: { throwOn: ['error'] } }),
-                        {} as AgChartOptions,
-                        {},
-                        {},
-                        {}
-                    )
-            ).not.toThrow();
+        it("does not throw at `['error']` for a warning-severity option error (nothing in the option pass is error-severity)", async () => {
+            construct(invalidOptions({ validations: { throwOn: ['error'] } }));
 
             expect(console.warn).toHaveBeenCalled();
+            expect(await uncaughtMessages()).toEqual([]);
         });
 
-        it("does not throw at `['deprecation']` for a warning-severity option error, each severity being independent", () => {
-            let chartOptions!: ChartOptions<AgChartOptions>;
-            expect(() => {
-                chartOptions = new ChartOptions(
-                    invalidOptions({ validations: { throwOn: ['deprecation'] } }),
-                    {} as AgChartOptions,
-                    {},
-                    {},
-                    {}
-                );
-            }).not.toThrow();
+        it("does not throw at `['deprecation']` for a warning-severity option error, each severity being independent", async () => {
+            const chartOptions = new ChartOptions(
+                invalidOptions({ validations: { throwOn: ['deprecation'] } }),
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
 
             expect(console.warn).toHaveBeenCalled();
             expect(chartOptions.issues.some((issue) => issue.severity === 'warning')).toBe(true);
+            expect(await uncaughtMessages()).toEqual([]);
         });
 
-        it('re-validates and throws again on a warm update, rather than carrying validation issues forward (S6/D4)', () => {
+        it('re-validates and throws again on a warm update, rather than carrying validation issues forward (S6/D4)', async () => {
             const validOptions: AgChartOptions = {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 validations: { throwOn: ['warning'] },
@@ -4762,10 +4759,10 @@ describe('ChartOptions', () => {
 
             const base = new ChartOptions(validOptions, {} as AgChartOptions, {}, {}, {});
             expect(console.warn).not.toHaveBeenCalled();
+            expect(await uncaughtMessages()).toEqual([]);
 
-            expect(
-                () => new ChartOptions(base, invalidOptions({ validations: { throwOn: ['warning'] } }), {}, {}, {})
-            ).toThrow();
+            construct(invalidOptions({ validations: { throwOn: ['warning'] } }), base);
+            expect(await uncaughtMessages()).toHaveLength(1);
         });
 
         // A rejected pass hands the chart back its previous `validations`, but the failure belongs to the
@@ -4785,7 +4782,7 @@ describe('ChartOptions', () => {
             const validOptions = (): AgChartOptions =>
                 ({ data: [{ x: 'A', y: 1 }], series: [{ type: 'line', xKey: 'x', yKey: 'y' }] }) as AgChartOptions;
 
-            it("throws the fail-fast error when the rejected pass armed `['error']`, then restores the previous settings", () => {
+            it("throws the fail-fast error when the rejected pass armed `['error']`, then restores the previous settings", async () => {
                 const runtime = createProvisionalRuntime(new Logger());
                 const base = new ChartOptions(
                     validOptions(),
@@ -4814,9 +4811,13 @@ describe('ChartOptions', () => {
                             undefined,
                             runtime
                         )
-                ).toThrow(/^AG Charts - validations\.throwOn: error - datum boom/);
+                ).toThrow('datum boom');
+                expect(await uncaughtMessages()).toEqual([
+                    expect.stringMatching(/^Error: AG Charts - validations\.throwOn: error - datum boom/),
+                ]);
 
-                expect(() => runtime.logger.error('later error')).not.toThrow();
+                runtime.logger.error('later error');
+                expect(await uncaughtMessages()).toHaveLength(1);
             });
 
             it('tells the `issueRaised` listener the rejected pass supplied', () => {
@@ -4855,22 +4856,6 @@ describe('ChartOptions', () => {
             });
         });
 
-        it('does not throw when fail-fast is suppressed for the CSS-refresh re-construction', () => {
-            expect(
-                () =>
-                    new ChartOptions(
-                        invalidOptions({ validations: { throwOn: ['warning'] } }),
-                        {} as AgChartOptions,
-                        {},
-                        {},
-                        {},
-                        undefined,
-                        false,
-                        true
-                    )
-            ).not.toThrow();
-        });
-
         describe('unregistered modules (AC5)', () => {
             const unregisteredAxisOptions = (extra?: object): AgChartOptions =>
                 ({
@@ -4882,38 +4867,38 @@ describe('ChartOptions', () => {
                     ...extra,
                 }) as any;
 
-            it("throws at `['error']` for a dropped axis module, after the console record is written", () => {
-                const logger = new Logger();
+            const moduleThrow = expect.stringMatching(
+                /^Error: AG Charts - validations\.throwOn: error - required modules are not registered/
+            );
 
-                expect(() =>
-                    prepareOptions(unregisteredAxisOptions({ validations: { throwOn: ['error'] } }), logger)
-                ).toThrow(/required modules are not registered/);
-
-                const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
-                expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
-            });
-
-            it('silently drops the unregistered module when throwOn is left at its default, exactly as today', () => {
-                const logger = new Logger();
-
-                expect(() => prepareOptions(unregisteredAxisOptions(), logger)).not.toThrow();
+            it("throws at `['error']` for a dropped axis module, after the console record is written", async () => {
+                prepareOptions(unregisteredAxisOptions({ validations: { throwOn: ['error'] } }), new Logger());
 
                 const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
                 expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+                expect(await uncaughtMessages()).toEqual([moduleThrow]);
             });
 
-            it("throws at `['error']` for a dropped plugin module too, not just series/axes", () => {
-                const logger = new Logger();
+            it('silently drops the unregistered module when throwOn is left at its default, exactly as today', async () => {
+                prepareOptions(unregisteredAxisOptions(), new Logger());
+
+                const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
+                expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+                expect(await uncaughtMessages()).toEqual([]);
+            });
+
+            it("throws at `['error']` for a dropped plugin module too, not just series/axes", async () => {
                 const options = {
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                     zoom: { enabled: true },
                     validations: { throwOn: ['error'] },
                 } as AgChartOptions;
 
-                expect(() => prepareOptions(options, logger)).toThrow(/required modules are not registered/);
+                prepareOptions(options, new Logger());
 
                 const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
                 expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+                expect(await uncaughtMessages()).toEqual([moduleThrow]);
             });
 
             describe('axis click listeners', () => {
@@ -4961,10 +4946,10 @@ describe('ChartOptions', () => {
                     expect(processed.listeners?.axisClick).toBeDefined();
                 });
 
-                it("throws at `['error']` for the dropped axis click listener", () => {
-                    expect(() =>
-                        prepareOptions(axisListenerOptions({ validations: { throwOn: ['error'] } }), new Logger())
-                    ).toThrow(/required modules are not registered/);
+                it("throws at `['error']` for the dropped axis click listener", async () => {
+                    prepareOptions(axisListenerOptions({ validations: { throwOn: ['error'] } }), new Logger());
+
+                    expect(await uncaughtMessages()).toEqual([moduleThrow]);
                 });
 
                 it('keeps the listener quiet when the axis interaction plugin is registered', () => {
@@ -4990,14 +4975,13 @@ describe('ChartOptions', () => {
 
             // Asserted on the module message rather than on whether anything throws, so an unrelated
             // diagnostic from the same fixture cannot decide the case either way.
-            it("arms only the tier it names — the dropped module throws at `['error']` but not at `['warning']`", () => {
-                expect(() =>
-                    prepareOptions(unregisteredAxisOptions({ validations: { throwOn: ['error'] } }), new Logger())
-                ).toThrow(/required modules are not registered/);
+            it("arms only the tier it names — the dropped module throws at `['error']` but not at `['warning']`", async () => {
+                prepareOptions(unregisteredAxisOptions({ validations: { throwOn: ['error'] } }), new Logger());
+                expect(await uncaughtMessages()).toEqual([moduleThrow]);
 
-                expect(() =>
-                    prepareOptions(unregisteredAxisOptions({ validations: { throwOn: ['warning'] } }), new Logger())
-                ).not.toThrow(/required modules are not registered/);
+                capture.uncaught.length = 0;
+                prepareOptions(unregisteredAxisOptions({ validations: { throwOn: ['warning'] } }), new Logger());
+                expect(await uncaughtMessages()).not.toContainEqual(moduleThrow);
             });
         });
     });

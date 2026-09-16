@@ -2088,3 +2088,35 @@ export function withPreventDefault<E>(partial: Without<E, 'preventDefault' | 'de
 
 export { toMatchImage } from 'ag-charts-test';
 export { CANVAS_TO_BUFFER_DEFAULTS, extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
+
+/**
+ * Collects what escapes as uncaught while active: exceptions a DOM event handler throws, which reach the
+ * window `error` event, and exceptions thrown from a timer callback, which Node's timers would otherwise
+ * route to `uncaughtException` and fail the run.
+ */
+export function captureUncaught(window: Pick<Window, 'addEventListener' | 'removeEventListener' | 'setTimeout'>) {
+    const uncaught: unknown[] = [];
+    const onError = (event: ErrorEvent) => {
+        uncaught.push(event.error);
+        event.preventDefault();
+    };
+    window.addEventListener('error', onError);
+    const originalSetTimeout = window.setTimeout.bind(window);
+    const timerSpy = vi.spyOn(window, 'setTimeout').mockImplementation(((callback: () => void, ms?: number) =>
+        originalSetTimeout(() => {
+            try {
+                callback();
+            } catch (error) {
+                uncaught.push(error);
+            }
+        }, ms)) as typeof setTimeout);
+    return {
+        uncaught,
+        /** Resolves once every timer armed so far has run, so a deferred throw has been captured. */
+        settle: () => new Promise<void>((resolve) => originalSetTimeout(resolve, 0)),
+        restore() {
+            timerSpy.mockRestore();
+            window.removeEventListener('error', onError);
+        },
+    };
+}

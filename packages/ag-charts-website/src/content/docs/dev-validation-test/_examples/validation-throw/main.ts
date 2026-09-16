@@ -34,35 +34,30 @@ const options: AgCartesianChartOptions = {
         y: { type: 'number' },
     },
     validations: {
-        // Disabled so the only console output is the explicit log below, not also the default warning.
+        // Disabled so the only console output is the explicit logs below, not also the default warning.
         consoleOn: [],
         throwOn: ['warning'],
     },
 };
 
-let chart: ReturnType<typeof AgCharts.create> | undefined;
-try {
-    chart = AgCharts.create(options);
-} catch (e) {
-    console.log(`threw: ${(e as Error).message}`);
-}
+// The throw is asynchronous, so it cannot be caught around `create()`; it surfaces as an uncaught error.
+window.addEventListener('error', (event) => {
+    console.log(`uncaught: ${event.error?.message ?? event.message}`);
+    event.preventDefault();
+});
+
+let chart = AgCharts.create(options);
 
 // Invalid on purpose: opacity must be between 0 and 1, so this raises a validation warning, which
-// `throwOn` can turn into a thrown error instead of a console warning.
+// `throwOn` also throws as an error once the chart has applied the fallback.
 function applyInvalidOptions() {
     const isWarningSelected = (document.getElementById('throw-on-warning') as HTMLInputElement).checked;
     const throwOn: ('error' | 'warning' | 'deprecation')[] = isWarningSelected ? ['warning'] : [];
-    chart?.destroy();
-    chart = undefined;
-    try {
-        chart = AgCharts.create({
-            ...options,
-            series: [{ type: 'bar', xKey: 'day', yKey: 'sales', fillOpacity: 2 }],
-            validations: { consoleOn: [], throwOn },
-        });
-        console.log('chart created');
-    } catch (e) {
-        // Thrown before the chart was created, so the container is left empty.
-        console.log(`threw: ${(e as Error).message}`);
-    }
+    chart.destroy();
+    chart = AgCharts.create({
+        ...options,
+        series: [{ type: 'bar', xKey: 'day', yKey: 'sales', fillOpacity: 2 }],
+        validations: { consoleOn: [], throwOn },
+    });
+    console.log('chart created');
 }

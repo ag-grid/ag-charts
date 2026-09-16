@@ -74,7 +74,6 @@ import {
     createProvisionalRuntime,
     getValidations,
 } from '../chart/validation/chartValidations';
-import { rethrowFailFast } from '../util/failFastError';
 import { resolveInstanceModuleScope } from './instanceModuleScope';
 import {
     type OptionsGraphAccessor,
@@ -347,8 +346,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             remappedAxisKeys;
 
         const stopCapture = this.logger.onIssue((issue) => this.issues.push(issue));
-        // A CSS-variable refresh re-constructs from a DOM `transitionend` handler with no caller to throw to.
-        const resumeFailFast = refreshCSSVariables ? this.validations.suspendFailFast() : undefined;
         let rejected = false;
         try {
             this.findSeriesWithUserVisiblity(newUserOptions, deltaOptions);
@@ -399,7 +396,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             rejected = true;
             // An error raised while processing (a throwing datum getter, a callback invoked during validation)
             // escapes ahead of the update loop's catch, so it is reported here, under the failed pass's settings.
-            rethrowFailFast(error);
             this.logger.error(error);
             throw error;
         } finally {
@@ -407,7 +403,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (rejected && baseChartOptions != null) {
                 this.validations.configure(getValidations(baseChartOptions.processedOptions));
             }
-            resumeFailFast?.();
             stopCapture();
         }
 

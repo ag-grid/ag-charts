@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ChartUpdateType, EventEmitter, type LogIssue, Logger } from 'ag-charts-core';
 import type { AgBarSeriesOptions, AgCartesianChartOptions, AgLineSeriesOptions } from 'ag-charts-types';
@@ -9,6 +9,7 @@ import { FailFastError } from '../../util/failFastError';
 import type { Chart } from '../chart';
 import {
     type AgChartProxy,
+    captureUncaught,
     createChart,
     deproxy,
     expectErrorsCalls,
@@ -535,83 +536,81 @@ describe('ChartValidations', () => {
     });
 
     describe('throwOn', () => {
-        it('throws from inside the logging call for an armed severity, after the listener was told', () => {
-            const { logger, validations } = build();
-            const listener = vi.fn();
-            validations.configure({ throwOn: ['warning'], issueRaised: listener });
+        let capture: ReturnType<typeof captureUncaught>;
+        beforeEach(() => {
+            capture = captureUncaught(globalThis);
+        });
+        afterEach(() => capture.restore());
 
-            expect(() => logger.warn('Option `a` cannot be set to `b`, ignoring.')).toThrow(FailFastError);
-            expect(() => logger.warn('Option `a` cannot be set to `b`, ignoring.')).toThrow(
-                'AG Charts - validations.throwOn: warning - Option `a` cannot be set to `b`'
-            );
+        function armed(throwOn: ValidationSeverity[], issueRaised?: (event: { message: string }) => void) {
+            const built = build();
+            built.validations.configure({ throwOn, issueRaised });
+            return built;
+        }
+
+        it('returns from the logging call, tells the listener, then throws from a timer for an armed severity', async () => {
+            const listener = vi.fn();
+            const { logger } = armed(['warning'], listener);
+
+            expect(() => logger.warn('Option `a` cannot be set to `b`, ignoring.')).not.toThrow();
             expect(listener).toHaveBeenCalledTimes(1);
+            expect(capture.uncaught).toHaveLength(0);
+
+            await capture.settle();
+            expect(capture.uncaught).toHaveLength(1);
+            expect(capture.uncaught[0]).toBeInstanceOf(FailFastError);
+            expect(String(capture.uncaught[0])).toBe(
+                'Error: AG Charts - validations.throwOn: warning - Option `a` cannot be set to `b`'
+            );
         });
 
-        it('unwinds through a listener that raises an armed issue, rather than blaming the listener', () => {
-            const { logger, validations } = build();
-            const listener = vi.fn((event) => {
+        it('throws for an armed issue a listener raises as well as for the one that told it', async () => {
+            const { logger } = armed(['warning'], (event: { message: string }) => {
                 if (event.message === 'outer') logger.warn('inner');
             });
-            validations.configure({ throwOn: ['warning'], issueRaised: listener });
 
-            expect(() => logger.warn('outer')).toThrow('AG Charts - validations.throwOn: warning - inner');
+            logger.warn('outer');
+            await capture.settle();
+
+            expect(capture.uncaught.map(String)).toEqual([
+                'Error: AG Charts - validations.throwOn: warning - inner',
+                'Error: AG Charts - validations.throwOn: warning - outer',
+            ]);
         });
 
-        it('arms each severity independently', () => {
-            const { logger, validations } = build();
-            validations.configure({ throwOn: ['error', 'deprecation'] });
+        it('arms each severity independently', async () => {
+            const { logger } = armed(['error', 'deprecation']);
 
-            expect(() => logger.warn('w')).not.toThrow();
-            expect(() => logger.error('e')).toThrow(FailFastError);
-            expect(() => logger.deprecation('d')).toThrow(FailFastError);
+            logger.warn('w');
+            logger.error('e');
+            logger.deprecation('d');
+            await capture.settle();
+
+            expect(capture.uncaught.map(String)).toEqual([
+                'Error: AG Charts - validations.throwOn: error - e',
+                'Error: AG Charts - validations.throwOn: deprecation - d',
+            ]);
         });
 
-        it('chains the logged Error as the cause', () => {
-            const { logger, validations } = build();
-            validations.configure({ throwOn: ['error'] });
+        it('chains the logged Error as the cause', async () => {
+            const { logger } = armed(['error']);
             const error = new Error('boom');
 
-            let thrown: unknown;
-            try {
-                logger.error(error);
-            } catch (e) {
-                thrown = e;
-            }
+            logger.error(error);
+            await capture.settle();
 
-            expect(thrown).toBeInstanceOf(FailFastError);
-            expect((thrown as FailFastError).cause).toBe(error);
+            expect(capture.uncaught).toHaveLength(1);
+            expect((capture.uncaught[0] as FailFastError).cause).toBe(error);
         });
 
-        it('throws on every occurrence, unlike the once-only console and listener reports', () => {
-            const { logger, validations } = build();
-            validations.configure({ throwOn: ['warning'] });
+        it('throws on every occurrence, unlike the once-only console and listener reports', async () => {
+            const { logger } = armed(['warning']);
 
-            expect(() => logger.warnOnce('repeat')).toThrow(FailFastError);
-            expect(() => logger.warnOnce('repeat')).toThrow(FailFastError);
-        });
+            logger.warnOnce('repeat');
+            logger.warnOnce('repeat');
+            await capture.settle();
 
-        it('does not throw again for a fail-fast error a catch site re-logs', () => {
-            const { logger, validations } = build();
-            validations.configure({ throwOn: ['error'] });
-
-            let thrown: unknown;
-            try {
-                logger.error('boom');
-            } catch (e) {
-                thrown = e;
-            }
-
-            expect(() => logger.error(thrown)).not.toThrow();
-        });
-
-        it('is suspended for a pass with no caller to throw to', () => {
-            const { logger, validations } = build();
-            validations.configure({ throwOn: ['warning'] });
-
-            const resume = validations.suspendFailFast();
-            expect(() => logger.warn('w')).not.toThrow();
-            resume();
-            expect(() => logger.warn('w')).toThrow(FailFastError);
+            expect(capture.uncaught).toHaveLength(2);
         });
     });
 });
@@ -670,28 +669,41 @@ describe('ChartValidations - chart integration', () => {
         expectWarningsCalls().toHaveLength(1);
     });
 
-    it('rejects the update for a series callback exception when throwOn selects warning', async () => {
+    it('completes the update and throws uncaught for a series callback exception when throwOn selects warning', async () => {
         const proxy = AgCharts.create(options({ validations: { throwOn: ['warning'] } })) as AgChartProxy;
         chart = deproxy(proxy);
         await proxy.waitForUpdate();
 
-        await expect(
-            proxy.update(
-                options({
-                    series: [
-                        {
-                            type: 'bar',
-                            xKey: 'x',
-                            yKey: 'y',
-                            itemStyler: () => {
-                                throw new Error('styler boom');
+        const capture = captureUncaught(globalThis);
+        try {
+            await expect(
+                proxy.update(
+                    options({
+                        series: [
+                            {
+                                type: 'bar',
+                                xKey: 'x',
+                                yKey: 'y',
+                                itemStyler: () => {
+                                    throw new Error('styler boom');
+                                },
                             },
-                        },
-                    ],
-                    validations: { throwOn: ['warning'] },
-                })
-            )
-        ).rejects.toThrow(/^AG Charts - validations\.throwOn: warning - Uncaught exception in user callback/);
+                        ],
+                        validations: { throwOn: ['warning'] },
+                    })
+                )
+            ).resolves.toBeUndefined();
+            await capture.settle();
+        } finally {
+            capture.restore();
+        }
+        expect(capture.uncaught.length).toBeGreaterThan(0);
+        for (const error of capture.uncaught) {
+            expect(error).toBeInstanceOf(FailFastError);
+            expect(String(error)).toMatch(
+                /^Error: AG Charts - validations\.throwOn: warning - Uncaught exception in user callback/
+            );
+        }
         expectWarningsCalls().toHaveLength(1);
     });
 
@@ -764,22 +776,74 @@ describe('ChartValidations - chart integration', () => {
         chart = deproxy(proxy);
         await proxy.waitForUpdate();
 
-        const uncaught: unknown[] = [];
-        const onError = (event: ErrorEvent) => {
-            uncaught.push(event.error);
-            event.preventDefault();
-        };
-        globalThis.addEventListener('error', onError);
+        const capture = captureUncaught(globalThis);
         try {
             await hoverAction(600, 400)(chart);
-            await expect(proxy.waitForUpdate()).rejects.toThrow(
-                /^AG Charts - validations\.throwOn: warning - Uncaught exception in user callback `series\[0\]\.tooltip\.renderer`/
-            );
+            await expect(proxy.waitForUpdate()).resolves.toBeUndefined();
+            await capture.settle();
         } finally {
-            globalThis.removeEventListener('error', onError);
+            capture.restore();
         }
-        expect(uncaught).toHaveLength(1);
-        expect(uncaught[0]).toBeInstanceOf(FailFastError);
+        expect(capture.uncaught.length).toBeGreaterThan(0);
+        for (const error of capture.uncaught) {
+            expect(error).toBeInstanceOf(FailFastError);
+            expect(String(error)).toMatch(
+                /^Error: AG Charts - validations\.throwOn: warning - Uncaught exception in user callback `series\[0\]\.tooltip\.renderer`/
+            );
+        }
+        expectWarningsCalls().toHaveLength(1);
+    });
+
+    it('creates the chart, shows the overlay and tells the listener for an option issue throwOn also throws', async () => {
+        const issueRaised = vi.fn();
+        const capture = captureUncaught(globalThis);
+        try {
+            const proxy = AgCharts.create(
+                options({
+                    series: [{ type: '' as any, xKey: 'x', yKey: 'y' }],
+                    validations: { showOverlayOn: ['warning'], throwOn: ['warning'], issueRaised },
+                })
+            ) as AgChartProxy;
+            chart = deproxy(proxy);
+            await proxy.waitForUpdate();
+            await capture.settle();
+        } finally {
+            capture.restore();
+        }
+
+        expect(issueRaised).toHaveBeenCalledWith({
+            severity: 'warning',
+            message: expect.stringContaining('series[0].type'),
+        });
+        expect(chart.ctx.validations.hasVisibleIssues()).toBe(true);
+        expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
+        expect(capture.uncaught.map(String)).toEqual([
+            expect.stringMatching(/^Error: AG Charts - validations\.throwOn: warning - .*series\[0\]\.type/),
+        ]);
+        expectWarningsCalls().toHaveLength(1);
+    });
+
+    it('throws uncaught for a data issue from a create() nobody awaits', async () => {
+        const capture = captureUncaught(globalThis);
+        try {
+            const proxy = AgCharts.create(
+                options({
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'missing' }],
+                    validations: { throwOn: ['warning'] },
+                })
+            ) as AgChartProxy;
+            chart = deproxy(proxy);
+            // The chart's own awaiter, not an API call: no caller is positioned to take a throw.
+            await chart.waitForUpdate();
+            await capture.settle();
+        } finally {
+            capture.restore();
+        }
+        expect(capture.uncaught.map(String)).toEqual([
+            expect.stringMatching(
+                /^Error: AG Charts - validations\.throwOn: warning - the key 'missing' was not found in any data element/
+            ),
+        ]);
         expectWarningsCalls().toHaveLength(1);
     });
 
@@ -942,19 +1006,29 @@ describe('ChartValidations - chart integration', () => {
         expectWarningsCalls().toHaveLength(1);
     });
 
-    it('rejects the update for a missing data key when throwOn selects warning', async () => {
+    it('completes the update, shows the overlay and throws uncaught for a missing data key when throwOn selects warning', async () => {
         const proxy = AgCharts.create(options({ validations: { throwOn: ['warning'] } })) as AgChartProxy;
         chart = deproxy(proxy);
         await proxy.waitForUpdate();
 
-        await expect(
-            proxy.update(
-                options({
-                    series: [{ type: 'bar', xKey: 'x', yKey: 'missing' }],
-                    validations: { throwOn: ['warning'] },
-                })
-            )
-        ).rejects.toThrow(/^AG Charts - validations\.throwOn: warning - .*'missing' was not found/);
+        const capture = captureUncaught(globalThis);
+        try {
+            await expect(
+                proxy.update(
+                    options({
+                        series: [{ type: 'bar', xKey: 'x', yKey: 'missing' }],
+                        validations: { showOverlayOn: ['warning'], throwOn: ['warning'] },
+                    })
+                )
+            ).resolves.toBeUndefined();
+            await capture.settle();
+        } finally {
+            capture.restore();
+        }
+        expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
+        expect(capture.uncaught.map(String)).toEqual([
+            expect.stringMatching(/^Error: AG Charts - validations\.throwOn: warning - .*'missing' was not found/),
+        ]);
         expectWarningsCalls().toHaveLength(1);
     });
 
