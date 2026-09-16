@@ -538,7 +538,7 @@ describe('ChartValidations', () => {
     describe('throwOn', () => {
         let capture: ReturnType<typeof captureUncaught>;
         beforeEach(() => {
-            capture = captureUncaught(globalThis);
+            capture = captureUncaught();
         });
         afterEach(() => capture.restore());
 
@@ -674,7 +674,7 @@ describe('ChartValidations - chart integration', () => {
         chart = deproxy(proxy);
         await proxy.waitForUpdate();
 
-        const capture = captureUncaught(globalThis);
+        const capture = captureUncaught();
         try {
             await expect(
                 proxy.update(
@@ -776,7 +776,7 @@ describe('ChartValidations - chart integration', () => {
         chart = deproxy(proxy);
         await proxy.waitForUpdate();
 
-        const capture = captureUncaught(globalThis);
+        const capture = captureUncaught();
         try {
             await hoverAction(600, 400)(chart);
             await expect(proxy.waitForUpdate()).resolves.toBeUndefined();
@@ -796,7 +796,7 @@ describe('ChartValidations - chart integration', () => {
 
     it('creates the chart, shows the overlay and tells the listener for an option issue throwOn also throws', async () => {
         const issueRaised = vi.fn();
-        const capture = captureUncaught(globalThis);
+        const capture = captureUncaught();
         try {
             const proxy = AgCharts.create(
                 options({
@@ -824,7 +824,7 @@ describe('ChartValidations - chart integration', () => {
     });
 
     it('throws uncaught for a data issue from a create() nobody awaits', async () => {
-        const capture = captureUncaught(globalThis);
+        const capture = captureUncaught();
         try {
             const proxy = AgCharts.create(
                 options({
@@ -1011,7 +1011,7 @@ describe('ChartValidations - chart integration', () => {
         chart = deproxy(proxy);
         await proxy.waitForUpdate();
 
-        const capture = captureUncaught(globalThis);
+        const capture = captureUncaught();
         try {
             await expect(
                 proxy.update(

@@ -2135,7 +2135,7 @@ describe('validations.throwOn — runtime errors', () => {
         chart = deproxy(proxy);
         armProcessDataThrow(chart);
 
-        const capture = captureUncaught(globalThis);
+        const capture = captureUncaught();
         try {
             await expect(proxy.waitForUpdate()).resolves.toBeUndefined();
             await capture.settle();
@@ -2164,7 +2164,7 @@ describe('validations.throwOn — runtime errors', () => {
         chart = deproxy(proxy);
         armProcessDataThrow(chart);
 
-        const capture = captureUncaught(globalThis);
+        const capture = captureUncaught();
         try {
             await proxy.waitForUpdate();
             await capture.settle();
@@ -2187,7 +2187,7 @@ describe('validations.throwOn — runtime errors', () => {
         chart = deproxy(proxy);
         armProcessDataThrow(chart);
 
-        const capture = captureUncaught(globalThis);
+        const capture = captureUncaught();
         try {
             await expect(proxy.waitForUpdate()).resolves.toBeUndefined();
             await capture.settle();
@@ -2216,7 +2216,7 @@ describe('validations.throwOn — runtime errors', () => {
         await proxy.waitForUpdate();
         drainErrorLog();
 
-        const capture = captureUncaught(globalThis);
+        const capture = captureUncaught();
         try {
             boom = true;
             await expect(proxy.updateDelta({ data: rows.slice() })).resolves.toBeUndefined();
@@ -2283,7 +2283,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
     const created: AgChartProxy[] = [];
     let capture: ReturnType<typeof captureUncaught>;
     beforeEach(() => {
-        capture = captureUncaught(globalThis);
+        capture = captureUncaught();
     });
     afterEach(() => {
         capture.restore();

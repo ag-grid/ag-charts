@@ -1,4 +1,13 @@
-import { EventEmitter, type LogIssue, type LogLevel, type Logger, isArray, isLogLevel, isObject } from 'ag-charts-core';
+import {
+    type AgDocument,
+    EventEmitter,
+    type LogIssue,
+    type LogLevel,
+    type Logger,
+    isArray,
+    isLogLevel,
+    isObject,
+} from 'ag-charts-core';
 import type {
     AgChartValidationIssueEvent,
     AgChartValidationSeverity,
@@ -82,7 +91,7 @@ export function createProvisionalRuntime(logger: Logger): ValidationsRuntime {
 export class ChartValidations {
     private readonly logger: Logger;
     private readonly eventsHub: EventsHub;
-    private readonly window: Pick<Window, 'setTimeout'>;
+    private readonly agDocument?: AgDocument;
     private readonly cleanup: (() => void)[] = [];
 
     private readonly collection = new Map<string, LogIssue>();
@@ -106,8 +115,7 @@ export class ChartValidations {
     ) {
         this.logger = ctx.logger;
         this.eventsHub = ctx.eventsHub;
-        // The chart's own window, so a throw lands in the document that owns the chart.
-        this.window = ctx.agDocument?.window ?? globalThis;
+        this.agDocument = ctx.agDocument;
         // Every console emission becomes a hub event, so any module can observe them; this is the one subscriber.
         this.cleanup.push(
             this.logger.onIssue((issue) => this.eventsHub.emit('validation:issue', issue)),
@@ -259,8 +267,8 @@ export class ChartValidations {
             `AG Charts - validations.throwOn: ${issue.severity} - ${withoutIgnoredClause(issue.message)}`,
             { cause: issue.cause }
         );
-        // Thrown outside every library frame: the raising pass completes and the error surfaces as uncaught.
-        this.window.setTimeout(() => {
+        // Thrown outside every library frame, on the window that currently owns the chart, so the pass completes.
+        (this.agDocument?.window ?? globalThis).setTimeout(() => {
             throw failFast;
         });
     }

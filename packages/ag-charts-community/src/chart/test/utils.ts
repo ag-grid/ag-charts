@@ -2094,7 +2094,9 @@ export { CANVAS_TO_BUFFER_DEFAULTS, extractImageData, setupMockCanvas } from '..
  * window `error` event, and exceptions thrown from a timer callback, which Node's timers would otherwise
  * route to `uncaughtException` and fail the run.
  */
-export function captureUncaught(window: Pick<Window, 'addEventListener' | 'removeEventListener' | 'setTimeout'>) {
+export function captureUncaught(
+    window: Pick<Window, 'addEventListener' | 'removeEventListener' | 'setTimeout'> = globalThis
+) {
     const uncaught: unknown[] = [];
     const onError = (event: ErrorEvent) => {
         uncaught.push(event.error);

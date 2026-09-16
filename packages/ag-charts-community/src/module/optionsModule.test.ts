@@ -4475,15 +4475,15 @@ describe('ChartOptions', () => {
             ...extra,
         }) as AgChartOptions;
 
+    // The pass under test is run for what it logs and throws, not for the instance it yields.
+    const construct = (userOptions: AgChartOptions, base?: ChartOptions) =>
+        base == null
+            ? new ChartOptions(userOptions, {} as AgChartOptions, {}, {}, {})
+            : new ChartOptions(base, userOptions, {}, {}, {});
+
     describe('validations.consoleOn', () => {
         it('honours an explicit `[]`, silencing first-render warnings without silencing validation itself', () => {
-            const chartOptions = new ChartOptions(
-                invalidOptions({ validations: { consoleOn: [] } }),
-                {} as AgChartOptions,
-                {},
-                {},
-                {}
-            );
+            const chartOptions = construct(invalidOptions({ validations: { consoleOn: [] } }));
 
             expect(console.warn).not.toHaveBeenCalled();
             expect(chartOptions.issues.length).toBeGreaterThan(0);
@@ -4492,33 +4492,21 @@ describe('ChartOptions', () => {
         });
 
         it('warns for the same invalid options without a consoleOn override', () => {
-            const chartOptions = new ChartOptions(invalidOptions(), {} as AgChartOptions, {}, {}, {});
+            const chartOptions = construct(invalidOptions());
 
             expect(console.warn).toHaveBeenCalled();
             expect(chartOptions.issues.length).toBeGreaterThan(0);
         });
 
         it("silences warning-severity output when set to `['error']`", () => {
-            const chartOptions = new ChartOptions(
-                invalidOptions({ validations: { consoleOn: ['error'] } }),
-                {} as AgChartOptions,
-                {},
-                {},
-                {}
-            );
+            const chartOptions = construct(invalidOptions({ validations: { consoleOn: ['error'] } }));
 
             expect(console.warn).not.toHaveBeenCalled();
             expect(chartOptions.issues.length).toBeGreaterThan(0);
         });
 
         it('treats a duplicated severity as if it had been listed once, without reporting it', () => {
-            const chartOptions = new ChartOptions(
-                invalidOptions({ validations: { consoleOn: ['error', 'error'] } }),
-                {} as AgChartOptions,
-                {},
-                {},
-                {}
-            );
+            const chartOptions = construct(invalidOptions({ validations: { consoleOn: ['error', 'error'] } }));
 
             // A repeat is not an invalid value: the array is accepted whole, and `['error', 'error']`
             // selects exactly what `['error']` does - warning-severity output stays silenced.
@@ -4528,13 +4516,7 @@ describe('ChartOptions', () => {
         });
 
         it('reports an invalid consoleOn value rather than silencing logging with it', () => {
-            const chartOptions = new ChartOptions(
-                invalidOptions({ validations: { consoleOn: 'verbose' } }),
-                {} as AgChartOptions,
-                {},
-                {},
-                {}
-            );
+            const chartOptions = construct(invalidOptions({ validations: { consoleOn: 'verbose' } }));
 
             expect(chartOptions.issues.some((issue) => issue.message.includes('validations.consoleOn'))).toBe(true);
             const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
@@ -4551,13 +4533,7 @@ describe('ChartOptions', () => {
         ])(
             'falls back to the loudest default for an unusable consoleOn ($label), and still reports it',
             ({ value }) => {
-                const chartOptions = new ChartOptions(
-                    invalidOptions({ validations: { consoleOn: value } }),
-                    {} as AgChartOptions,
-                    {},
-                    {},
-                    {}
-                );
+                const chartOptions = construct(invalidOptions({ validations: { consoleOn: value } }));
 
                 expect(chartOptions.issues.some((issue) => issue.message.includes('validations.consoleOn'))).toBe(true);
                 const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
@@ -4582,13 +4558,7 @@ describe('ChartOptions', () => {
         });
 
         it('returns to default logging once a delta update removes an empty-array override', () => {
-            const base = new ChartOptions(
-                invalidOptions({ validations: { consoleOn: [] } }),
-                {} as AgChartOptions,
-                {},
-                {},
-                {}
-            );
+            const base = construct(invalidOptions({ validations: { consoleOn: [] } }));
             expect(console.warn).not.toHaveBeenCalled();
 
             const updated = new ChartOptions(base, invalidOptions(), {}, {}, {});
@@ -4601,7 +4571,7 @@ describe('ChartOptions', () => {
     describe('validations.throwOn', () => {
         let capture: ReturnType<typeof captureUncaught>;
         beforeEach(() => {
-            capture = captureUncaught(globalThis);
+            capture = captureUncaught();
         });
         afterEach(() => capture.restore());
 
@@ -4610,14 +4580,8 @@ describe('ChartOptions', () => {
             return capture.uncaught.map(String);
         };
 
-        // The pass under test is run for what it logs and throws, not for the instance it yields.
-        const construct = (userOptions: AgChartOptions, base?: ChartOptions) =>
-            base == null
-                ? new ChartOptions(userOptions, {} as AgChartOptions, {}, {}, {})
-                : new ChartOptions(base, userOptions, {}, {}, {});
-
         it('does not throw for the default (option absent), and still logs the existing warning', async () => {
-            const chartOptions = new ChartOptions(invalidOptions(), {} as AgChartOptions, {}, {}, {});
+            const chartOptions = construct(invalidOptions());
 
             expect(console.warn).toHaveBeenCalled();
             expect(chartOptions.issues.length).toBeGreaterThan(0);
@@ -4625,13 +4589,7 @@ describe('ChartOptions', () => {
         });
 
         it('honours an explicit `[]`, which never throws and is not reported as unusable', async () => {
-            const chartOptions = new ChartOptions(
-                invalidOptions({ validations: { throwOn: [] } }),
-                {} as AgChartOptions,
-                {},
-                {},
-                {}
-            );
+            const chartOptions = construct(invalidOptions({ validations: { throwOn: [] } }));
 
             expect(console.warn).toHaveBeenCalled();
             expect(chartOptions.issues.some((issue) => issue.message.includes('validations.throwOn'))).toBe(false);
@@ -4650,13 +4608,7 @@ describe('ChartOptions', () => {
         ])(
             'does not throw for an unusable throwOn value ($label), and the validator still reports it',
             async ({ value }) => {
-                const chartOptions = new ChartOptions(
-                    invalidOptions({ validations: { throwOn: value } }),
-                    {} as AgChartOptions,
-                    {},
-                    {},
-                    {}
-                );
+                const chartOptions = construct(invalidOptions({ validations: { throwOn: value } }));
 
                 expect(chartOptions.issues.some((issue) => issue.message.includes('validations.throwOn'))).toBe(true);
                 const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
@@ -4666,16 +4618,7 @@ describe('ChartOptions', () => {
         );
 
         it('returns from the options pass, then throws uncaught for a warning-severity option error, naming the option path', async () => {
-            expect(
-                () =>
-                    new ChartOptions(
-                        invalidOptions({ validations: { throwOn: ['warning'] } }),
-                        {} as AgChartOptions,
-                        {},
-                        {},
-                        {}
-                    )
-            ).not.toThrow();
+            expect(() => construct(invalidOptions({ validations: { throwOn: ['warning'] } }))).not.toThrow();
 
             expect(await uncaughtMessages()).toEqual([
                 expect.stringMatching(
@@ -4738,13 +4681,7 @@ describe('ChartOptions', () => {
         });
 
         it("does not throw at `['deprecation']` for a warning-severity option error, each severity being independent", async () => {
-            const chartOptions = new ChartOptions(
-                invalidOptions({ validations: { throwOn: ['deprecation'] } }),
-                {} as AgChartOptions,
-                {},
-                {},
-                {}
-            );
+            const chartOptions = construct(invalidOptions({ validations: { throwOn: ['deprecation'] } }));
 
             expect(console.warn).toHaveBeenCalled();
             expect(chartOptions.issues.some((issue) => issue.severity === 'warning')).toBe(true);
@@ -4757,7 +4694,7 @@ describe('ChartOptions', () => {
                 validations: { throwOn: ['warning'] },
             } as AgChartOptions;
 
-            const base = new ChartOptions(validOptions, {} as AgChartOptions, {}, {}, {});
+            const base = construct(validOptions);
             expect(console.warn).not.toHaveBeenCalled();
             expect(await uncaughtMessages()).toEqual([]);
 
