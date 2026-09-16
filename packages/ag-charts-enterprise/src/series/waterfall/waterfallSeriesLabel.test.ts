@@ -112,6 +112,7 @@ describe('waterfall series-level label', () => {
         ['border.stroke', '#333333', '#444444'],
         ['border.strokeWidth', 3, 5],
         ['border.strokeOpacity', 0.4, 0.6],
+        ['format', '#{.2f}', '#{.0f}'],
         ['maxWidth', 80, 90],
         ['maxHeight', 40, 50],
         ['minimumFontSize', 8, 9],
@@ -119,6 +120,7 @@ describe('waterfall series-level label', () => {
         ['collision.threshold', 12, 16],
         ['collision.alwaysShow', false, true],
         ['collision.collideWith.seriesItems', false, true],
+        ['collision.collideWith.seriesArea', true, false],
         ['insideStyle.color', '#aa0000', '#bb0000'],
         ['insideStyle.fill', '#aa1111', '#bb1111'],
         ['insideStyle.fillOpacity', 0.7, 0.8],
@@ -169,6 +171,29 @@ describe('waterfall series-level label', () => {
         for (const itemType of ITEM_TYPES) {
             expect(labels[itemType].truncate).toBe(true);
         }
+    });
+
+    // `border.enabled` is the one leaf that is not a plain `$path`: it keeps the item-level
+    // "any border property set here enables the border" rule and ORs in the series-level resolution.
+    describe('border auto-enable', () => {
+        it('a border property set at series level enables the border on every bar type', () => {
+            const labels = resolveLabels({ label: { enabled: true, border: { stroke: '#333333' } } });
+
+            for (const itemType of ITEM_TYPES) {
+                expect(labels[itemType].border).toStrictEqual({ enabled: true, stroke: '#333333', strokeWidth: 1 });
+            }
+        });
+
+        it('a border property set at item level enables the border for that bar type only', () => {
+            const labels = resolveLabels({
+                label: { enabled: true },
+                item: { positive: { label: { border: { stroke: '#444444' } } } },
+            });
+
+            expect(labels.positive.border.enabled).toBe(true);
+            expect(labels.negative.border.enabled).toBe(false);
+            expect(labels.total.border.enabled).toBe(false);
+        });
     });
 
     describe('callback leaves', () => {

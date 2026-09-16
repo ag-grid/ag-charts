@@ -115,9 +115,7 @@ function itemTheme(
                         inherited('collision/alwaysShow', 4),
                     ],
                 },
-                ...undocumentedThemeOptions({
-                    collideWith: { seriesItems: inherited('collision/collideWith/seriesItems', 5) },
-                }),
+                ...undocumentedThemeOptions({ collideWith: inherited('collision/collideWith', 4) }),
             },
             insideStyle: placementStyle('insideStyle'),
             outsideStyle: placementStyle('outsideStyle'),
