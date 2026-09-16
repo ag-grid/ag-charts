@@ -25,7 +25,7 @@ function normaliseLicenseKey(licenseKey: unknown): string | undefined {
 }
 
 export class LicenseManager {
-    private static readonly RELEASE_INFORMATION: string = 'MTc4NzkzMjI4NjQxMg==';
+    private static readonly RELEASE_INFORMATION: string = 'MTc4OTU0MDg3MzQ4NQ==';
     private static licenseKey?: string;
     // Latched by any `setLicenseKey` call, whatever it was passed: only a page that never called it is exempt.
     private static licenseKeySupplied = false;
