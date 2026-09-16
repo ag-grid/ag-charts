@@ -10,7 +10,7 @@ setupEnterpriseModules();
 const ITEM_TYPES = ['positive', 'negative', 'total'] as const;
 
 const resolveSeries = (series: object, theme?: object): Record<string, any> => {
-    const options = { series: [series], ...(theme != null ? { theme } : {}) } as unknown as AgChartOptions;
+    const options = { series: [series], ...(theme == null ? {} : { theme }) } as unknown as AgChartOptions;
     const { processedOptions } = new _ModuleSupport.ChartOptions(
         options,
         {} as AgChartOptions,
