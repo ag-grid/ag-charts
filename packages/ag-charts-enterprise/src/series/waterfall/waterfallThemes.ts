@@ -10,7 +10,7 @@ import {
     SINGLE_SERIES_HIGHLIGHT_STYLE,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
-import type { ExtensibleSeriesTheme } from 'ag-charts-types';
+import type { AgChartLabelPlacementStyleOptions, ExtensibleSeriesTheme, Operation } from 'ag-charts-types';
 
 /**
  * `series.item.<type>.label.<leaf>` is three levels below `series.label.<leaf>`, and one more per
@@ -23,7 +23,7 @@ const inherited = (leaf: string, depth = 3) => ({ $path: `${'../'.repeat(depth)}
  * `series.label` no longer trips them on a value the user set at series level; the trigger's false
  * arm inherits the series-level resolution instead of falling back to the unmanaged default.
  */
-const overflowTrigger = (...siblings: string[]) => ({
+const overflowTrigger = (...siblings: string[]): Operation => ({
     $or: [
         { $isUserOption: [siblings.map((key) => `./${key}`)] },
         { $isType: [{ $path: './placement' }, 'array'] },
@@ -132,7 +132,7 @@ function itemTheme(
  * The item-level placement block defers to `series.label.<styleKey>`, which has already applied the
  * per-placement colour default, so only a user value set at item level overrides it.
  */
-function placementStyle(styleKey: 'insideStyle' | 'outsideStyle') {
+function placementStyle(styleKey: 'insideStyle' | 'outsideStyle'): WithThemeParams<AgChartLabelPlacementStyleOptions> {
     return {
         color: { $isUserOption: ['../color', { $path: '../color' }, inherited(`${styleKey}/color`, 4)] },
         fill: inherited(`${styleKey}/fill`, 4),
