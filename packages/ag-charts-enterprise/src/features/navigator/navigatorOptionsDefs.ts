@@ -21,6 +21,7 @@ import {
     optionsDefs,
     or,
     padding,
+    partial,
     positiveNumber,
     ratio,
     textOrSegments,
@@ -148,19 +149,29 @@ export const waterfallIgnoredMiniChartProperties: WaterfallIgnoredProperties[] =
 function miniChartSeriesDefs() {
     return typeUnion<Required<AgMiniChartSeriesOptions>>(
         {
-            area: without(AreaSeriesModule.options, [...commonIgnoredMiniChartProperties, 'type']),
-            bar: without(BarSeriesModule.options, [...barIgnoredMiniChartProperties, 'type']),
-            'box-plot': without(BoxPlotSeriesModule.options, [...boxPlotIngnoredMiniChartProperties, 'type']),
-            bubble: without(BubbleSeriesModule.options, [...bubbleIgnoredMiniChartProperties, 'type']),
-            candlestick: without(CandlestickSeriesModule.options, [...commonIgnoredMiniChartProperties, 'type']),
-            heatmap: without(HeatmapSeriesModule.options, [...heatmapIgnoredMiniChartProperties, 'type']),
-            histogram: without(HistogramSeriesModule.options, [...histogramIgnoredMiniChartProperties, 'type']),
-            line: without(LineSeriesModule.options, [...lineIgnoredMiniChartProperties, 'type']),
-            ohlc: without(OhlcSeriesModule.options, [...commonIgnoredMiniChartProperties, 'type']),
-            'range-area': without(RangeAreaSeriesModule.options, [...rangeAreaIgnoredMiniChartProperties, 'type']),
-            'range-bar': without(RangeBarSeriesModule.options, [...rangeBarIgnoredMiniChartProperties, 'type']),
-            scatter: without(ScatterSeriesModule.options, [...scatterIgnoredMiniChartProperties, 'type']),
-            waterfall: without(WaterfallSeriesModule.options, [...waterfallIgnoredMiniChartProperties, 'type']),
+            area: partial(without(AreaSeriesModule.options, [...commonIgnoredMiniChartProperties, 'type'])),
+            bar: partial(without(BarSeriesModule.options, [...barIgnoredMiniChartProperties, 'type'])),
+            'box-plot': partial(without(BoxPlotSeriesModule.options, [...boxPlotIngnoredMiniChartProperties, 'type'])),
+            bubble: partial(without(BubbleSeriesModule.options, [...bubbleIgnoredMiniChartProperties, 'type'])),
+            candlestick: partial(
+                without(CandlestickSeriesModule.options, [...commonIgnoredMiniChartProperties, 'type'])
+            ),
+            heatmap: partial(without(HeatmapSeriesModule.options, [...heatmapIgnoredMiniChartProperties, 'type'])),
+            histogram: partial(
+                without(HistogramSeriesModule.options, [...histogramIgnoredMiniChartProperties, 'type'])
+            ),
+            line: partial(without(LineSeriesModule.options, [...lineIgnoredMiniChartProperties, 'type'])),
+            ohlc: partial(without(OhlcSeriesModule.options, [...commonIgnoredMiniChartProperties, 'type'])),
+            'range-area': partial(
+                without(RangeAreaSeriesModule.options, [...rangeAreaIgnoredMiniChartProperties, 'type'])
+            ),
+            'range-bar': partial(
+                without(RangeBarSeriesModule.options, [...rangeBarIgnoredMiniChartProperties, 'type'])
+            ),
+            scatter: partial(without(ScatterSeriesModule.options, [...scatterIgnoredMiniChartProperties, 'type'])),
+            waterfall: partial(
+                without(WaterfallSeriesModule.options, [...waterfallIgnoredMiniChartProperties, 'type'])
+            ),
         },
         'miniChart series options'
     );

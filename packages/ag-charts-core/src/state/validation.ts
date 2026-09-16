@@ -399,6 +399,20 @@ export function undocumented<T extends Validator | OptionsDefs<any>>(validatorOr
     ) as T;
 }
 
+/** `defs` with every required entry made optional, for options the theme supplies later. */
+export function partial<T>(defs: OptionsDefs<T>): OptionsDefs<Partial<T>> {
+    const result: Record<string | symbol, unknown> = { ...defs };
+    for (const key of Object.keys(defs)) {
+        const def = defs[key as keyof OptionsDefs<T>] as Validator & PrivateSymbols;
+        if (!def[requiredSymbol]) continue;
+        result[key] = Object.assign((value: unknown, context: any) => def(value, context), {
+            [descriptionSymbol]: def[descriptionSymbol],
+            [undocumentedSymbol]: def[undocumentedSymbol],
+        });
+    }
+    return result as OptionsDefs<Partial<T>>;
+}
+
 /**
  * Marks an option as enterprise-only. When AG Charts Enterprise is not registered, supplied values
  * are stripped during validation and a one-shot warning is emitted via `warnOnce` so repeated
