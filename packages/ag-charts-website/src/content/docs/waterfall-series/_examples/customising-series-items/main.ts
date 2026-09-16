@@ -38,10 +38,6 @@ const options: AgChartOptions = {
             xName: 'Financials',
             yKey: 'amount',
             yName: 'Amount',
-            label: {
-                enabled: true,
-                fontWeight: 'bold',
-            },
             item: {
                 positive: {
                     fill: '#4A90E2',
@@ -55,9 +51,6 @@ const options: AgChartOptions = {
                     name: 'Total / Subtotal',
                     fill: '#404066',
                     stroke: '#404066',
-                    label: {
-                        fontWeight: 'normal',
-                    },
                 },
             },
             totals: [
