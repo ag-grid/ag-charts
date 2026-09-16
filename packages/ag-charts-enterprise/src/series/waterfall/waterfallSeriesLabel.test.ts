@@ -307,11 +307,9 @@ describe('waterfall series-level label', () => {
         });
     });
 
-    // `collision.collideWith` is the one inherited block whose leaves are all optional, so an item
-    // that sets a single toggle must not drop the siblings it inherits. A single `$path` on the block
-    // would: `resolveVertexInEdgePriority` skips a lower-priority edge's value once the vertex has
-    // user-defined children, and `resolveCollideWith` then reads the absent toggles as its own
-    // defaults (`seriesItem: false`), silently turning off bar avoidance.
+    // `collision.collideWith` is inherited toggle by toggle, not as a block: a lower-priority edge
+    // is dropped once its vertex has user-defined children, so an item setting one toggle would
+    // otherwise lose its siblings — and `resolveCollideWith` reads an absent one as `false`.
     describe('collideWith partial overrides', () => {
         it('keeps the inherited theme default when an item sets another toggle', () => {
             const labels = resolveLabels({
