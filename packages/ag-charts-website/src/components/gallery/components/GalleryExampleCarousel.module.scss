@@ -1,0 +1,6 @@
+@use 'design-system' as *;
+
+// The hub grid's gutter.
+.strip {
+    --carousel-gap: #{$spacing-size-6};
+}

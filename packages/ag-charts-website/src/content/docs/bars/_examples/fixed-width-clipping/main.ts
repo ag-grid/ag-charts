@@ -58,13 +58,14 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function toggleFixedWidth() {
+function setWidthMode(event: Event) {
+    const fixedWidth = (event.target as HTMLInputElement).value === 'fixed';
     for (const series of options.series ?? []) {
         if (!('width' in series)) continue;
-        series.width =
-            series.width == null ? Number(document.getElementById('fixedWidthSliderValue')!.innerHTML) : undefined;
+        series.width = fixedWidth ? Number(document.getElementById('fixedWidthSliderValue')!.innerHTML) : undefined;
     }
     chart.update(options);
+    (document.getElementById('fixedWidthGroup') as HTMLFieldSetElement).disabled = !fixedWidth;
 }
 
 function updateFixedWidth(event: any) {

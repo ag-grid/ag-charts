@@ -216,7 +216,7 @@ function UnionVariantNode({
     const location = useApiReferenceLocation();
     const docs = parseJsDocs(variant.node.docs);
     const { discriminator } = variant;
-    const displayName = discriminator ? `[${discriminator.key}='${discriminator.value}']` : variant.anchorSegment;
+    const displayName = `[${discriminator ? `${discriminator.key}='${discriminator.value}'` : variant.anchorSegment}]`;
 
     useEffect(() => {
         const hash = location?.hash.substring(1);
@@ -244,7 +244,6 @@ function UnionVariantNode({
                         name={displayName}
                         anchorId={anchorId}
                         prefixPath={prefixPath}
-                        nameSeparator={discriminator ? '' : undefined}
                         hasChildProps
                         childPropsOnClick={toggleExpanded}
                     />

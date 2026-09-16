@@ -4,16 +4,12 @@
     // Callers override this to set the spacing between slides.
     --carousel-gap: #{$spacing-size-4};
 
-    display: flex;
-    align-items: center;
-    gap: $spacing-size-2;
+    position: relative;
 }
 
 // Positioning context for the fades, which must not scroll with the track.
 .viewport {
     position: relative;
-    flex: 1;
-    min-width: 0;
 }
 
 .track {
@@ -61,8 +57,10 @@
     --icon-size: #{$spacing-size-4};
     --icon-color: var(--color-fg-secondary);
 
+    position: absolute;
+    top: 50%;
+    z-index: 1;
     display: flex;
-    flex: 0 0 auto;
     align-items: center;
     justify-content: center;
     width: $spacing-size-8;
@@ -85,7 +83,6 @@
         border-color: var(--color-link);
     }
 
-    // Kept in the layout rather than hidden, so the track does not change width at either end.
     // `:hover`/`:active` are matched too: the element styles reset an aria-disabled button's
     // fill from `&:hover &[aria-disabled]`, which outweighs the plain attribute selector.
     &[aria-disabled],
@@ -103,4 +100,15 @@
         margin: 0;
         bottom: 0;
     }
+}
+
+// The overhang fits inside the page's horizontal margin at every breakpoint.
+.controlPrevious {
+    left: 0;
+    transform: translate(-50%, -50%);
+}
+
+.controlNext {
+    right: 0;
+    transform: translate(50%, -50%);
 }

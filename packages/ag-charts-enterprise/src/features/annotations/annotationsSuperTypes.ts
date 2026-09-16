@@ -92,6 +92,7 @@ export interface AnnotationsStateMachineContext {
 
     startInteracting: () => void;
     stopInteracting: () => void;
+    startDragging: (index: number) => void;
 
     translate: (index: number, translation: Point) => void;
     copy: (index: number) => AnnotationProperties | undefined;

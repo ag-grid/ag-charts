@@ -27,7 +27,7 @@ describe('download watermark', () => {
     beforeEach(() => {
         enterpriseRegistry.licenseManager = () => ({
             validateLicense: () => {},
-            hasLicenseKey: () => false,
+            isLicenseKeySupplied: () => false,
             isDisplayWatermark: () => true,
             getWatermarkMessage: () => WATERMARK,
             getWatermarkForegroundConfig: () => ({ text: WATERMARK }),

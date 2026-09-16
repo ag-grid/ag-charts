@@ -477,4 +477,90 @@ describe('Context Menu', () => {
             );
         });
     });
+
+    describe('cross-line region (CRT-1227)', () => {
+        let getItems: ReturnType<typeof vi.fn>;
+
+        // Canvas-space centre of the first cross line's label on the given axis, read from internals purely to
+        // place the pointer.
+        function crossLineLabelCentre(direction: ChartAxisDirection) {
+            const axis = deproxy(chart).axes.find((a) => a.direction === direction)!;
+            const [crossLine] = _ModuleSupport.getCrossLinesPlugin(axis)?.getInstances() ?? [];
+            expect(crossLine).toBeInstanceOf(_ModuleSupport.CartesianCrossLine);
+            const { labelGroup } = crossLine as _ModuleSupport.CartesianCrossLine;
+            const { x, y, width, height } = _ModuleSupport.Transformable.toCanvas(labelGroup);
+            return { x: x + width / 2, y: y + height / 2 };
+        }
+
+        function seriesRect() {
+            const rect = deproxy(chart).seriesRect;
+            expect(rect).toBeDefined();
+            return rect!;
+        }
+
+        beforeEach(async () => {
+            getItems = vi.fn(({ defaultItems }) => defaultItems);
+            await prepareChart(
+                { enabled: true, getItems },
+                {
+                    data: Array.from({ length: 4 }, (_, i) => ({ x: i, y: i * 2 })),
+                    axes: {
+                        x: {
+                            type: 'number',
+                            crossLines: [
+                                {
+                                    id: 'threshold',
+                                    type: 'line',
+                                    value: 1.5,
+                                    // `top` sits the label above the series area, on the container widget.
+                                    label: { text: 'Threshold', position: 'top' },
+                                },
+                            ],
+                        },
+                        y: { type: 'number' },
+                    },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    contextMenu: { enabled: true },
+                }
+            );
+        });
+
+        const threshold = expect.objectContaining({
+            showOn: 'cross-line',
+            crossLineId: 'threshold',
+            crossLineType: 'line',
+            value: 1.5,
+        });
+
+        test('right-clicking the line inside the series area offers the cross line', async () => {
+            const { x } = crossLineLabelCentre(ChartAxisDirection.X);
+            const { y, height } = seriesRect();
+            await contextMenuAction(x, y + height / 2)(chart);
+            await waitForChartStability(chart);
+
+            expect(getItems).toHaveBeenCalledWith(threshold);
+        });
+
+        test('right-clicking the label outside the series area offers the cross line', async () => {
+            const { x, y } = crossLineLabelCentre(ChartAxisDirection.X);
+            // Guard the premise: a label inside the series area would exercise the series-widget path instead.
+            expect(seriesRect().containsPoint(x, y)).toBe(false);
+
+            await contextMenuAction(x, y)(chart);
+            await waitForChartStability(chart);
+
+            expect(getItems).toHaveBeenCalledWith(threshold);
+        });
+
+        test('right-clicking clear of the label outside the series area offers only the always region', async () => {
+            const { x, y } = crossLineLabelCentre(ChartAxisDirection.X);
+            // Halfway from the label centre to the series area's left edge: level with the label, clear of it.
+            const { x: seriesX } = seriesRect();
+            await contextMenuAction((x + seriesX) / 2, y)(chart);
+            await waitForChartStability(chart);
+
+            expect(getItems).toHaveBeenCalledWith(expect.objectContaining({ showOn: 'always' }));
+            expect(getItems).not.toHaveBeenCalledWith(threshold);
+        });
+    });
 });

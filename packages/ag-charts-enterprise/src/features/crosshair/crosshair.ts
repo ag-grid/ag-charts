@@ -71,6 +71,8 @@ export class Crosshair
 
     private activeHighlight: _ModuleSupport.HighlightChangeEvent['currentHighlight'] = undefined;
     private activeHighlightInViewport: boolean = false;
+    // Set for the duration of a drag of a cross-line annotation whose own axis label is on this axis.
+    private annotationLabelDragging: boolean = false;
 
     constructor(private readonly ctx: _ModuleSupport.ChartAxisRegistry<_ModuleSupport.AxisContext>) {
         super();
@@ -99,6 +101,9 @@ export class Crosshair
             ctx.eventsHub.on('zoom:change-complete', () => this.onMouseOut()),
             ctx.eventsHub.on('highlight:change', (event) => this.onHighlightChange(event)),
             ctx.eventsHub.on('layout:complete', (event) => this.layout(event)),
+            ctx.eventsHub.on('annotations:axis-label-drag-start', (event) =>
+                this.onAnnotationAxisLabelDragStart(event)
+            ),
             () => {
                 for (const label of Object.values(this.labels)) {
                     label.destroy();
@@ -108,6 +113,7 @@ export class Crosshair
         if (seriesDragInterpreter) {
             this.cleanup.register(
                 seriesDragInterpreter.events.on('drag-move', (event) => this.onMouseHoverLike(event)),
+                seriesDragInterpreter.events.on('drag-end', () => this.onDragEnd()),
                 seriesDragInterpreter.events.on('click', (event) => this.onClick(event))
             );
         }
@@ -296,6 +302,27 @@ export class Crosshair
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
 
+    private onAnnotationAxisLabelDragStart({ axisId }: { axisId: string }) {
+        if (axisId !== this.axisCtx.axisId) return;
+
+        // Only the label yields, and only for the gesture: the crosshair lines stay.
+        this.annotationLabelDragging = true;
+        for (const key of Object.keys(this.labels)) {
+            this.hideLabel(key);
+        }
+    }
+
+    private onDragEnd() {
+        if (!this.annotationLabelDragging) return;
+
+        this.annotationLabelDragging = false;
+        // A snapping crosshair is highlight-driven, so restore its label now; a non-snapping one follows the
+        // next pointer move.
+        if (this.options?.snap && this.crosshairGroup.visible) {
+            this.refreshPositions();
+        }
+    }
+
     private onKeyPress() {
         const options = this.options;
         if (options?.enabled && !options.snap && this.ctx.interactionManager.isState(InteractionState.Default)) {
@@ -346,7 +373,7 @@ export class Crosshair
 
     private updatePositions(data: { [key: string]: { value: any; position: number } }) {
         const { seriesRect, lineGroupSelection } = this;
-        const labelEnabled = this.options?.label.enabled ?? false;
+        const labelEnabled = (this.options?.label.enabled ?? false) && !this.annotationLabelDragging;
         lineGroupSelection.each((line, key) => {
             const lineData = data[key];
             if (!lineData) {

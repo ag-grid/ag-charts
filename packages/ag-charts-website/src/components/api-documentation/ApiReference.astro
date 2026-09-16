@@ -1,5 +1,45 @@
 ---
+import type { ApiReferenceConfig } from './components/ApiReference';
 import { ApiReferenceWithContext } from './components/ApiReference';
+import ApiReferenceFallbackList from './components/ApiReferenceFallbackList.astro';
+import { parseJsDocs, processMembers } from './apiReferenceHelpers';
+import { getInterfacesReference } from '@utils/server/getInterfacesReference';
+
+interface Props extends ApiReferenceConfig {
+    id: string;
+}
+
+const { id, prioritise, include, exclude, hideHeader, hideRequired } = Astro.props;
+
+// The same top-level scope the island applies, so crawlers see nothing a reader could not.
+const pageRef = getInterfacesReference().get(id);
+const interfaceRef = pageRef?.kind === 'interface' ? pageRef : undefined;
+const members = interfaceRef ? processMembers(interfaceRef, { prioritise, include, exclude }) : [];
+const description = interfaceRef && parseJsDocs(interfaceRef.docs);
 ---
 
-<ApiReferenceWithContext client:load isInline {...Astro.props} />
+{
+    /*
+    Client-only, with a server-rendered fallback: the island's full reference comes from a
+    client-side query, so hydrating against server output would fail whenever that query cache is
+    already warm (every client-side navigation after the first reference has loaded). The fallback
+    slot gives crawlers the top-level properties instead, and Astro drops it when the island mounts.
+*/
+}
+<ApiReferenceWithContext client:only="react" isInline {...Astro.props}>
+    {
+        interfaceRef && (
+            <div slot="fallback" class="api-reference-fallback">
+                {!hideHeader &&
+                    (description ? (
+                        <p class="text-secondary">{description}</p>
+                    ) : (
+                        <p class="text-secondary">
+                            Properties available on the <code>{id}</code> interface.
+                        </p>
+                    ))}
+                <ApiReferenceFallbackList id={id} members={members} hideRequired={hideRequired} />
+            </div>
+        )
+    }
+</ApiReferenceWithContext>

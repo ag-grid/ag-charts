@@ -20,9 +20,15 @@ function withAxisInteraction<T extends AxisModuleDefinition<any, any>>(module: T
     };
 }
 
-export const CategoryAxisModule = /* #__PURE__ */ withAxisInteraction(CommunityCategoryAxisModule);
-export const GroupedCategoryAxisModule = /* #__PURE__ */ withAxisInteraction(CommunityGroupedCategoryAxisModule);
-export const LogAxisModule = /* #__PURE__ */ withAxisInteraction(CommunityLogAxisModule);
-export const NumberAxisModule = /* #__PURE__ */ withAxisInteraction(CommunityNumberAxisModule);
-export const TimeAxisModule = /* #__PURE__ */ withAxisInteraction(CommunityTimeAxisModule);
-export const UnitTimeAxisModule = /* #__PURE__ */ withAxisInteraction(CommunityUnitTimeAxisModule);
+export const CategoryAxisModule: typeof CommunityCategoryAxisModule =
+    /* #__PURE__ */ withAxisInteraction(CommunityCategoryAxisModule);
+export const GroupedCategoryAxisModule: typeof CommunityGroupedCategoryAxisModule = /* #__PURE__ */ withAxisInteraction(
+    CommunityGroupedCategoryAxisModule
+);
+export const LogAxisModule: typeof CommunityLogAxisModule = /* #__PURE__ */ withAxisInteraction(CommunityLogAxisModule);
+export const NumberAxisModule: typeof CommunityNumberAxisModule =
+    /* #__PURE__ */ withAxisInteraction(CommunityNumberAxisModule);
+export const TimeAxisModule: typeof CommunityTimeAxisModule =
+    /* #__PURE__ */ withAxisInteraction(CommunityTimeAxisModule);
+export const UnitTimeAxisModule: typeof CommunityUnitTimeAxisModule =
+    /* #__PURE__ */ withAxisInteraction(CommunityUnitTimeAxisModule);

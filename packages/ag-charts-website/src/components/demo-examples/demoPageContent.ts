@@ -14,7 +14,7 @@ export const DEMO_PAGE_HERO = {
     eyebrow: 'AG Charts Showcase',
     title: 'Charts that scale with your data',
     description:
-        'See AG Charts running in full applications - streaming feeds, large datasets and interactive dashboards, built with the same API you would use in your own product.',
+        'See AG Charts running in sample applications - streaming feeds, large datasets and interactive dashboards, built with the same charting API you would use in your own product.',
     primaryCta: {
         label: 'Get Started For Free',
         href: urlWithBaseUrl('/react/quick-start/'),
@@ -31,12 +31,12 @@ export const DEMO_PAGE_HERO = {
  */
 export const DEMO_PAGE_CONTENT = {
     financial: {
-        metaTitle: 'Financial Dashboard Demo | AG Charts',
-        metaDescription: 'AG Charts: candlestick and volume series driven by a live price feed.',
+        metaTitle: 'Trading Terminal Demo | AG Charts',
+        metaDescription: 'AG Charts: candlestick and volume series driven by streaming market data.',
     },
     'web-analytics': {
         metaTitle: 'Web Analytics Demo | AG Charts',
-        metaDescription: 'AG Charts: traffic, funnel and retention charts over a shared date range.',
+        metaDescription: 'AG Charts: traffic, funnel and sankey charts over a shared date range.',
     },
     procurement: {
         metaTitle: 'Procurement Manager Demo | AG Charts',

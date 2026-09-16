@@ -68,6 +68,16 @@ function colorSwatch(color: string) {
     return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
+type LabelOptions = NonNullable<AgLineSeriesOptions<DatumType>['label']>;
+
+function labelColors(color: string): Pick<LabelOptions, 'color' | 'fill' | 'border'> {
+    return {
+        color: { ref: 'textColor', mix: 0.6, ontoColor: color },
+        fill: { ref: 'chartBackgroundColor', mix: 0.8, ontoColor: color },
+        border: { enabled: true, stroke: color },
+    };
+}
+
 function createSeries(): AgLineSeriesOptions<DatumType>[] {
     return seriesMeta.map(
         ({ id, yKey, yName, color }): AgLineSeriesOptions<DatumType> => ({
@@ -87,12 +97,7 @@ function createSeries(): AgLineSeriesOptions<DatumType>[] {
             },
             label: {
                 enabled: true,
-                color: { ref: 'textColor', mix: 0.6, ontoColor: color },
-                fill: { ref: 'chartBackgroundColor', mix: 0.8, ontoColor: color },
-                border: {
-                    enabled: true,
-                    stroke: color,
-                },
+                ...labelColors(color),
                 padding: 4,
                 placement: ['top', 'bottom', 'left', 'right'],
                 collision: {
@@ -227,7 +232,14 @@ function removeDataPoint(year: string, yKey: keyof DatumType) {
 /** inScope */
 function colorSeries(seriesId: string, color: string) {
     series = series.map((s) =>
-        s.id === seriesId ? { ...s, stroke: color, marker: { ...s.marker, fill: color, stroke: color } } : s
+        s.id === seriesId
+            ? {
+                  ...s,
+                  stroke: color,
+                  marker: { ...s.marker, fill: color, stroke: color },
+                  label: { ...s.label, ...labelColors(color) },
+              }
+            : s
     );
     syncOptions();
 }

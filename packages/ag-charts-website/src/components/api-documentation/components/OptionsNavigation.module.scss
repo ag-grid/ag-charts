@@ -12,7 +12,9 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    height: calc(100vh - var(--total-header-height));
+    // A fixed height would make this flex row exactly as tall as the sidebar, leaving sticky no
+    // travel to pin against on short pages such as the Themes API root.
+    max-height: calc(100vh - var(--total-header-height));
     z-index: 3;
 
     @media screen and (min-width: $breakpoint-options-medium) {
@@ -43,7 +45,7 @@
         }
 
         p {
-            line-height: var(--text-lh-tight);
+            line-height: var(--text-lh-ratio-tight);
         }
     }
 

@@ -128,6 +128,7 @@ export interface DataModelDiffEvent {
 export interface EventsHubMap {
     'active:load-memento': ActiveLoadMementoEvent;
     'annotations:restore': AnnotationsRestoreEvent;
+    'annotations:axis-label-drag-start': AnnotationsAxisLabelDragStartEvent;
     'axis:change': null;
     'axis-interaction:cursor': { cursor: BaseStyleTypeMap['cursor'] | undefined };
     'axis-interaction:toggle-dragging-cursor': { direction: ChartAxisDirection; enabled: boolean };
@@ -232,6 +233,11 @@ export interface ActiveLoadMementoEvent {
 
 interface AnnotationsRestoreEvent {
     annotations: AgAnnotation[];
+}
+
+/** A cross-line annotation whose own axis label sits on `axisId` has started to be dragged. */
+interface AnnotationsAxisLabelDragStartEvent {
+    axisId: string;
 }
 
 export interface AxisInteractionDragEvent<T extends 'drag-start' | 'drag-move' | 'drag-end'> {

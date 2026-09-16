@@ -48,11 +48,11 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function toggleMode() {
+function modeChange(event: Event) {
+    const mode = (event.target as HTMLInputElement).value as 'continuous' | 'discrete';
+    const discrete = mode === 'discrete';
     const series = options.series![0] as AgHeatmapSeriesOptions;
-    const current = series.colorScale?.mode;
-    const discrete = current !== 'discrete';
-    series.colorScale = { ...series.colorScale, mode: discrete ? 'discrete' : 'continuous' };
+    series.colorScale = { ...series.colorScale, mode };
     options.legend = { enabled: discrete };
     options.gradientLegend = { enabled: !discrete };
     chart.update(options);
