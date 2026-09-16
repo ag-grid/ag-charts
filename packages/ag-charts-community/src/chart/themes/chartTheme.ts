@@ -42,6 +42,7 @@ import {
     PALETTE_UP_STROKE,
     type PlainObject,
     contributionMatchesAxisType,
+    contributionMatchesChartType,
     contributionMatchesSeriesType,
     deepClone,
     deepFreeze,
@@ -449,7 +450,9 @@ export class ChartTheme {
             const chartTypeDefaults = mergeDefaultsShallowOperations(
                 { axes: {} },
                 presetTemplate?.common,
-                ...contributedThemeTemplates(moduleRegistry, 'chart'),
+                ...contributedThemeTemplates(moduleRegistry, 'chart', (c) =>
+                    contributionMatchesChartType(c, chartType)
+                ),
                 moduleRegistry.getChartModule(chartType)?.themeTemplate,
                 this.getChartDefaults()
             );
