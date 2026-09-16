@@ -23,9 +23,9 @@ const inherited = (leaf: string, depth = 3) => ({ $path: `${'../'.repeat(depth)}
  * `series.label` no longer trips them on a value the user set at series level; the trigger's false
  * arm inherits the series-level resolution instead of falling back to the unmanaged default.
  */
-const overflowTrigger = (...siblings: string[]): Operation => ({
+const overflowTrigger = (siblings: string[]): Operation => ({
     $or: [
-        { $isUserOption: [siblings.map((key) => `./${key}`)] },
+        { $isUserOption: [siblings] },
         { $isType: [{ $path: './placement' }, 'array'] },
         { $isType: [{ $path: './orientation' }, 'array'] },
     ],
@@ -78,14 +78,14 @@ function itemTheme(
             minimumFontSize: inherited('minimumFontSize'),
             wrapping: {
                 $if: [
-                    overflowTrigger('maxWidth', 'maxHeight', 'truncate', 'minimumFontSize'),
+                    overflowTrigger(['./maxWidth', './maxHeight', './truncate', './minimumFontSize']),
                     'on-space',
                     inherited('wrapping'),
                 ],
             },
             truncate: {
                 $if: [
-                    overflowTrigger('maxWidth', 'maxHeight', 'wrapping', 'minimumFontSize'),
+                    overflowTrigger(['./maxWidth', './maxHeight', './wrapping', './minimumFontSize']),
                     true,
                     inherited('truncate'),
                 ],
