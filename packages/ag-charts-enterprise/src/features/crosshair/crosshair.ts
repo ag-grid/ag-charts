@@ -94,8 +94,8 @@ export class Crosshair
         const { seriesDragInterpreter } = ctx.widgets;
         this.cleanup.register(
             ctx.scene.attachNode(this.crosshairGroup),
-            ctx.widgets.seriesWidget.addListener('mousemove', (event) => this.onMouseHoverLike(event)),
-            ctx.widgets.seriesWidget.addListener('mouseleave', () => this.onMouseOut()),
+            ctx.widgets.seriesBoundsWidget.addListener('mousemove', (event) => this.onMouseHoverLike(event)),
+            ctx.widgets.seriesBoundsWidget.addListener('mouseleave', () => this.onMouseOut()),
             ctx.eventsHub.on('series:focus-change', () => this.onKeyPress()),
             ctx.eventsHub.on('zoom:pan-start', () => this.onMouseOut()),
             ctx.eventsHub.on('zoom:change-complete', () => this.onMouseOut()),

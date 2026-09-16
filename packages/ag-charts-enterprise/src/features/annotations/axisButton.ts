@@ -38,8 +38,8 @@ export class AxisButton extends AbstractModuleInstance {
 
         this.cleanup.register(
             ctx.widgets.seriesWidget.addListener('drag-move', (e) => this.onMouseDrag(e)),
-            ctx.widgets.seriesWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
-            ctx.widgets.seriesWidget.addListener('mouseleave', () => this.onMouseLeave()),
+            ctx.widgets.seriesBoundsWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
+            ctx.widgets.seriesBoundsWidget.addListener('mouseleave', () => this.onMouseLeave()),
             ctx.widgets.seriesDragInterpreter?.events.on('click', (e) => this.onClick(e)),
             ctx.eventsHub.on('series:focus-change', () => this.onKeyPress()),
             ctx.eventsHub.on('zoom:pan-start', () => this.hide()),
@@ -59,7 +59,7 @@ export class AxisButton extends AbstractModuleInstance {
         button.addClass(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
         button.setTabIndex(-1);
         button.setAriaLabel(this.ctx.localeManager.t('ariaLabelAddHorizontalLine'));
-        this.ctx.widgets.seriesWidget.getElement().appendChild(button.getElement());
+        this.ctx.widgets.seriesBoundsWidget.getElement().appendChild(button.getElement());
         return button;
     }
 
