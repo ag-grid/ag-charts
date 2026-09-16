@@ -80,6 +80,7 @@ jobs:
               continue-on-error: true
               with:
                   fetch-depth: 1
+                  sparse-checkout: external/ag-shared/github/actions
 
             - name: Install @ag-grid/dev-prompts
               continue-on-error: true
@@ -137,6 +138,7 @@ jobs:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   fetch-depth: 1
+                  sparse-checkout: external/ag-shared/github/actions
 
             - name: Install @ag-grid/dev-prompts
               uses: ./external/ag-shared/github/actions/install-ag-dev-prompts
