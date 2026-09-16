@@ -5,7 +5,6 @@ import type { AgBarSeriesOptions, AgCartesianChartOptions, AgLineSeriesOptions }
 
 import { AgCharts } from '../../api/agCharts';
 import type { EventsHub, EventsHubMap } from '../../core/eventsHub';
-import { FailFastError } from '../../util/failFastError';
 import type { Chart } from '../chart';
 import {
     type AgChartProxy,
@@ -20,7 +19,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
-import { ChartValidations, type ValidationSeverity } from './chartValidations';
+import { ChartValidations, FailFastError, type ValidationSeverity } from './chartValidations';
 
 const errorIssue = { severity: 'error', message: 'runtime boom' } as const;
 const warningIssue = { severity: 'warning', message: 'bad option' } as const;

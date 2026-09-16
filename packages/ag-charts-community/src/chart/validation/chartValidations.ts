@@ -1,13 +1,4 @@
-import {
-    type AgDocument,
-    EventEmitter,
-    type LogIssue,
-    type LogLevel,
-    type Logger,
-    isArray,
-    isLogLevel,
-    isObject,
-} from 'ag-charts-core';
+import { EventEmitter, type LogIssue, type LogLevel, type Logger, isArray, isLogLevel, isObject } from 'ag-charts-core';
 import type {
     AgChartValidationIssueEvent,
     AgChartValidationSeverity,
@@ -16,7 +7,6 @@ import type {
 
 import type { EventsHub, EventsHubMap } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
-import { FailFastError } from '../../util/failFastError';
 import { DEFAULT_CONSOLE_ON, DEFAULT_SHOW_OVERLAY_ON, DEFAULT_THROW_ON } from './validationDefaults';
 
 export type ValidationSeverity = LogLevel;
@@ -67,6 +57,9 @@ function withoutIgnoredClause(message: string): string {
     return message.replace(/[,;]? ignoring\.$/i, '');
 }
 
+/** A `validations.throwOn` throw. Built inside the reporting call so its stack points at the origin. */
+export class FailFastError extends Error {}
+
 // Module-level: a listener that re-applies failing options re-enters through a new options pass and a new
 // provisional instance, so only listener identity can see the recursion. A per-pass closure hits the depth cap.
 const dispatchingListeners = new Set<ValidationIssueListener>();
@@ -91,7 +84,6 @@ export function createProvisionalRuntime(logger: Logger): ValidationsRuntime {
 export class ChartValidations {
     private readonly logger: Logger;
     private readonly eventsHub: EventsHub;
-    private readonly agDocument?: AgDocument;
     private readonly cleanup: (() => void)[] = [];
 
     private readonly collection = new Map<string, LogIssue>();
@@ -110,12 +102,9 @@ export class ChartValidations {
     private dispatching = false;
     private reportingListenerError = false;
 
-    constructor(
-        ctx: Pick<ChartRegistry, 'logger' | 'eventsHub'> & Partial<Pick<ChartRegistry, 'chartState' | 'agDocument'>>
-    ) {
+    constructor(ctx: Pick<ChartRegistry, 'logger' | 'eventsHub'> & Partial<Pick<ChartRegistry, 'chartState'>>) {
         this.logger = ctx.logger;
         this.eventsHub = ctx.eventsHub;
-        this.agDocument = ctx.agDocument;
         // Every console emission becomes a hub event, so any module can observe them; this is the one subscriber.
         this.cleanup.push(
             this.logger.onIssue((issue) => this.eventsHub.emit('validation:issue', issue)),
@@ -267,8 +256,8 @@ export class ChartValidations {
             `AG Charts - validations.throwOn: ${issue.severity} - ${withoutIgnoredClause(issue.message)}`,
             { cause: issue.cause }
         );
-        // Thrown outside every library frame, on the window that currently owns the chart, so the pass completes.
-        (this.agDocument?.window ?? globalThis).setTimeout(() => {
+        // Thrown outside every library frame, so the pass that raised the issue completes.
+        setTimeout(() => {
             throw failFast;
         });
     }
