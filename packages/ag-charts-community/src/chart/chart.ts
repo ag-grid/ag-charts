@@ -825,7 +825,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         // (e.g. clear `series.chart`) mid-render-cycle.
         this.updateMutex
             .acquire(() => this.performTeardown(!!keepTransferableResources))
-            .catch((e) => this.reportAsyncError(e));
+            .catch((e) => this.ctx.logger.error(e));
 
         return result;
     }
@@ -875,7 +875,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
                     }
                 }
             })
-            .catch((e) => this.reportAsyncError(e));
+            .catch((e) => this.ctx.logger.error(e));
     }
 
     private clearCallbackCache() {
@@ -900,7 +900,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
     private readonly performUpdateTrigger = debouncedCallback(({ count }) => {
         if (this.destroyed) return;
-        this.updateMutex.acquire(this.tryPerformUpdate.bind(this, count)).catch((e) => this.reportAsyncError(e));
+        this.updateMutex.acquire(this.tryPerformUpdate.bind(this, count)).catch((e) => this.ctx.logger.error(e));
     });
     public update(type = ChartUpdateType.FULL, opts?: UpdateOpts) {
         if (this.destroyed) return;
@@ -990,16 +990,12 @@ export abstract class Chart implements ModuleInstance, ChartService {
             });
             completed = reEvaluatesCallbacks && this.updateShortcutCount === 0;
         } catch (error) {
-            this.reportAsyncError(error);
+            this.ctx.logger.error(error);
             this.runningUpdateType = ChartUpdateType.NONE;
             this._performUpdateNotify.notify();
         } finally {
             this.ctx.validations.endPass('update', completed);
         }
-    }
-
-    private reportAsyncError(error: unknown) {
-        this.ctx.logger.error(error);
     }
 
     private async performUpdate(count: number) {
