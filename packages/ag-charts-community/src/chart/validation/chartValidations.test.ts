@@ -559,7 +559,7 @@ describe('ChartValidations', () => {
             expect(capture.uncaught).toHaveLength(1);
             expect(capture.uncaught[0]).toBeInstanceOf(FailFastError);
             expect(String(capture.uncaught[0])).toBe(
-                'Error: AG Charts - validations.throwOn: warning - Option `a` cannot be set to `b`'
+                'Error: AG Charts - validations.throwOn: warning - Option `a` cannot be set to `b`, ignoring.'
             );
         });
 

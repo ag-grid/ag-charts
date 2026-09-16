@@ -52,11 +52,6 @@ function severities(value: unknown, fallback: readonly AgChartValidationSeverity
     return isArray(value) && value.every(isLogLevel) ? value : fallback;
 }
 
-// The thrown copy of a fallback warning drops the fallback clause; the console record keeps the wording.
-function withoutIgnoredClause(message: string): string {
-    return message.replace(/[,;]? ignoring\.$/i, '');
-}
-
 /** A `validations.throwOn` throw. Built inside the reporting call so its stack points at the origin. */
 export class FailFastError extends Error {}
 
@@ -252,10 +247,9 @@ export class ChartValidations {
         if (!this.told.has(key)) this.dispatch([issue]);
 
         if ((this.throwMask & SEVERITY_BIT[issue.severity]) === 0) return;
-        const failFast = new FailFastError(
-            `AG Charts - validations.throwOn: ${issue.severity} - ${withoutIgnoredClause(issue.message)}`,
-            { cause: issue.cause }
-        );
+        const failFast = new FailFastError(`AG Charts - validations.throwOn: ${issue.severity} - ${issue.message}`, {
+            cause: issue.cause,
+        });
         // Thrown outside every library frame, so the pass that raised the issue completes.
         setTimeout(() => {
             throw failFast;

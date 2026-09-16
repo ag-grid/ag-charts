@@ -4635,17 +4635,14 @@ describe('ChartOptions', () => {
             expect(await uncaughtMessages()).toHaveLength(1);
         });
 
-        it('does not claim the option was ignored in the thrown message, while the console record still does (TC2)', async () => {
+        it('throws the console wording, fallback clause included, because the fallback is applied before the throw', async () => {
             construct(invalidOptions({ validations: { throwOn: ['warning'] } }));
 
-            // The thrown copy names the problem only; the fallback clause belongs to the console record.
             const [thrown] = await uncaughtMessages();
-            expect(thrown).not.toMatch(/ignoring/i);
             expect(thrown).toMatch(
-                /^Error: AG Charts - validations\.throwOn: warning - Option `series\[0\]\.strokeWidth` cannot be set .*expecting a number greater than or equal to 0$/
+                /^Error: AG Charts - validations\.throwOn: warning - Option `series\[0\]\.strokeWidth` cannot be set .*expecting a number greater than or equal to 0, ignoring\.$/
             );
 
-            // AC2: the console record is untouched by fail-fast, trailing clause included.
             const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
             expect(messages.some((m) => /notanumber/.test(m) && /, ignoring\.$/.test(m))).toBe(true);
         });
