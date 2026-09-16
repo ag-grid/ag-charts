@@ -122,10 +122,10 @@ function itemTheme(
                     ['../maxWidth', '../maxHeight', '../wrapping', '../truncate', '../minimumFontSize'],
                     false
                 ),
-                // Inherited toggle by toggle, not as a block: `resolveVertexInEdgePriority` drops a
-                // lower-priority edge's value once the vertex has user-defined children, so a single
-                // `$path` on `collideWith` would lose every sibling the moment an item set one
-                // toggle — and `resolveCollideWith` reads an absent `seriesItems` as `false`.
+                // Toggle by toggle, not as a block: a lower-priority edge's value is dropped once
+                // the vertex has user-defined children, so one `$path` on `collideWith` would lose
+                // every sibling the moment an item set one toggle — and an absent `seriesItems`
+                // reads as `false`, silently disabling bar avoidance.
                 ...undocumentedThemeOptions({
                     collideWith: {
                         markers: inherited('collision/collideWith/markers', 5),
