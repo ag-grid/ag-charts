@@ -16,18 +16,41 @@ import type { AgChartLabelPlacementStyleOptions, ExtensibleSeriesTheme, Operatio
  * `series.item.<type>.label.<leaf>` is three levels below `series.label.<leaf>`, and one more per
  * nested block (`border`, `collision`, `insideStyle`, `outsideStyle`).
  */
-const inherited = (leaf: string, depth = 3) => ({ $path: `${'../'.repeat(depth)}label/${leaf}` });
+const seriesLabelPath = (leaf: string, depth = 3) => `${'../'.repeat(depth)}label/${leaf}`;
+
+const inherited = (leaf: string, depth = 3) => ({ $path: seriesLabelPath(leaf, depth) });
 
 /**
- * The overflow triggers are self-relative, so an item label that inherits its fit options from
- * `series.label` no longer trips them on a value the user set at series level; the trigger's false
- * arm inherits the series-level resolution instead of falling back to the unmanaged default.
+ * An item label opts into overflow management on its own fit siblings, or on an array-valued
+ * `placement`/`orientation` — which it now inherits from `series.label`, so the trigger fires on
+ * series-level configuration too. `prefix` is `.` for a leaf of the label block and `..` one level
+ * deeper, in `collision`.
  */
-const overflowTrigger = (siblings: string[]): Operation => ({
+const overflowTrigger = (prefix: '.' | '..', siblings: string[]): Operation => ({
     $or: [
         { $isUserOption: [siblings] },
-        { $isType: [{ $path: './placement' }, 'array'] },
-        { $isType: [{ $path: './orientation' }, 'array'] },
+        { $isType: [{ $path: `${prefix}/placement` }, 'array'] },
+        { $isType: [{ $path: `${prefix}/orientation` }, 'array'] },
+    ],
+});
+
+/**
+ * A fit option, whose inferred default must not displace a value the user set at series level: that
+ * value is explicit for every bar type, so it outranks an inference the item's own `maxWidth` or an
+ * inherited `placement` array triggered. Where the series leaves it unset, the inference applies and
+ * falls back to the series-level resolution rather than to the unmanaged default.
+ */
+const inheritedFit = (
+    leaf: string,
+    depth: number,
+    prefix: '.' | '..',
+    siblings: string[],
+    inferred: string | boolean
+): Operation => ({
+    $isUserOption: [
+        seriesLabelPath(leaf, depth),
+        inherited(leaf, depth),
+        { $if: [overflowTrigger(prefix, siblings), inferred, inherited(leaf, depth)] },
     ],
 });
 
@@ -76,45 +99,29 @@ function itemTheme(
             maxWidth: inherited('maxWidth'),
             maxHeight: inherited('maxHeight'),
             minimumFontSize: inherited('minimumFontSize'),
-            wrapping: {
-                $if: [
-                    overflowTrigger(['./maxWidth', './maxHeight', './truncate', './minimumFontSize']),
-                    'on-space',
-                    inherited('wrapping'),
-                ],
-            },
-            truncate: {
-                $if: [
-                    overflowTrigger(['./maxWidth', './maxHeight', './wrapping', './minimumFontSize']),
-                    true,
-                    inherited('truncate'),
-                ],
-            },
+            wrapping: inheritedFit(
+                'wrapping',
+                3,
+                '.',
+                ['./maxWidth', './maxHeight', './truncate', './minimumFontSize'],
+                'on-space'
+            ),
+            truncate: inheritedFit(
+                'truncate',
+                3,
+                '.',
+                ['./maxWidth', './maxHeight', './wrapping', './minimumFontSize'],
+                true
+            ),
             collision: {
                 threshold: inherited('collision/threshold', 4),
-                alwaysShow: {
-                    $if: [
-                        {
-                            $or: [
-                                {
-                                    $isUserOption: [
-                                        [
-                                            '../maxWidth',
-                                            '../maxHeight',
-                                            '../wrapping',
-                                            '../truncate',
-                                            '../minimumFontSize',
-                                        ],
-                                    ],
-                                },
-                                { $isType: [{ $path: '../placement' }, 'array'] },
-                                { $isType: [{ $path: '../orientation' }, 'array'] },
-                            ],
-                        },
-                        false,
-                        inherited('collision/alwaysShow', 4),
-                    ],
-                },
+                alwaysShow: inheritedFit(
+                    'collision/alwaysShow',
+                    4,
+                    '..',
+                    ['../maxWidth', '../maxHeight', '../wrapping', '../truncate', '../minimumFontSize'],
+                    false
+                ),
                 ...undocumentedThemeOptions({ collideWith: inherited('collision/collideWith', 4) }),
             },
             insideStyle: placementStyle('insideStyle'),
@@ -138,7 +145,17 @@ function placementStyle(styleKey: 'insideStyle' | 'outsideStyle'): WithThemePara
         cornerRadius: inherited(`${styleKey}/cornerRadius`, 4),
         padding: inherited(`${styleKey}/padding`, 4),
         border: {
-            enabled: { $path: '../../border/enabled' },
+            // A placement border configured at series level — explicitly, or auto-enabled by styling
+            // it — is a placement-specific decision, so it outranks the label's top-level
+            // enablement, matching how `LABEL_PLACEMENT_STYLE_DEFAULTS` ranks the two at one level.
+            // An item-level placement border still wins: the user value replaces this default.
+            enabled: {
+                $isUserOption: [
+                    [seriesLabelPath(`${styleKey}/border/enabled`, 5), seriesLabelPath(`${styleKey}/border`, 5)],
+                    inherited(`${styleKey}/border/enabled`, 5),
+                    { $path: '../../border/enabled' },
+                ],
+            },
             stroke: inherited(`${styleKey}/border/stroke`, 5),
             strokeWidth: inherited(`${styleKey}/border/strokeWidth`, 5),
             strokeOpacity: inherited(`${styleKey}/border/strokeOpacity`, 5),

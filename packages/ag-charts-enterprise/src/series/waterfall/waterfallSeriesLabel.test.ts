@@ -196,6 +196,117 @@ describe('waterfall series-level label', () => {
         });
     });
 
+    // The fit options (`wrapping`, `truncate`, `collision.alwaysShow`) carry an inferred default that
+    // fires off the item's own fit siblings and off an array-valued `placement`/`orientation` — which
+    // an item now inherits from the series. An explicit series-level value is a user value for every
+    // bar type, so it has to beat that inference; only an unset one may be inferred.
+    describe('fit options against the overflow inference', () => {
+        it('keep explicit series-level values when an inherited `placement` array fires the inference', () => {
+            const labels = resolveLabels({
+                label: {
+                    enabled: true,
+                    placement: ['outside-end', 'inside-center'],
+                    wrapping: 'never',
+                    truncate: false,
+                    collision: { alwaysShow: true },
+                },
+            });
+
+            for (const itemType of ITEM_TYPES) {
+                expect(labels[itemType].wrapping).toBe('never');
+                expect(labels[itemType].truncate).toBe(false);
+                expect(labels[itemType].collision.alwaysShow).toBe(true);
+            }
+        });
+
+        it('keep explicit series-level values when an item-level `maxWidth` fires the inference', () => {
+            const labels = resolveLabels({
+                label: { enabled: true, wrapping: 'never', truncate: false, collision: { alwaysShow: true } },
+                item: { positive: { label: { maxWidth: 80 } } },
+            });
+
+            expect(labels.positive.maxWidth).toBe(80);
+            for (const itemType of ITEM_TYPES) {
+                expect(labels[itemType].wrapping).toBe('never');
+                expect(labels[itemType].truncate).toBe(false);
+                expect(labels[itemType].collision.alwaysShow).toBe(true);
+            }
+        });
+
+        it('still infer the managed set where the series sets no fit options', () => {
+            const labels = resolveLabels({ label: { enabled: true, placement: ['outside-end', 'inside-center'] } });
+
+            for (const itemType of ITEM_TYPES) {
+                expect(labels[itemType].wrapping).toBe('on-space');
+                expect(labels[itemType].truncate).toBe(true);
+                expect(labels[itemType].collision.alwaysShow).toBe(false);
+            }
+        });
+
+        it('let an item-level fit option override the series-level one for that bar type', () => {
+            const labels = resolveLabels({
+                label: { enabled: true, wrapping: 'never', truncate: false },
+                item: { negative: { label: { wrapping: 'always', truncate: true } } },
+            });
+
+            expect(labels.negative.wrapping).toBe('always');
+            expect(labels.negative.truncate).toBe(true);
+            expect(labels.positive.wrapping).toBe('never');
+            expect(labels.positive.truncate).toBe(false);
+        });
+    });
+
+    // `insideStyle`/`outsideStyle` carry their own `border.enabled`, defaulting to the label's
+    // top-level border enablement. The item's placement blocks have to read the series-level
+    // placement enablement where there is one, not just the item's top-level border.
+    describe('placement-specific border enablement', () => {
+        it('inherits a placement border enabled at series level', () => {
+            const labels = resolveLabels({
+                label: { enabled: true, outsideStyle: { border: { enabled: true, stroke: '#ff0000' } } },
+            });
+
+            for (const itemType of ITEM_TYPES) {
+                expect(labels[itemType].outsideStyle.border).toStrictEqual({ enabled: true, stroke: '#ff0000' });
+                expect(labels[itemType].border.enabled).toBe(false);
+                expect(labels[itemType].insideStyle.border.enabled).toBe(false);
+            }
+        });
+
+        it('inherits a placement border auto-enabled at series level', () => {
+            const labels = resolveLabels({
+                label: { enabled: true, outsideStyle: { border: { stroke: '#ff0000' } } },
+            });
+
+            for (const itemType of ITEM_TYPES) {
+                expect(labels[itemType].outsideStyle.border.enabled).toBe(true);
+                expect(labels[itemType].insideStyle.border.enabled).toBe(false);
+            }
+        });
+
+        it('keeps a placement border disabled at series level while the top-level border is enabled', () => {
+            const labels = resolveLabels({
+                label: { enabled: true, border: { stroke: '#333333' }, outsideStyle: { border: { enabled: false } } },
+            });
+
+            for (const itemType of ITEM_TYPES) {
+                expect(labels[itemType].border.enabled).toBe(true);
+                expect(labels[itemType].insideStyle.border.enabled).toBe(true);
+                expect(labels[itemType].outsideStyle.border.enabled).toBe(false);
+            }
+        });
+
+        it('lets an item-level placement border override the series-level one for that bar type', () => {
+            const labels = resolveLabels({
+                label: { enabled: true, outsideStyle: { border: { enabled: false } } },
+                item: { positive: { label: { outsideStyle: { border: { stroke: '#444444' } } } } },
+            });
+
+            expect(labels.positive.outsideStyle.border).toStrictEqual({ enabled: true, stroke: '#444444' });
+            expect(labels.negative.outsideStyle.border.enabled).toBe(false);
+            expect(labels.total.outsideStyle.border.enabled).toBe(false);
+        });
+    });
+
     describe('callback leaves', () => {
         // The options pipeline wraps every callback, so a resolved callback is never reference-equal
         // to the one supplied — inheritance is asserted by invoking it instead.
