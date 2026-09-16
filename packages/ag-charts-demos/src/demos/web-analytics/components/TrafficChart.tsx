@@ -220,17 +220,25 @@ export function TrafficChart({
                 marker: {
                     fill: def.color,
                     size: 12,
+                    stroke: def.color,
+                    strokeWidth: 0,
                 },
                 selection: {
                     selectedItem: {
+                        fill: def.color,
                         fillOpacity: 1,
-                        stroke: def.color,
                     },
                     unselectedItem: {
-                        opacity: 0.8,
+                        opacity: 1,
                     },
                     unselectedSeries: {
                         opacity: 1,
+                    },
+                },
+                highlight: {
+                    highlightedItem: {
+                        fill: { ref: 'chartBackgroundColor', mix: 0.9, ontoColor: def.color },
+                        strokeWidth: 3,
                     },
                 },
                 tooltip: {
