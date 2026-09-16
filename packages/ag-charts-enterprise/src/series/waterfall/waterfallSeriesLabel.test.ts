@@ -307,6 +307,46 @@ describe('waterfall series-level label', () => {
         });
     });
 
+    // `collision.collideWith` is the one inherited block whose leaves are all optional, so an item
+    // that sets a single toggle must not drop the siblings it inherits. A single `$path` on the block
+    // would: `resolveVertexInEdgePriority` skips a lower-priority edge's value once the vertex has
+    // user-defined children, and `resolveCollideWith` then reads the absent toggles as its own
+    // defaults (`seriesItem: false`), silently turning off bar avoidance.
+    describe('collideWith partial overrides', () => {
+        it('keeps the inherited theme default when an item sets another toggle', () => {
+            const labels = resolveLabels({
+                label: { enabled: true },
+                item: { positive: { label: { collision: { collideWith: { seriesArea: true } } } } },
+            });
+
+            expect(labels.positive.collision.collideWith).toStrictEqual({ seriesItems: true, seriesArea: true });
+            expect(labels.negative.collision.collideWith).toStrictEqual({ seriesItems: true });
+        });
+
+        it('keeps an explicit series-level sibling when an item sets another toggle', () => {
+            const labels = resolveLabels({
+                label: { enabled: true, collision: { collideWith: { markers: false, seriesItems: false } } },
+                item: { positive: { label: { collision: { collideWith: { seriesArea: false } } } } },
+            });
+
+            expect(labels.positive.collision.collideWith).toStrictEqual({
+                markers: false,
+                seriesItems: false,
+                seriesArea: false,
+            });
+        });
+
+        it('lets an item override a toggle the series set explicitly', () => {
+            const labels = resolveLabels({
+                label: { enabled: true, collision: { collideWith: { seriesItems: false, labels: false } } },
+                item: { positive: { label: { collision: { collideWith: { seriesItems: true } } } } },
+            });
+
+            expect(labels.positive.collision.collideWith).toStrictEqual({ labels: false, seriesItems: true });
+            expect(labels.negative.collision.collideWith).toStrictEqual({ labels: false, seriesItems: false });
+        });
+    });
+
     describe('callback leaves', () => {
         // The options pipeline wraps every callback, so a resolved callback is never reference-equal
         // to the one supplied — inheritance is asserted by invoking it instead.

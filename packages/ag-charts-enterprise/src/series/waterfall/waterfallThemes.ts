@@ -122,7 +122,18 @@ function itemTheme(
                     ['../maxWidth', '../maxHeight', '../wrapping', '../truncate', '../minimumFontSize'],
                     false
                 ),
-                ...undocumentedThemeOptions({ collideWith: inherited('collision/collideWith', 4) }),
+                // Inherited toggle by toggle, not as a block: `resolveVertexInEdgePriority` drops a
+                // lower-priority edge's value once the vertex has user-defined children, so a single
+                // `$path` on `collideWith` would lose every sibling the moment an item set one
+                // toggle — and `resolveCollideWith` reads an absent `seriesItems` as `false`.
+                ...undocumentedThemeOptions({
+                    collideWith: {
+                        markers: inherited('collision/collideWith/markers', 5),
+                        labels: inherited('collision/collideWith/labels', 5),
+                        seriesItems: inherited('collision/collideWith/seriesItems', 5),
+                        seriesArea: inherited('collision/collideWith/seriesArea', 5),
+                    },
+                }),
             },
             insideStyle: placementStyle('insideStyle'),
             outsideStyle: placementStyle('outsideStyle'),
