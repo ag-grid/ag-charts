@@ -641,10 +641,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
         this.parentResize(ctx.domManager.containerSize);
     }
 
-    overrideFocusVisible(visible: boolean | undefined): void {
-        this.seriesAreaManager.focusIndicator?.overrideFocusVisible(visible);
-    }
-
     get listeners(): ChartListeners {
         return this.ctx.chartState.getValue('options', 'listeners') ?? {};
     }

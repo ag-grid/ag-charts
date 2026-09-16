@@ -33,7 +33,6 @@ export interface ChartService {
         hoveredDatumIndex: DatumIndex,
         series: CategoryGroupSeries
     ): DatumIndex | undefined;
-    overrideFocusVisible(visible: boolean | undefined): void;
     readonly listeners: ChartListeners;
     callListener<K extends ChartEventType>(event: ChartEventMap[K] & { type: K }): void;
     toAgCoordinates(point: CanvasPoint): AgCoordinates | undefined;

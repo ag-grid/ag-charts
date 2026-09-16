@@ -16,6 +16,8 @@ type SwapChainEventMap = { focus: FocusEvent; blur: FocusEvent; swap: HTMLElemen
  * two identical divs to accomplish this.
  */
 export class FocusSwapChain {
+    private label1: StrictHTMLElement;
+    private label2: StrictHTMLElement;
     private inactiveAnnouncer: HTMLElement & { tabIndex: 0 | -1 };
     private activeAnnouncer: HTMLElement & { tabIndex: 0 | -1 };
 
@@ -37,6 +39,14 @@ export class FocusSwapChain {
         return !this.skipDispatch && this.dispatch('focus', e);
     };
 
+    private createLabel(initialAltText: string) {
+        const label = createElement('div');
+        setAttribute(label, 'id', createElementId());
+        setElementStyle(label, 'display', 'none');
+        label.textContent = initialAltText;
+        return label as StrictHTMLElement;
+    }
+
     private createAnnouncer(role: BaseAttributeTypeMap['role']) {
         const announcer = createElement('div');
         announcer.role = role;
@@ -46,25 +56,14 @@ export class FocusSwapChain {
         return announcer as typeof announcer & { tabIndex: 0 | -1 };
     }
 
-    constructor(
-        private label1: StrictHTMLElement,
-        private label2: StrictHTMLElement,
-        announcerRole: BaseAttributeTypeMap['role'],
-        initialAltText: string
-    ) {
-        setAttribute(this.label1, 'id', createElementId());
-        setAttribute(this.label2, 'id', createElementId());
-        setElementStyle(this.label1, 'display', 'none');
-        setElementStyle(this.label2, 'display', 'none');
-        this.label1.textContent = initialAltText;
-        this.label2.textContent = initialAltText;
-
+    constructor(parent: HTMLElement, announcerRole: BaseAttributeTypeMap['role'], initialAltText: string) {
+        this.label1 = this.createLabel(initialAltText);
+        this.label2 = this.createLabel(initialAltText);
         this.activeAnnouncer = this.createAnnouncer(announcerRole);
         this.inactiveAnnouncer = this.createAnnouncer(announcerRole);
-        setAttribute(this.activeAnnouncer, 'tabindex', 0);
 
-        this.label2.insertAdjacentElement('afterend', this.activeAnnouncer);
-        this.label2.insertAdjacentElement('afterend', this.inactiveAnnouncer);
+        setAttribute(this.activeAnnouncer, 'tabindex', 0);
+        parent.append(this.label1, this.label2, this.activeAnnouncer, this.inactiveAnnouncer);
         this.swap(initialAltText);
     }
 

@@ -24,8 +24,6 @@ import type {
     UpdateOpts,
     ZoomChangeCompleteEvent,
 } from '../../core/eventsHub';
-import { FocusIndicator } from '../../dom/focusIndicator';
-import { FocusSwapChain } from '../../dom/focusSwapChain';
 import type { ChartRegistry } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import type { TranslatableGroup } from '../../scene/group';
@@ -176,8 +174,6 @@ export class SeriesAreaManager extends BaseManager {
     private series: UnknownSeries[] = [];
     private seriesRect?: BBox;
     private hoverRect?: BBox;
-    public readonly focusIndicator?: FocusIndicator;
-    private readonly swapChain: FocusSwapChain;
     private announceMode: FocusAnnounceMode = 'when-changed';
 
     get bbox() {
@@ -229,6 +225,14 @@ export class SeriesAreaManager extends BaseManager {
         return this._device;
     }
 
+    private getFocusIndicator() {
+        return this.chart.ctx.widgets.seriesWidget.focusIndicator;
+    }
+
+    private getSwapChain() {
+        return this.chart.ctx.widgets.seriesWidget.swapChain;
+    }
+
     private readonly pickManager: PickManager;
 
     private readonly focus = {
@@ -252,25 +256,12 @@ export class SeriesAreaManager extends BaseManager {
 
         this.pickManager = new PickManager(chart.ctx.activeManager, chart.tooltip);
 
-        const initialAltText = chart.ctx.localeManager.t('ariaInitSeriesArea');
-        const label1 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label1');
-        const label2 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label2');
-        this.swapChain = new FocusSwapChain(label1, label2, 'img', initialAltText);
-        this.swapChain.addListener('blur', (event) => this.onBlur(event));
-        this.swapChain.addListener('focus', () => this.onFocus());
-        if (chart.ctx.domManager.mode === 'normal') {
-            this.focusIndicator = new FocusIndicator(this.swapChain);
-            this.focusIndicator.overrideFocusVisible(
-                chart.ctx.chartState.getValue('options', 'mode') === 'integrated' ? false : undefined
-            );
-        }
-
         const { seriesDragInterpreter, seriesWidget, containerWidget } = chart.ctx.widgets;
         seriesWidget.setTabIndex(-1);
+        seriesWidget.swapChain.addListener('blur', (event) => this.onBlur(event));
+        seriesWidget.swapChain.addListener('focus', () => this.onFocus());
         this.cleanup.register(
-            () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label1'),
-            () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label2'),
-            seriesWidget.addListener('focus', () => this.focusIndicator?.focus({ preventScroll: true })),
+            seriesWidget.addListener('focus', () => this.getFocusIndicator()?.focus({ preventScroll: true })),
             seriesWidget.addListener('mousemove', (event) => this.onHover(event, seriesWidget)),
             seriesWidget.addListener('wheel', (event) => this.onWheel(event)),
             seriesWidget.addListener('mouseleave', (event) => this.onLeave(event)),
@@ -299,7 +290,7 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.eventsHub.on('collapsed:change', () => {
                 // Re-announce the focused node after a toggle. Gated so background changes
                 // (memento restore, off-screen series) don't trigger spurious announcements.
-                if (this.focusIndicator?.isFocusVisible()) {
+                if (this.getFocusIndicator()?.isFocusVisible()) {
                     this.announceMode = 'always';
                 }
             }),
@@ -366,7 +357,7 @@ export class SeriesAreaManager extends BaseManager {
 
         if (this.getHoverDevice() !== 'setState') {
             this.chart.ctx.tooltipManager.removeTooltip(this.id);
-            this.focusIndicator?.clear();
+            this.chart.ctx.widgets.seriesWidget.focusIndicator?.clear();
         }
     }
 
@@ -392,7 +383,7 @@ export class SeriesAreaManager extends BaseManager {
         if (pendingViewportFocus && this.focus.series !== undefined) {
             this.focus.pendingViewportFocus = undefined;
             this.pickViewportFocus(pendingViewportFocus);
-        } else if (this.isState(InteractionState.Focusable) && this.focusIndicator?.isFocusVisible()) {
+        } else if (this.isState(InteractionState.Focusable) && this.getFocusIndicator()?.isFocusVisible()) {
             // A plain redraw (resize, zoom/pan) must move the focus indicator silently, but a
             // dismissed overlay has rewritten the swapchain aria-label and must be re-announced.
             if (this.announceMode !== 'always') {
@@ -475,7 +466,7 @@ export class SeriesAreaManager extends BaseManager {
         // Every node under the point, not just the topmost: overlapping markers each get their own context.
         let pickedNodes: readonly HighlightNodeDatum[] = [];
         let position: CanvasPoint | undefined;
-        if (this.focusIndicator?.isFocusVisible()) {
+        if (this.getFocusIndicator()?.isFocusVisible()) {
             const pickedNode = this.chart.ctx.highlightManager.getActiveHighlight();
             if (pickedNode) pickedNodes = [pickedNode];
             if (pickedNode && this.seriesRect && pickedNode.midPoint) {
@@ -594,13 +585,13 @@ export class SeriesAreaManager extends BaseManager {
 
     private onWheel(_event: WheelWidgetEvent): void {
         if (!this.isState(InteractionState.Hoverable)) return;
-        this.focusIndicator?.overrideFocusVisible(false);
+        this.getFocusIndicator()?.overrideFocusVisible(false);
         this.setHoverDevice('pointer');
     }
 
     private onDragMove(event: DragWidgetEvent<'drag-move'>, current: Widget): void {
         if (!this.isState(InteractionState.Hoverable)) return;
-        this.focusIndicator?.overrideFocusVisible(false);
+        this.getFocusIndicator()?.overrideFocusVisible(false);
         this.onHoverLikeEvent(event, current);
     }
 
@@ -659,7 +650,7 @@ export class SeriesAreaManager extends BaseManager {
         // Synthetic touch clicks do not always focus the series-area; focus it before the API click
         // event so touch UX matches mouse UX.
         if (event.device === 'touch' && current === this.chart.ctx.widgets.seriesWidget) {
-            this.focusIndicator?.focus({ preventScroll: true, focusVisible: false });
+            this.getFocusIndicator()?.focus({ preventScroll: true, focusVisible: false });
         }
         if (!this.isState(InteractionState.Clickable)) return;
 
@@ -673,7 +664,7 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        this.focusIndicator?.overrideFocusVisible(false);
+        this.getFocusIndicator()?.overrideFocusVisible(false);
 
         this.onHoverLikeEvent(event, current);
 
@@ -774,9 +765,10 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onFocus(): void {
-        if (!this.isState(InteractionState.Focusable) || !this.focusIndicator) return;
+        const focusIndicator = this.getFocusIndicator();
+        if (!this.isState(InteractionState.Focusable) || !focusIndicator) return;
         this.initFocus(this.chart.ctx.chartState.getValue('options', 'keyboard').initialFocus);
-        const focusVisibleStyle: boolean = this.focusIndicator.onFocus();
+        const focusVisibleStyle: boolean = focusIndicator.onFocus();
         this.setHoverDevice(focusVisibleStyle ? 'keyboard' : 'pointer');
 
         const { pendingViewportFocus } = this.focus;
@@ -792,7 +784,7 @@ export class SeriesAreaManager extends BaseManager {
         if (!this.isState(InteractionState.Frozen) && !this.maybeEnterInteractiveTooltip(event)) {
             this.clearAll(true); // true = delayed
         }
-        this.focusIndicator?.onBlur();
+        this.getFocusIndicator()?.onBlur();
     }
 
     private onKeyDown(widgetEvent: KeyboardWidgetEvent<'keydown'>): void {
@@ -800,7 +792,7 @@ export class SeriesAreaManager extends BaseManager {
 
         const action = mapKeyboardEventToAction(widgetEvent.sourceEvent);
         if (action?.activatesFocusIndicator === false) {
-            this.focusIndicator?.overrideFocusVisible(this.getHoverDevice() === 'keyboard');
+            this.getFocusIndicator()?.overrideFocusVisible(this.getHoverDevice() === 'keyboard');
         }
 
         switch (action?.name) {
@@ -851,7 +843,7 @@ export class SeriesAreaManager extends BaseManager {
     private onNav(event: KeyboardWidgetEvent<'keydown'>): boolean {
         if (!this.isState(InteractionState.Focusable)) return false;
         this.setHoverDevice('keyboard');
-        this.focusIndicator?.overrideFocusVisible(true);
+        this.getFocusIndicator()?.overrideFocusVisible(true);
         event.sourceEvent.preventDefault();
         return true;
     }
@@ -1028,8 +1020,8 @@ export class SeriesAreaManager extends BaseManager {
             }
             return status;
         } else {
-            this.focusIndicator?.update(overlayFocus.rect, this.seriesRect, false);
-            this.swapChain.update(overlayFocus.text);
+            this.getFocusIndicator()?.update(overlayFocus.rect, this.seriesRect, false);
+            this.getSwapChain().update(overlayFocus.text);
             this.announceMode = 'always';
             return PickedFocusStatus.SUCCESS;
         }
@@ -1152,7 +1144,7 @@ export class SeriesAreaManager extends BaseManager {
             focus.seriesIndex = pick.otherIndex;
         }
 
-        if (this.focusIndicator?.isFocusVisible()) {
+        if (this.getFocusIndicator()?.isFocusVisible()) {
             this.chart.ctx.animationManager.reset();
 
             const focusBBox: Readonly<BBox> = getPickedFocusBBox(pick);
@@ -1196,7 +1188,7 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         // Update the bounds of the focus indicator:
-        this.focusIndicator?.update(pick.movedBounds ?? pick.bounds, this.seriesRect, pick.clipFocusBox);
+        this.getFocusIndicator()?.update(pick.movedBounds ?? pick.bounds, this.seriesRect, pick.clipFocusBox);
 
         const tooltipContent = this.getTooltipContent(datum, 'aria-label');
         const keyboardEvent = makeKeyboardPointerEvent(focus.series, hoverRect, pick);
@@ -1261,7 +1253,7 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         if (mode === 'always') {
-            this.swapChain.update(this.getDatumAriaText('keynav', pick.datum, tooltipContent));
+            this.getSwapChain().update(this.getDatumAriaText('keynav', pick.datum, tooltipContent));
         }
     }
 
@@ -1269,7 +1261,7 @@ export class SeriesAreaManager extends BaseManager {
         const { datum } = this.focus;
         if (datum !== undefined) {
             const tooltipContent = this.getTooltipContent(datum, 'aria-label');
-            this.swapChain.update(this.getDatumAriaText('selectionChange', datum, tooltipContent));
+            this.getSwapChain().update(this.getDatumAriaText('selectionChange', datum, tooltipContent));
         }
     }
 
@@ -1347,7 +1339,7 @@ export class SeriesAreaManager extends BaseManager {
         if (!this.pickManager.wasActivationPrevented()) {
             this.clearTooltip(delayed); // Pass through the delayed flag
         }
-        this.focusIndicator?.clear();
+        this.getFocusIndicator()?.clear();
     }
 
     private clearStaleHighlightTooltip(): void {
