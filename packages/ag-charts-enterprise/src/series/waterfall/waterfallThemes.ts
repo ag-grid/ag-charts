@@ -77,10 +77,18 @@ function itemTheme(
             maxHeight: inherited('maxHeight'),
             minimumFontSize: inherited('minimumFontSize'),
             wrapping: {
-                $if: [overflowTrigger('maxWidth', 'maxHeight', 'truncate', 'minimumFontSize'), 'on-space', inherited('wrapping')],
+                $if: [
+                    overflowTrigger('maxWidth', 'maxHeight', 'truncate', 'minimumFontSize'),
+                    'on-space',
+                    inherited('wrapping'),
+                ],
             },
             truncate: {
-                $if: [overflowTrigger('maxWidth', 'maxHeight', 'wrapping', 'minimumFontSize'), true, inherited('truncate')],
+                $if: [
+                    overflowTrigger('maxWidth', 'maxHeight', 'wrapping', 'minimumFontSize'),
+                    true,
+                    inherited('truncate'),
+                ],
             },
             collision: {
                 threshold: inherited('collision/threshold', 4),
@@ -90,7 +98,13 @@ function itemTheme(
                             $or: [
                                 {
                                     $isUserOption: [
-                                        ['../maxWidth', '../maxHeight', '../wrapping', '../truncate', '../minimumFontSize'],
+                                        [
+                                            '../maxWidth',
+                                            '../maxHeight',
+                                            '../wrapping',
+                                            '../truncate',
+                                            '../minimumFontSize',
+                                        ],
                                     ],
                                 },
                                 { $isType: [{ $path: '../placement' }, 'array'] },
@@ -101,7 +115,9 @@ function itemTheme(
                         inherited('collision/alwaysShow', 4),
                     ],
                 },
-                ...undocumentedThemeOptions({ collideWith: { seriesItems: inherited('collision/collideWith/seriesItems', 5) } }),
+                ...undocumentedThemeOptions({
+                    collideWith: { seriesItems: inherited('collision/collideWith/seriesItems', 5) },
+                }),
             },
             insideStyle: placementStyle('insideStyle'),
             outsideStyle: placementStyle('outsideStyle'),
