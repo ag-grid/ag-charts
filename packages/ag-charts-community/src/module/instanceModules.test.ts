@@ -293,6 +293,17 @@ describe('instance modules', () => {
                 expect(injectWatermark).toHaveBeenCalledTimes(1);
             });
 
+            it('reports the licence before any option warning on create', async () => {
+                ModuleRegistry.registerModules([...LINE_MODULES, enterprisePlugin]);
+                chart = AgCharts.create({ ...lineChart(), unknownOption: true } as any);
+                await waitForChartStability(chart);
+
+                const [warnOrder] = (console.warn as Mock).mock.invocationCallOrder;
+                const [licenceOrder] = validateLicense.mock.invocationCallOrder;
+                expect(takeConsoleMessages('warn')).toEqual([expect.stringContaining('unknownOption')]);
+                expect(licenceOrder).toBeLessThan(warnOrder);
+            });
+
             it('skips the licence check for a chart hosted within Studio', async () => {
                 ModuleRegistry.registerModules([...LINE_MODULES, enterprisePlugin]);
                 chart = AgCharts.create({ ...lineChart(), withinStudio: true } as any);
