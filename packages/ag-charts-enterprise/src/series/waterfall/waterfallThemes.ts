@@ -146,27 +146,15 @@ function placementStyle(styleKey: 'insideStyle' | 'outsideStyle'): WithThemePara
     };
 }
 
-/**
- * Every public leaf is declared here even where it has no default, so each item-level `$path` has a
- * target to inherit and a user value set at series level reaches all three bar types.
- */
 const seriesLabelTheme = {
     ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     ...LABEL_OVERFLOW_DEFAULTS,
     enabled: false,
-    fillOpacity: undefined,
-    color: undefined,
     fontStyle: undefined,
     fontWeight: { $ref: 'fontWeight' as const },
     fontSize: { $ref: 'fontSize' as const },
     fontFamily: { $ref: 'fontFamily' as const },
-    format: undefined,
     formatter: undefined,
-    itemStyler: undefined,
-    maxWidth: undefined,
-    maxHeight: undefined,
-    minimumFontSize: undefined,
-    orientation: undefined,
     spacing: 6,
     padding: 6,
     collision: {
