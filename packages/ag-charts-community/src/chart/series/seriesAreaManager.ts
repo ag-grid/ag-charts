@@ -256,17 +256,17 @@ export class SeriesAreaManager extends BaseManager {
 
         this.pickManager = new PickManager(chart.ctx.activeManager, chart.tooltip);
 
-        const { seriesDragInterpreter, seriesWidget, containerWidget } = chart.ctx.widgets;
+        const { seriesDragInterpreter, seriesWidget, seriesBoundsWidget, containerWidget } = chart.ctx.widgets;
         seriesWidget.setTabIndex(-1);
         seriesWidget.swapChain.addListener('blur', (event) => this.onBlur(event));
         seriesWidget.swapChain.addListener('focus', () => this.onFocus());
         this.cleanup.register(
             seriesWidget.addListener('focus', () => this.getFocusIndicator()?.focus({ preventScroll: true })),
-            seriesWidget.addListener('mousemove', (event) => this.onHover(event, seriesWidget)),
             seriesWidget.addListener('wheel', (event) => this.onWheel(event)),
-            seriesWidget.addListener('mouseleave', (event) => this.onLeave(event)),
             seriesWidget.addListener('keydown', (event) => this.onKeyDown(event)),
             seriesWidget.addListener('contextmenu', (event, current) => this.onContextMenu(event, current)),
+            seriesBoundsWidget.addListener('mousemove', (event) => this.onHover(event, seriesWidget)),
+            seriesBoundsWidget.addListener('mouseleave', (event) => this.onLeave(event)),
             containerWidget.addListener('contextmenu', (event, current) => this.onContextMenu(event, current)),
             containerWidget.addListener('click', (event, current) => this.onClick(event, current)),
             containerWidget.addListener('dblclick', (event, current) => this.onClick(event, current)),
@@ -420,7 +420,7 @@ export class SeriesAreaManager extends BaseManager {
     private layoutComplete(event: LayoutCompleteEvent): void {
         this.seriesRect = event.series.rect;
         this.hoverRect = event.series.rect;
-        this.chart.ctx.widgets.seriesWidget.setBounds(event.series.rect);
+        this.chart.ctx.widgets.seriesBoundsWidget.setBounds(event.series.rect);
         if (this.chart.ctx.domManager.mode === 'normal') {
             this.chart.ctx.widgets.chartWidget.setBounds(event.chart);
         }

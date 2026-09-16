@@ -35,6 +35,7 @@ const DOM_ELEMENT_CLASSES = [
     'canvas-overlay',
     'canvas-proxy',
     'series-area',
+    'series-area-bounds',
     'tooltip-container',
     'style-sensors',
 ] as const;
@@ -54,6 +55,7 @@ const domElementConfig: Map<DOMElementClass, DOMElementConfig> = new Map([
     ['canvas-overlay', { childElementType: 'div' }],
     ['canvas-center', { childElementType: 'div' }],
     ['series-area', { childElementType: 'div' }],
+    ['series-area-bounds', { childElementType: 'div' }],
     ['tooltip-container', { childElementType: 'div' }],
 ]);
 

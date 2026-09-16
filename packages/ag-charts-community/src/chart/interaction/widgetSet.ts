@@ -215,6 +215,7 @@ class SeriesAreaWidget extends DOMManagerWidget {
 
 export class WidgetSet {
     readonly seriesWidget: SeriesAreaWidget;
+    readonly seriesBoundsWidget: Widget;
     readonly chartWidget: Widget;
     readonly containerWidget: Widget;
     readonly seriesDragInterpreter?: DragInterpreter;
@@ -224,6 +225,7 @@ export class WidgetSet {
     constructor(ctx: DynamicContext<ChartRegistry>, opts: { withDragInterpretation: boolean }) {
         const { domManager } = ctx;
         this.seriesWidget = new SeriesAreaWidget(ctx);
+        this.seriesBoundsWidget = new DOMManagerWidget(domManager.getParent('series-area-bounds'));
         this.chartWidget = new DOMManagerWidget(domManager.getParent('canvas-proxy'));
         this.containerWidget = new DOMManagerWidget(domManager.getParent('canvas-container'));
         this.containerWidget.addChild(this.chartWidget);
