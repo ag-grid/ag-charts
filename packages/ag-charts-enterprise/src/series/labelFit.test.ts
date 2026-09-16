@@ -116,8 +116,8 @@ describe('series label fit', () => {
     });
 
     describe('waterfall (fits inside the bar rect)', () => {
-        // Waterfall labels are configured per item type (positive/negative/total), not at the series root, and default
-        // to an outside placement — force `inside-center` so the label fits the bar rect container.
+        // Waterfall labels default to an outside placement — force `inside-center` so the label fits
+        // the bar rect container. Configured per item type here; `series.label` would apply to all three.
         const waterfallChart = (label: object, data: object[]) => {
             const itemLabel = { label: { enabled: true, placement: 'inside-center', ...label } };
             return {
