@@ -2,11 +2,11 @@ import { VERSION } from 'ag-charts-community';
 import type { PresetModuleDefinition } from 'ag-charts-core';
 import type { AgQuadrantChartOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
+import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
 import {
     backgroundRegionStyle,
     backgroundRegionsTheme,
 } from '../../features/background-regions/backgroundRegionsTheme';
-import { SeriesAreaModule } from '../../features/series-area/seriesAreaModule';
 import { createQuadrant } from './quadrantPreset';
 import { quadrantOptionsDefs } from './quadrantPresetOptionsDefs';
 
@@ -44,7 +44,7 @@ export const QuadrantPresetModule: PresetModuleDefinition<AgQuadrantChartOptions
     name: 'quadrant',
     apiName: 'AgCharts.createQuadrantChart',
     enterprise: true,
-    dependencies: [SeriesAreaModule],
+    dependencies: [BackgroundRegionsModule],
     version: VERSION,
 
     options: quadrantOptionsDefs,

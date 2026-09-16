@@ -151,7 +151,7 @@ export type { ChartRegistry, ChartAxisRegistry, ChartSeriesRegistry } from './mo
 export { type AxisID, type DynamicContext, type DynamicContextApi, createDynamicContext } from 'ag-charts-core';
 export type { SelectionModuleFns } from './chart/modulesManager';
 export { Background } from './chart/background/background';
-export { SeriesArea } from './chart/series-area/seriesArea';
+export { SeriesArea, type SeriesAreaContent } from './chart/series-area/seriesArea';
 export type { BackgroundRegion } from './chart/background-regions/backgroundRegion';
 export { ChartAxes } from './chart/chartAxes';
 export { NiceMode, resetAxisLabelSelectionFn } from './chart/axis/axisUtil';

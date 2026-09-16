@@ -1829,9 +1829,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
             forceNodeDataRefresh = true;
         }
 
-        // Applied after the axes so that the enterprise series area can resolve them.
-        this.seriesArea?.applyOptions();
-
         // Only reset data if the user explicitly passed 'data' in their delta.
         const { userDeltaKeys } = newChartOptions;
         const userExplicitlyPassedData = userDeltaKeys === undefined || userDeltaKeys.has('data');

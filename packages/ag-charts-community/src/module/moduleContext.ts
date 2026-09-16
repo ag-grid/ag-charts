@@ -26,6 +26,7 @@ import type { LabelManager } from '../chart/layout/labelManager';
 import type { LayoutManager } from '../chart/layout/layoutManager';
 import type { LegendManager } from '../chart/legend/legendManager';
 import type { OptionsGraphService } from '../chart/optionsGraphService';
+import type { SeriesArea } from '../chart/series-area/seriesArea';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
 import type { ChartValidations } from '../chart/validation/chartValidations';
 import type { EventsHub } from '../core/eventsHub';
@@ -71,6 +72,8 @@ export interface ChartRegistry {
     readonly axisManager: AxisManager;
     readonly chartState: ReactiveState<ChartState>;
     readonly legendManager?: LegendManager;
+    /** Installed by the `series-area` module; modules rendering inside the series area attach through it. */
+    readonly seriesArea?: SeriesArea;
 
     readonly activeManager: ActiveManager;
     readonly animationManager: AnimationManager;

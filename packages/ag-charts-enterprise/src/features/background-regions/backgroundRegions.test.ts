@@ -724,13 +724,13 @@ describe('Background Regions removal', () => {
         chart = AgCharts.create(options);
         await waitForChartStability(chart);
 
-        const seriesArea = deproxy(chart).seriesArea as any;
-        expect(seriesArea.instances).toHaveLength(1);
+        const regions = deproxy(chart).modulesManager.getModule<any>('background-regions');
+        expect(regions.regions).toHaveLength(1);
 
         await chart.update({ ...options, seriesArea: { clip: true } });
         await waitForChartStability(chart);
 
-        expect(seriesArea.instances).toHaveLength(0);
+        expect(regions.regions).toHaveLength(0);
         expectWarningsCalls().toEqual([]);
     });
 });

@@ -376,6 +376,19 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
     },
     {
         type: 'plugin',
+        name: 'background-regions',
+        moduleId: 'BackgroundRegionsModule',
+        chartType: 'cartesian',
+        enterprise: true,
+        contributes: [
+            {
+                path: 'seriesArea.backgroundRegions',
+                options: array,
+            },
+        ],
+    },
+    {
+        type: 'plugin',
         name: 'chartToolbar',
         moduleId: 'ChartToolbarModule',
         chartType: 'cartesian',
@@ -446,14 +459,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         type: 'plugin',
         name: 'series-area',
         moduleId: 'SeriesAreaModule',
-        enterprise: true,
-        contributes: [
-            {
-                path: 'seriesArea.backgroundRegions',
-                options: array,
-                chartTypes: ['cartesian'],
-            },
-        ],
+        contributes: [],
     },
     {
         type: 'plugin',

@@ -5,6 +5,7 @@ import { type ModuleDefinition, ModuleType } from './moduleDefinition';
 import { createModuleScope } from './moduleScope';
 import {
     composeContributedDefs,
+    contributedKeysUnder,
     contributionHost,
     contributionMatchesChartType,
     contributionsOf,
@@ -247,6 +248,20 @@ describe('readContributedValue', () => {
         expect(readContributedValue(contributions, 'axis', { listeners: { click } })).toBe(click);
         expect(readContributedValue(contributions, 'axis', { listeners: {} })).toBeUndefined();
         expect(readContributedValue(contributions, 'chart', { listeners: { click } })).toBeUndefined();
+    });
+});
+
+describe('contributedKeysUnder', () => {
+    it('lists the chart-host keys one level below the parent path', () => {
+        const contributions = resolveContributions([
+            plugin('regions', { contributes: [{ path: 'seriesArea.backgroundRegions' }] }),
+            plugin('deep', { contributes: [{ path: 'seriesArea.nested.leaf' }] }),
+            plugin('axis', { contributes: [{ path: 'axes[].seriesArea.crossLines' }] }),
+            plugin('zoom'),
+        ]);
+        expect(contributedKeysUnder(contributions, 'seriesArea')).toEqual(['backgroundRegions']);
+        expect(contributedKeysUnder(contributions, 'seriesArea.nested')).toEqual(['leaf']);
+        expect(contributedKeysUnder(contributions, 'legend')).toEqual([]);
     });
 });
 

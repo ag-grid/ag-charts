@@ -254,6 +254,22 @@ export function readContributedValue(
 }
 
 /**
+ * Keys directly below the chart-host `parent` path that other modules contribute, so that the owner
+ * of `parent` can leave them to their modules.
+ */
+export function contributedKeysUnder(contributions: Iterable<ResolvedContribution>, parent: string): string[] {
+    const { segments } = parseOptionsPath(parent);
+    const keys: string[] = [];
+    for (const { host, path } of contributions) {
+        if (host !== 'chart' || path.segments.length !== segments.length + 1) continue;
+        if (segments.every((segment, i) => segment.key === path.segments[i].key)) {
+            keys.push(path.segments.at(-1)!.key);
+        }
+    }
+    return keys;
+}
+
+/**
  * Whether `value` at a contributed location asks for the feature, so that an unregistered owner is
  * reported rather than silently stripped.
  */

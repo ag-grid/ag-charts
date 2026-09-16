@@ -1,7 +1,6 @@
-import { type AgStandaloneChartOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type AgStandaloneChartOptions, SeriesAreaModule, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { ChartModuleDefinition } from 'ag-charts-core';
 
-import { SeriesAreaModule } from '../features/series-area/seriesAreaModule';
 import { StandaloneChart } from './standaloneChart';
 
 const { standaloneChartOptionsDefs, commonChartThemeTemplate } = _ModuleSupport;
