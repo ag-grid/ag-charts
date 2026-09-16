@@ -383,7 +383,8 @@ class AgChartsInternal {
         const withinStudio = isStudioChart(proxy, options);
         let licenceScope: LicenceScope | undefined;
         if (licenseManager == null && !withinStudio) {
-            const container = options.container ?? proxy?.chart?.chartOptions.processedOptions.container;
+            const container =
+                options.container ?? deltaOptions?.container ?? proxy?.chart?.chartOptions.processedOptions.container;
             licenceScope = { chartDocument: hostDocument(container), moduleScope };
             validatedLicenseManager(licenceScope.chartDocument, !usesEnterpriseModules(moduleScope));
         }

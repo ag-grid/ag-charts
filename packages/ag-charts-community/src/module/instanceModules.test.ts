@@ -304,6 +304,18 @@ describe('instance modules', () => {
                 expect(licenceOrder).toBeLessThan(warnOrder);
             });
 
+            it('licenses against the document a delta update moves the chart into', async () => {
+                ModuleRegistry.registerModules([...LINE_MODULES, enterprisePlugin]);
+                chart = AgCharts.create(lineChart());
+                await waitForChartStability(chart);
+                expect(lastLicensedDocument()).toBe(hostDocument);
+
+                const otherDocument = document.implementation.createHTMLDocument();
+                await chart.updateDelta({ container: otherDocument.body });
+                await waitForChartStability(chart);
+                expect(lastLicensedDocument()).toBe(otherDocument);
+            });
+
             it('skips the licence check for a chart hosted within Studio', async () => {
                 ModuleRegistry.registerModules([...LINE_MODULES, enterprisePlugin]);
                 chart = AgCharts.create({ ...lineChart(), withinStudio: true } as any);
