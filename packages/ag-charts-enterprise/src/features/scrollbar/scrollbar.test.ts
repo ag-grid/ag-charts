@@ -588,7 +588,7 @@ describe('Scrollbar theming', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    const BORDER_COLOUR = '#ff7f27';
+    const BORDER_COLOR = '#ff7f27';
 
     let chart: any;
     afterEach(() => {
@@ -601,7 +601,7 @@ describe('Scrollbar theming', () => {
             width: 400,
             height: 300,
             data: DATA,
-            theme: { params: { borderColor: BORDER_COLOUR } },
+            theme: { params: { borderColor: BORDER_COLOR } },
             series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             axes: { x: { type: 'number' }, y: { type: 'number' } },
             navigator: { enabled: true },
@@ -615,7 +615,7 @@ describe('Scrollbar theming', () => {
         const scrollbar = chart.ctx.chartState.getValue('options', 'scrollbar');
         const navigatorStroke = chart.ctx.chartState.getValue('options', 'navigator').mask.stroke;
 
-        expect(navigatorStroke).toBe(BORDER_COLOUR);
+        expect(navigatorStroke).toBe(BORDER_COLOR);
         for (const scope of [scrollbar, scrollbar.horizontal, scrollbar.vertical]) {
             expect(scope.track.stroke).toBe(navigatorStroke);
             expect(scope.thumb.stroke).toBe(navigatorStroke);
