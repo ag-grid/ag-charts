@@ -1,5 +1,6 @@
 import {
     BaseProperties,
+    type NormalisedSeriesTooltipOptions,
     Property,
     type RequireOptional,
     callWithContext,
@@ -72,29 +73,39 @@ export class SeriesTooltip<P extends AgSeriesTooltipRendererParams<any>> extends
         content: TooltipStructuredContent,
         params: RequireOptional<P>
     ): TooltipContent {
-        const overrides = this.renderer == null ? undefined : callWithContext(callers, this.renderer, params);
-        if (isString(overrides) || isNumber(overrides) || isDate(overrides)) {
-            return { type: 'raw', rawHtmlString: toTextString(overrides) };
-        }
-        if (overrides != null) {
-            const mergedMarker = mergeDefaults(overrides.symbol?.marker, content.symbol?.marker);
-            const mergedLineInput =
-                (overrides.symbol?.line ?? content.symbol?.line)
-                    ? mergeDefaults(overrides.symbol?.line, content.symbol?.line)
-                    : undefined;
-
-            const symbol: LegendSymbolOptions | undefined =
-                content.symbol || overrides.symbol
-                    ? {
-                          marker: mergedMarker,
-                          line: buildLineWithMarkerDefaults(mergedLineInput, mergedMarker),
-                      }
-                    : undefined;
-
-            return { type: 'structured', ...content, ...overrides, symbol };
-        }
-        return { type: 'structured', ...content };
+        return formatSeriesTooltip(this, callers, content, params);
     }
+}
+
+/** Applies the series tooltip `renderer` (if any) over the series-built `content`. */
+export function formatSeriesTooltip<P>(
+    tooltip: NormalisedSeriesTooltipOptions<P>,
+    callers: Array<{ context?: unknown }>,
+    content: TooltipStructuredContent,
+    params: P
+): TooltipContent {
+    const overrides = tooltip.renderer == null ? undefined : callWithContext(callers, tooltip.renderer, params);
+    if (isString(overrides) || isNumber(overrides) || isDate(overrides)) {
+        return { type: 'raw', rawHtmlString: toTextString(overrides) };
+    }
+    if (overrides != null) {
+        const mergedMarker = mergeDefaults(overrides.symbol?.marker, content.symbol?.marker);
+        const mergedLineInput =
+            (overrides.symbol?.line ?? content.symbol?.line)
+                ? mergeDefaults(overrides.symbol?.line, content.symbol?.line)
+                : undefined;
+
+        const symbol: LegendSymbolOptions | undefined =
+            content.symbol || overrides.symbol
+                ? {
+                      marker: mergedMarker,
+                      line: buildLineWithMarkerDefaults(mergedLineInput, mergedMarker),
+                  }
+                : undefined;
+
+        return { type: 'structured', ...content, ...overrides, symbol };
+    }
+    return { type: 'structured', ...content };
 }
 
 export function makeSeriesTooltip<P extends AgSeriesTooltipRendererParams<DatumDefault, ContextDefault>>() {

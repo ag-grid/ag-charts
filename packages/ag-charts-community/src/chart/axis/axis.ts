@@ -76,7 +76,7 @@ import { Caption } from '../caption';
 import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../chartAxis';
 import type { CrossLine } from '../crossline/crossLine';
 import { FormatManager } from '../formatter/formatManager';
-import type { ISeries, ISeriesProperties, SeriesNodeDatum } from '../series/seriesTypes';
+import type { ISeries, ISeriesOptions, SeriesNodeDatum } from '../series/seriesTypes';
 import type { AxisLabelFormatterCache } from './axisLabelUtil';
 import { createAxisLabelFormatterCache, formatAxisLabelValue, getAxisLabelSideFlag } from './axisLabelUtil';
 import type { TickInterval } from './axisTick';
@@ -356,7 +356,7 @@ export abstract class Axis<
         this._requiredRange = value;
     }
 
-    boundSeries: ISeries<SeriesNodeDatum, ISeriesProperties>[] = [];
+    boundSeries: ISeries<SeriesNodeDatum, ISeriesOptions>[] = [];
     includeInvisibleDomains: boolean = false;
 
     interactionEnabled = true;

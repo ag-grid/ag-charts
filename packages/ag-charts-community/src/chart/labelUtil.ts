@@ -27,7 +27,9 @@ import type {
     RegionAlign,
 } from 'ag-charts-core';
 import {
+    type NormalisedChartLabelPlacementStyleOptions,
     type NormalisedChartLabelStyleOptions,
+    type NormalisedSeriesLabelOptions,
     barLabelObstacles,
     fitLabelTextOrOverflow,
     fitLabelTextOrOverflowAutoSize,
@@ -40,6 +42,7 @@ import {
     measureLabelText,
     mergeDefaults,
     orientationAngles,
+    resolveCollideWith,
     resolveLabelFitDescriptors,
     rotatedGlyphDrift,
     rotatedLabelInset,
@@ -66,8 +69,6 @@ import type { Text } from '../scene/shape/text';
 import { isRotatable } from '../scene/transformable';
 import { type SectorBoundaries, isBoxInSector, isPointInSector } from '../scene/util/sector';
 import {
-    type Label,
-    type LabelPlacementStyle,
     expandLabelBoxExtent,
     expandPlacementLabelBoxExtent,
     resolvePlacementLabelBoxExtent,
@@ -503,9 +504,14 @@ export function resolveInsidePlacement(
 
 /** Selects the style overrides for a label's resolved placement; `undefined` when neither applies. */
 export function pickPlacementStyle(
-    styles: { insideStyle: LabelPlacementStyle; outsideStyle: LabelPlacementStyle } | undefined,
+    styles:
+        | {
+              insideStyle: NormalisedChartLabelPlacementStyleOptions;
+              outsideStyle: NormalisedChartLabelPlacementStyleOptions;
+          }
+        | undefined,
     placement: ResolvedLabelPlacement | undefined
-): LabelPlacementStyle | undefined {
+): NormalisedChartLabelPlacementStyleOptions | undefined {
     if (styles == null || placement == null) return undefined;
     return placement === 'inside' ? styles.insideStyle : styles.outsideStyle;
 }
@@ -521,9 +527,9 @@ function toResolvedCompassPlacement(placement: LabelPlacement | undefined): Reso
 }
 
 /** A label surface carrying the placement-reactive style overrides a candidate style resolves against. */
-type PlacementStyledLabel<TParams> = Label<TParams> & {
-    insideStyle: LabelPlacementStyle;
-    outsideStyle: LabelPlacementStyle;
+type PlacementStyledLabel<TParams> = NormalisedSeriesLabelOptions<TParams> & {
+    insideStyle: NormalisedChartLabelPlacementStyleOptions;
+    outsideStyle: NormalisedChartLabelPlacementStyleOptions;
 };
 
 /**
@@ -645,9 +651,9 @@ export interface StyledBarLabelBox {
 }
 
 /** A bar-family label surface: the placement-styled label every bar/histogram/waterfall/funnel series holds. */
-export type BarLabelSurface<TParams = never> = Label<TParams> & {
-    insideStyle: LabelPlacementStyle;
-    outsideStyle: LabelPlacementStyle;
+export type BarLabelSurface<TParams = never> = NormalisedSeriesLabelOptions<TParams> & {
+    insideStyle: NormalisedChartLabelPlacementStyleOptions;
+    outsideStyle: NormalisedChartLabelPlacementStyleOptions;
 };
 
 /** The per-series values a bar-family `getLabelData` resolves once before walking its label data. */
@@ -675,7 +681,7 @@ export function barLabelDataContext<TParams>(label: BarLabelSurface<TParams>): B
     return {
         box,
         alwaysShow,
-        collideWith: label.collision.resolveCollideWith(),
+        collideWith: resolveCollideWith(label.collision),
         threshold: label.collision.threshold ?? 0,
         measureBox: (text) => {
             const { width, height } = measureLabelText(text, label);
@@ -737,11 +743,11 @@ export function getLabelStyles<TParams>(
     series: SeriesLike,
     nodeDatum: SeriesNodeDatum | undefined,
     params: TParams,
-    label: Label<TParams>,
+    label: NormalisedSeriesLabelOptions<TParams>,
     isHighlight: boolean,
     activeHighlight: HighlightNodeDatum | undefined,
     labelPath: string[] = ['series', `${series.declarationOrder}`, 'label'],
-    placementStyle?: LabelPlacementStyle,
+    placementStyle?: NormalisedChartLabelPlacementStyleOptions,
     resolvedPlacement?: ResolvedPlacement
 ): NormalisedChartLabelStyleOptions & { fontSize: number } {
     const resolvedLabel = resolvePlacementLabelStyle(label, placementStyle);
@@ -803,11 +809,11 @@ export function updateLabelNode<TParams, D extends LabelDatum>(
     series: IsAny<D> extends false ? SeriesLike : never,
     textNode: IsAny<D> extends false ? Text : never,
     params: IsAny<D> extends false ? TParams : never,
-    label: IsAny<D> extends false ? Label<TParams, unknown> : never,
+    label: IsAny<D> extends false ? NormalisedSeriesLabelOptions<TParams, unknown> : never,
     labelDatum: D | undefined,
     highlight: { isHighlight: boolean; activeHighlight: HighlightNodeDatum | undefined },
     labelPath?: string[],
-    placementStyle?: LabelPlacementStyle,
+    placementStyle?: NormalisedChartLabelPlacementStyleOptions,
     resolvedPlacement?: ResolvedPlacement
 ): void;
 
@@ -815,11 +821,11 @@ export function updateLabelNode<TParams>(
     series: SeriesLike,
     textNode: Text<SeriesNodeDatum>,
     params: TParams,
-    label: Label<TParams, unknown>,
+    label: NormalisedSeriesLabelOptions<TParams, unknown>,
     labelDatum: LabelDatum | undefined,
     highlight: { isHighlight: boolean; activeHighlight: HighlightNodeDatum | undefined },
     labelPath?: string[],
-    placementStyle?: LabelPlacementStyle,
+    placementStyle?: NormalisedChartLabelPlacementStyleOptions,
     resolvedPlacement?: ResolvedPlacement
 ) {
     const { isHighlight, activeHighlight } = highlight;
@@ -1142,7 +1148,10 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
     spacing: number;
     // The styled label; the box extent (padding + border) is resolved per candidate from its placement's
     // style, so an inside↔outside cascade offsets and sizes each candidate by its own style.
-    label: Label<TParams> & { insideStyle: LabelPlacementStyle; outsideStyle: LabelPlacementStyle };
+    label: NormalisedSeriesLabelOptions<TParams> & {
+        insideStyle: NormalisedChartLabelPlacementStyleOptions;
+        outsideStyle: NormalisedChartLabelPlacementStyleOptions;
+    };
     // Raw measured text size, before the per-placement box extent is folded in.
     textWidth: number;
     textHeight: number;

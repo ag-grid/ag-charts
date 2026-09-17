@@ -43,6 +43,7 @@ import {
     measureLabelText,
     mergeDefaults,
     minValue,
+    resolveCollideWith,
     resolveLabelFit,
     resolveLabelFitDescriptors,
     subtractValues,
@@ -1178,7 +1179,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             const nodeLabel = node.label;
             if (nodeLabel == null || nodeLabel.text === '') continue;
             const label = this.getItemConfig(node.itemType).label;
-            const collideWith = label.collision.resolveCollideWith();
+            const collideWith = resolveCollideWith(label.collision);
             const threshold = label.collision.threshold ?? 0;
             // Inflate the measured text by the label's drawn box (padding + border stroke) so collisions
             // avoid the box, not just the text.

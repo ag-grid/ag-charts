@@ -5,15 +5,14 @@ import { Group } from '../scene/group';
 import type { CaptionLike } from './captionLike';
 import type { ChartHighlight } from './chartHighlight';
 import type { ChartType } from './chartType';
-import type { SeriesProperties } from './series/seriesProperties';
-import type { DatumIndex, ISeries, SeriesNodeDatum } from './series/seriesTypes';
+import type { DatumIndex, ISeries, ISeriesOptions, SeriesNodeDatum } from './series/seriesTypes';
 import type { CategoryGroupSeries } from './sharedCategoryGroup';
 
 export type ChartListeners = AgBaseChartListeners<unknown, unknown>;
 export type ChartEventType = keyof ChartListeners;
 export type ChartEventMap = { [K in ChartEventType]: Parameters<NonNullable<ChartListeners[K]>>[0] };
 
-type BaseSeries = ISeries<SeriesNodeDatum, SeriesProperties<object>>;
+type BaseSeries = ISeries<SeriesNodeDatum, ISeriesOptions>;
 
 // Subset of chart.ts exposed in the module context:
 export interface ChartService {

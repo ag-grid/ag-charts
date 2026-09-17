@@ -214,7 +214,7 @@ export interface ColorScaleLegendFormatterContext {
  * community and enterprise `Series` subclasses without an import cycle.
  */
 interface ColorScaleSeries {
-    readonly properties: { colorKey?: string; legendItemName?: string };
+    readonly options: object;
     readonly ctx: { formatManager: FormatManager };
     callWithContext: GlobalContextFormatter;
     getFormatterContext(property: 'color'): FormatterBoundSeries[];
@@ -226,13 +226,18 @@ interface ColorScaleSeries {
  * `colorScale.mode === 'discrete'`. Replaces the previous per-call-site
  * boilerplate that packed the same five fields by hand.
  */
+function readStringOption(options: object, key: string): string | undefined {
+    const value: unknown = key in options ? options[key as keyof typeof options] : undefined;
+    return typeof value === 'string' ? value : undefined;
+}
+
 export function colorScaleLegendFormatterContext(series: ColorScaleSeries): ColorScaleLegendFormatterContext {
     return {
         formatManager: series.ctx.formatManager,
         formatInContext: series.callWithContext.bind(series),
         // Read via bracket access so the result is `string | undefined` without an `as` cast.
-        key: 'colorKey' in series.properties ? series.properties.colorKey : undefined,
-        legendItemName: 'legendItemName' in series.properties ? series.properties.legendItemName : undefined,
+        key: readStringOption(series.options, 'colorKey'),
+        legendItemName: readStringOption(series.options, 'legendItemName'),
         boundSeries: series.getFormatterContext('color'),
     };
 }

@@ -41,11 +41,7 @@ type ContextMenuCallback<K extends AgContextMenuItemShowOn = AgContextMenuItemSh
     _ModuleSupport.ContextMenuCallback<K>;
 
 const { getItemId, ContextMenuRegistry } = _ModuleSupport;
-type UnknownSeries = _ModuleSupport.ISeries<
-    _ModuleSupport.SeriesNodeDatum,
-    _ModuleSupport.SeriesProperties<object>,
-    unknown
->;
+type UnknownSeries = _ModuleSupport.ISeries<_ModuleSupport.SeriesNodeDatum, _ModuleSupport.ISeriesOptions, unknown>;
 type Caller = { context?: unknown } | undefined;
 
 const moduleId = 'context-menu';
@@ -299,7 +295,7 @@ export class ContextMenu extends AbstractModuleInstance {
             coordinates,
             allShowOnParams,
         };
-        const callers: Caller[] = [this.pickedNodes[0].series.properties, this.ctx.chartService];
+        const callers: Caller[] = [this.pickedNodes[0].series.options, this.ctx.chartService];
         return [params, callers];
     }
 
@@ -550,7 +546,7 @@ export class ContextMenu extends AbstractModuleInstance {
                     const { seriesId, itemId, label } = this.pickedLegendItem;
                     const { chartService: chart } = this.ctx;
                     const series: UnknownSeries | undefined = chart.series.find((s) => s.id === seriesId);
-                    const callers: Caller[] = [series?.properties, chart];
+                    const callers: Caller[] = [series?.options, chart];
                     const apiEvent: CallbackParamRules<AgChartLegendContextMenuEvent> = {
                         type: 'contextmenu',
                         seriesId,
@@ -584,7 +580,7 @@ export class ContextMenu extends AbstractModuleInstance {
                 if (!pickedNodes?.[0]) return;
 
                 const coordinates: AgCoordinates | undefined = this.ctx.chartService.toAgCoordinates(event);
-                const callers: (Caller | undefined)[] = [pickedNodes[0].series.properties, chart];
+                const callers: (Caller | undefined)[] = [pickedNodes[0].series.options, chart];
                 // FIXME: apiEvent should be of type CallbackParamRules<AgNodeContextMenuActionEvent>
                 const apiEvent: AgNodeContextMenuActionEvent | undefined =
                     pickedNodes[0]?.series.createNodeContextMenuActionEvent({

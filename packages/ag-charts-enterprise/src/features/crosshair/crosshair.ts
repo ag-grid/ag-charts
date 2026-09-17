@@ -458,19 +458,16 @@ export class Crosshair
         const activeHighlightData: Record<string, { position: number; value: any }> = {};
 
         for (const unsafeKey of seriesKeyProperties) {
-            // `getKeyProperties()` should return keys of series.properties members of type `string | undefined`:
-            type AssertedKey = Exclude<keyof typeof series.properties, 'context' | 'selection' | 'tooltip'>;
-            const key = unsafeKey as AssertedKey;
-
-            const keyValue = series.properties[key];
-            if (keyValue === undefined) continue;
+            // `getKeyProperties()` names series options whose values are data keys (`string | undefined`).
+            const keyValue: unknown = series.options[unsafeKey as keyof typeof series.options];
+            if (typeof keyValue !== 'string') continue;
 
             const value = datum?.[keyValue];
             const position = axisCtx.scale.convert(value) + halfBandwidth;
             const isInRange = this.isInRange(position);
 
             if (isInRange) {
-                activeHighlightData[key] = { value, position };
+                activeHighlightData[unsafeKey] = { value, position };
             }
         }
 

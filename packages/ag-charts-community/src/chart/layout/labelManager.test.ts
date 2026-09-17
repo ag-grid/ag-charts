@@ -3,10 +3,10 @@ import { vi } from 'vitest';
 import type { LabelObstacle, PlacedLabel, PointLabelDatum } from 'ag-charts-core';
 
 import { BBox } from '../../scene/bbox';
-import type { ISeries, ISeriesProperties, SeriesNodeDatum } from '../series/seriesTypes';
+import type { ISeries, ISeriesOptions, SeriesNodeDatum } from '../series/seriesTypes';
 import { LabelManager } from './labelManager';
 
-type AnySeries = ISeries<SeriesNodeDatum, ISeriesProperties, unknown>;
+type AnySeries = ISeries<SeriesNodeDatum, ISeriesOptions, unknown>;
 
 const NO_PADDING = { top: 0, right: 0, bottom: 0, left: 0 };
 const RECT = new BBox(0, 0, 200, 200);

@@ -527,7 +527,7 @@ export abstract class RadarSeries<
     }
 
     protected updateLabels() {
-        const { properties } = this;
+        const properties: RadarSeriesProperties<TStyle, TOpts> = this.properties;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightData =
             activeHighlight?.series === this && activeHighlight?.datum

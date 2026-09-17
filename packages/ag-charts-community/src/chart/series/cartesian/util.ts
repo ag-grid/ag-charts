@@ -98,7 +98,7 @@ export function calculateSegments(
         return result;
     };
 
-    return getSegments(segmentation.segments).map(({ stop, start, ...style }) => {
+    return getSegments(segmentation.segments ?? []).map(({ stop, start, ...style }) => {
         // Calculate dimensions based on direction
         const x0 = isXDirection ? start : -horizontalMargin;
         const y0 = isXDirection ? -verticalMargin : start;

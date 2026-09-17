@@ -44,7 +44,7 @@ const revenueProfitData = [
 function getCartesianSeriesArray(chart: Chart) {
     type BaseSeries = (typeof chart.series)[number];
     type UnknownSeries = BaseSeries & {
-        properties: { marker: { shape: unknown; size: unknown }; fill: unknown; xKey: unknown; yKey: unknown };
+        options: { marker: { shape: unknown; size: unknown }; fill: unknown; xKey: unknown; yKey: unknown };
     };
     return chart.series as UnknownSeries[];
 }
@@ -162,7 +162,7 @@ describe('AgChart', () => {
         expect(chart.subtitle?.enabled).toBe(false);
         expect(chart.ctx.chartState.getValue('options', 'background').fill).toBe('red');
         expect(chart.ctx.chartState.getValue('options', 'background').visible).toBe(false);
-        expect((chart.series[0] as any).properties.marker.shape).toBe('plus');
+        expect((chart.series[0] as any).options.marker.shape).toBe('plus');
 
         await chartProxy.updateDelta({
             data: revenueProfitData,
@@ -269,15 +269,15 @@ describe('AgChart', () => {
         expect(updatedSeries.length).toEqual(4);
         expect(updatedSeries[0].id).toEqual(createdSeries[0].id);
         expect(updatedSeries[1].id).not.toEqual(createdSeries[1].id); // Switches from unstacked to stacked.
-        expect(updatedSeries[0].properties.marker.shape).toEqual('square');
-        expect(updatedSeries[0].properties.marker.size).toEqual(10);
-        expect(updatedSeries[1].properties.fill).toEqual('lime');
-        expect(updatedSeries[1].properties.yKey).toEqual('profit');
-        expect(updatedSeries[2].properties.fill).toEqual('cyan');
-        expect(updatedSeries[2].properties.yKey).toEqual('foobar');
+        expect(updatedSeries[0].options.marker.shape).toEqual('square');
+        expect(updatedSeries[0].options.marker.size).toEqual(10);
+        expect(updatedSeries[1].options.fill).toEqual('lime');
+        expect(updatedSeries[1].options.yKey).toEqual('profit');
+        expect(updatedSeries[2].options.fill).toEqual('cyan');
+        expect(updatedSeries[2].options.yKey).toEqual('foobar');
         expect(updatedSeries[3]).toBeInstanceOf(AreaSeries);
-        expect(updatedSeries[3].properties.xKey).toEqual('month');
-        expect(updatedSeries[3].properties.yKey).toEqual('bazqux');
+        expect(updatedSeries[3].options.xKey).toEqual('month');
+        expect(updatedSeries[3].options.yKey).toEqual('bazqux');
 
         await chartProxy.update({
             data: revenueProfitData,
@@ -351,10 +351,10 @@ describe('AgChart', () => {
         expect(updatedSeries3[0]).toBeInstanceOf(BarSeries);
         expect(updatedSeries3[1]).toBeInstanceOf(BarSeries);
         expect(updatedSeries3[2]).toBeInstanceOf(LineSeries);
-        expect(updatedSeries3[0].properties.yKey).toEqual('profit');
-        expect(updatedSeries3[1].properties.yKey).toEqual('foobar');
-        expect(updatedSeries3[2].properties.yKey).toEqual('revenue');
-        expect(updatedSeries3[2].properties.marker.size).toEqual(10);
+        expect(updatedSeries3[0].options.yKey).toEqual('profit');
+        expect(updatedSeries3[1].options.yKey).toEqual('foobar');
+        expect(updatedSeries3[2].options.yKey).toEqual('revenue');
+        expect(updatedSeries3[2].options.marker.size).toEqual(10);
 
         const lineSeries = updatedSeries3[1];
 

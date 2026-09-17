@@ -20,7 +20,7 @@ export abstract class TopologySeries<
     TLabel extends object,
     TContext extends TopologySeriesNodeDataContext<TDatum, TLabel> = TopologySeriesNodeDataContext<TDatum, TLabel>,
 > extends _ModuleSupport.DataModelSeries<TDatum, TOpts, TProps, TLabel, TContext> {
-    constructor(options: _ModuleSupport.DataModelSeriesConstructorOpts<TProps>) {
+    constructor(options: _ModuleSupport.DataModelSeriesConstructorOpts<TOpts>) {
         super(options);
 
         this.cleanup.register(
@@ -45,7 +45,7 @@ export abstract class TopologySeries<
     protected getHighlightedDatum(): TDatum | undefined {
         // Mirror `isSeriesHighlighted`: with highlight disabled there is no highlighted datum, so the
         // highlight overlay stays empty and the hovered datum is not raised above overlapping series.
-        if (!this.properties.highlight.enabled) return undefined;
+        if (!this.isHighlightEnabled()) return undefined;
 
         let highlightedDatum: TDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
         const { legendItemName } = this.properties;
@@ -65,7 +65,7 @@ export abstract class TopologySeries<
     }
 
     public override isSeriesHighlighted(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined): boolean {
-        if (!this.properties.highlight.enabled) return false;
+        if (!this.isHighlightEnabled()) return false;
         const { series, legendItemName: activeLegendItemName } = highlightedDatum ?? {};
         const { legendItemName } = this.properties;
         return series === this || (legendItemName != null && legendItemName === activeLegendItemName);

@@ -65,6 +65,7 @@ export {
     titleAxisThemeTemplate,
 } from './chart/themes/axisThemeTemplate';
 export { commonChartThemeTemplate } from './chart/themes/chartThemeTemplate';
+export { interpolationThemeTemplate } from './chart/themes/seriesThemeTemplate';
 export {
     boxPlotSeriesThemeableOptionsDef,
     candlestickSeriesThemeableOptionsDef,
@@ -264,13 +265,13 @@ export {
     isUnselected,
     SeriesSelectionProperties,
 } from './chart/series/seriesProperties';
-export { SeriesMarker } from './chart/series/seriesMarker';
-export { makeSeriesTooltip, SeriesTooltip } from './chart/series/seriesTooltip';
+export { SeriesMarker, markerDiameter } from './chart/series/seriesMarker';
+export { formatSeriesTooltip, makeSeriesTooltip, SeriesTooltip } from './chart/series/seriesTooltip';
 export type {
     DatumIndex,
     ErrorBoundSeriesNodeDatum,
     ISeries,
-    ISeriesProperties,
+    ISeriesOptions,
     ItemId,
     SeriesNodeDatum,
     SeriesNodeEventTypes,
@@ -452,9 +453,11 @@ export {
     Label,
     LabelPlacementStyle,
     LabelStyle,
+    LabelValueFormatter,
     PlacedSeriesLabel,
     expandLabelBoxExtent,
     expandPlacementLabelBoxExtent,
+    formatLabelValue,
     labelHasBox,
     placedLabelTextOffset,
     resolvePlacementLabelBoxExtent,
