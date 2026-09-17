@@ -1,7 +1,10 @@
 import type {
     CallbackParamRules,
+    DeepPartial,
     DomainWithMetadata,
     DynamicContext,
+    NormalisedLineSeriesOptions,
+    NormalisedLineSeriesOwnOptions,
     NormalisedLineSeriesStylerResult,
     NormalisedSeriesMarkerStyle,
     Point,
@@ -26,7 +29,6 @@ import {
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgLineSeriesLabelFormatterParams,
     type AgLineSeriesMarkerItemStylerParams,
-    type AgLineSeriesOptions,
     type AgLineSeriesStylerParams,
 } from 'ag-charts-types';
 
@@ -55,6 +57,7 @@ import {
     processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
+import { LabelValueFormatter } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import { type LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -69,6 +72,7 @@ import {
     SeriesNodePickMode,
 } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import { markerDiameter } from '../seriesMarker';
 import { toHighlightString, toSelectionString } from '../seriesProperties';
 import { HighlightState, SelectionState } from '../seriesTypes';
 import { datumStylerProperties } from '../util';
@@ -79,7 +83,6 @@ import {
     aggregateLineDataFromDataModel,
     aggregateLineDataFromDataModelPartial,
 } from './lineAggregation';
-import { LineSeriesProperties } from './lineSeriesProperties';
 import {
     type LineNodeDatum,
     type LineNodeDatumScratch,
@@ -112,8 +115,8 @@ import { calculateSegments } from './util';
  */
 interface LineSeriesTypes extends PlacedLabelSeriesTypes {
     readonly node: Marker<LineNodeDatum>;
-    readonly options: AgLineSeriesOptions;
-    readonly properties: LineSeriesProperties;
+    readonly options: NormalisedLineSeriesOwnOptions;
+    readonly properties: undefined;
     readonly datum: LineNodeDatum;
     readonly label: LineNodeDatum;
     readonly labelParams: AgLineSeriesLabelFormatterParams;
@@ -124,9 +127,16 @@ interface LineSeriesTypes extends PlacedLabelSeriesTypes {
 
 type LineAnimationData = CartesianAnimationDataOf<LineSeriesTypes>;
 
+/** Marker keys that restyle in place; every other marker change rebuilds the marker nodes. */
+const MARKER_RESTYLE_KEYS = new Set(['lineDash', 'lineDashOffset']);
+
+function markerStyleChanged(markerDiff: object | undefined): boolean {
+    return markerDiff != null && Object.keys(markerDiff).some((key) => !MARKER_RESTYLE_KEYS.has(key));
+}
+
 /** Per-pass context for the no-itemStyler marker-style pass. */
 interface LineNoStylerPassCtx {
-    marker: LineSeriesProperties['marker'];
+    marker: NormalisedLineSeriesOptions['marker'];
     hideWithSize0: boolean;
     isHighlight: boolean;
 }
@@ -164,13 +174,21 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     static override readonly className = 'LineSeries';
     static readonly type = 'line' as const;
 
-    override properties = new LineSeriesProperties();
+    private markerDirty = true;
+    private readonly labelFormatter = new LabelValueFormatter<AgLineSeriesLabelFormatterParams>();
+
+    protected override syncOptionDerivedState(optionsDiff: DeepPartial<NormalisedLineSeriesOptions> | undefined) {
+        this.labelFormatter.label = this.options.label;
+        if (optionsDiff == null || markerStyleChanged(optionsDiff.marker)) {
+            this.markerDirty = true;
+        }
+    }
 
     override createNodeParams(datum: LineNodeDatum) {
         return {
             ...super.createNodeParams(datum),
-            xKey: this.properties.xKey,
-            yKey: this.properties.yKey,
+            xKey: this.options.xKey,
+            yKey: this.options.yKey,
         };
     }
 
@@ -183,7 +201,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     }
 
     override get pickModeAxis() {
-        return this.properties.sparklineMode ? 'main' : 'main-category';
+        return this.options.sparklineMode ? 'main' : 'main-category';
     }
 
     constructor(moduleCtx: DynamicContext<ChartRegistry>) {
@@ -210,7 +228,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     }
 
     private isNormalized() {
-        return this.properties.normalizedTo != null;
+        return this.options.normalizedTo != null;
     }
 
     override renderToOffscreenCanvas(): boolean {
@@ -222,7 +240,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         if (this.data == null) return;
 
         const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 0 } = {} } = this;
-        const { xKey, yKey, selectedKey, connectMissingData, normalizedTo } = this.properties;
+        const { xKey, yKey, selectedKey, connectMissingData, normalizedTo } = this.options;
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
@@ -243,7 +261,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         };
 
         const props: DataModelOptions<any, false, false>['props'] = [];
-        const allowNullKey = this.properties.allowNullKeys ?? false;
+        const allowNullKey = this.options.allowNullKeys ?? false;
 
         // If two or more datum share an x-value, i.e. lined up vertically, they will have the same datum id.
         // They must be identified this way when animated to ensure they can be tracked when their y-value
@@ -311,14 +329,14 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     }
 
     override xCoordinateRange(xValue: any, pixelSize: number): [number, number] {
-        const { marker } = this.properties;
+        const { marker } = this.options;
         const x = this.axes[ChartAxisDirection.X]!.scale.convert(xValue);
         const r = marker.enabled ? 0.5 * marker.size * pixelSize : 0;
         return [x - r, x + r];
     }
 
     override yCoordinateRange(yValues: any[], pixelSize: number): [number, number] {
-        const { marker } = this.properties;
+        const { marker } = this.options;
         const y = this.axes[ChartAxisDirection.Y]!.scale.convert(yValues[0]);
         const r = marker.enabled ? 0.5 * marker.size * pixelSize : 0;
         return [y - r, y + r];
@@ -483,7 +501,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         this.ensureBucketLookupFeature()?.setActiveFilter(processedData, dataAggregationFilter);
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
-        const { marker } = this.properties;
+        const { marker } = this.options;
         const markerSize = marker.enabled ? marker.size : 0;
         const labelContext = this.resolveLabelContext(marker.shape, markerSize);
 
@@ -499,7 +517,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 processedData,
                 'mixed-numeric'
             ),
-            crossFilterSelectionValues: this.properties.selectedKey
+            crossFilterSelectionValues: this.options.selectedKey
                 ? dataModel.resolveColumnById(this, 'selectedRaw', processedData, 'boolean')
                 : undefined,
             xScale,
@@ -522,14 +540,14 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             canIncrementallyUpdate,
             dataAggregationFilter,
             range,
-            xKey: this.properties.xKey,
-            yKey: this.properties.yKey,
-            xName: this.properties.xName,
-            yName: this.properties.yName,
-            legendItemName: this.properties.legendItemName,
-            connectMissingData: this.properties.connectMissingData,
+            xKey: this.options.xKey,
+            yKey: this.options.yKey,
+            xName: this.options.xName,
+            yName: this.options.yName,
+            legendItemName: this.options.legendItemName,
+            connectMissingData: this.options.connectMissingData,
             capDefaults: {
-                lengthRatioMultiplier: this.properties.marker.getDiameter(),
+                lengthRatioMultiplier: markerDiameter(this.options.marker),
                 lengthMax: Infinity,
             },
             nodes: canIncrementallyUpdate ? this.contextNodeData!.nodeData : [],
@@ -563,7 +581,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                       ctx.yKey,
                       'y',
                       ctx.yDomain,
-                      this.properties.label,
+                      this.labelFormatter,
                       {
                           value: scratch.yDatum,
                           datum: scratch.datum,
@@ -577,7 +595,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 : undefined;
 
             const label = ctx.labelsEnabled ? this.measureLabel(ctx, labelText) : ctx.emptyLabel;
-            const fit = ctx.labelsEnabled ? placedLabelFit(labelText, this.properties.label, ctx) : undefined;
+            const fit = ctx.labelsEnabled ? placedLabelFit(labelText, this.options.label, ctx) : undefined;
             // Markerless vertices still nudge their label clear of the line with a small fixed gap.
             const gap = ctx.size > 0 ? ctx.size / 2 : DEFAULT_MARKERLESS_LABEL_GAP;
 
@@ -708,7 +726,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             scales: this.calculateScaling(),
             visible: this.visible,
             crossFiltering: false,
-            styles: getMarkerStyles(this, this.properties, this.properties.marker),
+            styles: getMarkerStyles(this, this.options, this.options.marker),
             segments: undefined,
         };
     }
@@ -722,17 +740,17 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     ): LineSeriesNodeDataContext {
         // Build stroke data from span points
         const strokeSpans = ctx.spanPoints.flatMap((p): LinePathSpan[] => {
-            return Array.isArray(p) ? interpolatePoints(p, this.properties.interpolation) : [];
+            return Array.isArray(p) ? interpolatePoints(p, this.options.interpolation) : [];
         });
         result.strokeData = { itemId: ctx.yKey, spans: strokeSpans };
 
-        result.crossFiltering = this.properties.selectedKey != null;
+        result.crossFiltering = this.options.selectedKey != null;
 
         const seriesRect = this.chart?.seriesRect;
         if (seriesRect == null) return result;
 
         result.segments = calculateSegments(
-            this.properties.segmentation,
+            this.options.segmentation,
             ctx.xAxis,
             ctx.yAxis,
             seriesRect,
@@ -744,7 +762,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     }
 
     protected override isPathOrSelectionDirty(): boolean {
-        return this.properties.marker.isDirty();
+        return this.markerDirty;
     }
 
     protected override updatePathNodes(opts: { paths: SegmentedPath[]; visible: boolean; animationEnabled: boolean }) {
@@ -790,11 +808,11 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     }) {
         let { nodeData } = opts;
         const { datumSelection } = opts;
-        const { contextNodeData, processedData, axes, properties } = this;
-        const { marker } = properties;
+        const { contextNodeData, processedData, axes, options } = this;
+        const { marker } = options;
 
         const markerDrawMode = cartesianMarkerDrawMode(
-            properties,
+            options,
             contextNodeData,
             processedData!,
             axes,
@@ -806,7 +824,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         this.markerNodesPickable = markerDrawMode.needsNodeData && !markerDrawMode.hideWithSize0;
         nodeData = markerDrawMode.needsNodeData ? nodeData : [];
 
-        if (marker.isDirty()) {
+        if (this.markerDirty) {
             datumSelection.clear();
             datumSelection.cleanup();
         }
@@ -880,10 +898,9 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     }) {
         const { hideWithSize0 } = this;
         const { datumSelection, isHighlight } = opts;
-        const { marker } = this.properties;
-        const { itemStyler } = marker;
+        const { marker } = this.options;
 
-        if (itemStyler == null) {
+        if (marker.itemStyler == null) {
             // No itemStyler: style is a pure function of (highlightState, selectionState).
             this.runMarkerStylePass<LineNoStylerPassCtx, LineNodeDatum, NormalisedSeriesMarkerStyle, LineSeries>(
                 datumSelection,
@@ -897,7 +914,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         // Hoist resolveColumnById/getDomain out of the per-datum loop — they don't depend on datumIndex.
         const dataModel = this.dataModel!;
         const processedData = this.processedData!;
-        const { xKey, yKey } = this.properties;
+        const { xKey, yKey } = this.options;
         const ctx: LineStylerPassCtx = {
             marker,
             hideWithSize0,
@@ -964,17 +981,17 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         });
 
         if (!isHighlight) {
-            this.properties.marker.markClean();
+            this.markerDirty = false;
         }
     }
 
     protected override get labelProperty() {
-        return this.properties.label;
+        return this.options.label;
     }
 
     override getLabelData(): (LineNodeDatum & PointLabelDatum)[] {
         const labelData = super.getLabelData();
-        const { marker } = this.properties;
+        const { marker } = this.options;
         // A marker itemStyler resolves its size after node data was built, so the styled size is stamped
         // on here — the label's obstacles, gap and anchor all scale off the marker that gets drawn.
         if (marker.enabled && marker.itemStyler != null) {
@@ -999,7 +1016,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         candidateStateEnum: SelectionState | undefined
     ): AgLineSeriesStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
-        const { marker, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth, xKey, yKey } = this.properties;
+        const { marker, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth, xKey, yKey } = this.options;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
         const selectionState = toSelectionString(selectionStateEnum);
         const candidateState = toSelectionString(candidateStateEnum);
@@ -1038,7 +1055,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         datumIndex: number,
         style: Required<NormalisedSeriesMarkerStyle>
     ): AgLineSeriesMarkerItemStylerParams<unknown, unknown> {
-        const { xKey, yKey } = this.properties;
+        const { xKey, yKey } = this.options;
 
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData, 'object')[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData, 'mixed-numeric')[datumIndex];
@@ -1056,14 +1073,14 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     }
 
     protected override makeLabelFormatterParams(): AgLineSeriesLabelFormatterParams {
-        const { xKey, xName, yKey, yName, legendItemName } = this.properties;
+        const { xKey, xName, yKey, yName, legendItemName } = this.options;
         return { xKey, xName, yKey, yName, legendItemName } satisfies RequireOptional<AgLineSeriesLabelFormatterParams>;
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, axes, properties } = this;
-        const { xKey, xName, yKey, yName, tooltip, legendItemName } = properties;
-        const allowNullKeys = properties.allowNullKeys ?? false;
+        const { id: seriesId, dataModel, processedData, axes, options } = this;
+        const { xKey, xName, yKey, yName, tooltip, legendItemName } = options;
+        const allowNullKeys = options.allowNullKeys ?? false;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -1079,7 +1096,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);
 
         const format = this.getMarkerStyle(
-            this.properties.marker,
+            this.options.marker,
             { datumIndex, datum },
             params,
             { isHighlight: false },
@@ -1118,7 +1135,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         const { stroke, strokeOpacity, strokeWidth, lineDash, marker } = this.getStyle(undefined);
 
         const markerStyle = this.getMarkerStyle(
-            this.properties.marker,
+            this.options.marker,
             {},
             undefined,
             {
@@ -1141,7 +1158,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         return {
             marker: {
                 ...markerStyle,
-                enabled: this.properties.marker.enabled,
+                enabled: this.options.marker.enabled,
             },
             line: {
                 enabled: true,
@@ -1164,7 +1181,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             visible,
         } = this;
 
-        const { yKey: itemId, yName, title, legendItemName, showInLegend } = this.properties;
+        const { yKey: itemId, yName, title, legendItemName, showInLegend } = this.options;
 
         return [
             {
@@ -1178,7 +1195,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                     text: legendItemName ?? title ?? yName ?? itemId,
                 },
                 symbol: this.legendItemSymbol(),
-                hideInLegend: !showInLegend,
+                hideInLegend: showInLegend === false,
             },
         ];
     }
@@ -1320,7 +1337,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     }
 
     protected isLabelEnabled() {
-        return this.properties.label.enabled;
+        return this.options.label.enabled;
     }
 
     override getBandScalePadding() {
@@ -1334,7 +1351,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     public getStyle(
         highlightState: HighlightState | undefined
     ): Required<NormalisedLineSeriesStylerResult> & { marker: Required<NormalisedSeriesMarkerStyle> } {
-        const { styler, marker, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = this.properties;
+        const { styler, marker, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = this.options;
         const { size, shape, fill = 'transparent', fillOpacity } = marker;
         let stylerResult: NormalisedLineSeriesStylerResult = {};
         if (styler) {
@@ -1380,14 +1397,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             stylerStyle.marker
         );
 
-        return this.getMarkerStyle(
-            this.properties.marker,
-            datum,
-            params,
-            { isHighlight: true },
-            undefined,
-            stylerStyle
-        );
+        return this.getMarkerStyle(this.options.marker, datum, params, { isHighlight: true }, undefined, stylerStyle);
     }
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
@@ -1396,10 +1406,10 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
 
     protected override hasItemStylers(): boolean {
         return (
-            this.properties.selection.enabled ||
-            this.properties.styler != null ||
-            this.properties.marker.itemStyler != null ||
-            this.properties.label.itemStyler != null
+            this.isSelectionEnabled() ||
+            this.options.styler != null ||
+            this.options.marker.itemStyler != null ||
+            this.options.label.itemStyler != null
         );
     }
 }
