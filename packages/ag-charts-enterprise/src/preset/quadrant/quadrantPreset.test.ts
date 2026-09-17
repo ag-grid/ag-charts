@@ -425,6 +425,112 @@ describe('Quadrant Preset', () => {
         );
     });
 
+    describe('region label offsets', () => {
+        // The resolved regions are emitted in region order.
+        const REGION_ORDER = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'] as const;
+
+        const resolveOffsets = (options: AgQuadrantChartOptions) => {
+            const cartesianOptions = createQuadrant(
+                options,
+                undefined,
+                undefined,
+                undefined,
+                new Logger(),
+                () => undefined
+            );
+            const regions = cartesianOptions.seriesArea?.backgroundRegions;
+            expect(regions).toHaveLength(REGION_ORDER.length);
+
+            return Object.fromEntries(
+                REGION_ORDER.map((region, index) => [
+                    region,
+                    { x: regions![index].label?.xOffset, y: regions![index].label?.yOffset },
+                ])
+            ) as Record<(typeof REGION_ORDER)[number], { x?: number; y?: number }>;
+        };
+
+        // `spacing` is resolved relative to each region, so 40 pushes topLeft's label towards the
+        // top-left and bottomRight's towards the bottom-right — equal magnitudes, opposite signs.
+        it('leaves the spacing-derived offsets untouched when no offset is set', () => {
+            const offsets = resolveOffsets(regionLabelOptions('inside-outer-outer', undefined, { spacing: 40 }));
+
+            expect(offsets.topLeft).toEqual({ x: 40, y: 40 });
+            expect(offsets.bottomRight).toEqual({ x: -40, y: -40 });
+        });
+
+        // The design decision this feature turns on: the offset is absolute, so it shifts both
+        // labels the same way while `spacing` keeps pushing them in opposite directions.
+        it('adds a per-region offset on top of the spacing-derived offset, unmirrored', () => {
+            const offsets = resolveOffsets(
+                regionLabelOptions(
+                    'inside-outer-outer',
+                    { topLeft: { yOffset: -10 }, bottomRight: { yOffset: -10 } },
+                    {
+                        spacing: 40,
+                    }
+                )
+            );
+
+            expect(offsets.topLeft).toEqual({ x: 40, y: 30 });
+            expect(offsets.bottomRight).toEqual({ x: -40, y: -50 });
+        });
+
+        // A negative offset is the ticket's headline use case ("nudge it up"), so it must survive
+        // validation and arithmetic rather than being clamped at zero.
+        it('applies a negative offset without clamping it', () => {
+            const offsets = resolveOffsets(
+                regionLabelOptions(
+                    'inside-outer-outer',
+                    { topLeft: { xOffset: -100, yOffset: -100 } },
+                    {
+                        spacing: 40,
+                    }
+                )
+            );
+
+            expect(offsets.topLeft).toEqual({ x: -60, y: -60 });
+        });
+
+        // A label centred on an axis gets no `spacing` contribution on it, and must still be nudgeable.
+        it('applies an offset on an axis whose spacing contribution is zero', () => {
+            const offsets = resolveOffsets(
+                regionLabelOptions('inside-outer-center', { topLeft: { xOffset: 12 } }, { spacing: 40 })
+            );
+
+            expect(offsets.topLeft).toEqual({ x: 12, y: 40 });
+        });
+
+        it('offsets each region independently', () => {
+            const offsets = resolveOffsets(
+                regionLabelOptions(
+                    'inside-outer-outer',
+                    { topLeft: { yOffset: -10 }, bottomRight: { yOffset: 25 } },
+                    { spacing: 40 }
+                )
+            );
+
+            expect(offsets.topLeft.y).toBe(30);
+            expect(offsets.bottomRight.y).toBe(-15);
+            // The regions left alone keep their spacing-derived offsets exactly.
+            expect(offsets.topRight).toEqual({ x: -40, y: 40 });
+            expect(offsets.bottomLeft).toEqual({ x: 40, y: -40 });
+        });
+
+        // The offsets are deliberately per-region only, so the shared `regions.label` must not
+        // accept them — same treatment `text` already gets at that level.
+        it('rejects an offset set on the shared regions.label', async () => {
+            const options = regionLabelOptions('inside-outer-outer', undefined, {
+                yOffset: -10,
+            } as AgQuadrantRegionsLabelOptions);
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.createQuadrantChart(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([[expect.stringContaining('yOffset')]]);
+        });
+    });
+
     it.each([false, true])(
         'starting from alignAxesToPivot %s it should render identically after toggling twice',
         async (alignAxesToPivot) => {

@@ -93,15 +93,15 @@ function createRegionLabel(
     label: AgQuadrantRegionLabelOptions | undefined
 ): AgSeriesAreaBackgroundRegionLabel {
     const position = label?.position ?? shared?.position ?? DEFAULT_LABEL_POSITION;
-    const { spacing = DEFAULT_LABEL_SPACING, ...style } = mergeDefaults(label, shared) ?? {};
+    const { spacing = DEFAULT_LABEL_SPACING, xOffset = 0, yOffset = 0, ...style } = mergeDefaults(label, shared) ?? {};
     const outward = REGION_DIRECTIONS[region];
     const direction = LABEL_SPACING_DIRECTIONS[position];
 
     return {
         ...style,
         position: LABEL_POSITIONS[position][region],
-        xOffset: labelOffset(spacing, direction.x, outward.x),
-        yOffset: labelOffset(spacing, direction.y, outward.y),
+        xOffset: labelOffset(spacing, direction.x, outward.x) + xOffset,
+        yOffset: labelOffset(spacing, direction.y, outward.y) + yOffset,
     };
 }
 
