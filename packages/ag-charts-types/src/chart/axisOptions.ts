@@ -10,6 +10,7 @@ import type {
     FontSize,
     FontStyle,
     FontWeight,
+    Opacity,
     PixelSize,
     Ratio,
     TextAlign,
@@ -179,10 +180,19 @@ export interface AgAxisContinuousIntervalOptions<
 export interface AgAxisLineOptions {
     /** Set to `false` to hide the axis line. */
     enabled?: boolean;
-    /** The width in pixels of the axis line. */
+    /**
+     * The width in pixels of the axis line.
+     * @deprecated v14.2.0 Use `strokeWidth` instead.
+     */
     width?: PixelSize;
     /** The colour of the axis line. */
-    stroke?: CssColor;
+    stroke?: AgCssColorOrRef;
+    /** The width in pixels of the axis line. */
+    strokeWidth?: PixelSize;
+    /** The opacity of the axis line. */
+    strokeOpacity?: Opacity;
+    /** Defines how the axis line should be rendered as a series of dashes and gaps. */
+    lineDash?: PixelSize[];
 }
 
 export interface AgAxisGridLineOptions {
