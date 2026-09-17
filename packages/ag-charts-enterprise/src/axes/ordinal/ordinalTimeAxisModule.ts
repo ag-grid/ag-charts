@@ -7,6 +7,7 @@ import {
 } from 'ag-charts-core';
 
 import { AxisInteractionModule } from '../../features/axis-interaction/axisInteractionModule';
+import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
 import { OrdinalTimeAxis } from './ordinalTimeAxis';
 
 export const OrdinalTimeAxisModule: AxisModuleDefinition<AgOrdinalTimeAxisOptions, OrdinalTimeAxis> = {
@@ -15,7 +16,7 @@ export const OrdinalTimeAxisModule: AxisModuleDefinition<AgOrdinalTimeAxisOption
     chartType: 'cartesian',
     enterprise: true,
     version: VERSION,
-    dependencies: [CartesianChartModule, AxisInteractionModule],
+    dependencies: [CartesianChartModule, AxisInteractionModule, BackgroundRegionsModule],
 
     options: _ModuleSupport.ordinalTimeAxisOptionsDefs,
     themeTemplate: mergeDefaults(

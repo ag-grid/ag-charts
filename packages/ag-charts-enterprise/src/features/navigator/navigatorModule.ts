@@ -1,6 +1,7 @@
 import { type AgNavigatorOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { PluginModuleDefinition } from 'ag-charts-core';
 
+import { BackgroundRegionsModule } from '../background-regions/backgroundRegionsModule';
 import { Navigator } from './navigator';
 import { navigatorOptionsDef } from './navigatorOptionsDefs';
 import { NAVIGATOR_THEME } from './navigatorTheme';
@@ -9,6 +10,7 @@ export const NavigatorModule: PluginModuleDefinition<AgNavigatorOptions, _Module
     type: 'plugin',
     name: 'navigator',
     chartType: 'cartesian',
+    dependencies: [BackgroundRegionsModule],
     enterprise: true,
     version: VERSION,
     // removable: false, // Toggling this module causes zoom state flakiness.

@@ -2,12 +2,14 @@ import { type AgErrorBarOptions, VERSION } from 'ag-charts-community';
 import type { SeriesPluginModuleDefinition } from 'ag-charts-core';
 import { errorBarOptionsDefs } from 'ag-charts-core';
 
+import { BackgroundRegionsModule } from '../background-regions/backgroundRegionsModule';
 import { ErrorBars } from './errorBar';
 
 export const ErrorBarsModule: SeriesPluginModuleDefinition<AgErrorBarOptions> = {
     type: 'series:plugin',
     name: 'errorBar',
     chartType: 'cartesian',
+    dependencies: [BackgroundRegionsModule],
     seriesTypes: ['bar', 'line', 'scatter'],
     enterprise: true,
     version: VERSION,

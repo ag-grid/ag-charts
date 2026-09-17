@@ -1,6 +1,7 @@
 import { type AgScrollbarOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { PluginModuleDefinition } from 'ag-charts-core';
 
+import { BackgroundRegionsModule } from '../background-regions/backgroundRegionsModule';
 import { ZoomInteractionModule } from '../zoom-interaction/zoomInteractionModule';
 import { Scrollbar } from './scrollbar';
 import { scrollbarOptionsDef } from './scrollbarOptionsDefs';
@@ -12,7 +13,7 @@ export const ScrollbarModule: PluginModuleDefinition<AgScrollbarOptions, _Module
     chartType: 'cartesian',
     enterprise: true,
     version: VERSION,
-    dependencies: [ZoomInteractionModule],
+    dependencies: [ZoomInteractionModule, BackgroundRegionsModule],
     options: scrollbarOptionsDef,
     themeTemplate: SCROLLBAR_THEME,
     create: (ctx) => new Scrollbar(ctx),

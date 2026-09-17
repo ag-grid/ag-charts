@@ -1,12 +1,14 @@
 import { VERSION } from 'ag-charts-community';
 import { DEFAULT_CAPTION_LAYOUT_STYLE, type PluginModuleDefinition } from 'ag-charts-core';
 
+import { BackgroundRegionsModule } from '../background-regions/backgroundRegionsModule';
 import { StatusBar } from './statusBar';
 
 export const StatusBarModule: PluginModuleDefinition<never> = {
     type: 'plugin',
     name: 'statusBar',
     chartType: 'cartesian',
+    dependencies: [BackgroundRegionsModule],
     enterprise: true,
     version: VERSION,
 
