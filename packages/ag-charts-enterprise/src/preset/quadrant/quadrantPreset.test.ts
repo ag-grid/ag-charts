@@ -449,8 +449,7 @@ describe('Quadrant Preset', () => {
             ) as Record<(typeof REGION_ORDER)[number], { x?: number; y?: number }>;
         };
 
-        // `spacing` is resolved relative to each region, so 40 pushes topLeft's label towards the
-        // top-left and bottomRight's towards the bottom-right — equal magnitudes, opposite signs.
+        // `spacing` is region-relative, so opposite regions get equal magnitudes with opposite signs.
         it('leaves the spacing-derived offsets untouched when no offset is set', () => {
             const offsets = resolveOffsets(regionLabelOptions('inside-outer-outer', undefined, { spacing: 40 }));
 
@@ -458,8 +457,7 @@ describe('Quadrant Preset', () => {
             expect(offsets.bottomRight).toEqual({ x: -40, y: -40 });
         });
 
-        // The design decision this feature turns on: the offset is absolute, so it shifts both
-        // labels the same way while `spacing` keeps pushing them in opposite directions.
+        // The offset is absolute, so it shifts both labels the same way while `spacing` mirrors them.
         it('adds a per-region offset on top of the spacing-derived offset, unmirrored', () => {
             const offsets = resolveOffsets(
                 regionLabelOptions(
@@ -475,8 +473,6 @@ describe('Quadrant Preset', () => {
             expect(offsets.bottomRight).toEqual({ x: -40, y: -50 });
         });
 
-        // A negative offset is the ticket's headline use case ("nudge it up"), so it must survive
-        // validation and arithmetic rather than being clamped at zero.
         it('applies a negative offset without clamping it', () => {
             const offsets = resolveOffsets(
                 regionLabelOptions(
@@ -491,7 +487,6 @@ describe('Quadrant Preset', () => {
             expect(offsets.topLeft).toEqual({ x: -60, y: -60 });
         });
 
-        // A label centred on an axis gets no `spacing` contribution on it, and must still be nudgeable.
         it('applies an offset on an axis whose spacing contribution is zero', () => {
             const offsets = resolveOffsets(
                 regionLabelOptions('inside-outer-center', { topLeft: { xOffset: 12 } }, { spacing: 40 })
@@ -511,13 +506,11 @@ describe('Quadrant Preset', () => {
 
             expect(offsets.topLeft.y).toBe(30);
             expect(offsets.bottomRight.y).toBe(-15);
-            // The regions left alone keep their spacing-derived offsets exactly.
             expect(offsets.topRight).toEqual({ x: -40, y: 40 });
             expect(offsets.bottomLeft).toEqual({ x: 40, y: -40 });
         });
 
-        // The offsets are deliberately per-region only, so the shared `regions.label` must not
-        // accept them — same treatment `text` already gets at that level.
+        // Per-region only, so the shared level must reject them — as it already does for `text`.
         it('rejects an offset set on the shared regions.label', async () => {
             const options = regionLabelOptions('inside-outer-outer', undefined, {
                 yOffset: -10,
