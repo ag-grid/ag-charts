@@ -104,9 +104,6 @@ export class Zoom extends AbstractModuleInstance {
 
     private hoveredAxisId?: AxisID;
     private hoveredAxisDirection?: ChartAxisDirection;
-    // DragInterpreter does not capture the pointer, so a deferred drag-start can be reported against a different
-    // element; recorded from the un-deferred drag-start so the axis the mousedown hit is known.
-    private draggedAxisId?: AxisID;
 
     // State
     private dragState = DragState.None;
@@ -165,7 +162,6 @@ export class Zoom extends AbstractModuleInstance {
 
         if (ctx.widgets.seriesDragInterpreter) {
             this.cleanup.register(
-                ctx.widgets.seriesWidget.addListener('drag-start', () => (this.draggedAxisId = this.hoveredAxisId)),
                 ctx.widgets.seriesDragInterpreter.events.on('dblclick', (event) => this.onSeriesAreaDoubleClick(event)),
                 ctx.widgets.seriesDragInterpreter.events.on('drag-start', (event) => this.onSeriesAreaDragStart(event)),
                 ctx.widgets.seriesDragInterpreter.events.on('drag-move', (event) => this.onSeriesAreaDragMove(event)),
@@ -317,8 +313,6 @@ export class Zoom extends AbstractModuleInstance {
 
         this.panner.stopInteractions();
 
-        if (this.draggedAxisId) return;
-
         let newDragState = DragState.None;
 
         const selectionOpts = this.selectionOpts;
@@ -350,8 +344,6 @@ export class Zoom extends AbstractModuleInstance {
             selector,
             ctx: { interactionManager, tooltipManager, eventsHub },
         } = this;
-
-        if (this.draggedAxisId) return;
 
         if (!enabled || !paddedRect || !this.isState(InteractionState.ZoomDraggable) || this.isIgnoredTouch(event)) {
             return;
@@ -390,7 +382,7 @@ export class Zoom extends AbstractModuleInstance {
         // it for the rest of the session.
         this.ctx.domManager.unlockCursor(DRAG_CURSOR_ID);
 
-        if (this.draggedAxisId || !this.opts.enabled || this.dragState === DragState.None) return;
+        if (!this.opts.enabled || this.dragState === DragState.None) return;
 
         this.handleRegularDragEnd();
         this.resetDragState();
