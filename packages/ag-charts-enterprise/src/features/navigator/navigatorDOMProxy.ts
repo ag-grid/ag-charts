@@ -166,7 +166,6 @@ export class NavigatorDOMProxy {
         event: _ModuleSupport.DragWidgetEvent<'drag-move'>,
         key: NavigatorButtonType
     ) {
-        event.sourceEvent.preventDefault();
         this.sliderHandlers.onDrag(key, this.toCanvasOffsets(event));
     }
 

@@ -146,12 +146,12 @@ export class DragInterpreter {
             return;
         }
 
-        if (event.device === 'mouse') {
+        if (event.device !== 'touch') {
             const click = makeSynthetic('click', event);
             this.events.emit('click', click);
         }
         // ignore 'drag-end' events from 'touchstart' or 'touchcancel'
-        else if (event.sourceEvent.type === 'touchend') {
+        else {
             if (checkDragDistance(this.touch.distanceTravelledX, this.touch.distanceTravelledY)) {
                 return; // this is a drag not a click, do not dispatch a 'click' event.
             }
@@ -242,8 +242,7 @@ export class LongTapInterpreter {
         // A chart update can replace the touched element mid-hold, leaving nothing to dispatch to.
         if (!element.contains(target as Node)) return;
 
-        // Unwinds every drag consumer between the touched element and the chart. Must precede the listeners
-        // below, whose 'touchcancel' handler would mistake it for the finger lifting.
+        // Must precede the listeners below, whose 'touchcancel' handler would misread it as a lift.
         target.dispatchEvent(
             new TouchEvent('touchcancel', {
                 bubbles: true,

@@ -197,7 +197,7 @@ export class ScrollbarDOMProxy {
         this.slider.addListener('keydown', (ev) => this.onSliderKeyDown(ev));
         this.slider.addListener('drag-start', (ev) => this.onDragStart(ev));
         this.slider.addListener('drag-move', (ev) => this.onDragMove(ev));
-        this.slider.addListener('drag-end', (ev) => this.onDragEnd(ev));
+        this.slider.addListener('drag-end', () => this.onDragEnd());
         this.slider.addListener('mouseenter', (event) => this.handleHoverEvent(event));
         this.slider.addListener('mousemove', (event) => this.handleHoverEvent(event));
         this.slider.addListener('mouseleave', () => this.onMouseLeave());
@@ -292,8 +292,6 @@ export class ScrollbarDOMProxy {
     }
 
     private onDragMove(event: _ModuleSupport.DragWidgetEvent<'drag-move'>) {
-        event.sourceEvent.preventDefault();
-
         if (this.interactionMode === 'drag') {
             const { isHorizontal, size, start } = this.getInteractionBounds() ?? {};
             if (start == null || size == null) return;
@@ -320,9 +318,7 @@ export class ScrollbarDOMProxy {
         this.repeater.updateTarget(ratio);
     }
 
-    private onDragEnd(event: _ModuleSupport.DragWidgetEvent<'drag-end'>) {
-        event.sourceEvent.preventDefault();
-
+    private onDragEnd() {
         this.ctx.domManager.unlockCursor(DRAG_CURSOR_ID);
         this.ctx.interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
         this.interactionBounds = undefined;

@@ -603,10 +603,6 @@ export class SeriesAreaManager extends BaseManager {
     private onHoverLikeEvent(event: HoverLikeEvent, current: Widget): void {
         if (this.isIgnoredTouch(event)) return;
 
-        if (event.device === 'touch' && this.chart.ctx.chartState.getValue('options', 'touch').dragAction === 'hover') {
-            event.sourceEvent.preventDefault();
-        }
-
         // Ignore hover events outside the series-area for the purpose of tooltips + highlights.
         if (current !== this.chart.ctx.widgets.seriesWidget) return;
 
