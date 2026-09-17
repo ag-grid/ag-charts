@@ -433,7 +433,7 @@ export class ContextMenu extends AbstractModuleInstance {
 
         const overrideFocusVisible = sourceEvent.pointerType === 'touch' ? false : undefined;
         if (overrideFocusVisible !== undefined) {
-            this.ctx.chartService.overrideFocusVisible(overrideFocusVisible);
+            this.ctx.widgets.seriesWidget.focusIndicator?.overrideFocusVisible(overrideFocusVisible);
         }
 
         this.createMenu(event, expandedItems);
