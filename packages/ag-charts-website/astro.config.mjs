@@ -239,6 +239,10 @@ export default defineConfig({
             include: CHECK_LINKS === 'true',
             prefix: PUBLIC_BASE_URL,
             frameworkRedirect: { path: FRAMEWORK_REDIRECT_PATH, frameworks: FRAMEWORKS },
+            // The API reference island is `client:only`, and its server-rendered fallback is
+            // deliberately shallow: it emits `reference-<Interface>-<member>` ids for top-level
+            // members only, so interface and nested anchors have no target in the built HTML.
+            clientRenderedFragmentPrefixes: ['reference-'],
         }),
         agRedirectsChecker({
             skip: CHECK_REDIRECTS !== 'true',
