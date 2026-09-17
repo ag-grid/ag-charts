@@ -108,6 +108,12 @@ export interface AgWaterfallSeriesThemeableOptions<TDatum = DatumDefault, TConte
     direction?: 'horizontal' | 'vertical';
     /** Configuration used for the waterfall series item types. */
     item?: AgWaterfallSeriesItem<TDatum, TContext>;
+    /**
+     * Configuration for the labels shown on top of data points, applied to every bar type. The same
+     * option set on `item.positive.label`, `item.negative.label` or `item.total.label` takes
+     * precedence for that bar type.
+     */
+    label?: AgWaterfallSeriesLabelOptions<TDatum, AgWaterfallSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Configuration for the connector lines. */
     line?: AgWaterfallSeriesLineOptions;
     /** Series-specific tooltip configuration. */

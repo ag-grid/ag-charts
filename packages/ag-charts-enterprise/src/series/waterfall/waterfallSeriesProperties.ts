@@ -136,6 +136,11 @@ export class WaterfallSeriesProperties extends AbstractBarSeriesProperties<AgWat
     @Property
     readonly item = new WaterfallSeriesItems();
 
+    // Inert at render time: every per-datum read goes through `getItemConfig()`. Declared only so
+    // options validation accepts the series-level `label` the theme resolves into the item blocks.
+    @Property
+    readonly label = new WaterfallSeriesLabel();
+
     @Property
     readonly totals: WaterfallSeriesTotal[] = new PropertiesArray(WaterfallSeriesTotal);
 
