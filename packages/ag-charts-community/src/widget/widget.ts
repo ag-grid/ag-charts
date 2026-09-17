@@ -8,7 +8,8 @@ import {
     setElementStyles,
 } from 'ag-charts-core';
 
-import { type WidgetEventMap, type WidgetEventMap_Internal, WidgetEventUtil } from './widgetEvents';
+import type { WidgetEventMap, WidgetEventMap_Internal } from './widgetEvents';
+import { WidgetEventUtil } from './widgetEvents';
 import { WidgetListenerHTML } from './widgetListenerHTML';
 import { WidgetListenerInternal } from './widgetListenerInternal';
 
