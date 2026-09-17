@@ -130,7 +130,7 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         rawFirstTickIndex: 0,
     };
 
-    // A fixed step cannot yield different ticks, so lowering the count only decays the nice domain.
+    // A configured step pins the ticks, so lowering the count only decays the nice domain.
     const fixedInterval = options.interval?.step != null;
 
     while (labelOverlap && index <= maxIterations) {
@@ -141,8 +141,9 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
                 ? normalizeAngle360FromDegrees(label.autoRotateAngle ?? 335)
                 : 0;
 
-        labelOverlap = avoidCollisions && checkLabelOverlap(tickData, autoRotation);
         if (fixedInterval) break;
+
+        labelOverlap = avoidCollisions && checkLabelOverlap(tickData, autoRotation);
     }
 
     const textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
