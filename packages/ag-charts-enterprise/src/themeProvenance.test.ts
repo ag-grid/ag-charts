@@ -30,8 +30,6 @@ const CASES: Array<ProvenanceCase> = [
         seriesType: 'waterfall',
         series: { xKey: 'category', yKey: 'value' },
         data: DATA,
-        // Raised for the new `series.label` container: +2 skipped and +1 rejected are the one extra
-        // copy of the label block's undocumented leaves, at series level rather than per item type.
         coverage: { minChecked: 226, maxSkipped: 18, maxRejected: 4, maxIneffective: 0, minContainers: 17 },
         asymmetries: ['direction'],
     },
