@@ -215,8 +215,8 @@ $breakpoint-demo-fits: $demo-held-width + $hero-max-width + $demo-column-gap + $
 }
 
 .featureDescription {
-    font-size: var(--text-fs-sm);
-    line-height: var(--text-lh-body-sm);
+    font-size: var(--text-fs-base);
+    line-height: var(--text-lh-body-base);
     // Undo the global `a` rule's semibold so the title carries the weight.
     font-weight: var(--text-regular);
     color: var(--color-fg-tertiary);
