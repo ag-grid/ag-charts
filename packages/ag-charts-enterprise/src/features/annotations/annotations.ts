@@ -464,7 +464,6 @@ export class Annotations extends AbstractModuleInstance {
                 // Interactions
                 seriesDragInterpreter.events.on('click', this.hoverTouchPreHandler.bind(this)),
                 seriesDragInterpreter.events.on('drag-start', this.hoverTouchPreHandler.bind(this)),
-                seriesDragInterpreter.events.on('drag-move', this.dragMoveTouchPreHandler.bind(this)),
                 seriesDragInterpreter.events.on('mousemove', this.onHover.bind(this)),
                 seriesDragInterpreter.events.on('click', this.onClick.bind(this)),
                 seriesDragInterpreter.events.on('dblclick', this.onDoubleClick.bind(this)),
@@ -1064,12 +1063,6 @@ export class Annotations extends AbstractModuleInstance {
     private hoverTouchPreHandler(event: _Widget.ClickWidgetEvent | _Widget.DragWidgetEvent) {
         if (event.device === 'touch') {
             this.onHover(event);
-        }
-    }
-
-    private dragMoveTouchPreHandler(event: _Widget.DragWidgetEvent<'drag-move'>) {
-        if (event.device === 'touch' && this.ctx.interactionManager.isState(InteractionState.AnnotationsSelected)) {
-            event.sourceEvent.preventDefault();
         }
     }
 

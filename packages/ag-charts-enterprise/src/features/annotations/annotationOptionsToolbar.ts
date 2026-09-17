@@ -162,21 +162,11 @@ export class AnnotationOptionsToolbar extends BaseProperties {
         this.cleanup.register(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
             this.toolbar.addToolbarListener('toolbar-moved', this.onToolbarMoved.bind(this)),
-            ctx.widgets.seriesWidget.addListener('drag-start', this.onDragStart.bind(this)),
-            ctx.widgets.seriesWidget.addListener('drag-end', this.onDragEnd.bind(this)),
             () => {
                 this.colorPicker.destroy();
                 this.toolbar.destroy();
             }
         );
-    }
-
-    private onDragStart() {
-        this.toolbar.ignorePointerEvents();
-    }
-
-    private onDragEnd() {
-        this.toolbar.capturePointerEvents();
     }
 
     public destroy() {

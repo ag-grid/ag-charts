@@ -112,6 +112,7 @@ export class WidgetListenerInternal {
         elem.setPointerCapture(downEvent.pointerId);
         const onPointerMove = (moveEvent: PointerEvent) => {
             if (moveEvent.pointerId !== downEvent.pointerId) return;
+            if (downEvent.pointerType === 'touch' && !this.dragTouchEnabled) return;
             const dragMoveEvent = makeDrag('drag-move', origin, moveEvent);
             this.dispatch('drag-move', current, dragMoveEvent);
         };
