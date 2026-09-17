@@ -41,6 +41,19 @@ describe('DOMManager', () => {
         });
     });
 
+    describe('for minimal-mode containers', () => {
+        it('resolves the series area and its bounds element to the same attached element', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+
+            const dm = new DOMManager(eventsHub, '416d1178', doc, container, undefined, undefined, 'minimal');
+            const seriesArea = dm.getParent('series-area');
+
+            expect(dm.getParent('series-area-bounds')).toBe(seriesArea);
+            expect(container.contains(seriesArea)).toBe(true);
+        });
+    });
+
     describe('for disconnected container cases', () => {
         it('should initialize the expected DOM', () => {
             const container = doc.createElement('div');
