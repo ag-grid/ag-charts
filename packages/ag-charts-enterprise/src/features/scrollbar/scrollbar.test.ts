@@ -583,3 +583,42 @@ describe('Scrollbar visibility after deferred (detached -> attached) resize', ()
         expect(spanY()).toBeLessThan(1);
     });
 });
+
+describe('Scrollbar theming', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    const BORDER_COLOUR = '#ff7f27';
+
+    let chart: any;
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    function themedOptions(): AgCartesianChartOptions {
+        return {
+            width: 400,
+            height: 300,
+            data: DATA,
+            theme: { params: { borderColor: BORDER_COLOUR } },
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            axes: { x: { type: 'number' }, y: { type: 'number' } },
+            navigator: { enabled: true },
+            scrollbar: { enabled: true, visible: 'always', vertical: { position: 'right' } },
+        };
+    }
+
+    it('derives the track and thumb borders from params.borderColor, matching the navigator', async () => {
+        chart = await createEnterpriseChart(themedOptions());
+
+        const scrollbar = chart.ctx.chartState.getValue('options', 'scrollbar');
+        const navigatorStroke = chart.ctx.chartState.getValue('options', 'navigator').mask.stroke;
+
+        expect(navigatorStroke).toBe(BORDER_COLOUR);
+        for (const scope of [scrollbar, scrollbar.horizontal, scrollbar.vertical]) {
+            expect(scope.track.stroke).toBe(navigatorStroke);
+            expect(scope.thumb.stroke).toBe(navigatorStroke);
+        }
+    });
+});
