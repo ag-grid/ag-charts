@@ -134,3 +134,48 @@ describe('NumberAxis bigint bounds and interval (AG-16608)', () => {
         await compareVariants({ interval: { step: 25 } }, { interval: { step: 25n } });
     });
 });
+
+// A fixed `interval.step` must never let the label-overlap search widen the domain beyond the data.
+describe('NumberAxis interval.step too small to honour (AG-18574)', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: AgChartInstance;
+
+    afterEach(() => {
+        if (chart) {
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+    });
+
+    it('keeps the x domain fitted to the data when interval.step is dense', async () => {
+        const options: AgCartesianChartOptions = {
+            data: [
+                { x: 0, value: 2 },
+                { x: 1000, value: 5 },
+                { x: 2000, value: 3 },
+                { x: 3000, value: 1 },
+                { x: 4000, value: 2 },
+                { x: 5000, value: 3 },
+                { x: 9000, value: 1 },
+                { x: 10000, value: 2 },
+                { x: 11000, value: 2 },
+            ],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'value' }],
+            axes: {
+                x: { type: 'number', position: 'bottom', interval: { step: 100 } },
+                y: { type: 'number', position: 'left' },
+            },
+        };
+        prepareTestOptions(options);
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        const xAxis = deproxy(chart as any).axes.find((a: any) => a.direction === 'x') as any;
+        const [d0, d1] = xAxis.scale.domain.map(Number);
+
+        // Bars pad the 0..11000 keys by half the 1000 key interval, then the domain snaps to the 100 step.
+        expect([d0, d1]).toEqual([-500, 11500]);
+    });
+});
