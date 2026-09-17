@@ -350,9 +350,6 @@ export class Zoom extends AbstractModuleInstance {
         }
 
         interactionManager.pushState(_ModuleSupport.InteractionState.ZoomDrag);
-        if (event.device === 'touch') {
-            event.sourceEvent.preventDefault();
-        }
 
         switch (dragState) {
             case DragState.Pan:
@@ -527,9 +524,6 @@ export class Zoom extends AbstractModuleInstance {
         if (!enabled || !enableAxisDragging || !seriesRect) return;
 
         interactionManager.pushState(_ModuleSupport.InteractionState.ZoomDrag);
-        if (event.device === 'touch') {
-            event.sourceEvent.preventDefault();
-        }
 
         const zoom = this.getZoom();
 

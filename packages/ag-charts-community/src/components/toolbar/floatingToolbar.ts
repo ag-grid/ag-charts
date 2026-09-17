@@ -87,16 +87,6 @@ class FloatingToolbarPopover extends DraggablePopover {
         this.updatePosition({ x: left, y: top });
     }
 
-    public ignorePointerEvents() {
-        const element = this.getPopoverElement();
-        if (element) element.style.pointerEvents = 'none';
-    }
-
-    public capturePointerEvents() {
-        const element = this.getPopoverElement();
-        if (element) element.style.pointerEvents = 'unset';
-    }
-
     protected override updatePosition(position: Point) {
         const bounds = this.getBounds();
 
@@ -145,14 +135,6 @@ export abstract class FloatingToolbar<
 
     public hasBeenDragged() {
         return this.popover.hasBeenDragged();
-    }
-
-    public ignorePointerEvents() {
-        this.popover.ignorePointerEvents();
-    }
-
-    public capturePointerEvents() {
-        this.popover.capturePointerEvents();
     }
 
     private onPopoverMoved() {
