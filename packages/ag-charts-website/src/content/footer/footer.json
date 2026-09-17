@@ -106,6 +106,14 @@
                 "url": "https://www.ag-grid.com/terms-of-use/"
             },
             {
+                "name": "Commercial EULA",
+                "url": "https://www.ag-grid.com/eula/commercial/"
+            },
+            {
+                "name": "Community Licence",
+                "url": "https://www.ag-grid.com/eula/community/"
+            },
+            {
                 "name": "Privacy Policy",
                 "url": "https://www.ag-grid.com/privacy/"
             },
