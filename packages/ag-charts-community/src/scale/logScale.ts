@@ -89,7 +89,7 @@ export class LogScale extends ContinuousScale<number> {
         { interval, tickCount = ContinuousScale.defaultTickCount }: ScaleTickParams<number>,
         domain: number[] = this.domain,
         visibleRange?: [number, number]
-    ): { ticks: number[]; count: number; firstTickIndex: number | undefined } | undefined {
+    ): { ticks: number[]; count: number; firstTickIndex: number | undefined; intervalIgnored?: boolean } | undefined {
         if (!domain || domain.length < 2 || tickCount < 1) {
             return;
         }
@@ -104,6 +104,7 @@ export class LogScale extends ContinuousScale<number> {
         let p0 = this.log(start);
         let p1 = this.log(stop);
 
+        let intervalIgnored: boolean | undefined;
         if (interval) {
             const inBounds = (tick: number) => tick >= start && tick <= stop;
             const step = Math.min(Math.abs(interval), Math.abs(p1 - p0));
@@ -113,6 +114,7 @@ export class LogScale extends ContinuousScale<number> {
             if (!isDenseInterval(ticks.length, this.getPixelRange(), this.logger)) {
                 return { ticks, count, firstTickIndex };
             }
+            intervalIgnored = true;
         }
 
         // If base is a float or the difference between p1 and p0 is large,
@@ -124,6 +126,7 @@ export class LogScale extends ContinuousScale<number> {
                 ticks: ticks.map(this.pow),
                 count,
                 firstTickIndex,
+                ...(intervalIgnored && { intervalIgnored }),
             };
         }
 
@@ -150,6 +153,6 @@ export class LogScale extends ContinuousScale<number> {
             }
         }
 
-        return filterVisibleTicks(ticks, isPositive, visibleRange);
+        return { ...filterVisibleTicks(ticks, isPositive, visibleRange), ...(intervalIgnored && { intervalIgnored }) };
     }
 }

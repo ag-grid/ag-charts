@@ -7,6 +7,7 @@ import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
 import {
     createChart,
     deproxy,
+    expectWarningMessages,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -177,5 +178,38 @@ describe('NumberAxis interval.step too small to honour (AG-18574)', () => {
 
         // Bars pad the 0..11000 keys by half the 1000 key interval, then the domain snaps to the 100 step.
         expect([d0, d1]).toEqual([-500, 11500]);
+    });
+
+    it('still reduces colliding labels when the step is too dense for the scale to honour', async () => {
+        const options: AgCartesianChartOptions = {
+            data: Array.from({ length: 9 }, (_, i) => ({ x: i * 1000, value: i })),
+            series: [{ type: 'bar', xKey: 'x', yKey: 'value' }],
+            axes: {
+                // Over an 8000-wide domain this is far more than one tick per pixel, so the scale
+                // rejects the step and falls back to automatic ticks driven by the tick count.
+                x: {
+                    type: 'number',
+                    position: 'bottom',
+                    interval: { step: 1 },
+                    label: { formatter: ({ value }) => `an extremely long axis label text for value ${value}` },
+                },
+                y: { type: 'number', position: 'left' },
+            },
+        };
+        prepareTestOptions(options);
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+        expectWarningMessages([
+            'AG Charts - the configured interval results in more than 1 item per pixel, ignoring. Supply a larger interval or omit this configuration',
+        ]);
+
+        const xAxis = deproxy(chart as any).axes.find((a: any) => a.direction === 'x') as any;
+        const labels = Array.from(xAxis.tickLabelGroupSelection.nodes() as Iterable<any>).filter(
+            (node: any) => node.text != null && node.text !== ''
+        );
+
+        // Automatic ticks are not pinned, so the overlap search is still free to thin them:
+        // ending the search after the first pass would leave three labels colliding here.
+        expect(labels.length).toBe(2);
     });
 });

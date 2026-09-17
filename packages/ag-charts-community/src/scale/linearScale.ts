@@ -44,7 +44,7 @@ export class LinearScale extends ContinuousScale<AgNumericValue> {
         { interval, tickCount = ContinuousScale.defaultTickCount, minTickCount, maxTickCount }: ScaleTickParams<number>,
         domain: AgNumericValue[] = this.domain,
         visibleRange?: [number, number]
-    ): { ticks: AgNumericValue[]; count: number; firstTickIndex?: number } {
+    ): { ticks: AgNumericValue[]; count: number; firstTickIndex?: number; intervalIgnored?: boolean } {
         if (!domain || domain.length < 2 || tickCount < 1) {
             return { ticks: [], count: 0, firstTickIndex: 0 };
         }
@@ -72,6 +72,10 @@ export class LinearScale extends ContinuousScale<AgNumericValue> {
             if (!isDenseInterval((d1 - d0) / step, this.getPixelRange(), this.logger)) {
                 return range(d0, d1, step, visibleRange);
             }
+            return {
+                ...createTicks(d0, d1, tickCount, minTickCount, maxTickCount, visibleRange),
+                intervalIgnored: true,
+            };
         }
 
         return createTicks(d0, d1, tickCount, minTickCount, maxTickCount, visibleRange);

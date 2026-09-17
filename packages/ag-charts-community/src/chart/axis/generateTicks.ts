@@ -134,14 +134,16 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
     const fixedInterval = options.interval?.step != null;
 
     while (labelOverlap && index <= maxIterations) {
-        ({ tickData, index } = buildTickData(options, tickGenerationType, tickData, index));
+        let intervalIgnored: boolean | undefined;
+        ({ tickData, index, intervalIgnored } = buildTickData(options, tickGenerationType, tickData, index));
 
         autoRotation =
             tryAutoRotate && checkLabelOverlap(tickData, 0)
                 ? normalizeAngle360FromDegrees(label.autoRotateAngle ?? 335)
                 : 0;
 
-        if (fixedInterval) break;
+        // A step the scale rejected as too dense leaves automatic ticks, which the search can still thin.
+        if (fixedInterval && !intervalIgnored) break;
 
         labelOverlap = avoidCollisions && checkLabelOverlap(tickData, autoRotation);
     }
@@ -216,6 +218,7 @@ function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>
 ): {
     index: number;
     tickData: TickData<TDatum>;
+    intervalIgnored: boolean | undefined;
 } {
     const { step, values } = options.interval ?? {};
 
@@ -260,6 +263,7 @@ function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>
         alignment,
         fractionDigits,
         timeInterval,
+        intervalIgnored,
     } = nextTicks;
 
     return {
@@ -283,6 +287,7 @@ function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>
             }),
         },
         index: index + 1,
+        intervalIgnored,
     };
 }
 
@@ -334,6 +339,7 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
     let timeInterval: AnyTimeInterval | undefined;
     let primaryTicksIndices: Set<number> | undefined;
     let alignment: ScaleAlignment | undefined;
+    let intervalIgnored: boolean | undefined;
 
     const generatePrimaryTicks = primaryLabel?.enabled === true && tickParams.interval == null;
 
@@ -364,6 +370,7 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
                     const tickGeneration = scale.ticks(tickParams, niceDomain, visibleRange);
                     rawTicks = tickGeneration?.ticks;
                     rawTickCount = tickGeneration?.count;
+                    intervalIgnored = tickGeneration?.intervalIgnored;
                 }
                 break;
 
@@ -424,6 +431,7 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
                     rawTicks = tickGeneration?.ticks;
                     rawTickCount = tickGeneration?.count;
                     rawFirstTickIndex = tickGeneration?.firstTickIndex;
+                    intervalIgnored = tickGeneration?.intervalIgnored;
                     if (TimeScale.is(scale) || DiscreteTimeScale.is(scale)) {
                         const paramsInterval =
                             typeof tickParams.interval === 'number'
@@ -462,6 +470,7 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
         alignment,
         fractionDigits,
         timeInterval,
+        intervalIgnored,
     };
 }
 
