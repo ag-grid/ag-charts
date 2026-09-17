@@ -272,7 +272,8 @@ export class DOMManager extends BaseManager {
         const seriesArea = createElement('div');
         element.appendChild(seriesArea);
         seriesArea.role = 'presentation';
-        seriesArea.classList.add('ag-charts-series-area');
+        // Both classes on one element: minimal mode has nothing for the series area to offset against.
+        seriesArea.classList.add('ag-charts-series-area', 'ag-charts-series-area-bounds');
         return element;
     }
 
