@@ -182,7 +182,7 @@ export class AxisWidgets {
         entry.region.widget.removeChildWidget(entry.text);
         this.ctx.domManager.addChild('canvas-proxy', this.titleId(axisId), entry.text.getElement(), {
             where: 'afterend',
-            query: '.ag-charts-series-area',
+            query: '.ag-charts-series-area-bounds',
         });
         entry.textNested = false;
         this.applyTitleBounds(entry);
@@ -243,6 +243,7 @@ export class WidgetSet {
         this.longTapInterpreter?.destroy();
         this.seriesDragInterpreter?.destroy();
         this.seriesWidget.destroy();
+        this.seriesBoundsWidget.destroy();
         this.chartWidget.destroy();
         this.containerWidget.destroy();
     }

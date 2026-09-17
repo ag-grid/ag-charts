@@ -487,8 +487,7 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         this.clearAll();
-        const canvasX = event.currentX + current.cssLeft();
-        const canvasY = event.currentY + current.cssTop();
+        const { canvasX, canvasY } = this.toCanvasCoordinates(event);
 
         const regions: AgContextMenuItemShowOn[] = ['series-area'];
         const contexts: ContextMenuRegionContexts = {};
