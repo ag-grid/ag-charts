@@ -16,7 +16,7 @@ import type { ButtonWidget } from '../../widget/buttonWidget';
 import type { GroupWidget } from '../../widget/groupWidget';
 import type { ListWidget } from '../../widget/listWidget';
 import type { SwitchWidget } from '../../widget/switchWidget';
-import type { MouseWidgetEvent } from '../../widget/widgetEvents';
+import type { ClickWidgetEvent, MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { Page } from '../gridLayout';
 import type { Pagination } from '../pagination/pagination';
 import type { CategoryLegendDatum } from './legendDatum';
@@ -260,7 +260,7 @@ export class LegendDOMProxy {
         this.prevButton = undefined;
     }
 
-    private onPageButton(params: LegendDOMProxyUpdateParams, ev: MouseWidgetEvent<'click'>, node: 'previous' | 'next') {
+    private onPageButton(params: LegendDOMProxyUpdateParams, ev: ClickWidgetEvent, node: 'previous' | 'next') {
         params.pagination.onClick(ev.sourceEvent, node);
         this.updatePaginationProxyButtons(params, false);
     }

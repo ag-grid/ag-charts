@@ -3,9 +3,9 @@ import { CleanupRegistry, EventEmitter, attachListener } from 'ag-charts-core';
 
 import type { Widget } from '../../widget/widget';
 import type {
+    DblClickWidgetEvent,
     DragWidgetEvent,
     MouseWidgetEvent,
-    NativeMouseWidgetEvent,
     TouchSyntheticMouseWidgetEvent,
     TouchWidgetEvent,
     WidgetEventMap,
@@ -18,23 +18,20 @@ const LONG_TAP_DURATION_MS = 500;
 const LONG_TAP_INTERRUPT_MIN_TOUCHMOVE_PXPX = 100; /* px² */
 
 type TSynthetic = 'click' | 'dblclick';
-type Device = MouseWidgetEvent['device'];
 
 /**
  * A `DragInterpreterClickEvent` is either a native 'click' MouseEvent, or a synthetic click event fired by a single
  * finger 'touchstart' and 'touchend'.
  */
-export type DragInterpreterClickEvent = NativeMouseWidgetEvent<'click'> | TouchSyntheticMouseWidgetEvent<'click'>;
+export type DragInterpreterClickEvent = MouseWidgetEvent<'click'> | TouchSyntheticMouseWidgetEvent<'click'>;
 
 /**
  * A `DragInterpreterDblClickEvent` is either a native 'dblclick' MouseEvent, or a synthetic click event fired by two
  * finger 'touchstart' and 'touchend' in quick succession (DOUBLE_TAP_TIMER_MS).
  */
-export type DragInterpreterDblClickEvent =
-    | NativeMouseWidgetEvent<'dblclick'>
-    | TouchSyntheticMouseWidgetEvent<'dblclick'>;
+export type DragInterpreterDblClickEvent = MouseWidgetEvent<'dblclick'> | TouchSyntheticMouseWidgetEvent<'dblclick'>;
 
-type WE<D extends Device> = DragWidgetEvent & { device: D };
+type WE<D extends 'mouse' | 'touch'> = DragWidgetEvent & { device: D };
 function makeSynthetic<T extends TSynthetic>(type: T, event: WE<'mouse'>): MouseWidgetEvent<T> & { device: 'mouse' };
 function makeSynthetic<T extends TSynthetic>(type: T, event: WE<'touch'>): MouseWidgetEvent<T> & { device: 'touch' };
 function makeSynthetic(type: TSynthetic, event: DragWidgetEvent) {
@@ -139,7 +136,7 @@ export class DragInterpreter {
         this.events.emit('mousemove', event);
     }
 
-    private onDblClick(event: MouseWidgetEvent<'dblclick'>) {
+    private onDblClick(event: DblClickWidgetEvent) {
         this.events.emit('dblclick', event);
     }
 
