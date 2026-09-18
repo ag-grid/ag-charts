@@ -2,6 +2,7 @@ import type { DynamicContext, SeriesModuleDefinition } from 'ag-charts-core';
 import {
     CARTESIAN_AXIS_TYPE,
     CARTESIAN_POSITION,
+    COMMON_SERIES_THEME_DEFAULTS,
     ChartAxisDirection,
     DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_DEFAULTS,
@@ -26,6 +27,7 @@ import { predictCartesianNonPrimitiveAxis } from './util';
 
 const themeTemplate: ExtensibleSeriesTheme<'histogram'> = {
     series: {
+        ...COMMON_SERIES_THEME_DEFAULTS,
         fill: {
             $applySwitch: [
                 { $path: 'type' },
@@ -41,6 +43,9 @@ const themeTemplate: ExtensibleSeriesTheme<'histogram'> = {
         strokeOpacity: 1,
         lineDash: [0],
         lineDashOffset: 0,
+        cornerRadius: 0,
+        areaPlot: false,
+        aggregation: 'sum',
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,
@@ -66,7 +71,8 @@ const themeTemplate: ExtensibleSeriesTheme<'histogram'> = {
             yOffset: 3,
             blur: 5,
         },
-        highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+        tooltip: { interaction: { enabled: false } },
+        highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
     },
 };
 

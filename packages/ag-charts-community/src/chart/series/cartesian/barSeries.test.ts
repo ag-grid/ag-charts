@@ -1186,7 +1186,7 @@ describe('BarSeries', () => {
             await frames.runToEnd(chart);
             const sampleScene = createSceneGeometrySampler(chart);
 
-            const fillOf = () => (deproxy(chart).series[0] as any).properties.fill;
+            const fillOf = () => (deproxy(chart).series[0] as any).options.fill;
             const fillBefore = fillOf();
             await chart.update({ ...options, theme: 'ag-sheets' });
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
