@@ -495,10 +495,7 @@ export default {
             }
         }
 
-        /**
-         * Require the owners of module-owned options nested below a chart-level key, such as
-         * `seriesArea.backgroundRegions`, when the nested key is present in the object literal.
-         */
+        /** Requires the owner of an option nested below a chart-level key, e.g. `seriesArea.backgroundRegions`. */
         function processNestedChartOptions(keyName, valueNode) {
             for (const [path, moduleId] of chartOptionPathToModule) {
                 const [head, ...rest] = path.split('.');
