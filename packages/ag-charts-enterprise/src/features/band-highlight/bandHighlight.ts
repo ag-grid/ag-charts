@@ -54,14 +54,6 @@ export class BandHighlight extends AbstractModuleInstance {
         this.axisCtx = ctx.parent;
         this.hideBand();
 
-        ctx.domManager.addEventListener('focusin', ({ target }) => {
-            const isSeriesAreaChild = target instanceof HTMLElement && ctx.domManager.contains(target, 'series-area');
-            if (this.bandHighlightGroup.visible && !isSeriesAreaChild) {
-                this.hideBand();
-                this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
-            }
-        });
-
         const {
             widgets: { seriesWidget, seriesDragInterpreter },
             animationManager,
@@ -73,8 +65,8 @@ export class BandHighlight extends AbstractModuleInstance {
             seriesWidget.addListener('mousemove', (event) => this.onHoverLikeEvent(event)),
             seriesWidget.addListener('mouseleave', () => this.clearAllHighlight()),
             animationManager.addListener('animation-start', () => this.clearAllHighlight()),
-
             eventsHub.on('layout:complete', (event) => this.layout(event)),
+            eventsHub.on('dom:series-blurred', () => this.onSeriesBlurred()),
             eventsHub.on('series:focus-change', () => this.onKeyPress()),
             eventsHub.on('zoom:pan-start', () => this.clearAllHighlight()),
             eventsHub.on('zoom:change-complete', () => this.clearAllHighlight()),
@@ -116,6 +108,12 @@ export class BandHighlight extends AbstractModuleInstance {
         if (!this.ctx.interactionManager.isState(InteractionState.Hoverable)) return;
 
         this.onHighlightChange();
+    }
+
+    private onSeriesBlurred() {
+        if (!this.bandHighlightGroup.visible) return;
+        this.hideBand();
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
 
     private onKeyPress() {

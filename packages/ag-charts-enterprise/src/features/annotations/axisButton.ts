@@ -30,17 +30,12 @@ export class AxisButton extends AbstractModuleInstance {
 
         this.snap = Boolean(axisCtx.scale.bandwidth);
 
-        ctx.domManager.addEventListener('focusin', ({ target }) => {
-            const htmlTarget = target instanceof HTMLElement ? target : undefined;
-            const isSeriesAreaChild = htmlTarget && ctx.domManager.contains(htmlTarget, 'series-area');
-            if (!isSeriesAreaChild && htmlTarget !== this.button.getElement()) this.hide();
-        });
-
         this.cleanup.register(
             ctx.widgets.seriesWidget.addListener('drag-move', (e) => this.onMouseDrag(e)),
             ctx.widgets.seriesBoundsWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
             ctx.widgets.seriesBoundsWidget.addListener('mouseleave', () => this.onMouseLeave()),
             ctx.widgets.seriesDragInterpreter?.events.on('click', (e) => this.onClick(e)),
+            ctx.eventsHub.on('dom:series-blurred', () => this.hide()),
             ctx.eventsHub.on('series:focus-change', () => this.onKeyPress()),
             ctx.eventsHub.on('zoom:pan-start', () => this.hide()),
             ctx.eventsHub.on('zoom:change-complete', () => this.hide()),
