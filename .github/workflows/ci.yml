@@ -425,25 +425,48 @@ jobs:
               run: |
                   yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --exclude all,ag-charts-website
 
+            # `nx build` above runs `affected`, so a package the preview manifest names is built
+            # only when the PR touched it. Force-build every one of them, as the UMD step below
+            # already does: an unbuilt entry point would otherwise stage as a missing file. Same
+            # target and (absent) configuration as the build above, so Nx reuses its cache.
+            # The file list is derived from the site's own import-map builder — see
+            # ag-dev-prompts docs/pr-plnkr-v2-plan.md.
+            - name: Build ESM entry points for PR preview
+              id: build_esm
+              if: github.event_name == 'pull_request' && steps.build.outcome == 'success'
+              run: |
+                  yarn nx run-many -t build -p ag-charts-types ag-charts-core ag-charts-community \
+                      ag-charts-enterprise ag-charts-locale ag-charts-react ag-charts-angular ag-charts-vue3
+
             # The enterprise UMD loads ag-charts-community at runtime, so publish both even when `nx affected` rebuilt only one.
             - name: Build UMD bundles for PR preview
               id: build_umd
-              if: github.event_name == 'pull_request' && steps.build.outcome == 'success'
+              if: github.event_name == 'pull_request' && steps.build_esm.outcome == 'success'
               run: |
                   yarn nx run-many -t build:umd -p ag-charts-community ag-charts-enterprise
 
-            - name: Upload UMD bundles for PR preview
+            # Runs from the website project so tsx picks up its tsconfig `paths` — the generator
+            # imports the site's own import-map builder through the `@utils`/`@constants` aliases.
+            - name: Stage PR preview payload
+              id: build_preview
               if: github.event_name == 'pull_request' && steps.build_umd.outcome == 'success'
+              working-directory: packages/ag-charts-website
+              env:
+                  PR_NUMBER: ${{ github.event.pull_request.number }}
+                  HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+              run: |
+                  npx tsx scripts/pr-preview-manifest.ts --pr "$PR_NUMBER" --sha "$HEAD_SHA" --out ../../dist/pr-preview
+
+            - name: Upload PR preview payload
+              if: github.event_name == 'pull_request' && steps.build_preview.outcome == 'success'
               uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
               with:
-                  name: pr-preview-umd
+                  name: pr-preview
                   if-no-files-found: ignore
                   retention-days: 14
-                  path: |
-                      packages/ag-charts-community/dist/umd/ag-charts-community.min.js
-                      packages/ag-charts-community/dist/umd/ag-charts-community.min.js.map
-                      packages/ag-charts-enterprise/dist/umd/ag-charts-enterprise.min.js
-                      packages/ag-charts-enterprise/dist/umd/ag-charts-enterprise.min.js.map
+                  # Already staged in the layout it is published at, UMD bundles included. The
+                  # manifest names no source maps, so none are staged or published.
+                  path: dist/pr-preview
 
     validate:
         runs-on: ubuntu-24.04
@@ -479,7 +502,7 @@ jobs:
 
     pr_preview:
         runs-on: ubuntu-24.04
-        name: PR Preview (UMD)
+        name: PR Preview
         needs: [build]
         # Same-repo PRs only — fork PRs get a read-only token from GitHub, so
         # the deploy-to-gh-pages and sticky-comment steps would fail. Mirrors
@@ -491,7 +514,7 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
-        # Per-PR lock: stops this PR's publishers (the UMD bundles here and the
+        # Per-PR lock: stops this PR's publishers (the preview payload here and the
         # snapshot reports in `snapshot_review`) and its close-time cleanup from
         # running concurrently, which narrows the window in which a late publish
         # could re-create a pr-<N>/ that cleanup removed. (Job concurrency prevents
@@ -512,38 +535,31 @@ jobs:
               with:
                   fetch-depth: 1
 
-            - name: Download UMD artifact
+            - name: Download PR preview artifact
               id: download
               uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
               continue-on-error: true
               with:
-                  name: pr-preview-umd
-                  path: _umd
+                  name: pr-preview
+                  path: _preview
 
-            - name: Resolve UMD bundle paths
+            # The manifest is the contract for what the preview carries, so the completeness check
+            # is "every path the manifest names is present" rather than a hand-listed set of
+            # filenames. An absent or empty payload is a build that produced no preview (a
+            # tooling-only PR) and skips cleanly; a payload that contradicts its own manifest fails.
+            - name: Check the preview payload matches its manifest
               id: stage
               if: steps.download.outcome == 'success'
+              env:
+                  PREVIEW_DIR: _preview
               run: |
                   set -euo pipefail
-                  # upload-artifact@v4 strips the common path prefix, so find by filename.
-                  COMMUNITY=$(find _umd -type f -name 'ag-charts-community.min.js' -print -quit)
-                  ENTERPRISE=$(find _umd -type f -name 'ag-charts-enterprise.min.js' -print -quit)
-                  if [ -z "$COMMUNITY" ] && [ -z "$ENTERPRISE" ]; then
-                      echo "::warning No UMD bundles in artifact — likely tooling-only PR; skipping publish."
+                  if [ ! -d "$PREVIEW_DIR" ] || [ -z "$(find "$PREVIEW_DIR" -type f -print -quit)" ]; then
+                      echo "::warning::No PR preview payload in artifact — likely a tooling-only PR; skipping publish."
                       echo "publish=false" >> "$GITHUB_OUTPUT"
                       exit 0
                   fi
-                  if [ -z "$COMMUNITY" ] || [ -z "$ENTERPRISE" ]; then
-                      echo "::error exactly one UMD bundle present; expected both or neither." >&2
-                      ls -laR _umd || true
-                      exit 1
-                  fi
-                  {
-                      echo "files<<__FILES_EOF__"
-                      echo "$COMMUNITY"
-                      echo "$ENTERPRISE"
-                      echo "__FILES_EOF__"
-                  } >> "$GITHUB_OUTPUT"
+                  node tools/ci/check-pr-preview.mjs "$PREVIEW_DIR"
                   echo "publish=true" >> "$GITHUB_OUTPUT"
 
             - name: Publish PR preview to gh-pages
@@ -551,25 +567,34 @@ jobs:
               uses: ./external/ag-shared/github/actions/pr-preview-publish
               with:
                   pr_number: ${{ env.PR_NUMBER }}
-                  files: ${{ steps.stage.outputs.files }}
+                  source_dir: _preview
+                  manifest: _preview/manifest.json
                   github_token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Write live-test section
               if: steps.stage.outputs.publish == 'true'
               shell: bash
+              env:
+                  IMPORTS: ${{ steps.stage.outputs.imports }}
               run: |
                   mkdir -p "${RUNNER_TEMP}/pr-sections"
                   cat > "${RUNNER_TEMP}/pr-sections/10-preview.md" <<EOF
                   ## [ok] Live-test this PR in Plunker
 
-                  Paste these two \`<script>\` tags into a Plunker (or any vanilla-JS host) to load the UMD bundles built from this PR:
+                  **Vanilla JS** — paste these \`<script>\` tags in place of the CDN ones:
 
                   \`\`\`html
                   <script src="https://ag-grid.github.io/ag-charts/pr-${PR_NUMBER}/ag-charts-community.min.js"></script>
                   <script src="https://ag-grid.github.io/ag-charts/pr-${PR_NUMBER}/ag-charts-enterprise.min.js"></script>
                   \`\`\`
 
-                  Bundles are removed automatically when the PR is closed. Updated on every push.
+                  **TypeScript / React / Angular / Vue** — these load AG Charts through an import map. Splice the entries below into the repro's existing \`<script type="importmap">\`, replacing only the \`ag-charts-\` ones; leave \`react\`, \`vue\`, \`@angular/*\`, \`rxjs\`, \`tslib\` and \`clone\` as they are.
+
+                  \`\`\`json
+                  ${IMPORTS}
+                  \`\`\`
+
+                  Everything published for this PR, and the paths above, are listed in [\`manifest.json\`](https://ag-grid.github.io/ag-charts/pr-${PR_NUMBER}/manifest.json). Removed automatically when the PR is closed. Updated on every push.
                   EOF
 
             - name: Upsert live-test section
