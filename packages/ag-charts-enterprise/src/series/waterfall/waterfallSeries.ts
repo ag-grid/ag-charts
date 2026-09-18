@@ -2,9 +2,8 @@ import type {
     AgWaterfallSeriesItemStylerParams,
     AgWaterfallSeriesItemType,
     AgWaterfallSeriesLabelFormatterParams,
-    AgWaterfallSeriesOptions,
     AgWaterfallSeriesStyle,
-    AgWaterfallSeriesTooltipRendererParams,
+    WaterfallSeriesTotalMeta,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
@@ -19,6 +18,8 @@ import {
     type Normalised,
     type NormalisedColorType,
     type NormalisedTextOrSegments,
+    type NormalisedWaterfallSeriesItemOptions,
+    type NormalisedWaterfallSeriesOwnOptions,
     type PlacedLabel,
     type Point,
     type PointLabelDatum,
@@ -51,9 +52,6 @@ import {
     zeroLike,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
-
-import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
-import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
 
 /** Post-theme/styler-resolution waterfall style: colour refs are already resolved to concrete colours. */
 type NormalisedWaterfallSeriesStyle = Normalised<AgWaterfallSeriesStyle, never, FillStrokeMorph>;
@@ -190,8 +188,8 @@ interface WaterfallNodeDatumParams {
  */
 interface WaterfallSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
     readonly node: _ModuleSupport.Rect<WaterfallNodeDatum>;
-    readonly options: AgWaterfallSeriesOptions;
-    readonly properties: WaterfallSeriesProperties;
+    readonly options: NormalisedWaterfallSeriesOwnOptions;
+    readonly properties: undefined;
     readonly datum: WaterfallNodeDatum;
     readonly label: WaterfallNodeDatum;
     readonly context: WaterfallContext;
@@ -205,17 +203,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     static override readonly className = 'WaterfallSeries';
     static readonly type = 'waterfall' as const;
 
-    override properties = new WaterfallSeriesProperties();
-
-    protected get layoutOptions() {
-        return this.properties;
-    }
-
     override createNodeParams(datum: WaterfallNodeDatum) {
         return {
             ...super.createNodeParams(datum),
-            xKey: this.properties.xKey,
-            yKey: this.properties.yKey,
+            xKey: this.options.xKey,
+            yKey: this.options.yKey,
             itemType: datum.itemType,
         };
     }
@@ -239,7 +231,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     private readonly seriesItemTypes: Set<AgWaterfallSeriesItemType> = new Set(['positive', 'negative', 'total']);
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        const { xKey, yKey, totals } = this.properties;
+        const { xKey, yKey, totals = [] } = this.options;
         const { data } = this;
 
         if (!this.visible) return;
@@ -250,7 +242,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const propertyDefinition = { missingValue: undefined, invalidValue: undefined };
         const dataWithTotals: unknown[] = [];
 
-        const totalsMap = totals.reduce<Map<number, WaterfallSeriesTotal[]>>((result, total) => {
+        const totalsMap = totals.reduce<Map<number, WaterfallSeriesTotalMeta[]>>((result, total) => {
             const totalsAtIndex = result.get(total.index);
             if (totalsAtIndex) {
                 totalsAtIndex.push(total);
@@ -268,7 +260,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                     const { axisLabel, itemId } = total;
                     // itemId becomes the bar's category identity, keeping totals with the same axisLabel distinct on the category scale.
                     const xValue = itemId == null ? axisLabel : { id: itemId, toString: () => axisLabel };
-                    dataWithTotals.push({ ...total.toJson(), [xKey]: xValue });
+                    dataWithTotals.push({ ...total, [xKey]: xValue });
                 }
             }
         }
@@ -283,7 +275,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const yScale = this.getValueAxis()?.scale;
         const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
-        const allowNullKey = this.properties.allowNullKeys ?? false;
+        const allowNullKey = this.options.allowNullKeys ?? false;
         const { processedData } = await this.requestDataModel<any, any, true>(
             dataController,
             DataSet.wrap(dataWithTotals, this.ctx.logger),
@@ -390,7 +382,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             const isTotalOrSubtotal = isTotal || isSubtotal;
 
             const xDatum = ctx.xValues[datumIndex];
-            if (xDatum === undefined && !this.properties.allowNullKeys) continue;
+            if (xDatum === undefined && !this.options.allowNullKeys) continue;
 
             const rawValue = ctx.yRawValues[datumIndex];
             const { cumulativeValue, trailingValue } = this.computeWaterfallValues(
@@ -450,7 +442,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
     protected override initializeResult(ctx: WaterfallSeriesNodeDatumContext): WaterfallContext {
         return {
-            itemId: this.properties.yKey,
+            itemId: this.options.yKey,
             nodeData: ctx.nodes,
             labelData: ctx.nodes,
             pointData: [],
@@ -465,7 +457,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         ctx: WaterfallSeriesNodeDatumContext,
         result: WaterfallContext
     ): WaterfallContext {
-        const connectorLinesEnabled = this.properties.line.enabled;
+        const connectorLinesEnabled = this.options.line.enabled;
         if (ctx.yCurrValues != null && connectorLinesEnabled) {
             result.pointData = ctx.pointData;
         }
@@ -500,7 +492,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
 
-        const { xKey, yKey, xName, yName, line } = this.properties;
+        const { xKey, yKey, xName, yName, line } = this.options;
         const { contextNodeData } = this;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
@@ -973,19 +965,35 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         return datumType ?? (isPositive ? 'positive' : 'negative');
     }
 
-    private getItemConfig(seriesItemType: AgWaterfallSeriesItemType): WaterfallSeriesItem {
+    private getItemConfig(seriesItemType: AgWaterfallSeriesItemType): NormalisedWaterfallSeriesItemOptions {
         switch (seriesItemType) {
             case 'positive': {
-                return this.properties.item.positive;
+                return this.options.item.positive;
             }
             case 'negative': {
-                return this.properties.item.negative;
+                return this.options.item.negative;
             }
             case 'subtotal':
             case 'total': {
-                return this.properties.item.total;
+                return this.options.item.total;
             }
         }
+    }
+
+    private itemStyle(itemType: AgWaterfallSeriesItemType): Required<AgWaterfallSeriesStyle> & { opacity: number } {
+        const { fillOpacity, strokeWidth, strokeOpacity, fill, stroke, lineDash, lineDashOffset, cornerRadius } =
+            this.getItemConfig(itemType);
+        return {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            cornerRadius,
+            opacity: 1,
+        };
     }
 
     protected override updateDatumSelection(opts: {
@@ -1010,15 +1018,14 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         itemType: AgWaterfallSeriesItemType = 'total',
         selectionState?: _ModuleSupport.SelectionState
     ): Required<AgWaterfallSeriesStyle> {
-        const { properties } = this;
         const { datumIndex = 0, datum, totalValue } = nodeDatum ?? {};
 
         const propertyItemId = itemType === 'subtotal' ? 'total' : itemType;
-        const item = properties.item[propertyItemId];
+        const item = this.options.item[propertyItemId];
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const resolvedSelectionState = selectionState ?? this.getDataSelectionState(datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex, resolvedSelectionState);
-        const baseStyle = mergeDefaults(selectionStyle, highlightStyle, properties.getStyle(itemType));
+        const baseStyle = mergeDefaults(selectionStyle, highlightStyle, this.itemStyle(itemType));
 
         const { itemStyler } = item;
 
@@ -1061,8 +1068,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         isHighlight: boolean,
         style: Required<AgWaterfallSeriesStyle>
     ) {
-        const { id: seriesId, properties } = this;
-        const { xKey, yKey } = properties;
+        const { id: seriesId, options } = this;
+        const { xKey, yKey } = options;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
@@ -1093,7 +1100,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         datumSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Rect<WaterfallNodeDatum>>;
         isHighlight: boolean;
     }) {
-        const { positive, negative, total } = this.properties.item;
+        const { positive, negative, total } = this.options.item;
         const hasItemStyler = positive.itemStyler != null || negative.itemStyler != null || total.itemStyler != null;
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
@@ -1250,7 +1257,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     }
 
     override getLabelCandidateResolver(): PositionedCandidateResolver | undefined {
-        const { positive, negative, total } = this.properties.item;
+        const { positive, negative, total } = this.options.item;
         if (positive.label.itemStyler == null && negative.label.itemStyler == null && total.label.itemStyler == null) {
             return undefined;
         }
@@ -1286,7 +1293,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     }
 
     protected override resolveUsesPlacedLabels(): boolean {
-        const { positive, negative, total } = this.properties.item;
+        const { positive, negative, total } = this.options.item;
         return [positive, negative, total].some((item) => barLabelPropsRouteThroughEngine(item.label));
     }
 
@@ -1321,10 +1328,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             itemType: datum.itemType,
             itemId: getItemId(datum, this.data?.dataIdKey),
             totalValue,
-            xKey: this.properties.xKey,
-            xName: this.properties.xName,
-            yKey: this.properties.yKey,
-            yName: this.properties.yName,
+            xKey: this.options.xKey,
+            xName: this.options.xName,
+            yKey: this.options.yKey,
+            yName: this.options.yName,
         };
     }
 
@@ -1373,8 +1380,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, properties } = this;
-        const { xKey, xName, yKey, yName, tooltip, legendItemName } = properties;
+        const { id: seriesId, dataModel, processedData, options } = this;
+        const { xKey, xName, yKey, yName, tooltip, legendItemName } = options;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
@@ -1391,7 +1398,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         );
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
-        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        const allowNullKeys = this.options.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const datumType = totalTypeValues[datumIndex];
@@ -1424,13 +1431,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
         const format = this.getItemStyle(nodeDatum, false, undefined, nodeDatum?.itemType);
 
-        // Override only the renderer; other tooltip fields are read directly off `series.properties.tooltip` upstream.
-        let effectiveTooltip = tooltip;
+        // Override only the renderer; other tooltip fields are read directly off `series.options.tooltip` upstream.
         const itemTooltipRenderer = this.getItemConfig(seriesItemType).tooltip?.renderer;
-        if (itemTooltipRenderer != null) {
-            effectiveTooltip = _ModuleSupport.makeSeriesTooltip<AgWaterfallSeriesTooltipRendererParams>();
-            effectiveTooltip.renderer = itemTooltipRenderer;
-        }
+        const effectiveTooltip = itemTooltipRenderer == null ? tooltip : { ...tooltip, renderer: itemTooltipRenderer };
 
         return this.formatTooltipWithContext(
             effectiveTooltip,
@@ -1487,7 +1490,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
         const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.substring(1);
 
-        const { showInLegend } = this.properties;
+        const { showInLegend } = this.options;
 
         for (const item of seriesItemTypes) {
             const { name } = this.getItemConfig(item);
@@ -1499,7 +1502,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 enabled: true,
                 label: { text: name ?? capitalise(item) },
                 symbol: this.legendItemSymbol(item),
-                hideInLegend: !showInLegend,
+                hideInLegend: showInLegend === false,
                 isFixed: true,
             });
         }
@@ -1682,7 +1685,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     }
 
     protected updateLineNode(lineNode: _ModuleSupport.Path) {
-        const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.properties.line;
+        const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.options.line;
         lineNode.setProperties({
             fill: undefined,
             stroke,
@@ -1696,7 +1699,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     }
 
     protected isLabelEnabled() {
-        const { positive, negative, total } = this.properties.item;
+        const { positive, negative, total } = this.options.item;
         return positive.label.enabled || negative.label.enabled || total.label.enabled;
     }
 
@@ -1705,9 +1708,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     }
 
     protected override hasItemStylers(): boolean {
-        const { positive, negative, total } = this.properties.item;
+        const { positive, negative, total } = this.options.item;
         return (
-            this.properties.selection.enabled ||
+            this.isSelectionEnabled() ||
             positive.itemStyler != null ||
             positive.label.itemStyler != null ||
             negative.itemStyler != null ||

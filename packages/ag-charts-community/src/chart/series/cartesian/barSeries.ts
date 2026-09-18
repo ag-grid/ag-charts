@@ -336,10 +336,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         this.shadow.set(this.options.shadow);
     }
 
-    protected get layoutOptions() {
-        return this.options;
-    }
-
     override createNodeParams(datum: BarNodeDatum) {
         return {
             ...super.createNodeParams(datum),

@@ -1,7 +1,6 @@
 import {
     type AgRangeBarSeriesItemStylerParams,
     type AgRangeBarSeriesLabelFormatterParams,
-    type AgRangeBarSeriesOptions,
     type AgRangeBarSeriesStyle,
     type AgRangeBarSeriesStylerParams,
     _ModuleSupport,
@@ -22,6 +21,7 @@ import {
     type LabelFit,
     type Mutable,
     type Normalised,
+    type NormalisedRangeBarSeriesOwnOptions,
     type NormalisedTextOrSegments,
     type PlacedLabel,
     type Point,
@@ -59,7 +59,6 @@ import {
     aggregateRangeBarDataFromDataModel,
     aggregateRangeBarDataFromDataModelPartial,
 } from './rangeBarAggregation';
-import { RangeBarProperties } from './rangeBarProperties';
 
 const {
     barLabelObstaclesFor,
@@ -255,8 +254,8 @@ interface RangeBarSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeries
  */
 interface RangeBarSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
     readonly node: _ModuleSupport.Rect<RangeBarNodeDatum>;
-    readonly options: AgRangeBarSeriesOptions;
-    readonly properties: RangeBarProperties;
+    readonly options: NormalisedRangeBarSeriesOwnOptions;
+    readonly properties: undefined;
     readonly datum: RangeBarNodeDatum;
     readonly label: RangeBarNodeLabelDatum;
     readonly context: RangeBarSeriesNodeDataContext;
@@ -289,20 +288,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     static override readonly className = 'RangeBarSeries';
     static readonly type = 'range-bar' as const;
 
-    override properties = new RangeBarProperties();
-
-    protected get layoutOptions() {
-        return this.properties;
-    }
-
     private readonly aggregationManager = new AggregationManager<RangeBarSeriesDataAggregationFilter>();
 
     override createNodeParams(datum: RangeBarNodeDatum) {
         return {
             ...super.createNodeParams(datum),
-            xKey: this.properties.xKey,
-            yLowKey: this.properties.yLowKey,
-            yHighKey: this.properties.yHighKey,
+            xKey: this.options.xKey,
+            yLowKey: this.options.yLowKey,
+            yHighKey: this.options.yHighKey,
         };
     }
 
@@ -328,7 +321,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        const { xKey, yLowKey, yHighKey } = this.properties;
+        const { xKey, yLowKey, yHighKey } = this.options;
 
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
@@ -343,7 +336,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         }
 
         const visibleProps = this.visible ? {} : { forceValue: Number.NaN };
-        const allowNullKey = this.properties.allowNullKeys ?? false;
+        const allowNullKey = this.options.allowNullKeys ?? false;
         const { dataModel, processedData } = await this.requestDataModel(dataController, this.data, {
             props: [
                 keyProperty(xKey, xScaleType, { id: 'xValue', allowNullKey }),
@@ -501,8 +494,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
 
         // Array placement is accepted, but only its first candidate is honoured here.
-        const labelPlacement = toArray(this.properties.label.placement)[0];
-        const labelProps = this.properties.label;
+        const labelPlacement = toArray(this.options.label.placement)[0];
+        const labelProps = this.options.label;
         const placementStyle = labelPlacement === 'outside' ? labelProps.outsideStyle : labelProps.insideStyle;
         const boxPadding = resolvePlacementLabelBoxExtent(labelProps, placementStyle);
         const isOutside = labelPlacement === 'outside';
@@ -511,7 +504,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const [lowOuter, lowInner] = barAlongX ? (['right', 'left'] as const) : (['top', 'bottom'] as const);
         const yLowFacing = isOutside ? lowOuter : lowInner;
         const yHighFacing = isOutside ? lowInner : lowOuter;
-        const labelRotation = barLabelRotation(toArray(this.properties.label.orientation)[0]);
+        const labelRotation = barLabelRotation(toArray(this.options.label.orientation)[0]);
         const labelFit = resolveLabelFit(labelProps, !labelProps.collision.alwaysShow);
 
         return {
@@ -531,17 +524,17 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             crisp,
             dataAggregationFilter,
             animationEnabled,
-            xKey: this.properties.xKey,
-            yLowKey: this.properties.yLowKey,
-            yHighKey: this.properties.yHighKey,
-            labelEnabled: this.properties.label.enabled,
+            xKey: this.options.xKey,
+            yLowKey: this.options.yLowKey,
+            yHighKey: this.options.yHighKey,
+            labelEnabled: this.options.label.enabled,
             labelPlacement,
             labelRotation,
-            labelResolvesOrientation: barLabelResolvesOrientation(this.properties.label.orientation),
+            labelResolvesOrientation: barLabelResolvesOrientation(this.options.label.orientation),
             labelRoutesThroughEngine: barLabelRoutesThroughEngine(
-                this.properties.label.orientation,
-                this.properties.label.placement,
-                this.properties.label.collision.alwaysShow,
+                this.options.label.orientation,
+                this.options.label.placement,
+                this.options.label.collision.alwaysShow,
                 labelFit
             ),
             labelFit,
@@ -569,7 +562,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     ): PreparedRangeBarNodeDatumState | undefined {
         const datum = ctx.rawData[datumIndex];
         const xValue = ctx.xValues[datumIndex];
-        if (xValue === undefined && !this.properties.allowNullKeys) return undefined;
+        if (xValue === undefined && !this.options.allowNullKeys) return undefined;
 
         const rawLowValue = ctx.yLowValues[datumIndex];
         const rawHighValue = ctx.yHighValues[datumIndex];
@@ -733,7 +726,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             if (midDatumIndex === -1) continue;
 
             const xValue = ctx.xValues[midDatumIndex];
-            if (xValue === undefined && !this.properties.allowNullKeys) continue;
+            if (xValue === undefined && !this.options.allowNullKeys) continue;
 
             nodeDatumParamsScratch.datumIndex = midDatumIndex;
             nodeDatumParamsScratch.groupedDataIndex = 0;
@@ -827,7 +820,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const { processedData } = this;
         if (!processedData) return;
 
-        const { yLowKey, yHighKey, strokeWidth } = this.properties;
+        const { yLowKey, yHighKey, strokeWidth } = this.options;
         const itemId = `${yLowKey}-${yHighKey}` as const;
 
         const xPosition = (datumIndex: number) => {
@@ -889,14 +882,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     }
 
     protected override initializeResult(ctx: RangeBarSeriesNodeDatumContext): RangeBarSeriesNodeDataContext {
-        const { yLowKey, yHighKey } = this.properties;
+        const { yLowKey, yHighKey } = this.options;
         const itemId = `${yLowKey}-${yHighKey}` as const;
 
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
         const segments =
             xAxis && yAxis && this.chart?.seriesRect
-                ? calculateSegments(this.properties.segmentation, xAxis, yAxis, this.chart.seriesRect, this.ctx.scene)
+                ? calculateSegments(this.options.segmentation, xAxis, yAxis, this.chart.seriesRect, this.ctx.scene)
                 : undefined;
 
         return {
@@ -938,7 +931,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             return;
         }
 
-        const { xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, legendItemName, label } = this.properties;
+        const { xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, legendItemName, label } = this.options;
         const barAlongX = ctx.barAlongX;
         const placement = ctx.labelPlacement;
         // The first orientation is baked into `rotation`; an array resolves against the bar rect for inside placement only.
@@ -983,19 +976,35 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 : fitLabelToContainerAutoSize(text, ctx.labelFit, label, container);
 
         const { text: yLowText, fontSize: yLowFontSize } = fitText(
-            this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(yLowValue, datum, yLowKey, 'y', yDomain, label, {
-                itemType: 'low',
-                value: yLowValue,
-                ...labelTextParams,
-            })
+            this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(
+                yLowValue,
+                datum,
+                yLowKey,
+                'y',
+                yDomain,
+                this.options.label,
+                {
+                    itemType: 'low',
+                    value: yLowValue,
+                    ...labelTextParams,
+                }
+            )
         );
 
         const { text: yHighText, fontSize: yHighFontSize } = fitText(
-            this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(yHighValue, datum, yHighKey, 'y', yDomain, label, {
-                itemType: 'high',
-                value: yHighValue,
-                ...labelTextParams,
-            })
+            this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(
+                yHighValue,
+                datum,
+                yHighKey,
+                'y',
+                yDomain,
+                this.options.label,
+                {
+                    itemType: 'high',
+                    value: yHighValue,
+                    ...labelTextParams,
+                }
+            )
         );
 
         // Reach from the bar edge to the anchor: series-constant when unrotated, per-datum (box cross-axis
@@ -1202,7 +1211,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             strokeOpacity,
             strokeWidth,
             styler,
-        } = this.properties;
+        } = this.options;
         let stylerResult: NormalisedRangeBarSeriesStyle = {};
         if (!ignoreStylerCallback && styler) {
             const stylerParams = this.makeStylerParams(highlightState, selectionState, candidateState);
@@ -1244,7 +1253,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             xKey,
             yLowKey,
             yHighKey,
-        } = this.properties;
+        } = this.options;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
         const selectionState = toSelectionString(selectionStateEnum);
         const candidateState = toSelectionString(candidateStateEnum);
@@ -1288,8 +1297,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         selectionState: _ModuleSupport.SelectionState | undefined,
         candidateState: _ModuleSupport.SelectionState | undefined
     ): Required<NormalisedRangeBarSeriesStyle> {
-        const { properties, dataModel, processedData } = this;
-        const { itemStyler } = properties;
+        const { options, dataModel, processedData } = this;
+        const { itemStyler } = options;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const selectionStyle = this.getSelectionStyle(datumIndex, selectionState, candidateState);
@@ -1325,8 +1334,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         isHighlight: boolean,
         style: Required<NormalisedRangeBarSeriesStyle>
     ) {
-        const { id: seriesId, properties, processedData } = this;
-        const { xKey, yHighKey, yLowKey } = properties;
+        const { id: seriesId, options, processedData } = this;
+        const { xKey, yHighKey, yLowKey } = options;
 
         const datum = processedData!.dataSources.get(seriesId)?.data[datumIndex];
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
@@ -1413,7 +1422,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     getLabelObstacles() {
         // labelData is the flattened low+high labels, so each element is itself a baked label.
         return barLabelObstaclesFor(
-            this.properties.label,
+            this.options.label,
             this.contextNodeData?.nodeData,
             this.contextNodeData?.labelData,
             this.isLabelEnabled() && !this.usesPlacedLabels,
@@ -1422,8 +1431,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     }
 
     override getLabelData(): PointLabelDatum[] {
-        if (!this.usesPlacedLabels || !this.properties.label.enabled) return [];
-        const { label } = this.properties;
+        if (!this.usesPlacedLabels || !this.options.label.enabled) return [];
+        const { label } = this.options;
         const { alwaysShow, collideWith, threshold, measureBox, fitFor } = barLabelDataContext(label);
         const resolveStyle =
             label.itemStyler == null
@@ -1499,7 +1508,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
     override getLabelCandidateResolver(): PositionedCandidateResolver | undefined {
         const params = this.makeLabelStylerParams();
-        return createBarPositionedCandidateResolver(this, this.properties.label, () => params);
+        return createBarPositionedCandidateResolver(this, this.options.label, () => params);
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<RangeBarNodeLabelDatum>[]) {
@@ -1514,14 +1523,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     }
 
     protected override resolveUsesPlacedLabels(): boolean {
-        return barLabelPropsRouteThroughEngine(this.properties.label);
+        return barLabelPropsRouteThroughEngine(this.options.label);
     }
 
     protected override updateLabelSelection(opts: {
         labelData: RangeBarNodeLabelDatum[];
         labelSelection: RangeBarAnimationData['labelSelection'];
     }) {
-        const labelData = this.properties.label.enabled ? opts.labelData : [];
+        const labelData = this.options.label.enabled ? opts.labelData : [];
         return opts.labelSelection.update(labelData, (text) => {
             text.pointerEvents = PointerEvents.None;
         });
@@ -1532,7 +1541,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
      * produce identical params for the styler result to be shared between them.
      */
     private makeLabelStylerParams(): RequireOptional<AgRangeBarSeriesLabelFormatterParams> {
-        const { xKey, xName, yName, yLowKey, yLowName, yHighKey, yHighName, legendItemName } = this.properties;
+        const { xKey, xName, yName, yLowKey, yLowName, yHighKey, yHighName, legendItemName } = this.options;
         return {
             xKey,
             xName: xName ?? xKey,
@@ -1552,7 +1561,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const { isHighlight = false } = opts;
         const params = this.makeLabelStylerParams();
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const { label } = this.properties;
+        const { label } = this.options;
         opts.labelSelection.each((textNode, datum) => {
             if (datum.hidden) {
                 textNode.visible = false;
@@ -1586,8 +1595,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, properties } = this;
-        const { xKey, xName, yName, yLowKey, yHighKey, yLowName, yHighName, tooltip, legendItemName } = properties;
+        const { id: seriesId, dataModel, processedData, options } = this;
+        const { xKey, xName, yName, yLowKey, yHighKey, yLowName, yHighName, tooltip, legendItemName } = options;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
@@ -1599,7 +1608,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const yLowValue = dataModel.resolveColumnById(this, `yLowValue`, processedData, 'mixed-numeric')[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
-        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        const allowNullKeys = this.options.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const format = this.getItemStyle(datumIndex, false, undefined, undefined, undefined);
@@ -1664,7 +1673,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
         const { id: seriesId, visible } = this;
 
-        const { yName, yLowName, yHighName, yLowKey, yHighKey, legendItemName, showInLegend } = this.properties;
+        const { yName, yLowName, yHighName, yLowKey, yHighKey, legendItemName, showInLegend } = this.options;
         const legendItemText = legendItemName ?? yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
         const itemId = `${yLowKey}-${yHighKey}`;
 
@@ -1678,7 +1687,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 label: { text: `${legendItemText}` },
                 symbol: this.legendItemSymbol(),
                 legendItemName,
-                hideInLegend: !showInLegend,
+                hideInLegend: showInLegend === false,
             },
         ];
     }
@@ -1743,7 +1752,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     }
 
     protected isLabelEnabled() {
-        return this.properties.label.enabled;
+        return this.options.label.enabled;
     }
 
     protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
@@ -1752,10 +1761,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
     protected override hasItemStylers(): boolean {
         return (
-            this.properties.selection.enabled ||
-            this.properties.styler != null ||
-            this.properties.itemStyler != null ||
-            this.properties.label.itemStyler != null
+            this.isSelectionEnabled() ||
+            this.options.styler != null ||
+            this.options.itemStyler != null ||
+            this.options.label.itemStyler != null
         );
     }
 }

@@ -277,7 +277,7 @@ export type {
 } from './chart/series/seriesTypes';
 export { HighlightState, SelectionState } from './chart/series/seriesTypes';
 export { getItemStyles, getItemStylesPerItemId, visibleRangeIndices, findNodeDatumInArray } from './chart/series/util';
-export { AbstractBarSeries, AbstractBarSeriesProperties } from './chart/series/cartesian/abstractBarSeries';
+export { AbstractBarSeries } from './chart/series/cartesian/abstractBarSeries';
 export type {
     AbstractBarSeriesAnimationData,
     AbstractBarSeriesNodeDataContext,

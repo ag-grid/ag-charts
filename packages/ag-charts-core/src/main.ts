@@ -7,6 +7,7 @@ export * from './types/normalised-options/normalisedCartesianSeries';
 export * from './types/normalised-options/normalisedCommonOptions';
 export * from './types/normalised-options/normalisedChartCaptionOptions';
 export * from './types/normalised-options/normalisedDonutSeries';
+export * from './types/normalised-options/normalisedEnterpriseBarSeries';
 export * from './types/normalised-options/normalisedGradientLegendOptions';
 export * from './types/normalised-options/normalisedPieSeries';
 export * from './types/normalised-options/normalisedScatterSeries';
