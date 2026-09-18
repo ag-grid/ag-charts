@@ -45,7 +45,7 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
     visible: 'auto',
     track: {
         fill: { $foregroundBackgroundMix: 0.03 },
-        stroke: { $foregroundBackgroundMix: 0.177 },
+        stroke: { $ref: 'borderColor' },
         strokeWidth: 1,
         lineDash: [0],
         lineDashOffset: 0,
@@ -54,7 +54,7 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
     },
     thumb: {
         fill: { $foregroundBackgroundMix: 0.125 },
-        stroke: { $foregroundBackgroundMix: 0.364 },
+        stroke: { $ref: 'borderColor' },
         strokeWidth: 1,
         lineDash: [0],
         lineDashOffset: 0,
