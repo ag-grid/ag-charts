@@ -5,6 +5,7 @@ import { communityModule } from '../../module/moduleIdentity';
 import { VERSION } from '../../version';
 import { SeriesArea } from './seriesArea';
 
+/** Every chart module depends on this, so `ctx.seriesArea` is always present. */
 export const SeriesAreaModule: PluginModuleDefinition<never, ChartRegistry> = /* #__PURE__ */ communityModule({
     type: 'plugin',
     name: 'series-area',
@@ -14,5 +15,5 @@ export const SeriesAreaModule: PluginModuleDefinition<never, ChartRegistry> = /*
         if (ctx.has('seriesArea')) return;
         ctx.service('seriesArea', (c) => new SeriesArea(c));
     },
-    create: (ctx) => ctx.seriesArea!,
+    create: (ctx) => ctx.seriesArea,
 });

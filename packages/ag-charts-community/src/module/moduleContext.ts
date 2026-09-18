@@ -73,7 +73,7 @@ export interface ChartRegistry {
     readonly chartState: ReactiveState<ChartState>;
     readonly legendManager?: LegendManager;
     /** Installed by the `series-area` module; modules rendering inside the series area attach through it. */
-    readonly seriesArea?: SeriesArea;
+    readonly seriesArea: SeriesArea;
 
     readonly activeManager: ActiveManager;
     readonly animationManager: AnimationManager;

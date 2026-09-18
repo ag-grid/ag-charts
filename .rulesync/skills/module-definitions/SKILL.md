@@ -82,10 +82,11 @@ changes wholesale; the generated placeholder then names the enterprise variant.
 
 A feature that lives under another module's option key is its own module, not an override of the
 host. `BackgroundRegionsModule` declares `contributes: [{ path: 'seriesArea.backgroundRegions', ... }]`
-and depends on the community `SeriesAreaModule`, which exposes itself as the `seriesArea` service. The
-feature implements `SeriesAreaContent` and calls `ctx.seriesArea?.attach(this)` to render inside the
-series area. The host reads the keys other modules contribute below its path through
-`contributedKeysUnder` and leaves them alone, so it validates only its own options.
+and depends on the community `SeriesAreaModule`, which exposes itself as the `seriesArea` service.
+Every chart module depends on that service, so `ctx.seriesArea` is never optional. The feature
+implements `SeriesAreaContent` and calls `ctx.seriesArea.attach(this)` to render inside the series
+area. The host reads the keys other modules contribute below its path through `contributedKeysUnder`
+and leaves them alone, so it validates only its own options.
 
 Presets that users reach through an API entry point declare `apiName: 'AgCharts.createGauge'` so the
 report names the entry point rather than the registry name.

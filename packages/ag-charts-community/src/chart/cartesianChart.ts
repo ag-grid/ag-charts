@@ -188,7 +188,7 @@ export class CartesianChart extends Chart {
         const seriesPaddedRect = seriesRect.clone().grow(this.getSeriesAreaPadding());
 
         const alwaysClip = this.series.some((s) => s.alwaysClip);
-        const enableClip = alwaysClip || (this.seriesArea?.clip ?? false) || clipSeries;
+        const enableClip = alwaysClip || (this.seriesArea.clip ?? false) || clipSeries;
         const clipRect = enableClip ? seriesPaddedRect : undefined;
         const { lastUpdateClipRect } = this;
         this.lastUpdateClipRect = clipRect;
@@ -209,7 +209,7 @@ export class CartesianChart extends Chart {
         }
 
         // Update the series area modules and always clip them to the series padded rect area.
-        this.seriesArea?.update(seriesRect, seriesPaddedRect);
+        this.seriesArea.update(seriesRect, seriesPaddedRect);
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
             axes: fromPairs(this.axes.map((axis) => [axis.id, axis.getLayoutState()])),

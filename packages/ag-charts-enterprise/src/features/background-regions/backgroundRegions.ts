@@ -30,7 +30,7 @@ export class BackgroundRegions implements ModuleInstance, _ModuleSupport.SeriesA
         contributions: Iterable<ResolvedContribution>
     ) {
         this.cleanup.register(
-            ctx.seriesArea?.attach(this),
+            ctx.seriesArea.attach(this),
             () => this.detachRegions(),
             ctx.chartState.observe((get) => {
                 const regions = readContributedValue(contributions, 'chart', get('options'));
