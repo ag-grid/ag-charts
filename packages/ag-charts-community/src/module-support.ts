@@ -363,12 +363,12 @@ export {
     PolarSeries,
 } from './chart/series/polar/polarSeries';
 export type { PolarAnimationData } from './chart/series/polar/polarSeries';
-export { HierarchyNode, HierarchySeries } from './chart/series/hierarchy/hierarchySeries';
 export {
     HierarchyHighlightState,
-    HierarchySeriesProperties,
+    HierarchyNode,
+    HierarchySeries,
     toHierarchyHighlightString,
-} from './chart/series/hierarchy/hierarchySeriesProperties';
+} from './chart/series/hierarchy/hierarchySeries';
 export { MercatorScale } from './chart/series/topology/mercatorScale';
 export type { GaugeSeries } from './chart/series/gaugeSeries';
 export { getShapeFill, getShapeStyle } from './chart/series/shapeUtil';

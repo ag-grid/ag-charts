@@ -1,4 +1,9 @@
-import { LABEL_BOXING_DEFAULTS, SAFE_RANGE2_OPERATION, SERIES_SELECTION_THEME } from 'ag-charts-core';
+import {
+    LABEL_BOXING_DEFAULTS,
+    SAFE_RANGE2_OPERATION,
+    SERIES_INTERACTION_THEME_DEFAULTS,
+    SERIES_SELECTION_THEME,
+} from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 export const HEATMAP_SERIES_THEME: ExtensibleSeriesTheme<'heatmap'> = {
@@ -9,6 +14,7 @@ export const HEATMAP_SERIES_THEME: ExtensibleSeriesTheme<'heatmap'> = {
         },
     },
     series: {
+        ...SERIES_INTERACTION_THEME_DEFAULTS,
         stroke: {
             $if: [
                 { $eq: [{ $palette: 'type' }, 'inbuilt'] },
@@ -16,7 +22,9 @@ export const HEATMAP_SERIES_THEME: ExtensibleSeriesTheme<'heatmap'> = {
                 { $path: ['/0', { $palette: 'stroke' }, { $palette: 'strokes' }] },
             ],
         },
-        strokeWidth: { $isUserOption: ['./stroke', 2, undefined] },
+        strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
+        strokeOpacity: 1,
+        cornerRadius: 0,
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,
@@ -26,8 +34,11 @@ export const HEATMAP_SERIES_THEME: ExtensibleSeriesTheme<'heatmap'> = {
             fontWeight: { $ref: 'fontWeight' },
             wrapping: 'on-space',
             overflowStrategy: 'ellipsis',
+            textAlign: { $path: ['../textAlign', 'center'] },
+            verticalAlign: { $path: ['../verticalAlign', 'middle'] },
         },
         itemPadding: 3,
+        tooltip: { interaction: { enabled: false } },
         colorScale: {
             fills: {
                 $map: [
@@ -41,6 +52,7 @@ export const HEATMAP_SERIES_THEME: ExtensibleSeriesTheme<'heatmap'> = {
                     },
                 ],
             },
+            mode: 'continuous',
         },
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },

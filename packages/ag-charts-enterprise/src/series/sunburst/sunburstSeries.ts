@@ -6,7 +6,9 @@ import {
 import {
     type CallbackParamRules,
     type DynamicContext,
-    type InternalAgColorType,
+    type NormalisedSunburstInnerLabelOptions,
+    type NormalisedSunburstSeriesOwnOptions,
+    type NormalisedSunburstSeriesStyle,
     type NormalisedTextOrSegments,
     type Point,
     type RequireOptional,
@@ -15,18 +17,10 @@ import {
     isGradientFill,
     mergeDefaults,
     normalizeAngle360,
-    resolveLabelFit,
 } from 'ag-charts-core';
-import type {
-    AgSunburstSeriesItemStylerParams,
-    AgSunburstSeriesOptions,
-    AgSunburstSeriesStyle,
-    FontStyle,
-    FontWeight,
-} from 'ag-charts-types';
+import type { AgSunburstSeriesItemStylerParams, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { formatLabels } from '../util/labelFormatter';
-import { type SunburstInnerLabel, SunburstSeriesProperties } from './sunburstSeriesProperties';
 
 const {
     fromToMotion,
@@ -101,20 +95,17 @@ enum TextNodeTag {
     Secondary,
 }
 
-type ItemStyle = Required<AgSunburstSeriesStyle> & { opacity: number };
+type ItemStyle = Required<NormalisedSunburstSeriesStyle> & { opacity: number };
 
 export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     SunburstNode,
     _ModuleSupport.Sector<SunburstNode>,
-    AgSunburstSeriesOptions,
-    SunburstSeriesProperties
+    NormalisedSunburstSeriesOwnOptions
 > {
     static override readonly className = 'SunburstSeries';
     static readonly type = 'sunburst' as const;
 
     NodeClass = SunburstNode;
-
-    override properties = new SunburstSeriesProperties();
 
     private readonly scalingGroup = this.contentGroup.appendChild(new ScalableGroup());
     private readonly sectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>());
@@ -143,7 +134,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         this.innerCircleGroup,
         Sector<{ radius: number }>
     );
-    readonly innerLabelsSelection = Selection.select<_ModuleSupport.Text<SunburstInnerLabel>>(
+    readonly innerLabelsSelection = Selection.select<_ModuleSupport.Text<NormalisedSunburstInnerLabelOptions>>(
         this.innerLabelsGroup,
         Text
     );
@@ -195,17 +186,17 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     }
 
     protected getItemStyle(nodeDatum: SunburstNode, isHighlight: boolean) {
-        const { properties, colorScale } = this;
+        const { options, colorScale } = this;
 
-        const { itemStyler, colorKey } = properties;
-        const { missingDataFill } = properties.colorScale;
+        const { itemStyler, colorKey } = options;
+        const { missingDataFill } = options.colorScale;
         const rootIndex = nodeDatum.path?.[0] ?? 0;
 
         const highlightedNode = this.getActiveHighlightNode();
         const highlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);
-        const highlightStyles = this.getHierarchyHighlightStyles(highlightState, this.properties.highlight);
+        const highlightStyles = this.getHierarchyHighlightStyles(highlightState, this.options.highlight);
         const selectionState = this.getSelectionStyle(nodeDatum.datumIndex);
-        const baseStyle = mergeDefaults(selectionState, highlightStyles, properties.getStyle(rootIndex));
+        const baseStyle = mergeDefaults(selectionState, highlightStyles, this.itemStyle(rootIndex));
 
         if (nodeDatum.colorValue != null && highlightStyles?.fill == null) {
             baseStyle.fill = colorScale.convert(nodeDatum.colorValue);
@@ -239,11 +230,23 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         return style;
     }
 
+    private itemStyle(index: number): ItemStyle {
+        const { fills, strokes, fillOpacity, strokeWidth, strokeOpacity } = this.options;
+        return {
+            fill: fills[index % fills.length],
+            fillOpacity,
+            stroke: strokes[index % strokes.length],
+            strokeWidth,
+            strokeOpacity,
+            opacity: 1,
+        };
+    }
+
     private makeItemStylerParams(nodeDatum: SunburstNode, style: ItemStyle, highlightState: AgSunburstHighlightState) {
         const { id: seriesId } = this;
-        const { colorKey, childrenKey, sizeKey, labelKey, secondaryLabelKey } = this.properties;
+        const { colorKey, childrenKey, sizeKey, labelKey, secondaryLabelKey } = this.options;
         // `style` is the resolved item style, so its `fill` never carries unresolved colour refs.
-        const fill = this.filterItemStylerFillParams(style.fill as InternalAgColorType) ?? style.fill;
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
             seriesId,
@@ -274,8 +277,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
         const { width, height } = chart.seriesRect!;
         const {
-            sectorSpacing = 0,
-            padding = 0,
+            sectorSpacing,
+            padding,
             cornerRadius,
             childrenKey,
             colorKey,
@@ -287,7 +290,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             innerRadiusRatio,
             innerRadiusSize,
             innerCircle,
-        } = this.properties;
+        } = this.options;
 
         this.contentGroup.translationX = width / 2;
         this.contentGroup.translationY = height / 2;
@@ -347,7 +350,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                     labelKey,
                     'label',
                     [],
-                    this.properties.label,
+                    this.options.label,
                     {
                         depth,
                         datum,
@@ -375,7 +378,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                     secondaryLabelKey,
                     'secondaryLabel',
                     [],
-                    this.properties.secondaryLabel,
+                    this.options.secondaryLabel,
                     {
                         depth,
                         datum,
@@ -456,9 +459,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 // Preserve `ContentSegment[]` (including image segments) instead of flattening to plain
                 // text, so image-bearing labels render like treemap rather than dropping the image.
                 labelValue,
-                this.properties.label,
+                this.options.label,
                 secondaryLabelValue,
-                this.properties.secondaryLabel,
+                this.options.secondaryLabel,
                 { padding },
                 sizeFittingHeight
             );
@@ -497,12 +500,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             }
 
             if (label != null) {
-                const {
-                    fontStyle = 'normal',
-                    fontFamily,
-                    fontWeight = 'normal',
-                    color = 'black',
-                } = this.properties.label;
+                const { fontStyle = 'normal', fontFamily, fontWeight = 'normal', color = 'black' } = this.options.label;
                 node.label = {
                     ...label,
                     fontStyle,
@@ -522,7 +520,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                     fontFamily,
                     fontWeight = 'normal',
                     color = 'black',
-                } = this.properties.secondaryLabel;
+                } = this.options.secondaryLabel;
                 node.secondaryLabel = {
                     ...secondaryLabel,
                     fontStyle,
@@ -572,7 +570,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             updateSector(datum, rect, true);
         });
 
-        const { innerLabels } = this.properties;
+        const { innerLabels = [] } = this.options;
         const centre = this.resolveCentreCircle();
         this.innerCircleSelection.update(innerCircle == null || centre == null ? [] : [centre]);
         this.innerLabelsSelection.update(centre == null ? [] : innerLabels, (node) => {
@@ -620,19 +618,19 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             const highlightState = this.getHierarchyHighlightState(highlighted, highlightedNode, node);
 
             const { opacity: highlightOpacity } =
-                this.getHierarchyHighlightStyles(highlightState, this.properties.highlight) ?? {};
+                this.getHierarchyHighlightStyles(highlightState, this.options.highlight) ?? {};
 
             const params: RequireOptional<AgSunburstSeriesLabelFormatterParams> = {
-                childrenKey: this.properties.childrenKey,
-                colorKey: this.properties.colorKey,
-                colorName: this.properties.colorName ?? this.properties.colorKey,
+                childrenKey: this.options.childrenKey,
+                colorKey: this.options.colorKey,
+                colorName: this.options.colorName ?? this.options.colorKey,
                 depth: node.depth ?? Number.NaN,
-                labelKey: this.properties.labelKey,
-                secondaryLabelKey: this.properties.secondaryLabelKey,
-                sizeKey: this.properties.sizeKey,
-                sizeName: this.properties.sizeName ?? this.properties.sizeKey,
+                labelKey: this.options.labelKey,
+                secondaryLabelKey: this.options.secondaryLabelKey,
+                sizeKey: this.options.sizeKey,
+                sizeName: this.options.sizeName ?? this.options.sizeKey,
             };
-            const baseLabelStyle = primary ? this.properties.label : this.properties.secondaryLabel;
+            const baseLabelStyle = primary ? this.options.label : this.options.secondaryLabel;
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const style = getLabelStyles(this, node, params, baseLabelStyle, highlighted, activeHighlight);
             text.text = label.text;
@@ -707,7 +705,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             text.fontWeight = fontWeight;
             text.fontSize = fontSize;
             text.fontFamily = fontFamily;
-            text.text = fitLabelToContainer(datum.text, resolveLabelFit(datum, false), datum, box);
+            text.text = fitLabelToContainer(datum.text, undefined, datum, box);
             text.x = 0;
             text.y = 0;
             text.fill = color;
@@ -743,9 +741,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     }
 
     override getTooltipContent(datumIndex: _ModuleSupport.DatumIndex): _ModuleSupport.TooltipContent | undefined {
-        const { id: seriesId, properties, ctx } = this;
-        const { labelKey, secondaryLabelKey, childrenKey, sizeKey, sizeName, colorKey, colorName, tooltip } =
-            properties;
+        const { id: seriesId, options, ctx } = this;
+        const { labelKey, secondaryLabelKey, childrenKey, sizeKey, sizeName, colorKey, colorName, tooltip } = options;
         const { formatManager } = ctx;
         const nodeDatum = this.dfsFind(datumIndex);
         if (nodeDatum == null) return;
@@ -793,7 +790,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             });
             const binLabel = findDiscreteColorBinLabel(
                 this.colorScale,
-                properties.colorScale.fills,
+                options.colorScale.fills,
                 datumColor,
                 formatValue
             );
@@ -804,12 +801,12 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             });
         }
 
-        const format: Required<AgSunburstSeriesStyle> = this.getItemStyle(
+        const format: Required<NormalisedSunburstSeriesStyle> = this.getItemStyle(
             { ...nodeDatum, colorValue: datumColor ?? nodeDatum.colorValue } as SunburstNode,
             false
         );
 
-        const color = format.fill as InternalAgColorType;
+        const color = format.fill;
 
         const markerStyle = {
             shape: 'square' as const,
@@ -892,10 +889,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return (
-            this.properties.selection.enabled ||
-            this.properties.itemStyler != null ||
-            this.properties.label.itemStyler != null
-        );
+        return this.isSelectionEnabled() || this.options.itemStyler != null || this.options.label.itemStyler != null;
     }
 }
