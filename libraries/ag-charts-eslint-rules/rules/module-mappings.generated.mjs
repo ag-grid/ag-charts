@@ -70,6 +70,7 @@ export const pluginOptionToModule = new Map([
     ['sync', 'SyncModule'],
     ['zoom', 'ZoomModule'],
 ]);
+export const nestedPluginOptionToModule = new Map([['seriesArea.backgroundRegions', 'SeriesAreaModule']]);
 export const axisPluginToModule = new Map([
     ['bandHighlight', 'BandHighlightModule'],
     ['crosshair', 'CrosshairModule'],

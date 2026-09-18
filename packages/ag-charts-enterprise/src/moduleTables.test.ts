@@ -351,6 +351,7 @@ interface EslintMappings {
     seriesTypeToModule: Map<string, string>;
     axisTypeToModule: Map<string, string>;
     pluginOptionToModule: Map<string, string>;
+    nestedPluginOptionToModule: Map<string, string>;
     axisPluginToModule: Map<string, string>;
     polarAxisPluginToModule: Map<string, string>;
     axisListenerToModule: Map<string, string>;
@@ -384,6 +385,7 @@ function eslintMappings(catalogue: ModuleCatalogue): EslintMappings {
         seriesTypeToModule: new Map(),
         axisTypeToModule: new Map(),
         pluginOptionToModule: new Map(),
+        nestedPluginOptionToModule: new Map(),
         axisPluginToModule: new Map(),
         polarAxisPluginToModule: new Map(),
         axisListenerToModule: new Map(),
@@ -438,6 +440,8 @@ function eslintMappings(catalogue: ModuleCatalogue): EslintMappings {
                         tables.pluginOptionToModule.set(head, id);
                     } else if (keys.length === 2 && head === 'listeners') {
                         tables.chartListenerToModule.set(rest[0], id);
+                    } else if (keys.length === 2) {
+                        tables.nestedPluginOptionToModule.set(keys.join('.'), id);
                     }
                 }
                 break;
