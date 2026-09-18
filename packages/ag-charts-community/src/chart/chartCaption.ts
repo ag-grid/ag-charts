@@ -29,7 +29,7 @@ import { PointerEvents } from '../scene/node';
 import { RotatableText } from '../scene/shape/text';
 import { Transformable } from '../scene/transformable';
 import type { BoundedTextWidget } from '../widget/boundedTextWidget';
-import type { MouseWidgetEvent } from '../widget/widgetEvents';
+import type { ClickWidgetEvent, DblClickWidgetEvent, MouseWidgetEvent } from '../widget/widgetEvents';
 import type { CaptionLike } from './captionLike';
 import { expandLabelPadding } from './label';
 import type { TooltipContent } from './tooltip/tooltipContent';
@@ -307,7 +307,7 @@ export class ChartCaption implements CaptionLike {
      * `captionDoubleClick` counterparts. Mirrors the caption context-menu dispatch above, reporting
      * the same `captionType` discriminator.
      */
-    private handleClick(moduleCtx: DynamicContext<ChartRegistry>, event: MouseWidgetEvent<'click' | 'dblclick'>) {
+    private handleClick(moduleCtx: DynamicContext<ChartRegistry>, event: ClickWidgetEvent | DblClickWidgetEvent) {
         // Keyboard activation of caption listeners is not supported.
         if (event.device === 'keyboard') return;
 

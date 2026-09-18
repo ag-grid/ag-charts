@@ -839,6 +839,16 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
     ...without(commonSeriesThemeableOptionsDefs, ['highlight', 'selection', 'showInLegend']),
 };
 
+const waterfallSeriesLabelOptionsDef = {
+    ...seriesLabelOptionsDefs,
+    ...labelCollisionFitOptionsDefs,
+    ...labelAutoFontSizeOptionsDefs,
+    ...labelPlacementStyleDefs,
+    placement: waterfallPlacementDef,
+    orientation: labelOrientationDef,
+    spacing: positiveNumber,
+};
+
 const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<any>> = {
     name: string,
     cornerRadius: positiveNumber,
@@ -848,15 +858,7 @@ const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<an
         ...lineDashOptionsDef,
         cornerRadius: positiveNumber,
     }),
-    label: {
-        ...seriesLabelOptionsDefs,
-        ...labelCollisionFitOptionsDefs,
-        ...labelAutoFontSizeOptionsDefs,
-        ...labelPlacementStyleDefs,
-        placement: waterfallPlacementDef,
-        orientation: labelOrientationDef,
-        spacing: positiveNumber,
-    },
+    label: waterfallSeriesLabelOptionsDef,
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
     ...fillOptionsDef,
@@ -872,6 +874,7 @@ export const waterfallSeriesThemeableOptionsDef: OptionsDefs<AgWaterfallSeriesTh
         negative: waterfallSeriesItemOptionsDef,
         total: waterfallSeriesItemOptionsDef,
     },
+    label: waterfallSeriesLabelOptionsDef,
     line: {
         enabled: boolean,
         ...strokeOptionsDef,

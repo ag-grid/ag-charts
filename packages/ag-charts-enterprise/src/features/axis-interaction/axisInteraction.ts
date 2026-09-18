@@ -320,7 +320,7 @@ export class AxisInteraction extends AbstractModuleInstance {
      * Fires the `axes[].listeners` callbacks and their chart-level `axisClick` / `axisDoubleClick`
      * counterparts. The picked value is resolved exactly as it is for the axis context menu.
      */
-    private dispatchAxisClick(axisId: AxisID, widgetEvent: _Widget.MouseWidgetEvent<'click' | 'dblclick'>) {
+    private dispatchAxisClick(axisId: AxisID, widgetEvent: _Widget.ClickWidgetEvent | _Widget.DblClickWidgetEvent) {
         // Keyboard-synthetic clicks carry no pointer coordinates, so there is nothing to pick.
         if (widgetEvent.device === 'keyboard') return;
 

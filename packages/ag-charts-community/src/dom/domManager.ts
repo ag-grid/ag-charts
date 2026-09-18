@@ -30,7 +30,6 @@ import NORMAL_DOM from './domLayout.html';
 const DOM_ELEMENT_CLASSES = [
     'styles',
     'canvas',
-    'canvas-background',
     'canvas-center',
     'canvas-container',
     'canvas-overlay',
@@ -77,7 +76,6 @@ function setupObserver(agDocument: AgDocument, element: HTMLElement, cb: (inters
 type LiveDOMElement = {
     element: HTMLElement;
     children: Map<string, StrictHTMLElement>;
-    listeners: [string, Function, boolean | AddEventListenerOptions | undefined][];
 };
 
 const NULL_DOMRECT: DOMRect = {
@@ -298,11 +296,7 @@ export class DOMManager extends BaseManager {
                 throw new Error(`AG Charts - unable to find DOM element ${className}`);
             }
 
-            rootElements[domElement] = {
-                element: el,
-                children: new Map<string, StrictHTMLElement>(),
-                listeners: [],
-            };
+            rootElements[domElement] = { element: el, children: new Map<string, StrictHTMLElement>() };
         }
 
         return rootElements;
@@ -966,7 +960,7 @@ export class DOMManager extends BaseManager {
     }
 
     addChild(domElementClass: DOMElementClass, id: string, child?: HTMLElement, insert?: DOMInsertOption) {
-        const { element, children, listeners } = this.rootElements[domElementClass];
+        const { element, children } = this.rootElements[domElementClass];
 
         if (!children) {
             throw new Error('AG Charts - unable to create DOM elements after destroy()');
@@ -982,9 +976,6 @@ export class DOMManager extends BaseManager {
 
         // Only allow return values from createElementId() to be used for newChild.id
         const newChild = (child ?? (createElement(childElementType) satisfies HTMLElement)) as StrictHTMLElement;
-        for (const [type, fn, opts] of listeners) {
-            newChild.addEventListener(type, fn as any, opts);
-        }
         children.set(id, newChild);
         if (childElementType === 'style' && this.styleNonce != null) {
             newChild.nonce = this.styleNonce;

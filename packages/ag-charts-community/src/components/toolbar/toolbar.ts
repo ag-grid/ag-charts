@@ -11,7 +11,7 @@ import { CollapseMode } from '../../widget/collapseMode';
 import type { ExpandableWidget, ExpansionControllerWidget } from '../../widget/expandableWidget';
 import type { RovingDirection } from '../../widget/rovingDirection';
 import { ToolbarWidget } from '../../widget/toolbarWidget';
-import type { MouseWidgetEvent } from '../../widget/widgetEvents';
+import type { ClickWidgetEvent } from '../../widget/widgetEvents';
 import { ToolbarButtonWidget, type ToolbarButtonWidgetOptions } from './toolbarButtonWidget';
 
 const BUTTON_ACTIVE_CLASS = 'ag-charts-toolbar__button--active';
@@ -24,7 +24,7 @@ export interface ToolbarButtonOptions extends ToolbarButtonWidgetOptions {
 
 export interface ToolbarEventMap<ButtonOptions extends ToolbarButtonOptions = ToolbarButtonOptions> {
     'button-pressed': {
-        event: MouseWidgetEvent<'click'>;
+        event: ClickWidgetEvent;
         button: ButtonOptions & { index: number };
         buttonBounds: BoxBounds;
         buttonWidget: ExpansionControllerWidget<HTMLElement>;

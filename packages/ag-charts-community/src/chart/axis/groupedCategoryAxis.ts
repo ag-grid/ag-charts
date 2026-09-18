@@ -133,7 +133,9 @@ export class GroupedCategoryAxis extends CategoryAxis<
         const { line } = this.options;
         this.lineNode.visible = line.enabled;
         this.lineNode.stroke = line.stroke;
-        this.lineNode.strokeWidth = line.width;
+        this.lineNode.strokeWidth = line.strokeWidth;
+        this.lineNode.strokeOpacity = line.strokeOpacity;
+        this.lineNode.lineDash = line.lineDash;
     }
 
     private computeLayout() {
@@ -153,7 +155,12 @@ export class GroupedCategoryAxis extends CategoryAxis<
         this.lineNode.datum = horizontal
             ? { x1: range[0], x2: range[1], y1: 0, y2: 0 }
             : { x1: 0, x2: 0, y1: range[0], y2: range[1] };
-        this.lineNode.setProperties({ stroke: line.stroke, strokeWidth: line.enabled ? line.width : 0 });
+        this.lineNode.setProperties({
+            stroke: line.stroke,
+            strokeWidth: line.enabled ? line.strokeWidth : 0,
+            strokeOpacity: line.strokeOpacity,
+            lineDash: line.lineDash,
+        });
 
         this.tickTreeLayout?.resize(this.scale.range, this.scale.step, this.scale.inset, this.scale.bandwidth);
 

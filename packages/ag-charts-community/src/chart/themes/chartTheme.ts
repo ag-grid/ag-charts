@@ -44,6 +44,7 @@ import {
     contributionMatchesAxisType,
     contributionMatchesChartType,
     contributionMatchesSeriesType,
+    createScopedCache,
     deepClone,
     deepFreeze,
     getSequentialColors,
@@ -129,6 +130,21 @@ function hasUserOptionLessThan1(key: string) {
 function isPresetOverridesType(type: OverridesKey): type is keyof AgPresetOverrides {
     return PRESET_OVERRIDES_TYPES[type as keyof AgPresetOverrides] === true;
 }
+
+/**
+ * The frozen per-series-type defaults a `ChartTheme` bakes into `config` depend on the theme class, the
+ * preset and the module registry — never on the instance's own overrides, palette or params. Building them
+ * means merging every series, axis and plugin theme template, then deep-cloning and deep-freezing the result,
+ * which dominated the cost of `new ChartTheme(...)` for every distinct theme-options object (each one misses
+ * the identity-keyed cache in `mapping/themes.ts`). They are built once per class and preset per module scope
+ * and shared, which is safe because the result is frozen; a registry change empties the scope's entries.
+ */
+const defaultsConfigCache = createScopedCache(
+    () => ({ byClass: new WeakMap<Function, Map<string | undefined, any>>() }),
+    (cache) => {
+        cache.byClass = new WeakMap();
+    }
+);
 
 export class ChartTheme {
     readonly palette: Required<AgChartThemePalette> & {
@@ -391,10 +407,6 @@ export class ChartTheme {
         moduleRegistry: ModuleScope = ModuleRegistry.resolveModuleScope()
     ) {
         const { overrides, palette, params } = deepClone(options) as AgChartThemeOptions;
-        const defaults = this.createChartConfigPerChartType(
-            this.getDefaults(presetName, moduleRegistry),
-            moduleRegistry
-        );
         const presets: Record<string, any> = {};
 
         if (overrides) {
@@ -414,9 +426,28 @@ export class ChartTheme {
 
         this.params = mergeDefaults(params, this.getThemeParameters() as AgChartAllThemeParams);
 
-        this.config = deepFreeze(deepClone(defaults));
+        this.config = this.getFrozenDefaultsConfig(presetName, moduleRegistry);
         this.overrides = deepFreeze(overrides);
         this.presets = deepFreeze(presets);
+    }
+
+    private getFrozenDefaultsConfig(presetName: string | undefined, moduleRegistry: ModuleScope) {
+        const { byClass } = defaultsConfigCache.for(moduleRegistry);
+        let byPreset = byClass.get(this.constructor);
+        if (byPreset == null) {
+            byPreset = new Map();
+            byClass.set(this.constructor, byPreset);
+        }
+        let config = byPreset.get(presetName);
+        if (config == null) {
+            const defaults = this.createChartConfigPerChartType(
+                this.getDefaults(presetName, moduleRegistry),
+                moduleRegistry
+            );
+            config = deepFreeze(deepClone(defaults));
+            byPreset.set(presetName, config);
+        }
+        return config;
     }
 
     private processOverrides(presets: AgPresetOverrides, overrides: AgThemeOverrides, moduleRegistry: ModuleScope) {

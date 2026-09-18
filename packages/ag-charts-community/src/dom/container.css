@@ -31,10 +31,6 @@
     pointer-events: none;
 }
 
-.ag-charts-canvas-background {
-    position: absolute;
-}
-
 .ag-charts-canvas-center {
     position: absolute;
     touch-action: auto;

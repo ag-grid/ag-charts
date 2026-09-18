@@ -28,13 +28,6 @@ exports[`DOMManager > for disconnected container cases > should initialize the e
             
         <div
           aria-hidden="true"
-          class="ag-charts-canvas-background"
-          role="presentation"
-        />
-        
-            
-        <div
-          aria-hidden="true"
           class="ag-charts-canvas"
           role="presentation"
         />
@@ -113,13 +106,6 @@ exports[`DOMManager > for normal container cases > should initialize the expecte
         class="ag-charts-canvas-container"
         role="presentation"
       >
-        
-            
-        <div
-          aria-hidden="true"
-          class="ag-charts-canvas-background"
-          role="presentation"
-        />
         
             
         <div
@@ -207,13 +193,6 @@ exports[`DOMManager > for shadow-DOM container cases > should initialize the exp
         class="ag-charts-canvas-container"
         role="presentation"
       >
-        
-            
-        <div
-          aria-hidden="true"
-          class="ag-charts-canvas-background"
-          role="presentation"
-        />
         
             
         <div
