@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import apiMenu from '../../src/content/api-menu/menu.json';
 import docsNav from '../../src/content/docs-nav/nav.json';
-import { API_PAGE_RANK_BASE, RANK_STEP, getIndexPages } from './indexPages';
+import { API_PAGE_RANK_BASE, DOCS_RANK_BASE, RANK_STEP, getIndexPages } from './indexPages';
 
 const convertToFrameworkUrl = (url: string, framework: string) => `/${framework}/${url}/`;
 
@@ -46,7 +46,8 @@ describe('getIndexPages — API tab pages (AG-18532)', () => {
         // `/options` and `/themes-api` are explicitly out of scope — their contents must not be indexed.
         expect(realPages.map((page) => page.path)).not.toContain('options');
         expect(realPages.map((page) => page.path)).not.toContain('themes-api');
-        expect(apiPages).toHaveLength((apiMenu.items as { path: string }[]).length - 2);
+        expect(realPages.map((page) => page.breadcrumb)).not.toContain('API > Options API');
+        expect(realPages.map((page) => page.breadcrumb)).not.toContain('API > Themes API');
     });
 
     it('normalises API paths to a bare page name the framework URL builder can use', () => {
@@ -80,10 +81,16 @@ describe('getIndexPages — docs nav walk is unchanged', () => {
     it('walks exactly the nav paths, in nav order', () => {
         expect(docsPages.map((page) => page.path)).toEqual(navPaths());
         expect(docsPages[0]).toMatchObject({ path: 'quick-start', breadcrumb: 'Getting started > Quick Start' });
+        // A page nested inside a group, to pin the multi-level breadcrumb against the real nav.
+        expect(docsPages.find((page) => page.path === 'installation')).toMatchObject({
+            breadcrumb: 'Getting started > Setup > Installation',
+        });
     });
 
     it('ranks docs pages from 10000, decrementing per indexed page only', () => {
-        expect(docsPages.map((page) => page.rank)).toEqual(docsPages.map((_, index) => 10000 - index * RANK_STEP));
+        expect(docsPages.map((page) => page.rank)).toEqual(
+            docsPages.map((_, index) => DOCS_RANK_BASE - index * RANK_STEP)
+        );
     });
 
     it('builds nested breadcrumbs from groups that have no page of their own', () => {
@@ -104,8 +111,8 @@ describe('getIndexPages — docs nav walk is unchanged', () => {
         });
 
         expect(pages).toEqual([
-            { path: 'leaf', breadcrumb: 'Section > Group > Leaf', rank: 10000, isApiPage: false },
-            { path: 'next', breadcrumb: 'Section > Next', rank: 9990, isApiPage: false },
+            { path: 'leaf', breadcrumb: 'Section > Group > Leaf', rank: DOCS_RANK_BASE, isApiPage: false },
+            { path: 'next', breadcrumb: 'Section > Next', rank: DOCS_RANK_BASE - RANK_STEP, isApiPage: false },
         ]);
     });
 });

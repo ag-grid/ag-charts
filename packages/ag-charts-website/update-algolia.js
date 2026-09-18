@@ -286,8 +286,7 @@ const processIndexForFramework = async (framework) => {
         );
 
         // The API-tab pages are the regression this guards: a wrong path or an unbuilt site
-        // silently yields zero records, which used to ship green. Documentation pages are
-        // legitimately absent for some frameworks, so they keep the global assert below.
+        // silently yields zero records, which used to ship green.
         assert(
             !isApiPage || newRecords.length > 0,
             `No Algolia records for API page ${pagePath} (${framework}) — is the site built and the path correct?`

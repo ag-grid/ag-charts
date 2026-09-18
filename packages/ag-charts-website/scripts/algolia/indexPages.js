@@ -1,20 +1,12 @@
-'use strict';
-
 /**
  * Builds the ordered list of website pages that `update-algolia.js` walks to produce Algolia
- * records.
- *
- * Two menus feed the list:
- *  - `docs-nav/nav.json` — the documentation side-nav, walked exactly as it always has been;
- *  - `api-menu/menu.json` — the "API" tab, whose framework pages were previously never indexed.
- *
- * Extracted from the indexer so the page list can be unit-tested without a built site.
+ * records: the documentation side-nav (`docs-nav/nav.json`), then the "API" tab
+ * (`api-menu/menu.json`).
  */
 
-/** Rank of the first documentation page; each subsequent indexed page ranks one step lower. */
+/** Rank of the first page; each subsequent indexed page ranks one step lower. */
 const DOCS_RANK_BASE = 10000;
 
-/** Rank decrement applied per indexed page, so earlier menu entries rank higher in results. */
 const RANK_STEP = 10;
 
 /**
@@ -28,9 +20,9 @@ const API_PAGE_RANK_BASE = 1000;
 const FRAMEWORK_TOKEN = '[framework]';
 
 /**
- * API-menu entries that must never be indexed. These are the two pure reference pages, whose
- * contents are required to stay unsearchable. They also lack a `[framework]` segment, so this
- * list is belt-and-braces rather than the only guard.
+ * API-menu entries that must never be indexed: the two pure reference pages, whose contents are
+ * required to stay unsearchable. Neither carries a `[framework]` segment today, so the filter
+ * below already excludes them — this list keeps them excluded if either ever gains one.
  */
 const API_MENU_DENY_LIST = ['/options', '/themes-api'];
 
@@ -77,10 +69,7 @@ function getIndexPages({ docsNav, apiMenu }) {
     let apiRank = Math.min(API_PAGE_RANK_BASE, rank - RANK_STEP);
 
     for (const item of apiMenu?.items ?? []) {
-        if (!item.path || item.hidden) {
-            continue;
-        }
-        if (API_MENU_DENY_LIST.includes(item.path) || !item.path.includes(FRAMEWORK_TOKEN)) {
+        if (!item.path || API_MENU_DENY_LIST.includes(item.path) || !item.path.includes(FRAMEWORK_TOKEN)) {
             continue;
         }
 
@@ -97,4 +86,4 @@ function getIndexPages({ docsNav, apiMenu }) {
     return pages;
 }
 
-module.exports = { getIndexPages, DOCS_RANK_BASE, RANK_STEP, API_PAGE_RANK_BASE, API_MENU_DENY_LIST };
+module.exports = { getIndexPages, DOCS_RANK_BASE, RANK_STEP, API_PAGE_RANK_BASE };
