@@ -32,6 +32,7 @@ export type { LogIssue, LogLevel } from './logging/logger';
 export * as ambientLog from './logging/ambientLog';
 export * as DebugMetrics from './logging/debugMetrics';
 export * from './modules/enterpriseRegistry';
+export * from './modules/optionsContribution';
 export * as ModuleRegistry from './modules/moduleRegistry';
 export { ModuleScope, type RegistryRevision, type ScopedCache, createScopedCache } from './modules/moduleScope';
 export { AbstractModuleInstance } from './modules/moduleInstance';

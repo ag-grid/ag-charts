@@ -438,6 +438,36 @@ describe('Navigator', () => {
         );
     });
 
+    describe('mini chart series validation', () => {
+        it('validates an untyped mini chart series against the type the theme fills in', async () => {
+            const options: AgCartesianChartOptions = {
+                ...NAVIGATOR_MINICHART_EXAMPLES.MINI_CHART_SERIES_OVERRIDE.options,
+                navigator: { miniChart: { series: [{ strokeWidth: 'thick' } as any] } },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([[expect.stringContaining('.strokeWidth` cannot be set to `"thick"`')]]);
+        });
+
+        it('accepts a typed partial mini chart series whose keys the theme inherits', async () => {
+            const options: AgCartesianChartOptions = {
+                ...NAVIGATOR_MINICHART_EXAMPLES.MINI_CHART_SERIES_OVERRIDE.options,
+                navigator: { miniChart: { series: [{ type: 'line', strokeWidth: 1 }] } },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+            const navigator = deproxy(chart).modulesManager.getModule<any>('navigator');
+            expect(navigator.miniChart.series[0].properties.strokeWidth).toBe(1);
+        });
+    });
+
     describe('AG-17456 mini-chart axis nice', () => {
         const getMiniChartAxes = (c: any) => {
             const miniChart = deproxy(c).modulesManager.getModule<any>('navigator').miniChart;

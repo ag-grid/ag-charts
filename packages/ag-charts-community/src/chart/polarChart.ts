@@ -42,7 +42,7 @@ export class PolarChart extends Chart {
     }
 
     protected async performLayout(ctx: LayoutContext) {
-        const seriesRect = ctx.layoutBox.clone().shrink(this.seriesArea.getPadding());
+        const seriesRect = ctx.layoutBox.clone().shrink(this.getSeriesAreaPadding());
 
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;

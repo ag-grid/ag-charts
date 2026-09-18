@@ -1,6 +1,7 @@
 import {
     BASE_FONT_SIZE,
     Color,
+    type ContributionHost,
     DEFAULT_ANNOTATION_HANDLE_FILL,
     DEFAULT_ANNOTATION_STATISTICS_COLOR,
     DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE,
@@ -26,6 +27,7 @@ import {
     ModuleRegistry,
     type ModuleScope,
     ModuleType,
+    type OptionsContribution,
     PALETTE_ALT_DOWN_FILL,
     PALETTE_ALT_DOWN_STROKE,
     PALETTE_ALT_NEUTRAL_FILL,
@@ -38,16 +40,20 @@ import {
     PALETTE_NEUTRAL_STROKE,
     PALETTE_UP_FILL,
     PALETTE_UP_STROKE,
+    type PlainObject,
+    contributionMatchesAxisType,
+    contributionMatchesChartType,
+    contributionMatchesSeriesType,
     createScopedCache,
     deepClone,
     deepFreeze,
-    enterpriseRegistry,
     getSequentialColors,
     groupBy,
     isArray,
     jsonWalk,
     mergeDefaults,
     mergeDefaultsShallowOperations,
+    nestAtOptionsPath,
 } from 'ag-charts-core';
 import type {
     AgChartAllThemeParams,
@@ -475,9 +481,9 @@ export class ChartTheme {
             const chartTypeDefaults = mergeDefaultsShallowOperations(
                 { axes: {} },
                 presetTemplate?.common,
-                ...Array.from(moduleRegistry.listModulesByType(ModuleType.Plugin), (p) => ({
-                    [p.name]: p.themeTemplate,
-                })),
+                ...contributedThemeTemplates(moduleRegistry, 'chart', (c) =>
+                    contributionMatchesChartType(c, chartType)
+                ),
                 moduleRegistry.getChartModule(chartType)?.themeTemplate,
                 this.getChartDefaults()
             );
@@ -625,34 +631,34 @@ export class ChartTheme {
     }
 }
 
-function getAxisThemeTemplate(axisType: string, moduleRegistry: ModuleScope) {
-    let themeTemplate = moduleRegistry.getAxisModule(axisType)?.themeTemplate ?? {};
-    for (const module of moduleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
-        if (module.axisTypes?.includes(axisType) ?? true) {
-            const optionsKey = module.optionsKey ?? module.name;
-            themeTemplate = mergeDefaultsShallowOperations({ [optionsKey]: module.themeTemplate }, themeTemplate);
-        }
+/** Each contributed theme template nested at its path relative to `host`, in registry order. */
+function contributedThemeTemplates(
+    moduleRegistry: ModuleScope,
+    host: ContributionHost,
+    applies: (contribution: OptionsContribution) => boolean = () => true
+): PlainObject[] {
+    const templates: PlainObject[] = [];
+    for (const entry of moduleRegistry.optionsContributions()) {
+        const { contribution } = entry;
+        if (entry.host !== host || contribution.themeTemplate == null || !applies(contribution)) continue;
+        templates.push(nestAtOptionsPath(entry.relative, contribution.themeTemplate));
     }
-    return themeTemplate;
+    return templates;
+}
+
+function getAxisThemeTemplate(axisType: string, moduleRegistry: ModuleScope) {
+    return mergeDefaultsShallowOperations(
+        ...contributedThemeTemplates(moduleRegistry, 'axis', (c) => contributionMatchesAxisType(c, axisType)),
+        moduleRegistry.getAxisModule(axisType)?.themeTemplate ?? {}
+    );
 }
 
 function getSeriesThemeTemplate(seriesType: string, moduleRegistry: ModuleScope) {
-    let themeTemplate = moduleRegistry.getSeriesModule(seriesType)?.themeTemplate ?? {};
-    for (const module of moduleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
-        if (module.seriesTypes?.includes(seriesType) ?? true) {
-            themeTemplate = mergeDefaultsShallowOperations(
-                { series: { [module.name]: module.themeTemplate } },
-                themeTemplate
-            );
-        }
-    }
-
-    if (enterpriseRegistry.seriesAreaThemeTemplate != null) {
-        themeTemplate = mergeDefaultsShallowOperations(
-            { seriesArea: enterpriseRegistry.seriesAreaThemeTemplate },
-            themeTemplate
-        );
-    }
-
-    return themeTemplate;
+    const seriesTemplates = contributedThemeTemplates(moduleRegistry, 'series', (c) =>
+        contributionMatchesSeriesType(c, seriesType)
+    );
+    return mergeDefaultsShallowOperations(
+        ...seriesTemplates.map((template) => ({ series: template })),
+        moduleRegistry.getSeriesModule(seriesType)?.themeTemplate ?? {}
+    );
 }

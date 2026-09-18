@@ -34,6 +34,7 @@ import {
     object,
     optionsDefs,
     or,
+    partial,
     positiveNumber,
     ratio,
     required,
@@ -169,6 +170,13 @@ describe('Validation utils', () => {
         test('required marks a validator as required', () => {
             expect(isValid<{ value: string }>({ value: '' }, { value: required(string) })).toBe(true);
             expect(isValid<{ value: string }>({ value: undefined }, { value: required(string) })).toBe(false);
+        });
+
+        test('partial makes required entries optional without loosening their validators', () => {
+            const defs = partial<{ key: string; size: number }>({ key: required(string), size: number });
+            expect(isValid({ size: 1 }, defs)).toBe(true);
+            expect(isValid({ key: 'x' }, defs)).toBe(true);
+            expect(isValid({ key: 1 }, defs)).toBe(false);
         });
 
         test('attachDescription adds a description to a validator', () => {

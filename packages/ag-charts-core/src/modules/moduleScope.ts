@@ -10,6 +10,7 @@ import {
     type SeriesModuleDefinition,
     type SeriesPluginModuleDefinition,
 } from './moduleDefinition';
+import { type ResolvedContribution, resolveContributions } from './optionsContribution';
 
 export type RegistrableModuleDefinition =
     | ModuleDefinition
@@ -42,6 +43,11 @@ export function isModuleType<T extends ModuleType>(
 export class ModuleScope {
     private readonly modules = new Map<string, ModuleDefinition>();
     private revision = 0;
+    private contributions?: {
+        table: ResolvedContribution<ModuleDefinition>[];
+        byModule: Map<string, ResolvedContribution<ModuleDefinition>[]>;
+        revision: RegistryRevision;
+    };
 
     constructor(private readonly parent?: ModuleScope) {}
 
@@ -149,6 +155,37 @@ export class ModuleScope {
                 yield definition;
             }
         }
+    }
+
+    /**
+     * Every option location owned by a module visible from this scope, rebuilt when the scope or any
+     * ancestor changes. A child scope's definitions shadow same-named parent ones, as `listModules` does.
+     */
+    optionsContributions(): readonly ResolvedContribution<ModuleDefinition>[] {
+        return this.resolvedContributions().table;
+    }
+
+    /** The option locations owned by the named module, as visible from this scope. */
+    moduleContributions(moduleName: string): readonly ResolvedContribution<ModuleDefinition>[] {
+        return this.resolvedContributions().byModule.get(moduleName) ?? [];
+    }
+
+    private resolvedContributions() {
+        const revision = this.currentRevision();
+        if (this.contributions?.revision !== revision) {
+            const table = resolveContributions(this.listModules());
+            const byModule = new Map<string, ResolvedContribution<ModuleDefinition>[]>();
+            for (const entry of table) {
+                let entries = byModule.get(entry.definition.name);
+                if (entries == null) {
+                    entries = [];
+                    byModule.set(entry.definition.name, entries);
+                }
+                entries.push(entry);
+            }
+            this.contributions = { table, byModule, revision };
+        }
+        return this.contributions;
     }
 
     getAxisModule(moduleName: string): AxisModuleDefinition<any> | undefined {

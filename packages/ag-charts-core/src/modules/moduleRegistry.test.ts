@@ -400,3 +400,11 @@ describe('moduleRegistry', () => {
         });
     });
 });
+
+describe('ModuleType', () => {
+    test('is the closed set of lifecycles; a module owning options elsewhere declares `contributes` instead', () => {
+        expect(new Set(Object.values(ModuleType))).toEqual(
+            new Set(['chart', 'axis', 'series', 'plugin', 'axis:plugin', 'series:plugin', 'preset'])
+        );
+    });
+});

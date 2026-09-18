@@ -339,6 +339,11 @@ function findSuggestions(value: string, suggestions: string[], maxDistance: numb
     });
 }
 
+/** The description attached to a validator or defs object, as used in its validation messages. */
+export function describeValidator(validatorOrDefs: Validator | OptionsDefs<any>): string | undefined {
+    return (validatorOrDefs as { [descriptionSymbol]?: string })[descriptionSymbol];
+}
+
 /**
  * Attaches a descriptive message to a validator function.
  * @param validator The validator function to which to attach a description.
@@ -392,6 +397,20 @@ export function undocumented<T extends Validator | OptionsDefs<any>>(validatorOr
             : optionsDefs(validatorOrDefs),
         { [undocumentedSymbol]: true, [descriptionSymbol]: validatorOrDefs[descriptionSymbol] }
     ) as T;
+}
+
+/** `defs` with every required entry made optional, for options the theme supplies later. */
+export function partial<T>(defs: OptionsDefs<T>): OptionsDefs<Partial<T>> {
+    const result: Record<string | symbol, unknown> = { ...defs };
+    for (const key of Object.keys(defs)) {
+        const def = defs[key as keyof OptionsDefs<T>] as Validator & PrivateSymbols;
+        if (!def[requiredSymbol]) continue;
+        result[key] = Object.assign((value: unknown, context: any) => def(value, context), {
+            [descriptionSymbol]: def[descriptionSymbol],
+            [undocumentedSymbol]: def[undocumentedSymbol],
+        });
+    }
+    return result as OptionsDefs<Partial<T>>;
 }
 
 /**

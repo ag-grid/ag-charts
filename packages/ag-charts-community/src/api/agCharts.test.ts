@@ -504,12 +504,8 @@ describe('AgCharts', () => {
         // The enterprise presets are unregistered in this community-only registry, so each also reports
         // the module the caller needs before its entry point can do anything.
         it.each([
-            [
-                'createFinancialChart',
-                () => AgCharts.createFinancialChart(undefined as any),
-                ['PriceVolumePresetModule'],
-            ],
-            ['createGauge', () => AgCharts.createGauge(undefined as any), ['GaugePresetModule']],
+            ['createFinancialChart', () => AgCharts.createFinancialChart(undefined as any), ['FinancialChartModule']],
+            ['createGauge', () => AgCharts.createGauge(undefined as any), ['AllGaugeModule']],
             ['createQuadrantChart', () => AgCharts.createQuadrantChart(undefined as any), ['QuadrantChartModule']],
             ['__createSparkline', () => AgCharts.__createSparkline(undefined as any), []],
         ])('names %s in the error it reports', (methodName, call, missingModules) => {

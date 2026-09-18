@@ -13,7 +13,16 @@ import type { LayoutCompleteEvent } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
 import { Group, TransformableGroup } from '../../scene/group';
+import type { Node } from '../../scene/node';
 import { Rect } from '../../scene/shape/rect';
+
+/** Scene content a module renders inside the series area, positioned in series-rect space. */
+export interface SeriesAreaContent {
+    readonly underlay?: Node;
+    readonly overlay?: Node;
+    /** `clipRect` is the padded series rect in series-rect space, or `undefined` when unclipped. */
+    update(clipRect: BBox | undefined): void;
+}
 
 export class SeriesArea extends BaseProperties {
     private readonly seriesAreaGroup = new Group({
@@ -21,11 +30,6 @@ export class SeriesArea extends BaseProperties {
         zIndex: ZIndexMap.SERIES_AREA_CONTAINER,
     });
     private readonly borderNode = this.seriesAreaGroup.appendChild(new Rect());
-
-    // Declared so that setting the option does not warn in community, where the enterprise series
-    // area that renders the regions is absent.
-    @Property
-    backgroundRegions: any;
 
     @Property
     border = new Border(this.borderNode);
@@ -41,6 +45,7 @@ export class SeriesArea extends BaseProperties {
     padding = new Padding(0);
 
     protected readonly cleanup = new CleanupRegistry();
+    private readonly contents = new Set<SeriesAreaContent>();
 
     protected readonly overlayGroup = new TransformableGroup({
         name: 'SeriesArea-Overlay',
@@ -60,7 +65,11 @@ export class SeriesArea extends BaseProperties {
             ctx.scene.attachNode(this.seriesAreaGroup),
             ctx.scene.attachNode(this.overlayGroup),
             ctx.scene.attachNode(this.underlayGroup),
-            ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e))
+            ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)),
+            ctx.chartState.observe((get) => {
+                const opts = get('options', 'seriesArea');
+                if (opts != null) this.set(opts);
+            })
         );
     }
 
@@ -83,10 +92,28 @@ export class SeriesArea extends BaseProperties {
         // Overridden by the enterprise series area to apply its enterprise-only option subtrees.
     }
 
+    /** Attaches module content beneath and above the series; returns the detach function. */
+    attach(content: SeriesAreaContent) {
+        const { underlay, overlay } = content;
+        if (underlay) this.underlayGroup.appendChild(underlay);
+        if (overlay) this.overlayGroup.appendChild(overlay);
+        this.contents.add(content);
+
+        return () => {
+            this.contents.delete(content);
+            underlay?.remove();
+            overlay?.remove();
+        };
+    }
+
     update(seriesRect: BBox, clipRect: BBox | undefined) {
         // The overlay/underlay groups are translated to the series rect origin, so the clip rect has
         // to be rebased into that space rather than passed through in chart coordinates.
-        this.onUpdate(clipRect?.clone().translate(-seriesRect.x, -seriesRect.y));
+        const rebased = clipRect?.clone().translate(-seriesRect.x, -seriesRect.y);
+        for (const content of this.contents) {
+            content.update(rebased);
+        }
+        this.onUpdate(rebased);
     }
 
     protected onUpdate(_clipRect: BBox | undefined) {

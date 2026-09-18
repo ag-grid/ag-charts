@@ -62,6 +62,7 @@ priceVolumeOptionsDef.foreground = undocumented(defined);
 export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset & AgBaseFinancialPresetOptions> = {
     type: 'preset',
     name: 'price-volume',
+    apiName: 'AgCharts.createFinancialChart',
     enterprise: true,
     dependencies: [ChartToolbarModule, StatusBarModule],
     version: VERSION,
