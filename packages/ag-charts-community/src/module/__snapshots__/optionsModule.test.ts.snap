@@ -990,10 +990,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#c16068",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -1040,6 +1043,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -1071,9 +1075,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#c16068",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -1091,10 +1100,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "yName": "Male cattle",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#a2bf8a",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -1141,6 +1153,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -1172,9 +1185,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#a2bf8a",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -2674,10 +2692,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#5090dc",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -2724,6 +2745,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -2755,9 +2777,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2b5c95",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -2776,10 +2803,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "yName": "Large household appliances",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#ffa03a",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -2826,6 +2856,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -2857,9 +2888,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#cc6f10",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -2878,10 +2914,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "yName": "Small household appliances",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#459d55",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -2928,6 +2967,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -2959,9 +2999,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#1e652e",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -2980,10 +3025,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "yName": "IT and telecomms equipment",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#34bfe1",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -3030,6 +3078,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -3061,9 +3110,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#18859e",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -3082,10 +3136,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "yName": "Consumer equipment",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#e1cc00",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -3132,6 +3189,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -3163,9 +3221,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#a69400",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -3184,10 +3247,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "yName": "Electrical and electronic tools",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#9669cb",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -3234,6 +3300,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -3265,9 +3332,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#603c88",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -3286,10 +3358,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "yName": "Display equipment",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#b5b5b5",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -3336,6 +3411,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -3367,9 +3443,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#575757",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -3388,10 +3469,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "yName": "Cooling appliances containing refrigerants",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#bd5aa7",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -3438,6 +3522,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -3469,9 +3554,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#7d2f6d",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -5862,10 +5952,13 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "#5090dc",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -5912,6 +6005,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -5943,9 +6037,14 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2b5c95",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -6284,10 +6383,13 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "rgba(0, 117, 163, 0.9)",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "fill": "#0ab9ff",
@@ -6339,6 +6441,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -6370,9 +6473,14 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2b5c95",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -7554,10 +7662,13 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#19A0AA",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -7604,6 +7715,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -7635,9 +7747,14 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#19A0AA",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -7653,10 +7770,13 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
       "yName": "Male",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#F15F36",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -7703,6 +7823,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -7734,9 +7855,14 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#F15F36",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -8073,10 +8199,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "rgba(0, 117, 163, 0.9)",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 1,
@@ -8126,6 +8255,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -8157,9 +8287,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "rgba(0, 117, 163, 0.9)",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -8177,10 +8312,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
       "yName": "Annual growth in total pay",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "rgba(226, 188, 34, 0.9)",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 1,
@@ -8230,6 +8368,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -8261,9 +8400,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "rgba(226, 188, 34, 0.9)",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -8603,10 +8747,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#5090dc",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -8659,6 +8806,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -8690,9 +8838,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2b5c95",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -8709,10 +8862,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "yKeyAxis": "y",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#ffa03a",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -8765,6 +8921,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -8796,9 +8953,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#cc6f10",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -8815,10 +8977,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "yKeyAxis": "y",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#459d55",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -8871,6 +9036,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -8902,9 +9068,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#1e652e",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -8921,10 +9092,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "yKeyAxis": "y",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#34bfe1",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -8977,6 +9151,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -9008,9 +9183,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#18859e",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -9027,10 +9207,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "yKeyAxis": "y",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#e1cc00",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -9083,6 +9266,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -9114,9 +9298,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#a69400",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -9133,10 +9322,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "yKeyAxis": "y",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#9669cb",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -9189,6 +9381,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -9220,9 +9413,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#603c88",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -9239,10 +9437,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "yKeyAxis": "y",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#b5b5b5",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -9295,6 +9496,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -9326,9 +9528,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#575757",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -13267,10 +13474,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "#00c851",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 1,
@@ -13320,6 +13530,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 1,
       "segmentation": {
         "enabled": false,
@@ -13352,9 +13563,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#006428",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -13372,10 +13588,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "yName": "Used in last 3 months",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "#ffbb33",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 1,
@@ -13425,6 +13644,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 1,
       "segmentation": {
         "enabled": false,
@@ -13457,9 +13677,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#996500",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -13477,10 +13702,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "yName": "Used over 3 months ago",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "#ff4444",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 1,
@@ -13530,6 +13758,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 1,
       "segmentation": {
         "enabled": false,
@@ -13562,9 +13791,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#a10000",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -13904,10 +14138,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#f1c40f",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -13954,6 +14191,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "segmentation": {
         "enabled": false,
@@ -13986,9 +14224,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#f39c12",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -14006,10 +14249,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "yName": "White",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#e67e22",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -14056,6 +14302,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "segmentation": {
         "enabled": false,
@@ -14088,9 +14335,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#d35400",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -14108,10 +14360,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "yName": "Mixed",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#2ecc71",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -14158,6 +14413,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "segmentation": {
         "enabled": false,
@@ -14190,9 +14446,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#27ae60",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -14210,10 +14471,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "yName": "Asian",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#3498db",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -14260,6 +14524,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "segmentation": {
         "enabled": false,
@@ -14292,9 +14557,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2980b9",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -14312,10 +14582,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "yName": "Black",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#9b59b6",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -14362,6 +14635,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "segmentation": {
         "enabled": false,
@@ -14394,9 +14668,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#8e44ad",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -14414,10 +14693,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "yName": "Chinese",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#34495e",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -14464,6 +14746,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "segmentation": {
         "enabled": false,
@@ -14496,9 +14779,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2c3e50",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -15632,10 +15920,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#0084e7",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -15684,6 +15975,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -15715,9 +16007,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2b5c95",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -18768,10 +19065,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "#5090dc",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 1,
@@ -18821,6 +19121,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -18852,9 +19153,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2b5c95",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -18872,10 +19178,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "yName": "Owner occupied",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "#ffa03a",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 1,
@@ -18925,6 +19234,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -18956,9 +19266,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#cc6f10",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -18976,10 +19291,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "yName": "Private rented",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "#459d55",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 1,
@@ -19029,6 +19347,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -19060,9 +19379,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#1e652e",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -19080,10 +19404,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "yName": "Local authority",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "#34bfe1",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 1,
@@ -19133,6 +19460,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -19164,9 +19492,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#18859e",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -19507,10 +19840,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#5BC0EB",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -19560,6 +19896,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -19591,9 +19928,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#4086a4",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -19611,10 +19953,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "yName": "Early",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#FDE74C",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -19664,6 +20009,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -19695,9 +20041,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#b1a235",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -19715,10 +20066,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "yName": "Morning peak",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#9BC53D",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -19768,6 +20122,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -19799,9 +20154,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#6c8a2b",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -19819,10 +20179,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "yName": "Between peak",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#E55934",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -19872,6 +20235,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -19903,9 +20267,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#a03e24",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -19923,10 +20292,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "yName": "Afternoon peak",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#FA7921",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -19976,6 +20348,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -20007,9 +20380,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#af5517",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -20374,11 +20752,14 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
   },
   "series": [
     {
+      "cornerRadius": 0,
       "crisp": false,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#fac858",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -20427,6 +20808,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -20458,10 +20840,15 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "sparklineMode": true,
       "stroke": "#2b5c95",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -20839,11 +21226,14 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
   },
   "series": [
     {
+      "cornerRadius": 0,
       "crisp": false,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#fac858",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -20890,6 +21280,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -20921,10 +21312,15 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "sparklineMode": true,
       "stroke": "#2b5c95",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -21304,11 +21700,14 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
   },
   "series": [
     {
+      "cornerRadius": 0,
       "crisp": false,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "#5470c6",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -21355,6 +21754,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
@@ -21386,10 +21786,15 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "sparklineMode": true,
       "stroke": "#2b5c95",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,

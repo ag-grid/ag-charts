@@ -197,6 +197,10 @@ export abstract class BaseFunnelSeries<
         };
     }
 
+    protected get layoutOptions() {
+        return this.properties;
+    }
+
     protected readonly connectorNodeGroup = this.contentGroup.appendChild(
         new Group({
             name: `${this.id}-series-connectorNodes`,

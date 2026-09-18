@@ -909,10 +909,13 @@ describe('ChartOptions', () => {
             expect(options).toMatchInlineSnapshot(`
               [
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "pink",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -959,6 +962,7 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
@@ -992,8 +996,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": true,
                   "stroke": "#2b5c95",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -1009,10 +1017,13 @@ describe('ChartOptions', () => {
                   "yName": "IPhone",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "red",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -1059,6 +1070,7 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
@@ -1092,8 +1104,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": false,
                   "stroke": "#cc6f10",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -1109,10 +1125,13 @@ describe('ChartOptions', () => {
                   "yName": "Mac",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "#459d55",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -1159,6 +1178,7 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
@@ -1192,8 +1212,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": true,
                   "stroke": "#1e652e",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -1209,10 +1233,13 @@ describe('ChartOptions', () => {
                   "yName": "Wearables",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "#34bfe1",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -1259,6 +1286,7 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
@@ -1292,8 +1320,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": false,
                   "stroke": "#18859e",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -1520,10 +1552,13 @@ describe('ChartOptions', () => {
             expect(options).toMatchInlineSnapshot(`
               [
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "pink",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -1570,6 +1605,7 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
@@ -1603,8 +1639,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": true,
                   "stroke": "#2b5c95",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -1620,10 +1660,13 @@ describe('ChartOptions', () => {
                   "yName": "IPhone",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "red",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -1670,6 +1713,7 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
@@ -1703,8 +1747,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": false,
                   "stroke": "#cc6f10",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -1720,10 +1768,13 @@ describe('ChartOptions', () => {
                   "yName": "Mac",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "#459d55",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -1770,6 +1821,7 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
@@ -1803,8 +1855,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": true,
                   "stroke": "#1e652e",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -1820,10 +1876,13 @@ describe('ChartOptions', () => {
                   "yName": "Wearables",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "#34bfe1",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -1870,6 +1929,7 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
@@ -1903,8 +1963,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": false,
                   "stroke": "#18859e",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -2131,10 +2195,13 @@ describe('ChartOptions', () => {
             expect(options).toMatchInlineSnapshot(`
               [
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "pink",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -2181,6 +2248,7 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
@@ -2214,8 +2282,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": true,
                   "stroke": "#2b5c95",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -2231,10 +2303,13 @@ describe('ChartOptions', () => {
                   "yName": "IPhone",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "red",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -2281,6 +2356,7 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
@@ -2314,8 +2390,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": false,
                   "stroke": "#cc6f10",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -2331,10 +2411,13 @@ describe('ChartOptions', () => {
                   "yName": "Mac",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "#459d55",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -2381,6 +2464,7 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
@@ -2414,8 +2498,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": true,
                   "stroke": "#1e652e",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -2431,10 +2519,13 @@ describe('ChartOptions', () => {
                   "yName": "Wearables",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "#34bfe1",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -2481,6 +2572,7 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
@@ -2514,8 +2606,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": false,
                   "stroke": "#18859e",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,

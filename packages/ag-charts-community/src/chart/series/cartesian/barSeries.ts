@@ -5,6 +5,8 @@ import type {
     DynamicContext,
     LabelFit,
     Mutable,
+    NormalisedBarSeriesOptions,
+    NormalisedBarSeriesOwnOptions,
     NormalisedBarSeriesStyle,
     NormalisedTextOrSegments,
     PlacedLabel,
@@ -50,7 +52,6 @@ import type {
     AgBarSeriesItemStylerParams,
     AgBarSeriesLabelFormatterParams,
     AgBarSeriesLabelPlacement,
-    AgBarSeriesOptions,
     AgBarSeriesStylerParams,
     AgErrorBoundSeriesTooltipRendererParams,
     AgNumericValue,
@@ -61,6 +62,7 @@ import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { BandScale } from '../../../scale/bandScale';
 import { BBox } from '../../../scene/bbox';
+import { DropShadow } from '../../../scene/dropShadow';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
@@ -122,7 +124,6 @@ import {
     aggregateBarDataFromDataModel,
     aggregateBarDataFromDataModelPartial,
 } from './barAggregation';
-import { BarSeriesProperties } from './barSeriesProperties';
 import {
     checkCrisp,
     collapsedStartingBarPosition,
@@ -235,7 +236,7 @@ interface BarSeriesNodeDatumContext {
     readonly xName: string | undefined;
     readonly yName: string | undefined;
     readonly legendItemName: string | undefined;
-    readonly label: BarSeriesProperties['label'];
+    readonly label: NormalisedBarSeriesOptions['label'];
     // Label orientation/placement derived once here (series-constant) so the per-datum node build
     // pays no allocation or trig for the common no-orientation case.
     readonly labelPlacement: AgBarSeriesLabelPlacement;
@@ -314,8 +315,8 @@ interface BarSeriesNodeDataContext extends AbstractBarSeriesNodeDataContext<BarN
  */
 interface BarSeriesTypes {
     readonly node: BarShape<BarNodeDatum>;
-    readonly options: AgBarSeriesOptions;
-    readonly properties: BarSeriesProperties;
+    readonly options: NormalisedBarSeriesOwnOptions;
+    readonly properties: undefined;
     readonly datum: BarNodeDatum;
     readonly label: BarNodeDatum;
     readonly context: BarSeriesNodeDataContext;
@@ -329,13 +330,21 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     static override readonly className = 'BarSeries';
     static readonly type = 'bar' as const;
 
-    override properties = new BarSeriesProperties();
+    private readonly shadow = new DropShadow();
+
+    protected override syncOptionDerivedState() {
+        this.shadow.set(this.options.shadow);
+    }
+
+    protected get layoutOptions() {
+        return this.options;
+    }
 
     override createNodeParams(datum: BarNodeDatum) {
         return {
             ...super.createNodeParams(datum),
-            xKey: this.properties.xKey,
-            yKey: this.properties.yKey,
+            xKey: this.options.xKey,
+            yKey: this.options.yKey,
         };
     }
 
@@ -344,7 +353,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     private readonly aggregationManager = new AggregationManager<BarSeriesDataAggregationFilter>();
 
     override get pickModeAxis() {
-        return this.properties.sparklineMode ? 'main' : undefined;
+        return this.options.sparklineMode ? 'main' : undefined;
     }
 
     protected phantomGroup = this.contentGroup.appendChild(new Group({ name: 'phantom', zIndex: -1 }));
@@ -390,7 +399,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     override async processData(dataController: DataController) {
         if (!this.data) return;
 
-        const { xKey, yKey, yFilterKey, normalizedTo } = this.properties;
+        const { xKey, yKey, yFilterKey, normalizedTo } = this.options;
         const { seriesGrouping: { groupIndex = this.id } = {}, data } = this;
         const stackCount = this.seriesGrouping?.stackCount ?? 0;
         const stacked = stackCount > 1 || normalizedTo != null;
@@ -404,7 +413,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
         const visibleProps = this.visible ? {} : { forceValue: 0 };
-        const allowNullKey = this.properties.allowNullKeys ?? false;
+        const allowNullKey = this.options.allowNullKeys ?? false;
         const props: PropertyDefinition<any>[] = [
             keyProperty(xKey, xScaleType, { id: 'xValue', allowNullKey }),
             valueProperty(yKey, yScaleType, { id: 'yValue-raw', invalidValue: null, ...visibleProps }),
@@ -567,7 +576,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     override getSeriesRange(direction: ChartAxisDirection, visibleRange: [number, number]): [number, number] | [] {
-        const selfDirection = this.properties.direction === 'horizontal' ? ChartAxisDirection.X : ChartAxisDirection.Y;
+        const selfDirection = this.options.direction === 'horizontal' ? ChartAxisDirection.X : ChartAxisDirection.Y;
         if (selfDirection !== direction) return [];
         const yKey = this.yCumulativeKey(this.dataModel!);
         const [y0, y1] = this.domainForVisibleRange(ChartAxisDirection.Y, [yKey], 'xValue', visibleRange);
@@ -681,7 +690,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const isStacked = dataModel.hasColumnById(this, 'yValue-start');
         // A legend-hidden neighbour contributes no segment, so it must not block a label's outside placement.
         const stackNeighbours = this.ctx.seriesStateManager.getVisibleStackNeighbours(this);
-        const { label } = this.properties;
+        const { label } = this.options;
         // OPTIMIZATION: every consumer of the geometry below sits behind a `label.enabled` check on the
         // per-datum path, so a disabled label must not resolve any of it.
         const labelsEnabled = label.enabled;
@@ -749,7 +758,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             labelBoxExtent: expandPlacementLabelBoxExtent(label),
             crisp:
                 dataAggregationFilter == null &&
-                (this.properties.crisp ??
+                (this.options.crisp ??
                     checkCrisp(xAxis?.scale, xAxis?.visibleRange, this.smallestDataInterval, this.largestDataInterval)),
             isStacked,
             filteredValueExceedUnfiltered,
@@ -763,11 +772,11 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             phantomIndex: 0,
             barAlongX: this.getBarDirection() === ChartAxisDirection.X,
             shouldFlipXY: this.shouldFlipXY(),
-            xKey: this.properties.xKey,
-            yKey: this.properties.yKey,
-            xName: this.properties.xName,
-            yName: this.properties.yName,
-            legendItemName: this.properties.legendItemName,
+            xKey: this.options.xKey,
+            yKey: this.options.yKey,
+            xName: this.options.xName,
+            yName: this.options.yName,
+            legendItemName: this.options.legendItemName,
             label,
             labelPlacement,
             labelPlacements,
@@ -807,7 +816,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         }
 
         const xValue = ctx.xValues[datumIndex];
-        if (xValue === undefined && !this.properties.allowNullKeys) {
+        if (xValue === undefined && !this.options.allowNullKeys) {
             return undefined;
         }
 
@@ -826,7 +835,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                       ctx.yKey,
                       'y',
                       ctx.yDomain,
-                      ctx.label,
+                      this.options.label,
                       {
                           datum,
                           value: yFilterValue ?? yRawValue,
@@ -1430,7 +1439,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
      * Creates scratch objects and delegates to strategy-specific methods.
      */
     protected override resolveUsesPlacedLabels(): boolean {
-        return barLabelPropsRouteThroughEngine(this.properties.label);
+        return barLabelPropsRouteThroughEngine(this.options.label);
     }
 
     protected override populateNodeData(ctx: BarSeriesNodeDatumContext): void {
@@ -1475,7 +1484,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
      */
     protected override initializeResult(ctx: BarSeriesNodeDatumContext): BarSeriesNodeDataContext {
         return {
-            itemId: this.properties.yKey,
+            itemId: this.options.yKey,
             nodeData: ctx.nodes,
             phantomNodeData: ctx.phantomNodes,
             labelData: ctx.labels,
@@ -1512,7 +1521,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         if (seriesRect == null) return result;
 
         result.segments = calculateSegments(
-            this.properties.segmentation,
+            this.options.segmentation,
             ctx.xAxis,
             ctx.yAxis,
             seriesRect,
@@ -1604,7 +1613,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             strokeWidth,
             xKey,
             yKey,
-        } = this.properties;
+        } = this.options;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
         const selectionState = toSelectionString(selectionStateEnum);
         const candidateState = toSelectionString(candidateStateEnum);
@@ -1637,7 +1646,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         style: Required<NormalisedBarSeriesStyle>
     ): AgBarSeriesItemStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
-        const { xKey, yKey, stackGroup } = this.properties;
+        const { xKey, yKey, stackGroup } = this.options;
 
         const datum = processedData.dataSources.get(seriesId)?.data?.[datumIndex];
         const yValue = dataModel.resolveColumnById(this, 'yValue-raw', processedData, 'mixed-numeric')[datumIndex];
@@ -1681,7 +1690,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             strokeOpacity,
             strokeWidth,
             styler,
-        } = this.properties;
+        } = this.options;
         let stylerResult: NormalisedBarSeriesStyle = {};
         if (!ignoreStylerCallback && styler) {
             const stylerParams = this.makeStylerParams(highlightState, selectionState, candidateState);
@@ -1712,8 +1721,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         selectionState: SelectionState | undefined,
         candidateState: SelectionState | undefined
     ): Required<NormalisedBarSeriesStyle> {
-        const { properties, dataModel, processedData } = this;
-        const { itemStyler, simpleItemStyler } = properties;
+        const { options, dataModel, processedData } = this;
+        const { itemStyler, simpleItemStyler } = options;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const selectionStyle = this.getSelectionStyle(datumIndex, selectionState, candidateState);
@@ -1801,7 +1810,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
-        const { shadow } = this.properties;
+        const { shadow } = this;
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
         const fillBBox = this.getShapeFillBBox();
 
@@ -1843,7 +1852,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
     getLabelObstacles() {
         return barLabelObstaclesFor(
-            this.properties.label,
+            this.options.label,
             this.contextNodeData?.nodeData,
             this.contextNodeData?.labelData,
             this.isLabelEnabled() && !this.usesPlacedLabels,
@@ -1853,7 +1862,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels || !this.isLabelEnabled()) return [];
-        const { label } = this.properties;
+        const { label } = this.options;
         const { alwaysShow, collideWith, threshold, measureBox, fitFor } = barLabelDataContext(label);
         if (barLabelPropsUsePositionedCandidates(label)) {
             const data: PointLabelDatum[] = [];
@@ -1917,7 +1926,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
     override getLabelCandidateResolver(): PositionedCandidateResolver | undefined {
         const params = this.makeLabelFormatterParams();
-        return createBarPositionedCandidateResolver(this, this.properties.label, () => params);
+        return createBarPositionedCandidateResolver(this, this.options.label, () => params);
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<BarNodeDatum>[]) {
@@ -1937,7 +1946,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     private makeLabelFormatterParams(): RequireOptional<AgBarSeriesLabelFormatterParams> {
-        const { xKey, xName, yKey, yName, legendItemName } = this.properties;
+        const { xKey, xName, yKey, yName, legendItemName } = this.options;
         return {
             xKey,
             xName: xName ?? xKey,
@@ -1954,7 +1963,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const { isHighlight = false } = opts;
         const params = this.makeLabelFormatterParams();
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const { label } = this.properties;
+        const { label } = this.options;
         opts.labelSelection.each((textNode, datum) => {
             if (datum.label?.hidden) {
                 textNode.visible = false;
@@ -1978,9 +1987,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, properties } = this;
-        const { xKey, xName, yKey, yName, legendItemName, stackGroup, tooltip } = properties;
-        const allowNullKeys = properties.allowNullKeys ?? false;
+        const { id: seriesId, dataModel, processedData, options } = this;
+        const { xKey, xName, yKey, yName, legendItemName, stackGroup, tooltip } = options;
+        const allowNullKeys = options.allowNullKeys ?? false;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
@@ -2046,7 +2055,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
-        const { showInLegend } = this.properties;
+        const { showInLegend } = this.options;
 
         if (legendType !== 'category') {
             return [];
@@ -2058,7 +2067,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             visible,
         } = this;
 
-        const { yKey: itemId, yName, legendItemName } = this.properties;
+        const { yKey: itemId, yName, legendItemName } = this.options;
         return [
             {
                 legendType: 'category',
@@ -2069,7 +2078,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 label: { text: legendItemName ?? yName ?? itemId },
                 symbol: this.legendItemSymbol(),
                 legendItemName,
-                hideInLegend: !showInLegend,
+                hideInLegend: showInLegend === false,
             },
         ];
     }
@@ -2145,7 +2154,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     protected isLabelEnabled() {
-        return this.properties.label.enabled;
+        return this.options.label.enabled;
     }
 
     protected computeFocusBounds({ datumIndex }: PickFocusInputs): BBox | undefined {
@@ -2155,11 +2164,11 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
     protected override hasItemStylers(): boolean {
         return (
-            this.properties.selection.enabled ||
-            this.properties.styler != null ||
-            this.properties.itemStyler != null ||
-            this.properties.simpleItemStyler != null ||
-            this.properties.label.itemStyler != null
+            this.isSelectionEnabled() ||
+            this.options.styler != null ||
+            this.options.itemStyler != null ||
+            this.options.simpleItemStyler != null ||
+            this.options.label.itemStyler != null
         );
     }
 }

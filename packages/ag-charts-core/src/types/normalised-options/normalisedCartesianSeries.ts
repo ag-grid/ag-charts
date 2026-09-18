@@ -4,8 +4,18 @@ import type {
     AgAreaSeriesOptions,
     AgAreaSeriesStylerParams,
     AgAreaSeriesStylerResult,
+    AgBarSeriesItemStylerParams,
+    AgBarSeriesLabelFormatterParams,
+    AgBarSeriesLabelPlacement,
+    AgBarSeriesOptions,
     AgBarSeriesStyle,
+    AgBarSeriesStylerParams,
+    AgHistogramSeriesItemStylerParams,
+    AgHistogramSeriesLabelFormatterParams,
+    AgHistogramSeriesLabelPlacement,
+    AgHistogramSeriesOptions,
     AgHistogramSeriesStyle,
+    AgHistogramSeriesStylerParams,
     AgLineSeriesLabelFormatterParams,
     AgLineSeriesMarkerItemStylerParams,
     AgLineSeriesOptions,
@@ -19,7 +29,11 @@ import type {
 
 import type { Normalised } from './normalise';
 import type { FillStrokeMorph, NormalisedColorType, NormalisedDropShadowOptions } from './normalisedCommonOptions';
-import type { NormalisedPlacedSeriesLabelOptions } from './normalisedLabelOptions';
+import type {
+    NormalisedChartLabelPlacementStyleOptions,
+    NormalisedPlacedSeriesLabelOptions,
+    NormalisedSeriesLabelOptions,
+} from './normalisedLabelOptions';
 import type { NormalisedSeriesMarkerOptions, NormalisedSeriesMarkerStyle } from './normalisedSeriesMarkerOptions';
 import type { NormalisedSeriesOptions } from './normalisedSeriesOptions';
 
@@ -131,4 +145,86 @@ export type NormalisedAreaSeriesOwnOptions = Normalised<
 };
 
 export type NormalisedAreaSeriesOptions = NormalisedSeriesOptions<NormalisedAreaSeriesOwnOptions> &
+    NormalisedCartesianSeriesOptionsCommon;
+
+/** Label of a bar-family series: a rect-relative placement cascade plus inside/outside placement styles. */
+export type NormalisedBarSeriesLabelOptions<
+    TParams,
+    TPlacement extends string,
+> = NormalisedSeriesLabelOptions<TParams> & {
+    placement: TPlacement | TPlacement[];
+    spacing: number;
+    insideStyle: NormalisedChartLabelPlacementStyleOptions;
+    outsideStyle: NormalisedChartLabelPlacementStyleOptions;
+};
+
+type BarRequiredKeys =
+    | 'xKey'
+    | 'yKey'
+    | 'direction'
+    | 'fill'
+    | 'fillOpacity'
+    | 'stroke'
+    | 'strokeWidth'
+    | 'strokeOpacity'
+    | 'lineDash'
+    | 'lineDashOffset'
+    | 'cornerRadius'
+    | 'shadow'
+    | 'label'
+    | 'segmentation';
+
+/** Bar options the series owns, before the common series keys are layered on. */
+export type NormalisedBarSeriesOwnOptions = Normalised<
+    AgBarSeriesOptions,
+    BarRequiredKeys,
+    {
+        fill: NormalisedColorType;
+        stroke: CssColor;
+        shadow: NormalisedDropShadowOptions;
+        label: NormalisedBarSeriesLabelOptions<AgBarSeriesLabelFormatterParams, AgBarSeriesLabelPlacement>;
+        styler?: Styler<AgBarSeriesStylerParams<unknown, unknown>, AgBarSeriesStyle>;
+        itemStyler?: Styler<AgBarSeriesItemStylerParams<unknown, unknown>, AgBarSeriesStyle>;
+        segmentation: NormalisedSeriesSegmentation;
+    }
+> & {
+    /** Undocumented: `yKey` column the bars are filtered against (cross-filtering). */
+    yFilterKey?: string;
+    /** Undocumented: datum-only styler that bypasses options-graph resolution. */
+    simpleItemStyler?: (datum: unknown) => AgBarSeriesStyle | undefined;
+};
+
+export type NormalisedBarSeriesOptions = NormalisedSeriesOptions<NormalisedBarSeriesOwnOptions> &
+    NormalisedCartesianSeriesOptionsCommon;
+
+type HistogramRequiredKeys =
+    | 'xKey'
+    | 'fill'
+    | 'fillOpacity'
+    | 'stroke'
+    | 'strokeWidth'
+    | 'strokeOpacity'
+    | 'lineDash'
+    | 'lineDashOffset'
+    | 'cornerRadius'
+    | 'areaPlot'
+    | 'aggregation'
+    | 'shadow'
+    | 'label';
+
+/** Histogram options the series owns, before the common series keys are layered on. */
+export type NormalisedHistogramSeriesOwnOptions = Normalised<
+    AgHistogramSeriesOptions,
+    HistogramRequiredKeys,
+    {
+        fill: NormalisedColorType;
+        stroke: CssColor;
+        shadow: NormalisedDropShadowOptions;
+        label: NormalisedBarSeriesLabelOptions<AgHistogramSeriesLabelFormatterParams, AgHistogramSeriesLabelPlacement>;
+        styler?: Styler<AgHistogramSeriesStylerParams<unknown, unknown>, AgHistogramSeriesStyle>;
+        itemStyler?: Styler<AgHistogramSeriesItemStylerParams<unknown, unknown>, AgHistogramSeriesStyle>;
+    }
+>;
+
+export type NormalisedHistogramSeriesOptions = NormalisedSeriesOptions<NormalisedHistogramSeriesOwnOptions> &
     NormalisedCartesianSeriesOptionsCommon;
