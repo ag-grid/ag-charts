@@ -1,26 +1,25 @@
 import {
-    type AgRadarAreaSeriesOptions,
     type AgRadarAreaSeriesStyle,
     type AgRadarAreaSeriesStylerParams,
     type AgSeriesMarkerStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { CallbackParamRules, DynamicContext, NormalisedColorType, RequireOptional } from 'ag-charts-core';
+import type {
+    CallbackParamRules,
+    DynamicContext,
+    NormalisedColorType,
+    NormalisedRadarAreaSeriesOwnOptions,
+    RequireOptional,
+} from 'ag-charts-core';
 import { ChartAxisDirection } from 'ag-charts-core';
 
 import { type RadarPathPoint, RadarSeries, type ResolvedRadarStyle } from '../radar/radarSeries';
-import { RadarAreaSeriesProperties } from './radarAreaSeriesProperties';
 
 const { Group, HighlightState, Path, PointerEvents, Selection, toHighlightString, toSelectionString } = _ModuleSupport;
 
-type S = AgRadarAreaSeriesStyle;
-type O = AgRadarAreaSeriesOptions;
-type P = RadarAreaSeriesProperties;
-export class RadarAreaSeries extends RadarSeries<S, O, P> {
+export class RadarAreaSeries extends RadarSeries<AgRadarAreaSeriesStyle, NormalisedRadarAreaSeriesOwnOptions> {
     static override readonly className = 'RadarAreaSeries';
     static readonly type = 'radar-area' as const;
-
-    override properties = new RadarAreaSeriesProperties();
 
     private readonly areaGroup = this.contentGroup.appendChild(new Group<boolean>({ name: 'radar-area' }));
     protected areaSelection = Selection.select<_ModuleSupport.Path<boolean>>(this.areaGroup, Path<boolean>);
@@ -156,7 +155,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
         selectionStateEnum: _ModuleSupport.SelectionState | undefined,
         candidateStateEnum: _ModuleSupport.SelectionState | undefined
     ): AgRadarAreaSeriesStylerParams {
-        const { properties } = this;
+        const { options } = this;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
         const selectionState = toSelectionString(selectionStateEnum);
         const candidateState = toSelectionString(candidateStateEnum);
@@ -165,29 +164,29 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
         type ParamsRules = CallbackParamRules<AgRadarAreaSeriesStylerParams & MarkerRules>;
         return {
             marker: {
-                fill: properties.marker.fill,
-                fillOpacity: properties.marker.fillOpacity,
-                size: properties.marker.size,
-                shape: properties.marker.shape,
-                stroke: properties.marker.stroke,
-                strokeOpacity: properties.marker.strokeOpacity,
-                strokeWidth: properties.marker.strokeWidth,
-                lineDash: properties.marker.lineDash,
-                lineDashOffset: properties.marker.lineDashOffset,
+                fill: options.marker.fill,
+                fillOpacity: options.marker.fillOpacity,
+                size: options.marker.size,
+                shape: options.marker.shape,
+                stroke: options.marker.stroke,
+                strokeOpacity: options.marker.strokeOpacity,
+                strokeWidth: options.marker.strokeWidth,
+                lineDash: options.marker.lineDash,
+                lineDashOffset: options.marker.lineDashOffset,
             },
             highlightState,
             selectionState,
             candidateState,
-            fill: properties.fill,
-            fillOpacity: properties.fillOpacity,
-            lineDash: properties.lineDash,
-            lineDashOffset: properties.lineDashOffset,
+            fill: options.fill,
+            fillOpacity: options.fillOpacity,
+            lineDash: options.lineDash,
+            lineDashOffset: options.lineDashOffset,
             seriesId: this.id,
-            stroke: properties.stroke,
-            strokeOpacity: properties.strokeOpacity,
-            strokeWidth: properties.strokeWidth,
-            angleKey: properties.angleKey,
-            radiusKey: properties.radiusKey,
+            stroke: options.stroke,
+            strokeOpacity: options.strokeOpacity,
+            strokeWidth: options.strokeWidth,
+            angleKey: options.angleKey,
+            radiusKey: options.radiusKey,
         } satisfies ParamsRules;
     }
 
@@ -195,7 +194,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
         highlightState: _ModuleSupport.HighlightState | undefined
     ): ResolvedRadarStyle<AgRadarAreaSeriesStyle> {
         const { marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } =
-            this.properties;
+            this.options;
         const { size, shape, fill: markerFill = 'transparent', fillOpacity: markerFillOpacity } = marker;
         const selectionState: _ModuleSupport.SelectionState | undefined = this.getDataSelectionState(undefined);
         const candidateState: _ModuleSupport.SelectionState | undefined = this.getDataCandidacyState(undefined);
