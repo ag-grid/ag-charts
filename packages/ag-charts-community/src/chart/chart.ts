@@ -49,7 +49,6 @@ import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
 import { DebugSelectors } from '../scene/sceneDebug';
-import { FailFastError } from '../util/failFastError';
 import { Mutex } from '../util/mutex';
 import { debouncedCallback } from '../util/render';
 import { Background } from './background/background';
@@ -822,7 +821,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         // (e.g. clear `series.chart`) mid-render-cycle.
         this.updateMutex
             .acquire(() => this.performTeardown(!!keepTransferableResources))
-            .catch((e) => this.reportAsyncError(e));
+            .catch((e) => this.ctx.logger.error(e));
 
         return result;
     }
@@ -872,7 +871,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
                     }
                 }
             })
-            .catch((e) => this.reportAsyncError(e));
+            .catch((e) => this.ctx.logger.error(e));
     }
 
     private clearCallbackCache() {
@@ -894,11 +893,10 @@ export abstract class Chart implements ModuleInstance, ChartService {
     private readonly updateMutex = new Mutex();
     private clearCallbackCacheOnUpdate: boolean = false;
     private updateRequestors: Record<string, ChartUpdateType> = {};
-    private pendingFailFastError?: Error;
 
     private readonly performUpdateTrigger = debouncedCallback(({ count }) => {
         if (this.destroyed) return;
-        this.updateMutex.acquire(this.tryPerformUpdate.bind(this, count)).catch((e) => this.reportAsyncError(e));
+        this.updateMutex.acquire(this.tryPerformUpdate.bind(this, count)).catch((e) => this.ctx.logger.error(e));
     });
     public update(type = ChartUpdateType.FULL, opts?: UpdateOpts) {
         if (this.destroyed) return;
@@ -981,7 +979,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
             this.clearCallbackCacheOnUpdate && this.performUpdateType <= ChartUpdateType.PROCESS_DATA;
         this.ctx.validations.beginPass('update');
         let completed = false;
-        this.pendingFailFastError = undefined;
         try {
             const status = `${ChartUpdateType[this.performUpdateType]} ${this.updateShortcutCount > 0 ? '⚠️ redo #' + this.updateShortcutCount + ' ⚠️ ' : ''}`;
             await this.debug.group(`Chart.performUpdate() ${status}`, async () => {
@@ -989,33 +986,12 @@ export abstract class Chart implements ModuleInstance, ChartService {
             });
             completed = reEvaluatesCallbacks && this.updateShortcutCount === 0;
         } catch (error) {
-            this.reportAsyncError(error);
+            this.ctx.logger.error(error);
             this.runningUpdateType = ChartUpdateType.NONE;
             this._performUpdateNotify.notify();
         } finally {
             this.ctx.validations.endPass('update', completed);
         }
-    }
-
-    /** Nothing here can throw to the API caller, so a fail-fast throw is held for the proxy's next `takeFailFastError()`. */
-    private reportAsyncError(error: unknown) {
-        if (error instanceof FailFastError) {
-            this.pendingFailFastError = error;
-            return;
-        }
-        try {
-            this.ctx.logger.error(error);
-        } catch (failFast) {
-            if (!(failFast instanceof FailFastError)) throw failFast;
-            this.pendingFailFastError = failFast;
-        }
-    }
-
-    /** Clear-on-read so a stale runtime failure cannot be redelivered to a later, unrelated caller. */
-    takeFailFastError(): Error | undefined {
-        const error = this.pendingFailFastError;
-        this.pendingFailFastError = undefined;
-        return error;
     }
 
     private async performUpdate(count: number) {

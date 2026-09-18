@@ -7,7 +7,6 @@ import type {
 
 import type { EventsHub, EventsHubMap } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
-import { FailFastError } from '../../util/failFastError';
 import { DEFAULT_CONSOLE_ON, DEFAULT_SHOW_OVERLAY_ON, DEFAULT_THROW_ON } from './validationDefaults';
 
 export type ValidationSeverity = LogLevel;
@@ -53,10 +52,8 @@ function severities(value: unknown, fallback: readonly AgChartValidationSeverity
     return isArray(value) && value.every(isLogLevel) ? value : fallback;
 }
 
-// Under an armed `throwOn` nothing was ignored, the pass aborted; the console record keeps the wording.
-function withoutIgnoredClause(message: string): string {
-    return message.replace(/[,;]? ignoring\.$/i, '');
-}
+/** A `validations.throwOn` throw. Built inside the reporting call so its stack points at the origin. */
+export class FailFastError extends Error {}
 
 // Module-level: a listener that re-applies failing options re-enters through a new options pass and a new
 // provisional instance, so only listener identity can see the recursion. A per-pass closure hits the depth cap.
@@ -77,7 +74,7 @@ export function createProvisionalRuntime(logger: Logger): ValidationsRuntime {
 /**
  * The single subscriber to `validation:issue`, implementing the four `validations` options as reactions
  * to the one event: `consoleOn` gates the Logger, `showOverlayOn` selects from the collection kept here,
- * `issueRaised` is told once per issue, and `throwOn` throws from inside the logging call.
+ * `issueRaised` is told once per issue, and `throwOn` throws asynchronously, once per logging call.
  */
 export class ChartValidations {
     private readonly logger: Logger;
@@ -91,7 +88,6 @@ export class ChartValidations {
     private readonly openPasses: ValidationPass[] = [];
     private showOverlayMask = 0;
     private throwMask = 0;
-    private failFastSuppressed = 0;
     private dismissed = false;
 
     private listener?: ValidationIssueListener;
@@ -143,12 +139,6 @@ export class ChartValidations {
         if (this.showOverlayMask === mask) return;
         this.showOverlayMask = mask;
         this.eventsHub.emit('validation:change', null);
-    }
-
-    /** Holds fail-fast off for a pass with no caller to throw to (a CSS-variable refresh from a DOM event). */
-    suspendFailFast(): () => void {
-        this.failFastSuppressed++;
-        return () => this.failFastSuppressed--;
     }
 
     /** The issues currently collected, oldest first. */
@@ -240,8 +230,7 @@ export class ChartValidations {
     }
 
     private onIssue(issue: LogIssue) {
-        // A fail-fast throw re-logged by a catch site, or the report of a throwing listener: both already handled.
-        if (issue.cause instanceof FailFastError || this.reportingListenerError) return;
+        if (this.reportingListenerError) return;
 
         const key = keyOf(issue);
         if (!this.collection.has(key)) {
@@ -257,12 +246,14 @@ export class ChartValidations {
         if (this.passOf.has(key)) this.raisedInPass.add(key);
         if (!this.told.has(key)) this.dispatch([issue]);
 
-        if (this.failFastSuppressed > 0 || (this.throwMask & SEVERITY_BIT[issue.severity]) === 0) return;
-        throw new FailFastError(
-            `AG Charts - validations.throwOn: ${issue.severity} - ${withoutIgnoredClause(issue.message)}`,
-            this,
-            { cause: issue.cause }
-        );
+        if ((this.throwMask & SEVERITY_BIT[issue.severity]) === 0) return;
+        const failFast = new FailFastError(`AG Charts - validations.throwOn: ${issue.severity} - ${issue.message}`, {
+            cause: issue.cause,
+        });
+        // Thrown outside every library frame, so the pass that raised the issue completes.
+        setTimeout(() => {
+            throw failFast;
+        });
     }
 
     // Never gated by severity or dismissal. Issues raised re-entrantly from the listener queue behind it.
@@ -287,8 +278,6 @@ export class ChartValidations {
                 try {
                     listener({ severity, message });
                 } catch (error) {
-                    // This chart's own fail-fast throw is owed to the caller; another chart's is the listener's to handle.
-                    if (error instanceof FailFastError && error.source === this) throw error;
                     this.reportListenerError(error);
                 }
             }

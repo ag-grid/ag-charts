@@ -395,7 +395,7 @@ export interface AgChartValidationsOptions {
      */
     showOverlayOn?: AgChartValidationSeverity[];
     /**
-     * The severities that cause the chart to throw instead of warning and falling back to a default. Console output is never suppressed by this option.
+     * The severities that also throw an uncaught error for each issue, after the chart has reported it and applied its usual fallback. Console output is never suppressed by this option.
      *
      * Default: `[]`
      */

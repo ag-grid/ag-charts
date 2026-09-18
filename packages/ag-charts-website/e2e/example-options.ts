@@ -59,7 +59,7 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
         'validation-console': { skipCanvasUpdateCheck: ['[]'] },
     },
     'dev-validation-test': {
-        // Selecting a throwOn radio only changes state; only the button redraws (or throws before) the chart.
+        // Selecting a throwOn radio only changes state; only the button redraws the chart.
         'validation-throw': { skipCanvasUpdateCheck: ['[]'] },
     },
     'range-area-series': {

@@ -25,6 +25,7 @@ import { Marker } from './marker/marker';
 import { LineSeries } from './series/cartesian/lineSeries';
 import {
     MIN_TOOLTIP_HIDE_DELAY,
+    captureUncaught,
     clickAction,
     createChart,
     deproxy,
@@ -2129,27 +2130,48 @@ describe('validations.throwOn — runtime errors', () => {
         return calls;
     }
 
-    it('throwOn: error rejects both waitForUpdate() and update() with the caught runtime error', async () => {
+    it('throwOn: error resolves waitForUpdate() and update(), and throws the caught runtime error uncaught', async () => {
         const proxy = AgCharts.create(throwOnOptions({ throwOn: ['error'] })) as AgChartProxy;
         chart = deproxy(proxy);
         armProcessDataThrow(chart);
 
-        await expect(proxy.waitForUpdate()).rejects.toThrow(RUNTIME_ERROR_MESSAGE);
-        expect(drainErrorLog()).toHaveLength(1);
+        const capture = captureUncaught();
+        try {
+            await expect(proxy.waitForUpdate()).resolves.toBeUndefined();
+            await capture.settle();
+            expect(drainErrorLog()).toHaveLength(1);
+            expect(capture.uncaught.map(String)).toEqual([
+                expect.stringMatching(/^Error: AG Charts - validations\.throwOn: error - .*runtime boom/),
+            ]);
 
-        armProcessDataThrow(chart);
-        await expect(proxy.update(throwOnOptions({ throwOn: ['error'] }, UPDATED_DATA))).rejects.toThrow(
-            RUNTIME_ERROR_MESSAGE
-        );
-        expect(drainErrorLog()).toHaveLength(1);
+            armProcessDataThrow(chart);
+            await expect(proxy.update(throwOnOptions({ throwOn: ['error'] }, UPDATED_DATA))).resolves.toBeUndefined();
+            await capture.settle();
+            expect(drainErrorLog()).toHaveLength(1);
+            expect(capture.uncaught).toHaveLength(2);
+
+            // processData is left unmocked for this pass, so nothing new escapes.
+            await expect(proxy.update(throwOnOptions({ throwOn: ['error'] }, INITIAL_DATA))).resolves.toBeUndefined();
+            await capture.settle();
+            expect(capture.uncaught).toHaveLength(2);
+        } finally {
+            capture.restore();
+        }
     });
 
-    it('writes the console record and records the overlay issue before rejecting — fail-fast suppresses nothing', async () => {
+    it('writes the console record and records the overlay issue as well as throwing — fail-fast suppresses nothing', async () => {
         const proxy = AgCharts.create(throwOnOptions({ throwOn: ['error'], showOverlayOn: ['error'] })) as AgChartProxy;
         chart = deproxy(proxy);
         armProcessDataThrow(chart);
 
-        await expect(proxy.waitForUpdate()).rejects.toThrow(RUNTIME_ERROR_MESSAGE);
+        const capture = captureUncaught();
+        try {
+            await proxy.waitForUpdate();
+            await capture.settle();
+        } finally {
+            capture.restore();
+        }
+        expect(capture.uncaught).toHaveLength(1);
 
         const errorCalls = drainErrorLog();
         expect(errorCalls).toHaveLength(1);
@@ -2165,43 +2187,18 @@ describe('validations.throwOn — runtime errors', () => {
         chart = deproxy(proxy);
         armProcessDataThrow(chart);
 
-        await expect(proxy.waitForUpdate()).resolves.toBeUndefined();
+        const capture = captureUncaught();
+        try {
+            await expect(proxy.waitForUpdate()).resolves.toBeUndefined();
+            await capture.settle();
+        } finally {
+            capture.restore();
+        }
+        expect(capture.uncaught).toHaveLength(0);
         expect(drainErrorLog()).toHaveLength(1);
     });
 
-    it('does not re-throw a stale fail-fast error on a later successful update', async () => {
-        const proxy = AgCharts.create(throwOnOptions({ throwOn: ['error'] })) as AgChartProxy;
-        chart = deproxy(proxy);
-        armProcessDataThrow(chart);
-
-        await expect(proxy.waitForUpdate()).rejects.toThrow(RUNTIME_ERROR_MESSAGE);
-        drainErrorLog();
-
-        // processData is left unmocked for this pass, so it succeeds and takeFailFastError() must
-        // find nothing left to deliver.
-        await expect(proxy.update(throwOnOptions({ throwOn: ['error'] }, UPDATED_DATA))).resolves.toBeUndefined();
-    });
-
-    it('leaves internal awaiters of Chart.waitForUpdate unaffected by a pending fail-fast error', async () => {
-        const proxy = AgCharts.create(throwOnOptions({ throwOn: ['error'] })) as AgChartProxy;
-        chart = deproxy(proxy);
-        armProcessDataThrow(chart);
-
-        // Drive the failing pass to completion via the chart's own waitForUpdate, exactly like the
-        // internal awaiters under test, so the pending fail-fast error is armed but unconsumed here.
-        await chart.waitForUpdate();
-        drainErrorLog();
-
-        // Chart.applyTransaction and AgChartInstanceProxy.setState both await Chart.waitForUpdate()
-        // directly, never AgChartInstanceProxy's fail-fast-aware wrapper.
-        await expect(chart.applyTransaction({ update: [{ x: 'A', y: 99 }] })).resolves.toBeUndefined();
-        await expect(proxy.setState(proxy.getState())).resolves.toBeUndefined();
-    });
-
-    // AG-17831 TC1 (QA repro T17d): arming `throwOn` forces the slow option-processing path, so a
-    // datum that throws while being read escapes `new ChartOptions()` synchronously — before the
-    // update loop's catch. That escape must still write the console record and carry the prefix.
-    it('prefixes and logs an error that escapes option processing on a warm updateDelta', async () => {
+    it('prefixes, logs and throws uncaught for a datum getter that throws on a warm updateDelta', async () => {
         let boom = false;
         const rows = [
             { x: 'A', y: 10 },
@@ -2219,11 +2216,18 @@ describe('validations.throwOn — runtime errors', () => {
         await proxy.waitForUpdate();
         drainErrorLog();
 
-        boom = true;
-        await expect(proxy.updateDelta({ data: rows.slice() })).rejects.toThrow(
-            /^AG Charts - validations\.throwOn: error - /
-        );
-        boom = false;
+        const capture = captureUncaught();
+        try {
+            boom = true;
+            await expect(proxy.updateDelta({ data: rows.slice() })).resolves.toBeUndefined();
+            boom = false;
+            await capture.settle();
+        } finally {
+            capture.restore();
+        }
+        expect(capture.uncaught.map(String)).toEqual([
+            expect.stringMatching(/^Error: AG Charts - validations\.throwOn: error - .*runtime boom/),
+        ]);
 
         const errorCalls = drainErrorLog();
         expect(errorCalls.length).toBeGreaterThan(0);
@@ -2276,46 +2280,61 @@ describe('AG-17830 QA — validations.issueRaised', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: Chart;
+    const created: AgChartProxy[] = [];
+    let capture: ReturnType<typeof captureUncaught>;
+    beforeEach(() => {
+        capture = captureUncaught();
+    });
     afterEach(() => {
-        chart?.destroy();
-        (chart as unknown) = undefined;
+        capture.restore();
+        for (const proxy of created.splice(0)) proxy.destroy();
     });
 
-    // AC 3: the listener is never gated by a severity selection, and `throwOn` is one. The throw
-    // unwinds out of `new ChartOptions()`, so the chart never adopts the issues that caused it.
-    it('fires on create() for an issue that also trips throwOn', () => {
+    // Every chart a test creates, including those a listener creates re-entrantly, so all are destroyed.
+    function create(options: AgCartesianChartOptions) {
+        const proxy = AgCharts.create(options) as AgChartProxy;
+        created.push(proxy);
+        return proxy;
+    }
+
+    const failFastWarnings = (count: number) =>
+        Array.from({ length: count }, () => expect.stringMatching(/^Error: AG Charts - validations\.throwOn: warning/));
+
+    // AC 3: the listener is never gated by a severity selection, and `throwOn` is one.
+    it('fires on create() for an issue that also trips throwOn, which is thrown after create() returns', async () => {
         const issueRaised = vi.fn();
 
-        expect(() =>
-            AgCharts.create({
-                container: document.body,
-                data: [{ x: 'A', y: 10 }],
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
-                validations: { throwOn: ['warning'], issueRaised },
-            })
-        ).toThrow(/validations.throwOn: warning/);
+        const proxy = create({
+            container: document.body,
+            data: [{ x: 'A', y: 10 }],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+            validations: { throwOn: ['warning'], issueRaised },
+        });
+        expect(capture.uncaught).toHaveLength(0);
+        await proxy.waitForUpdate();
+        await capture.settle();
 
         expect(issueRaised).toHaveBeenCalledWith({
             severity: 'warning',
             message: expect.stringContaining('series[0].strokeWidth'),
         });
+        expect(capture.uncaught.map(String)).toEqual(failFastWarnings(1));
         expectWarningsCalls().toHaveLength(1);
     });
 
     // The dropped-module issue is reported to the console by `processModuleOptions` alone.
-    it('fires for a dropped-module error that trips throwOn', () => {
+    it('fires for a dropped-module error that trips throwOn', async () => {
         const issueRaised = vi.fn();
 
-        expect(() =>
-            AgCharts.create({
-                container: document.body,
-                data: [{ x: 'A', y: 10 }],
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-                zoom: { enabled: true },
-                validations: { throwOn: ['error'], issueRaised },
-            })
-        ).toThrow(/validations.throwOn: error/);
+        const proxy = create({
+            container: document.body,
+            data: [{ x: 'A', y: 10 }],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            zoom: { enabled: true },
+            validations: { throwOn: ['error'], issueRaised },
+        } as AgCartesianChartOptions);
+        await proxy.waitForUpdate();
+        await capture.settle();
 
         const errorMock = console.error as Mock;
         expect(issueRaised).toHaveBeenCalledWith({
@@ -2324,6 +2343,11 @@ describe('AG-17830 QA — validations.issueRaised', () => {
         });
         expect(errorMock).toHaveBeenCalledTimes(1);
         errorMock.mockClear();
+        expect(capture.uncaught.map(String)).toEqual([
+            expect.stringMatching(
+                /^Error: AG Charts - validations\.throwOn: error - required modules are not registered/
+            ),
+        ]);
     });
 
     it('fires on update() for an issue that also trips throwOn', async () => {
@@ -2334,9 +2358,8 @@ describe('AG-17830 QA — validations.issueRaised', () => {
             series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
             validations: { throwOn: ['warning'], issueRaised },
         };
-        const proxy = AgCharts.create(options) as AgChartProxy;
-        chart = deproxy(proxy);
-        await waitForChartStability(chart);
+        const proxy = create(options);
+        await waitForChartStability(deproxy(proxy));
         issueRaised.mockClear();
 
         await expect(
@@ -2344,42 +2367,45 @@ describe('AG-17830 QA — validations.issueRaised', () => {
                 ...options,
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
             })
-        ).rejects.toThrow(/validations.throwOn: warning/);
+        ).resolves.toBeUndefined();
+        await capture.settle();
 
         expect(issueRaised).toHaveBeenCalledWith({
             severity: 'warning',
             message: expect.stringContaining('series[0].strokeWidth'),
         });
+        expect(capture.uncaught.map(String)).toEqual(failFastWarnings(1));
         expectWarningsCalls().toHaveLength(1);
     });
 
-    it('a throwing consumer callback does not displace the fail-fast error', () => {
+    it('a throwing consumer callback does not displace the fail-fast error', async () => {
         const issueRaised = vi.fn(() => {
             throw new Error('consumer boom');
         });
 
-        expect(() =>
-            AgCharts.create({
-                container: document.body,
-                data: [{ x: 'A', y: 10 }],
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
-                validations: { throwOn: ['warning'], issueRaised },
-            })
-        ).toThrow(/validations.throwOn: warning/);
+        const proxy = create({
+            container: document.body,
+            data: [{ x: 'A', y: 10 }],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+            validations: { throwOn: ['warning'], issueRaised },
+        });
+        await proxy.waitForUpdate();
+        await capture.settle();
 
         expect(issueRaised).toHaveBeenCalled();
         expectWarningsCalls().toHaveLength(1);
         const errorMock = console.error as Mock;
         expect(errorMock).toHaveBeenCalledWith('AG Charts - validations.issueRaised threw an error', expect.any(Error));
         errorMock.mockClear();
+        expect(capture.uncaught.map(String)).toEqual(failFastWarnings(1));
     });
 
     // A second chart is a separate listener registration, so it must still be told about its own
     // issues while the first chart's listener is on the stack.
-    it('reports to a second chart listener from inside the first listener', () => {
+    it('reports to a second chart listener from inside the first listener', async () => {
         const innerListener = vi.fn();
         const outerListener = vi.fn(() => {
-            AgCharts.create({
+            create({
                 container: document.body,
                 data: [{ x: 'A', y: 10 }],
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
@@ -2387,14 +2413,14 @@ describe('AG-17830 QA — validations.issueRaised', () => {
             });
         });
 
-        expect(() =>
-            AgCharts.create({
-                container: document.body,
-                data: [{ x: 'A', y: 10 }],
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
-                validations: { throwOn: ['warning'], issueRaised: outerListener },
-            })
-        ).toThrow(/validations.throwOn: warning/);
+        const proxy = create({
+            container: document.body,
+            data: [{ x: 'A', y: 10 }],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+            validations: { throwOn: ['warning'], issueRaised: outerListener },
+        });
+        await proxy.waitForUpdate();
+        await capture.settle();
 
         expect(outerListener).toHaveBeenCalledTimes(1);
         expect(innerListener).toHaveBeenCalledWith({
@@ -2402,37 +2428,37 @@ describe('AG-17830 QA — validations.issueRaised', () => {
             message: expect.stringContaining('series[0].strokeWidth'),
         });
         expectWarningsCalls().toHaveLength(2);
-        // The inner chart's own fail-fast error unwinds through the outer listener.
-        const errorMock = console.error as Mock;
-        expect(errorMock).toHaveBeenCalledWith('AG Charts - validations.issueRaised threw an error', expect.any(Error));
-        errorMock.mockClear();
+        // Each chart throws its own; neither unwinds through the outer listener.
+        expect(capture.uncaught.map(String)).toEqual(failFastWarnings(2));
     });
 
     // The same listener re-entering is the runaway case the guard exists for: one dispatch only.
-    it('does not recurse when the listener re-applies the same failing options', () => {
-        const failingOptions = () => ({
+    it('does not recurse when the listener re-applies the same failing options', async () => {
+        const failingOptions = (): AgCartesianChartOptions => ({
             container: document.body,
             data: [{ x: 'A', y: 10 }],
-            series: [{ type: 'bar' as const, xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
-            validations: { throwOn: ['warning' as const], issueRaised },
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+            validations: { throwOn: ['warning'], issueRaised },
         });
         const issueRaised = vi.fn(() => {
-            AgCharts.create(failingOptions());
+            create(failingOptions());
         });
 
-        expect(() => AgCharts.create(failingOptions())).toThrow(/validations.throwOn: warning/);
+        const proxy = create(failingOptions());
+        await proxy.waitForUpdate();
+        await capture.settle();
 
         expect(issueRaised).toHaveBeenCalledTimes(1);
         expectWarningsCalls().toHaveLength(2);
-        (console.error as Mock).mockClear();
+        expect(capture.uncaught.map(String)).toEqual(failFastWarnings(2));
     });
 
     // The Angular wrapper hands a freshly bound listener to every options pass, so listener identity
     // alone cannot bound the recursion.
-    it('stops recursion from a listener whose identity changes on every pass', () => {
+    it('stops recursion from a listener whose identity changes on every pass', async () => {
         const calls: unknown[] = [];
-        const create = () =>
-            AgCharts.create({
+        const recurse = () =>
+            create({
                 container: document.body,
                 data: [{ x: 'A', y: 10 }],
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
@@ -2440,12 +2466,14 @@ describe('AG-17830 QA — validations.issueRaised', () => {
                     throwOn: ['warning'],
                     issueRaised: (event) => {
                         calls.push(event);
-                        create();
+                        recurse();
                     },
                 },
             });
 
-        expect(create).toThrow(/validations.throwOn: warning/);
+        const proxy = recurse();
+        await proxy.waitForUpdate();
+        await capture.settle();
 
         // A fresh closure per pass defeats the listener-identity guard, so this case falls to the depth
         // backstop. Asserted as a bound rather than a count: the exact value is a safety limit, not a
@@ -2453,11 +2481,11 @@ describe('AG-17830 QA — validations.issueRaised', () => {
         expect(calls.length).toBeGreaterThan(1);
         expect(calls.length).toBeLessThanOrEqual(32);
         expectWarningsCalls().toHaveLength(calls.length + 1);
-        (console.error as Mock).mockClear();
+        expect(capture.uncaught.map(String)).toEqual(failFastWarnings(calls.length + 1));
     });
 
-    // The merge of AG-17831 added a second fail-fast exit — an error escaping option processing — that
-    // bypasses `Chart.tryPerformUpdate()`'s catch, so nothing else can tell the listener about it.
+    // An error escaping option processing bypasses `Chart.tryPerformUpdate()`'s catch, so nothing else
+    // can tell the listener about it.
     it('reports an error that escapes option processing under an armed throwOn', async () => {
         const issueRaised = vi.fn();
         let boom = false;
@@ -2471,7 +2499,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
                 },
             },
         ];
-        const options = () => ({
+        const options = (): AgCartesianChartOptions => ({
             container: document.body,
             width: 400,
             height: 300,
@@ -2480,25 +2508,27 @@ describe('AG-17830 QA — validations.issueRaised', () => {
             validations: { throwOn: ['error'], issueRaised },
         });
 
-        const proxy = AgCharts.create(options() as any) as AgChartProxy;
+        const proxy = create(options());
         await proxy.waitForUpdate();
         issueRaised.mockClear();
         (console.error as Mock).mockClear();
 
         boom = true;
-        await expect(proxy.updateDelta({ data: rows.slice() })).rejects.toThrow(
-            /validations\.throwOn: error - datum exploded/
-        );
+        await expect(proxy.updateDelta({ data: rows.slice() })).resolves.toBeUndefined();
         boom = false;
+        await capture.settle();
 
         expect(issueRaised).toHaveBeenCalledWith({ severity: 'error', message: 'datum exploded' });
+        expect(capture.uncaught.map(String)).toEqual([
+            expect.stringMatching(/^Error: AG Charts - validations\.throwOn: error - datum exploded/),
+        ]);
         (console.error as Mock).mockClear();
     });
 
     it('reports a callback that throws on the first render to both the overlay and the listener', async () => {
         const issueRaised = vi.fn();
 
-        const proxy = AgCharts.create({
+        const proxy = create({
             container: document.body,
             data: [
                 { x: 'A', y: 10 },
@@ -2515,8 +2545,8 @@ describe('AG-17830 QA — validations.issueRaised', () => {
                 },
             ],
             validations: { showOverlayOn: ['warning'], issueRaised },
-        }) as AgChartProxy;
-        chart = deproxy(proxy);
+        });
+        const chart = deproxy(proxy);
         await waitForChartStability(chart);
 
         expect(issueRaised).toHaveBeenCalledWith({
