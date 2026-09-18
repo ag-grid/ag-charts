@@ -288,13 +288,13 @@ describe('ChartTheme', () => {
 
             expect(chart.series[0].type).toBe('pie');
             const pieSeries = classCast(chart.series[0], PieSeries);
-            expect(pieSeries.properties.fills).toEqual(['red', 'green', 'blue', 'red', 'green']);
-            expect(pieSeries.properties.strokes).toEqual(['cyan', 'cyan', 'cyan', 'cyan', 'cyan']);
-            expect(pieSeries.properties.calloutLabel.enabled).toBe(true);
-            expect(pieSeries.properties.calloutLabel.color).toBe('yellow');
-            expect(pieSeries.properties.calloutLabel.fontSize).toBe(18);
-            expect(pieSeries.properties.tooltip.enabled).toBe(false);
-            expect(pieSeries.properties.tooltip.renderer).toBeDefined();
+            expect(pieSeries.options.fills).toEqual(['red', 'green', 'blue', 'red', 'green']);
+            expect(pieSeries.options.strokes).toEqual(['cyan', 'cyan', 'cyan', 'cyan', 'cyan']);
+            expect(pieSeries.options.calloutLabel.enabled).toBe(true);
+            expect(pieSeries.options.calloutLabel.color).toBe('yellow');
+            expect(pieSeries.options.calloutLabel.fontSize).toBe(18);
+            expect(pieSeries.options.tooltip.enabled).toBe(false);
+            expect(pieSeries.options.tooltip.renderer).toBeDefined();
         });
     });
 
@@ -465,13 +465,13 @@ describe('ChartTheme', () => {
 
             expect(chart.series[0].type).toBe('pie');
             const pieSeries = classCast(chart.series[0], PieSeries);
-            expect(pieSeries.properties.fills).toEqual(['red', 'green', 'blue', 'red', 'green']);
-            expect(pieSeries.properties.strokes).toEqual(['cyan', 'cyan', 'cyan', 'cyan', 'cyan']);
-            expect(pieSeries.properties.calloutLabel.enabled).toBe(true);
-            expect(pieSeries.properties.calloutLabel.color).toBe('yellow');
-            expect(pieSeries.properties.calloutLabel.fontSize).toBe(18);
-            expect(pieSeries.properties.tooltip.enabled).toBe(false);
-            expect(pieSeries.properties.tooltip.renderer).toBeDefined();
+            expect(pieSeries.options.fills).toEqual(['red', 'green', 'blue', 'red', 'green']);
+            expect(pieSeries.options.strokes).toEqual(['cyan', 'cyan', 'cyan', 'cyan', 'cyan']);
+            expect(pieSeries.options.calloutLabel.enabled).toBe(true);
+            expect(pieSeries.options.calloutLabel.color).toBe('yellow');
+            expect(pieSeries.options.calloutLabel.fontSize).toBe(18);
+            expect(pieSeries.options.tooltip.enabled).toBe(false);
+            expect(pieSeries.options.tooltip.renderer).toBeDefined();
         });
     });
 

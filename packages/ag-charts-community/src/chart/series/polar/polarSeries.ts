@@ -18,7 +18,6 @@ import {
     type DataModelSeriesNodeDatum,
 } from '../dataModelSeries';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
-import { type SeriesProperties } from '../seriesProperties';
 import type { ShapeFillBBox } from '../shapeUtil';
 
 export type PolarAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
@@ -34,8 +33,8 @@ export type PolarAnimationEvent = {
 };
 export type PolarAnimationData = { duration?: number };
 
-/** Keys every polar series carries, read by the base from its holder or its plain options. */
-type PolarSeriesKeys = {
+/** Keys every polar series carries in its plain options. */
+export type PolarSeriesKeys = {
     angleKey: string;
     angleName?: string;
     angleKeyAxis?: string;
@@ -54,21 +53,15 @@ export const DEFAULT_POLAR_DIRECTION_NAMES = {
     [ChartAxisDirection.Radius]: ['radiusName' as const],
 };
 
-export type UnknownPolarSeries = PolarSeries<
-    DataModelSeriesNodeDatum,
-    PolarSeriesKeys,
-    (SeriesProperties<PolarSeriesKeys> & PolarSeriesKeys) | undefined,
-    Node<DataModelSeriesNodeDatum>
->;
+export type UnknownPolarSeries = PolarSeries<DataModelSeriesNodeDatum, PolarSeriesKeys, Node<DataModelSeriesNodeDatum>>;
 
 export abstract class PolarSeries<
     TDatum extends DataModelSeriesNodeDatum & { legendItemValue?: string },
     TOpts extends PolarSeriesKeys,
-    TProps extends (SeriesProperties<TOpts> & PolarSeriesKeys) | undefined,
     TNode extends Node<TDatum>,
     TLabel = TDatum,
     TContext extends DataModelSeriesNodeDataContext<TDatum, TLabel> = DataModelSeriesNodeDataContext<TDatum, TLabel>,
-> extends DataModelSeries<TDatum, TOpts, TProps, TLabel, TContext> {
+> extends DataModelSeries<TDatum, TOpts, undefined, TLabel, TContext> {
     override directions = [ChartAxisDirection.Angle, ChartAxisDirection.Radius];
 
     protected itemGroup = this.contentGroup.appendChild(new Group({ name: 'items' }));
@@ -200,9 +193,9 @@ export abstract class PolarSeries<
     }
 
     override getKeyAxis(direction: ChartAxisDirection): string | undefined {
-        const keys: PolarSeriesKeys = this.properties ?? this.options;
-        if (direction === ChartAxisDirection.Angle) return keys.angleKeyAxis ?? 'angle';
-        if (direction === ChartAxisDirection.Radius) return keys.radiusKeyAxis ?? 'radius';
+        const { angleKeyAxis, radiusKeyAxis } = this.options;
+        if (direction === ChartAxisDirection.Angle) return angleKeyAxis ?? 'angle';
+        if (direction === ChartAxisDirection.Radius) return radiusKeyAxis ?? 'radius';
     }
 
     override setZIndex(zIndex: number) {

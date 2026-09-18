@@ -16229,6 +16229,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
     {
       "angleKey": "count",
       "calloutLabel": {
+        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
@@ -16259,6 +16260,8 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
         "length": 10,
         "strokeWidth": 2,
       },
+      "cornerRadius": 0,
+      "cursor": "default",
       "fillOpacity": 0.9,
       "fills": [
         "#fb7451",
@@ -16270,7 +16273,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
         "#b499b5",
         "#b7b5ba",
       ],
+      "hideZeroValueSectorsInLegend": false,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "fillOpacity": 0,
@@ -16321,6 +16326,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
+      "outerRadiusOffset": 0,
+      "outerRadiusRatio": 1,
       "rotation": 0,
       "sectorLabel": {
         "border": {
@@ -16361,6 +16369,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "strokes": [
@@ -16379,10 +16388,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 14,
         "fontWeight": 400,
+        "showInLegend": false,
         "spacing": 5,
         "text": "Annual Count",
       },
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -17150,6 +17163,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
     {
       "angleKey": "population",
       "calloutLabel": {
+        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
@@ -17180,6 +17194,8 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
         "length": 10,
         "strokeWidth": 2,
       },
+      "cornerRadius": 0,
+      "cursor": "default",
       "fillOpacity": 1,
       "fills": [
         "#49afda",
@@ -17191,7 +17207,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
         "#72508c",
         "#b7b5ba",
       ],
+      "hideZeroValueSectorsInLegend": false,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "fillOpacity": 0,
@@ -17209,6 +17227,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
+      "outerRadiusOffset": 0,
+      "outerRadiusRatio": 1,
       "rotation": 0,
       "sectorLabel": {
         "border": {
@@ -17249,6 +17270,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "strokes": [
@@ -17267,9 +17289,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 14,
         "fontWeight": 400,
+        "showInLegend": false,
         "spacing": 5,
       },
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
