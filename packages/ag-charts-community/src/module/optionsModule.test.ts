@@ -41,6 +41,7 @@ import { createProvisionalRuntime } from '../chart/validation/chartValidations';
 import { VERSION } from '../version';
 import { CategoryAxisModule } from './axis-modules/categoryAxisModule';
 import { NumberAxisModule } from './axis-modules/numberAxisModule';
+import { resolveSeriesThemeDefaultsMemoised } from './optionsGraph';
 import { ChartOptions } from './optionsModule';
 import { __clearStructuralCacheForTests } from './optionsStructuralCache';
 
@@ -4289,6 +4290,19 @@ describe('ChartOptions', () => {
             const updated = new ChartOptions(base, {} as AgChartOptions, {}, {}, {}, { width: 400 });
 
             expect(updated.fonts).toContain('900 16px "Font Awesome 6 Free"');
+        });
+    });
+
+    describe('mini-chart series theme defaults', () => {
+        it('substitutes css variables while resolving the series defaults', () => {
+            const theme = new ChartTheme({ params: { foregroundColor: 'var(--fg)' } });
+
+            const defaults = resolveSeriesThemeDefaultsMemoised(theme, 'line', ModuleRegistry.resolveModuleScope(), {
+                'var(--fg)': '#123456',
+            });
+
+            expect(defaults.type).toBe('line');
+            expect(JSON.stringify(defaults)).not.toContain('var(--fg)');
         });
     });
 

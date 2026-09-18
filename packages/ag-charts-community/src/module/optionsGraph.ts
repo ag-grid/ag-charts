@@ -68,7 +68,12 @@ export const createOptionsGraphMemoised = simpleMemorize(createOptionsGraph);
 
 /** Theme defaults for one series type, resolved without user options or theme overrides. */
 export const resolveSeriesThemeDefaultsMemoised = simpleMemorize(resolveSeriesThemeDefaults);
-function resolveSeriesThemeDefaults(theme: ChartTheme, seriesType: string, moduleRegistry: ModuleScope): PlainObject {
+function resolveSeriesThemeDefaults(
+    theme: ChartTheme,
+    seriesType: string,
+    moduleRegistry: ModuleScope,
+    cssVariables: Record<string, string> | undefined
+): PlainObject {
     const optionsGraph = new OptionsGraph(
         theme.config,
         { series: [{ type: seriesType }] },
@@ -77,7 +82,7 @@ function resolveSeriesThemeDefaults(theme: ChartTheme, seriesType: string, modul
         theme.palette,
         undefined,
         theme.getTemplateParameters(),
-        undefined,
+        cssVariables,
         undefined,
         moduleRegistry
     );

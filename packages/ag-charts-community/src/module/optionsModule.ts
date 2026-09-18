@@ -1516,13 +1516,19 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const miniChartSeries = options.navigator?.miniChart?.series;
         if (miniChartSeries == null) return;
 
+        // An empty variable map is passed as `undefined` so the memoised defaults stay shared across charts.
+        const { processedCSSVariables } = this;
+        const cssVariables =
+            processedCSSVariables == null || Object.keys(processedCSSVariables).length === 0
+                ? undefined
+                : processedCSSVariables;
         // The mini-chart theme omits the main-series keys it ignores; complete them from the type's theme defaults.
         const completed = miniChartSeries.map((series) =>
             series.type == null
                 ? series
                 : mergeDefaults(
                       series,
-                      resolveSeriesThemeDefaultsMemoised(activeTheme, series.type, this.moduleRegistry)
+                      resolveSeriesThemeDefaultsMemoised(activeTheme, series.type, this.moduleRegistry, cssVariables)
                   )
         );
         options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(
