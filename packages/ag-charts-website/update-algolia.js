@@ -17,7 +17,9 @@ const { algoliasearch } = require('algoliasearch');
 const commander = require('commander');
 const path = require('path');
 
-const menu = require('./src/content/docs-nav/nav.json');
+const docsNav = require('./src/content/docs-nav/nav.json');
+const apiMenu = require('./src/content/api-menu/menu.json');
+const { getIndexPages } = require('./scripts/algolia/indexPages');
 const supportedFrameworks = ['javascript', 'react', 'angular', 'vue'];
 const puppeteer = require('puppeteer-core');
 const assert = require('node:assert/strict');
@@ -263,13 +265,8 @@ const createRecords = async (browser, url, framework, breadcrumb, rank, loadFrom
 const readFromAgCharts = () => false;
 
 const processIndexForFramework = async (framework) => {
-    let rank = 10000; // using this rank ensures that pages that are earlier in the menu will rank higher in results
     const records = [];
     const indexName = `${indexNamePrefix}_${framework}`;
-
-    // const exclusions = ['api-create-update', 'api-download', 'events'];
-    const exclusions = [];
-    const filter = () => false;
 
     const browser = await puppeteer.launch({
         executablePath: isLocal
@@ -278,49 +275,25 @@ const processIndexForFramework = async (framework) => {
         ignoreHTTPSErrors: true,
     });
 
-    // console.log(`Generating records for ${indexName}...`);
+    for (const { path: pagePath, breadcrumb, rank, isApiPage } of getIndexPages({ docsNav, apiMenu })) {
+        const newRecords = await createRecords(
+            browser,
+            pagePath,
+            framework,
+            breadcrumb,
+            rank,
+            readFromAgCharts(pagePath)
+        );
 
-    const iterateItems = async (items, prefix, parentTitle) => {
-        if (!items) {
-            return;
-        }
+        // The API-tab pages are the regression this guards: a wrong path or an unbuilt site
+        // silently yields zero records, which used to ship green. Documentation pages are
+        // legitimately absent for some frameworks, so they keep the global assert below.
+        assert(
+            !isApiPage || newRecords.length > 0,
+            `No Algolia records for API page ${pagePath} (${framework}) — is the site built and the path correct?`
+        );
 
-        const breadcrumbPrefix = prefix ? `${prefix} > ` : '';
-
-        for (const item of items) {
-            if (filter(item)) continue;
-
-            const breadcrumb = breadcrumbPrefix + item.title;
-            // console.log(`=== Walking ${breadcrumb}...`);
-
-            if (
-                item.path &&
-                !item.hidden &&
-                !exclusions.some((exclusion) => exclusion === item.path.replace(/\//g, ''))
-            ) {
-                const newRecords = await createRecords(
-                    browser,
-                    item.path,
-                    framework,
-                    breadcrumb,
-                    rank,
-                    readFromAgCharts(item.path)
-                );
-                // console.log(`Created ${newRecords.length} new records`)
-                records.push(...newRecords);
-
-                rank -= 10;
-            }
-
-            await iterateItems(item.children, breadcrumb, parentTitle);
-        }
-    };
-
-    const highLevelItems = Object.values(menu);
-    for (const item of highLevelItems) {
-        if (filter(item)) continue;
-
-        await iterateItems(item);
+        records.push(...newRecords);
     }
 
     assert(records.length > 0, 'Algolia search index should not be empty');
