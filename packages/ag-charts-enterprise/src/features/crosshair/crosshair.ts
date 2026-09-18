@@ -82,20 +82,12 @@ export class Crosshair
 
         this.hideCrosshairs();
 
-        ctx.domManager.addEventListener('focusin', ({ target }) => {
-            if (this.checkInteractionState()) return;
-            const isSeriesAreaChild = target instanceof HTMLElement && ctx.domManager.contains(target, 'series-area');
-            if (this.crosshairGroup.visible && !isSeriesAreaChild) {
-                this.hideCrosshairs();
-                this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
-            }
-        });
-
         const { seriesDragInterpreter } = ctx.widgets;
         this.cleanup.register(
             ctx.scene.attachNode(this.crosshairGroup),
             ctx.widgets.seriesBoundsWidget.addListener('mousemove', (event) => this.onMouseHoverLike(event)),
             ctx.widgets.seriesBoundsWidget.addListener('mouseleave', () => this.onMouseOut()),
+            ctx.eventsHub.on('dom:series-blurred', () => this.onSeriesBlurred()),
             ctx.eventsHub.on('series:focus-change', () => this.onKeyPress()),
             ctx.eventsHub.on('zoom:pan-start', () => this.onMouseOut()),
             ctx.eventsHub.on('zoom:change-complete', () => this.onMouseOut()),
@@ -321,6 +313,12 @@ export class Crosshair
         if (this.options?.snap && this.crosshairGroup.visible) {
             this.refreshPositions();
         }
+    }
+
+    private onSeriesBlurred() {
+        if (this.checkInteractionState() || !this.crosshairGroup.visible) return;
+        this.hideCrosshairs();
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
 
     private onKeyPress() {
