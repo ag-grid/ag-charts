@@ -181,7 +181,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
             logger: this.logger,
         });
         // A rejected interval leaves automatic ticks driven by tickCount, so the axis overlap search
-        // must keep thinning them rather than stopping after its first pass (AG-18574).
+        // must keep thinning them rather than stopping after its first pass.
         const intervalIgnored = intervalTicks == null;
         const dateTicks = intervalTicks ?? this.getDefaultTicks(domain, tickCount, visibleRange, extend).ticks;
 
@@ -197,7 +197,9 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
             }
         }
 
-        return { ticks, count: undefined, firstTickIndex: undefined, ...(intervalIgnored && { intervalIgnored }) };
+        const result: ScaleTickResult<Date> = { ticks, count: undefined, firstTickIndex: undefined };
+        if (intervalIgnored) result.intervalIgnored = true;
+        return result;
     }
 
     stepTicks(bandStep: number, domain?: Date[], visibleRange: [number, number] = [0, 1], dropLast = true): Date[] {

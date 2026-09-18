@@ -76,11 +76,18 @@ export class LinearScale extends ContinuousScale<AgNumericValue> {
             intervalIgnored = true;
         }
 
-        return {
-            ...createTicks(d0, d1, tickCount, minTickCount, maxTickCount, visibleRange),
-            // Conditional: an explicit `intervalIgnored: undefined` changes the serialised result shape.
-            ...(intervalIgnored && { intervalIgnored }),
-        };
+        // OPTIMIZATION: attach the flag in place — the auto-tick path then allocates nothing extra,
+        // and an absent key keeps the serialised result shape.
+        const result: ScaleTickResult<AgNumericValue> = createTicks(
+            d0,
+            d1,
+            tickCount,
+            minTickCount,
+            maxTickCount,
+            visibleRange
+        );
+        if (intervalIgnored) result.intervalIgnored = true;
+        return result;
     }
 
     override niceDomain(ticks: ScaleTickParams<number>, domain: AgNumericValue[] = this.domain): AgNumericValue[] {

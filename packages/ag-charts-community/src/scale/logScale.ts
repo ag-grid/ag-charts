@@ -122,12 +122,9 @@ export class LogScale extends ContinuousScale<number> {
         if (!isInteger(base) || p1 - p0 >= tickCount) {
             const step = Math.min(p1 - p0, tickCount);
             const { ticks, count, firstTickIndex } = createTicks(p0, p1, step, undefined, undefined, visibleRange);
-            return {
-                ticks: ticks.map(this.pow),
-                count,
-                firstTickIndex,
-                ...(intervalIgnored && { intervalIgnored }),
-            };
+            const result: ScaleTickResult<number> = { ticks: ticks.map(this.pow), count, firstTickIndex };
+            if (intervalIgnored) result.intervalIgnored = true;
+            return result;
         }
 
         const ticks: number[] = [];
@@ -153,6 +150,8 @@ export class LogScale extends ContinuousScale<number> {
             }
         }
 
-        return { ...filterVisibleTicks(ticks, isPositive, visibleRange), ...(intervalIgnored && { intervalIgnored }) };
+        const result: ScaleTickResult<number> = filterVisibleTicks(ticks, isPositive, visibleRange);
+        if (intervalIgnored) result.intervalIgnored = true;
+        return result;
     }
 }

@@ -86,13 +86,14 @@ export class TimeScale extends ContinuousScale<Date, AgTimeInterval | AgTimeInte
             // A rejected interval leaves automatic ticks driven by tickCount, which the axis overlap
             // search can still thin; an honoured one pins them.
             const intervalIgnored = intervalTicks == null;
-            return {
+            const result: ScaleTickResult<Date> = {
                 ticks:
                     intervalTicks ??
                     getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange, extend }),
                 count: undefined,
-                ...(intervalIgnored && { intervalIgnored }),
             };
+            if (intervalIgnored) result.intervalIgnored = true;
+            return result;
         } else if (nice.every(Boolean) && tickCount === 2) {
             return { ticks: domain, count: undefined };
         } else if (nice.every(Boolean) && tickCount === 1) {
