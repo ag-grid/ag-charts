@@ -203,6 +203,41 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
         expect(xDomain()).toEqual([-500, 11500]);
     });
 
+    it('fits the x domain to decimal values whose spacing does not subtract exactly', async () => {
+        // (-500 + i * 100) / 10000 is spaced 0.01 apart, but adjacent subtractions disagree in the
+        // last bits, so an exact comparison would miss the spacing and leave the bounds on [-1, 2].
+        const values = Array.from({ length: 116 }, (_, i) => (-500 + i * 100) / 10000);
+        chart = await createBarChart(
+            { interval: { values } },
+            data.map(({ x, value }) => ({ x: x / 10000, value }))
+        );
+
+        const [d0, d1] = xDomain();
+        expect(d0).toBeCloseTo(-0.05, 10);
+        expect(d1).toBeCloseTo(1.15, 10);
+    });
+
+    it('leaves the y domain on the data when two sparse values imply a wide step', async () => {
+        // Any two values are evenly spaced, so the implied step is the whole gap between them, and
+        // rounding the bounds out to a multiple of that gap would leave the data in a narrow band.
+        const options: AgCartesianChartOptions = {
+            data: [
+                { x: 0, y: 1 },
+                { x: 1, y: -64.2 },
+                { x: 2, y: -148.1 },
+            ],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: { type: 'number', position: 'left', interval: { values: [0, -148.1] } },
+            },
+        };
+        chart = await createChart(options);
+
+        const yAxis = (chart.axes as any[]).find((a) => a.direction === 'y');
+        expect(yAxis.scale.domain.map(Number)).toEqual([-150, 50]);
+    });
+
     it('still reduces colliding labels when the step is too dense for the scale to honour', async () => {
         // Over an 8000-wide domain this is far more than one tick per pixel, so the scale rejects the
         // step and falls back to automatic ticks driven by the tick count.

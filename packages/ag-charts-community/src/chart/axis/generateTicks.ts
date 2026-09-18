@@ -295,21 +295,35 @@ function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>
 /**
  * Explicit values pin the ticks, leaving no meaningful tick count for the bounds to be niced
  * against: a count that suits the data can snap them to a grid the data does not sit on, leaving
- * the axis wider than the coarsest count would. Take whichever encloses the data most tightly.
+ * the axis wider than another nicing would. Take whichever encloses the data most tightly.
  */
 function calculateNiceDomain<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
     scale: TScale,
     domainParams: ScaleTickParams<any>,
     domain: TDatum[],
     { tickCount, minTickCount }: CountParams,
-    tickGenerationType: TickGenerationType
+    tickGenerationType: TickGenerationType,
+    values: unknown[] | undefined
 ): TDatum[] {
-    const niceDomain = scale.niceDomain(domainParams, domain);
-    if (tickGenerationType !== TickGenerationType.VALUES || minTickCount === tickCount) return niceDomain;
+    let niceDomain = scale.niceDomain(domainParams, domain);
+    if (tickGenerationType !== TickGenerationType.VALUES) return niceDomain;
 
-    const coarse = scale.niceDomain({ ...domainParams, tickCount: minTickCount }, domain);
-    const tighter = contains(coarse, domain) && domainExtent(coarse) < domainExtent(niceDomain);
-    return tighter ? coarse : niceDomain;
+    const spacing = domainParams.interval == null && values != null ? evenValueSpacing(values) : undefined;
+    const candidates: ScaleTickParams<any>[] = [];
+    if (minTickCount < tickCount) {
+        candidates.push({ ...domainParams, tickCount: minTickCount });
+    }
+    if (spacing != null) {
+        candidates.push({ ...domainParams, interval: spacing });
+    }
+
+    for (const params of candidates) {
+        const candidate = scale.niceDomain(params, domain);
+        if (contains(candidate, domain) && domainExtent(candidate) < domainExtent(niceDomain)) {
+            niceDomain = candidate;
+        }
+    }
+    return niceDomain;
 }
 
 function domainExtent(domain: unknown[]): number {
@@ -329,11 +343,16 @@ function evenValueSpacing(values: unknown[]): number | undefined {
     }
 
     const sorted = (values as number[]).toSorted((a, b) => a - b);
-    const spacing = sorted[1] - sorted[0];
-    for (let i = 2; i < sorted.length; i += 1) {
-        if (sorted[i] - sorted[i - 1] !== spacing) return;
+    const spacing = (sorted.at(-1)! - sorted[0]) / (sorted.length - 1);
+    if (spacing <= 0) return;
+
+    // Adjacent subtractions of a decimal sequence each round differently, so compare every value
+    // against the position it would occupy rather than against its neighbour.
+    const tolerance = spacing * 1e-6;
+    for (let i = 1; i < sorted.length - 1; i += 1) {
+        if (Math.abs(sorted[i] - (sorted[0] + i * spacing)) > tolerance) return;
     }
-    return spacing > 0 ? spacing : undefined;
+    return spacing;
 }
 
 function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
@@ -359,11 +378,6 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
         ...countParams,
     };
 
-    // Evenly spaced values imply a step, which pins the bounds exactly as `interval.step` does.
-    if (tickGenerationType === TickGenerationType.VALUES) {
-        domainParams.interval ??= evenValueSpacing(interval!.values!);
-    }
-
     const tickParams = {
         ...domainParams,
         nice: niceMode.map((n) => n === NiceMode.TickAndDomain || n === NiceMode.TicksOnly),
@@ -381,7 +395,7 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
 
     const niceDomain = niceMode.includes(NiceMode.TickAndDomain)
         ? (secondaryAxisTicks?.domain ??
-          calculateNiceDomain(scale, domainParams, domain, countParams, tickGenerationType))
+          calculateNiceDomain(scale, domainParams, domain, countParams, tickGenerationType, interval?.values))
         : domain;
     let tickDomain: TDatum[] = niceDomain;
     let rawTicks: any[] | undefined;
