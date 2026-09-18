@@ -21,6 +21,7 @@ const base = { version: '1.0.0', create: () => ({}) } as const;
 const plugin = (name: string, extra: Partial<ModuleDefinition> = {}): ModuleDefinition => ({
     type: ModuleType.Plugin,
     name,
+    options: { enabled: boolean },
     ...base,
     ...extra,
 });
@@ -76,6 +77,7 @@ describe('contributionsOf', () => {
             optionsKey: 'crossLines',
             chartType: 'polar',
             axisTypes: ['angle-number'],
+            themeTemplate: {},
             ...base,
         });
         expect(contribution).toMatchObject({
@@ -91,6 +93,7 @@ describe('contributionsOf', () => {
             type: ModuleType.SeriesPlugin,
             name: 'errorBar',
             seriesTypes: ['bar', 'line'],
+            options: { enabled: boolean },
             ...base,
         });
         expect(contribution).toMatchObject({
@@ -98,6 +101,20 @@ describe('contributionsOf', () => {
             seriesTypes: ['bar', 'line'],
             requested: 'present',
         });
+    });
+
+    it.each([ModuleType.Plugin, ModuleType.AxisPlugin, ModuleType.SeriesPlugin])(
+        'derives nothing for a %s module with neither options nor a theme template',
+        (type) => {
+            expect(contributionsOf({ type, name: 'zoom-base', chartType: 'cartesian', ...base })).toEqual([]);
+        }
+    );
+
+    it('derives a root location for a plugin with only a theme template', () => {
+        const themeTemplate = { enabled: true };
+        expect(contributionsOf({ type: ModuleType.Plugin, name: 'statusBar', themeTemplate, ...base })).toEqual([
+            { path: 'statusBar', options: undefined, themeTemplate, chartTypes: undefined },
+        ]);
     });
 
     it.each([ModuleType.Chart, ModuleType.Axis, ModuleType.Series, ModuleType.Preset])(
@@ -186,7 +203,7 @@ describe('ModuleScope.optionsContributions', () => {
 
     it('lets an enterprise definition replace the community one by name', () => {
         const scope = createModuleScope();
-        scope.register(plugin('series-area'));
+        scope.register(plugin('series-area', { options: undefined }));
         scope.register(
             plugin('series-area', { enterprise: true, contributes: [{ path: 'seriesArea.backgroundRegions' }] })
         );
@@ -317,7 +334,10 @@ describe('composeContributedDefs', () => {
         const defs = { statusBar: boolean } as any;
         const composed = composeContributedDefs(
             defs,
-            resolveContributions([plugin('statusBar'), plugin('navigator')])
+            resolveContributions([
+                plugin('statusBar', { options: undefined, themeTemplate: {} }),
+                plugin('navigator', { options: undefined, themeTemplate: {} }),
+            ])
         ) as any;
 
         expect(composed.statusBar).toBe(boolean);
@@ -330,8 +350,8 @@ describe('composeContributedDefs', () => {
             composeContributedDefs(
                 defs,
                 resolveContributions([
-                    { type: ModuleType.AxisPlugin, name: 'crosshair', ...base },
-                    { type: ModuleType.SeriesPlugin, name: 'errorBar', ...base },
+                    { type: ModuleType.AxisPlugin, name: 'crosshair', themeTemplate: {}, ...base },
+                    { type: ModuleType.SeriesPlugin, name: 'errorBar', themeTemplate: {}, ...base },
                 ])
             )
         ).toBe(defs);

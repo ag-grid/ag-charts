@@ -102,9 +102,9 @@ export interface ContributingDefinition {
 
 /**
  * The locations `definition` owns: its explicit `contributes`, otherwise the single location its
- * module type has always implied. Either way a contribution without `chartTypes` inherits the
- * definition's `chartType`. Chart, axis, series and preset modules own whole subtrees by identity
- * rather than by path and so contribute nothing.
+ * module type implies, provided it has `options` or a `themeTemplate` to put there. Either way a
+ * contribution without `chartTypes` inherits the definition's `chartType`. Chart, axis, series and
+ * preset modules own whole subtrees by identity rather than by path and so contribute nothing.
  */
 export function contributionsOf(definition: ContributingDefinition): readonly OptionsContribution[] {
     const { name, chartType, options, themeTemplate } = definition;
@@ -116,6 +116,8 @@ export function contributionsOf(definition: ContributingDefinition): readonly Op
             contribution.chartTypes == null ? { ...contribution, chartTypes } : contribution
         );
     }
+
+    if (options == null && themeTemplate == null) return [];
 
     switch (definition.type) {
         case 'plugin':

@@ -99,7 +99,8 @@ export interface ModuleDefinition<
     readonly placeholder?: boolean;
     /**
      * Option locations this module owns. Omit to derive the single location the module type implies
-     * (see `contributionsOf`); declare it to own options anywhere else in the tree.
+     * from `options` and `themeTemplate` (see `contributionsOf`); declare it to own options anywhere
+     * else in the tree. A module with neither owns nothing.
      */
     readonly contributes?: readonly OptionsContribution[];
 

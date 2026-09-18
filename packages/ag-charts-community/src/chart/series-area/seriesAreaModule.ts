@@ -9,7 +9,6 @@ export const SeriesAreaModule: PluginModuleDefinition<never, ChartRegistry> = /*
     type: 'plugin',
     name: 'series-area',
     version: VERSION,
-    contributes: [],
     // Exposed as a service so that modules rendering inside the series area can attach to it.
     register: (ctx) => {
         if (ctx.has('seriesArea')) return;

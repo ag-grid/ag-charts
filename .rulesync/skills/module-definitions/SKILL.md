@@ -69,8 +69,8 @@ Each contribution:
     request for the missing module.
 -   `apiName`: a public name for the report when the path alone reads badly.
 
-`contributes: []` means the module owns no option location at all (internal dependencies, the
-community series area).
+A module with neither `options` nor a `themeTemplate` owns no option location at all (internal
+dependencies, the community series area), so it declares nothing.
 
 ## Community and enterprise pairs
 

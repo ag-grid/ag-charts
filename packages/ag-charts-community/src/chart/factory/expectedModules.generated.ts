@@ -1,7 +1,7 @@
 // Module placeholders generated from the exported module definitions by
 // packages/ag-charts-enterprise/src/moduleTables.test.ts. Do not edit by hand:
 // Run `UPDATE_MODULE_TABLES=1 yarn nx test ag-charts-enterprise -- moduleTables` to regenerate.
-import { array, callback } from 'ag-charts-core';
+import { array, callback, object } from 'ag-charts-core';
 
 import type { ModulePlaceholder } from './modulePlaceholder';
 
@@ -341,6 +341,12 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         name: 'animation',
         moduleId: 'AnimationModule',
         enterprise: true,
+        contributes: [
+            {
+                path: 'animation',
+                options: object,
+            },
+        ],
     },
     {
         type: 'plugin',
@@ -348,6 +354,12 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         moduleId: 'AnnotationsModule',
         chartType: 'cartesian',
         enterprise: true,
+        contributes: [
+            {
+                path: 'annotations',
+                options: object,
+            },
+        ],
     },
     {
         type: 'plugin',
@@ -393,40 +405,82 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         moduleId: 'ChartToolbarModule',
         chartType: 'cartesian',
         enterprise: true,
+        contributes: [
+            {
+                path: 'chartToolbar',
+                options: object,
+            },
+        ],
     },
     {
         type: 'plugin',
         name: 'contextMenu',
         moduleId: 'ContextMenuModule',
         enterprise: true,
+        contributes: [
+            {
+                path: 'contextMenu',
+                options: object,
+            },
+        ],
     },
     {
         type: 'plugin',
         name: 'dataSource',
         moduleId: 'DataSourceModule',
         enterprise: true,
+        contributes: [
+            {
+                path: 'dataSource',
+                options: object,
+            },
+        ],
     },
     {
         type: 'plugin',
         name: 'flashOnUpdate',
         moduleId: 'FlashOnUpdateModule',
         enterprise: true,
+        contributes: [
+            {
+                path: 'flashOnUpdate',
+                options: object,
+            },
+        ],
     },
     {
         type: 'plugin',
         name: 'gradientLegend',
         moduleId: 'GradientLegendModule',
         enterprise: true,
+        contributes: [
+            {
+                path: 'gradientLegend',
+                options: object,
+            },
+        ],
     },
     {
         type: 'plugin',
         name: 'legend',
         moduleId: 'LegendModule',
+        contributes: [
+            {
+                path: 'legend',
+                options: object,
+            },
+        ],
     },
     {
         type: 'plugin',
         name: 'locale',
         moduleId: 'LocaleModule',
+        contributes: [
+            {
+                path: 'locale',
+                options: object,
+            },
+        ],
     },
     {
         type: 'plugin',
@@ -434,6 +488,12 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         moduleId: 'NavigatorModule',
         chartType: 'cartesian',
         enterprise: true,
+        contributes: [
+            {
+                path: 'navigator',
+                options: object,
+            },
+        ],
     },
     {
         type: 'plugin',
@@ -441,6 +501,12 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         moduleId: 'RangesModule',
         chartType: 'cartesian',
         enterprise: true,
+        contributes: [
+            {
+                path: 'ranges',
+                options: object,
+            },
+        ],
     },
     {
         type: 'plugin',
@@ -448,12 +514,24 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         moduleId: 'ScrollbarModule',
         chartType: 'cartesian',
         enterprise: true,
+        contributes: [
+            {
+                path: 'scrollbar',
+                options: object,
+            },
+        ],
     },
     {
         type: 'plugin',
         name: 'selection',
         moduleId: 'SelectionModule',
         enterprise: true,
+        contributes: [
+            {
+                path: 'selection',
+                options: object,
+            },
+        ],
     },
     {
         type: 'plugin',
@@ -467,6 +545,11 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         moduleId: 'StatusBarModule',
         chartType: 'cartesian',
         enterprise: true,
+        contributes: [
+            {
+                path: 'statusBar',
+            },
+        ],
     },
     {
         type: 'plugin',
@@ -474,18 +557,29 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         moduleId: 'SyncModule',
         chartType: 'cartesian',
         enterprise: true,
+        contributes: [
+            {
+                path: 'sync',
+                options: object,
+            },
+        ],
     },
     {
         type: 'plugin',
         name: 'zoom',
         moduleId: 'ZoomModule',
         enterprise: true,
+        contributes: [
+            {
+                path: 'zoom',
+                options: object,
+            },
+        ],
     },
     {
         type: 'plugin',
         name: 'zoom-base',
         moduleId: 'QuadrantChartModule',
-        contributes: [],
     },
     {
         type: 'axis:plugin',
@@ -494,6 +588,12 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         chartType: 'cartesian',
         enterprise: true,
         axisTypes: ['category', 'ordinal-time', 'unit-time', 'grouped-category'],
+        contributes: [
+            {
+                path: 'axes[].bandHighlight',
+                axisTypes: ['category', 'ordinal-time', 'unit-time', 'grouped-category'],
+            },
+        ],
     },
     {
         type: 'axis:plugin',
@@ -501,12 +601,22 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         moduleId: 'CrosshairModule',
         chartType: 'cartesian',
         enterprise: true,
+        contributes: [
+            {
+                path: 'axes[].crosshair',
+            },
+        ],
     },
     {
         type: 'axis:plugin',
         name: 'crossLines',
         moduleId: 'CrossLinesModule',
         chartType: 'cartesian',
+        contributes: [
+            {
+                path: 'axes[].crossLines',
+            },
+        ],
     },
     {
         type: 'axis:plugin',
@@ -516,6 +626,12 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         enterprise: true,
         optionsKey: 'crossLines',
         axisTypes: ['angle-category', 'angle-number', 'radius-category', 'radius-number'],
+        contributes: [
+            {
+                path: 'axes[].crossLines',
+                axisTypes: ['angle-category', 'angle-number', 'radius-category', 'radius-number'],
+            },
+        ],
     },
     {
         type: 'series:plugin',
@@ -524,6 +640,14 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         chartType: 'cartesian',
         enterprise: true,
         seriesTypes: ['bar', 'line', 'scatter'],
+        contributes: [
+            {
+                path: 'series[].errorBar',
+                options: object,
+                seriesTypes: ['bar', 'line', 'scatter'],
+                requested: 'present',
+            },
+        ],
     },
     {
         type: 'preset',

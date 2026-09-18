@@ -6,6 +6,7 @@ import * as community from 'ag-charts-community';
 import {
     type ModuleDefinition,
     ModuleType,
+    type OptionsContribution,
     type OptionsDefs,
     type Validator,
     contributionHost,
@@ -189,9 +190,9 @@ function buildCatalogue(communityExports: PackageExports, enterpriseExports: Pac
         if (existing == null) {
             byName.set(definition.name, definition);
         } else if (existing !== definition && !existing.enterprise && definition.enterprise) {
-            if ((definition.contributes?.length ?? 0) > 0) byName.set(definition.name, definition);
+            if (contributionsOf(definition).length > 0) byName.set(definition.name, definition);
         } else if (existing !== definition && existing.enterprise && !definition.enterprise) {
-            if ((existing.contributes?.length ?? 0) === 0) byName.set(definition.name, definition);
+            if (contributionsOf(existing).length === 0) byName.set(definition.name, definition);
         }
     }
 
@@ -233,6 +234,18 @@ function placeholderValidator(options: OptionsDefs<any> | Validator | undefined)
     }
 }
 
+/** Whether `contributionsOf` will restore `chartTypes` from the placeholder's own `chartType`. */
+function inheritedChartTypes(definition: Definition, contribution: OptionsContribution) {
+    const { chartType } = definition;
+    return chartType != null && contribution.chartTypes?.length === 1 && contribution.chartTypes[0] === chartType;
+}
+
+/** Placeholders carry neither `options` nor `themeTemplate`, so their locations are spelled out. */
+function placeholderContributions(definition: Definition) {
+    const contributions = contributionsOf(definition);
+    return contributions.length > 0 ? contributions : undefined;
+}
+
 function compact<T extends object>(value: T): T {
     return Object.fromEntries(Object.entries(value).filter(([, v]) => v !== undefined)) as T;
 }
@@ -254,11 +267,11 @@ function sortedPlaceholders(catalogue: ModuleCatalogue) {
                 axisTypes: definition.axisTypes,
                 seriesTypes: definition.seriesTypes,
                 apiName: definition.apiName,
-                contributes: definition.contributes?.map((contribution) =>
+                contributes: placeholderContributions(definition)?.map((contribution) =>
                     compact({
                         path: contribution.path,
                         options: placeholderValidator(contribution.options),
-                        chartTypes: contribution.chartTypes,
+                        chartTypes: inheritedChartTypes(definition, contribution) ? undefined : contribution.chartTypes,
                         axisTypes: contribution.axisTypes,
                         seriesTypes: contribution.seriesTypes,
                         requested: contribution.requested,
