@@ -1,6 +1,7 @@
 import { type AgChartThemeOverrides, type WithThemeParams } from 'ag-charts-community';
 import {
     CARTESIAN_AXIS_TYPE,
+    COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
@@ -13,6 +14,7 @@ import {
     type NonNullablePath,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    interpolationThemeTemplate,
 } from 'ag-charts-core';
 
 type RangeAreaItemOptions = NonNullablePath<AgChartThemeOverrides, 'range-area', 'series', 'item'>;
@@ -113,6 +115,7 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
 
 export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['range-area']> = {
     series: {
+        ...COMMON_SERIES_THEME_DEFAULTS,
         fill: {
             $applySwitch: [
                 { $path: 'type' },
@@ -124,6 +127,9 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
         fillOpacity: 0.7,
         stroke: { $palette: 'stroke' },
         strokeWidth: 1,
+        strokeOpacity: 1,
+        lineDash: [0],
+        lineDashOffset: 0,
         marker: {
             enabled: false,
             fill: {
@@ -138,7 +144,11 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
             shape: 'circle',
             stroke: { $palette: 'stroke' },
             size: 6,
+            fillOpacity: 1,
             strokeWidth: 2,
+            strokeOpacity: 1,
+            lineDash: [0],
+            lineDashOffset: 0,
         },
         nodeClickRange: { $if: [{ $path: '/selection/enabled' }, 10, 'nearest'] },
         item: {
@@ -159,13 +169,20 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
             insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
         },
-        interpolation: {
-            type: 'linear',
+        connectMissingData: false,
+        interpolation: interpolationThemeTemplate(),
+        shadow: {
+            enabled: false,
+            color: 'rgba(0, 0, 0, 0.5)',
+            xOffset: 0,
+            yOffset: 0,
+            blur: 5,
         },
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
+            interaction: { enabled: false },
         },
-        highlight: MARKER_SERIES_HIGHLIGHT_STYLE,
+        highlight: { ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
         invertedStyle: {

@@ -1,31 +1,34 @@
 import {
-    type AgBaseRadarSeriesOptions,
     type AgDrawingMode,
     type AgRadarSeriesLabelFormatterParams,
     type AgRadarSeriesStyle,
     type AgSeriesMarkerStyle,
-    type ContextDefault,
     type CssColor,
-    type DatumDefault,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
     type CallbackParam,
     ChartAxisDirection,
+    type DeepPartial,
     type DomainWithMetadata,
     type DynamicContext,
+    type NormalisedRadarSeriesMarkerOptions,
+    type NormalisedRadarSeriesOwnOptions,
     type NormalisedSeriesMarkerStyle,
+    type NormalisedSeriesOptions,
+    type NormalisedTextOrSegments,
     type Point,
     type RequireOptional,
+    type SizedPoint,
     extent,
     fitLabelText,
     isFiniteNumber,
     isNumberEqual,
+    markerRebuildNeeded,
     mergeDefaults,
     resolveLabelFit,
 } from 'ag-charts-core';
 
-import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
 import { radarMarkerDrawMode } from './radarUtil';
 
 const {
@@ -51,7 +54,24 @@ const {
     Marker,
     updateLabelNode,
     getMarkerStyles,
+    createDatumId,
+    processedDataIsAnimatable,
 } = _ModuleSupport;
+
+export interface RadarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
+    readonly index: number;
+    readonly label?: {
+        x: number;
+        y: number;
+        text: NormalisedTextOrSegments;
+        textAlign: CanvasTextAlign;
+        textBaseline: CanvasTextBaseline;
+    };
+    readonly point: Readonly<SizedPoint>;
+    readonly angleValue: any;
+    readonly radiusValue: any;
+    style?: AgSeriesMarkerStyle;
+}
 
 export interface RadarPathPoint {
     x: number;
@@ -69,25 +89,25 @@ interface RadarSeriesNodeDataContext extends _ModuleSupport.SeriesNodeDataContex
 
 /** Per-pass context for the radar marker-style passes (shared by no-itemStyler and itemStyler paths). */
 interface RadarPassCtx {
-    marker: RadarSeriesProperties<any, any>['marker'];
+    marker: NormalisedRadarSeriesMarkerOptions;
     hideWithSize0: boolean;
     isHighlight: boolean;
 }
 
 type RadarNoStylerCompute = _ModuleSupport.MarkerStyleCompute<
-    RadarSeries<any, any, any>,
+    RadarSeries<any, any>,
     RadarPassCtx,
     RadarNodeDatum,
     AgSeriesMarkerStyle
 >;
 type RadarStylerCompute = _ModuleSupport.MarkerStyleCompute<
-    RadarSeries<any, any, any>,
+    RadarSeries<any, any>,
     RadarPassCtx,
     RadarNodeDatum,
     ResolvedRadarStyle<any>
 >;
 type RadarStylerApply = _ModuleSupport.MarkerStyleApply<
-    RadarSeries<any, any, any>,
+    RadarSeries<any, any>,
     RadarPassCtx,
     RadarNodeDatum,
     ResolvedRadarStyle<any>
@@ -106,16 +126,23 @@ export type ResolvedRadarStyle<TStyle extends AgRadarSeriesStyle> = {
 
 export abstract class RadarSeries<
     TStyle extends AgRadarSeriesStyle,
-    TOpts extends AgBaseRadarSeriesOptions<DatumDefault, ContextDefault, TStyle>,
-    TProps extends RadarSeriesProperties<TStyle, TOpts>,
-> extends _ModuleSupport.PolarSeries<RadarNodeDatum, TOpts, TProps, _ModuleSupport.Marker<RadarNodeDatum>> {
+    TOptions extends NormalisedRadarSeriesOwnOptions<TStyle>,
+> extends _ModuleSupport.PolarSeries<RadarNodeDatum, TOptions, undefined, _ModuleSupport.Marker<RadarNodeDatum>> {
     static override readonly className: string = 'RadarSeries';
+
+    private markerDirty = true;
+
+    protected override syncOptionDerivedState(optionsDiff: DeepPartial<NormalisedSeriesOptions<TOptions>> | undefined) {
+        if (optionsDiff == null || markerRebuildNeeded(optionsDiff.marker)) {
+            this.markerDirty = true;
+        }
+    }
 
     override createNodeParams(datum: RadarNodeDatum) {
         return {
             ...super.createNodeParams(datum),
-            angleKey: this.properties.angleKey,
-            radiusKey: this.properties.radiusKey,
+            angleKey: this.options.angleKey,
+            radiusKey: this.options.radiusKey,
         };
     }
 
@@ -176,7 +203,7 @@ export abstract class RadarSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        const { angleKey, radiusKey } = this.properties;
+        const { angleKey, radiusKey } = this.options;
         const extraProps = [];
 
         if (!this.ctx.animationManager.isSkipped()) {
@@ -185,7 +212,7 @@ export abstract class RadarSeries<
 
         const radiusScaleType = this.axes[ChartAxisDirection.Radius]?.scale.type;
         const angleScaleType = this.axes[ChartAxisDirection.Angle]?.scale.type;
-        const allowNullKey = this.properties.allowNullKeys ?? false;
+        const allowNullKey = this.options.allowNullKeys ?? false;
 
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
@@ -230,7 +257,7 @@ export abstract class RadarSeries<
 
         if (!processedData || !dataModel) return;
 
-        const { angleKey, radiusKey, angleName, radiusName, legendItemName, marker, label } = this.properties;
+        const { angleKey, radiusKey, angleName, radiusName, legendItemName, marker, label } = this.options;
         const angleScale = this.axes[ChartAxisDirection.Angle]?.scale;
         const radiusScale = this.axes[ChartAxisDirection.Radius]?.scale;
 
@@ -246,7 +273,7 @@ export abstract class RadarSeries<
         const radiusDomain = this.getSeriesDomain(ChartAxisDirection.Radius).domain;
 
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        const allowNullKeys = this.options.allowNullKeys ?? false;
         const nodeData: RadarNodeDatum[] = [];
         const labelFit = resolveLabelFit(label, false);
 
@@ -325,7 +352,7 @@ export abstract class RadarSeries<
             itemId: radiusKey,
             nodeData,
             labelData: nodeData,
-            styles: getMarkerStyles(this, this.properties, marker),
+            styles: getMarkerStyles(this, this.options, marker),
         };
     }
 
@@ -350,6 +377,7 @@ export abstract class RadarSeries<
         this.updatePathSelections();
         this.updateMarkerSelection();
         this.updateHighlightSelection();
+        this.markerDirty = false;
 
         this.updatePathNodes();
 
@@ -376,8 +404,7 @@ export abstract class RadarSeries<
     }
 
     protected updateMarkerSelection() {
-        const { marker } = this.properties;
-        if (marker.isDirty()) {
+        if (this.markerDirty) {
             this.itemSelection.clear();
             this.itemSelection.cleanup();
             this.itemSelection = Selection.select(this.itemGroup, () => this.nodeFactory(), false);
@@ -388,12 +415,16 @@ export abstract class RadarSeries<
         this.markerNodesPickable = markerDrawMode.needsNodeData && !markerDrawMode.hideWithSize0;
 
         const data = markerDrawMode.needsNodeData ? this.nodeData : [];
-        this.itemSelection.update(data);
+        if (this.processedData && processedDataIsAnimatable(this.processedData)) {
+            this.itemSelection.update(data, undefined, (datum) => createDatumId(datum.angleValue));
+        } else {
+            this.itemSelection.update(data);
+        }
     }
 
     protected updateHighlightSelection() {
-        const { marker, styler } = this.properties;
-        if (marker.isDirty()) {
+        const { marker, styler } = this.options;
+        if (this.markerDirty) {
             this.highlightSelection.clear();
             this.highlightSelection.cleanup();
             this.highlightSelection = Selection.select(this.highlightGroup, () => this.nodeFactory(), false);
@@ -413,8 +444,8 @@ export abstract class RadarSeries<
     }
 
     protected getDatumStylerProperties(datum: any) {
-        const { id: seriesId, properties } = this;
-        const { angleKey, radiusKey } = properties;
+        const { id: seriesId, options } = this;
+        const { angleKey, radiusKey } = options;
 
         return {
             seriesId,
@@ -471,13 +502,13 @@ export abstract class RadarSeries<
         isHighlight: boolean
     ) {
         const { hideWithSize0 } = this;
-        const { marker } = this.properties;
+        const { marker } = this.options;
         const { itemStyler } = marker;
         const ctx: RadarPassCtx = { marker, isHighlight, hideWithSize0 };
 
         if (itemStyler == null) {
             // No itemStyler: style is a pure function of (highlightState, selectionState).
-            this.runMarkerStylePass<RadarPassCtx, RadarNodeDatum, AgSeriesMarkerStyle, RadarSeries<any, any, any>>(
+            this.runMarkerStylePass<RadarPassCtx, RadarNodeDatum, AgSeriesMarkerStyle, RadarSeries<any, any>>(
                 selection,
                 isHighlight,
                 ctx,
@@ -489,7 +520,7 @@ export abstract class RadarSeries<
             return;
         }
 
-        this.runMarkerStylePass<RadarPassCtx, RadarNodeDatum, ResolvedRadarStyle<any>, RadarSeries<any, any, any>>(
+        this.runMarkerStylePass<RadarPassCtx, RadarNodeDatum, ResolvedRadarStyle<any>, RadarSeries<any, any>>(
             selection,
             isHighlight,
             ctx,
@@ -526,8 +557,14 @@ export abstract class RadarSeries<
         });
     }
 
+    private makeLabelStylerParams(): RequireOptional<AgRadarSeriesLabelFormatterParams> {
+        const { angleKey, radiusKey, angleName, radiusName, legendItemName } = this.options;
+        return { angleKey, radiusKey, angleName, radiusName, legendItemName };
+    }
+
     protected updateLabels() {
-        const properties: RadarSeriesProperties<TStyle, TOpts> = this.properties;
+        const { label } = this.options;
+        const params = this.makeLabelStylerParams();
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightData =
             activeHighlight?.series === this && activeHighlight?.datum
@@ -537,19 +574,19 @@ export abstract class RadarSeries<
         this.labelSelection.update(this.nodeData).each((node, datum) => {
             const isHighlight = false;
             node.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
-            updateLabelNode(this, node, properties, properties.label, datum.label, { isHighlight, activeHighlight });
+            updateLabelNode(this, node, params, label, datum.label, { isHighlight, activeHighlight });
         });
 
         this.highlightLabelSelection.update(highlightData).each((node, datum) => {
             const isHighlight = true;
             node.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
-            updateLabelNode(this, node, properties, properties.label, datum.label, { isHighlight, activeHighlight });
+            updateLabelNode(this, node, params, label, datum.label, { isHighlight, activeHighlight });
         });
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, axes, properties } = this;
-        const { angleKey, angleName, radiusKey, radiusName, legendItemName, tooltip, marker } = properties;
+        const { id: seriesId, dataModel, processedData, axes, options } = this;
+        const { angleKey, angleName, radiusKey, radiusName, legendItemName, tooltip, marker } = options;
         const angleAxis = axes[ChartAxisDirection.Angle];
         const radiusAxis = axes[ChartAxisDirection.Radius];
 
@@ -561,7 +598,7 @@ export abstract class RadarSeries<
             datumIndex
         ];
 
-        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        const allowNullKeys = this.options.allowNullKeys ?? false;
         if (angleValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const activeStyle = this.getMarkerStyle(marker, { datum, datumIndex }, this.getDatumStylerProperties(datum), {
@@ -642,7 +679,7 @@ export abstract class RadarSeries<
             visible,
         } = this;
 
-        const { radiusKey, radiusName, legendItemName, showInLegend } = this.properties;
+        const { radiusKey, radiusName, legendItemName, showInLegend } = this.options;
 
         return [
             {
@@ -656,7 +693,7 @@ export abstract class RadarSeries<
                 },
                 symbol: this.legendItemSymbol(),
                 legendItemName,
-                hideInLegend: !showInLegend,
+                hideInLegend: showInLegend === false,
             },
         ];
     }
@@ -694,7 +731,7 @@ export abstract class RadarSeries<
     }
 
     override computeLabelsBBox() {
-        const { label } = this.properties;
+        const { label } = this.options;
 
         this.maybeRefreshNodeData();
 
@@ -740,7 +777,7 @@ export abstract class RadarSeries<
 
     protected getLinePoints(): RadarPathPoint[] {
         const { nodeData, resetInvalidToZero } = this;
-        const { connectMissingData } = this.properties;
+        const { connectMissingData } = this.options;
         if (nodeData.length === 0) {
             return [];
         }
@@ -894,7 +931,7 @@ export abstract class RadarSeries<
         highlightStateEnum: _ModuleSupport.HighlightState | undefined,
         selectionStateEnum: _ModuleSupport.SelectionState | undefined,
         candidateStateEnum: _ModuleSupport.SelectionState | undefined
-    ): CallbackParam<NonNullable<TOpts['styler']>>;
+    ): CallbackParam<NonNullable<TOptions['styler']>>;
 
     protected getStylerResult(
         stylerResult: StylerResult<TStyle>,
@@ -902,7 +939,7 @@ export abstract class RadarSeries<
         selectionState: _ModuleSupport.SelectionState | undefined,
         candidateState: _ModuleSupport.SelectionState | undefined
     ): StylerResult<TStyle> {
-        const { styler } = this.properties;
+        const { styler } = this.options;
         if (styler) {
             const stylerParams = this.makeStylerParams(highlightState, selectionState, candidateState);
             const cbResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
@@ -923,8 +960,8 @@ export abstract class RadarSeries<
     abstract getStyle(highlightState: _ModuleSupport.HighlightState | undefined): ResolvedRadarStyle<TStyle>;
 
     public getFormattedMarkerStyle(datum: RadarNodeDatum) {
-        const { angleKey, radiusKey } = this.properties;
-        return this.getMarkerStyle(this.properties.marker, datum, { angleKey, radiusKey }, { isHighlight: true });
+        const { angleKey, radiusKey, marker } = this.options;
+        return this.getMarkerStyle(marker, datum, { angleKey, radiusKey }, { isHighlight: true });
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
@@ -932,11 +969,7 @@ export abstract class RadarSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return (
-            this.properties.selection.enabled ||
-            this.properties.styler != null ||
-            this.properties.marker.itemStyler != null ||
-            this.properties.label.itemStyler != null
-        );
+        const { styler, marker, label } = this.options;
+        return this.isSelectionEnabled() || styler != null || marker.itemStyler != null || label.itemStyler != null;
     }
 }

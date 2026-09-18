@@ -34,7 +34,8 @@ export type PolarAnimationEvent = {
 };
 export type PolarAnimationData = { duration?: number };
 
-type PolarSeriesProperties = {
+/** Keys every polar series carries, read by the base from its holder or its plain options. */
+type PolarSeriesKeys = {
     angleKey: string;
     angleName?: string;
     angleKeyAxis?: string;
@@ -55,15 +56,15 @@ export const DEFAULT_POLAR_DIRECTION_NAMES = {
 
 export type UnknownPolarSeries = PolarSeries<
     DataModelSeriesNodeDatum,
-    object,
-    SeriesProperties<object> & PolarSeriesProperties,
+    PolarSeriesKeys,
+    (SeriesProperties<PolarSeriesKeys> & PolarSeriesKeys) | undefined,
     Node<DataModelSeriesNodeDatum>
 >;
 
 export abstract class PolarSeries<
     TDatum extends DataModelSeriesNodeDatum & { legendItemValue?: string },
-    TOpts extends object,
-    TProps extends SeriesProperties<TOpts> & PolarSeriesProperties,
+    TOpts extends PolarSeriesKeys,
+    TProps extends (SeriesProperties<TOpts> & PolarSeriesKeys) | undefined,
     TNode extends Node<TDatum>,
     TLabel = TDatum,
     TContext extends DataModelSeriesNodeDataContext<TDatum, TLabel> = DataModelSeriesNodeDataContext<TDatum, TLabel>,
@@ -199,8 +200,9 @@ export abstract class PolarSeries<
     }
 
     override getKeyAxis(direction: ChartAxisDirection): string | undefined {
-        if (direction === ChartAxisDirection.Angle) return this.properties.angleKeyAxis;
-        if (direction === ChartAxisDirection.Radius) return this.properties.radiusKeyAxis;
+        const keys: PolarSeriesKeys = this.properties ?? this.options;
+        if (direction === ChartAxisDirection.Angle) return keys.angleKeyAxis ?? 'angle';
+        if (direction === ChartAxisDirection.Radius) return keys.radiusKeyAxis ?? 'radius';
     }
 
     override setZIndex(zIndex: number) {
