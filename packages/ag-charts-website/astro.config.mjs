@@ -239,6 +239,19 @@ export default defineConfig({
             include: CHECK_LINKS === 'true',
             prefix: PUBLIC_BASE_URL,
             frameworkRedirect: { path: FRAMEWORK_REDIRECT_PATH, frameworks: FRAMEWORKS },
+            // Fragments whose targets exist only once a `client:only` island has hydrated, so the
+            // built HTML holds nothing to validate them against:
+            //  - `reference-`: the API reference island's server-rendered fallback is deliberately
+            //    shallow, emitting `reference-<Interface>-<member>` ids for top-level members only,
+            //    so interface and nested anchors have no target.
+            //  - the licence setup headings: LicenseSetup.astro hydrates `client:only` with no
+            //    fallback, where the grid site uses `client:load` and server-renders the same ids.
+            clientRenderedFragmentPrefixes: [
+                'reference-',
+                'validate-your-license',
+                'add-your-dependencies',
+                'set-up-your-application',
+            ],
         }),
         agRedirectsChecker({
             skip: CHECK_REDIRECTS !== 'true',

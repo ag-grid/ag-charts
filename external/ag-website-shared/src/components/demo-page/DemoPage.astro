@@ -49,6 +49,9 @@ const { currentId, examples, eyebrow, title, description, primaryCta, secondaryC
                 }
             </ul>
 
+            {/* Stands in for the demo card, hidden at this notice's breakpoint. The hero copy above stays. */}
+            <slot name="mobile-notice" />
+
             <div class={styles.ctaButtons}>
                 <a class="button" href={primaryCta.href}>{primaryCta.label}</a>
                 <a class:list={['button-tertiary', styles.contactButton]} href={secondaryCta.href}>
@@ -58,9 +61,6 @@ const { currentId, examples, eyebrow, title, description, primaryCta, secondaryC
             </div>
         </div>
     </aside>
-
-    {/* Stands in for the hero and demo card, both hidden at this notice's breakpoint. */}
-    <slot name="mobile-notice" />
 
     <div class={styles.demoCard}>
         <div class={styles.stage} data-demo-stage data-expanded="false" data-cutoff="true">

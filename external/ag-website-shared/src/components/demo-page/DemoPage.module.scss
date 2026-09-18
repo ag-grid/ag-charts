@@ -24,16 +24,11 @@ $breakpoint-demo-fits: $demo-held-width + $hero-max-width + $demo-column-gap + $
     flex-direction: column;
     gap: $demo-column-gap;
     width: 100%;
-    padding: $spacing-size-6 var(--demo-gutter);
+    padding: $spacing-size-6 var(--demo-gutter) $spacing-size-32;
     box-sizing: border-box;
 
-    // Only the slotted mobile notice shows this narrow; give it the space the demo would have filled.
-    min-height: var(--demo-height);
-    justify-content: center;
-
     @media screen and (min-width: $breakpoint-docs-search-medium) {
-        min-height: 0;
-        justify-content: flex-start;
+        padding-bottom: $spacing-size-6;
     }
 
     @media screen and (min-width: $breakpoint-hero-large) {
@@ -56,14 +51,11 @@ $breakpoint-demo-fits: $demo-held-width + $hero-max-width + $demo-column-gap + $
 }
 
 .hero {
-    // Its copy sells the demo and its list switches between examples: nothing to offer
-    // while no demo is reachable.
-    display: none;
+    // Shown at every width, including those too narrow for the demo: its heading and
+    // intro are the page's subject, so hiding them leaves the mobile-rendered page -
+    // the one search engines index - headed by the stand-in notice instead.
+    display: flex;
     flex-shrink: 0;
-
-    @media screen and (min-width: $breakpoint-docs-search-medium) {
-        display: flex;
-    }
 
     @media screen and (min-width: $breakpoint-hero-large) {
         width: clamp(360px, 34vw, 480px);
@@ -115,6 +107,7 @@ $breakpoint-demo-fits: $demo-held-width + $hero-max-width + $demo-column-gap + $
 
 // Doubles as the demo switcher, so each item is carded up to read as a button.
 .featureList {
+    display: none;
     list-style: none;
     display: flex;
     flex-direction: column;
@@ -224,9 +217,21 @@ $breakpoint-demo-fits: $demo-held-width + $hero-max-width + $demo-column-gap + $
 
 .ctaButtons {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
     gap: $spacing-size-3;
+    margin-top: $spacing-size-8;
+
+    @media screen and (min-width: $breakpoint-docs-search-medium) {
+        justify-content: flex-start;
+        margin-top: 0;
+    }
+
+    @media screen and (min-width: $breakpoint-hero-large) {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
 
 .contactButton {
@@ -239,8 +244,8 @@ $breakpoint-demo-fits: $demo-held-width + $hero-max-width + $demo-column-gap + $
 .demoCard {
     position: relative;
     // The demo has no usable small-screen form: it is held at $demo-held-width, so a phone
-    // would show a sliver of it. Hide it until there is room; the page-level mobile notice
-    // stands in, as one inside this card would centre in the held width and land off-screen.
+    // would show a sliver of it. Hide it until there is room; the mobile notice in the
+    // hero stands in, as one inside this card would centre in the held width and land off-screen.
     display: none;
     flex: 1 1 auto;
     min-width: 0;

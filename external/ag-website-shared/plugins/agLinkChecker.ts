@@ -18,20 +18,28 @@ type Options = {
      * anchor links to them are validated against the framework pages they forward to.
      */
     frameworkRedirect?: { path: string; frameworks: readonly string[] };
+    /**
+     * Fragment prefixes whose target elements are rendered client-side, so the built HTML
+     * holds nothing to validate them against. Sites that server-render those targets should
+     * leave this unset and keep the stricter check.
+     */
+    clientRenderedFragmentPrefixes?: readonly string[];
 };
 
 const IGNORED_PATHS = ['/archive'];
-const HREF_PATTERNS_TO_IGNORE = [
-    '#reference-', // API references, as they are rendered client side
-    '#example-', // Example references, as they aren't headings
-    '#contact-section', // Contact form on about page
-    '#manage_cookies', // Footer link to open cookies management
+/**
+ * Fragments that a client-side script intercepts rather than scrolling to an element, so
+ * the built HTML has no target for them. Every other fragment must resolve to an `id` or
+ * `<a name>` in the built page it points at.
+ */
+const CLIENT_HANDLED_FRAGMENTS = [
+    'manage_cookies', // Footer link that opens the cookie-consent preferences modal
 ];
 
-// Attribute values are read out of the raw HTML, so character references are
-// still encoded. They have to be decoded before the href is picked apart, or the
-// `#` of a reference such as `&#38;` (the `&` between query parameters) reads as
-// a fragment marker.
+/**
+ * The named character references that can appear in an href. The numeric forms below cover
+ * everything else, so only the handful HTML gives names to are spelled out here.
+ */
 const NAMED_HTML_ENTITIES: Record<string, string> = {
     amp: '&',
     apos: "'",
@@ -41,6 +49,12 @@ const NAMED_HTML_ENTITIES: Record<string, string> = {
     quot: '"',
 };
 
+/**
+ * Decodes the character references in an href. Attribute values are read out of the raw HTML,
+ * so they arrive still encoded and have to be decoded before the href is picked apart: the `#`
+ * of a reference such as `&#38;` (the `&` between query parameters) would otherwise read as a
+ * fragment marker, turning `/gallery/?a=1&#38;b=2` into the unresolvable `/gallery/#38;b=2`.
+ */
 const decodeHtmlEntities = (value: string): string =>
     value.replace(/&(#x[0-9a-f]+|#\d+|[a-z][a-z0-9]*);/gi, (reference, body: string) => {
         if (!body.startsWith('#')) {
@@ -55,14 +69,18 @@ const decodeHtmlEntities = (value: string): string =>
         return String.fromCodePoint(codePoint);
     });
 
-// Keeps any fragment after the query, so anchor checks still see it.
+/**
+ * Drops the whole query string (`?a=1&b=2`) while keeping the path and fragment, so
+ * `/page/?ref=blog#foo` still validates the page and its `#foo` anchor. Only a `?` before
+ * the fragment starts a query; one after `#` is part of the fragment itself.
+ */
 const stripQueryString = (href: string): string => {
+    const hashIndex = href.indexOf('#');
     const queryIndex = href.indexOf('?');
-    if (queryIndex === -1) {
+    if (queryIndex === -1 || (hashIndex !== -1 && hashIndex < queryIndex)) {
         return href;
     }
-    const hashIndex = href.indexOf('#', queryIndex);
-    return hashIndex === -1 ? href.slice(0, queryIndex) : href.slice(0, queryIndex) + href.slice(hashIndex);
+    return href.slice(0, queryIndex) + (hashIndex === -1 ? '' : href.slice(hashIndex));
 };
 
 const isCI =
@@ -126,10 +144,10 @@ const checkLinks = async (dir: string, files: string[], options: Options) => {
     const linksToValidate: Record<string, { filePaths: Set<string> }> = {};
     // Links whose shape alone would cost a redirect (no trailing slash, non-canonical host, ...),
     // keyed by the offending href. Recorded for every internal link, including the absolute
-    // `https://www.ag-grid.com/...` ones and the client-side-injected fragment links the existence
+    // `https://www.ag-grid.com/...` ones and the client-handled fragment links the existence
     // checks below leave alone, because the redirect happens before the target is consulted.
     const shapeIssues: Record<string, { message: string; filePaths: Set<string> }> = {};
-    const { prefix, frameworkRedirect } = options;
+    const { prefix, frameworkRedirect, clientRenderedFragmentPrefixes } = options;
 
     const fileSet = new Set(files);
     // A page served as `foo.html` rather than `foo/index.html` has no trailing-slash form.
@@ -170,17 +188,18 @@ const checkLinks = async (dir: string, files: string[], options: Options) => {
 
             href = stripQueryString(href);
 
-            // Anchors injected client-side (API/example references, the
-            // about-page contact form) have no static target to resolve against.
-            if (HREF_PATTERNS_TO_IGNORE.some((pattern) => href.includes(pattern))) {
-                return;
-            }
             // An empty fragment (#) or #top both scroll to the top of the page;
             // they always resolve and have no target element to check against.
             const hashIndex = href.indexOf('#');
             if (hashIndex !== -1) {
                 const fragment = href.slice(hashIndex + 1);
                 if (fragment === '' || fragment.toLowerCase() === 'top') {
+                    return;
+                }
+                if (CLIENT_HANDLED_FRAGMENTS.includes(fragment)) {
+                    return;
+                }
+                if (clientRenderedFragmentPrefixes?.some((candidate) => fragment.startsWith(candidate))) {
                     return;
                 }
             }
@@ -190,10 +209,6 @@ const checkLinks = async (dir: string, files: string[], options: Options) => {
             let link: string | undefined;
             if (href.startsWith('#')) {
                 link = `${thisFileUrl}${href}`;
-                // A page linking to its own anchor also marks that anchor as a
-                // valid target, covering headings rendered by client-only
-                // components (e.g. the licence-install steps).
-                anchors.add(link);
             } else if (href.startsWith('/')) {
                 link = href;
             }
