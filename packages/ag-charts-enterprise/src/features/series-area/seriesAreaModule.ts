@@ -7,7 +7,7 @@ import { SeriesArea } from './seriesArea';
 
 const { seriesAreaBackgroundRegionLabelDef, seriesAreaBackgroundRegionRangeDef } = _ModuleSupport;
 
-export const SeriesAreaModule: PluginModuleDefinition<never> = {
+export const SeriesAreaModule: PluginModuleDefinition<never, _ModuleSupport.ChartRegistry> = {
     type: 'plugin',
     name: 'series-area',
     enterprise: true,
@@ -26,5 +26,9 @@ export const SeriesAreaModule: PluginModuleDefinition<never> = {
             themeTemplate: backgroundRegionsTheme,
         },
     ],
-    create: (ctx) => new SeriesArea(ctx),
+    register: (ctx) => {
+        if (ctx.has('seriesArea')) return;
+        ctx.service('seriesArea', (c) => new SeriesArea(c));
+    },
+    create: (ctx) => ctx.seriesArea,
 };

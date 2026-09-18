@@ -275,12 +275,12 @@ export abstract class Chart implements ModuleInstance, ChartService {
     readonly highlight: ChartHighlight;
     private readonly sharedCategoryGroup = new SharedCategoryGroup();
     readonly background: Background;
-    get seriesArea(): SeriesArea | undefined {
-        return this.modulesManager.getModule<SeriesArea>('series-area');
+    get seriesArea(): SeriesArea {
+        return this.ctx.seriesArea;
     }
 
     getSeriesAreaPadding() {
-        return this.seriesArea?.getPadding() ?? { top: 0, right: 0, bottom: 0, left: 0 };
+        return this.seriesArea.getPadding();
     }
     foreground?: Background;
 
@@ -1826,7 +1826,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         }
 
         // Applied after the axes so that the enterprise series area can resolve them.
-        this.seriesArea?.applyOptions();
+        this.seriesArea.applyOptions();
 
         // Only reset data if the user explicitly passed 'data' in their delta.
         const { userDeltaKeys } = newChartOptions;

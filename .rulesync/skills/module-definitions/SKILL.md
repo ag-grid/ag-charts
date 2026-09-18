@@ -79,7 +79,8 @@ registration (`enterprise: true`). Use this when the community chart needs the m
 (`SeriesAreaModule` is a chart-module dependency) and the enterprise variant adds option locations
 (`seriesArea.backgroundRegions`). The community variant has no options and owns nothing; the
 enterprise variant declares the extra locations. The generated placeholder then names the enterprise
-variant.
+variant. Every chart module depends on `SeriesAreaModule`, so `ctx.seriesArea` is never optional and
+modules rendering inside the series area attach to it through `ctx.seriesArea.attach(content)`.
 
 Presets that users reach through an API entry point declare `apiName: 'AgCharts.createGauge'` so the
 report names the entry point rather than the registry name.
