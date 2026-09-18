@@ -223,7 +223,6 @@ interface AreaNodeDatumScratch {
 interface AreaSeriesTypes extends PlacedLabelSeriesTypes {
     readonly node: Marker<MarkerSelectionDatum>;
     readonly options: NormalisedAreaSeriesOwnOptions;
-    readonly properties: undefined;
     readonly datum: MarkerSelectionDatum;
     readonly label: LabelSelectionDatum;
     readonly labelParams: AgAreaSeriesLabelFormatterParams;

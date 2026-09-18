@@ -26,7 +26,6 @@ const { Line, resetMotion } = _ModuleSupport;
 interface ConeFunnelSeriesTypes extends BaseFunnelSeriesTypes {
     readonly node: _ModuleSupport.Line<FunnelNodeDatum>;
     readonly options: NormalisedConeFunnelSeriesOwnOptions;
-    readonly properties: undefined;
 }
 
 export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {

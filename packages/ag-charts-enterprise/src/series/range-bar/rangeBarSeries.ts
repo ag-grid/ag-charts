@@ -255,7 +255,6 @@ interface RangeBarSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeries
 interface RangeBarSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
     readonly node: _ModuleSupport.Rect<RangeBarNodeDatum>;
     readonly options: NormalisedRangeBarSeriesOwnOptions;
-    readonly properties: undefined;
     readonly datum: RangeBarNodeDatum;
     readonly label: RangeBarNodeLabelDatum;
     readonly context: RangeBarSeriesNodeDataContext;

@@ -2209,8 +2209,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
             target.visible = seriesOptions.visible;
         }
 
-        target.properties?.set(seriesOptions);
-
         if ('data' in changedOptions) {
             target.setOptionsData(data == null ? undefined : DataSet.wrap(data, this.ctx.logger));
         }

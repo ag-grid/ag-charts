@@ -1,4 +1,4 @@
-import type { ChartAxisDirection, NormalisedSeriesSegmentation, Scale, Scaling } from 'ag-charts-core';
+import type { ChartAxisDirection, Scale, Scaling } from 'ag-charts-core';
 
 import type { BBox } from '../../../scene/bbox';
 import type { Node, NodeWithOpacity } from '../../../scene/node';
@@ -8,7 +8,6 @@ import type { Segment } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
 import type { ChartAxis } from '../../chartAxis';
 import type { DataModelSeriesNodeDataContext, DataModelSeriesNodeDatum } from '../dataModelSeries';
-import type { SeriesProperties } from '../seriesProperties';
 import type { SeriesNodeDatum } from '../seriesTypes';
 
 // These are the canonical definitions - cartesianSeries.ts re-exports them.
@@ -95,20 +94,6 @@ export interface CartesianMarkerLikeContext<
     readonly yOffset: number;
 }
 
-// The actual class with decorators lives in cartesianSeries.ts.
-
-/**
- * Interface defining cartesian-specific properties.
- * CartesianSeriesProperties class implements this interface.
- */
-export interface CartesianSeriesPropertiesBase<T extends object> extends SeriesProperties<T> {
-    xKeyAxis: string;
-    yKeyAxis: string;
-    legendItemName?: string;
-    pickOutsideVisibleMinorAxis: boolean;
-    segmentation: NormalisedSeriesSegmentation;
-}
-
 /**
  * Consolidated type interface for CartesianSeries generic parameters.
  *
@@ -120,7 +105,6 @@ export interface CartesianSeriesPropertiesBase<T extends object> extends SeriesP
  * interface BarSeriesTypes extends CartesianSeriesTypes {
  *     readonly node: BarShape<BarNodeDatum>;
  *     readonly options: AgBarSeriesOptions;
- *     readonly properties: BarSeriesProperties;
  *     readonly datum: BarNodeDatum;
  *     readonly label: BarNodeDatum;
  *     readonly context: BarSeriesNodeDataContext;
@@ -135,8 +119,6 @@ export interface CartesianSeriesTypes {
     readonly node: Node<CartesianSeriesNodeDatum>;
     /** Series options type from ag-charts-types */
     readonly options: object;
-    /** Legacy decorated holder; series migrated onto `options` set this to `undefined`. */
-    readonly properties: CartesianSeriesPropertiesBase<this['options']> | undefined;
     /** Node datum type containing processed data for rendering */
     readonly datum: CartesianSeriesNodeDatum;
     /** Label datum type (defaults to same as datum in most series) */
@@ -159,9 +141,6 @@ export type NodeOf<T extends CartesianSeriesTypes> = T['node'];
 
 /** Extract the options type from a CartesianSeriesTypes interface */
 export type OptionsOf<T extends CartesianSeriesTypes> = T['options'];
-
-/** Extract the properties type from a CartesianSeriesTypes interface */
-export type PropertiesOf<T extends CartesianSeriesTypes> = T['properties'];
 
 /** Extract the datum type from a CartesianSeriesTypes interface */
 export type DatumOf<T extends CartesianSeriesTypes> = T['datum'];

@@ -54,7 +54,6 @@ export interface AbstractBarSeriesNodeDataContext<
 export interface AbstractBarSeriesTypes extends CartesianSeriesTypes {
     readonly node: QuadtreeCompatibleNode<this['datum']>;
     readonly options: AbstractBarSeriesLayoutOptions;
-    readonly properties: undefined;
     readonly context: AbstractBarSeriesNodeDataContext<this['datum'], this['label']>;
 }
 

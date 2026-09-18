@@ -159,7 +159,6 @@ interface OhlcSeriesBaseNodeDataContext extends _ModuleSupport.AbstractBarSeries
 export interface OhlcSeriesBaseTypes extends _ModuleSupport.AbstractBarSeriesTypes {
     readonly node: OhlcBaseNode<OhlcNodeDatum>;
     readonly options: NormalisedOhlcSeriesBaseOwnOptions;
-    readonly properties: undefined;
     readonly datum: OhlcNodeDatum;
     readonly label: OhlcNodeDatum;
     readonly context: OhlcSeriesBaseNodeDataContext;

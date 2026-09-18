@@ -127,7 +127,6 @@ const verticalTargetPlacementRotation: Record<AgLinearGaugeTargetPlacement, numb
 export class LinearGaugeSeries extends _ModuleSupport.Series<
     LinearGaugeNodeDatum,
     NormalisedLinearGaugeSeriesOwnOptions,
-    undefined,
     LinearGaugeLabelDatum,
     LinearGaugeNodeDataContext
 > {
