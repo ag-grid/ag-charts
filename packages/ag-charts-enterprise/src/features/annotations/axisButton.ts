@@ -79,8 +79,8 @@ export class AxisButton extends AbstractModuleInstance {
     }
 
     private show(event: CurrentPoint & { sourceEvent: MouseEvent | TouchEvent }) {
-        const { sourceEvent, currentX: x, currentY: y } = event;
-        if (!(this.enabled && this.ctx.widgets.seriesWidget.getElement().contains(sourceEvent.target as Node | null))) {
+        const { currentX: x, currentY: y } = event;
+        if (!(this.enabled && this.ctx.widgets.seriesBoundsWidget.containsTarget(event))) {
             this.hide();
             return;
         }
