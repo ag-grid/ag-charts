@@ -26,7 +26,6 @@ type NormalisedCandlestickStyle = Normalised<
 interface CandlestickSeriesTypes extends OhlcSeriesBaseTypes {
     readonly node: CandlestickNode<OhlcNodeDatum>;
     readonly options: NormalisedCandlestickSeriesOwnOptions;
-    readonly properties: undefined;
 }
 
 export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {

@@ -155,7 +155,6 @@ export class RadialGaugeSeries
     extends _ModuleSupport.Series<
         RadialGaugeNodeDatum,
         NormalisedRadialGaugeSeriesOwnOptions,
-        undefined,
         RadialGaugeLabelDatum,
         RadialGaugeNodeDataContext
     >

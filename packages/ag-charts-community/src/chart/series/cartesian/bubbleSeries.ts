@@ -260,7 +260,6 @@ interface BubbleScatterSeriesTypes<
 > extends CartesianSeriesTypes {
     readonly node: Marker<BubbleScatterNodeDatum>;
     readonly options: TOptions;
-    readonly properties: undefined;
     readonly datum: BubbleScatterNodeDatum;
     readonly label: BubbleScatterNodeDatum;
     readonly context: BubbleSeriesNodeDataContext;

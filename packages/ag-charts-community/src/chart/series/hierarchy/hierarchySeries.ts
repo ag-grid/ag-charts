@@ -149,7 +149,7 @@ export abstract class HierarchySeries<
     TNodeClass extends HierarchyNode,
     TNode extends Node<TNodeClass>,
     TOptions extends NormalisedHierarchySeriesKeys,
-> extends Series<TNodeClass, TOptions, undefined> {
+> extends Series<TNodeClass, TOptions> {
     protected abstract NodeClass: new (...params: ConstructorParameters<typeof HierarchyNode<any, any>>) => TNodeClass;
 
     rootNode: TNodeClass | undefined;

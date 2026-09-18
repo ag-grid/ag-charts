@@ -71,7 +71,6 @@ interface BoxPlotSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeriesN
 interface BoxPlotSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
     readonly node: BoxPlotNode;
     readonly options: NormalisedBoxPlotSeriesOwnOptions;
-    readonly properties: undefined;
     readonly datum: BoxPlotNodeDatum;
     readonly label: BoxPlotNodeDatum;
     readonly context: BoxPlotSeriesNodeDataContext;

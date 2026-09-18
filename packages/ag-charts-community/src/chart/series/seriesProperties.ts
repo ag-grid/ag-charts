@@ -1,16 +1,13 @@
 import type {
     AreExact,
     ColorSpace,
-    InternalAgColorType,
     NormalisedColorType,
     NormalisedGradientColorStop,
-    NormalisedSeriesSegmentation,
-    NormalisedSeriesShapeSegmentOptions,
     RequiredInternalAgGradientColor,
     RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
-import { BaseProperties, PropertiesArray, Property, isEmptyObject, mergeDefaults } from 'ag-charts-core';
+import { BaseProperties, Property, isEmptyObject, mergeDefaults } from 'ag-charts-core';
 import type {
     AgColorRepeat,
     AgGradientColorBounds,
@@ -18,18 +15,13 @@ import type {
     AgGradientType,
     AgImageFillFit,
     AgPatternName,
-    AgSelectionContainment,
-    AgSeriesListeners,
-    AgSeriesShapeSegmentOptions,
     CssColor,
-    InteractionRange,
     Opacity,
     PixelSize,
     HighlightState as PublicHighlightState,
     SelectionState as PublicSelectionState,
 } from 'ag-charts-types';
 
-import type { SeriesTooltip } from './seriesTooltip';
 import { HighlightState, SelectionState } from './seriesTypes';
 
 export const highlightStates = [
@@ -163,7 +155,6 @@ export function stagedSelectionState(
 }
 
 type HighlightOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;
-type SelectionOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;
 
 export type SeriesItemHighlightStyle = HighlightOptions<object>;
 
@@ -190,97 +181,6 @@ export function getSelectionStyle<TStyle extends object>(
 /** Whether a highlight/selection bucket carries any overrides; an absent bucket carries none. */
 export function hasStateStyle(bucket: object | undefined): boolean {
     return bucket != null && !isEmptyObject(bucket);
-}
-
-export class HighlightProperties<TOpts extends object> extends BaseProperties {
-    @Property
-    enabled = true;
-
-    @Property
-    range: 'tooltip' | 'node' = 'tooltip';
-
-    @Property
-    bringToFront: boolean = true;
-
-    @Property
-    readonly highlightedItem: HighlightOptions<TOpts> = {};
-
-    @Property
-    readonly unhighlightedItem: HighlightOptions<TOpts> = {};
-
-    @Property
-    readonly highlightedSeries: HighlightOptions<TOpts> = {};
-
-    @Property
-    readonly unhighlightedSeries: HighlightOptions<TOpts> = {};
-
-    getStyle(highlightState: HighlightState): HighlightOptions<TOpts> {
-        return getHighlightStyle(this, highlightState);
-    }
-}
-
-export class SeriesSelectionProperties<TOpts extends object> extends BaseProperties {
-    @Property
-    enabled = false;
-
-    @Property
-    containment: AgSelectionContainment = 'any';
-
-    @Property
-    readonly selectedItem: SelectionOptions<TOpts> = {};
-
-    @Property
-    readonly unselectedItem: SelectionOptions<TOpts> = {};
-
-    @Property
-    readonly unselectedSeries: SelectionOptions<TOpts> = {};
-
-    @Property
-    selectedOffset = 0; // pie-only
-
-    getStyle(selectionState: SelectionState): SelectionOptions<TOpts> {
-        return getSelectionStyle(this, selectionState);
-    }
-}
-
-export class SegmentOptions extends BaseProperties implements AgSeriesShapeSegmentOptions {
-    @Property
-    start?: number;
-
-    @Property
-    stop?: number;
-
-    @Property
-    fill: InternalAgColorType = '#c16068';
-
-    @Property
-    fillOpacity = 1;
-
-    @Property
-    stroke: string = '#874349';
-
-    @Property
-    strokeWidth = 2;
-
-    @Property
-    strokeOpacity = 1;
-
-    @Property
-    lineDash: number[] = [0];
-
-    @Property
-    lineDashOffset: number = 0;
-}
-
-export class Segmentation implements NormalisedSeriesSegmentation {
-    @Property
-    enabled?: boolean;
-
-    @Property
-    key: 'x' | 'y' = 'x';
-
-    @Property
-    segments: NormalisedSeriesShapeSegmentOptions[] = new PropertiesArray<SegmentOptions>(SegmentOptions);
 }
 
 export class FillGradientDefaults
@@ -398,53 +298,4 @@ export class FillImageDefaults
 
     @Property
     fit: AgImageFillFit = 'contain';
-}
-
-export abstract class SeriesProperties<T extends object> extends BaseProperties<T> {
-    @Property
-    id?: string;
-
-    // Accepted so `set()` stays quiet; the series reads visibility from its own state.
-    @Property
-    protected readonly visible: boolean = true;
-
-    @Property
-    focusPriority?: number = Infinity;
-
-    @Property
-    showInLegend: boolean = true;
-
-    @Property
-    cursor = 'default';
-
-    @Property
-    nodeClickRange: InteractionRange = 'exact';
-
-    @Property
-    listeners?: AgSeriesListeners<unknown, unknown> & { seriesVisibilityChange?: never };
-
-    @Property
-    readonly highlight: HighlightProperties<T> = new HighlightProperties();
-
-    @Property
-    readonly selection: SeriesSelectionProperties<T> = new SeriesSelectionProperties();
-
-    abstract tooltip: SeriesTooltip<never>;
-
-    // User pass-through option: no validation-decorator required.
-    context?: unknown;
-
-    // Internal option to allow null values as discrete keys (undocumented).
-    allowNullKeys?: boolean;
-
-    override handleUnknownProperties(unknownKeys: Set<unknown>, properties: T) {
-        if ('context' in properties) {
-            this.context = properties.context;
-            unknownKeys.delete('context');
-        }
-        if ('allowNullKeys' in properties) {
-            this.allowNullKeys = (properties as { allowNullKeys?: boolean }).allowNullKeys;
-            unknownKeys.delete('allowNullKeys');
-        }
-    }
 }

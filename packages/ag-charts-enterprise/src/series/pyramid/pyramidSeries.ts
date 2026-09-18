@@ -167,7 +167,6 @@ type PyramidAnimationEvent = {
 export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     PyramidNodeDatum,
     NormalisedPyramidSeriesOwnOptions,
-    undefined,
     PyramidNodeLabelDatum,
     PyramidNodeDataContext
 > {

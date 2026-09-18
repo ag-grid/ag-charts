@@ -61,7 +61,7 @@ export abstract class PolarSeries<
     TNode extends Node<TDatum>,
     TLabel = TDatum,
     TContext extends DataModelSeriesNodeDataContext<TDatum, TLabel> = DataModelSeriesNodeDataContext<TDatum, TLabel>,
-> extends DataModelSeries<TDatum, TOpts, undefined, TLabel, TContext> {
+> extends DataModelSeries<TDatum, TOpts, TLabel, TContext> {
     override directions = [ChartAxisDirection.Angle, ChartAxisDirection.Radius];
 
     protected itemGroup = this.contentGroup.appendChild(new Group({ name: 'items' }));

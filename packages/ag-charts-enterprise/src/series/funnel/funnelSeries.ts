@@ -34,7 +34,6 @@ const {
 interface FunnelSeriesTypes extends BaseFunnelSeriesTypes {
     readonly node: _ModuleSupport.Rect<FunnelNodeDatum>;
     readonly options: NormalisedFunnelSeriesOwnOptions;
-    readonly properties: undefined;
 }
 
 export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {

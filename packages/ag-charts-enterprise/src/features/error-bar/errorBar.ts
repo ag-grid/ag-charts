@@ -4,6 +4,7 @@ import {
     AbstractModuleInstance,
     ChartAxisDirection,
     type Logger,
+    type NormalisedErrorBarOptions,
     type PickNodeDatumResult,
     type Point,
     type PropertyDefinitionOpts,
@@ -18,14 +19,12 @@ import {
 import { readDatum } from '../../utils/datum';
 import type { ErrorBarNodeDatum, ErrorBarStylingOptions } from './errorBarNode';
 import { ErrorBarGroup, ErrorBarNode } from './errorBarNode';
-import { ErrorBarProperties } from './errorBarProperties';
 
 const { fixNumericExtent, groupAccumulativeValueProperty, valueProperty } = _ModuleSupport;
 
 interface ErrorBoundSeriesTypes extends _ModuleSupport.CartesianSeriesTypes {
     readonly node: _ModuleSupport.Node<ErrorBarNodeDatum>;
     readonly options: object;
-    readonly properties: _ModuleSupport.CartesianSeriesProperties<any>;
     readonly datum: ErrorBarNodeDatum;
     readonly label: ErrorBarNodeDatum;
     readonly context: _ModuleSupport.CartesianSeriesNodeDataContext<ErrorBarNodeDatum, ErrorBarNodeDatum>;
@@ -44,12 +43,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     private readonly groupNode: ErrorBarGroup;
     private readonly sceneSelection: _ModuleSupport.Selection<ErrorBarNodeDatum, ErrorBarNode>;
 
-    readonly properties = new ErrorBarProperties();
-
-    /** The holder merges keys, so removed keys must arrive as the diff's explicit `undefined`s. */
-    applyOptions(options: AgErrorBarThemeableOptions, diff?: Partial<AgErrorBarThemeableOptions>) {
-        this.properties.set(diff ?? options);
-    }
+    private options!: NormalisedErrorBarOptions;
 
     private dataModel?: AnyDataModel;
     private processedData?: AnyProcessedData;
@@ -80,8 +74,12 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         );
     }
 
+    applyOptions(options: NormalisedErrorBarOptions) {
+        this.options = options;
+    }
+
     private hasErrorBars(): boolean {
-        const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this.properties;
+        const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this.options;
         return (isDefined(xLowerKey) && isDefined(xUpperKey)) || (isDefined(yLowerKey) && isDefined(yUpperKey));
     }
 
@@ -237,7 +235,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     }
 
     private getMaybeFlippedKeys() {
-        let { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this.properties;
+        let { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this.options;
         let [xErrorsID, yErrorsID] = ['xValue-errors', 'yValue-errors'];
         if (this.cartesianSeries.shouldFlipXY()) {
             [xLowerKey, yLowerKey] = [yLowerKey, xLowerKey];
@@ -317,7 +315,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         node.datum = datum;
         node.update(
             this.getDefaultStyle(),
-            this.properties,
+            this.options,
             this.cartesianSeries,
             highlightState,
             selectionState,
@@ -384,7 +382,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
             xUpperName = xUpperKey,
             yLowerName = yLowerKey,
             yUpperName = yUpperKey,
-        } = this.properties;
+        } = this.options;
         return { xLowerKey, xLowerName, xUpperKey, xUpperName, yLowerKey, yLowerName, yUpperKey, yUpperName };
     }
 
@@ -400,17 +398,17 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
             stroke: baseStyle.stroke,
             strokeWidth: baseStyle.strokeWidth,
             strokeOpacity: baseStyle.strokeOpacity,
-            cap: mergeDefaults(this.properties.cap, baseStyle),
+            cap: mergeDefaults(this.options.cap, baseStyle),
         };
     }
 
     private getDefaultStyle(): AgErrorBarThemeableOptions {
-        return this.makeStyle(this.getWhiskerProperties());
+        return this.makeStyle(this.getWhiskerStyle());
     }
 
     private getHighlightStyle(): AgErrorBarThemeableOptions {
         // FIXME - at some point we should allow customising this
-        return this.makeStyle(this.getWhiskerProperties());
+        return this.makeStyle(this.getWhiskerStyle());
     }
 
     private restyleHighlightChange(
@@ -434,7 +432,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
                     .at(i)
                     ?.update(
                         style,
-                        this.properties,
+                        this.options,
                         this.cartesianSeries,
                         highlighted ? 'highlighted-item' : 'unhighlighted-item',
                         dataSelectionState,
@@ -465,8 +463,8 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         return new ErrorBarNode();
     }
 
-    private getWhiskerProperties(): Omit<AgErrorBarThemeableOptions, 'cap'> {
-        const { stroke, strokeWidth, visible, strokeOpacity, lineDash, lineDashOffset } = this.properties;
+    private getWhiskerStyle(): ErrorBarStylingOptions {
+        const { stroke, strokeWidth, visible, strokeOpacity, lineDash, lineDashOffset } = this.options;
         return { stroke, strokeWidth, visible, strokeOpacity, lineDash, lineDashOffset };
     }
 }

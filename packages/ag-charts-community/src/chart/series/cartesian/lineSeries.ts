@@ -116,7 +116,6 @@ import { calculateSegments } from './util';
 interface LineSeriesTypes extends PlacedLabelSeriesTypes {
     readonly node: Marker<LineNodeDatum>;
     readonly options: NormalisedLineSeriesOwnOptions;
-    readonly properties: undefined;
     readonly datum: LineNodeDatum;
     readonly label: LineNodeDatum;
     readonly labelParams: AgLineSeriesLabelFormatterParams;

@@ -140,7 +140,6 @@ const VERTICAL_ALIGNS: VerticalAlign[] = ['top', 'middle', 'bottom'];
 interface HeatmapSeriesTypes extends _ModuleSupport.CartesianSeriesTypes {
     readonly node: _ModuleSupport.Rect<HeatmapNodeDatum>;
     readonly options: NormalisedHeatmapSeriesOwnOptions;
-    readonly properties: undefined;
     readonly datum: HeatmapNodeDatum;
     readonly label: HeatmapLabelDatum;
     readonly context: _ModuleSupport.CartesianSeriesNodeDataContext<HeatmapNodeDatum, HeatmapLabelDatum>;

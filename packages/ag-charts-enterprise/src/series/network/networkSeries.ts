@@ -129,7 +129,6 @@ export abstract class AbstractNetworkSeries<
 > extends _ModuleSupport.Series<
     NetworkDatum<TVertex, TEdge>,
     TOptions,
-    undefined,
     TDatum,
     NetworkSeriesContextNodeData<TVertex, TEdge>
 > {

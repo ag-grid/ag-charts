@@ -102,7 +102,6 @@ export abstract class FlowProportionSeries<
 > extends Series<
     TDatum<TNodeDatum, TLinkDatum>,
     TOptions,
-    undefined,
     TLabel,
     _ModuleSupport.SeriesNodeDataContext<TDatum<TNodeDatum, TLinkDatum>, TLabel>
 > {

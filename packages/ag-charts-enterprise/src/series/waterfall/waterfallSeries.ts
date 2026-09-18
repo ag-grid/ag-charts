@@ -189,7 +189,6 @@ interface WaterfallNodeDatumParams {
 interface WaterfallSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
     readonly node: _ModuleSupport.Rect<WaterfallNodeDatum>;
     readonly options: NormalisedWaterfallSeriesOwnOptions;
-    readonly properties: undefined;
     readonly datum: WaterfallNodeDatum;
     readonly label: WaterfallNodeDatum;
     readonly context: WaterfallContext;

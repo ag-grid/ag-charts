@@ -1,6 +1,5 @@
 import {
     BaseProperties,
-    type CollideWith,
     type NormalisedChartLabelPlacementStyleOptions,
     type NormalisedChartLabelStyleOptions,
     type NormalisedSeriesLabelOptions,
@@ -9,25 +8,14 @@ import {
     type RequireOptional,
     isArray,
     mergeDefaults,
-    resolveCollideWith,
 } from 'ag-charts-core';
 import type {
-    AgChartLabelCollisionOptions,
-    AgChartLabelCollisionPlacement,
     AgChartLabelFormatterParams,
-    AgChartLabelOptions,
-    AgChartLabelOrientation,
-    AgChartLabelPlacementStyleOptions,
     AgChartLabelStyleOptions,
-    AgChartLabelStylerParams,
-    ContextDefault,
     FontStyle,
     FontWeight,
     Padding,
     PaddingOptions,
-    RichFormatter,
-    Styler,
-    TextWrap,
 } from 'ag-charts-types';
 
 import type { AxisFormattableLabel, ContextFormatter } from '../module/axisContext';
@@ -124,51 +112,6 @@ export class LabelBorder {
     strokeOpacity?: number;
 }
 
-/** Placement-reactive border: its `enabled`, explicit or auto-enabled by a sibling, wins over the top level. */
-export class LabelPlacementBorder {
-    @Property
-    enabled?: boolean;
-
-    @Property
-    stroke?: string;
-
-    @Property
-    strokeWidth?: number;
-
-    @Property
-    strokeOpacity?: number;
-}
-
-/** Undocumented per-category toggle for the obstacles a label avoids. */
-class LabelCollideWith extends BaseProperties {
-    @Property
-    markers?: boolean;
-
-    @Property
-    labels?: boolean;
-
-    @Property
-    seriesItems?: boolean;
-
-    @Property
-    seriesArea?: boolean;
-}
-
-export class LabelCollision extends BaseProperties implements AgChartLabelCollisionOptions {
-    @Property
-    threshold?: number;
-
-    @Property
-    alwaysShow: boolean = true;
-
-    @Property
-    collideWith = new LabelCollideWith();
-
-    resolveCollideWith(): CollideWith {
-        return resolveCollideWith(this);
-    }
-}
-
 export class LabelStyle extends BaseProperties implements AgChartLabelStyleOptions {
     @Property
     border = new LabelBorder();
@@ -199,90 +142,6 @@ export class LabelStyle extends BaseProperties implements AgChartLabelStyleOptio
 
     @Property
     padding?: Padding;
-}
-
-/** Style overrides applied to a label for one resolved placement (inside or outside). */
-export class LabelPlacementStyle extends BaseProperties implements AgChartLabelPlacementStyleOptions {
-    @Property
-    color?: string;
-
-    @Property
-    fill?: string;
-
-    @Property
-    fillOpacity?: number;
-
-    @Property
-    cornerRadius?: number;
-
-    @Property
-    padding?: Padding;
-
-    @Property
-    border = new LabelPlacementBorder();
-}
-
-export class Label<TParams = never, TDatum = any>
-    extends LabelStyle
-    implements AgChartLabelOptions<TDatum, RequireOptional<TParams>>
-{
-    @Property
-    enabled: boolean = false;
-
-    @Property
-    collision = new LabelCollision();
-
-    @Property
-    orientation?: AgChartLabelOrientation | AgChartLabelOrientation[];
-
-    @Property
-    maxWidth?: number;
-
-    @Property
-    maxHeight?: number;
-
-    @Property
-    wrapping?: TextWrap;
-
-    @Property
-    truncate?: boolean;
-
-    @Property
-    minimumFontSize?: number;
-
-    @Property
-    formatter?: RichFormatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
-
-    @Property
-    format?: string;
-
-    @Property
-    itemStyler?: Styler<AgChartLabelStylerParams<TDatum, ContextDefault>, AgChartLabelStyleOptions>;
-
-    formatterCache: FormatterCache | undefined = undefined;
-    formatValue(
-        formatWithContext: ContextFormatter<LabelFormatParams<TParams, TDatum>>,
-        type: 'number' | 'date' | 'category',
-        value: any,
-        params: LabelFormatParams<TParams, TDatum>
-    ) {
-        return formatLabelValue(this, this, formatWithContext, type, value, params);
-    }
-}
-
-/** Label for point-like series (line, area, scatter, bubble, map-marker) that resolve a directional placement. */
-export class PlacedSeriesLabel<TParams = never, TDatum = any> extends Label<TParams, TDatum> {
-    @Property
-    placement?: AgChartLabelCollisionPlacement | AgChartLabelCollisionPlacement[];
-
-    @Property
-    spacing?: number;
-
-    @Property
-    insideStyle = new LabelPlacementStyle();
-
-    @Property
-    outsideStyle = new LabelPlacementStyle();
 }
 
 /** A label carrying both placement styles, resolved once the placement engine picks a side. */
@@ -326,9 +185,8 @@ export function expandLabelPadding(label: LabelBoxingMixin | undefined): Require
 
 /**
  * Overlays the top-level label beneath a placement style so an explicit placement value wins and any
- * unset property falls back to the top-level label. `border` is merged field-wise because it is a
- * class instance `mergeDefaults` would otherwise copy by reference; each border field, including
- * `enabled`, wins from the placement style and falls through to the top-level label when unset.
+ * unset property falls back to the top-level label. `border` is merged field-wise so each border field,
+ * including `enabled`, wins from the placement style and falls through to the top-level label when unset.
  */
 export function resolvePlacementLabelStyle<TLabel extends NormalisedChartLabelStyleOptions>(
     label: TLabel,
