@@ -179,6 +179,14 @@ describe('toThemePalette', () => {
         expect(toThemePalette({ fills: [], strokes: [] })).toEqual({ fills: [], strokes: [] });
     });
 
+    it('leaves out an accent whose colours were cleared', () => {
+        // An empty `up` still reads as a full palette, which draws rising
+        // candles solid where the indexed palette the user has draws them hollow.
+        const cleared = withAccentColors(palette, 'up', { fill: undefined, stroke: undefined });
+
+        expect(toThemePalette(cleared)).toEqual({ fills: ['#aaa', '#bbb'], strokes: ['#111', '#222'] });
+    });
+
     it('matches every stroke to its fill once strokes are off', () => {
         // The only way to say "no outline" in a palette: dropping `strokes`
         // would inherit the base theme's, which is an outline the user has
