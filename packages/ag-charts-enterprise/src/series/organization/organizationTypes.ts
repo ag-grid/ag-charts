@@ -1,6 +1,7 @@
 import type {
     Normalised,
     NormalisedColorType,
+    NormalisedOrganizationSeriesNodeImageOptions,
     NormalisedPaddingOptions,
     NormalisedTextOrSegments,
 } from 'ag-charts-core';
@@ -9,7 +10,6 @@ import type {
     AgOrganizationSeriesExpanderTextStyle,
     AgOrganizationSeriesNodeStyle,
     AgOrganizationSeriesNodeTextStyle,
-    AgOrganizationSeriesOptionsNodeImage,
     CssColor,
 } from 'ag-charts-types';
 
@@ -90,11 +90,6 @@ type NormalisedOrganizationSeriesExpanderTextStyle = Normalised<
     { color: CssColor }
 >;
 
-export type NormalisedOrganizationSeriesOptionsNodeImage = Normalised<
-    AgOrganizationSeriesOptionsNodeImage,
-    'cornerRadius' | 'enabled' | 'key' | 'height' | 'position' | 'spacing' | 'width'
->;
-
 export type NormalisedOrganizationNodeStyle = Normalised<
     AgOrganizationSeriesNodeStyle,
     | 'cornerRadius'
@@ -111,7 +106,7 @@ export type NormalisedOrganizationNodeStyle = Normalised<
         fill: NormalisedColorType;
         stroke: CssColor;
         expander: NormalisedOrganizationSeriesExpanderStyle;
-        image: NormalisedOrganizationSeriesOptionsNodeImage;
+        image: NormalisedOrganizationSeriesNodeImageOptions;
         labels: NormalisedOrganizationNodeTextStyle[];
         padding: NormalisedPaddingOptions;
         title: NormalisedOrganizationNodeTextStyle;

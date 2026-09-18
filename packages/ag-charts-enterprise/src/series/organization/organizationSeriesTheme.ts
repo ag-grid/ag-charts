@@ -1,5 +1,14 @@
 import type { ExtensibleSeriesTheme } from 'ag-charts-community';
-import { BASE_FONT_SIZE, FONT_SIZE_RATIO, SERIES_SELECTION_THEME } from 'ag-charts-core';
+import {
+    BASE_FONT_SIZE,
+    COMMON_SERIES_THEME_DEFAULTS,
+    FONT_SIZE_RATIO,
+    SERIES_SELECTION_THEME,
+    undocumentedThemeOptions,
+} from 'ag-charts-core';
+
+// Text tiers draw no backing box until `fill` or `stroke` is set; these keep the box geometry defined.
+const NODE_TEXT_BOX_DEFAULTS = { cornerRadius: 0, fillOpacity: 1, strokeOpacity: 1, strokeWidth: 0 } as const;
 
 export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
     zoom: {
@@ -20,13 +29,18 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
         buttons: { enabled: false },
     },
     series: {
-        depthSpacing: 52,
+        ...COMMON_SERIES_THEME_DEFAULTS,
+        ...undocumentedThemeOptions({ idKey: 'id', parentIdKey: 'parentId' }),
+        direction: 'vertical',
+        reverse: false,
+        depthSpacing: { $path: ['./verticalSpacing', 52] },
         innerSpacing: 20,
         outerSpacing: 40,
         expander: {
             enabled: true,
             cornerRadius: { $path: '../node/cornerRadius' },
             fill: { $path: '../node/fill' },
+            fillOpacity: 1,
             stroke: { $path: '../node/stroke' },
             strokeOpacity: { $path: '../node/strokeOpacity' },
             strokeWidth: { $path: '../node/strokeWidth' },
@@ -46,6 +60,7 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
                 fontWeight: 'normal',
                 showAllChildren: true,
                 showDirectChildren: false,
+                textAlign: 'left',
             },
         },
         highlight: {
@@ -67,22 +82,28 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
                 cornerRadius: 8,
             },
             lineDash: [],
+            lineDashOffset: 0,
             stroke: { $foregroundBackgroundMix: 0.2 },
             strokeOpacity: 1,
             strokeWidth: 1,
         },
         tooltip: {
             enabled: false,
+            interaction: { enabled: false },
         },
         node: {
             cornerRadius: 4,
             fill: { $foregroundBackgroundMix: 0.02 },
+            fillOpacity: 1,
+            lineDash: [],
+            lineDashOffset: 0,
             padding: { $applyPadding: 8 },
             stroke: { $foregroundBackgroundMix: 0.2 },
             strokeOpacity: 1,
             strokeWidth: 1,
             image: {
                 cornerRadius: 0,
+                enabled: true,
                 key: 'image',
                 height: 50,
                 position: 'top',
@@ -90,6 +111,8 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
                 width: 50,
             },
             title: {
+                ...NODE_TEXT_BOX_DEFAULTS,
+                enabled: true,
                 color: { $ref: 'foregroundColor' },
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
@@ -103,6 +126,8 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
                 wrapping: 'on-space',
             },
             subtitle: {
+                ...NODE_TEXT_BOX_DEFAULTS,
+                enabled: true,
                 color: { $ref: 'subtleTextColor' },
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $rem: FONT_SIZE_RATIO.SMALL },
@@ -117,6 +142,8 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
             },
             labels: {
                 $apply: {
+                    ...NODE_TEXT_BOX_DEFAULTS,
+                    enabled: true,
                     color: { $ref: 'subtleTextColor' },
                     fontFamily: { $ref: 'fontFamily' },
                     fontSize: { $rem: 11 / BASE_FONT_SIZE },

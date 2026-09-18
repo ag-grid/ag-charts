@@ -1,14 +1,15 @@
 import {
     type AgSankeySeriesLabelFormatterParams,
     type AgSankeySeriesNodeItemStylerParams,
-    type AgSankeySeriesNodeStyle,
-    type AgSankeySeriesOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
     type CallbackParamRules,
     type DynamicContext,
-    type NormalisedColorType,
+    type NormalisedSankeySeriesLinkOptions,
+    type NormalisedSankeySeriesNodeOptions,
+    type NormalisedSankeySeriesNodeStyle,
+    type NormalisedSankeySeriesOwnOptions,
     type RequireOptional,
     TextMeasurer,
     cachedTextMeasurer,
@@ -28,15 +29,37 @@ import {
 } from '../flow-proportion/flowProportionSeries';
 import type { NodeGraphEntry } from '../flow-proportion/flowProportionUtil';
 import { SankeyLink, type SankeyLinkNodeEdge } from './sankeyLink';
-import {
-    type SankeyDatum,
-    type SankeyLinkDatum,
-    type SankeyNodeDatum,
-    type SankeyNodeLabelDatum,
-    SankeySeriesProperties,
-} from './sankeySeriesProperties';
 
 const { Transformable, SeriesNodePickMode, createDatumId, getShapeStyle, getLabelStyles, Rect, BBox } = _ModuleSupport;
+
+interface SankeyNodeDatum extends FlowProportionNodeDatum<SankeyNodeDatum, SankeyLinkDatum> {
+    size: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
+interface SankeyLinkDatum extends FlowProportionLinkDatum<SankeyNodeDatum, SankeyLinkDatum> {
+    x1: number;
+    x2: number;
+    y1: number;
+    y2: number;
+    height: number;
+    elbows: { x: number; y: number }[];
+}
+
+type SankeyDatum = SankeyLinkDatum | SankeyNodeDatum;
+
+interface SankeyNodeLabelDatum {
+    x: number;
+    y: number;
+    textAlign: 'left' | 'right' | 'center';
+    text: string;
+    size: number;
+    nodeDatum: SankeyNodeDatum;
+    datumIndex: _ModuleSupport.DatumIndex;
+}
 
 interface GhostNodeGraphEntry {
     ghost: boolean;
@@ -90,15 +113,12 @@ export class SankeySeries extends FlowProportionSeries<
     SankeyNodeDatum,
     SankeyLinkDatum,
     SankeyNodeLabelDatum,
-    AgSankeySeriesOptions,
-    SankeySeriesProperties,
+    NormalisedSankeySeriesOwnOptions,
     _ModuleSupport.Rect<SankeyNodeDatum>,
     SankeyLink<SankeyLinkDatum>
 > {
     static override readonly className = 'SankeySeries';
     static readonly type = 'sankey' as const;
-
-    override properties = new SankeySeriesProperties();
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
@@ -108,7 +128,7 @@ export class SankeySeries extends FlowProportionSeries<
     }
 
     private isLabelEnabled() {
-        return (this.properties.labelKey != null || this.nodes == null) && this.properties.label.enabled;
+        return (this.options.labelKey != null || this.nodes == null) && this.options.label.enabled;
     }
 
     protected linkFactory() {
@@ -119,9 +139,27 @@ export class SankeySeries extends FlowProportionSeries<
         return new Rect<SankeyNodeDatum>();
     }
 
+    /** The themed style of one node or link, its palette colours cycled by the source node offset. */
+    private itemStyle(
+        part: NormalisedSankeySeriesNodeOptions | NormalisedSankeySeriesLinkOptions,
+        index: number
+    ): Required<NormalisedSankeySeriesNodeStyle> {
+        const { fills, strokes } = this.options;
+        const {
+            fillOpacity,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            fill = fills[index % fills.length],
+            stroke = strokes[index % fills.length],
+        } = part;
+        return { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset };
+    }
+
     override createNodeData() {
         const seriesRectWidth = this._nodeDataDependencies?.seriesRectWidth ?? 0;
-        const nodeWidth = this.properties.node.width;
+        const nodeWidth = this.options.node.width;
 
         // Create the base node graph. This is only a graph of nodes and links and does not include any columns.
         const {
@@ -138,7 +176,7 @@ export class SankeySeries extends FlowProportionSeries<
         const columns = this.initialiseColumns(maxPathLength);
         this.assignNodesToColumns(nodeGraph, columns, maxPathLength);
 
-        const measurer = cachedTextMeasurer(this.properties.label);
+        const measurer = cachedTextMeasurer(this.options.label);
         const { columnLabelInsetBefore, columnLabelInsetAfter } = this.getColumnLabelInsets(
             columns,
             measurer,
@@ -215,7 +253,7 @@ export class SankeySeries extends FlowProportionSeries<
         columns: Column[],
         maxPathLength: number
     ) {
-        const { fromKey, toKey, sizeKey, labelKey, label } = this.properties;
+        const { fromKey, toKey, sizeKey, labelKey, label } = this.options;
         const labelFit = resolveLabelFit(label, false);
 
         for (const graphNode of nodeGraph.values()) {
@@ -241,7 +279,7 @@ export class SankeySeries extends FlowProportionSeries<
                       labelKey!,
                       'label',
                       [],
-                      this.properties.label,
+                      label,
                       { datum: node.datum, value: node.label, fromKey, toKey, sizeKey, size }
                   )
                 : undefined;
@@ -260,7 +298,7 @@ export class SankeySeries extends FlowProportionSeries<
     private getNodeColumn(columns: Column[], graphNode: EnhancedNodeGraphEntry, maxPathLength: number) {
         const {
             node: { alignment },
-        } = this.properties;
+        } = this.options;
 
         const { linksBefore, linksAfter, maxPathLengthBefore, maxPathLengthAfter } = graphNode;
 
@@ -299,7 +337,7 @@ export class SankeySeries extends FlowProportionSeries<
         const {
             label: { spacing: labelSpacing, placement: labelPlacement, edgePlacement: edgeLabelPlacement },
             node: { width: nodeWidth },
-        } = this.properties;
+        } = this.options;
 
         const seriesRectWidth = this._nodeDataDependencies?.seriesRectWidth ?? 0;
 
@@ -317,7 +355,7 @@ export class SankeySeries extends FlowProportionSeries<
                 const text = wrapText(node.datum.label, {
                     maxWidth,
                     maxHeight: node.datum.height,
-                    font: this.properties.label,
+                    font: this.options.label,
                     textWrap: 'never',
                 });
                 let { width } = measurer.measureLines(text);
@@ -395,11 +433,11 @@ export class SankeySeries extends FlowProportionSeries<
     }
 
     private weightNodes(columns: Column[]) {
-        const { properties } = this;
+        const { sort } = this.options.node;
 
-        if (properties.node.sort === 'data') return;
+        if (sort === 'data') return;
 
-        if (properties.node.sort !== 'auto') {
+        if (sort !== 'auto') {
             for (const column of columns) {
                 column.nodes.sort((a, b) => this.sortNodes(a as EnhancedNodeGraphEntry, b as EnhancedNodeGraphEntry));
             }
@@ -472,9 +510,9 @@ export class SankeySeries extends FlowProportionSeries<
             }, Infinity);
         };
 
-        let nodeSpacing = this.properties.node.spacing;
+        let nodeSpacing = this.options.node.spacing;
         let sizeScale = getSizeScale(nodeSpacing);
-        while (sizeScale < 0 && nodeSpacing > this.properties.node.minSpacing) {
+        while (sizeScale < 0 && nodeSpacing > this.options.node.minSpacing) {
             nodeSpacing -= 1;
             sizeScale = getSizeScale(nodeSpacing);
         }
@@ -495,9 +533,9 @@ export class SankeySeries extends FlowProportionSeries<
 
             const spacingOccupation = nodeSpacing * (column.nodes.length - 1);
             let y = 0;
-            if (this.properties.node.verticalAlignment === 'bottom') {
+            if (this.options.node.verticalAlignment === 'bottom') {
                 y = seriesRectHeight - columnNodesHeight - spacingOccupation;
-            } else if (this.properties.node.verticalAlignment === 'center') {
+            } else if (this.options.node.verticalAlignment === 'center') {
                 y = (seriesRectHeight - columnNodesHeight - spacingOccupation) / 2;
             }
 
@@ -592,7 +630,7 @@ export class SankeySeries extends FlowProportionSeries<
 
         const {
             label: { spacing: labelSpacing, edgePlacement: edgeLabelPlacement, fontSize },
-        } = this.properties;
+        } = this.options;
 
         const seriesRectWidth = this._nodeDataDependencies?.seriesRectWidth ?? 0;
 
@@ -615,7 +653,7 @@ export class SankeySeries extends FlowProportionSeries<
             text = wrapText(node.label, {
                 maxWidth,
                 maxHeight: node.height,
-                font: this.properties.label,
+                font: this.options.label,
                 textWrap: 'never',
                 overflow: 'hide',
             });
@@ -626,7 +664,7 @@ export class SankeySeries extends FlowProportionSeries<
             text = wrapText(node.label, {
                 maxWidth: columnWidth - labelInset,
                 maxHeight: node.height,
-                font: this.properties.label,
+                font: this.options.label,
                 textWrap: 'never',
             });
         }
@@ -658,7 +696,7 @@ export class SankeySeries extends FlowProportionSeries<
     private getNodeLabelPlacement(node: SankeyNodeDatum, leading: boolean, trailing: boolean) {
         const {
             label: { spacing: labelSpacing, placement: labelPlacement, edgePlacement: edgeLabelPlacement },
-        } = this.properties;
+        } = this.options;
 
         let x = node.x + node.width + labelSpacing;
         let textAlign: 'left' | 'right' | 'center' = 'left';
@@ -690,7 +728,7 @@ export class SankeySeries extends FlowProportionSeries<
 
     private createLinksNodeData(nodeData: SankeyDatum[], links: SankeyLinkDatum[], minSize: number, sizeScale: number) {
         const seriesRectHeight = this._nodeDataDependencies?.seriesRectHeight ?? 0;
-        const { width: nodeWidth, cornerRadius } = this.properties.node;
+        const { width: nodeWidth, cornerRadius } = this.options.node;
 
         for (const link of links) {
             const { fromNode, toNode, size } = link;
@@ -709,13 +747,13 @@ export class SankeySeries extends FlowProportionSeries<
     }
 
     private sortNodes(a: EnhancedNodeGraphEntry, b: EnhancedNodeGraphEntry, opts?: { invertColumnSort: boolean }) {
-        const { properties } = this;
+        const { sort } = this.options.node;
 
-        if (properties.node.sort === 'ascending') {
+        if (sort === 'ascending') {
             return (a.datum.label ?? '').localeCompare(b.datum.label ?? '');
-        } else if (properties.node.sort === 'descending') {
+        } else if (sort === 'descending') {
             return (b.datum.label ?? '').localeCompare(a.datum.label ?? '');
-        } else if (properties.node.sort === 'data') {
+        } else if (sort === 'data') {
             return 0;
         }
 
@@ -758,10 +796,10 @@ export class SankeySeries extends FlowProportionSeries<
         opts.labelSelection.each((label, datum) => {
             const { x, y, textAlign, text, datumIndex, nodeDatum } = datum;
             const params: RequireOptional<AgSankeySeriesLabelFormatterParams> = {
-                fromKey: this.properties.fromKey,
+                fromKey: this.options.fromKey,
                 size: datum.size,
-                sizeKey: this.properties.sizeKey,
-                toKey: this.properties.toKey,
+                sizeKey: this.options.sizeKey,
+                toKey: this.options.toKey,
             };
 
             const isHighlight = this.isLabelHighlighted(nodeDatum, activeHighlightDatum);
@@ -770,7 +808,7 @@ export class SankeySeries extends FlowProportionSeries<
                 this,
                 undefined,
                 params,
-                this.properties.label,
+                this.options.label,
                 isHighlight,
                 activeHighlightDatum
             );
@@ -809,17 +847,10 @@ export class SankeySeries extends FlowProportionSeries<
         fromNodeDatumIndex: FlowNodeDatumIndex,
         isHighlight: boolean
     ) {
-        const { properties } = this;
-        const {
-            fills,
-            strokes,
-            defaultColorRange,
-            defaultPatternFills,
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults,
-        } = properties;
-        const { itemStyler } = properties.node;
+        const { options } = this;
+        const { defaultColorRange, defaultPatternFills, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } =
+            options;
+        const { itemStyler } = options.node;
 
         const nodeOffset = toFlowNodeOffset(fromNodeDatumIndex);
         const defaultColorStops = defaultColorRange[nodeOffset % defaultColorRange.length].map((color) => ({
@@ -829,18 +860,14 @@ export class SankeySeries extends FlowProportionSeries<
 
         const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum.datumIndex);
         const selectionStyle = this.getSelectionStyle(nodeDatum.datumIndex);
-        const baseStyle = mergeDefaults(
-            selectionStyle,
-            highlightStyle,
-            properties.getStyle(false, fills, strokes, nodeOffset)
-        );
-        const hasNodeFill = properties.node.fill != null;
+        const baseStyle = mergeDefaults(selectionStyle, highlightStyle, this.itemStyle(options.node, nodeOffset));
+        const hasNodeFill = options.node.fill != null;
         let style = getShapeStyle(
             baseStyle,
-            hasNodeFill ? fillGradientDefaults : { ...fillGradientDefaults.toJson(), colorStops: defaultColorStops },
+            hasNodeFill ? fillGradientDefaults : { ...fillGradientDefaults, colorStops: defaultColorStops },
             hasNodeFill
                 ? fillPatternDefaults
-                : { ...fillPatternDefaults.toJson(), fill: defaultPatternFill, stroke: defaultPatternFill },
+                : { ...fillPatternDefaults, fill: defaultPatternFill, stroke: defaultPatternFill },
             fillImageDefaults
         );
 
@@ -860,8 +887,8 @@ export class SankeySeries extends FlowProportionSeries<
                 style = mergeDefaults(
                     overrides,
                     style,
-                    { ...fillGradientDefaults.toJson(), colorStops: defaultColorStops },
-                    { ...fillPatternDefaults.toJson(), fill: defaultPatternFill, stroke: defaultPatternFill },
+                    { ...fillGradientDefaults, colorStops: defaultColorStops },
+                    { ...fillPatternDefaults, fill: defaultPatternFill, stroke: defaultPatternFill },
                     fillImageDefaults
                 );
             }
@@ -875,17 +902,16 @@ export class SankeySeries extends FlowProportionSeries<
     private makeItemStylerParams(
         { datum, datumIndex, size = 0, label }: Partial<SankeyNodeDatum>,
         isHighlight: boolean,
-        style: Required<AgSankeySeriesNodeStyle>
+        style: Required<NormalisedSankeySeriesNodeStyle>
     ) {
         const { id: seriesId } = this;
-        const { fromKey, toKey, sizeKey } = this.properties;
+        const { fromKey, toKey, sizeKey } = this.options;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
         const selectionState = this.getSelectionStateString(datumIndex);
         const candidateState = this.getCandidateStateString(datumIndex);
-        // `style` is the resolved node style, so its `fill` never carries unresolved colour refs.
-        const fill = this.filterItemStylerFillParams(style.fill as NormalisedColorType) ?? style.fill;
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
             seriesId,
@@ -919,7 +945,7 @@ export class SankeySeries extends FlowProportionSeries<
             rect.y = datum.y;
             rect.width = Math.max(datum.width, 0);
             rect.height = Math.max(datum.height, 0);
-            rect.cornerRadius = this.properties.node.cornerRadius;
+            rect.cornerRadius = this.options.node.cornerRadius;
 
             rect.setStyleProperties(style, fillBBox);
         });
@@ -947,17 +973,10 @@ export class SankeySeries extends FlowProportionSeries<
         fromNodeDatumIndex: FlowNodeDatumIndex,
         isHighlight: boolean
     ) {
-        const { id: seriesId, properties } = this;
-        const {
-            fills,
-            strokes,
-            defaultColorRange,
-            defaultPatternFills,
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults,
-        } = properties;
-        const { itemStyler } = properties.link;
+        const { id: seriesId, options } = this;
+        const { defaultColorRange, defaultPatternFills, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } =
+            options;
+        const { itemStyler } = options.link;
 
         const nodeOffset = toFlowNodeOffset(fromNodeDatumIndex);
         const defaultColorStops = defaultColorRange[nodeOffset % defaultColorRange.length].map((color) => ({
@@ -967,18 +986,14 @@ export class SankeySeries extends FlowProportionSeries<
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
-        const baseStyle = mergeDefaults(
-            selectionStyle,
-            highlightStyle,
-            properties.getStyle(true, fills, strokes, nodeOffset)
-        );
-        const hasLinkFill = properties.link.fill != null;
+        const baseStyle = mergeDefaults(selectionStyle, highlightStyle, this.itemStyle(options.link, nodeOffset));
+        const hasLinkFill = options.link.fill != null;
         let style = getShapeStyle(
             baseStyle,
-            hasLinkFill ? fillGradientDefaults : { ...fillGradientDefaults.toJson(), colorStops: defaultColorStops },
+            hasLinkFill ? fillGradientDefaults : { ...fillGradientDefaults, colorStops: defaultColorStops },
             hasLinkFill
                 ? fillPatternDefaults
-                : { ...fillPatternDefaults.toJson(), fill: defaultPatternFill, stroke: defaultPatternFill },
+                : { ...fillPatternDefaults, fill: defaultPatternFill, stroke: defaultPatternFill },
             fillImageDefaults
         );
 
@@ -1005,8 +1020,8 @@ export class SankeySeries extends FlowProportionSeries<
                 style = mergeDefaults(
                     overrides,
                     style,
-                    { ...fillGradientDefaults.toJson(), colorStops: defaultColorStops },
-                    { ...fillPatternDefaults.toJson(), fill: defaultPatternFill, stroke: defaultPatternFill },
+                    { ...fillGradientDefaults, colorStops: defaultColorStops },
+                    { ...fillPatternDefaults, fill: defaultPatternFill, stroke: defaultPatternFill },
                     fillImageDefaults
                 );
             }
@@ -1023,7 +1038,7 @@ export class SankeySeries extends FlowProportionSeries<
         const { datumSelection, isHighlight } = opts;
 
         const fillBBox = this.getShapeFillBBox();
-        const { cornerRadius } = this.properties.node;
+        const { cornerRadius } = this.options.node;
 
         datumSelection.each((link, datum) => {
             const style = this.getLinkStyle(datum.datum, datum.datumIndex, datum.fromNode.datumIndex, isHighlight);
@@ -1055,11 +1070,9 @@ export class SankeySeries extends FlowProportionSeries<
     }
 
     protected override hasItemStylers(): boolean {
+        const { node, link, label } = this.options;
         return (
-            this.properties.selection.enabled ||
-            this.properties.node.itemStyler != null ||
-            this.properties.link.itemStyler != null ||
-            this.properties.label.itemStyler != null
+            this.isSelectionEnabled() || node.itemStyler != null || link.itemStyler != null || label.itemStyler != null
         );
     }
 }
