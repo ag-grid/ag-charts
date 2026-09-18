@@ -1,18 +1,20 @@
+import type { ApiReferenceType } from '@components/api-documentation/apiReferenceHelpers';
+import type { InterfaceNode, MemberNode, TypeNode } from '@generate-code-reference-plugin/doc-interfaces/types';
 import { describe, expect, it } from 'vitest';
 
 import { themeParamDocs } from './getThemeParamDocs';
 
-const member = (name: string, docs?: string[]) => ({ kind: 'member' as const, name, type: 'string', docs });
-const iface = (name: string, members: any[], heritage?: any[]) => ({
-    kind: 'interface' as const,
+const member = (name: string, docs?: string[]): MemberNode => ({ kind: 'member', name, type: 'string', docs });
+const iface = (name: string, members: MemberNode[], heritage?: TypeNode[]): InterfaceNode => ({
+    kind: 'interface',
     name,
     members,
     ...(heritage ? { heritage } : {}),
 });
-const makeReference = (nodes: Record<string, unknown>) => new Map<string, any>(Object.entries(nodes)) as any;
+const makeReference = (nodes: Record<string, InterfaceNode>): ApiReferenceType => new Map(Object.entries(nodes));
 
 /** The real shape: the charts interface extends the one whose params grid shares. */
-const reference = (chartsMembers: any[], baseMembers: any[] = []) =>
+const reference = (chartsMembers: MemberNode[], baseMembers: MemberNode[] = []) =>
     makeReference({
         AgBaseChartThemeParams: iface('AgBaseChartThemeParams', baseMembers),
         AgChartThemeParams: iface('AgChartThemeParams', chartsMembers, ['AgBaseChartThemeParams']),
@@ -61,6 +63,14 @@ describe('themeParamDocs', () => {
             menuBorder: 'Border around menus.',
             focusShadow: 'Shadow around focused controls.',
         });
+    });
+
+    it('drops the default marker, whose backticks a plain-text tooltip would show', () => {
+        const docs = themeParamDocs(
+            reference([member('chartBackgroundColor', ['Behind the chart.', '', 'Default: `backgroundColor`'])])
+        );
+
+        expect(docs.chartBackgroundColor).toBe('Behind the chart.');
     });
 
     it('reads a wrapped comment as one line, a tooltip having no use for the source layout', () => {

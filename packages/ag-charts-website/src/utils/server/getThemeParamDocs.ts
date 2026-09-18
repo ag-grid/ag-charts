@@ -5,29 +5,31 @@ import { getInterfacesReference } from './getInterfacesReference';
 
 /**
  * Per-parameter explanations for the theme builder's tooltips, taken from the
- * JSDoc on `AgChartThemeParams` - the same comments the Themes API reference
- * publishes, so the builder cannot drift from the documented behaviour.
- *
- * The builder is a browser app and the generated reference is 4MB, so this runs
- * at build time in `theme-builder.astro` and the ~5KB result is handed to the
- * island as a prop.
+ * same JSDoc the Themes API reference publishes so the two cannot drift. The
+ * generated reference is 4MB, so this runs at build time in
+ * `theme-builder.astro` and the ~5KB result is handed to the island as a prop.
  */
 
 /** Where the builder's params are declared. Interfaces it extends are followed. */
 const ROOT_INTERFACE = 'AgChartThemeParams';
 
 /**
- * Sentences saying what shape a value may take rather than what the parameter
- * does. They earn their place in the API reference, where the reader is writing
- * the value by hand; in the builder an editor has already made that choice, so
- * a tooltip is better off without them.
+ * Sentences saying what shape a value may take rather than what the param does.
+ * They earn their place in the API reference, where the reader writes the value
+ * by hand; in the builder an editor has already made that choice.
  */
 const VALUE_SHAPE_SENTENCES = [
     /A colour string, or a theme-colour reference object\./,
     /A single family name, or an array of names used as fallbacks\./,
     /`true` for the default border, `false` to disable, or an object to customise it\./,
-    /The value must (?:be )?a valid CSS box-shadow\./,
+    /The value must be a valid CSS box-shadow\./,
 ];
+
+/**
+ * The reference renders this as markdown; a tooltip is a plain string, so the
+ * backticks would show. The builder names what a param inherits in the editor.
+ */
+const DEFAULT_MARKER = /Default: `[^`]+`/;
 
 export function themeParamDocs(reference: ApiReferenceType): Record<string, string> {
     const docs: Record<string, string> = {};
@@ -70,7 +72,7 @@ const heritageName = (base: TypeNode): string | undefined => {
 
 const tooltipText = (docs: string | undefined): string => {
     let text = docs ?? '';
-    for (const sentence of VALUE_SHAPE_SENTENCES) {
+    for (const sentence of [...VALUE_SHAPE_SENTENCES, DEFAULT_MARKER]) {
         text = text.replace(sentence, '');
     }
     return text.replaceAll(/\s+/g, ' ').trim();
