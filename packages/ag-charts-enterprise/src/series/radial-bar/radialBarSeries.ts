@@ -1,17 +1,14 @@
-import {
-    type AgRadialBarSeriesOptions,
-    type AgRadialSeriesLabelFormatterParams,
-    type AgRadialSeriesStyle,
-    _ModuleSupport,
-} from 'ag-charts-community';
+import { type AgRadialSeriesLabelFormatterParams, type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import {
     ChartAxisDirection,
     type DomainWithMetadata,
     type DynamicContext,
     type FillStrokeMorph,
     type Normalised,
+    type NormalisedRadialBarSeriesOwnOptions,
     type NormalisedTextOrSegments,
     type Point,
+    type RequireOptional,
     angleBetween,
     isDefined,
     isGradientFill,
@@ -25,7 +22,6 @@ import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxi
 import { readDatum } from '../../utils/datum';
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 import { type RadialSeriesStyleResult, getItemStyle, getStyle } from '../util/radialUtil';
-import { RadialBarSeriesProperties } from './radialBarSeriesProperties';
 import { prepareRadialBarSeriesAnimationFunctions, resetRadialBarSelectionsFn } from './radialBarUtil';
 
 const {
@@ -84,8 +80,7 @@ export interface RadialBarSeriesNodeDataContext extends _ModuleSupport.DataModel
 
 export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     RadialBarNodeDatum,
-    AgRadialBarSeriesOptions,
-    RadialBarSeriesProperties<AgRadialBarSeriesOptions>,
+    NormalisedRadialBarSeriesOwnOptions,
     _ModuleSupport.Sector<RadialBarNodeDatum>,
     RadialBarNodeDatum,
     RadialBarSeriesNodeDataContext
@@ -93,13 +88,11 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     static override readonly className = 'RadialBarSeries';
     static readonly type = 'radial-bar' as const;
 
-    override properties = new RadialBarSeriesProperties();
-
     override createNodeParams(datum: RadialBarNodeDatum) {
         return {
             ...super.createNodeParams(datum),
-            angleKey: this.properties.angleKey,
-            radiusKey: this.properties.radiusKey,
+            angleKey: this.options.angleKey,
+            radiusKey: this.options.radiusKey,
         };
     }
 
@@ -144,7 +137,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        const { angleKey, radiusKey, normalizedTo } = this.properties;
+        const { angleKey, radiusKey, normalizedTo } = this.options;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const stackGroupId = this.getStackId();
         const stackGroupTrailingId = `${stackGroupId}-trailing`;
@@ -166,7 +159,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const radiusScaleType = this.axes[ChartAxisDirection.Radius]?.scale.type;
         const angleScaleType = this.axes[ChartAxisDirection.Angle]?.scale.type;
-        const allowNullKey = this.properties.allowNullKeys ?? false;
+        const allowNullKey = this.options.allowNullKeys ?? false;
 
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
@@ -280,7 +273,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const angleDomain = this.getSeriesDomain(ChartAxisDirection.Angle).domain;
 
-        const { angleKey, radiusKey, angleName, radiusName, legendItemName, label } = this.properties;
+        const { angleKey, radiusKey, angleName, radiusName, legendItemName, label } = this.options;
 
         const getLabelNodeDatum = (
             datum: RadialColumnNodeDatum,
@@ -320,7 +313,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             const datum = rawData[datumIndex];
             const radiusDatum = radiusValues[datumIndex];
             // eslint-disable-next-line sonarjs/different-types-comparison
-            if (radiusDatum === undefined && !this.properties.allowNullKeys) return;
+            if (radiusDatum === undefined && !this.options.allowNullKeys) return;
 
             const angleDatum = angleRawValues[datumIndex];
             const angleStartDatum = angleStartValues[datumIndex];
@@ -347,7 +340,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             const midAngle = startAngle + angleBetween(startAngle, endAngle) / 2;
             const x = Math.cos(midAngle) * midRadius;
             const y = Math.sin(midAngle) * midRadius;
-            const labelNodeDatum = this.properties.label.enabled
+            const labelNodeDatum = this.options.label.enabled
                 ? getLabelNodeDatum(datum as any, angleDatum, x, y)
                 : undefined;
 
@@ -422,9 +415,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const hasItemStylers = this.hasItemStylers();
         // No itemStyler: style is a pure function of (highlightState, selectionState); cache by state.
         const styleCache =
-            hasItemStylers && this.properties.itemStyler == null
-                ? new Map<string, RadialSeriesStyleResult>()
-                : undefined;
+            hasItemStylers && this.options.itemStyler == null ? new Map<string, RadialSeriesStyleResult>() : undefined;
 
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
@@ -495,8 +486,14 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             });
     }
 
+    private makeLabelFormatterParams(): RequireOptional<AgRadialSeriesLabelFormatterParams> {
+        const { angleKey, radiusKey, angleName, radiusName, legendItemName } = this.options;
+        return { angleKey, radiusKey, angleName, radiusName, legendItemName };
+    }
+
     protected updateLabels() {
-        const { properties } = this;
+        const { label } = this.options;
+        const params = this.makeLabelFormatterParams();
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightDatum =
             activeHighlight?.series === this && activeHighlight?.datum
@@ -506,7 +503,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         this.labelSelection.update(this.nodeData).each((node, datum) => {
             const isHighlight = false;
-            updateLabelNode(this, node, properties, properties.label, datum.label, { isHighlight, activeHighlight });
+            updateLabelNode(this, node, params, label, datum.label, { isHighlight, activeHighlight });
             node.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
         });
 
@@ -514,10 +511,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             .update(highlightData, undefined, (datum) => this.getDatumId(datum))
             .each((node, datum) => {
                 const isHighlight = true;
-                updateLabelNode(this, node, properties, properties.label, datum.label, {
-                    isHighlight,
-                    activeHighlight,
-                });
+                updateLabelNode(this, node, params, label, datum.label, { isHighlight, activeHighlight });
                 node.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
             });
     }
@@ -569,8 +563,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, axes, properties } = this;
-        const { angleKey, angleName, radiusKey, radiusName, legendItemName, tooltip } = properties;
+        const { id: seriesId, dataModel, processedData, axes, options } = this;
+        const { angleKey, angleName, radiusKey, radiusName, legendItemName, tooltip } = options;
         const angleAxis = axes[ChartAxisDirection.Angle];
         const radiusAxis = axes[ChartAxisDirection.Radius];
         const nodeDatum = this.nodeData?.[datumIndex];
@@ -584,7 +578,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         ];
 
         // eslint-disable-next-line sonarjs/different-types-comparison
-        if (radiusValue === undefined && !this.properties.allowNullKeys) return;
+        if (radiusValue === undefined && !this.options.allowNullKeys) return;
 
         const format = getItemStyle(this, nodeDatum, false, undefined, undefined, undefined);
 
@@ -659,7 +653,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const { id: seriesId, visible } = this;
 
-        const { angleKey, angleName, legendItemName, showInLegend } = this.properties;
+        const { angleKey, angleName, legendItemName, showInLegend } = this.options;
 
         return [
             {
@@ -673,7 +667,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 },
                 symbol: this.legendItemSymbol(),
                 legendItemName,
-                hideInLegend: !showInLegend,
+                hideInLegend: showInLegend === false,
             },
         ];
     }
@@ -692,11 +686,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return (
-            this.properties.selection.enabled ||
-            this.properties.itemStyler != null ||
-            this.properties.styler != null ||
-            this.properties.label.itemStyler != null
-        );
+        const { itemStyler, styler, label } = this.options;
+        return this.isSelectionEnabled() || itemStyler != null || styler != null || label.itemStyler != null;
     }
 }

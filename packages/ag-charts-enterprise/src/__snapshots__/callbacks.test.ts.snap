@@ -2672,12 +2672,15 @@ exports[`AG-15850 labels > donut > itemStyler 1`] = `
 [
   [
     {
+      "angleKey": "myValue",
+      "angleName": undefined,
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "calloutLabelKey": "myCategory",
+      "calloutLabelName": undefined,
       "candidateState": undefined,
       "color": "#464646",
       "cornerRadius": 4,
@@ -2697,19 +2700,27 @@ exports[`AG-15850 labels > donut > itemStyler 1`] = `
       "highlightState": "none",
       "itemId": 0,
       "itemType": undefined,
+      "legendItemKey": undefined,
       "padding": 8,
+      "radiusKey": undefined,
+      "radiusName": undefined,
+      "sectorLabelKey": undefined,
+      "sectorLabelName": undefined,
       "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
   [
     {
+      "angleKey": "myValue",
+      "angleName": undefined,
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "calloutLabelKey": "myCategory",
+      "calloutLabelName": undefined,
       "candidateState": undefined,
       "color": "#464646",
       "cornerRadius": 4,
@@ -2729,7 +2740,12 @@ exports[`AG-15850 labels > donut > itemStyler 1`] = `
       "highlightState": "none",
       "itemId": 1,
       "itemType": undefined,
+      "legendItemKey": undefined,
       "padding": 8,
+      "radiusKey": undefined,
+      "radiusName": undefined,
+      "sectorLabelKey": undefined,
+      "sectorLabelName": undefined,
       "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
@@ -3780,10 +3796,11 @@ exports[`AG-15850 labels > radial-bar > itemStyler 1`] = `
 [
   [
     {
+      "angleKey": "myValue",
+      "angleName": undefined,
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3805,17 +3822,21 @@ exports[`AG-15850 labels > radial-bar > itemStyler 1`] = `
       "highlightState": "none",
       "itemId": 0,
       "itemType": undefined,
+      "legendItemName": undefined,
       "padding": 8,
+      "radiusKey": "myValue2",
+      "radiusName": undefined,
       "selectionState": undefined,
       "seriesId": "RadialBarSeries-1",
     },
   ],
   [
     {
+      "angleKey": "myValue",
+      "angleName": undefined,
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3837,7 +3858,10 @@ exports[`AG-15850 labels > radial-bar > itemStyler 1`] = `
       "highlightState": "none",
       "itemId": 1,
       "itemType": undefined,
+      "legendItemName": undefined,
       "padding": 8,
+      "radiusKey": "myValue2",
+      "radiusName": undefined,
       "selectionState": undefined,
       "seriesId": "RadialBarSeries-1",
     },
@@ -3888,10 +3912,11 @@ exports[`AG-15850 labels > radial-column > itemStyler 1`] = `
 [
   [
     {
+      "angleKey": "myCategory",
+      "angleName": undefined,
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3913,17 +3938,21 @@ exports[`AG-15850 labels > radial-column > itemStyler 1`] = `
       "highlightState": "none",
       "itemId": 0,
       "itemType": undefined,
+      "legendItemName": undefined,
       "padding": 8,
+      "radiusKey": "myValue",
+      "radiusName": undefined,
       "selectionState": undefined,
       "seriesId": "RadialColumnSeries-1",
     },
   ],
   [
     {
+      "angleKey": "myCategory",
+      "angleName": undefined,
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3945,7 +3974,10 @@ exports[`AG-15850 labels > radial-column > itemStyler 1`] = `
       "highlightState": "none",
       "itemId": 1,
       "itemType": undefined,
+      "legendItemName": undefined,
       "padding": 8,
+      "radiusKey": "myValue",
+      "radiusName": undefined,
       "selectionState": undefined,
       "seriesId": "RadialColumnSeries-1",
     },

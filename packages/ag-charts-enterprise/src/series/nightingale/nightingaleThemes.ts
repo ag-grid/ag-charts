@@ -1,4 +1,5 @@
 import {
+    COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_RADIAL_SERIES_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
@@ -12,6 +13,7 @@ import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 export const NIGHTINGALE_SERIES_THEME: ExtensibleSeriesTheme<'nightingale'> = {
     series: {
+        ...COMMON_SERIES_THEME_DEFAULTS,
         fill: {
             $applySwitch: [
                 { $path: 'type' },
@@ -24,7 +26,12 @@ export const NIGHTINGALE_SERIES_THEME: ExtensibleSeriesTheme<'nightingale'> = {
         stroke: {
             $if: [{ $eq: [{ $palette: 'type' }, 'inbuilt'] }, { $ref: 'chartBackgroundColor' }, { $palette: 'stroke' }],
         },
+        fillOpacity: 1,
         strokeWidth: 1,
+        strokeOpacity: 1,
+        lineDash: [0],
+        lineDashOffset: 0,
+        cornerRadius: 0,
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,
@@ -33,6 +40,7 @@ export const NIGHTINGALE_SERIES_THEME: ExtensibleSeriesTheme<'nightingale'> = {
             fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'textColor' },
         },
+        tooltip: { interaction: { enabled: false } },
         highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: false },
         selection: SERIES_SELECTION_THEME,
     },

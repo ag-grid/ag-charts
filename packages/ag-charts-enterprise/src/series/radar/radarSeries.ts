@@ -127,7 +127,7 @@ export type ResolvedRadarStyle<TStyle extends AgRadarSeriesStyle> = {
 export abstract class RadarSeries<
     TStyle extends AgRadarSeriesStyle,
     TOptions extends NormalisedRadarSeriesOwnOptions<TStyle>,
-> extends _ModuleSupport.PolarSeries<RadarNodeDatum, TOptions, undefined, _ModuleSupport.Marker<RadarNodeDatum>> {
+> extends _ModuleSupport.PolarSeries<RadarNodeDatum, TOptions, _ModuleSupport.Marker<RadarNodeDatum>> {
     static override readonly className: string = 'RadarSeries';
 
     private markerDirty = true;

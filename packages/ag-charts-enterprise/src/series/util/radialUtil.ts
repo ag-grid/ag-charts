@@ -32,7 +32,7 @@ interface RadialSectorSeries<D extends BaseNodeDatum> {
     readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>;
     readonly declarationOrder: number;
     readonly context?: { nodeData: D[] };
-    readonly properties: {
+    readonly options: {
         readonly angleKey: string;
         readonly radiusKey: string;
         readonly fill: InternalAgColorType;
@@ -90,7 +90,7 @@ export function makeStylerParams(
         stroke,
         strokeOpacity,
         strokeWidth,
-    } = series.properties;
+    } = series.options;
     const highlightState = toHighlightString(highlightStateEnum ?? _ModuleSupport.HighlightState.None);
     const selectionState = toSelectionString(selectionStateEnum);
     const candidateState = toSelectionString(candidateStateEnum);
@@ -123,7 +123,7 @@ export function getStyle(
     selectionState: _ModuleSupport.SelectionState | undefined,
     candidateState: _ModuleSupport.SelectionState | undefined
 ): RadialSeriesStyleResult {
-    const { styler } = series.properties;
+    const { styler } = series.options;
     let stylerResult: Resolved<Partial<AgRadialSeriesStyle>> = {};
     if (!ignoreStylerCallback && styler) {
         const stylerParams = makeStylerParams(series, highlightState, selectionState, candidateState);
@@ -136,14 +136,14 @@ export function getStyle(
     }
 
     return {
-        cornerRadius: stylerResult.cornerRadius ?? series.properties.cornerRadius,
-        fill: stylerResult.fill ?? series.properties.fill,
-        fillOpacity: stylerResult.fillOpacity ?? series.properties.fillOpacity,
-        lineDash: stylerResult.lineDash ?? series.properties.lineDash,
-        lineDashOffset: stylerResult.lineDashOffset ?? series.properties.lineDashOffset,
-        stroke: stylerResult.stroke ?? series.properties.stroke,
-        strokeOpacity: stylerResult.strokeOpacity ?? series.properties.strokeOpacity,
-        strokeWidth: stylerResult.strokeWidth ?? series.properties.strokeWidth,
+        cornerRadius: stylerResult.cornerRadius ?? series.options.cornerRadius,
+        fill: stylerResult.fill ?? series.options.fill,
+        fillOpacity: stylerResult.fillOpacity ?? series.options.fillOpacity,
+        lineDash: stylerResult.lineDash ?? series.options.lineDash,
+        lineDashOffset: stylerResult.lineDashOffset ?? series.options.lineDashOffset,
+        stroke: stylerResult.stroke ?? series.options.stroke,
+        strokeOpacity: stylerResult.strokeOpacity ?? series.options.strokeOpacity,
+        strokeWidth: stylerResult.strokeWidth ?? series.options.strokeWidth,
         opacity: 1,
     };
 }
@@ -154,8 +154,8 @@ export function makeItemStylerParams<D extends BaseNodeDatum, S extends RadialSe
     isHighlight: boolean,
     style: Required<AgRadialSeriesStyle> & { opacity: number }
 ) {
-    const { id: seriesId, properties } = series;
-    const { angleKey, radiusKey } = properties;
+    const { id: seriesId, options } = series;
+    const { angleKey, radiusKey } = options;
 
     const activeHighlight = series.ctx.highlightManager?.getActiveHighlight();
     const highlightStateString = series.getHighlightStateString(activeHighlight, isHighlight, nodeDatum.datumIndex);
@@ -185,8 +185,7 @@ export function getItemStyle<D extends BaseNodeDatum, S extends RadialSectorSeri
     selectionState: _ModuleSupport.SelectionState | undefined,
     candidateState: _ModuleSupport.SelectionState | undefined
 ): RadialSeriesStyleResult {
-    const { properties } = series;
-    const { itemStyler } = properties;
+    const { itemStyler } = series.options;
 
     const highlightStyle = series.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
     // Pre-resolved selectionState is forwarded by the no-itemStyler cache path.
