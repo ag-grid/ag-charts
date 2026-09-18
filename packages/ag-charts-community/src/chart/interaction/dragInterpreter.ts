@@ -146,12 +146,12 @@ export class DragInterpreter {
             return;
         }
 
-        if (event.device !== 'touch') {
+        if (event.device === 'mouse' || event.device === 'pen') {
             const click = makeSynthetic('click', event);
             this.events.emit('click', click);
         }
         // ignore 'drag-end' events from 'touchstart' or 'touchcancel'
-        else {
+        else if (event.device satisfies 'touch') {
             if (checkDragDistance(this.touch.distanceTravelledX, this.touch.distanceTravelledY)) {
                 return; // this is a drag not a click, do not dispatch a 'click' event.
             }
