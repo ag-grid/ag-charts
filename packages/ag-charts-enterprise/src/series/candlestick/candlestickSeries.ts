@@ -1,8 +1,9 @@
-import { type AgCandlestickSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import {
     type FillStrokeMorph,
     type InternalAgGradientColor,
     type Normalised,
+    type NormalisedCandlestickSeriesOwnOptions,
     isGradientFill,
     isImageFill,
     isPatternFill,
@@ -11,7 +12,6 @@ import type { CssColor } from 'ag-charts-types';
 
 import { type OhlcNodeDatum, OhlcSeriesBase, type OhlcSeriesBaseTypes } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
-import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 
 /** Post-resolution style: colour refs are resolved to concrete colours before reaching the scene node. */
 type NormalisedCandlestickStyle = Normalised<
@@ -25,15 +25,13 @@ type NormalisedCandlestickStyle = Normalised<
  */
 interface CandlestickSeriesTypes extends OhlcSeriesBaseTypes {
     readonly node: CandlestickNode<OhlcNodeDatum>;
-    readonly options: AgCandlestickSeriesOptions;
-    readonly properties: CandlestickSeriesProperties<AgCandlestickSeriesOptions>;
+    readonly options: NormalisedCandlestickSeriesOwnOptions;
+    readonly properties: undefined;
 }
 
 export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
     static override readonly className = 'CandleStickSeries';
     static readonly type = 'candlestick' as const;
-
-    override properties = new CandlestickSeriesProperties<AgCandlestickSeriesOptions>();
 
     protected override nodeFactory() {
         const node = new CandlestickNode<OhlcNodeDatum>();
@@ -60,12 +58,12 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
         datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, CandlestickSeriesTypes['node']>;
         isHighlight: boolean;
     }) {
-        const { contextNodeData, properties } = this;
+        const { contextNodeData, options } = this;
         if (!contextNodeData) {
             return;
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        const { up, down } = properties.item;
+        const { up, down } = options.item;
 
         const fillBBox = this.getShapeFillBBox();
 
@@ -90,12 +88,12 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
                 styleWick?.lineDashOffset
             );
 
-            node.wickStrokeAlignment = baseStyle.wick.strokeWidth ?? baseStyle.strokeWidth;
+            node.wickStrokeAlignment = baseStyle.wick?.strokeWidth ?? baseStyle.strokeWidth;
         });
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { up, down } = this.properties.item;
+        const { up, down } = this.options.item;
 
         const upColorStops = isGradientFill(up.fill)
             ? up.fill.colorStops!.map((c) =>
@@ -152,7 +150,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
             visible,
             ctx: { legendManager },
         } = this;
-        const { xKey, yName, showInLegend, legendItemName } = this.properties;
+        const { xKey, yName, showInLegend, legendItemName } = this.options;
 
         if (!data?.data.length || !xKey || legendType !== 'category') {
             return [];
@@ -170,12 +168,12 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
                 },
                 symbol: this.legendItemSymbol(),
                 legendItemName,
-                hideInLegend: !showInLegend,
+                hideInLegend: showInLegend === false,
             },
         ];
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.selection.enabled || this.properties.itemStyler != null;
+        return this.isSelectionEnabled() || this.options.itemStyler != null;
     }
 }

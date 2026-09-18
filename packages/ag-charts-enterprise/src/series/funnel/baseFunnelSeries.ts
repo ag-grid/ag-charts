@@ -12,6 +12,7 @@ import type {
     FillStrokeMorph,
     LabelFit,
     Normalised,
+    NormalisedBaseFunnelSeriesOwnOptions,
     NormalisedChartLabelPlacementStyleOptions,
     NormalisedTextOrSegments,
     PlacedLabel,
@@ -32,9 +33,8 @@ import {
     measureLabelText,
     resolveLabelFit,
 } from 'ag-charts-core';
-import type { AgConeFunnelSeriesOptions, AgFunnelSeriesOptions, AgNumericValue, PaddingOptions } from 'ag-charts-types';
+import type { AgNumericValue, PaddingOptions } from 'ag-charts-types';
 
-import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 import { FunnelConnector } from './funnelConnector';
 import type { PlacementAxes } from './funnelLabelPlacement';
 import { prepareConnectorAnimationFunctions, resetConnectorSelectionsFn } from './funnelUtil';
@@ -171,12 +171,12 @@ interface FunnelContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<
 
 /**
  * Base type interface for funnel series types.
- * Constrains datum, label, context, and properties types while leaving node and options open for subclasses.
+ * Constrains datum, label and context types while leaving node and options open for subclasses.
  */
 export interface BaseFunnelSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
     readonly node: _ModuleSupport.QuadtreeCompatibleNode<FunnelNodeDatum>;
-    readonly options: AgFunnelSeriesOptions | AgConeFunnelSeriesOptions;
-    readonly properties: BaseFunnelProperties<this['options']>;
+    readonly options: NormalisedBaseFunnelSeriesOwnOptions;
+    readonly properties: undefined;
     readonly datum: FunnelNodeDatum;
     readonly label: FunnelNodeLabelDatum;
     readonly context: FunnelContext;
@@ -192,13 +192,24 @@ export abstract class BaseFunnelSeries<
     override createNodeParams(datum: FunnelNodeDatum) {
         return {
             ...super.createNodeParams(datum),
-            xKey: this.properties.stageKey,
-            yKey: this.properties.valueKey,
+            xKey: this.options.stageKey,
+            yKey: this.options.valueKey,
         };
     }
 
-    protected get layoutOptions() {
-        return this.properties;
+    /** The themed style of one stage, as the base every highlight, selection and styler layer merges onto. */
+    protected itemStyle(datumIndex: number): Required<NormalisedFunnelSeriesStyle> & { opacity: number } {
+        const { fills, strokes, fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.options;
+        return {
+            fill: fills[datumIndex],
+            fillOpacity,
+            stroke: strokes[datumIndex],
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            opacity: 1,
+        };
     }
 
     protected readonly connectorNodeGroup = this.contentGroup.appendChild(
@@ -277,12 +288,12 @@ export abstract class BaseFunnelSeries<
 
     override getKeyAxis(direction: ChartAxisDirection): string | undefined {
         // Do not flip series axis keys for funnel series
-        if (direction === ChartAxisDirection.X) return this.properties.xKeyAxis;
-        if (direction === ChartAxisDirection.Y) return this.properties.yKeyAxis;
+        if (direction === ChartAxisDirection.X) return this.options.xKeyAxis;
+        if (direction === ChartAxisDirection.Y) return this.options.yKeyAxis;
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        const { stageKey, valueKey } = this.properties;
+        const { stageKey, valueKey } = this.options;
         const { visible, id: seriesId } = this;
 
         const validation = (_value: unknown, _datum: unknown, index: number) =>
@@ -301,7 +312,7 @@ export abstract class BaseFunnelSeries<
         }
 
         const visibleProps = this.visible ? {} : { forceValue: 0 };
-        const allowNullKey = this.properties.allowNullKeys ?? false;
+        const allowNullKey = this.options.allowNullKeys ?? false;
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
                 keyProperty(stageKey, xScaleType, { id: 'xValue', allowNullKey }),
@@ -376,7 +387,7 @@ export abstract class BaseFunnelSeries<
         const yScale = yAxis.scale;
 
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
-        const { stageKey, valueKey } = this.properties;
+        const { stageKey, valueKey } = this.options;
 
         const itemId = `${valueKey}`;
 
@@ -420,7 +431,7 @@ export abstract class BaseFunnelSeries<
 
             const xDatum = xValues[datumIndex];
             // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
-            if (xDatum === undefined && !this.properties.allowNullKeys) continue; // eslint-disable-line sonarjs/different-types-comparison
+            if (xDatum === undefined && !this.options.allowNullKeys) continue; // eslint-disable-line sonarjs/different-types-comparison
 
             const xConverted = xScale.convert(xDatum);
             if (!Number.isFinite(xConverted)) continue;
@@ -562,11 +573,11 @@ export abstract class BaseFunnelSeries<
     }
 
     private labelStylerParams(): RequireOptional<AgFunnelSeriesLabelFormatterParams> {
-        return { stageKey: this.properties.stageKey, valueKey: this.properties.valueKey };
+        return { stageKey: this.options.stageKey, valueKey: this.options.valueKey };
     }
 
     private createLabelContext(barAlongX: boolean): FunnelLabelContext {
-        const { label } = this.properties;
+        const { label } = this.options;
         const { placements, reportedPlacements, axes, insideCrossRegion } = this.resolveLabelPlacements(barAlongX);
         const boxPadding = expandPlacementLabelBoxExtent(label);
         const labelFit = resolveLabelFit(label, !label.collision.alwaysShow);
@@ -603,7 +614,7 @@ export abstract class BaseFunnelSeries<
         datum: any;
         visible: boolean;
     }): FunnelNodeLabelDatum | undefined {
-        const { stageKey, valueKey, label } = this.properties;
+        const { stageKey, valueKey, label } = this.options;
 
         if (!label.enabled) return;
 
@@ -613,7 +624,7 @@ export abstract class BaseFunnelSeries<
             valueKey,
             'y',
             labelContext.yDomain,
-            label,
+            this.options.label,
             { itemId: this.resolveItemId(datum, datumIndex), value: yDatum, datum, stageKey, valueKey }
         );
 
@@ -759,7 +770,7 @@ export abstract class BaseFunnelSeries<
         labelData: FunnelNodeLabelDatum[];
         labelSelection: FunnelAnimationData<_ModuleSupport.NodeOf<TTypes>>['labelSelection'];
     }) {
-        const labelData = this.properties.label.enabled ? opts.labelData : [];
+        const labelData = this.options.label.enabled ? opts.labelData : [];
         return opts.labelSelection.update(labelData, (text) => {
             text.pointerEvents = PointerEvents.None;
         });
@@ -785,7 +796,7 @@ export abstract class BaseFunnelSeries<
                 this,
                 textNode,
                 params,
-                this.properties.label,
+                this.options.label,
                 datum,
                 { isHighlight, activeHighlight },
                 undefined,
@@ -797,7 +808,7 @@ export abstract class BaseFunnelSeries<
 
     getLabelObstacles() {
         return barLabelObstaclesFor(
-            this.properties.label,
+            this.options.label,
             this.contextNodeData?.nodeData,
             this.contextNodeData?.labelData,
             this.isLabelEnabled() && !this.usesPlacedLabels,
@@ -806,7 +817,7 @@ export abstract class BaseFunnelSeries<
     }
 
     override getLabelData(): PointLabelDatum[] {
-        const { label } = this.properties;
+        const { label } = this.options;
         if (!this.usesPlacedLabels || !label.enabled) return [];
         const { alwaysShow, collideWith, threshold, measureBox, fitFor } = barLabelDataContext(label);
         const data: PointLabelDatum[] = [];
@@ -836,7 +847,7 @@ export abstract class BaseFunnelSeries<
 
     override getLabelCandidateResolver(): PositionedCandidateResolver | undefined {
         const params = this.labelStylerParams();
-        return createBarPositionedCandidateResolver(this, this.properties.label, () => params);
+        return createBarPositionedCandidateResolver(this, this.options.label, () => params);
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<FunnelNodeLabelDatum>[]) {
@@ -846,7 +857,7 @@ export abstract class BaseFunnelSeries<
     }
 
     protected override resolveUsesPlacedLabels(): boolean {
-        return barLabelPropsRouteThroughEngine(this.properties.label);
+        return barLabelPropsRouteThroughEngine(this.options.label);
     }
 
     protected override getHighlightLabelData(
@@ -864,8 +875,8 @@ export abstract class BaseFunnelSeries<
     protected abstract tooltipStyle(datum: any, datumIndex: number): Required<AgFunnelSeriesStyle>;
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, properties } = this;
-        const { stageKey, valueKey, tooltip, legendItemName } = properties;
+        const { id: seriesId, dataModel, processedData, options } = this;
+        const { stageKey, valueKey, tooltip, legendItemName } = options;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
@@ -876,7 +887,7 @@ export abstract class BaseFunnelSeries<
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData, 'mixed-numeric')[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
-        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        const allowNullKeys = this.options.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         return this.formatTooltipWithContext(
@@ -931,7 +942,7 @@ export abstract class BaseFunnelSeries<
     }
 
     protected isLabelEnabled() {
-        return this.properties.label.enabled;
+        return this.options.label.enabled;
     }
 
     protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
@@ -939,9 +950,8 @@ export abstract class BaseFunnelSeries<
     }
 
     private legendItemSymbol(datumIndex: number): _ModuleSupport.LegendSymbolOptions {
-        // Colour refs are resolved during theme-merge, so the style is already normalised by render.
         const { strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset, fill, stroke } =
-            this.properties.getStyle(datumIndex) as Required<NormalisedFunnelSeriesStyle> & { opacity: number };
+            this.itemStyle(datumIndex);
 
         return {
             marker: {
@@ -969,14 +979,14 @@ export abstract class BaseFunnelSeries<
             return [];
         }
 
-        const { showInLegend } = this.properties;
+        const { showInLegend } = this.options;
 
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
 
         return (processedData.dataSources.get(this.id)?.data ?? [])
             .map((datum, datumIndex): _ModuleSupport.CategoryLegendDatum | undefined => {
                 const stageValue = xValues[datumIndex];
-                const allowNullKeys = this.properties.allowNullKeys ?? false;
+                const allowNullKeys = this.options.allowNullKeys ?? false;
                 if (stageValue == null && !allowNullKeys) return;
 
                 return {
@@ -989,17 +999,13 @@ export abstract class BaseFunnelSeries<
                     label: { text: String(stageValue) },
                     symbol: this.legendItemSymbol(datumIndex),
                     skipAnimations: true,
-                    hideInLegend: !showInLegend,
+                    hideInLegend: showInLegend === false,
                 };
             })
             .filter((datum): datum is _ModuleSupport.CategoryLegendDatum => datum != null);
     }
 
     protected override hasItemStylers(): boolean {
-        return (
-            this.properties.selection.enabled ||
-            this.properties.itemStyler != null ||
-            this.properties.label.itemStyler != null
-        );
+        return this.isSelectionEnabled() || this.options.itemStyler != null || this.options.label.itemStyler != null;
     }
 }

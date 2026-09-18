@@ -507,8 +507,8 @@ export function resolveInsidePlacement(
 export function pickPlacementStyle(
     styles:
         | {
-              insideStyle: NormalisedChartLabelPlacementStyleOptions;
-              outsideStyle: NormalisedChartLabelPlacementStyleOptions;
+              insideStyle?: NormalisedChartLabelPlacementStyleOptions;
+              outsideStyle?: NormalisedChartLabelPlacementStyleOptions;
           }
         | undefined,
     placement: ResolvedLabelPlacement | undefined
@@ -529,8 +529,8 @@ function toResolvedCompassPlacement(placement: LabelPlacement | undefined): Reso
 
 /** A label surface carrying the placement-reactive style overrides a candidate style resolves against. */
 type PlacementStyledLabel<TParams> = NormalisedSeriesLabelOptions<TParams> & {
-    insideStyle: NormalisedChartLabelPlacementStyleOptions;
-    outsideStyle: NormalisedChartLabelPlacementStyleOptions;
+    insideStyle?: NormalisedChartLabelPlacementStyleOptions;
+    outsideStyle?: NormalisedChartLabelPlacementStyleOptions;
 };
 
 /**
@@ -653,8 +653,8 @@ export interface StyledBarLabelBox {
 
 /** A bar-family label surface: the placement-styled label every bar/histogram/waterfall/funnel series holds. */
 export type BarLabelSurface<TParams = never> = NormalisedSeriesLabelOptions<TParams> & {
-    insideStyle: NormalisedChartLabelPlacementStyleOptions;
-    outsideStyle: NormalisedChartLabelPlacementStyleOptions;
+    insideStyle?: NormalisedChartLabelPlacementStyleOptions;
+    outsideStyle?: NormalisedChartLabelPlacementStyleOptions;
 };
 
 /** The per-series values a bar-family `getLabelData` resolves once before walking its label data. */
@@ -1150,8 +1150,8 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
     // The styled label; the box extent (padding + border) is resolved per candidate from its placement's
     // style, so an inside↔outside cascade offsets and sizes each candidate by its own style.
     label: NormalisedSeriesLabelOptions<TParams> & {
-        insideStyle: NormalisedChartLabelPlacementStyleOptions;
-        outsideStyle: NormalisedChartLabelPlacementStyleOptions;
+        insideStyle?: NormalisedChartLabelPlacementStyleOptions;
+        outsideStyle?: NormalisedChartLabelPlacementStyleOptions;
     };
     // Raw measured text size, before the per-placement box extent is folded in.
     textWidth: number;

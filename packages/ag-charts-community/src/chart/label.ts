@@ -286,10 +286,11 @@ export class PlacedSeriesLabel<TParams = never, TDatum = any> extends Label<TPar
 }
 
 /** A label carrying both placement styles, resolved once the placement engine picks a side. */
+/** Placement styles are absent on series whose labels expose none (cone funnel); the label's own style then applies. */
 export type PlacementStyledLabelOptions = NormalisedChartLabelStyleOptions & {
     enabled: boolean;
-    insideStyle: NormalisedChartLabelPlacementStyleOptions;
-    outsideStyle: NormalisedChartLabelPlacementStyleOptions;
+    insideStyle?: NormalisedChartLabelPlacementStyleOptions;
+    outsideStyle?: NormalisedChartLabelPlacementStyleOptions;
 };
 
 type LabelBoxingMixin = {

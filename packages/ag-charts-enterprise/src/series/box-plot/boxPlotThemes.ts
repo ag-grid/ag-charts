@@ -1,5 +1,6 @@
 import {
     CARTESIAN_AXIS_TYPE,
+    COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
@@ -11,6 +12,7 @@ import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 export const BOX_PLOT_SERIES_THEME: ExtensibleSeriesTheme<'box-plot'> = {
     series: {
+        ...COMMON_SERIES_THEME_DEFAULTS,
         direction: 'vertical',
         fill: {
             $applySwitch: [
@@ -37,10 +39,14 @@ export const BOX_PLOT_SERIES_THEME: ExtensibleSeriesTheme<'box-plot'> = {
         strokeWidth: 2,
         fillOpacity: 1,
         strokeOpacity: 1,
-        lineDash: undefined,
+        lineDash: [0],
         lineDashOffset: 0,
+        cornerRadius: 0,
+        cap: { lengthRatio: 0.5 },
+        tooltip: { interaction: { enabled: false } },
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },
+            bringToFront: true,
             unhighlightedItem: {
                 opacity: 0.5,
             },
