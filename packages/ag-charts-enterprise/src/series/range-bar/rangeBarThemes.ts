@@ -1,6 +1,7 @@
 import { type AgChartThemeOverrides, type WithThemeParams } from 'ag-charts-community';
 import {
     CARTESIAN_AXIS_TYPE,
+    COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
@@ -16,6 +17,7 @@ import {
 
 export const RANGE_BAR_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['range-bar']> = {
     series: {
+        ...COMMON_SERIES_THEME_DEFAULTS,
         direction: 'vertical' as const,
         fill: {
             $applySwitch: [
@@ -28,6 +30,11 @@ export const RANGE_BAR_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['rang
         },
         stroke: { $palette: 'stroke' },
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
+        fillOpacity: 1,
+        strokeOpacity: 1,
+        lineDash: [0],
+        lineDashOffset: 0,
+        cornerRadius: 0,
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,
@@ -46,7 +53,8 @@ export const RANGE_BAR_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['rang
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
             placement: 'inside',
         },
-        highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+        tooltip: { interaction: { enabled: false } },
+        highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
     },

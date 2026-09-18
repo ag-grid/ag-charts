@@ -1,7 +1,6 @@
 import {
     ChartAxisDirection,
     type Point,
-    Property,
     type Scaling,
     addValues,
     extent,
@@ -21,7 +20,7 @@ import type { ChartAxis } from '../../chartAxis';
 import { fixNumericExtent } from '../../data/dataModel';
 import type { SeriesNodePickMatch } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
-import { type CartesianAnimationData, CartesianSeries, CartesianSeriesProperties } from './cartesianSeries';
+import { type CartesianAnimationData, CartesianSeries } from './cartesianSeries';
 import type {
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
@@ -33,22 +32,12 @@ import type {
 } from './cartesianSeriesTypes';
 import { type QuadtreeCompatibleNode, addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
-/** Layout keys the bar family shares; the legacy holder and the plain options carry the same names. */
+/** Layout keys the bar family reads off its options; a series without `direction` overrides `isVertical()`. */
 export interface AbstractBarSeriesLayoutOptions {
+    type: string;
     direction?: Direction;
     width?: number;
     widthRatio?: number;
-}
-
-export abstract class AbstractBarSeriesProperties<T extends object> extends CartesianSeriesProperties<T> {
-    @Property
-    direction: Direction = 'vertical';
-
-    @Property
-    width?: number = undefined;
-
-    @Property
-    widthRatio?: number = undefined;
 }
 
 export interface AbstractBarSeriesNodeDataContext<
@@ -61,12 +50,11 @@ export interface AbstractBarSeriesNodeDataContext<
 /**
  * Type constraint for series extending AbstractBarSeries.
  * The node type must be compatible with quadtree hit testing.
- * The properties type must include direction for bar orientation.
  */
 export interface AbstractBarSeriesTypes extends CartesianSeriesTypes {
     readonly node: QuadtreeCompatibleNode<this['datum']>;
-    /** Legacy holder; series migrated onto `options` set this to `undefined`. */
-    readonly properties: AbstractBarSeriesProperties<this['options']> | undefined;
+    readonly options: AbstractBarSeriesLayoutOptions;
+    readonly properties: undefined;
     readonly context: AbstractBarSeriesNodeDataContext<this['datum'], this['label']>;
 }
 
@@ -80,9 +68,6 @@ export type AbstractBarSeriesAnimationData<TTypes extends AbstractBarSeriesTypes
 export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> extends CartesianSeries<TTypes> {
     protected smallestDataInterval?: AgNumericValue = undefined;
     protected largestDataInterval?: AgNumericValue = undefined;
-
-    /** Bar layout keys; a subclass returns its plain options, or its legacy holder until it migrates. */
-    protected abstract get layoutOptions(): AbstractBarSeriesLayoutOptions;
 
     protected padBandExtent(keys: any[], alignStart?: boolean) {
         const ratio = typeof alignStart === 'boolean' ? 1 : 0.5;
@@ -112,7 +97,7 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
     }
 
     protected isVertical(): boolean {
-        return this.layoutOptions.direction === 'vertical';
+        return this.options.direction === 'vertical';
     }
 
     protected getBarDirection() {
@@ -146,7 +131,7 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
     }
 
     override getMinimumRangeSeries(ranges: number[]) {
-        const { width } = this.layoutOptions;
+        const { width } = this.options;
         if (width == null) return;
 
         const axis = this.getCategoryAxis();
@@ -266,7 +251,7 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
             // For ungrouped series, centre the bar within the width of the group.
             const rangeWidth = this.getGroupScaleRangeWidth(groupScale);
             barOffset = (rangeWidth - barWidth) / 2;
-        } else if (groupScale && this.layoutOptions.widthRatio != null) {
+        } else if (groupScale && this.options.widthRatio != null) {
             // For grouped series with fixed widths, centre the bar on its own width adjusted by the default width of
             // bars within the group.
             barOffset = (groupScale.bandwidth - barWidth) / 2;
@@ -280,8 +265,8 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
 
     private getBarWidth() {
         const { seriesGrouping } = this;
-        const { width } = this.layoutOptions;
-        let { widthRatio } = this.layoutOptions;
+        const { width } = this.options;
+        let { widthRatio } = this.options;
 
         const groupScale = this.ctx.seriesStateManager.getGroupScale(this);
         const bandwidth = groupScale?.bandwidth ?? 0;

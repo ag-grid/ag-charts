@@ -5,6 +5,7 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_KEYED_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
+    SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -33,19 +34,27 @@ function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemO
                 { $palette: `${key}.stroke` },
             ],
         },
+        strokeWidth: 1,
+        fillOpacity: 1,
+        strokeOpacity: 1,
+        lineDash: [0],
+        lineDashOffset: 0,
+        cornerRadius: 0,
     };
 }
 
 export const CANDLESTICK_SERIES_THEME: ExtensibleSeriesTheme<'candlestick'> = {
     series: {
+        ...SERIES_INTERACTION_THEME_DEFAULTS,
         item: {
             up: itemTheme('up'),
             down: itemTheme('down'),
         },
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
+            interaction: { enabled: false },
         },
-        highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+        highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
     },
     animation: { enabled: false },

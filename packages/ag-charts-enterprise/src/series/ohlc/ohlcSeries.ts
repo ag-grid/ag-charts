@@ -1,9 +1,8 @@
-import { type AgOhlcSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import type { FillStrokeMorph, Normalised } from 'ag-charts-core';
+import { _ModuleSupport } from 'ag-charts-community';
+import type { FillStrokeMorph, Normalised, NormalisedOhlcSeriesOwnOptions } from 'ag-charts-core';
 
 import { OhlcNode } from './ohlcNode';
 import { type OhlcNodeDatum, OhlcSeriesBase, type OhlcSeriesBaseTypes } from './ohlcSeriesBase';
-import { OhlcSeriesProperties } from './ohlcSeriesProperties';
 
 /** Post-resolution style: colour refs are resolved to concrete colours before reaching the scene node. */
 type NormalisedOhlcStyle = Normalised<NonNullable<OhlcNodeDatum['style']>, never, FillStrokeMorph>;
@@ -13,15 +12,13 @@ type NormalisedOhlcStyle = Normalised<NonNullable<OhlcNodeDatum['style']>, never
  */
 interface OhlcSeriesTypes extends OhlcSeriesBaseTypes {
     readonly node: OhlcNode<OhlcNodeDatum>;
-    readonly options: AgOhlcSeriesOptions;
-    readonly properties: OhlcSeriesProperties;
+    readonly options: NormalisedOhlcSeriesOwnOptions;
+    readonly properties: undefined;
 }
 
 export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
     static override readonly className = 'ohlc';
     static readonly type = 'ohlc' as const;
-
-    override properties = new OhlcSeriesProperties();
 
     protected override nodeFactory() {
         const node = new OhlcNode<OhlcNodeDatum>();
@@ -48,12 +45,12 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
         datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, OhlcSeriesTypes['node']>;
         isHighlight: boolean;
     }) {
-        const { contextNodeData, properties } = this;
+        const { contextNodeData, options } = this;
         if (!contextNodeData) {
             return;
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        const { up, down } = properties.item;
+        const { up, down } = options.item;
 
         const series = this;
         datumSelection.each(function updateOhlcNode(node, datum) {
@@ -86,7 +83,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
             item: { up, down },
             showInLegend,
             legendItemName,
-        } = this.properties;
+        } = this.options;
 
         if (!data?.data.length || !xKey || legendType !== 'category') {
             return [];
@@ -126,12 +123,12 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
                     },
                 },
                 legendItemName,
-                hideInLegend: !showInLegend,
+                hideInLegend: showInLegend === false,
             },
         ];
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.selection.enabled || this.properties.itemStyler != null;
+        return this.isSelectionEnabled() || this.options.itemStyler != null;
     }
 }

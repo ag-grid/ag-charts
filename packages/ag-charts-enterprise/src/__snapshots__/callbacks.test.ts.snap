@@ -2511,7 +2511,6 @@ exports[`AG-15850 labels > cone-funnel > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -2547,7 +2546,6 @@ exports[`AG-15850 labels > cone-funnel > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -2781,7 +2779,6 @@ exports[`AG-15850 labels > funnel > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -2817,7 +2814,6 @@ exports[`AG-15850 labels > funnel > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -4338,7 +4334,6 @@ exports[`AG-15850 labels > range-bar > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -4380,7 +4375,6 @@ exports[`AG-15850 labels > range-bar > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -4422,7 +4416,6 @@ exports[`AG-15850 labels > range-bar > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -4464,7 +4457,6 @@ exports[`AG-15850 labels > range-bar > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -4990,7 +4982,6 @@ exports[`AG-15850 labels > waterfall > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -5027,7 +5018,6 @@ exports[`AG-15850 labels > waterfall > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -5064,7 +5054,6 @@ exports[`AG-15850 labels > waterfall > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
