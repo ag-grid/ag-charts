@@ -1,4 +1,9 @@
 import type {
+    AgAreaSeriesLabelFormatterParams,
+    AgAreaSeriesMarkerItemStylerParams,
+    AgAreaSeriesOptions,
+    AgAreaSeriesStylerParams,
+    AgAreaSeriesStylerResult,
     AgBarSeriesStyle,
     AgHistogramSeriesStyle,
     AgLineSeriesLabelFormatterParams,
@@ -13,7 +18,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
-import type { FillStrokeMorph } from './normalisedCommonOptions';
+import type { FillStrokeMorph, NormalisedColorType, NormalisedDropShadowOptions } from './normalisedCommonOptions';
 import type { NormalisedPlacedSeriesLabelOptions } from './normalisedLabelOptions';
 import type { NormalisedSeriesMarkerOptions, NormalisedSeriesMarkerStyle } from './normalisedSeriesMarkerOptions';
 import type { NormalisedSeriesOptions } from './normalisedSeriesOptions';
@@ -87,4 +92,43 @@ export type NormalisedLineSeriesOwnOptions = Normalised<
 };
 
 export type NormalisedLineSeriesOptions = NormalisedSeriesOptions<NormalisedLineSeriesOwnOptions> &
+    NormalisedCartesianSeriesOptionsCommon;
+
+type AreaRequiredKeys =
+    | 'xKey'
+    | 'yKey'
+    | 'fill'
+    | 'fillOpacity'
+    | 'stroke'
+    | 'strokeWidth'
+    | 'strokeOpacity'
+    | 'lineDash'
+    | 'lineDashOffset'
+    | 'interpolation'
+    | 'shadow'
+    | 'marker'
+    | 'label'
+    | 'connectMissingData'
+    | 'segmentation';
+
+/** Area options the series owns, before the common series keys are layered on. */
+export type NormalisedAreaSeriesOwnOptions = Normalised<
+    AgAreaSeriesOptions,
+    AreaRequiredKeys,
+    {
+        fill: NormalisedColorType;
+        stroke: CssColor;
+        interpolation: NormalisedInterpolationOptions;
+        shadow: NormalisedDropShadowOptions;
+        marker: NormalisedSeriesMarkerOptions<AgAreaSeriesMarkerItemStylerParams>;
+        label: NormalisedPlacedSeriesLabelOptions<AgAreaSeriesLabelFormatterParams>;
+        styler?: Styler<AgAreaSeriesStylerParams<unknown, unknown>, AgAreaSeriesStylerResult>;
+        segmentation: NormalisedSeriesSegmentation;
+    }
+> & {
+    /** Cross-filtering only; unsupported and unrelated to the data selection API. */
+    selectedKey?: string;
+};
+
+export type NormalisedAreaSeriesOptions = NormalisedSeriesOptions<NormalisedAreaSeriesOwnOptions> &
     NormalisedCartesianSeriesOptionsCommon;

@@ -2,6 +2,7 @@ import type { DynamicContext, SeriesModuleDefinition } from 'ag-charts-core';
 import {
     CARTESIAN_AXIS_TYPE,
     CARTESIAN_POSITION,
+    COMMON_SERIES_THEME_DEFAULTS,
     ChartAxisDirection,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
@@ -26,6 +27,7 @@ import { predictCartesianAxis } from './util';
 
 const themeTemplate: ExtensibleSeriesTheme<'scatter'> = {
     series: {
+        ...COMMON_SERIES_THEME_DEFAULTS,
         shape: 'circle',
         size: 7,
         fill: {
@@ -39,6 +41,10 @@ const themeTemplate: ExtensibleSeriesTheme<'scatter'> = {
         },
         stroke: { $palette: 'stroke' },
         fillOpacity: 0.8,
+        strokeWidth: 1,
+        strokeOpacity: 1,
+        lineDash: [0],
+        lineDashOffset: 0,
         maxRenderedItems: 2000,
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
@@ -51,6 +57,7 @@ const themeTemplate: ExtensibleSeriesTheme<'scatter'> = {
             insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('chartBackgroundColor'),
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
             collision: { alwaysShow: false, ...undocumentedThemeOptions({ collideWith: { seriesArea: false } }) },
+            placement: 'top',
         },
         tooltip: {
             range: {
@@ -63,8 +70,9 @@ const themeTemplate: ExtensibleSeriesTheme<'scatter'> = {
             position: {
                 anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
             },
+            interaction: { enabled: false },
         },
-        highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+        highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
         colorScale: BUBBLE_SCATTER_COLOR_SCALE_THEME,
     },
