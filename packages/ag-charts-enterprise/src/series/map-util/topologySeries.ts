@@ -15,7 +15,7 @@ export abstract class TopologySeries<
     TOpts extends NormalisedTopologySeriesKeys,
     TLabel extends object,
     TContext extends TopologySeriesNodeDataContext<TDatum, TLabel> = TopologySeriesNodeDataContext<TDatum, TLabel>,
-> extends _ModuleSupport.DataModelSeries<TDatum, TOpts, undefined, TLabel, TContext> {
+> extends _ModuleSupport.DataModelSeries<TDatum, TOpts, TLabel, TContext> {
     constructor(options: _ModuleSupport.DataModelSeriesConstructorOpts<TOpts>) {
         super(options);
 

@@ -17,7 +17,6 @@ import type {
     SeriesNodePickMatch,
 } from './series';
 import { Series } from './series';
-import type { SeriesProperties } from './seriesProperties';
 import { type SeriesNodeDatum } from './seriesTypes';
 import { findNodeDatumInArray } from './util';
 
@@ -39,10 +38,9 @@ export type DataModelSeriesConstructorOpts<TOpts extends object> = SeriesConstru
 export abstract class DataModelSeries<
     TDatum extends SeriesNodeDatum,
     TOpts extends object,
-    TProps extends SeriesProperties<TOpts> | undefined = undefined,
     TLabel = TDatum,
     TContext extends DataModelSeriesNodeDataContext<TDatum, TLabel> = DataModelSeriesNodeDataContext<TDatum, TLabel>,
-> extends Series<TDatum, TOpts, TProps, TLabel, TContext> {
+> extends Series<TDatum, TOpts, TLabel, TContext> {
     protected dataModel?: DataModel<any, any, any>;
     protected processedData?: ProcessedData<any>;
     private categoryValueLookup?: {

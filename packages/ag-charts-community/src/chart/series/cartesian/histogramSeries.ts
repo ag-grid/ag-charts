@@ -216,7 +216,6 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
 interface HistogramSeriesTypes extends CartesianSeriesTypes {
     readonly node: Rect<HistogramNodeDatum>;
     readonly options: NormalisedHistogramSeriesOwnOptions;
-    readonly properties: undefined;
     readonly datum: HistogramNodeDatum;
     readonly label: HistogramNodeDatum;
     readonly context: HistogramSeriesNodeDataContext;

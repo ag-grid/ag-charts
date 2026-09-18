@@ -176,7 +176,6 @@ interface FunnelContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<
 export interface BaseFunnelSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
     readonly node: _ModuleSupport.QuadtreeCompatibleNode<FunnelNodeDatum>;
     readonly options: NormalisedBaseFunnelSeriesOwnOptions;
-    readonly properties: undefined;
     readonly datum: FunnelNodeDatum;
     readonly label: FunnelNodeLabelDatum;
     readonly context: FunnelContext;

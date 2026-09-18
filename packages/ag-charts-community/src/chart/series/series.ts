@@ -98,7 +98,6 @@ import {
     toHighlightString,
     toSelectionString,
 } from './seriesProperties';
-import type { SeriesProperties } from './seriesProperties';
 import { formatSeriesTooltip } from './seriesTooltip';
 import {
     type BucketLookupFeature,
@@ -276,19 +275,16 @@ function axisDirectionProperty(direction: ChartAxisDirection): FormatterProperty
     }
 }
 
-export type UnknownSeries = Series<SeriesNodeDatum, object, SeriesProperties<object> | undefined>;
+export type UnknownSeries = Series<SeriesNodeDatum, object>;
 
 export abstract class Series<
     TDatum extends SeriesNodeDatum,
     TOpts extends object,
-    TProps extends SeriesProperties<TOpts> | undefined = undefined,
     TLabel = TDatum,
     TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
 > implements ISeries<TDatum, NormalisedSeriesOptions<TOpts>, TLabel> {
     static readonly className: string = 'Series';
     protected cleanup = new CleanupRegistry();
-    /** Legacy decorated options holder; series migrated onto {@link options} leave it undefined. */
-    declare readonly properties: TProps;
     /** Post-theme options, replaced wholesale by {@link applyOptions}; never mutated by the series. */
     options!: NormalisedSeriesOptions<TOpts>;
     private _visible = true;
@@ -306,7 +302,7 @@ export abstract class Series<
         return 'main';
     }
 
-    @ActionOnSet<Series<TDatum, TOpts, TProps, TLabel>>({
+    @ActionOnSet<Series<TDatum, TOpts, TLabel>>({
         changeValue: function (newVal, oldVal) {
             this.onSeriesGroupingChange(oldVal, newVal);
         },
@@ -1445,15 +1441,10 @@ export abstract class Series<
         );
     }
 
-    /** Legacy label holders format themselves; plain label options are wrapped once per options object. */
+    /** Plain label options are wrapped once per options object so the compiled format string is reused. */
     private labelFormatterFor<TParams extends object>(
-        label:
-            | AxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>
-            | LabelFormatSource<TParams, any>
+        label: LabelFormatSource<TParams, any>
     ): AxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>> {
-        if ('formatValue' in label) {
-            return label;
-        }
         let formatter = this.labelFormatters.get(label);
         if (formatter == null) {
             formatter = new LabelValueFormatter(label, this.compiledLabelFormats);
@@ -1468,9 +1459,7 @@ export abstract class Series<
         key: string,
         property: FormatterPropertyType,
         domain: any[],
-        labelSource:
-            | AxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>
-            | LabelFormatSource<TParams, any>,
+        labelSource: LabelFormatSource<TParams, any>,
         baseParams: RequireOptional<TParams> & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>,
         allowNullValue: boolean = false
     ): NormalisedTextOrSegments {

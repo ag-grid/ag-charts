@@ -257,15 +257,10 @@ export {
     FillGradientDefaults,
     FillImageDefaults,
     FillPatternDefaults,
-    HighlightProperties,
-    SeriesProperties,
     toHighlightString,
     toSelectionString,
     isUnselected,
-    SeriesSelectionProperties,
 } from './chart/series/seriesProperties';
-export { SeriesMarker } from './chart/series/seriesMarker';
-export { makeSeriesTooltip, SeriesTooltip } from './chart/series/seriesTooltip';
 export type {
     DatumIndex,
     ErrorBoundSeriesNodeDatum,
@@ -285,7 +280,6 @@ export type {
 } from './chart/series/cartesian/abstractBarSeries';
 export {
     CartesianSeries,
-    CartesianSeriesProperties,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './chart/series/cartesian/cartesianSeries';
@@ -297,7 +291,6 @@ export type {
     CartesianMarkerLikeContext,
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
-    CartesianSeriesPropertiesBase,
     CartesianSeriesTypes,
     ContextOf,
     CreateNodeDataContextOf,
@@ -307,7 +300,6 @@ export type {
     LabelSelectionOf,
     NodeOf,
     OptionsOf,
-    PropertiesOf,
     StackContextOf,
 } from './chart/series/cartesian/cartesianSeriesTypes';
 export {
@@ -384,7 +376,6 @@ export { Axis, AxisGroupZIndexMap } from './chart/axis/axis';
 export type { AxisTickFormatParams, LabelNodeDatum } from './chart/axis/axis';
 export { createAxisLabelFormatterCache, formatAxisLabelValue, getAxisLabelSideFlag } from './chart/axis/axisLabelUtil';
 export type { AxisLabelFormatterCache } from './chart/axis/axisLabelUtil';
-export { SeriesLabelProperties } from './chart/series/seriesLabelProperties';
 export type { TickInterval } from './chart/axis/axisTick';
 export { PolarAxis } from './chart/axis/polarAxis';
 export { CategoryAxis } from './chart/axis/categoryAxis';
@@ -437,7 +428,7 @@ export { Rotatable, Translatable, Transformable, Scalable } from './scene/transf
 export { Selection } from './scene/selection';
 export type { SelectionInterface } from './scene/selection';
 export { type GradientParams } from './scene/gradient/gradient';
-export { ColorScaleProperties, getColorStops, StopProperties } from './scene/gradient/stops';
+export { getColorStops } from './scene/gradient/stops';
 export { sectorBox } from './scene/util/sector';
 export { drawCorner } from './scene/util/corner';
 export type { Corner } from './scene/util/corner';
@@ -449,10 +440,7 @@ export { OrdinalTimeScale } from './scale/ordinalTimeScale';
 export { ApproximateOrdinalTimeScale } from './scale/approximateOrdinalTimeScale';
 export { APPROXIMATE_THRESHOLD } from './scale/discreteTimeScale';
 export {
-    Label,
-    LabelPlacementStyle,
     LabelStyle,
-    PlacedSeriesLabel,
     expandLabelBoxExtent,
     expandPlacementLabelBoxExtent,
     labelHasBox,

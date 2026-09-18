@@ -13,7 +13,6 @@ type NormalisedOhlcStyle = Normalised<NonNullable<OhlcNodeDatum['style']>, never
 interface OhlcSeriesTypes extends OhlcSeriesBaseTypes {
     readonly node: OhlcNode<OhlcNodeDatum>;
     readonly options: NormalisedOhlcSeriesOwnOptions;
-    readonly properties: undefined;
 }
 
 export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {

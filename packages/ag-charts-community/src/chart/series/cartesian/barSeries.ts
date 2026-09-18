@@ -316,7 +316,6 @@ interface BarSeriesNodeDataContext extends AbstractBarSeriesNodeDataContext<BarN
 interface BarSeriesTypes {
     readonly node: BarShape<BarNodeDatum>;
     readonly options: NormalisedBarSeriesOwnOptions;
-    readonly properties: undefined;
     readonly datum: BarNodeDatum;
     readonly label: BarNodeDatum;
     readonly context: BarSeriesNodeDataContext;

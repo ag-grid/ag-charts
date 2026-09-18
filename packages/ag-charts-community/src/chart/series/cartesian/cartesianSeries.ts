@@ -2,7 +2,6 @@ import type {
     ChartAnimationPhase,
     NormalisedCartesianSeriesOptionsCommon,
     NormalisedSeriesOptions,
-    NormalisedSeriesSegmentation,
     Scaling,
 } from 'ag-charts-core';
 import {
@@ -10,7 +9,6 @@ import {
     Debug,
     DebugMetrics,
     type Point,
-    Property,
     type Scale,
     StateMachine,
     extractDomain,
@@ -52,14 +50,12 @@ import type {
     SeriesDirectionKeysMapping,
     SeriesNodePickMatch,
 } from '../series';
-import { Segmentation, SeriesProperties } from '../seriesProperties';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import { type ShapeFillBBox } from '../shapeUtil';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
 import type {
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
-    CartesianSeriesPropertiesBase,
     CartesianSeriesTypes,
     ContextOf,
     CreateNodeDataContextOf,
@@ -67,7 +63,6 @@ import type {
     LabelOf,
     NodeOf,
     OptionsOf,
-    PropertiesOf,
     StackContextOf,
 } from './cartesianSeriesTypes';
 
@@ -128,32 +123,11 @@ export interface CartesianAnimationData<
     duration?: number;
 }
 
-export abstract class CartesianSeriesProperties<T extends object>
-    extends SeriesProperties<T>
-    implements CartesianSeriesPropertiesBase<T>
-{
-    @Property
-    xKeyAxis: string = 'x';
-
-    @Property
-    yKeyAxis: string = 'y';
-
-    @Property
-    legendItemName?: string;
-
-    @Property
-    pickOutsideVisibleMinorAxis = false;
-
-    @Property
-    segmentation: NormalisedSeriesSegmentation = new Segmentation();
-}
-
 export const RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD = 100;
 
 export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> extends DataModelSeries<
     DatumOf<TTypes>,
     OptionsOf<TTypes>,
-    PropertiesOf<TTypes>,
     LabelOf<TTypes>,
     ContextOf<TTypes>
 > {

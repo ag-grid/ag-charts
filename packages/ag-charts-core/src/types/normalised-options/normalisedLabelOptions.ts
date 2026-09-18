@@ -46,7 +46,7 @@ export type NormalisedChartLabelPlacementStyleOptions = Normalised<
     { color?: CssColor; fill?: NormalisedColorType; border?: Normalised<BorderOptions, never, { stroke?: CssColor }> }
 >;
 
-/** Post-theme options of a series label; the legacy `Label` holder satisfies it structurally. */
+/** Post-theme options of a series label. */
 export type NormalisedSeriesLabelOptions<TParams = never, TDatum = any> = Normalised<
     AgChartLabelOptions<TDatum, RequireOptional<TParams>> & {
         collision?: AgChartLabelCollisionOptions;

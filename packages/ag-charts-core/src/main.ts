@@ -8,6 +8,7 @@ export * from './types/normalised-options/normalisedCommonOptions';
 export * from './types/normalised-options/normalisedChartCaptionOptions';
 export * from './types/normalised-options/normalisedDonutSeries';
 export * from './types/normalised-options/normalisedEnterpriseBarSeries';
+export * from './types/normalised-options/normalisedErrorBarOptions';
 export * from './types/normalised-options/normalisedFlowProportionSeries';
 export * from './types/normalised-options/normalisedGradientLegendOptions';
 export * from './types/normalised-options/normalisedGaugeSeries';

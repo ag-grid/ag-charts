@@ -239,7 +239,6 @@ interface RangeAreaSpanPointDatum {
 interface RangeAreaSeriesTypes extends _ModuleSupport.CartesianSeriesTypes {
     readonly node: _ModuleSupport.Marker<RangeAreaMarkerDatum>;
     readonly options: NormalisedRangeAreaSeriesOwnOptions;
-    readonly properties: undefined;
     readonly datum: RangeAreaMarkerDatum;
     readonly label: RangeAreaLabelDatum;
     readonly context: RangeAreaContext;

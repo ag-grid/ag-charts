@@ -1,8 +1,5 @@
 import {
-    BaseProperties,
     type NormalisedSeriesTooltipOptions,
-    Property,
-    type RequireOptional,
     callWithContext,
     isDate,
     isNumber,
@@ -10,17 +7,10 @@ import {
     mergeDefaults,
     toTextString,
 } from 'ag-charts-core';
-import type {
-    AgSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
-    ContextDefault,
-    DatumDefault,
-    InteractionRange,
-    Renderer,
-} from 'ag-charts-types';
+import type { AgTooltipRendererResult, Renderer } from 'ag-charts-types';
 
 import type { LegendLine, LegendMarker, LegendSymbolOptions } from '../legend/legendSymbol';
-import { type TooltipContent, TooltipPosition, type TooltipStructuredContent } from '../tooltip/tooltip';
+import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 
 export type TooltipRenderer<P> = Renderer<P, AgTooltipRendererResult>;
 
@@ -39,42 +29,6 @@ function buildLineWithMarkerDefaults(
         strokeOpacity: line.strokeOpacity ?? marker?.strokeOpacity ?? 1,
         lineDash: line.lineDash ?? (marker?.lineDash as number[]) ?? [],
     };
-}
-
-class SeriesTooltipInteraction extends BaseProperties {
-    @Property
-    enabled: boolean = false;
-}
-
-export class SeriesTooltip<P extends AgSeriesTooltipRendererParams<any>> extends BaseProperties {
-    @Property
-    enabled?: boolean;
-
-    @Property
-    showArrow?: boolean;
-
-    @Property
-    renderer?: TooltipRenderer<RequireOptional<P>>;
-
-    @Property
-    readonly interaction = new SeriesTooltipInteraction();
-
-    @Property
-    readonly position = new TooltipPosition();
-
-    @Property
-    range?: InteractionRange = undefined;
-
-    @Property
-    class?: string = undefined;
-
-    public formatTooltip(
-        callers: Array<{ context?: unknown }>,
-        content: TooltipStructuredContent,
-        params: RequireOptional<P>
-    ): TooltipContent {
-        return formatSeriesTooltip(this, callers, content, params);
-    }
 }
 
 /** Applies the series tooltip `renderer` (if any) over the series-built `content`. */
@@ -106,8 +60,4 @@ export function formatSeriesTooltip<P>(
         return { type: 'structured', ...content, ...overrides, symbol };
     }
     return { type: 'structured', ...content };
-}
-
-export function makeSeriesTooltip<P extends AgSeriesTooltipRendererParams<DatumDefault, ContextDefault>>() {
-    return new SeriesTooltip<Omit<P, 'context'>>();
 }
