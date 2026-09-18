@@ -1,4 +1,4 @@
-import type { ScaleTickParams } from 'ag-charts-core';
+import type { ScaleTickParams, ScaleTickResult } from 'ag-charts-core';
 import { createTicks, findMinMax, findRangeExtent, isDenseInterval, isInteger, range } from 'ag-charts-core';
 
 import { ContinuousScale } from './continuousScale';
@@ -89,7 +89,7 @@ export class LogScale extends ContinuousScale<number> {
         { interval, tickCount = ContinuousScale.defaultTickCount }: ScaleTickParams<number>,
         domain: number[] = this.domain,
         visibleRange?: [number, number]
-    ): { ticks: number[]; count: number; firstTickIndex: number | undefined; intervalIgnored?: boolean } | undefined {
+    ): ScaleTickResult<number> | undefined {
         if (!domain || domain.length < 2 || tickCount < 1) {
             return;
         }
