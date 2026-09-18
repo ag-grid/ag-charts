@@ -1,6 +1,119 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-UNDICI-19635222:
+    - rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:54:26.871Z
+  SNYK-JS-UNDICI-19635216:
+    - rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:54:12.405Z
+  SNYK-JS-UNDICI-19635208:
+    - rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:54:02.748Z
+  SNYK-JS-UNDICI-19635206:
+    - rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:53:51.588Z
+  SNYK-JS-UNDICI-19635226:
+    - rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:53:39.100Z
+    - '@lavamoat/allow-scripts@5.0.2 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:53:39.087Z
+  SNYK-JS-UNDICI-19635210:
+    - rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:53:16.532Z
+    - '@lavamoat/allow-scripts@5.0.2 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:53:16.518Z
+  SNYK-JS-SMOLTOML-19643959:
+    - cspell@9.6.0 > cspell-config-lib@9.6.0 > smol-toml@1.6.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:52:59.697Z
+    - rulesync@7.0.0 > smol-toml@1.6.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:52:59.690Z
+  SNYK-JS-SHARP-19653587:
+    - '@kazuph/mcp-fetch@1.6.2 > sharp@0.33.5':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:52:47.119Z
+  SNYK-JS-JOI-19883907:
+    - wait-on@8.0.1 > joi@17.13.3:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:52:32.796Z
+  SNYK-JS-JOI-19778379:
+    - wait-on@8.0.1 > joi@17.13.3:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:52:21.686Z
+  SNYK-JS-EXTRACTZIP-19653641:
+    - '@modelcontextprotocol/server-puppeteer@2025.5.12 > puppeteer@23.11.1 > @puppeteer/browsers@2.6.1 > extract-zip@2.0.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:52:00.509Z
+  SNYK-JS-UNDICI-19635218:
+    - rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:51:37.389Z
+  SNYK-JS-PROXYADDR-19812342:
+    - rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > proxy-addr@2.0.7:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:51:21.716Z
+    - '@upstash/context7-mcp@1.0.14 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > proxy-addr@2.0.7':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:51:21.712Z
+    - '@modelcontextprotocol/server-sequential-thinking@2025.12.18 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > proxy-addr@2.0.7':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:51:21.705Z
+    - '@modelcontextprotocol/server-puppeteer@2025.5.12 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > proxy-addr@2.0.7':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:51:21.699Z
+    - '@kazuph/mcp-fetch@1.6.2 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > proxy-addr@2.0.7':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:51:21.691Z
   # Dev-only, and there is no in-range fix. @vitest/mocker ships as part of
   # vitest, which this repo pins to the exact version 2.1.9 in five manifests
   # (root, ag-charts-community, ag-charts-core, ag-charts-enterprise,

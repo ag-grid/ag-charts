@@ -1,6 +1,34 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-SMOLTOML-19643959:
+    - '@astrojs/markdoc@1.0.4 > @astrojs/markdown-remark@7.1.1 > smol-toml@1.6.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:52:59.731Z
+    - astro@6.1.9 > @astrojs/markdown-remark@7.1.1 > smol-toml@1.6.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:52:59.722Z
+    - astro@6.1.9 > smol-toml@1.6.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:52:59.718Z
+  SNYK-JS-EXTRACTZIP-19653641:
+    - puppeteer-core@24.42.0 > @puppeteer/browsers@2.13.0 > extract-zip@2.0.1:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:52:00.513Z
+  SNYK-JS-ASTRO-19652369:
+    - astro@6.1.9:
+        reason: >-
+            The website is a static site, so server-side vulns are not relevant
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-18T15:51:46.360Z
   # Dev-only, and there is no in-range fix. @vitest/mocker ships as part of
   # vitest, which this repo pins to the exact version 2.1.9 in five manifests
   # (root, ag-charts-community, ag-charts-core, ag-charts-enterprise,
