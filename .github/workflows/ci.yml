@@ -1651,9 +1651,7 @@ jobs:
                   path: dist/packages/ag-charts-website/
 
             - name: Read commit currently on staging
-              # Captured before the deploy below replaces it; it is the base of the staging-deploy
-              # notifications further down. Empty on failure so those fall back to the last
-              # successful run.
+              # Base of the staging-deploy notifications; read before the deploy replaces it.
               id: previously_deployed
               if: github.ref == 'refs/heads/latest' && needs.website_build.outputs.build == 'success' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
               run: |
@@ -1760,39 +1758,18 @@ jobs:
                   workflow: 'ci'
                   verify: false
 
-            - name: Resolve previously deployed commit
-              # The staging-deploy notifications list the commits between the previous deploy and
-              # this one. The previous deploy is what staging served before the step above replaced
-              # it, not the last successful run: a successful run that skipped the deploy shipped
-              # nothing, and starting from it would silently drop everyone whose commits it
-              # contained. Falls back to the last successful run when staging could not be read.
-              id: previous_deploy
-              if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.deploy_to_staging.outcome == 'success'
-              run: |
-                  base="${{ steps.previously_deployed.outputs.sha || steps.find_latest_sha.outputs.sha }}"
-                  echo "sha=${base}" >> $GITHUB_OUTPUT
-                  echo "Previous deploy: ${base}"
-
-                  # The checkout is shallow, so deepen it until the base is an ancestor of HEAD;
-                  # otherwise the Slack notifier's `git log base..HEAD` only ever sees the head commit.
-                  for _ in $(seq 1 20); do
-                    if git merge-base --is-ancestor "$base" HEAD 2>/dev/null; then
-                      break
-                    fi
-                    git fetch --quiet --deepen=50 origin latest
-                  done
-
             - name: Notify staging deploy
               if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.deploy_to_staging.outcome == 'success'
               shell: bash
               env:
                   SLACK_BOT_OAUTH_TOKEN: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   NOTION_API_TOKEN: ${{ secrets.SLACK_USER_CONFIG_NOTION_API_TOKEN }}
                   NOTION_DATA_SOURCE_ID: ${{ secrets.SLACK_USER_CONFIG_NOTION_DATA_SOURCE_ID }}
                   AG_PROJECT: AgCharts
                   RUN_ID: ${{ github.run_id }}
                   CURRENT_SHA: ${{ github.sha }}
-                  LAST_SUCCESSFUL_SHA: ${{ steps.previous_deploy.outputs.sha }}
+                  LAST_SUCCESSFUL_SHA: ${{ steps.previously_deployed.outputs.sha || steps.find_latest_sha.outputs.sha }}
                   WEBSITE_STATUS_CHANNEL: ${{ secrets.WEBSITE_STATUS_CHANNEL }}
                   LIBRARY_WEBSITE_STATUS_CHANNEL: ${{ env.LIBRARY_WEBSITE_STATUS_CHANNEL }}
                   DEPLOY_TO_STAGING: 'true'
@@ -1800,9 +1777,9 @@ jobs:
 
             - name: Comment on deployed JIRA tickets
               # Tells each AG ticket in this deploy that it is live on staging, with the
-              # verification link, so nobody has to reconstruct it by hand. Shares
-              # previous_deploy with the Slack notification above so both describe the
-              # same commit range.
+              # verification link, so nobody has to reconstruct it by hand. Shares its
+              # base with the Slack notification above so both describe the same commit
+              # range.
               #
               # continue-on-error: a JIRA outage or a token-scope problem must never turn
               # a successful deploy red. The script also swallows per-ticket failures, so
@@ -1822,7 +1799,7 @@ jobs:
                   RUN_ID: ${{ github.run_id }}
                   RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
                   CURRENT_SHA: ${{ github.sha }}
-                  LAST_SUCCESSFUL_SHA: ${{ steps.previous_deploy.outputs.sha }}
+                  LAST_SUCCESSFUL_SHA: ${{ steps.previously_deployed.outputs.sha || steps.find_latest_sha.outputs.sha }}
               run: node ./tools/staging/notify-jira-staging-deploy.mjs
 
             # --- CI status alert (bot token — the single notification point) ----
