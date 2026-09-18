@@ -765,4 +765,30 @@ describe('OrdinalTimeScale', () => {
             ]);
         });
     });
+    // The axis label-overlap search terminates after one pass on a pinned interval, so a scale that
+    // silently drops the interval must say so or its automatic ticks stop thinning (AG-18574).
+    describe('intervalIgnored', () => {
+        const weeklyScale = (range: [number, number]) => {
+            const scale = new OrdinalTimeScale();
+            scale.domain = Array.from({ length: 52 }, (_, i) => new Date(2024, 0, i * 7 + 1));
+            scale.range = range;
+            return scale;
+        };
+        const params = (interval: AgTimeInterval | AgTimeIntervalUnit) => ({
+            nice: [true, true] as [boolean, boolean],
+            interval,
+            tickCount: 5,
+            minTickCount: 0,
+            maxTickCount: Infinity,
+        });
+
+        it('is unset when the interval is honoured', () => {
+            expect(weeklyScale([0, 1000]).ticks(params('month'))?.intervalIgnored).toBeUndefined();
+        });
+
+        it('is set when the interval is rejected as too dense', () => {
+            // A day interval over a year needs more than one tick per pixel of this 50px range.
+            expect(weeklyScale([0, 50]).ticks(params('day'))?.intervalIgnored).toBe(true);
+        });
+    });
 });

@@ -130,8 +130,9 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         rawFirstTickIndex: 0,
     };
 
-    // A configured step pins the ticks, so lowering the count only decays the nice domain.
-    const fixedInterval = options.interval?.step != null;
+    // A configured step or explicit values pin the ticks, so lowering the count only decays the
+    // nice domain: at tickCount 1 the scale stops honouring the interval and widens past the data.
+    const fixedInterval = options.interval?.step != null || options.interval?.values != null;
 
     while (labelOverlap && index <= maxIterations) {
         let intervalIgnored: boolean | undefined;
