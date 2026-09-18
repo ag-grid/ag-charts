@@ -58,7 +58,7 @@ const regionLabelOptionsDefs: OptionsDefs<NonNullable<NonNullable<AgQuadrantChar
 const regionOptionsDefs: OptionsDefs<NonNullable<NonNullable<AgQuadrantChartOptions['regions']>['topLeft']>> = {
     fill: defined,
     fillOpacity: defined,
-    label: { ...regionLabelOptionsDefs, text: string },
+    label: { ...regionLabelOptionsDefs, text: string, xOffset: number, yOffset: number },
     marker: defined,
     stroke: defined,
     strokeOpacity: defined,
