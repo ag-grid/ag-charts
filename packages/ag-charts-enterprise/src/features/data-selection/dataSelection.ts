@@ -302,7 +302,6 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         this.dragRect.width = canvasBounds.width;
         this.dragRect.height = canvasBounds.height;
         this.redraw(ChartUpdateType.FULL);
-        dragMoveEvent.sourceEvent.preventDefault();
     }
 
     private onSeriesAreaDragEnd(dragEndEvent: _Widget.DragWidgetEvent<'drag-end'>) {
