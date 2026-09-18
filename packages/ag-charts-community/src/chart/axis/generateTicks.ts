@@ -292,6 +292,50 @@ function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>
     };
 }
 
+/**
+ * Explicit values pin the ticks, leaving no meaningful tick count for the bounds to be niced
+ * against: a count that suits the data can snap them to a grid the data does not sit on, leaving
+ * the axis wider than the coarsest count would. Take whichever encloses the data most tightly.
+ */
+function calculateNiceDomain<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
+    scale: TScale,
+    domainParams: ScaleTickParams<any>,
+    domain: TDatum[],
+    { tickCount, minTickCount }: CountParams,
+    tickGenerationType: TickGenerationType
+): TDatum[] {
+    const niceDomain = scale.niceDomain(domainParams, domain);
+    if (tickGenerationType !== TickGenerationType.VALUES || minTickCount === tickCount) return niceDomain;
+
+    const coarse = scale.niceDomain({ ...domainParams, tickCount: minTickCount }, domain);
+    const tighter = contains(coarse, domain) && domainExtent(coarse) < domainExtent(niceDomain);
+    return tighter ? coarse : niceDomain;
+}
+
+function domainExtent(domain: unknown[]): number {
+    const [d0, d1] = findMinMax(domain.map(Number));
+    return Number.isFinite(d0) && Number.isFinite(d1) ? d1 - d0 : Infinity;
+}
+
+function contains(outer: unknown[], inner: unknown[]): boolean {
+    const [o0, o1] = findMinMax(outer.map(Number));
+    const [i0, i1] = findMinMax(inner.map(Number));
+    return o0 <= i0 && o1 >= i1;
+}
+
+function evenValueSpacing(values: unknown[]): number | undefined {
+    if (values.length < 2 || !values.every((value) => typeof value === 'number' && Number.isFinite(value))) {
+        return;
+    }
+
+    const sorted = (values as number[]).toSorted((a, b) => a - b);
+    const spacing = sorted[1] - sorted[0];
+    for (let i = 2; i < sorted.length; i += 1) {
+        if (sorted[i] - sorted[i - 1] !== spacing) return;
+    }
+    return spacing > 0 ? spacing : undefined;
+}
+
 function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
     options: GenerateTicksOptions<TScale, TDatum>,
     tickGenerationType: TickGenerationType,
@@ -315,6 +359,11 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
         ...countParams,
     };
 
+    // Evenly spaced values imply a step, which pins the bounds exactly as `interval.step` does.
+    if (tickGenerationType === TickGenerationType.VALUES) {
+        domainParams.interval ??= evenValueSpacing(interval!.values!);
+    }
+
     const tickParams = {
         ...domainParams,
         nice: niceMode.map((n) => n === NiceMode.TickAndDomain || n === NiceMode.TicksOnly),
@@ -331,7 +380,8 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
     }
 
     const niceDomain = niceMode.includes(NiceMode.TickAndDomain)
-        ? (secondaryAxisTicks?.domain ?? scale.niceDomain(domainParams, domain))
+        ? (secondaryAxisTicks?.domain ??
+          calculateNiceDomain(scale, domainParams, domain, countParams, tickGenerationType))
         : domain;
     let tickDomain: TDatum[] = niceDomain;
     let rawTicks: any[] | undefined;

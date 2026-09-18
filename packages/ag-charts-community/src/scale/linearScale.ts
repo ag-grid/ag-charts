@@ -78,9 +78,7 @@ export class LinearScale extends ContinuousScale<AgNumericValue> {
 
         return {
             ...createTicks(d0, d1, tickCount, minTickCount, maxTickCount, visibleRange),
-            // Spread conditionally, not attached unconditionally: an explicit `intervalIgnored:
-            // undefined` changes every `ticks()` result's serialised shape and churns 34 tick
-            // snapshots across the scale suites for no behaviour change.
+            // Conditional: an explicit `intervalIgnored: undefined` changes the serialised result shape.
             ...(intervalIgnored && { intervalIgnored }),
         };
     }

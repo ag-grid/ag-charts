@@ -194,17 +194,13 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
         expect(xDomain()).toEqual([-500, 11500]);
     });
 
-    it('stops the search decaying the x domain when interval.values is dense', async () => {
-        // 116 explicit values at spacing 100 cover the padded data extent; explicit values cannot
-        // change with tickCount, so the search must stop rather than decay the nice domain.
+    it('keeps the x domain fitted to the data when interval.values is dense', async () => {
+        // 116 explicit values at spacing 100 cover the padded data extent.
         const values = Array.from({ length: 116 }, (_, i) => -500 + i * 100);
         chart = await createBarChart({ interval: { values } });
 
-        // One pass of the search, which is what 12.1 did. `values` never reaches `niceDomain` —
-        // only `interval.step` does, via `ScaleTickParams.interval` — so the bounds are the ordinary
-        // auto-nice of the padded -500..11500 extent at the first-pass tick count, not the
-        // [-10000, 20000] power-of-ten expansion the decayed search produced.
-        expect(xDomain()).toEqual([-5000, 15000]);
+        // Pinned ticks leave no tick count for the bounds to be niced against, so they stay on the data.
+        expect(xDomain()).toEqual([-500, 11500]);
     });
 
     it('still reduces colliding labels when the step is too dense for the scale to honour', async () => {
