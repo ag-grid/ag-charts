@@ -330,8 +330,8 @@ describe('Chart', () => {
             getNodePoint: (item) => [item.point.x, item.point.y],
             getNodeExitPoint: (item) => [item.point.x, item.point.y + 8],
             getDatumValues: (item, series) => {
-                const xValue = item.datum[series.properties['xKey']];
-                const yValue = item.datum[series.properties['yKey']];
+                const xValue = item.datum[series.options['xKey']];
+                const yValue = item.datum[series.options['yKey']];
                 return [xValue, yValue];
             },
         });
@@ -423,8 +423,8 @@ describe('Chart', () => {
             getNodePoint: (item) => [item.point.x, item.point.y],
             getNodeExitPoint: (item) => [item.point.x, item.point.y + 8],
             getDatumValues: (item, series) => {
-                const xValue = item.datum[series.properties.xKey];
-                const yValue = item.datum[series.properties.yKey];
+                const xValue = item.datum[series.options.xKey];
+                const yValue = item.datum[series.options.yKey];
                 return [xValue, yValue];
             },
         });
@@ -448,8 +448,8 @@ describe('Chart', () => {
             getNodePoint: (item) => [item.point.x, item.point.y],
             getNodeExitPoint: (item) => [item.point.x, item.point.y + 8],
             getDatumValues: (item, series) => {
-                const xValue = item.datum[series.properties['xKey']];
-                const yValue = item.datum[series.properties['yKey']];
+                const xValue = item.datum[series.options['xKey']];
+                const yValue = item.datum[series.options['yKey']];
                 return [xValue, yValue];
             },
         });
@@ -471,8 +471,8 @@ describe('Chart', () => {
             getNodePoint: (item) => [item.x + item.width / 2, item.y + item.height / 2],
             getNodeExitPoint: (item) => [item.x + item.width / 2, item.y + item.height + 8],
             getDatumValues: (item, series) => {
-                const xValue = item.datum[series.properties.xKey];
-                const yValue = item.datum[series.properties.yKey];
+                const xValue = item.datum[series.options.xKey];
+                const yValue = item.datum[series.options.yKey];
                 return [xValue, yValue];
             },
         });
@@ -490,8 +490,8 @@ describe('Chart', () => {
             getNodePoint: (item) => [item.x, item.y],
             getNodeExitPoint: (_item) => [20, 20],
             getDatumValues: (item, series) => {
-                const category = item.datum.datum[series.properties.sectorLabelKey];
-                const value = item.datum.datum[series.properties.angleKey];
+                const category = item.datum.datum[series.options.sectorLabelKey];
+                const value = item.datum.datum[series.options.angleKey];
                 return [category, value];
             },
             getTooltipRenderedValues: (params) => [params.datum[params.sectorLabelKey], params.datum[params.angleKey]],
@@ -1445,7 +1445,7 @@ describe('Chart', () => {
             chart = deproxy(agChartInstance);
             await waitForChartStability(chart);
 
-            expect(chart.series[0].properties.listeners?.seriesNodeClick).toBeDefined();
+            expect(chart.series[0].options.listeners?.seriesNodeClick).toBeDefined();
 
             await agChartInstance.update({
                 ...options,
@@ -1458,7 +1458,7 @@ describe('Chart', () => {
             });
             await waitForChartStability(chart);
 
-            expect(chart.series[0].properties.listeners?.seriesNodeClick).toBeUndefined();
+            expect(chart.series[0].options.listeners?.seriesNodeClick).toBeUndefined();
         });
 
         it('should handle both chart and series listeners set to undefined', async () => {
@@ -1490,7 +1490,7 @@ describe('Chart', () => {
             await waitForChartStability(chart);
 
             expect(chart.listeners.click).toBeDefined();
-            expect(chart.series[0].properties.listeners?.seriesNodeClick).toBeDefined();
+            expect(chart.series[0].options.listeners?.seriesNodeClick).toBeDefined();
 
             chartClick.mockClear();
             seriesNodeClick.mockClear();
@@ -1508,7 +1508,7 @@ describe('Chart', () => {
             await waitForChartStability(chart);
 
             expect(chart.listeners.click).toBeUndefined();
-            expect(chart.series[0].properties.listeners?.seriesNodeClick).toBeUndefined();
+            expect(chart.series[0].options.listeners?.seriesNodeClick).toBeUndefined();
 
             await clickAction(200, 200)(agChartInstance);
             await waitForChartStability(chart);
@@ -1545,7 +1545,7 @@ describe('Chart', () => {
             `);
 
             expect(chart.listeners.click).toBeUndefined();
-            expect(chart.series[0].properties.listeners?.seriesNodeClick).toBeUndefined();
+            expect(chart.series[0].options.listeners?.seriesNodeClick).toBeUndefined();
         });
 
         it('should keep firing chart-level listeners after clearing user series listeners', async () => {
@@ -1576,7 +1576,7 @@ describe('Chart', () => {
             chart = deproxy(agChartInstance);
             await waitForChartStability(chart);
 
-            expect(chart.series[0].properties.listeners?.seriesNodeClick).toBeDefined();
+            expect(chart.series[0].options.listeners?.seriesNodeClick).toBeDefined();
             expect(chart.listeners.seriesVisibilityChange).toBeDefined();
 
             await agChartInstance.update({
@@ -1590,7 +1590,7 @@ describe('Chart', () => {
             });
             await waitForChartStability(chart);
 
-            expect(chart.series[0].properties.listeners?.seriesNodeClick).toBeUndefined();
+            expect(chart.series[0].options.listeners?.seriesNodeClick).toBeUndefined();
 
             // Clearing the series listeners must not disturb the chart-level ones.
             expect(chart.listeners.seriesVisibilityChange).toBe(seriesVisibilityChange);

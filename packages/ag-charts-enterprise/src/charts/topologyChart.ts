@@ -7,9 +7,7 @@ import type { LonLatBBox } from '../series/map-util/lonLatBbox';
 import type { ITopology } from '../series/map-util/topologyTypes';
 
 const { Chart, MercatorScale } = _ModuleSupport;
-function isTopologySeries(
-    series: _ModuleSupport.Series<_ModuleSupport.SeriesNodeDatum, object, any>
-): series is ITopology {
+function isTopologySeries(series: _ModuleSupport.Series<any, any, any>): series is ITopology {
     return (
         series.type === 'map-shape' ||
         series.type === 'map-line' ||

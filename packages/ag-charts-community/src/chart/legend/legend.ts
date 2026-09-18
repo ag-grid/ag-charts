@@ -1005,7 +1005,7 @@ export class Legend {
         let newEnabled = enabled;
         const clickEvent = makeLegendItemEvent('click', datum, event);
         if (legendItemClick) {
-            callWithContext([series.properties, this.ctx.chartService], legendItemClick, clickEvent.apiEvent);
+            callWithContext([series.options, this.ctx.chartService], legendItemClick, clickEvent.apiEvent);
         }
 
         if (clickEvent.defaultPrevented) return true;
@@ -1067,11 +1067,7 @@ export class Legend {
 
         const doubleClickEvent = makeLegendItemEvent('dblclick', datum, event);
         if (legendItemDoubleClick) {
-            callWithContext(
-                [series.properties, this.ctx.chartService],
-                legendItemDoubleClick,
-                doubleClickEvent.apiEvent
-            );
+            callWithContext([series.options, this.ctx.chartService], legendItemDoubleClick, doubleClickEvent.apiEvent);
         }
 
         if (doubleClickEvent.defaultPrevented) return true;

@@ -143,7 +143,7 @@ export abstract class PolarSeries<
             item?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
             label?: (node: Text<TDatum>, datum: TDatum) => AnimationValue & Partial<Text<TDatum>>;
         };
-    } & Partial<DataModelSeriesConstructorOpts<TProps>>) {
+    } & Partial<DataModelSeriesConstructorOpts<TOpts>>) {
         super({
             ...opts,
             categoryKey,
@@ -309,7 +309,7 @@ export abstract class PolarSeries<
     }
 
     public override isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined, legendItemValues?: string[]) {
-        if (!this.properties.highlight.enabled) {
+        if (!this.isHighlightEnabled()) {
             return false;
         }
 

@@ -114,19 +114,20 @@ export type FireNodeEventParams = {
     otherHitParams?: AgMatchedParams<unknown>[];
 };
 
-export interface ISeriesProperties {
-    cursor: string;
+export interface ISeriesOptions {
+    cursor?: string;
     xKey?: string;
     yKey?: string;
     context?: unknown;
     tooltip: { enabled?: boolean };
 }
 
-export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesProperties, TLabel = TDatum> {
+export interface ISeries<TDatum extends SeriesNodeDatum, TOptions extends ISeriesOptions, TLabel = TDatum> {
     id: string;
     axes: { [K in ChartAxisDirection]?: ChartAxisLike };
     contentGroup: Group;
-    properties: TProps;
+    /** The series' post-theme options; replaced wholesale on every options update. */
+    options: TOptions;
     events: { emit: (type: 'data-selection-change', event: null) => void };
     hasNodeClickListener(): boolean;
     /** Whether a click on `target` triggers a built-in interaction (e.g. the org-chart expander). */
@@ -223,7 +224,7 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     ensureBucketLookupFeature(): BucketLookupFeature | undefined;
 }
 
-type SeriesNodeDatumSeries = ISeries<SeriesNodeDatum, ISeriesProperties, unknown>;
+type SeriesNodeDatumSeries = ISeries<SeriesNodeDatum, ISeriesOptions, unknown>;
 
 /**
  * Processed series datum used in node selections,

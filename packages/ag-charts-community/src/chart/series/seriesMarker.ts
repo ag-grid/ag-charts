@@ -61,38 +61,14 @@ export class SeriesMarker<TParams = never> extends ChangeDetectableProperties {
         AgSeriesMarkerStyle
     >;
 
-    private _cachedStyle?: NormalisedSeriesMarkerStyle;
-
-    override onChangeDetection(property: string): void {
-        // Invalidate the snapshot on any decorated property change.
-        this._cachedStyle = undefined;
-        super.onChangeDetection(property);
-    }
-
-    getStyle(): NormalisedSeriesMarkerStyle {
-        // Returning the shared snapshot is safe: callers spread / read but never mutate it.
-        if (this._cachedStyle !== undefined) {
-            return this._cachedStyle;
-        }
-        const { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
-        const style = {
-            size,
-            shape,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-        } satisfies RequireOptional<NormalisedSeriesMarkerStyle>;
-        this._cachedStyle = style;
-        return style;
-    }
-
     getDiameter(): number {
-        return this.size + this.strokeWidth;
+        return markerDiameter(this);
     }
+}
+
+/** Outer diameter a marker reserves: its size plus the stroke drawn around it. */
+export function markerDiameter(marker: { size: number; strokeWidth: number }): number {
+    return marker.size + marker.strokeWidth;
 }
 
 /** Highlight/selection styles carry an extra `opacity` field via HighlightOptions's StyleMixins. */

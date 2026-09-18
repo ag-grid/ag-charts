@@ -1,5 +1,5 @@
 import type { Series } from './series';
 
-export interface GaugeSeries extends Series<any, object, any> {
+export interface GaugeSeries extends Series<any, any, any> {
     getCaptionText(): string;
 }

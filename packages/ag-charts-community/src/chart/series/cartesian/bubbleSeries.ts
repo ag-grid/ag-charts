@@ -27,6 +27,7 @@ import {
     measurePlacedLabel,
     placedLabelFit,
     rescaleVisibleRange,
+    resolveCollideWith,
     resolveLabelFit,
     resolveSeriesLabelDefaults,
     toArray,
@@ -35,7 +36,6 @@ import {
     withFitRegion,
 } from 'ag-charts-core';
 import {
-    type AgBubbleSeriesItemStylerParams,
     type AgBubbleSeriesLabelFormatterParams,
     type AgBubbleSeriesOptions,
     type AgBubbleSeriesOptionsKeys,
@@ -44,7 +44,6 @@ import {
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgNumericValue,
-    type AgScatterSeriesItemStylerParams,
     type AgScatterSeriesStylerParams,
     type AgScatterSeriesStylerResult,
     type FillOptions,
@@ -628,7 +627,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         // Only fit to the marker when `inside` is the sole placement, so directional fallbacks stay full-size.
         const insideOnly = placements.length > 0 && placements.every((placement) => placement === 'inside');
         const insideRect = placements.includes('inside') ? markerLabelRect(marker.shape) : undefined;
-        const collideWith = label.collision.resolveCollideWith();
+        const collideWith = resolveCollideWith(label.collision);
         const labelFit = resolveLabelFit(label, !label.collision.alwaysShow, insideOnly);
 
         const xScale = xAxis.scale;
@@ -770,20 +769,13 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
      */
     protected override initializeResult(ctx: BubbleSeriesNodeDatumContext): BubbleSeriesNodeDataContext {
         const { marker } = this.properties;
-        type StylerResult = AgBubbleSeriesStylerResult | AgScatterSeriesStylerResult | undefined;
-        type StylerParams =
-            | AgBubbleSeriesStylerParams<unknown, unknown>
-            | AgScatterSeriesStylerParams<unknown, unknown>;
-        type ItemStylerParams =
-            | AgBubbleSeriesItemStylerParams<unknown, unknown>
-            | AgScatterSeriesItemStylerParams<unknown, unknown>;
         return {
             itemId: ctx.yKey,
             nodeData: ctx.nodes,
             labelData: ctx.labelsEnabled ? ctx.nodes : [],
             scales: this.calculateScaling(),
             visible: this.visible || ctx.animationEnabled,
-            styles: getMarkerStyles<StylerParams, StylerResult, ItemStylerParams>(this, this.properties, marker),
+            styles: getMarkerStyles(this, this.properties, marker),
         };
     }
 

@@ -12,6 +12,7 @@ import type {
     FillStrokeMorph,
     LabelFit,
     Normalised,
+    NormalisedChartLabelPlacementStyleOptions,
     NormalisedTextOrSegments,
     PlacedLabel,
     Point,
@@ -31,7 +32,7 @@ import {
     measureLabelText,
     resolveLabelFit,
 } from 'ag-charts-core';
-import type { AgNumericValue, PaddingOptions } from 'ag-charts-types';
+import type { AgConeFunnelSeriesOptions, AgFunnelSeriesOptions, AgNumericValue, PaddingOptions } from 'ag-charts-types';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 import { FunnelConnector } from './funnelConnector';
@@ -174,6 +175,7 @@ interface FunnelContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<
  */
 export interface BaseFunnelSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
     readonly node: _ModuleSupport.QuadtreeCompatibleNode<FunnelNodeDatum>;
+    readonly options: AgFunnelSeriesOptions | AgConeFunnelSeriesOptions;
     readonly properties: BaseFunnelProperties<this['options']>;
     readonly datum: FunnelNodeDatum;
     readonly label: FunnelNodeLabelDatum;
@@ -551,7 +553,7 @@ export abstract class BaseFunnelSeries<
     /** The placement-style overrides for a resolved placement; `undefined` where a series has none. */
     protected labelPlacementStyle(
         _placement: FunnelLabelPlacement | undefined
-    ): _ModuleSupport.LabelPlacementStyle | undefined {
+    ): NormalisedChartLabelPlacementStyleOptions | undefined {
         return undefined;
     }
 

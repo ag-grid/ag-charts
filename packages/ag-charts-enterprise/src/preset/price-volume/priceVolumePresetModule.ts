@@ -7,6 +7,7 @@ import {
     array,
     boolean,
     defined,
+    interpolationThemeTemplate,
     positiveNumber,
     string,
     undocumented,
@@ -196,13 +197,9 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
                         ['hlc', 2],
                     ],
                 },
-                interpolation: {
-                    $switch: [
-                        { $preset: 'chartType' },
-                        (LineSeriesModule as any).themeTemplate.series.interpolation,
-                        ['step-line', { type: 'step' }],
-                    ],
-                },
+                interpolation: interpolationThemeTemplate({
+                    $switch: [{ $preset: 'chartType' }, 'linear', ['step-line', 'step']],
+                }),
             },
         },
         ohlc: {

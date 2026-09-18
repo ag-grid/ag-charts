@@ -1,4 +1,4 @@
-import type { CanvasPoint, DynamicContext, NormalisedTextOrSegments } from 'ag-charts-core';
+import type { CanvasPoint, DeepPartial, DynamicContext, NormalisedTextOrSegments } from 'ag-charts-core';
 import {
     ActionOnSet,
     AgDocument,
@@ -18,6 +18,7 @@ import {
     createId,
     enterpriseRegistry,
     entries,
+    getPath,
     getWindow,
     isFiniteNumber,
     isInputPending,
@@ -81,8 +82,7 @@ import type { SeriesArea } from './series-area/seriesArea';
 import { Series, SeriesGroupingChangedEvent, type UnknownSeries } from './series/series';
 import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/seriesAreaManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
-import type { SeriesProperties } from './series/seriesProperties';
-import type { DatumIndex, ISeries, ISeriesProperties, SeriesNodeDatum } from './series/seriesTypes';
+import type { DatumIndex, ISeries, ISeriesOptions, SeriesNodeDatum } from './series/seriesTypes';
 import { type CategoryGroupSeries, SharedCategoryGroup } from './sharedCategoryGroup';
 import { Tooltip, type TooltipContent } from './tooltip/tooltip';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
@@ -663,7 +663,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         const hasPgUpPgDownSupport: () => boolean = () => this.hasPgUpPgDownSupport();
         const getUpdateType = () => this.performUpdateType;
         const getTooltipContent = (
-            series: ISeries<SeriesNodeDatum, ISeriesProperties, unknown>,
+            series: ISeries<SeriesNodeDatum, ISeriesOptions, unknown>,
             datumIndex: DatumIndex,
             removeThisDatum: SeriesNodeDatum,
             purpose: 'aria-label' | 'tooltip'
@@ -690,12 +690,12 @@ export abstract class Chart implements ModuleInstance, ChartService {
     abstract getChartType(): ChartType;
 
     public getTooltipContent(
-        series: ISeries<SeriesNodeDatum, ISeriesProperties, unknown>,
+        series: ISeries<SeriesNodeDatum, ISeriesOptions, unknown>,
         datumIndex: DatumIndex,
         removeMeDatum: SeriesNodeDatum,
         purpose: 'aria-label' | 'tooltip'
     ): TooltipContent[] {
-        const useTooltip = purpose === 'aria-label' || series.properties.tooltip.enabled !== false;
+        const useTooltip = purpose === 'aria-label' || series.options.tooltip.enabled !== false;
         const baseTooltipContent = useTooltip ? series.getTooltipContent(datumIndex, removeMeDatum) : undefined;
         const tooltipContent = baseTooltipContent == null ? [] : [baseTooltipContent];
         if (this.tooltip.mode !== 'shared' || this.series.length === 1) {
@@ -707,7 +707,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         return this.series.flatMap<TooltipContent>((s) => {
             if (s === series) return tooltipContent;
-            if (s.properties.tooltip.enabled === false) return [];
+            if (s.options.tooltip.enabled === false) return [];
             const seriesDatumIndex = group.get(s);
             const seriesTooltipContent =
                 seriesDatumIndex == null ? undefined : s.getTooltipContent(seriesDatumIndex, undefined);
@@ -1269,7 +1269,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             this.onSeriesChange(newValue, oldValue);
         },
     })
-    series: Series<SeriesNodeDatum, object, SeriesProperties<object>>[] = [];
+    series: UnknownSeries[] = [];
 
     protected onAxisChange(newValue: ChartAxis[], oldValue?: ChartAxis[]) {
         if (oldValue == null && newValue.length === 0) return;
@@ -1534,7 +1534,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 case 'gradientLegend':
                     const moduleInstance = this.modulesManager.getModule<ChartLegend>('gradientLegend')!;
                     moduleInstance.data = this.series
-                        .filter((s) => s.properties.showInLegend)
+                        .filter((s) => s.options.showInLegend !== false)
                         .flatMap((s) => s.getLegendData('gradient'));
                     break;
             }
@@ -1641,10 +1641,10 @@ export abstract class Chart implements ModuleInstance, ChartService {
         });
     }
 
-    protected async updateSeries(seriesToUpdate: ISeries<SeriesNodeDatum, ISeriesProperties>[]) {
+    protected async updateSeries(seriesToUpdate: ISeries<SeriesNodeDatum, ISeriesOptions>[]) {
         const { seriesRect } = this;
 
-        function seriesUpdate(series: ISeries<SeriesNodeDatum, ISeriesProperties>) {
+        function seriesUpdate(series: ISeries<SeriesNodeDatum, ISeriesOptions>) {
             return series.update({ seriesRect });
         }
 
@@ -1730,9 +1730,10 @@ export abstract class Chart implements ModuleInstance, ChartService {
         }
     }
 
+    // Mini-chart series never carry the user id, so they cannot collide with the main chart's series.
     private filterMiniChartSeries(series: AgChartOptions['series'] | undefined): AgChartOptions['series'] | undefined;
     private filterMiniChartSeries(series: any[] | undefined): any[] | undefined {
-        return series?.filter((s) => s.showInMiniChart !== false);
+        return series?.filter((s) => s.showInMiniChart !== false).map(({ id: _id, ...s }) => s);
     }
 
     applyOptions(newChartOptions: ChartOptions) {
@@ -2000,11 +2001,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
         const derivedOptions = deriveMiniChartOptions(completeOptions);
         this.applyAxes(miniChart, derivedOptions, miniChartSeriesStatus);
 
-        const series: UnknownSeries[] = miniChart.series;
-        for (const s of series) {
-            s.properties.id = undefined;
-        }
-
         const axes = miniChart.axes as ChartAxis[];
 
         // The navigator overlay derives from the main domain-direction axis after `nice` rounding, so the
@@ -2105,9 +2101,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 case 'series-grouping':
                 case 'update':
                 default: {
-                    const { series, diff, idx } = change;
+                    const { series, opts, diff, idx } = change;
                     debug(`Chart.applySeries() - applying series diff previous idx ${idx}`, diff, series);
-                    this.applySeriesValues(series, diff);
+                    this.applySeriesValues(series, opts, diff);
                     series.markNodeDataDirty();
                     seriesInstances.push(series);
                 }
@@ -2186,35 +2182,40 @@ export abstract class Chart implements ModuleInstance, ChartService {
         }
     }
 
-    private applySeriesValues(target: UnknownSeries, options: SeriesOptionsTypes) {
+    /** `options` is the full post-theme options object; `diff` narrows the apply to the keys that changed. */
+    private applySeriesValues(target: UnknownSeries, options: SeriesOptionsTypes, diff?: Partial<SeriesOptionsTypes>) {
         const moduleMap = target.getModuleMap();
+        const changedOptions = diff ?? options;
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { type, data, seriesGrouping, showInMiniChart, ...seriesOptions } = options as any;
+        const { type, data, seriesGrouping, showInMiniChart, ...seriesOptions } = changedOptions as any;
 
         const { moduleRegistry } = this.ctx;
         for (const module of moduleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
-            const moduleInstance: any = moduleMap.getModule(module.name);
+            const moduleInstance = moduleMap.getModule(module.name);
             for (const { host: owner, relative } of moduleRegistry.moduleContributions(module.name)) {
                 if (owner !== 'series') continue;
-                visitOptionsPath(seriesOptions, relative, (host, key) => {
+                visitOptionsPath(seriesOptions, relative, (host, key, location) => {
                     if (!(key in host)) return;
-                    moduleInstance?.properties.set(host[key]);
+                    const moduleDiff = diff == null ? undefined : host[key];
+                    moduleInstance?.applyOptions(getPath(options, location), moduleDiff);
                     delete host[key];
                 });
             }
         }
 
+        target.applyOptions(options as typeof target.options, diff as DeepPartial<typeof target.options> | undefined);
+
         if (seriesOptions.visible != null) {
             target.visible = seriesOptions.visible;
         }
 
-        target.properties.set(seriesOptions);
+        target.properties?.set(seriesOptions);
 
-        if ('data' in options) {
+        if ('data' in changedOptions) {
             target.setOptionsData(data == null ? undefined : DataSet.wrap(data, this.ctx.logger));
         }
 
-        if ('seriesGrouping' in options) {
+        if ('seriesGrouping' in changedOptions) {
             if (seriesGrouping == null) {
                 target.seriesGrouping = undefined;
             } else {

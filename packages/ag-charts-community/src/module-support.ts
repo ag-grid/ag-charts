@@ -270,7 +270,7 @@ export type {
     DatumIndex,
     ErrorBoundSeriesNodeDatum,
     ISeries,
-    ISeriesProperties,
+    ISeriesOptions,
     ItemId,
     SeriesNodeDatum,
     SeriesNodeEventTypes,

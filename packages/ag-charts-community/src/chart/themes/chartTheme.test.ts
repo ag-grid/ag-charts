@@ -1075,10 +1075,10 @@ describe('ChartTheme', () => {
             expect(series[1].type).toEqual('bar');
             expect(series[2].type).toEqual('line');
             expect(series[3].type).toEqual('area');
-            expect(classCast(series[0], BarSeries).properties.strokeWidth).toEqual(16);
-            expect(classCast(series[1], BarSeries).properties.strokeWidth).toEqual(16);
-            expect(classCast(series[2], LineSeries).properties.strokeWidth).toEqual(17);
-            expect(classCast(series[3], AreaSeries).properties.strokeWidth).toEqual(18);
+            expect(classCast(series[0], BarSeries).options.strokeWidth).toEqual(16);
+            expect(classCast(series[1], BarSeries).options.strokeWidth).toEqual(16);
+            expect(classCast(series[2], LineSeries).options.strokeWidth).toEqual(17);
+            expect(classCast(series[3], AreaSeries).options.strokeWidth).toEqual(18);
         });
     });
 });

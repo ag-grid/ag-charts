@@ -29,6 +29,7 @@ import {
     type LabelPlacement,
     type Normalised,
     type NormalisedColorType,
+    type NormalisedSeriesMarkerOptions,
     type NormalisedSeriesMarkerStyle,
     type PlacedLabel,
     type Point,
@@ -1815,7 +1816,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     }
 
     public override getMarkerStyle<TParams>(
-        marker: _ModuleSupport.SeriesMarker<TParams>,
+        marker: NormalisedSeriesMarkerOptions<TParams>,
         datum: GetMarkerStyleArg<1>,
         params?: TParams,
         opts?: GetMarkerStyleArg<3>,

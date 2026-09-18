@@ -135,8 +135,8 @@ export interface CartesianSeriesTypes {
     readonly node: Node<CartesianSeriesNodeDatum>;
     /** Series options type from ag-charts-types */
     readonly options: object;
-    /** Series properties class extending CartesianSeriesPropertiesBase */
-    readonly properties: CartesianSeriesPropertiesBase<this['options']>;
+    /** Legacy decorated holder; series migrated onto `options` set this to `undefined`. */
+    readonly properties: CartesianSeriesPropertiesBase<this['options']> | undefined;
     /** Node datum type containing processed data for rendering */
     readonly datum: CartesianSeriesNodeDatum;
     /** Label datum type (defaults to same as datum in most series) */

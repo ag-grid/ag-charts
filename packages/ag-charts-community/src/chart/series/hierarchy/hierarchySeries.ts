@@ -469,7 +469,7 @@ export abstract class HierarchySeries<
     }
 
     protected getActiveHighlightNode(): TNodeClass | undefined {
-        if (!this.properties.highlight.enabled) {
+        if (!this.isHighlightEnabled()) {
             return undefined;
         }
 
@@ -530,7 +530,7 @@ export abstract class HierarchySeries<
         datumIndex?: DatumIndex,
         _legendItemValues?: string[]
     ): ReturnType<typeof toHierarchyHighlightString> {
-        if (!this.properties.highlight.enabled) {
+        if (!this.isHighlightEnabled()) {
             return toHierarchyHighlightString(HierarchyHighlightState.None);
         }
         if (datumIndex == null) {

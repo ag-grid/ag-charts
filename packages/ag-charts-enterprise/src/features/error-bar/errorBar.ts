@@ -46,6 +46,11 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
 
     readonly properties = new ErrorBarProperties();
 
+    /** The holder merges keys, so removed keys must arrive as the diff's explicit `undefined`s. */
+    applyOptions(options: AgErrorBarThemeableOptions, diff?: Partial<AgErrorBarThemeableOptions>) {
+        this.properties.set(diff ?? options);
+    }
+
     private dataModel?: AnyDataModel;
     private processedData?: AnyProcessedData;
 

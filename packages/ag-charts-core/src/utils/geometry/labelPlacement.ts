@@ -2,6 +2,7 @@ import type { AgChartLabelOrientation, OverflowStrategy, PaddingOptions, TextWra
 
 import { type TextMeasurer, cachedTextMeasurer, measureTextSegments } from '../../rendering/textMeasurer';
 import type { NormalisedTextOrSegments } from '../../types/normalised-options/normalisedCommonOptions';
+import type { NormalisedChartLabelCollisionOptions } from '../../types/normalised-options/normalisedLabelOptions';
 import type { Point, SizedPoint } from '../../types/scene';
 import type { FontOptions } from '../../types/text';
 import { LineSplitter } from '../../types/text';
@@ -366,16 +367,20 @@ export interface SeriesLabels {
     readonly resolveCandidate?: PositionedCandidateResolver;
 }
 
-/** Structural source of a series' resolved collision config (community `LabelCollision`). */
-export interface LabelCollisionSource {
-    readonly alwaysShow?: boolean;
-    readonly threshold?: number;
-    resolveCollideWith(): CollideWith | undefined;
+/** Resolves the user-facing `collideWith` flags into the engine's {@link CollideWith}, applying the defaults. */
+export function resolveCollideWith(collision: NormalisedChartLabelCollisionOptions): CollideWith {
+    const { markers, labels, seriesItems, seriesArea } = collision.collideWith ?? {};
+    return {
+        marker: markers ?? true,
+        label: labels ?? true,
+        seriesItem: seriesItems ?? false,
+        seriesArea: seriesArea ?? true,
+    };
 }
 
 /** Resolves a series' collision config into the shared {@link SeriesLabelDefaults}. */
 export function resolveSeriesLabelDefaults(
-    src: LabelCollisionSource,
+    src: NormalisedChartLabelCollisionOptions,
     placements?: readonly LabelPlacement[],
     spacing?: number
 ): SeriesLabelDefaults {
@@ -383,7 +388,7 @@ export function resolveSeriesLabelDefaults(
         alwaysShow: src.alwaysShow,
         spacing,
         threshold: src.threshold,
-        collideWith: src.resolveCollideWith(),
+        collideWith: resolveCollideWith(src),
         placements,
     };
 }

@@ -84,6 +84,7 @@ import {
     SHALLOW_OPTION_KEYS,
     createOptionsGraph,
     createOptionsGraphMemoised,
+    resolveSeriesThemeDefaultsMemoised,
 } from './optionsGraph';
 import {
     type StructuralCacheEntry,
@@ -641,7 +642,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.validateAxesOptions(processedOptions, secondPassParams);
 
         this.validateContributedOptions(processedOptions, secondPassParams);
-        this.processMiniChartSeriesOptions(processedOptions);
+        this.processMiniChartSeriesOptions(processedOptions, activeTheme);
 
         if (!processedOptions.loadGoogleFonts) {
             googleFonts.clear();
@@ -1511,12 +1512,27 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
-    private processMiniChartSeriesOptions(options: T) {
+    private processMiniChartSeriesOptions(options: T, activeTheme: ChartTheme) {
         const miniChartSeries = options.navigator?.miniChart?.series;
         if (miniChartSeries == null) return;
 
+        // An empty variable map is passed as `undefined` so the memoised defaults stay shared across charts.
+        const { processedCSSVariables } = this;
+        const cssVariables =
+            processedCSSVariables == null || Object.keys(processedCSSVariables).length === 0
+                ? undefined
+                : processedCSSVariables;
+        // The mini-chart theme omits the main-series keys it ignores; complete them from the type's theme defaults.
+        const completed = miniChartSeries.map((series) =>
+            series.type == null
+                ? series
+                : mergeDefaults(
+                      series,
+                      resolveSeriesThemeDefaultsMemoised(activeTheme, series.type, this.moduleRegistry, cssVariables)
+                  )
+        );
         options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(
-            miniChartSeries as Required<AgMiniChartSeriesOptions>[]
+            completed as Required<AgMiniChartSeriesOptions>[]
         ) as any;
     }
 

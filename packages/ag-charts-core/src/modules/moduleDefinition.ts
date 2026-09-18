@@ -78,6 +78,7 @@ export interface AxisPluginModuleInstance extends ModuleInstance {
 }
 
 export interface SeriesPluginModuleInstance extends ModuleInstance {
+    applyOptions(this: void, options: any, diff?: any): void;
     pickNodeExact(point: Point): PickNodeDatumResult;
     pickNodeNearest(point: Point): PickNodeDatumResult;
     pickNodeMainAxisFirst(point: Point, majorDirection: any /* ChartAxisDirection */): PickNodeDatumResult | undefined;

@@ -401,8 +401,8 @@ export class SeriesAreaManager extends BaseManager {
 
     public seriesChanged(series: UnknownSeries[]) {
         this.focus.sortedSeries = [...series].sort((a, b) => {
-            let fpA = a.properties.focusPriority ?? Infinity;
-            let fpB = b.properties.focusPriority ?? Infinity;
+            let fpA = a.options.focusPriority ?? Infinity;
+            let fpB = b.options.focusPriority ?? Infinity;
             if (fpA === fpB) {
                 [fpA, fpB] = [a.declarationOrder, b.declarationOrder];
             }
@@ -1526,15 +1526,11 @@ export class SeriesAreaManager extends BaseManager {
         const newSeries = event.currentHighlight?.series;
 
         // Adjust the cursor if a specific datum is highlighted, rather than just a series.
-        if (lastSeries?.properties.cursor && event.previousHighlight?.datum) {
+        if (lastSeries?.options.cursor && event.previousHighlight?.datum) {
             this.chart.ctx.domManager.updateCursor(lastSeries.id);
         }
-        if (
-            newSeries?.properties.cursor &&
-            newSeries.properties.cursor !== 'default' &&
-            event.currentHighlight?.datum
-        ) {
-            this.chart.ctx.domManager.updateCursor(newSeries.id, newSeries.properties.cursor);
+        if (newSeries?.options.cursor && newSeries.options.cursor !== 'default' && event.currentHighlight?.datum) {
+            this.chart.ctx.domManager.updateCursor(newSeries.id, newSeries.options.cursor);
         }
 
         // Skip SERIES_UPDATE when neither series has visual highlight effects
@@ -1590,8 +1586,8 @@ export class SeriesAreaManager extends BaseManager {
         const clickIntent = intent === 'event' || intent === 'context-menu';
         const tooltipIntent = intent === 'tooltip' || intent === 'highlight-tooltip';
         const getIntentRange = (series: UnknownSeries) => {
-            if (clickIntent) return series.properties.nodeClickRange;
-            if (tooltipIntent) return series.properties.tooltip.range;
+            if (clickIntent) return series.options.nodeClickRange;
+            if (tooltipIntent) return series.options.tooltip.range;
             return undefined;
         };
 

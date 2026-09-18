@@ -5,11 +5,12 @@ import type {
     NormalisedColorType,
     NormalisedGradientColorStop,
     NormalisedSeriesSegmentation,
+    NormalisedSeriesShapeSegmentOptions,
     RequiredInternalAgGradientColor,
     RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
-import { BaseProperties, PropertiesArray, Property, mergeDefaults } from 'ag-charts-core';
+import { BaseProperties, PropertiesArray, Property, isEmptyObject, mergeDefaults } from 'ag-charts-core';
 import type {
     AgColorRepeat,
     AgGradientColorBounds,
@@ -166,6 +167,31 @@ type SelectionOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;
 
 export type SeriesItemHighlightStyle = HighlightOptions<object>;
 
+/** Merges the highlight-state buckets that apply to `highlightState`, earlier keys taking precedence. */
+export function getHighlightStyle<TStyle extends object>(
+    highlight: { [K in HighlightStyleOptionKey]?: TStyle } | undefined,
+    highlightState: HighlightState
+): TStyle {
+    const keys = getHighlightStyleOptionKeys(highlightState);
+    if (highlight == null || keys.length === 0) return {} as TStyle;
+    return mergeDefaults<TStyle>(...keys.map((key) => highlight[key]));
+}
+
+/** Merges the selection-state buckets that apply to `selectionState`, earlier keys taking precedence. */
+export function getSelectionStyle<TStyle extends object>(
+    selection: { [K in SelectionStyleOptionKey]?: TStyle } | undefined,
+    selectionState: SelectionState
+): TStyle {
+    const keys = getSelectionStyleOptionKeys(selectionState);
+    if (selection == null || keys.length === 0) return {} as TStyle;
+    return mergeDefaults<TStyle>(...keys.map((key) => selection[key]));
+}
+
+/** Whether a highlight/selection bucket carries any overrides; an absent bucket carries none. */
+export function hasStateStyle(bucket: object | undefined): boolean {
+    return bucket != null && !isEmptyObject(bucket);
+}
+
 export class HighlightProperties<TOpts extends object> extends BaseProperties {
     @Property
     enabled = true;
@@ -189,9 +215,7 @@ export class HighlightProperties<TOpts extends object> extends BaseProperties {
     readonly unhighlightedSeries: HighlightOptions<TOpts> = {};
 
     getStyle(highlightState: HighlightState): HighlightOptions<TOpts> {
-        const keys = getHighlightStyleOptionKeys(highlightState);
-        if (keys.length === 0) return {};
-        return mergeDefaults<HighlightOptions<TOpts>>(...keys.map((key) => this[key]));
+        return getHighlightStyle(this, highlightState);
     }
 }
 
@@ -215,9 +239,7 @@ export class SeriesSelectionProperties<TOpts extends object> extends BasePropert
     selectedOffset = 0; // pie-only
 
     getStyle(selectionState: SelectionState): SelectionOptions<TOpts> {
-        const keys = getSelectionStyleOptionKeys(selectionState);
-        if (keys.length === 0) return {};
-        return mergeDefaults<SelectionOptions<TOpts>>(...keys.map((key) => this[key]));
+        return getSelectionStyle(this, selectionState);
     }
 }
 
@@ -258,7 +280,7 @@ export class Segmentation implements NormalisedSeriesSegmentation {
     key: 'x' | 'y' = 'x';
 
     @Property
-    segments = new PropertiesArray<SegmentOptions>(SegmentOptions);
+    segments: NormalisedSeriesShapeSegmentOptions[] = new PropertiesArray<SegmentOptions>(SegmentOptions);
 }
 
 export class FillGradientDefaults
@@ -382,7 +404,7 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
     @Property
     id?: string;
 
-    // Private - use series.visible
+    // Accepted so `set()` stays quiet; the series reads visibility from its own state.
     @Property
     protected readonly visible: boolean = true;
 
