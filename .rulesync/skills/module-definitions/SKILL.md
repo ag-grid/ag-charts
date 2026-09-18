@@ -75,12 +75,18 @@ dependencies, the community series area), so it declares nothing.
 ## Community and enterprise pairs
 
 An enterprise module with the same `name` and `version` as a community one replaces it on
-registration (`enterprise: true`). Use this when the community chart needs the module to exist
-(`SeriesAreaModule` is a chart-module dependency) and the enterprise variant adds option locations
-(`seriesArea.backgroundRegions`). The community variant has no options and owns nothing; the
-enterprise variant declares the extra locations. The generated placeholder then names the enterprise
-variant. Every chart module depends on `SeriesAreaModule`, so `ctx.seriesArea` is never optional and
-modules rendering inside the series area attach to it through `ctx.seriesArea.attach(content)`.
+registration (`enterprise: true`). Reserve this for a module whose behaviour the enterprise build
+changes wholesale; the generated placeholder then names the enterprise variant.
+
+## Contributing into another module's options
+
+A feature that lives under another module's option key is its own module, not an override of the
+host. `BackgroundRegionsModule` declares `contributes: [{ path: 'seriesArea.backgroundRegions', ... }]`
+and depends on the community `SeriesAreaModule`, which exposes itself as the `seriesArea` service.
+Every chart module depends on that service, so `ctx.seriesArea` is never optional. The feature
+implements `SeriesAreaContent` and calls `ctx.seriesArea.attach(this)` to render inside the series
+area. The host reads the keys other modules contribute below its path through `contributedKeysUnder`
+and leaves them alone, so it validates only its own options.
 
 Presets that users reach through an API entry point declare `apiName: 'AgCharts.createGauge'` so the
 report names the entry point rather than the registry name.

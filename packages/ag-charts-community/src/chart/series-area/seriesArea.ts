@@ -7,6 +7,8 @@ import {
     Property,
     ProxyPropertyOnWrite,
     ZIndexMap,
+    contributedKeysUnder,
+    without,
 } from 'ag-charts-core';
 
 import type { LayoutCompleteEvent } from '../../core/eventsHub';
@@ -44,19 +46,19 @@ export class SeriesArea extends BaseProperties {
     @Property
     padding = new Padding(0);
 
-    protected readonly cleanup = new CleanupRegistry();
+    private readonly cleanup = new CleanupRegistry();
     private readonly contents = new Set<SeriesAreaContent>();
 
-    protected readonly overlayGroup = new TransformableGroup({
+    private readonly overlayGroup = new TransformableGroup({
         name: 'SeriesArea-Overlay',
         zIndex: ZIndexMap.SERIES_AREA_CONTAINER,
     });
-    protected readonly underlayGroup = new TransformableGroup({
+    private readonly underlayGroup = new TransformableGroup({
         name: 'SeriesArea-Underlay',
         zIndex: ZIndexMap.SERIES_AREA_UNDERLAY,
     });
 
-    constructor(protected readonly ctx: DynamicContext<ChartRegistry>) {
+    constructor(ctx: DynamicContext<ChartRegistry>) {
         super();
 
         this.borderNode.fill = undefined;
@@ -68,7 +70,10 @@ export class SeriesArea extends BaseProperties {
             ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)),
             ctx.chartState.observe((get) => {
                 const opts = get('options', 'seriesArea');
-                if (opts != null) this.set(opts);
+                if (opts == null) return;
+                // Keys such as `backgroundRegions` belong to the modules that contribute them.
+                const contributed = contributedKeysUnder(ctx.moduleRegistry.optionsContributions(), 'seriesArea');
+                this.set(without(opts, contributed));
             })
         );
     }
@@ -86,10 +91,6 @@ export class SeriesArea extends BaseProperties {
             bottom: padding.bottom + strokeWidth,
             left: padding.left + strokeWidth,
         };
-    }
-
-    applyOptions() {
-        // Overridden by the enterprise series area to apply its enterprise-only option subtrees.
     }
 
     /** Attaches module content beneath and above the series; returns the detach function. */
@@ -113,14 +114,9 @@ export class SeriesArea extends BaseProperties {
         for (const content of this.contents) {
             content.update(rebased);
         }
-        this.onUpdate(rebased);
     }
 
-    protected onUpdate(_clipRect: BBox | undefined) {
-        // Overridden by the enterprise series area to update its region content.
-    }
-
-    protected onLayoutComplete(event: LayoutCompleteEvent) {
+    private onLayoutComplete(event: LayoutCompleteEvent) {
         const { x, y, width, height } = event.series.paddedRect;
 
         this.borderNode.x = x;

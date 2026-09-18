@@ -26,7 +26,7 @@ export { PolarCrossLinesModule } from './axes/polar-crosslines/polarCrossLinesMo
 export { AnimationModule } from './features/animation/animationModule';
 export { AnnotationsModule } from './features/annotations/annotationsModule';
 export { AxisInteractionModule } from './features/axis-interaction/axisInteractionModule';
-export { SeriesAreaModule } from './features/series-area/seriesAreaModule';
+export { BackgroundRegionsModule } from './features/background-regions/backgroundRegionsModule';
 export { BandHighlightModule } from './features/band-highlight/bandHighlightModule';
 export { ChartToolbarModule } from './features/chart-toolbar/chartToolbarModule';
 export { ContextMenuModule } from './features/context-menu/contextMenuModule';

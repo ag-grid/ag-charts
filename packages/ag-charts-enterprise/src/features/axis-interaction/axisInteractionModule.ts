@@ -2,12 +2,14 @@ import { VERSION } from 'ag-charts-community';
 import type { PluginModuleDefinition } from 'ag-charts-core';
 import { callback } from 'ag-charts-core';
 
+import { BackgroundRegionsModule } from '../background-regions/backgroundRegionsModule';
 import { AxisInteraction } from './axisInteraction';
 
 export const AxisInteractionModule: PluginModuleDefinition<never> = {
     type: 'plugin',
     name: 'axis-interaction',
     chartType: 'cartesian',
+    dependencies: [BackgroundRegionsModule],
     enterprise: true,
     version: VERSION,
     contributes: [

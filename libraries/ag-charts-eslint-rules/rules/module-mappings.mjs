@@ -12,6 +12,7 @@ export {
     axisTypeToModule,
     bundleContents,
     cartesianSeriesModules,
+    chartOptionPathToModule,
     enterpriseBundleContents,
     enterpriseImpliedModules,
     enterpriseModules,

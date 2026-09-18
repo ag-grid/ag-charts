@@ -1,6 +1,7 @@
 import { type AgAnnotationsOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import { type PluginModuleDefinition } from 'ag-charts-core';
 
+import { BackgroundRegionsModule } from '../background-regions/backgroundRegionsModule';
 import { SharedToolbar } from '../shared-toolbar/sharedToolbar';
 import { Annotations } from './annotations';
 import { annotationsTheme } from './annotationsTheme';
@@ -9,6 +10,7 @@ export const AnnotationsModule: PluginModuleDefinition<AgAnnotationsOptions, _Mo
     type: 'plugin',
     name: 'annotations',
     chartType: 'cartesian',
+    dependencies: [BackgroundRegionsModule],
     enterprise: true,
     version: VERSION,
 

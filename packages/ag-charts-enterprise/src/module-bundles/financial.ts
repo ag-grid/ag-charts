@@ -5,6 +5,7 @@ import { NumberAxisModule, TimeAxisModule } from '../axes/cartesian/cartesianAxi
 import { OrdinalTimeAxisModule } from '../axes/ordinal/ordinalTimeAxisModule';
 import { AnimationModule } from '../features/animation/animationModule';
 import { AnnotationsModule } from '../features/annotations/annotationsModule';
+import { BackgroundRegionsModule } from '../features/background-regions/backgroundRegionsModule';
 import { BandHighlightModule } from '../features/band-highlight/bandHighlightModule';
 import { ChartToolbarModule } from '../features/chart-toolbar/chartToolbarModule';
 import { ContextMenuModule } from '../features/context-menu/contextMenuModule';
@@ -14,7 +15,6 @@ import { DataSourceModule } from '../features/data-source/dataSourceModule';
 import { ErrorBarsModule } from '../features/error-bar/errorBarModule';
 import { NavigatorModule } from '../features/navigator/navigatorModule';
 import { RangesModule } from '../features/ranges/rangesModule';
-import { SeriesAreaModule } from '../features/series-area/seriesAreaModule';
 import { SyncModule } from '../features/sync/syncModule';
 import { ZoomModule } from '../features/zoom/zoomModule';
 import { GradientLegendModule } from '../gradient-legend/gradientLegendModule';
@@ -45,7 +45,7 @@ export const FinancialChartModule: ModuleDefinition[] = [
     NavigatorModule,
     RangesModule,
     SelectionModule,
-    SeriesAreaModule,
+    BackgroundRegionsModule,
     SyncModule,
     ZoomModule,
 
