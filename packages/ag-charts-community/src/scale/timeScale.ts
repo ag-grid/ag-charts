@@ -74,20 +74,26 @@ export class TimeScale extends ContinuousScale<Date, AgTimeInterval | AgTimeInte
 
         if (interval != null) {
             const availableRange = this.getPixelRange();
-            return {
+            const intervalTicks = getDateTicksForInterval({
+                start,
+                stop,
+                interval,
+                availableRange,
+                visibleRange,
+                extend,
+                logger: this.logger,
+            });
+            // A rejected interval leaves automatic ticks driven by tickCount, which the axis overlap
+            // search can still thin; an honoured one pins them.
+            const intervalIgnored = intervalTicks == null;
+            const result: ScaleTickResult<Date> = {
                 ticks:
-                    getDateTicksForInterval({
-                        start,
-                        stop,
-                        interval,
-                        availableRange,
-                        visibleRange,
-                        extend,
-                        logger: this.logger,
-                    }) ??
+                    intervalTicks ??
                     getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange, extend }),
                 count: undefined,
             };
+            if (intervalIgnored) result.intervalIgnored = true;
+            return result;
         } else if (nice.every(Boolean) && tickCount === 2) {
             return { ticks: domain, count: undefined };
         } else if (nice.every(Boolean) && tickCount === 1) {

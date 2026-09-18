@@ -1,4 +1,4 @@
-import type { ScaleTickParams } from 'ag-charts-core';
+import type { ScaleTickParams, ScaleTickResult } from 'ag-charts-core';
 import {
     createBigIntTicks,
     createTicks,
@@ -44,7 +44,7 @@ export class LinearScale extends ContinuousScale<AgNumericValue> {
         { interval, tickCount = ContinuousScale.defaultTickCount, minTickCount, maxTickCount }: ScaleTickParams<number>,
         domain: AgNumericValue[] = this.domain,
         visibleRange?: [number, number]
-    ): { ticks: AgNumericValue[]; count: number; firstTickIndex?: number } {
+    ): ScaleTickResult<AgNumericValue> {
         if (!domain || domain.length < 2 || tickCount < 1) {
             return { ticks: [], count: 0, firstTickIndex: 0 };
         }
@@ -66,15 +66,28 @@ export class LinearScale extends ContinuousScale<AgNumericValue> {
 
         const [d0, d1] = numericDomain;
 
+        let intervalIgnored: boolean | undefined;
         if (interval) {
             // A custom interval step is a Number concept; bigint full precision applies only to the auto-step path.
             const step = Math.abs(Number(interval));
             if (!isDenseInterval((d1 - d0) / step, this.getPixelRange(), this.logger)) {
                 return range(d0, d1, step, visibleRange);
             }
+            intervalIgnored = true;
         }
 
-        return createTicks(d0, d1, tickCount, minTickCount, maxTickCount, visibleRange);
+        // OPTIMIZATION: attach the flag in place — the auto-tick path then allocates nothing extra,
+        // and an absent key keeps the serialised result shape.
+        const result: ScaleTickResult<AgNumericValue> = createTicks(
+            d0,
+            d1,
+            tickCount,
+            minTickCount,
+            maxTickCount,
+            visibleRange
+        );
+        if (intervalIgnored) result.intervalIgnored = true;
+        return result;
     }
 
     override niceDomain(ticks: ScaleTickParams<number>, domain: AgNumericValue[] = this.domain): AgNumericValue[] {
@@ -95,9 +108,11 @@ export class LinearScale extends ContinuousScale<AgNumericValue> {
         const numericDomain: number[] = domain.map(Number);
         let [start, stop] = numericDomain;
 
-        if (tickCount === 1) {
+        // A configured interval still pins the bounds at tickCount 1; niceTicksDomain ignores it and
+        // would snap the domain out to the enclosing power of ten (AG-18574).
+        if (tickCount === 1 && ticks.interval == null) {
             [start, stop] = niceTicksDomain(start, stop);
-        } else if (tickCount > 1) {
+        } else if (tickCount >= 1) {
             const roundStart = start > stop ? Math.ceil : Math.floor;
             const roundStop = start > stop ? Math.floor : Math.ceil;
             const maxAttempts = 4;
