@@ -3664,10 +3664,11 @@ exports[`AG-15850 labels > radars > itemStyler 1`] = `
 [
   [
     {
+      "angleKey": "myCategory",
+      "angleName": undefined,
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3689,17 +3690,21 @@ exports[`AG-15850 labels > radars > itemStyler 1`] = `
       "highlightState": "none",
       "itemId": 0,
       "itemType": undefined,
+      "legendItemName": undefined,
       "padding": 8,
+      "radiusKey": "myValue",
+      "radiusName": undefined,
       "selectionState": undefined,
       "seriesId": "RadarLineSeries-1",
     },
   ],
   [
     {
+      "angleKey": "myCategory",
+      "angleName": undefined,
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3721,7 +3726,10 @@ exports[`AG-15850 labels > radars > itemStyler 1`] = `
       "highlightState": "none",
       "itemId": 1,
       "itemType": undefined,
+      "legendItemName": undefined,
       "padding": 8,
+      "radiusKey": "myValue",
+      "radiusName": undefined,
       "selectionState": undefined,
       "seriesId": "RadarLineSeries-1",
     },
@@ -4076,7 +4084,6 @@ exports[`AG-15850 labels > range-area > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -4117,7 +4124,6 @@ exports[`AG-15850 labels > range-area > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -4158,7 +4164,6 @@ exports[`AG-15850 labels > range-area > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -4199,7 +4204,6 @@ exports[`AG-15850 labels > range-area > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,

@@ -10,6 +10,8 @@ export * from './types/normalised-options/normalisedDonutSeries';
 export * from './types/normalised-options/normalisedEnterpriseBarSeries';
 export * from './types/normalised-options/normalisedGradientLegendOptions';
 export * from './types/normalised-options/normalisedPieSeries';
+export * from './types/normalised-options/normalisedRangeAreaSeries';
+export * from './types/normalised-options/normalisedRadarSeries';
 export * from './types/normalised-options/normalisedScatterSeries';
 export * from './types/normalised-options/normalisedSeriesMarkerOptions';
 export * from './types/normalised-options/normalisedSeriesOptions';
