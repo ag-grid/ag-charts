@@ -2,13 +2,10 @@ import { type Palette, paletteIsEmpty, toThemePalette } from '@ag-website-shared
 import type { AgChartTheme, AgChartThemeName, AgChartThemePalette, AgChartThemeParams } from 'ag-charts-community';
 
 /**
- * The outbound half of the shadow-theme adapter (see `chartsTheme.ts`): turn the
- * builder's ag-stack-shaped param values back into an `AgChartTheme` that the
- * preview chart - and the user's copied snippet - can actually consume.
- *
- * The two formats were designed to line up: colour references are `{ ref, mix,
- * onto }` on both sides, borders are `{ width, color }`, and a font family is
- * `{ googleFont }`. Only two things genuinely differ, both handled below.
+ * The outbound half of the shadow-theme adapter (see `chartsTheme.ts`): the
+ * builder's ag-stack-shaped param values back into an `AgChartTheme`. The two
+ * formats line up on references, borders and font families; only lengths and
+ * composite members differ, both handled below.
  */
 
 /** `"4px"` -> `4`. AG Charts takes plain numbers for pixel lengths. */
@@ -27,10 +24,8 @@ const toChartParamValue = (property: string, value: unknown): unknown => {
     if (value == null) return value;
 
     if (property.toLowerCase().endsWith('fontfamily')) {
-        // Untouched, `{ googleFont }` included: AG Charts reads that form itself
-        // and imports the family, so unwrapping it to the bare name would leave
-        // the pasted theme naming a font the user's page never loads. A stack,
-        // a plain name and a `{ ref }` are all valid here too.
+        // Untouched, `{ googleFont }` included: AG Charts reads that form and
+        // imports the family, which a bare family name would not.
         return value;
     }
 
@@ -39,9 +34,8 @@ const toChartParamValue = (property: string, value: unknown): unknown => {
     }
 
     if (isPlainObject(value)) {
-        // A colour reference passes straight through; a border is a composite
-        // whose members need the same treatment. `style` has no AG Charts
-        // equivalent, so it is dropped rather than emitted as an unknown key.
+        // A reference passes through; a composite's members need the same
+        // treatment. `style` has no AG Charts equivalent, so it is dropped.
         if ('ref' in value) return value;
         return Object.fromEntries(
             Object.entries(value)
@@ -65,15 +59,9 @@ const toChartThemeParams = (overriddenParams: Record<string, unknown>): AgChartT
     ) as AgChartThemeParams;
 
 /**
- * The theme shape this tool produces: a base theme, params and a palette, and
- * nothing else.
- *
- * `overrides` is dropped rather than left optional because it is the only part
- * of a theme that carries a datum context, and `AgChartTheme` is invariant in
- * that context - so a theme typed with one cannot be handed to both a plain
- * chart and the price-volume preset, which pins the context to `never`. The
- * builder emits no overrides, so saying so in the type costs nothing and lets
- * one theme drive both previews.
+ * A base theme, params and a palette. `overrides` is dropped because it carries
+ * the datum context `AgChartTheme` is invariant in, so a theme typed with one
+ * cannot drive both a plain chart and the price-volume preset.
  */
 export type ChartsTheme = Omit<AgChartTheme, 'overrides'>;
 
@@ -89,11 +77,12 @@ export const toChartTheme = ({ baseTheme, params, palette }: ChartsThemeSelectio
         baseTheme,
         ...(Object.keys(themeParams).length > 0 ? { params: themeParams } : {}),
         // Through `toThemePalette`, which drops the editor's own bookkeeping.
-        // What is left is a structural subset of AgChartThemePalette - plain
-        // colours where AG Charts also allows gradients.
         ...(paletteIsEmpty(palette) ? {} : { palette: toThemePalette(palette) satisfies AgChartThemePalette }),
     };
 };
+
+/** A font family such as "Bob's Sans" has to survive the switch to single quotes. */
+const toSingleQuoted = (value: string) => `'${value.replaceAll(/[\\']/g, '\\$&').replaceAll('\n', '\\n')}'`;
 
 /**
  * Render the selection as the theme object a user would paste into their app.
@@ -105,6 +94,6 @@ export const renderChartsThemeCode = (selection: ChartsThemeSelection): string =
     const json = JSON.stringify(theme, null, 4)
         // quoted keys read as JSON rather than as the JS object users write
         .replaceAll(/^(\s+)"([A-Za-z_$][\w$]*)":/gm, '$1$2:')
-        .replaceAll('"', "'");
+        .replaceAll(/"(?:[^"\\]|\\.)*"/g, (literal) => toSingleQuoted(JSON.parse(literal)));
     return ['// pass myTheme to the `theme` option of your chart', `export const myTheme = ${json};`, ''].join('\n');
 };

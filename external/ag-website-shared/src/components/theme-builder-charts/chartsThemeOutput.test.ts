@@ -50,3 +50,34 @@ describe('toChartTheme', () => {
         expect(renderChartsThemeCode(selection)).not.toContain('Derived');
     });
 });
+
+describe('renderChartsThemeCode', () => {
+    const render = (params: Record<string, unknown>) =>
+        renderChartsThemeCode({ ...selection, params, palette: { fills: [], strokes: [] } });
+
+    it('emits the object a user pastes into their app', () => {
+        expect(render({ backgroundColor: '#ffffff', chartPadding: '24px' })).toBe(
+            [
+                '// pass myTheme to the `theme` option of your chart',
+                'export const myTheme = {',
+                "    baseTheme: 'ag-default',",
+                '    params: {',
+                "        backgroundColor: '#ffffff',",
+                '        chartPadding: 24',
+                '    }',
+                '};',
+                '',
+            ].join('\n')
+        );
+    });
+
+    it('escapes an apostrophe rather than ending the string early', () => {
+        // JSON quotes with `"`, the snippet with `'` - a font family carrying
+        // one would otherwise close its own literal and the paste would not parse.
+        expect(render({ fontFamily: "Bob's Sans" })).toContain("fontFamily: 'Bob\\'s Sans'");
+    });
+
+    it('quotes a key that is not an identifier', () => {
+        expect(render({ 'ag-thing': '#fff' })).toContain("'ag-thing': '#fff'");
+    });
+});
