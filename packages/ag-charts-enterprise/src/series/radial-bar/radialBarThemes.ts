@@ -1,4 +1,5 @@
 import {
+    COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_CONIC_SERIES_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
@@ -11,6 +12,7 @@ import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 export const RADIAL_BAR_SERIES_THEME: ExtensibleSeriesTheme<'radial-bar'> = {
     series: {
+        ...COMMON_SERIES_THEME_DEFAULTS,
         fill: {
             $applySwitch: [
                 { $path: 'type' },
@@ -20,8 +22,13 @@ export const RADIAL_BAR_SERIES_THEME: ExtensibleSeriesTheme<'radial-bar'> = {
                 ['pattern', FILL_PATTERN_DEFAULTS],
             ],
         },
+        fillOpacity: 1,
         stroke: { $palette: 'stroke' },
         strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
+        strokeOpacity: 1,
+        lineDash: [0],
+        lineDashOffset: 0,
+        cornerRadius: 0,
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,
@@ -30,7 +37,8 @@ export const RADIAL_BAR_SERIES_THEME: ExtensibleSeriesTheme<'radial-bar'> = {
             fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'chartBackgroundColor' },
         },
-        highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+        tooltip: { interaction: { enabled: false } },
+        highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
     },
     axes: {

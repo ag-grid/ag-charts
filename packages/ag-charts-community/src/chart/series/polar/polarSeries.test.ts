@@ -422,7 +422,7 @@ describe('PolarSeries', () => {
             },
             getDatumValues: (item, series) => {
                 const { datum } = item;
-                return [datum[series.properties.sectorLabelKey], datum[series.properties.angleKey]];
+                return [datum[series.options.sectorLabelKey], datum[series.options.angleKey]];
             },
             getTooltipRenderedValues: (params) => {
                 const { datum } = params;

@@ -276,3 +276,7 @@ radialGaugeSeriesOptionsDef.defaultTarget = undocumented({
     },
 });
 (radialGaugeSeriesOptionsDef.scale as any).defaultFill = undocumented(color);
+// @ts-expect-error undocumented option
+radialGaugeSeriesOptionsDef.scale.interval.minSpacing = undocumented(positiveNumber);
+// @ts-expect-error undocumented option
+radialGaugeSeriesOptionsDef.scale.interval.maxSpacing = undocumented(positiveNumber);

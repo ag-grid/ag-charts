@@ -1,22 +1,18 @@
-import { type AgNightingaleSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { type DynamicContext, PolarZIndexMap } from 'ag-charts-core';
+import { _ModuleSupport } from 'ag-charts-community';
+import { type DynamicContext, type NormalisedNightingaleSeriesOwnOptions, PolarZIndexMap } from 'ag-charts-core';
 
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';
-import { RadialColumnSeriesBaseProperties } from '../radial-column/radialColumnSeriesBaseProperties';
 import { getRadii, prepareNightingaleAnimationFunctions, resetNightingaleSelectionFn } from './nightingaleUtil';
 
 const { Sector, SectorBox } = _ModuleSupport;
 
-export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sector<RadialColumnNodeDatum>> {
+export class NightingaleSeries extends RadialColumnSeriesBase<
+    _ModuleSupport.Sector<RadialColumnNodeDatum>,
+    NormalisedNightingaleSeriesOwnOptions
+> {
     static override readonly className = 'NightingaleSeries';
     static readonly type = 'nightingale' as const;
-
-    override properties = new RadialColumnSeriesBaseProperties<AgNightingaleSeriesOptions>();
-
-    // TODO: Enable once the options contract has been revisited
-    // @TempValidate
-    // sectorSpacing = 1;
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(moduleCtx, { animationResetFns: { item: resetNightingaleSelectionFn } });
@@ -44,12 +40,13 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sec
 
     protected updateItemPath(node: _ModuleSupport.Sector, datum: RadialColumnNodeDatum, highlight: boolean) {
         const { negative } = datum;
+        const { cornerRadius } = this.options;
         node.centerX = 0;
         node.centerY = 0;
-        node.startOuterCornerRadius = negative ? 0 : this.properties.cornerRadius;
-        node.endOuterCornerRadius = negative ? 0 : this.properties.cornerRadius;
-        node.startInnerCornerRadius = negative ? this.properties.cornerRadius : 0;
-        node.endInnerCornerRadius = negative ? this.properties.cornerRadius : 0;
+        node.startOuterCornerRadius = negative ? 0 : cornerRadius;
+        node.endOuterCornerRadius = negative ? 0 : cornerRadius;
+        node.startInnerCornerRadius = negative ? cornerRadius : 0;
+        node.endInnerCornerRadius = negative ? cornerRadius : 0;
         if (highlight) {
             const { startAngle, endAngle } = datum;
             const { innerRadius, outerRadius, clipInnerRadius, clipOuterRadius } = getRadii(datum);
@@ -64,14 +61,5 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sec
     protected override getColumnTransitionFunctions() {
         const axisZeroRadius = this.isRadiusAxisReversed() ? this.radius : this.getAxisInnerRadius();
         return prepareNightingaleAnimationFunctions(axisZeroRadius);
-    }
-
-    protected override hasItemStylers(): boolean {
-        return (
-            this.properties.selection.enabled ||
-            this.properties.itemStyler != null ||
-            this.properties.styler != null ||
-            this.properties.label.itemStyler != null
-        );
     }
 }
