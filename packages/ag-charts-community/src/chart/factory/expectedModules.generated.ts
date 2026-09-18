@@ -537,7 +537,6 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         type: 'plugin',
         name: 'series-area',
         moduleId: 'SeriesAreaModule',
-        contributes: [],
     },
     {
         type: 'plugin',
