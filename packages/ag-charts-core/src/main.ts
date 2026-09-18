@@ -90,6 +90,7 @@ export * from './utils/geometry/distance';
 export * from './utils/data/extent';
 export * from './utils/format/format.util';
 export * from './utils/functions';
+export * from './utils/seriesMarkerDiff';
 export * from './utils/geojson';
 export * from './structures/graph';
 export * from './utils/data/json';

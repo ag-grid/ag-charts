@@ -33,7 +33,7 @@ import type {
 import type { AxisFormattableLabel, ContextFormatter } from '../module/axisContext';
 import { FormatManager } from './formatter/formatManager';
 
-interface FormatterCache {
+export interface FormatterCache {
     type: string;
     format: string;
     formatter: ((value: any, fractionDigits?: number) => string) | undefined;
@@ -79,9 +79,26 @@ export function formatLabelValue<TParams, TDatum>(
 export class LabelValueFormatter<TParams = never, TDatum = any> implements AxisFormattableLabel<
     LabelFormatParams<TParams, TDatum>
 > {
-    formatterCache: FormatterCache | undefined = undefined;
+    private compiled: FormatterCache | undefined;
 
-    constructor(private readonly label: LabelFormatSource<TParams, TDatum>) {}
+    /** `compiledFormats` outlives the label object, which the theme rebuilds on every options update. */
+    constructor(
+        private readonly label: LabelFormatSource<TParams, TDatum>,
+        private readonly compiledFormats: Map<string, FormatterCache>
+    ) {
+        this.compiled = label.format == null ? undefined : compiledFormats.get(label.format);
+    }
+
+    get formatterCache(): FormatterCache | undefined {
+        return this.compiled;
+    }
+
+    set formatterCache(cache: FormatterCache | undefined) {
+        this.compiled = cache;
+        if (cache != null) {
+            this.compiledFormats.set(cache.format, cache);
+        }
+    }
 
     formatValue(
         formatWithContext: ContextFormatter<LabelFormatParams<TParams, TDatum>>,

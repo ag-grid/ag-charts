@@ -7,7 +7,7 @@ export function configureColorScale(
     colorScale: ColorScale,
     colorScaleProps: {
         fills: ColorScaleColorStop[];
-        domain?: [number, number];
+        domain?: [AgNumericValue, AgNumericValue];
         mode: ColorScaleMode;
     },
     dataDomain: AgNumericValue[],

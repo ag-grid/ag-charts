@@ -82,7 +82,7 @@ import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
 import type { DataModel, ProcessedData } from '../data/dataModel';
 import { DataSet } from '../data/dataSet';
-import { type LabelFormatSource, LabelValueFormatter } from '../label';
+import { type FormatterCache, type LabelFormatSource, LabelValueFormatter } from '../label';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
 import { markerStrokePickInflation } from '../marker/marker';
@@ -402,6 +402,9 @@ export abstract class Series<
     private readonly datumCallbackCache = new Map<any, any>();
     /** Compiled-format caches keyed by label options object; replaced options simply start a new entry. */
     private readonly labelFormatters = new WeakMap<object, AxisFormattableLabel<any>>();
+    private readonly compiledLabelFormats = new Map<string, FormatterCache>();
+    private legendItemName?: string;
+    private legendItemKey?: unknown;
 
     connectsToYAxis = false;
 
@@ -436,6 +439,11 @@ export abstract class Series<
     /** Replaces the series options; `diff` holds only the changed keys, `undefined` on the initial apply. */
     applyOptions(options: NormalisedSeriesOptions<TOpts>, diff?: DeepPartial<NormalisedSeriesOptions<TOpts>>) {
         this.options = options;
+        this.legendItemName =
+            'legendItemName' in options && typeof options.legendItemName === 'string'
+                ? options.legendItemName
+                : undefined;
+        this.legendItemKey = 'legendItemKey' in options ? options.legendItemKey : undefined;
         this.syncOptionDerivedState(diff);
     }
 
@@ -1336,17 +1344,6 @@ export abstract class Series<
         };
     }
 
-    private getLegendItemOptions(): { legendItemName: string | undefined; legendItemKey: unknown } {
-        const { options } = this;
-        return {
-            legendItemName:
-                'legendItemName' in options && typeof options.legendItemName === 'string'
-                    ? options.legendItemName
-                    : undefined,
-            legendItemKey: 'legendItemKey' in options ? options.legendItemKey : undefined,
-        };
-    }
-
     onLegendInitialState(legendType: ChartLegendType, initialState: AgInitialStateLegendOptions | undefined) {
         const { visible = true, itemId, legendItemName } = initialState ?? {};
         this.toggleSeriesItem(visible, legendType, itemId, legendItemName);
@@ -1354,7 +1351,7 @@ export abstract class Series<
 
     onLegendItemClick(event: LegendItemClickEvent) {
         const { enabled, itemId, series, legendType } = event;
-        const { legendItemName, legendItemKey } = this.getLegendItemOptions();
+        const { legendItemName, legendItemKey } = this;
 
         const matchedLegendItemName = legendItemName != undefined && legendItemName === event.legendItemName;
         if (series.id === this.id || matchedLegendItemName || legendItemKey != undefined) {
@@ -1364,7 +1361,7 @@ export abstract class Series<
 
     onLegendItemDoubleClick(event: LegendItemDoubleClickEvent) {
         const { enabled, itemId, series, numVisibleItems, legendType } = event;
-        const { legendItemName, legendItemKey } = this.getLegendItemOptions();
+        const { legendItemName, legendItemKey } = this;
 
         const matchedLegendItemName = legendItemName != undefined && legendItemName === event.legendItemName;
         if (series.id === this.id || matchedLegendItemName || legendItemKey != undefined) {
@@ -1459,7 +1456,7 @@ export abstract class Series<
         }
         let formatter = this.labelFormatters.get(label);
         if (formatter == null) {
-            formatter = new LabelValueFormatter(label);
+            formatter = new LabelValueFormatter(label, this.compiledLabelFormats);
             this.labelFormatters.set(label, formatter);
         }
         return formatter;
@@ -1483,7 +1480,7 @@ export abstract class Series<
 
         const { axes, canHaveAxes, ctx, id: seriesId, options } = this;
         const source = 'series-label';
-        const { legendItemName } = this.getLegendItemOptions();
+        const { legendItemName } = this;
         const params: AgChartLabelFormatterParams<any> & RequireOptional<TParams> = {
             seriesId: this.id,
             ...baseParams,

@@ -20,6 +20,7 @@ import {
     applyStyledMarkerSize,
     extent,
     isDefined,
+    markerRebuildNeeded,
     mergeDefaults,
     placedLabelFit,
     toNumber,
@@ -126,13 +127,6 @@ interface LineSeriesTypes extends PlacedLabelSeriesTypes {
 
 type LineAnimationData = CartesianAnimationDataOf<LineSeriesTypes>;
 
-/** Marker keys that restyle in place; every other marker change rebuilds the marker nodes. */
-const MARKER_RESTYLE_KEYS = new Set(['lineDash', 'lineDashOffset']);
-
-function markerStyleChanged(markerDiff: object | undefined): boolean {
-    return markerDiff != null && Object.keys(markerDiff).some((key) => !MARKER_RESTYLE_KEYS.has(key));
-}
-
 /** Per-pass context for the no-itemStyler marker-style pass. */
 interface LineNoStylerPassCtx {
     marker: NormalisedLineSeriesOptions['marker'];
@@ -176,7 +170,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     private markerDirty = true;
 
     protected override syncOptionDerivedState(optionsDiff: DeepPartial<NormalisedLineSeriesOptions> | undefined) {
-        if (optionsDiff == null || markerStyleChanged(optionsDiff.marker)) {
+        if (optionsDiff == null || markerRebuildNeeded(optionsDiff.marker)) {
             this.markerDirty = true;
         }
     }

@@ -518,12 +518,11 @@ export const SINGLE_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightOptions<A
     },
 };
 
+/** Interaction defaults for series whose public options omit `showInLegend`. */
+export const SERIES_INTERACTION_THEME_DEFAULTS = { cursor: 'default', nodeClickRange: 'exact' } as const;
+
 /** Series-level defaults every migrated series module spreads into its `themeTemplate.series`. */
-export const COMMON_SERIES_THEME_DEFAULTS = {
-    cursor: 'default',
-    nodeClickRange: 'exact',
-    showInLegend: true,
-} as const;
+export const COMMON_SERIES_THEME_DEFAULTS = { ...SERIES_INTERACTION_THEME_DEFAULTS, showInLegend: true } as const;
 
 /** Per-type interpolation defaults keyed off the resolved `type`; `defaultType` may itself be an operation. */
 export function interpolationThemeTemplate(defaultType: unknown = 'linear') {

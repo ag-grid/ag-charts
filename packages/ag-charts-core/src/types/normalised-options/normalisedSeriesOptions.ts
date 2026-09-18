@@ -58,6 +58,24 @@ type NormaliseSeriesTooltip<T> = T extends { tooltip?: AgSeriesTooltip<infer P> 
     ? NormalisedSeriesTooltipOptions<RequireOptional<Omit<P, 'context'>>>
     : NormalisedSeriesTooltipOptions;
 
+/** The state buckets the base series reads; a series normalising its own `highlight` block extends this. */
+export interface NormalisedSeriesHighlightBase<TStyle extends object = NormalisedSeriesStateStyle> {
+    enabled: boolean;
+    bringToFront?: boolean;
+    highlightedItem?: TStyle;
+    unhighlightedItem?: TStyle;
+    highlightedSeries?: TStyle;
+    unhighlightedSeries?: TStyle;
+}
+
+/** A series whose own options already normalise `highlight` (a required block) keeps that shape and its required-ness. */
+type NormaliseSeriesHighlight<T extends object> = T extends { highlight: NormalisedSeriesHighlightBase }
+    ? { highlight: T['highlight'] }
+    : {
+          /** Absent on series types whose public options omit it. */
+          highlight?: NormalisedSeriesHighlightOptions<NormalisedSeriesOwnOptions<T>>;
+      };
+
 export type SeriesCommonOptionKey =
     | 'id'
     | 'cursor'
@@ -84,8 +102,6 @@ export interface NormalisedSeriesOptionsCommon<T extends object = object> {
     /** Absent on series types whose public options omit it. */
     showInLegend?: boolean;
     /** Absent on series types whose public options omit it. */
-    highlight?: NormalisedSeriesHighlightOptions<NormalisedSeriesOwnOptions<T>>;
-    /** Absent on series types whose public options omit it. */
     selection?: NormalisedSeriesSelectionOptions<NormalisedSeriesOwnOptions<T>>;
     tooltip: NormaliseSeriesTooltip<T>;
     listeners?: AgSeriesListeners<unknown, unknown> & { seriesVisibilityChange?: never };
@@ -98,4 +114,5 @@ export interface NormalisedSeriesOptionsCommon<T extends object = object> {
 
 /** The post-theme shape of a series' options; `T` is the public options type or a normalised alias of it. */
 export type NormalisedSeriesOptions<T extends object> = NormalisedSeriesOwnOptions<T> &
-    NormalisedSeriesOptionsCommon<T>;
+    NormalisedSeriesOptionsCommon<T> &
+    NormaliseSeriesHighlight<T>;

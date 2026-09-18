@@ -71,6 +71,12 @@ export type NormalisedSeriesLabelOptions<TParams = never, TDatum = any> = Normal
     }
 >;
 
+/** A series label whose owner never resolves collisions, so its theme carries no `collision` block. */
+export type NormalisedCollisionFreeSeriesLabelOptions<TParams = never, TDatum = any> = Omit<
+    NormalisedSeriesLabelOptions<TParams, TDatum>,
+    'collision'
+>;
+
 /** Label of a point-like series (line, area, scatter, bubble, map-marker) that resolves a directional placement. */
 export type NormalisedPlacedSeriesLabelOptions<TParams = never, TDatum = any> = NormalisedSeriesLabelOptions<
     TParams,

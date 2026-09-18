@@ -18,6 +18,7 @@ import {
     createId,
     enterpriseRegistry,
     entries,
+    getPath,
     getWindow,
     isFiniteNumber,
     isInputPending,
@@ -2190,12 +2191,13 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         const { moduleRegistry } = this.ctx;
         for (const module of moduleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
-            const moduleInstance: any = moduleMap.getModule(module.name);
+            const moduleInstance = moduleMap.getModule(module.name);
             for (const { host: owner, relative } of moduleRegistry.moduleContributions(module.name)) {
                 if (owner !== 'series') continue;
-                visitOptionsPath(seriesOptions, relative, (host, key) => {
+                visitOptionsPath(seriesOptions, relative, (host, key, location) => {
                     if (!(key in host)) return;
-                    moduleInstance?.properties.set(host[key]);
+                    const moduleDiff = diff == null ? undefined : host[key];
+                    moduleInstance?.applyOptions(getPath(options, location), moduleDiff);
                     delete host[key];
                 });
             }
