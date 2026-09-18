@@ -1,11 +1,13 @@
 import type { AxisID, BoxBounds, DynamicContext } from 'ag-charts-core';
 
+import { FocusIndicator } from '../../dom/focusIndicator';
+import { FocusSwapChain } from '../../dom/focusSwapChain';
 import type { ChartRegistry } from '../../module/moduleContext';
 import type { AxisWidget } from '../../widget/axisWidget';
 import type { BoundedTextWidget } from '../../widget/boundedTextWidget';
 import { NativeWidget } from '../../widget/nativeWidget';
 import { type Widget } from '../../widget/widget';
-import { DragInterpreter } from './dragInterpreter';
+import { DragInterpreter, LongTapInterpreter } from './dragInterpreter';
 
 class DOMManagerWidget extends NativeWidget {
     constructor(elem: HTMLElement) {
@@ -193,28 +195,50 @@ export class AxisWidgets {
     }
 }
 
+class SeriesAreaWidget extends DOMManagerWidget {
+    public readonly swapChain: FocusSwapChain;
+    public readonly focusIndicator?: FocusIndicator;
+
+    constructor(ctx: DynamicContext<ChartRegistry>) {
+        super(ctx.domManager.getParent('series-area'));
+
+        this.swapChain = new FocusSwapChain(this.elem, 'img', ctx.localeManager.t('ariaInitSeriesArea'));
+
+        if (ctx.domManager.mode === 'normal') {
+            this.focusIndicator = new FocusIndicator(this.swapChain);
+            this.focusIndicator.overrideFocusVisible(
+                ctx.chartState.getValue('options', 'mode') === 'integrated' ? false : undefined
+            );
+        }
+    }
+}
+
 export class WidgetSet {
-    readonly seriesWidget: Widget;
+    readonly seriesWidget: SeriesAreaWidget;
     readonly chartWidget: Widget;
     readonly containerWidget: Widget;
     readonly seriesDragInterpreter?: DragInterpreter;
+    readonly longTapInterpreter?: LongTapInterpreter;
     readonly axisWidgets: AxisWidgets;
 
     constructor(ctx: DynamicContext<ChartRegistry>, opts: { withDragInterpretation: boolean }) {
         const { domManager } = ctx;
-        this.seriesWidget = new DOMManagerWidget(domManager.getParent('series-area'));
+        this.seriesWidget = new SeriesAreaWidget(ctx);
         this.chartWidget = new DOMManagerWidget(domManager.getParent('canvas-proxy'));
         this.containerWidget = new DOMManagerWidget(domManager.getParent('canvas-container'));
         this.containerWidget.addChild(this.chartWidget);
         this.chartWidget.addChild(this.seriesWidget);
         if (opts.withDragInterpretation) {
             this.seriesDragInterpreter = new DragInterpreter(this.seriesWidget);
+            // Not the container: that would also cover the overlay holding the popovers a long tap opens.
+            this.longTapInterpreter = new LongTapInterpreter(this.chartWidget);
         }
         this.axisWidgets = new AxisWidgets(ctx);
     }
 
     destroy(): void {
         this.axisWidgets.destroy();
+        this.longTapInterpreter?.destroy();
         this.seriesDragInterpreter?.destroy();
         this.seriesWidget.destroy();
         this.chartWidget.destroy();

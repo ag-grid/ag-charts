@@ -488,7 +488,6 @@ export { SliderWidget } from './widget/sliderWidget';
 export { ToolbarWidget } from './widget/toolbarWidget';
 export type {
     DragWidgetEvent,
-    HoverLikeEvent,
     KeyboardWidgetEvent,
     MouseWidgetEvent,
     WheelWidgetEvent,

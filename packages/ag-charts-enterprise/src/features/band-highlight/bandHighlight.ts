@@ -19,6 +19,11 @@ const {
     InteractionState,
 } = _ModuleSupport;
 
+type HoverLikeEvent =
+    | _ModuleSupport.DragInterpreterClickEvent
+    | _ModuleSupport.MouseWidgetEvent<'mousemove'>
+    | _ModuleSupport.DragWidgetEvent<'drag-move'>;
+
 export class BandHighlight extends AbstractModuleInstance {
     static readonly className = 'BandHighlight';
     readonly id = createId(this);
@@ -93,7 +98,7 @@ export class BandHighlight extends AbstractModuleInstance {
         this.onHighlightChange();
     }
 
-    private isHover(event: _ModuleSupport.HoverLikeEvent): boolean {
+    private isHover(event: HoverLikeEvent): boolean {
         return (
             event.type === 'mousemove' ||
             event.type === 'click' ||
@@ -119,13 +124,13 @@ export class BandHighlight extends AbstractModuleInstance {
         }
     }
 
-    private onHoverLikeEvent(event: _ModuleSupport.HoverLikeEvent): void {
+    private onHoverLikeEvent(event: HoverLikeEvent): void {
         const requiredState = this.isHover(event) ? InteractionState.Hoverable : InteractionState.AnnotationsMoveable;
         if (!this.ctx.interactionManager.isState(requiredState)) return;
         this.handleHoverHighlight(event);
     }
 
-    private handleHoverHighlight(event: _ModuleSupport.HoverLikeEvent) {
+    private handleHoverHighlight(event: HoverLikeEvent) {
         if (!event) return;
 
         const { currentX: x, currentY: y } = event;

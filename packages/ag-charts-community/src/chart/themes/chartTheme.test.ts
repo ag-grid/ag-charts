@@ -1,7 +1,7 @@
 import { fail } from 'assert';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
-import { classCast } from 'ag-charts-test';
+import { classCast, expectWarningsCalls } from 'ag-charts-test';
 import type { AgCartesianChartOptions, AgChartTheme, AgPolarChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
@@ -817,7 +817,14 @@ describe('ChartTheme', () => {
             expect(axisX.type).toBe('category');
             expect(axisX.position).toBe('bottom');
             expect(axisX.options.line.stroke).toBe('blue');
-            expect(axisX.options.line.width).toBe(5);
+            expect(axisX.options.line.strokeWidth).toBe(5);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`axes.x.line.width\` is deprecated. Use \`strokeWidth\` instead.",
+                ],
+              ]
+            `);
             expect(axisX.options?.label?.fontSize).toBe(18);
             expect(axisX.options?.label?.fontStyle).toBe(undefined);
             expect(axisX.options?.label?.fontFamily).toBe(
@@ -830,6 +837,174 @@ describe('ChartTheme', () => {
             // Since config is provided, the `enabled` should be auto-set to `true`,
             // even though theme's default is `false`.
             expect(axisX.options.title?.enabled).toBe(true);
+        });
+    });
+
+    describe('line width alias precedence', () => {
+        async function createChart(
+            axisLine: Record<string, unknown> | undefined,
+            theme?: AgChartTheme
+        ): Promise<ChartOrProxy> {
+            const created = deproxy(
+                AgCharts.create({
+                    theme,
+                    data,
+                    axes: {
+                        x: {
+                            type: 'category',
+                            position: 'bottom',
+                            ...(axisLine ? { line: axisLine } : {}),
+                        },
+                        y: {
+                            type: 'number',
+                            position: 'left',
+                        },
+                    },
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'label',
+                            yKey: 'v1',
+                        },
+                    ],
+                } as AgCartesianChartOptions)
+            );
+            await waitForChartStability(created);
+            return created;
+        }
+
+        test('`width` only resolves `strokeWidth` and warns', async () => {
+            chart = await createChart({ width: 5 });
+            if (!(chart instanceof CartesianChart)) fail();
+
+            const axisX = chart.axes.x as any;
+            expect(axisX.options.line.strokeWidth).toBe(5);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`axes.x.line.width\` is deprecated. Use \`strokeWidth\` instead.",
+                ],
+              ]
+            `);
+        });
+
+        test('`strokeWidth` only resolves without a notice', async () => {
+            chart = await createChart({ strokeWidth: 5 });
+            if (!(chart instanceof CartesianChart)) fail();
+
+            const axisX = chart.axes.x as any;
+            expect(axisX.options.line.strokeWidth).toBe(5);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+
+        test('both set: `strokeWidth` wins over `width`, and `width` still warns', async () => {
+            chart = await createChart({ width: 5, strokeWidth: 3 });
+            if (!(chart instanceof CartesianChart)) fail();
+
+            const axisX = chart.axes.x as any;
+            expect(axisX.options.line.strokeWidth).toBe(3);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`axes.x.line.width\` is deprecated. Use \`strokeWidth\` instead.",
+                ],
+              ]
+            `);
+        });
+
+        test('neither set: `strokeWidth` defaults to 1', async () => {
+            chart = await createChart(undefined);
+            if (!(chart instanceof CartesianChart)) fail();
+
+            const axisX = chart.axes.x as any;
+            expect(axisX.options.line.strokeWidth).toBe(1);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+
+        test('`width` set via a theme override resolves `strokeWidth` and warns', async () => {
+            const theme: AgChartTheme = {
+                baseTheme: 'ag-default',
+                overrides: {
+                    common: {
+                        axes: {
+                            category: {
+                                line: {
+                                    width: 7,
+                                },
+                            },
+                        },
+                    },
+                },
+            };
+            chart = await createChart(undefined, theme);
+            if (!(chart instanceof CartesianChart)) fail();
+
+            const axisX = chart.axes.x as any;
+            expect(axisX.options.line.strokeWidth).toBe(7);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`theme.overrides.common.axes.category.line.width\` is deprecated. Use \`strokeWidth\` instead.",
+                ],
+              ]
+            `);
+        });
+
+        test('`width` set via a positional theme override resolves `strokeWidth` and warns', async () => {
+            const theme: AgChartTheme = {
+                baseTheme: 'ag-default',
+                overrides: {
+                    common: {
+                        axes: {
+                            number: {
+                                bottom: {
+                                    line: {
+                                        width: 9,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            };
+            chart = deproxy(
+                AgCharts.create({
+                    theme,
+                    data,
+                    axes: {
+                        x: {
+                            type: 'number',
+                            position: 'bottom',
+                        },
+                        y: {
+                            type: 'number',
+                            position: 'left',
+                        },
+                    },
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'v1',
+                            yKey: 'v2',
+                        },
+                    ],
+                } as AgCartesianChartOptions)
+            );
+            await waitForChartStability(chart);
+            if (!(chart instanceof CartesianChart)) fail();
+
+            const axisX = chart.axes.x as any;
+            // Pins the merge-order the plan flagged as the row most likely to diverge:
+            // a positional (`number.bottom`) theme override satisfies `$isUserOption` the
+            // same way a type-level override does.
+            expect(axisX.options.line.strokeWidth).toBe(9);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`theme.overrides.common.axes.number.bottom.line.width\` is deprecated. Use \`strokeWidth\` instead.",
+                ],
+              ]
+            `);
         });
     });
 

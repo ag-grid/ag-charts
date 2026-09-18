@@ -110,12 +110,26 @@ const licenseManagers = new WeakMap<object, LicenseManager>();
 // Decided once at creation and kept off the instance, so a later update or a caller cannot exempt a chart.
 const studioCharts = new WeakMap<AgChartInstanceProxy, boolean>();
 
-function hostDocument(options: AgChartOptions): Document | undefined {
-    return options.container?.ownerDocument ?? (typeof document === 'undefined' ? undefined : document);
+function isStudioChart(proxy: AgChartInstanceProxy | undefined, userOptions: AgChartOptions): boolean {
+    if (proxy) return studioCharts.get(proxy) === true;
+    // Presets strip this undocumented flag from the processed options, so read it as the user gave it.
+    return (userOptions as { withinStudio?: boolean }).withinStudio === true;
 }
 
-function validatedLicenseManager(options: AgChartOptions, keyRequired: boolean): LicenseManager | undefined {
-    const chartDocument = hostDocument(options);
+/** Resolved before options processing, so the licence verdict reaches the console ahead of any option warning. */
+interface LicenceScope {
+    chartDocument: Document | undefined;
+    moduleScope: ModuleScope;
+}
+
+function hostDocument(container: HTMLElement | null | undefined): Document | undefined {
+    return container?.ownerDocument ?? (typeof document === 'undefined' ? undefined : document);
+}
+
+function validatedLicenseManager(
+    chartDocument: Document | undefined,
+    keyRequired: boolean
+): LicenseManager | undefined {
     const cacheKey = chartDocument ?? NO_DOCUMENT;
     let licenseManager = licenseManagers.get(cacheKey);
     if (licenseManager == null) {
@@ -366,6 +380,14 @@ class AgChartsInternal {
         argumentIssue ??= taggedIssue;
         const baseOptions = chart?.getChartOptions();
         const newSpecialOverrides = { ...specialOverrides, document, window: userWindow, styleContainer, skipCss };
+        const withinStudio = isStudioChart(proxy, options);
+        let licenceScope: LicenceScope | undefined;
+        if (licenseManager == null && !withinStudio) {
+            const container =
+                options.container ?? deltaOptions?.container ?? proxy?.chart?.chartOptions.processedOptions.container;
+            licenceScope = { chartDocument: hostDocument(container), moduleScope };
+            validatedLicenseManager(licenceScope.chartDocument, !usesEnterpriseModules(moduleScope));
+        }
         let chartOptions;
         try {
             chartOptions = new ChartOptions(
@@ -450,6 +472,7 @@ class AgChartsInternal {
 
         if (proxy == null) {
             proxy = new AgChartInstanceProxy(chart, AgChartsInternal.callbackApi);
+            studioCharts.set(proxy, withinStudio);
             proxy.licenseManager = licenseManager;
             proxy.releaseChart = poolResult?.release;
         } else if (poolResult || create) {
@@ -458,7 +481,7 @@ class AgChartsInternal {
             proxy.releaseChart = poolResult?.release;
         }
         const chartProxy = proxy;
-        AgChartsInternal.licenseCheck(chartProxy, chartOptions);
+        AgChartsInternal.licenseCheck(chartProxy, licenceScope);
 
         if (debug.check() && typeof globalThis.window !== 'undefined') {
             (globalThis as any).agChartInstances ??= {};
@@ -480,7 +503,7 @@ class AgChartsInternal {
                 Debug.check('scene:stats', 'scene:stats:verbose') ? performance.now() : undefined,
                 chart.ctx
             );
-            AgChartsInternal.licenseCheck(chartProxy, refreshedChartOptions);
+            AgChartsInternal.licenseCheck(chartProxy, licenceScope);
             AgChartsInternal.requestFactoryUpdate(chart, refreshedChartOptions);
         });
 
@@ -490,19 +513,12 @@ class AgChartsInternal {
     }
 
     // Re-run on every update: the scope may gain enterprise modules, or a key may have been set since.
-    private static licenseCheck(proxy: AgChartInstanceProxy, chartOptions: ChartOptions) {
-        const { userOptions, processedOptions, moduleRegistry } = chartOptions;
-        let withinStudio = studioCharts.get(proxy);
-        if (withinStudio == null) {
-            // Presets strip this undocumented flag from the processed options, so read it as the user gave it.
-            withinStudio = (userOptions as { withinStudio?: boolean }).withinStudio === true;
-            studioCharts.set(proxy, withinStudio);
-        }
-        if (withinStudio) return;
+    private static licenseCheck(proxy: AgChartInstanceProxy, licenceScope: LicenceScope | undefined) {
+        if (licenceScope == null) return;
 
         // A community-only scope is validated only when a key was supplied, and is never watermarked.
-        const enterpriseScope = usesEnterpriseModules(moduleRegistry);
-        const licenseManager = validatedLicenseManager(processedOptions, !enterpriseScope);
+        const enterpriseScope = usesEnterpriseModules(licenceScope.moduleScope);
+        const licenseManager = validatedLicenseManager(licenceScope.chartDocument, !enterpriseScope);
         if (licenseManager == null || !enterpriseScope || proxy.licenseManager != null) return;
 
         proxy.licenseManager = licenseManager;

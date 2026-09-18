@@ -448,6 +448,80 @@ describe('label collision avoidance', () => {
         });
     });
 
+    describe('waterfall series-level labels take part in collision avoidance', () => {
+        // The same configuration written at `series.label` rather than per item type must reach
+        // collision avoidance on identical terms — same visible labels, same geometry.
+        const options = (label: object, atSeriesLevel: boolean): any => ({
+            data: [
+                { x: 'A', y: 10 },
+                { x: 'B', y: -4 },
+            ],
+            legend: { enabled: false },
+            padding: { top: 100, right: 10, bottom: 10, left: 10 },
+            axes: { x: { type: 'category' }, y: { type: 'number', min: -10, max: 10 } },
+            series: [
+                {
+                    type: 'waterfall',
+                    xKey: 'x',
+                    yKey: 'y',
+                    ...(atSeriesLevel
+                        ? { label }
+                        : { item: { positive: { label }, negative: { label }, total: { label } } }),
+                },
+            ],
+        });
+
+        const renderLabelBoxes = async (label: object, atSeriesLevel: boolean) => {
+            const opts = options(label, atSeriesLevel);
+            prepareEnterpriseTestOptions(opts as AgChartOptions);
+            chart = deproxy(AgCharts.create(opts as AgChartOptions));
+            await waitForChartStability(chart);
+            const series = chart.series[0] as unknown as {
+                labelSelection: { nodes(): { visible: boolean; x: number; y: number; text: string }[] };
+            };
+            const boxes = series.labelSelection
+                .nodes()
+                .filter((node) => node.visible)
+                .map(({ x, y, text }) => ({ x, y, text }));
+            chart.destroy();
+            (chart as unknown) = undefined;
+            return boxes;
+        };
+
+        it.each([
+            [
+                'kept by alwaysShow',
+                { enabled: true, collision: { alwaysShow: true, collideWith: { seriesArea: true } } },
+            ],
+            [
+                'hidden by series-area avoidance',
+                { enabled: true, collision: { alwaysShow: false, collideWith: { seriesArea: true } } },
+            ],
+            [
+                'cascaded to an inside placement',
+                {
+                    enabled: true,
+                    placement: ['outside-end', 'inside-center'],
+                    collision: { alwaysShow: false, collideWith: { seriesArea: true } },
+                },
+            ],
+        ])('resolves identically to the item-level equivalent (%s)', async (_name, label) => {
+            const itemLevel = await renderLabelBoxes(label, false);
+            const seriesLevel = await renderLabelBoxes(label, true);
+
+            expect(seriesLevel).toStrictEqual(itemLevel);
+        });
+
+        it('renders labels at series level, so the parity cases above are not comparing two blank charts', async () => {
+            const boxes = await renderLabelBoxes(
+                { enabled: true, collision: { alwaysShow: true, collideWith: { seriesArea: true } } },
+                true
+            );
+
+            expect(boxes.length).toBeGreaterThan(0);
+        });
+    });
+
     describe('waterfall placement cascade and own-label hiding', () => {
         // The bar's `outside-end` label overflows the series area, so series-area avoidance must
         // drop a single-placement label and cascade a placement array to an inside candidate.

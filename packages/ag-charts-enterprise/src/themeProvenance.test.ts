@@ -30,7 +30,7 @@ const CASES: Array<ProvenanceCase> = [
         seriesType: 'waterfall',
         series: { xKey: 'category', yKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 185, maxSkipped: 16, maxRejected: 3, maxIneffective: 0, minContainers: 7 },
+        coverage: { minChecked: 226, maxSkipped: 18, maxRejected: 4, maxIneffective: 0, minContainers: 17 },
         asymmetries: ['direction'],
     },
     {
