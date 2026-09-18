@@ -208,9 +208,9 @@ describe('ChartTheme', () => {
             const areaStrokes = ['cyan', 'cyan', 'cyan', 'cyan', 'cyan'];
             for (let i = 5; i < 10; i++) {
                 expect(chart.series[i].type).toBe('area');
-                expect((chart.series[i] as unknown as AreaSeries).properties.fill).toEqual(areaFills[i - 5]);
-                expect((chart.series[i] as unknown as AreaSeries).properties.stroke).toEqual(areaStrokes[i - 5]);
-                expect((chart.series[i] as unknown as AreaSeries).properties.marker.itemStyler).toBeDefined();
+                expect((chart.series[i] as unknown as AreaSeries).options.fill).toEqual(areaFills[i - 5]);
+                expect((chart.series[i] as unknown as AreaSeries).options.stroke).toEqual(areaStrokes[i - 5]);
+                expect((chart.series[i] as unknown as AreaSeries).options.marker.itemStyler).toBeDefined();
             }
         });
     });

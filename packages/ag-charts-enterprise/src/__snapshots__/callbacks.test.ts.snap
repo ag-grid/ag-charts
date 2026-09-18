@@ -1999,7 +1999,6 @@ exports[`AG-15850 labels > area > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -2037,7 +2036,6 @@ exports[`AG-15850 labels > area > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -2253,7 +2251,6 @@ exports[`AG-15850 labels > bubble > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -2297,7 +2294,6 @@ exports[`AG-15850 labels > bubble > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
