@@ -632,7 +632,7 @@ export class DOMManager extends BaseManager {
         setAttribute(this.rootElements['canvas-proxy'].element, 'aria-label', ariaLabel);
     }
 
-    private onFocusIn = ({ target }: FocusEvent) => {
+    private readonly onFocusIn = ({ target }: FocusEvent) => {
         if (isNode(target) && !this.rootElements['series-area-bounds'].element.contains(target)) {
             this.eventsHub.emit('dom:series-blurred', null);
         }
