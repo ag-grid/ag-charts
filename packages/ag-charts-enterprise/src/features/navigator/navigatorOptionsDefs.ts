@@ -177,7 +177,8 @@ function miniChartSeriesDefs() {
     );
 }
 
-// The theme fills `type` from the main series, so an untyped item is only checked for shape here.
+// Validation runs before and after theming. An item without `type` can only be matched to a series def
+// once the theme has filled it in, so the pre-theme pass accepts it as a bare object.
 const untypedMiniChartSeries = attachDescription((value) => isObject(value) && value.type == null, 'an object');
 
 export const navigatorOptionsDef: OptionsDefs<AgNavigatorOptions> = {
