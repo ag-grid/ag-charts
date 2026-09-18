@@ -2117,7 +2117,6 @@ exports[`AG-15850 labels > bar > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -2156,7 +2155,6 @@ exports[`AG-15850 labels > bar > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -2963,7 +2961,6 @@ exports[`AG-15850 labels > histogram > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3009,7 +3006,6 @@ exports[`AG-15850 labels > histogram > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3055,7 +3051,6 @@ exports[`AG-15850 labels > histogram > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3101,7 +3096,6 @@ exports[`AG-15850 labels > histogram > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,

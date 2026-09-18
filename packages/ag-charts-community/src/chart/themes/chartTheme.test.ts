@@ -195,13 +195,13 @@ describe('ChartTheme', () => {
             for (let i = 0; i < 5; i++) {
                 expect(chart.series[i].type).toBe('bar');
                 const barSeries = classCast(chart.series[i], BarSeries);
-                expect(barSeries.properties.fill).toEqual(fills[i]);
-                expect(barSeries.properties.stroke).toEqual(strokes[i]);
-                expect(barSeries.properties.label.enabled).toBe(true);
-                expect(barSeries.properties.label.color).toBe('yellow');
-                expect(barSeries.properties.label.fontSize).toBe(18);
-                expect(barSeries.properties.tooltip.enabled).toBe(false);
-                expect(barSeries.properties.tooltip.renderer).toBeDefined();
+                expect(barSeries.options.fill).toEqual(fills[i]);
+                expect(barSeries.options.stroke).toEqual(strokes[i]);
+                expect(barSeries.options.label.enabled).toBe(true);
+                expect(barSeries.options.label.color).toBe('yellow');
+                expect(barSeries.options.label.fontSize).toBe(18);
+                expect(barSeries.options.tooltip.enabled).toBe(false);
+                expect(barSeries.options.tooltip.renderer).toBeDefined();
             }
 
             const areaFills = ['blue', 'red', 'green', 'blue', 'red'];
@@ -441,13 +441,13 @@ describe('ChartTheme', () => {
             for (let i = 0; i < 5; i++) {
                 expect(chart.series[i].type).toBe('bar');
                 const barSeries = classCast(chart.series[i], BarSeries);
-                expect(barSeries.properties.fill).toEqual(fills[i]);
-                expect(barSeries.properties.stroke).toEqual(strokes[i]);
-                expect(barSeries.properties.label.enabled).toBe(true);
-                expect(barSeries.properties.label.color).toBe('blue');
-                expect(barSeries.properties.label.fontSize).toBe(18);
-                expect(barSeries.properties.tooltip.enabled).toBe(false);
-                expect(barSeries.properties.tooltip.renderer).toBeDefined();
+                expect(barSeries.options.fill).toEqual(fills[i]);
+                expect(barSeries.options.stroke).toEqual(strokes[i]);
+                expect(barSeries.options.label.enabled).toBe(true);
+                expect(barSeries.options.label.color).toBe('blue');
+                expect(barSeries.options.label.fontSize).toBe(18);
+                expect(barSeries.options.tooltip.enabled).toBe(false);
+                expect(barSeries.options.tooltip.renderer).toBeDefined();
             }
         });
 

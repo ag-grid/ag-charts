@@ -1,8 +1,12 @@
 import type {
+    BoxBounds,
     CallbackParamRules,
     DynamicContext,
     LabelFit,
+    NormalisedHistogramSeriesOptions,
+    NormalisedHistogramSeriesOwnOptions,
     NormalisedHistogramSeriesStyle,
+    NormalisedTextOrSegments,
     PlacedLabel,
     PointLabelDatum,
     PositionedCandidateResolver,
@@ -46,7 +50,6 @@ import type {
     AgHistogramSeriesBinParams,
     AgHistogramSeriesItemStylerParams,
     AgHistogramSeriesLabelFormatterParams,
-    AgHistogramSeriesOptions,
     AgHistogramSeriesStylerParams,
     AgNumericValue,
 } from 'ag-charts-types';
@@ -54,6 +57,7 @@ import type {
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { BBox } from '../../../scene/bbox';
+import { DropShadow } from '../../../scene/dropShadow';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
@@ -95,6 +99,7 @@ import {
     toResolvedPlacement,
     updateLabelNode,
 } from '../../labelUtil';
+import type { BarLabelPlacement, BarPositionedCandidate } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
@@ -124,10 +129,10 @@ import type {
     CartesianAnimationDataOf,
     CartesianCreateNodeDataContext,
     CartesianSeriesNodeDataContext,
+    CartesianSeriesNodeDatum,
     CartesianSeriesTypes,
 } from './cartesianSeriesTypes';
 import { upsertNodeDatum } from './cartesianSeriesUtil';
-import { type HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 const defaultBinCount = 10;
@@ -158,14 +163,60 @@ interface HistogramSeriesNodeDataContext extends CartesianSeriesNodeDataContext<
     styles: SeriesNodeStyleContext<NormalisedHistogramSeriesStyle>;
 }
 
+export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
+    // Bins aggregate many datums, so they carry an explicit stable id rather than the 1:1-series datumIndex match.
+    readonly itemId: string;
+    readonly x: number;
+    readonly y: number;
+    readonly width: number;
+    readonly height: number;
+    readonly topLeftCornerRadius: boolean;
+    readonly topRightCornerRadius: boolean;
+    readonly bottomRightCornerRadius: boolean;
+    readonly bottomLeftCornerRadius: boolean;
+    readonly clipBBox?: BBox;
+    readonly binIndex: number;
+    readonly binRange: [AgNumericValue, AgNumericValue];
+    readonly aggregatedValue: AgNumericValue;
+    // Plotted bar height the crosshair snaps to (area-adjusted); the raw value is `aggregatedValue`.
+    readonly cumulativeValue: number;
+    readonly frequency: number;
+    readonly label?: {
+        readonly text: NormalisedTextOrSegments;
+        /** Reduced font size the text was fitted at; `undefined` when it renders at the configured size. */
+        fittedFontSize?: number;
+        // Mutable so the placement engine can retarget the label to a chosen candidate's anchor.
+        x: number;
+        y: number;
+        textAlign: CanvasTextAlign;
+        textBaseline: CanvasTextBaseline;
+        rotation: number;
+        /** Bar rect an orientation candidate must fit within; unset for outside placements. */
+        readonly region?: BoxBounds;
+        /** Flush offset written by the placement engine to keep a rotated label inside its region. */
+        offsetX?: number;
+        offsetY?: number;
+        /** Granular resolved placement, coarsened to select placement styles. */
+        placement?: BarLabelPlacement;
+        /** Pre-positioned cascade candidates, present only when the label routes through the engine. */
+        candidates?: BarPositionedCandidate[];
+        /** Engine-routed label the placement engine dropped (no candidate fit); rendered invisible. */
+        hidden?: boolean;
+    };
+    // Required for types
+    readonly crisp: boolean;
+    readonly opacity?: number;
+    style?: RequireOptional<NormalisedHistogramSeriesStyle>;
+}
+
 /**
  * Consolidated type interface for HistogramSeries.
  * Defines all type parameters in one place for the series.
  */
 interface HistogramSeriesTypes extends CartesianSeriesTypes {
     readonly node: Rect<HistogramNodeDatum>;
-    readonly options: AgHistogramSeriesOptions;
-    readonly properties: HistogramSeriesProperties;
+    readonly options: NormalisedHistogramSeriesOwnOptions;
+    readonly properties: undefined;
     readonly datum: HistogramNodeDatum;
     readonly label: HistogramNodeDatum;
     readonly context: HistogramSeriesNodeDataContext;
@@ -179,7 +230,7 @@ interface HistogramSeriesNodeDatumContext extends CartesianCreateNodeDataContext
     readonly yAxisReversed: boolean;
 
     // Histogram-specific property lookups
-    readonly label: HistogramSeriesProperties['label'];
+    readonly label: NormalisedHistogramSeriesOptions['label'];
     readonly labelFit: LabelFit | undefined;
 }
 
@@ -187,13 +238,34 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     static override readonly className = 'HistogramSeries';
     static readonly type = 'histogram' as const;
 
-    override properties = new HistogramSeriesProperties();
+    private readonly shadow = new DropShadow();
+
+    protected override syncOptionDerivedState() {
+        this.shadow.set(this.options.shadow);
+    }
+
+    /** The series-level style before any styler, highlight or selection overrides. */
+    private baseStyle(): RequireOptional<NormalisedHistogramSeriesStyle> & { opacity: number } {
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } =
+            this.options;
+        return {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            cornerRadius,
+            opacity: 1,
+        };
+    }
 
     override createNodeParams(datum: HistogramNodeDatum) {
         return {
             ...super.createNodeParams(datum),
-            xKey: this.properties.xKey,
-            yKey: this.properties.yKey,
+            xKey: this.options.xKey,
+            yKey: this.options.yKey,
             binIndex: datum.binIndex,
             binRange: datum.binRange,
             aggregatedValue: datum.aggregatedValue,
@@ -230,14 +302,14 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         // BigInt boundaries need both endpoints integral, else BigInt() throws — fall back to the Number path.
         const bigIntExtent = (isBigInt(x0) || isBigInt(x1)) && isBigIntConvertible(x0) && isBigIntConvertible(x1);
 
-        if (isNumber(this.properties.binCount)) {
+        if (isNumber(this.options.binCount)) {
             return bigIntExtent
-                ? createBigIntBins(BigInt(x0), BigInt(x1), this.properties.binCount)
-                : this.calculateNiceBins([Number(x0), Number(x1)], this.properties.binCount);
+                ? createBigIntBins(BigInt(x0), BigInt(x1), this.options.binCount)
+                : this.calculateNiceBins([Number(x0), Number(x1)], this.options.binCount);
         }
 
         return (
-            this.properties.bins ??
+            this.options.bins ??
             (bigIntExtent
                 ? createBigIntTickBins(BigInt(x0), BigInt(x1), defaultBinCount)
                 : this.deriveBins([Number(x0), Number(x1)]))
@@ -307,7 +379,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
     override async processData(dataController: DataController) {
         const { visible } = this;
-        const { xKey, yKey, areaPlot, aggregation } = this.properties;
+        const { xKey, yKey, areaPlot, aggregation } = this.options;
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
@@ -470,7 +542,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         xAxis: ChartAxis,
         yAxis: ChartAxis
     ): HistogramSeriesNodeDatumContext | undefined {
-        const { xKey, yKey, xName, yName, label } = this.properties;
+        const { xKey, yKey, xName, yName, label } = this.options;
         const { contextNodeData, processedData } = this;
 
         const canIncrementallyUpdate = contextNodeData?.nodeData != null && processedData?.changeDescription != null;
@@ -556,7 +628,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             yKey!,
             'y',
             [],
-            label,
+            this.options.label,
             labelParams
         );
         // A placement array, a hideable label or a fit policy needs a candidate per placement ×
@@ -652,7 +724,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const { xKey, yKey } = ctx;
         const { domain: binRange, datum, binIndex, frequency, total, aggregatedValue } = bin;
         const [binStart, binEnd] = binRange;
-        const { getItemId } = this.properties;
+        const { getItemId } = this.options;
         const customId =
             getItemId == null
                 ? undefined
@@ -785,7 +857,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
      */
     protected override initializeResult(ctx: HistogramSeriesNodeDatumContext): HistogramSeriesNodeDataContext {
         return {
-            itemId: this.properties.yKey ?? this.id,
+            itemId: this.options.yKey ?? this.id,
             nodeData: ctx.nodes,
             labelData: ctx.nodes,
             scales: this.calculateScaling(),
@@ -826,7 +898,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     }
 
     // The theme resolves fill/stroke before any styler runs, so the style fields exposed to styler
-    // callbacks are always present even though they are statically optional on the properties.
+    // callbacks are always present even though they are statically optional on the options.
     private resolvedStyle(
         style: RequireOptional<NormalisedHistogramSeriesStyle>
     ): Required<NormalisedHistogramSeriesStyle> {
@@ -847,13 +919,13 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         highlightState: HighlightState | undefined
     ): AgHistogramSeriesStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
-        const { xKey, yKey } = this.properties;
+        const { xKey, yKey } = this.options;
 
         return {
             seriesId,
             xKey,
             yKey,
-            ...this.resolvedStyle(this.properties.getStyle()),
+            ...this.resolvedStyle(this.baseStyle()),
             highlightState: toHighlightString(highlightState ?? HighlightState.None),
             selectionState: this.getSelectionStateString(undefined),
             candidateState: this.getCandidateStateString(undefined),
@@ -866,7 +938,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         style: RequireOptional<NormalisedHistogramSeriesStyle>
     ): AgHistogramSeriesItemStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
-        const { xKey, yKey } = this.properties;
+        const { xKey, yKey } = this.options;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
 
         return {
@@ -887,11 +959,10 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         datumIndex: number | undefined,
         highlightState: HighlightState | undefined
     ): RequireOptional<NormalisedHistogramSeriesStyle> {
-        const { properties } = this;
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
 
-        let base: RequireOptional<NormalisedHistogramSeriesStyle> = properties.getStyle();
-        const { styler } = properties;
+        let base: RequireOptional<NormalisedHistogramSeriesStyle> = this.baseStyle();
+        const { styler } = this.options;
         if (!ignoreStylerCallback && styler != null) {
             const stylerResult = (this.ctx.optionsGraphService.resolvePartial(
                 ['series', `${this.declarationOrder}`],
@@ -911,7 +982,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     ): RequireOptional<NormalisedHistogramSeriesStyle> {
         let style = this.getStyle(datumIndex === undefined, isHighlight, datumIndex, highlightState);
 
-        const { itemStyler } = this.properties;
+        const { itemStyler } = this.options;
         if (itemStyler != null && datumIndex != null) {
             const bin = this.calculatedBins[datumIndex];
             if (bin != null) {
@@ -954,7 +1025,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
-        const { shadow } = this.properties;
+        const { shadow } = this;
         const fillBBox = this.getShapeFillBBox();
 
         opts.datumSelection.each((rect, datum) => {
@@ -977,7 +1048,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
     getLabelObstacles() {
         return barLabelObstaclesFor(
-            this.properties.label,
+            this.options.label,
             this.contextNodeData?.nodeData,
             this.contextNodeData?.labelData,
             this.isLabelEnabled() && !this.usesPlacedLabels,
@@ -1002,7 +1073,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
      * result to be shared between them.
      */
     private makeLabelStylerParams(datum: HistogramNodeDatum): AgHistogramSeriesLabelFormatterParams {
-        const { xKey, yKey, xName, yName } = this.properties;
+        const { xKey, yKey, xName, yName } = this.options;
         return {
             datum: undefined,
             datums: datum.datums as any[],
@@ -1024,7 +1095,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     }) {
         const { isHighlight = false } = opts;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const { label } = this.properties;
+        const { label } = this.options;
         // Only the first placement is honoured; it is bin-invariant, so the granular value is shared.
         const granularPlacement = toArray(label.placement)[0] ?? 'inside-center';
         opts.labelSelection.each((text, datum) => {
@@ -1052,12 +1123,12 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     }
 
     protected override resolveUsesPlacedLabels(): boolean {
-        return barLabelPropsRouteThroughEngine(this.properties.label);
+        return barLabelPropsRouteThroughEngine(this.options.label);
     }
 
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels || !this.isLabelEnabled()) return [];
-        const { label } = this.properties;
+        const { label } = this.options;
         const { alwaysShow, collideWith, threshold, measureBox, fitFor } = barLabelDataContext(label);
         // The positioned path serves hideable, fitted and placement-cascading labels; an orientation-only
         // array stays on the baked path below, which resolves orientation against the bar region.
@@ -1123,7 +1194,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     }
 
     override getLabelCandidateResolver(): PositionedCandidateResolver | undefined {
-        return createBarPositionedCandidateResolver(this, this.properties.label, (node) =>
+        return createBarPositionedCandidateResolver(this, this.options.label, (node) =>
             this.makeLabelStylerParams(node as HistogramNodeDatum)
         );
     }
@@ -1155,10 +1226,10 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             dataModel,
             processedData,
             axes,
-            properties,
+            options,
             ctx: { localeManager },
         } = this;
-        const { xKey, xName, yKey, yName, tooltip, legendItemName } = properties;
+        const { xKey, xName, yKey, yName, tooltip, legendItemName } = options;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -1188,7 +1259,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
         if (yKey != null) {
             let label: string;
-            switch (properties.aggregation) {
+            switch (options.aggregation) {
                 case 'sum':
                     label = localeManager.t('seriesHistogramTooltipSum', { yName: yName ?? yKey });
                     break;
@@ -1226,7 +1297,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.properties;
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.options;
 
         return {
             marker: {
@@ -1252,7 +1323,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             visible,
         } = this;
 
-        const { xKey: itemId, yName, showInLegend } = this.properties;
+        const { xKey: itemId, yName, showInLegend } = this.options;
 
         return [
             {
@@ -1265,7 +1336,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                     text: yName ?? itemId ?? 'Frequency',
                 },
                 symbol: this.legendItemSymbol(),
-                hideInLegend: !showInLegend,
+                hideInLegend: showInLegend === false,
             },
         ];
     }
@@ -1309,7 +1380,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     }
 
     protected isLabelEnabled() {
-        return this.properties.label.enabled;
+        return this.options.label.enabled;
     }
 
     protected computeFocusBounds({ datumIndex }: PickFocusInputs): BBox | undefined {
@@ -1318,10 +1389,10 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
     protected override hasItemStylers(): boolean {
         return (
-            this.properties.styler != null ||
-            this.properties.itemStyler != null ||
-            this.properties.label.itemStyler != null ||
-            this.properties.selection.enabled
+            this.options.styler != null ||
+            this.options.itemStyler != null ||
+            this.options.label.itemStyler != null ||
+            this.isSelectionEnabled()
         );
     }
 }

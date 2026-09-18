@@ -211,6 +211,10 @@ export abstract class OhlcSeriesBase<
         };
     }
 
+    protected get layoutOptions() {
+        return this.properties;
+    }
+
     private readonly aggregationManager = new AggregationManager<OhlcSeriesDataAggregationFilter>();
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {

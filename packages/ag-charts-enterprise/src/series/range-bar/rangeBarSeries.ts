@@ -291,6 +291,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
     override properties = new RangeBarProperties();
 
+    protected get layoutOptions() {
+        return this.properties;
+    }
+
     private readonly aggregationManager = new AggregationManager<RangeBarSeriesDataAggregationFilter>();
 
     override createNodeParams(datum: RangeBarNodeDatum) {

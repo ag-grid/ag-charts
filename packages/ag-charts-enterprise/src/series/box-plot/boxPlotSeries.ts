@@ -122,6 +122,10 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
 
     override properties = new BoxPlotSeriesProperties();
 
+    protected get layoutOptions() {
+        return this.properties;
+    }
+
     override createNodeParams(datum: BoxPlotNodeDatum) {
         return {
             ...super.createNodeParams(datum),
