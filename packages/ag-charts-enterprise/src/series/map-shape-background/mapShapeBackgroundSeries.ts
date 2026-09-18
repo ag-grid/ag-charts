@@ -1,9 +1,12 @@
-import {
-    type AgMapShapeBackgroundOptions,
-    type AgMapShapeBackgroundThemeableOptions,
-    _ModuleSupport,
-} from 'ag-charts-community';
-import type { DynamicContext, FeatureCollection, FillStrokeMorph, Normalised } from 'ag-charts-core';
+import { type AgMapShapeBackgroundThemeableOptions, _ModuleSupport } from 'ag-charts-community';
+import type {
+    DynamicContext,
+    FeatureCollection,
+    FillStrokeMorph,
+    Geometry,
+    Normalised,
+    NormalisedMapShapeBackgroundSeriesOwnOptions,
+} from 'ag-charts-core';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
@@ -11,22 +14,23 @@ import { LonLatBBox } from '../map-util/lonLatBbox';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { TopologySeries } from '../map-util/topologySeries';
 import type { ITopology } from '../map-util/topologyTypes';
-import {
-    type MapShapeBackgroundNodeDatum,
-    MapShapeBackgroundSeriesProperties,
-} from './mapShapeBackgroundSeriesProperties';
 
 const { createDatumId, Selection, Group, PointerEvents } = _ModuleSupport;
 
 type NormalisedMapShapeBackgroundStyle = Normalised<AgMapShapeBackgroundThemeableOptions, never, FillStrokeMorph>;
+
+export interface MapShapeBackgroundNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
+    readonly index: number;
+    readonly projectedGeometry: Geometry;
+    style: AgMapShapeBackgroundThemeableOptions;
+}
 
 interface MapShapeBackgroundNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<MapShapeBackgroundNodeDatum> {}
 
 export class MapShapeBackgroundSeries
     extends TopologySeries<
         MapShapeBackgroundNodeDatum,
-        AgMapShapeBackgroundOptions,
-        MapShapeBackgroundSeriesProperties,
+        NormalisedMapShapeBackgroundSeriesOwnOptions,
         MapShapeBackgroundNodeDatum,
         MapShapeBackgroundNodeDataContext
     >
@@ -39,12 +43,10 @@ export class MapShapeBackgroundSeries
 
     public topologyBounds: LonLatBBox | undefined;
 
-    override properties = new MapShapeBackgroundSeriesProperties();
-
     private _chartTopology?: FeatureCollection = undefined;
 
     private get topology() {
-        return this.properties.topology ?? this._chartTopology;
+        return this.options.topology ?? this._chartTopology;
     }
 
     override get focusable() {
@@ -130,11 +132,11 @@ export class MapShapeBackgroundSeries
     }
 
     override createNodeData() {
-        const { id: seriesId, topology, scale, properties } = this;
+        const { id: seriesId, topology, scale, options } = this;
 
         if (topology == null) return;
 
-        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = properties;
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = options;
 
         const nodeData: MapShapeBackgroundNodeDatum[] = [];
         const labelData: never[] = [];

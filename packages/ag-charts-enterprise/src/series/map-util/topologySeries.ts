@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { NormalisedTopologySeriesKeys } from 'ag-charts-core';
 
 interface TopologySeriesNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     legendItemName?: string;
@@ -9,17 +10,12 @@ interface TopologySeriesNodeDataContext<
     TLabel extends object = object,
 > extends _ModuleSupport.DataModelSeriesNodeDataContext<TDatum, TLabel> {}
 
-abstract class TopologySeriesProperties<T extends object> extends _ModuleSupport.SeriesProperties<T> {
-    legendItemName?: string;
-}
-
 export abstract class TopologySeries<
     TDatum extends TopologySeriesNodeDatum,
-    TOpts extends object,
-    TProps extends TopologySeriesProperties<TOpts>,
+    TOpts extends NormalisedTopologySeriesKeys,
     TLabel extends object,
     TContext extends TopologySeriesNodeDataContext<TDatum, TLabel> = TopologySeriesNodeDataContext<TDatum, TLabel>,
-> extends _ModuleSupport.DataModelSeries<TDatum, TOpts, TProps, TLabel, TContext> {
+> extends _ModuleSupport.DataModelSeries<TDatum, TOpts, undefined, TLabel, TContext> {
     constructor(options: _ModuleSupport.DataModelSeriesConstructorOpts<TOpts>) {
         super(options);
 
@@ -48,7 +44,7 @@ export abstract class TopologySeries<
         if (!this.isHighlightEnabled()) return undefined;
 
         let highlightedDatum: TDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
-        const { legendItemName } = this.properties;
+        const { legendItemName } = this.options;
         const matchingLegendItemName =
             legendItemName != null &&
             highlightedDatum?.datum == null &&
@@ -67,7 +63,7 @@ export abstract class TopologySeries<
     public override isSeriesHighlighted(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined): boolean {
         if (!this.isHighlightEnabled()) return false;
         const { series, legendItemName: activeLegendItemName } = highlightedDatum ?? {};
-        const { legendItemName } = this.properties;
+        const { legendItemName } = this.options;
         return series === this || (legendItemName != null && legendItemName === activeLegendItemName);
     }
 }

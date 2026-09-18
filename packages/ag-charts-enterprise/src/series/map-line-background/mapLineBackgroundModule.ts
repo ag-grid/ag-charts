@@ -20,6 +20,7 @@ export const MapLineBackgroundSeriesModule: SeriesModuleDefinition<AgMapLineBack
         series: {
             stroke: { $path: ['/1', { $mapPalette: 'stroke' }, { $mapPalette: 'secondHierarchyColors' }] },
             strokeWidth: 1,
+            strokeOpacity: 1,
             lineDash: [0],
             lineDashOffset: 0,
         },
