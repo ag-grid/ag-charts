@@ -194,7 +194,7 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
         expect(xDomain()).toEqual([-500, 11500]);
     });
 
-    it('keeps the x domain fitted to the data when interval.values is dense', async () => {
+    it('stops the search decaying the x domain when interval.values is dense', async () => {
         // 116 explicit values at spacing 100 cover the padded data extent; explicit values cannot
         // change with tickCount, so the search must stop rather than decay the nice domain.
         const values = Array.from({ length: 116 }, (_, i) => -500 + i * 100);
