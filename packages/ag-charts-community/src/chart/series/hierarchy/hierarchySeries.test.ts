@@ -1,26 +1,17 @@
-import { EventEmitter } from 'ag-charts-core';
+import { EventEmitter, type NormalisedHierarchySeriesKeys, type NormalisedSeriesOptions } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 
 import { Group } from '../../../scene/group';
 import { Selection } from '../../../scene/selection';
 import { DataSet } from '../../data/dataSet';
 import { BIG } from '../../test/bigintExamples';
-import type { SeriesTooltip } from '../seriesTooltip';
 import { HierarchyNode, HierarchySeries } from './hierarchySeries';
-import { HierarchySeriesProperties } from './hierarchySeriesProperties';
-
-class ExampleHierarchySeriesProperties extends HierarchySeriesProperties<never> {
-    readonly tooltip: SeriesTooltip<never> = null!;
-}
 
 class ExampleHierarchySeries extends HierarchySeries<
     HierarchyNode,
     Group<HierarchyNode>,
-    object,
-    ExampleHierarchySeriesProperties
+    NormalisedHierarchySeriesKeys
 > {
-    override properties = new ExampleHierarchySeriesProperties();
-
     NodeClass = HierarchyNode;
 
     datumSelection = Selection.select<Group<HierarchyNode>>(this.contentGroup, Group);
@@ -66,12 +57,25 @@ class ExampleHierarchySeries extends HierarchySeries<
     }
 }
 
+function createSeries(keys: Pick<NormalisedHierarchySeriesKeys, 'sizeKey' | 'colorKey'> = {}) {
+    const series = new ExampleHierarchySeries({
+        eventsHub: new EventEmitter(),
+    } as any);
+    const options: NormalisedSeriesOptions<NormalisedHierarchySeriesKeys> = {
+        childrenKey: 'children',
+        fills: [],
+        strokes: [],
+        colorScale: { fills: [], mode: 'continuous' },
+        tooltip: { position: { xOffset: 0, yOffset: 0 } },
+        ...keys,
+    };
+    series.applyOptions(options);
+    return series;
+}
+
 describe('HierarchySeries', () => {
     it('creates a hierarchy', () => {
-        const series = new ExampleHierarchySeries({
-            eventsHub: new EventEmitter(),
-        } as any);
-        series.properties.sizeKey = 'size';
+        const series = createSeries({ sizeKey: 'size' });
         series.setChartData(
             DataSet.wrap(
                 [
@@ -101,11 +105,7 @@ describe('HierarchySeries', () => {
     });
 
     it('coerces out-of-safe-range bigint size and colour to Number (AG-16608)', () => {
-        const series = new ExampleHierarchySeries({
-            eventsHub: new EventEmitter(),
-        } as any);
-        series.properties.sizeKey = 'size';
-        series.properties.colorKey = 'color';
+        const series = createSeries({ sizeKey: 'size', colorKey: 'color' });
         series.setChartData(
             DataSet.wrap(
                 [
@@ -134,9 +134,7 @@ describe('HierarchySeries', () => {
     });
 
     it('handles an empty dataset', () => {
-        const series = new ExampleHierarchySeries({
-            eventsHub: new EventEmitter(),
-        } as any);
+        const series = createSeries();
         series.setChartData(DataSet.wrap([], testLogger));
         series.processData();
 
@@ -160,9 +158,7 @@ describe('HierarchySeries', () => {
     });
 
     it('walks tree in pre-order', () => {
-        const series = new ExampleHierarchySeries({
-            eventsHub: new EventEmitter(),
-        } as any);
+        const series = createSeries();
         series.setChartData(
             DataSet.wrap(
                 [

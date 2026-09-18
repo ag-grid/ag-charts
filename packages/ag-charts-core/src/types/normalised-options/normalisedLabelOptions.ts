@@ -10,6 +10,7 @@ import type {
     BorderOptions,
     ContextDefault,
     CssColor,
+    OverflowStrategy,
     RichFormatter,
     Styler,
     TextWrap,
@@ -76,6 +77,24 @@ export type NormalisedCollisionFreeSeriesLabelOptions<TParams = never, TDatum = 
     NormalisedSeriesLabelOptions<TParams, TDatum>,
     'collision'
 >;
+
+/** Label fitted to its container by shrinking the font (treemap tile, sunburst sector, heatmap cell). */
+export type NormalisedAutoSizedSecondaryLabelOptions<
+    TParams = never,
+    TDatum = any,
+> = NormalisedCollisionFreeSeriesLabelOptions<TParams, TDatum> & {
+    wrapping: TextWrap;
+    overflowStrategy: OverflowStrategy;
+    lineHeight?: number;
+};
+
+/** Primary auto-sized label; `spacing` separates it from the secondary label stacked beneath it. */
+export type NormalisedAutoSizedLabelOptions<TParams = never, TDatum = any> = NormalisedAutoSizedSecondaryLabelOptions<
+    TParams,
+    TDatum
+> & {
+    spacing: number;
+};
 
 /** Label of a point-like series (line, area, scatter, bubble, map-marker) that resolves a directional placement. */
 export type NormalisedPlacedSeriesLabelOptions<TParams = never, TDatum = any> = NormalisedSeriesLabelOptions<
