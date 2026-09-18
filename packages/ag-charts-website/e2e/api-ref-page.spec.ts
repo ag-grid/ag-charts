@@ -196,6 +196,27 @@ test.describe('api-ref-page', () => {
         await expect(getSearchInput(page)).toHaveValue('');
     });
 
+    // `legend.position` is a union whose interface variant carries no string literal, so it is keyed
+    // on the interface name in both the tree anchor and the search index.
+    test('finds a property under a union variant that has no discriminator', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/'));
+        await waitForApiReady(page);
+
+        const searchInput = getSearchInput(page);
+        await searchInput.click();
+        await searchInput.fill('floating');
+
+        await selectSearchOption(page, 'legend.position[AgChartLegendPositionOptions].floating');
+        await page.keyboard.press('Enter');
+
+        await page.waitForURL(/#reference-AgChartOptions-legend-position-AgChartLegendPositionOptions-floating$/);
+        const floating = page.locator(
+            '#reference-AgChartOptions-legend-position-AgChartLegendPositionOptions-floating'
+        );
+        await expect(floating).toBeVisible();
+        await expect(floating).toContainText('legend.position[AgChartLegendPositionOptions].floating');
+    });
+
     // The dropdown scrolls on both axes; wheeling vertically moves the pointer onto a new option,
     // and that selection must leave the horizontal scroll position alone.
     test('keeps the horizontal scroll position when scrolling the results vertically', async ({ page }) => {

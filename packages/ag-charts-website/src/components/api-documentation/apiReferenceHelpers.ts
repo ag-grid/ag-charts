@@ -65,6 +65,10 @@ const hiddenInterfaces = new Set([
     'DatumKey',
 ]);
 
+// OPTIMIZATION: these recur under every colour option, so indexing their members costs ~86k
+// near-identical themes-api entries (+68%) that search cannot usefully disambiguate.
+const unindexedVariants = new Set(['AgColorRef', 'AgColorRefMixOnto', 'AgColorRefMixOntoColor']);
+
 const isTypeNodeObject = (type: TypeNode): type is Exclude<TypeNode, string> => typeof type === 'object';
 const isTypeReferenceNode = (type: TypeNode): type is TypeReferenceNode =>
     isTypeNodeObject(type) && type.kind === 'typeRef';
@@ -1065,7 +1069,7 @@ function collectUnionSearchEntries(
     parentGenericsMap?: Record<string, TypeNode>
 ): void {
     const subtypeName = getReferencedTypeName(typeName);
-    if (!subtypeName || isInterfaceHidden(subtypeName)) {
+    if (!subtypeName || isInterfaceHidden(subtypeName) || unindexedVariants.has(subtypeName)) {
         return;
     }
 
@@ -1074,20 +1078,20 @@ function collectUnionSearchEntries(
         return;
     }
 
+    // Must key on the interface name when undiscriminated, matching the anchors `toUnionVariant` builds.
     const discriminator = getVariantDiscriminator(subtypeRef);
-    if (!discriminator) {
-        return;
-    }
+    const anchorSegment = discriminator?.value ?? cleanupName(subtypeRef.name);
+    const variantKey = discriminator ? `${discriminator.key}='${discriminator.value}'` : anchorSegment;
 
-    const label = `${labelPrefix.replace(/\.$/, '')}[${discriminator.key}='${discriminator.value}']`;
+    const label = `${labelPrefix.replace(/\.$/, '')}[${variantKey}]`;
     const navPath = basePath.concat({
-        name: discriminator.value,
+        name: anchorSegment,
         type: subtypeName,
     });
 
     out.push({
         label,
-        searchable: discriminator.value.toLowerCase(),
+        searchable: anchorSegment.toLowerCase(),
         navPath,
     });
     collectSearchData(out, reference, subtypeRef, navPath, `${label}.`, parentGenericsMap);

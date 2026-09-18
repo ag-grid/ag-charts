@@ -44,6 +44,42 @@ const contextMenuReference = () =>
         })
     );
 
+// Mirrors `legend.position`: a union of a string-literal alias and one interface carrying no string
+// literal of its own, so the union has nothing to discriminate its variants by.
+const searchLegendPosition = () => {
+    const reference = new Map<string, any>(
+        Object.entries({
+            AgChartLegendOptions: {
+                kind: 'interface',
+                name: 'AgChartLegendOptions',
+                members: [prop('position', 'AgChartLegendPosition')],
+            },
+            AgChartLegendPosition: alias(
+                'AgChartLegendPosition',
+                union('AgChartLegendPlacement', 'AgChartLegendPositionOptions')
+            ),
+            AgChartLegendPlacement: alias('AgChartLegendPlacement', union("'top'", "'bottom'")),
+            AgChartLegendPositionOptions: {
+                kind: 'interface',
+                name: 'AgChartLegendPositionOptions',
+                members: [
+                    prop('placement', 'AgChartLegendPlacement'),
+                    prop('floating', 'boolean'),
+                    prop('xOffset', 'PixelSize'),
+                    prop('yOffset', 'PixelSize'),
+                ],
+            },
+        })
+    );
+
+    return extractSearchData(
+        reference as any,
+        reference.get('AgChartLegendOptions'),
+        [{ name: 'legend', type: 'AgChartLegendOptions' }],
+        'legend.'
+    );
+};
+
 // A Root -> Wide -> Leaf structure whose Wide subtree expands to breadth + breadth^2 entries: enough to
 // overflow V8's argument limit if the index is assembled by spreading child arrays into `push`.
 function makeLargeReference(breadth: number) {
@@ -415,6 +451,57 @@ describe('extractSearchData', () => {
             { name: 'items', type: 'AgContextMenuItem' },
             { name: 'axis', type: 'AgContextMenuAxisItem' },
         ]);
+    });
+
+    it('indexes properties under a variant that has no discriminator', () => {
+        const labels = searchLegendPosition().map(({ label }) => label);
+
+        expect(labels).toContain('legend.position[AgChartLegendPositionOptions]');
+        expect(labels).toContain('legend.position[AgChartLegendPositionOptions].floating');
+        expect(labels).toContain('legend.position[AgChartLegendPositionOptions].xOffset');
+    });
+
+    it('keys a discriminatorless variant on its interface name, matching the tree anchor', () => {
+        const data = searchLegendPosition();
+
+        const floating = data.find(({ label }) => label.endsWith('.floating'));
+        // These names are what `getNavigationDataFromPath` turns into the anchor the tree row carries.
+        expect(floating?.navPath).toEqual([
+            { name: 'legend', type: 'AgChartLegendOptions' },
+            { name: 'position', type: 'AgChartLegendPosition' },
+            { name: 'AgChartLegendPositionOptions', type: 'AgChartLegendPositionOptions' },
+            { name: 'floating', type: 'boolean' },
+        ]);
+        expect(data.find(({ label }) => label === 'legend.position[AgChartLegendPositionOptions]')?.searchable).toBe(
+            'agchartlegendpositionoptions'
+        );
+    });
+
+    it('omits colour-ref variants, which recur under every colour option', () => {
+        const reference = new Map<string, any>(
+            Object.entries({
+                SeriesOptions: {
+                    kind: 'interface',
+                    name: 'SeriesOptions',
+                    members: [prop('fill', 'AgCssColorOrRef')],
+                },
+                AgCssColorOrRef: alias('AgCssColorOrRef', union('CssColor', 'AgColorRef')),
+                AgColorRef: {
+                    kind: 'interface',
+                    name: 'AgColorRef',
+                    members: [prop('ref', 'string'), prop('mix', 'number')],
+                },
+            })
+        );
+
+        const labels = extractSearchData(
+            reference as any,
+            reference.get('SeriesOptions'),
+            [{ name: 'series', type: 'SeriesOptions' }],
+            'series.'
+        ).map(({ label }) => label);
+
+        expect(labels).toEqual(['series.fill']);
     });
 
     it('flattens a large reference without overflowing the argument limit', () => {
