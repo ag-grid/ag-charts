@@ -16,9 +16,9 @@ globs:
 # Module Definitions — Quick Reference
 
 -   A module's `type` decides its lifecycle; its option contributions decide which option locations it
-    owns. Most modules own the one location their type implies and declare nothing. Declare
-    `contributes` when the module owns options elsewhere (`axes[].listeners.click`,
-    `seriesArea.backgroundRegions`) or several locations; `contributes: []` means none.
+    owns. A module with `options` or a `themeTemplate` owns the one location its type implies and
+    declares nothing; a module with neither owns nothing. Declare `contributes` when the module owns
+    options elsewhere (`axes[].listeners.click`, `seriesArea.backgroundRegions`) or several locations.
 -   Never special-case a module name or option key in `processModuleOptions.ts`, `chartTheme.ts`,
     `chart.ts` or the ESLint rule. Add the location to the owning module instead.
 -   Do not add feature hooks to `enterpriseRegistry`; a community/enterprise pair shares a `name` and

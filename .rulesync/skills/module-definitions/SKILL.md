@@ -69,16 +69,17 @@ Each contribution:
     request for the missing module.
 -   `apiName`: a public name for the report when the path alone reads badly.
 
-`contributes: []` means the module owns no option location at all (internal dependencies, the
-community series area).
+A module with neither `options` nor a `themeTemplate` owns no option location at all (internal
+dependencies, the community series area), so it declares nothing.
 
 ## Community and enterprise pairs
 
 An enterprise module with the same `name` and `version` as a community one replaces it on
 registration (`enterprise: true`). Use this when the community chart needs the module to exist
 (`SeriesAreaModule` is a chart-module dependency) and the enterprise variant adds option locations
-(`seriesArea.backgroundRegions`). The community variant declares `contributes: []`; the enterprise
-variant declares the extra locations. The generated placeholder then names the enterprise variant.
+(`seriesArea.backgroundRegions`). The community variant has no options and owns nothing; the
+enterprise variant declares the extra locations. The generated placeholder then names the enterprise
+variant.
 
 Presets that users reach through an API entry point declare `apiName: 'AgCharts.createGauge'` so the
 report names the entry point rather than the registry name.

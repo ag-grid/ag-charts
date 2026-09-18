@@ -8,7 +8,6 @@ export const ZoomInteractionModule: PluginModuleDefinition<never> = {
     type: 'plugin',
     name: 'zoom-base',
     version: VERSION,
-    contributes: [],
     dependencies: [AxisInteractionModule],
     create: (ctx) => new ZoomInteraction(ctx),
 };

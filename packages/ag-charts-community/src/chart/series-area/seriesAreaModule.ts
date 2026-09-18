@@ -8,6 +8,5 @@ export const SeriesAreaModule: PluginModuleDefinition<never> = /* #__PURE__ */ c
     type: 'plugin',
     name: 'series-area',
     version: VERSION,
-    contributes: [],
     create: (ctx) => new SeriesArea(ctx),
 });
