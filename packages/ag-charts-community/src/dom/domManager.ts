@@ -221,7 +221,7 @@ export class DOMManager extends BaseManager {
         this.rootElements = this.initRootElements();
 
         this.rootElements['canvas'].element.style.setProperty('anchor-name', this.anchorName);
-        this.rootElements['series-area-bounds'].element.addEventListener('focusin', this.onSeriesAreaBoundsFocusIn);
+        this.element.addEventListener('focusin', this.onFocusIn);
 
         this.sizeMonitor.observe(this.rootElements['canvas'].element, () => this.invalidateRectCaches(), {
             skipInitialRead: this.mode === 'minimal',
@@ -321,7 +321,7 @@ export class DOMManager extends BaseManager {
         this.observer?.unobserve(this.element);
         this.disconnectAttachObservers();
         this.sizeMonitor.unobserve(this.rootElements['canvas'].element);
-        this.rootElements['series-area-bounds'].element.removeEventListener('focusin', this.onSeriesAreaBoundsFocusIn);
+        this.element.removeEventListener('focusin', this.onFocusIn);
         if (this.container) {
             this.sizeMonitor.unobserve(this.container);
         }
@@ -632,7 +632,7 @@ export class DOMManager extends BaseManager {
         setAttribute(this.rootElements['canvas-proxy'].element, 'aria-label', ariaLabel);
     }
 
-    private onSeriesAreaBoundsFocusIn = ({ target }: FocusEvent) => {
+    private onFocusIn = ({ target }: FocusEvent) => {
         if (isNode(target) && !this.rootElements['series-area-bounds'].element.contains(target)) {
             this.eventsHub.emit('dom:series-blurred', null);
         }

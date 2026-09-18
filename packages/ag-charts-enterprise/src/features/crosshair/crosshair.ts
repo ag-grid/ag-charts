@@ -316,7 +316,7 @@ export class Crosshair
     }
 
     private onSeriesBlurred() {
-        if (this.checkInteractionState() || this.crosshairGroup.visible) return;
+        if (this.checkInteractionState() || !this.crosshairGroup.visible) return;
         this.hideCrosshairs();
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
