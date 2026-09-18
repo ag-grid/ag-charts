@@ -67,9 +67,8 @@ export const PaletteEditor = ({ value, onChange, maxSeriesColors }: PaletteEdito
     const setColor = (index: number, color: SeriesColor) =>
         setColors(colors.map((existing, i) => (i === index ? color : existing)));
 
-    // A new slot copies the last fill and takes the stroke that fill implies,
-    // rather than the last stroke: two identical slots are a worse starting
-    // point than one that is at least internally consistent.
+    // The stroke the copied fill implies, rather than the last stroke: two
+    // identical slots are a worse start than one that is self-consistent.
     const addColor = () => {
         const fill = colors[colors.length - 1]?.fill ?? FALLBACK_SERIES_FILL;
         setColors([...colors, { fill, stroke: deriveStroke(fill), strokeDerived: true }]);
@@ -109,10 +108,8 @@ export const PaletteEditor = ({ value, onChange, maxSeriesColors }: PaletteEdito
                                     preventTransparency={false}
                                     ariaLabel={`Series color ${index + 1} stroke`}
                                     value={color.stroke}
-                                    // Cleared rather than replaced means the user
-                                    // does not want to choose one, so it goes back
-                                    // to following the fill. An accent differs -
-                                    // there, cleared means the accent has no stroke.
+                                    // Cleared means "no stroke of my own", so it
+                                    // follows the fill. An accent differs below.
                                     onChange={(stroke) =>
                                         setColor(
                                             index,
@@ -171,11 +168,9 @@ export const PaletteEditor = ({ value, onChange, maxSeriesColors }: PaletteEdito
 };
 
 /**
- * Two colour swatches side by side say nothing about which is which, and the
- * order is not guessable - so every row is headed, and every swatch also names
- * itself for a screen reader, which cannot read a column heading as a label.
- *
- * `gutter` is the width of the row-label column these headings sit beside.
+ * Headings for the two swatch columns, whose order is not guessable. Each swatch
+ * also names itself, a screen reader not reading a heading as a label.
+ * `gutter` is the width of the row-label column these sit beside.
  */
 const ColumnHeadings = ({ gutter, showStrokes }: { gutter: number; showStrokes: boolean }) => (
     <Row>
@@ -236,13 +231,9 @@ interface DeriveButtonProps {
 }
 
 /**
- * The switch between a stroke that follows its fill and one the user owns.
- *
- * A toggle rather than a one-way "derive this" action, because the state is
- * worth showing: without it there is no way to tell a stroke that will move with
- * its fill from one that will not, and the two look identical until the moment
- * the fill changes. Editing a stroke by hand flips it off on its own, so this is
- * mostly the way back.
+ * The switch between a stroke that follows its fill and one the user owns. A
+ * toggle rather than a one-way action, because the two states look identical
+ * until the fill changes, so the state itself is worth showing.
  */
 const DeriveButton = ({ label, derived, onChange }: DeriveButtonProps) => (
     <IconButton
@@ -321,9 +312,8 @@ const TrailingGutter = styled('span')`
     flex-shrink: 0;
 `;
 
-// The row's buttons, kept together and closer to each other than to the pickers
-// so they read as one column rather than as two more fields. A span rather than
-// a div, or the row's rule for the two pickers would stretch it like a third.
+// The row's buttons, closer to each other than to the pickers so they read as
+// one column. A span, or the row's rule for the pickers would stretch it.
 const Controls = styled('span')`
     flex-shrink: 0;
     display: flex;
@@ -331,17 +321,10 @@ const Controls = styled('span')`
     gap: 4px;
 `;
 
-// The design system dresses a bare `button` as a filled primary button, and its
-// `:hover`, `:active`, `:disabled` and `:focus-visible` rules each carry a
-// pseudo-class - which outranks the single class Emotion generates. So `all:
-// unset` holds only until the pointer arrives, at which point a 14px icon
-// becomes a brand-blue pill. Repeating the class outranks all of those rules at
-// once, in every state, which is why nothing below needs `!important` and why
-// the colour stays an ordinary cascade that `.is-active` can still win.
-//
-// It also takes the design system's focus ring with it, so this supplies its
-// own: without one these buttons would be invisible to keyboard focus, and the
-// link toggle is a control you can only reach that way.
+// `&&&` because the design system dresses a bare `button` as a filled primary
+// button through pseudo-class rules, which outrank the single class Emotion
+// generates - a plain `all: unset` holds only until the pointer arrives. The
+// reset also drops the design system's focus ring, so one is supplied below.
 const IconButton = styled('button')`
     &&& {
         all: unset;
@@ -368,8 +351,7 @@ const IconButton = styled('button')`
             opacity: 0.2;
         }
 
-        // A linked stroke is the default, so it is marked rather than shouted: the
-        // unlinked rows are the ones a user is looking for.
+        // Linked is the default, so it is marked rather than shouted.
         &.is-active {
             opacity: 1;
             color: var(--color-fg-primary);

@@ -8,22 +8,11 @@ import { PREVIEW_MODULES } from './previewModules';
 ModuleRegistry.registerModules(PREVIEW_MODULES);
 
 /**
- * Mount a chart into a container and keep it in step with `options`.
- *
- * `update` rather than a remount, because an AG Charts theme is an option rather
- * than a stylesheet: recreating the chart on every keystroke would flash the
- * canvas and throw away the entry animation.
- *
- * `options` must be memoised by the caller - it is the update trigger.
- *
- * `preset` picks the factory. It is fixed for the life of the chart: a preset is
- * chosen at creation and cannot be updated into or out of, so a caller switching
- * between the two must remount rather than pass a different value.
- *
- * `tooltipTarget` holds a tooltip open on one datum, and releases it when
- * absent. It is the chart's own `setState` rather than a synthesised hover, so
- * the tooltip stays put across the updates a param edit causes, and `frozen`
- * keeps a stray mouse from moving it mid-edit.
+ * Mount a chart into a container and keep it in step with `options`, which must
+ * be memoised by the caller - it is the update trigger. Updates rather than
+ * remounts, so a keystroke does not flash the canvas or restart the animation.
+ * `preset` is fixed for the life of the chart, so switching presets remounts.
+ * `tooltipTarget` holds a tooltip open on one datum.
  */
 export const useChart = (
     options: PreviewChartOptions,
@@ -59,19 +48,10 @@ export const useChart = (
         pendingUpdate.current = chartRef.current.update({ ...options, container });
     }, [options]);
 
-    // Run after every update as well as on a change of target, because a chart
-    // carries its active datum through most updates but not all of them: an
-    // options change big enough to rebuild the series - switching the preview
-    // from bars to a donut - drops it, which would leave the panel holding a
-    // tooltip that is no longer on screen. What the chart already shows is read
-    // back rather than re-applied blind, so the common case - a colour being
-    // dragged, an update a frame - costs a read instead of a pick and a tooltip
-    // rebuild; and it is read once the update has settled, since until then the
-    // chart still reports the datum the update is about to drop.
-    //
-    // `appliedTarget` is for the other direction only: it says whether this hook
-    // has a tooltip of its own to let go of, so that a release clears the state
-    // once rather than on every keystroke of an unrelated edit.
+    // Runs after every update, not only on a change of target: an options change
+    // large enough to rebuild the series drops the active datum. Waits for the
+    // update to settle, since until then the chart still reports the datum about
+    // to be dropped, and reads back what it shows rather than re-applying blind.
     const appliedTarget = useRef<PreviewTooltipTarget>();
     useEffect(() => {
         let stale = false;

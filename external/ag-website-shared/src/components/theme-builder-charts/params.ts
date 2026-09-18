@@ -1,13 +1,8 @@
 /**
- * The curated editor layout, following Studio's data-driven approach: value type
- * and default are derived by the shared layer (param type from the name, default
- * from the rendered theme), so only presentation hints live here.
- *
- * Every one of AG Charts' 46 public params appears in exactly one group -
- * asserted by `params.test.ts`, so a param added to the API cannot quietly go
- * missing from the builder. All of them are shown; which ones follow another
- * param, and which they follow, is worked out at the foot of this file from the
- * defaults rather than listed by hand.
+ * The curated editor layout. Value type and default are derived by the shared
+ * layer, so only presentation hints live here. Every public param must appear in
+ * exactly one group, which `params.test.ts` asserts so that a param added to the
+ * API cannot quietly go missing from the builder.
  */
 import { paramToVariableName } from '@ag-website-shared/theming/utils';
 
@@ -15,11 +10,7 @@ import { CHARTS_PARAM_DEFAULTS, PUBLIC_PARAM_NAMES } from './chartsTheme';
 
 export type LengthIcon = 'radius' | 'verticalSpacing' | 'horizontalSpacing';
 
-/**
- * Named because the preview watches for it: editing these params holds a tooltip
- * open in the chart, since otherwise they change something no part of the screen
- * is showing. See `editedGroup.ts`.
- */
+/** Named because the preview watches for it, to hold a tooltip open. See `editedGroup.ts`. */
 export const TOOLTIPS_GROUP_ID = 'tooltips';
 
 export interface ChartsParamConfig {
@@ -62,8 +53,7 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
             },
             { key: 'textColor', label: 'Text Color' },
             { key: 'subtleTextColor', label: 'Subtle Text Color' },
-            // Follows the background colour by default, so it sits with the colour
-            // it mirrors rather than in a section of its own.
+            // Follows the background colour by default, so it sits beside it.
             { key: 'chartBackgroundColor', label: 'Chart Background' },
         ],
     },
@@ -148,11 +138,9 @@ export const CURATED_KEYS = PARAM_GROUPS.flatMap((group) => group.params.map(({ 
 
 /**
  * Whether a param's default is derived from another param rather than chosen.
- *
- * Covers all three forms a reference takes once translated: a bare `{ ref }`, a
- * mix of two of them, and a composite whose members are references - a border's
- * colour and width. A raw CSS string counts too when it names a param variable,
- * which is how `focusShadow` tracks the accent colour.
+ * Covers every form a reference takes once translated - a bare `{ ref }`, a mix,
+ * a composite whose members are references, and a raw CSS string naming a param
+ * variable, which is how `focusShadow` tracks the accent colour.
  */
 const isDerivedValue = (value: unknown): boolean => {
     if (typeof value === 'string') return value.includes('var(--ag-');
@@ -169,22 +157,10 @@ export const inheritedKeysOf = (params: Record<string, unknown>): Set<string> =>
     );
 
 /**
- * The params that follow another one rather than standing alone: 35 of AG
- * Charts' 46.
- *
- * They are the ones a theme rarely has to state. Chrome's text colour is the
- * foreground colour, and the menu's and the tooltip's are the chrome's - so
- * setting the foreground colour alone recolours all four correctly, and each of
- * the three answered by hand is a colour pinned in place while the rest of the
- * theme moves around it. The panel shows them all the same, and says under each
- * one that its value is inherited, so that the difference is visible before it
- * is a surprise.
- *
- * Read from the defaults rather than listed here, so a param whose default
- * becomes a reference - or stops being one - changes side on its own. The
- * classification is the same for every stock theme, which `params.test.ts`
- * asserts: the themes that override these swap one derivation for another
- * rather than replacing it with a literal.
+ * The params that follow another one rather than standing alone. Read from the
+ * defaults rather than listed here, so a param whose default becomes a reference
+ * - or stops being one - changes side on its own. `params.test.ts` asserts the
+ * classification holds for every stock theme.
  */
 export const INHERITED_KEYS = inheritedKeysOf(CHARTS_PARAM_DEFAULTS);
 
@@ -222,12 +198,8 @@ const collectSources = (value: unknown, found: string[]): void => {
 };
 
 /**
- * Which params a default follows, in the order it names them: the one a `{ ref }`
- * points at, both ends of a blend, each member of a composite, and the
- * `var(--ag-*)` names in a default written as raw CSS.
- *
- * Named so the panel can say what an unset param inherits from, rather than
- * only that it inherits.
+ * Which params a default follows, in the order it names them, so the panel can
+ * say what an unset param inherits from rather than only that it inherits.
  */
 export const inheritedSourcesOf = (value: unknown): string[] => {
     const found: string[] = [];

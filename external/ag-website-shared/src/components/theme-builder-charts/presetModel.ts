@@ -4,15 +4,9 @@ import type { AgChartThemeName } from 'ag-charts-community';
 import { useAtomValue } from 'jotai';
 
 /**
- * Which preset the current theme was started from.
- *
- * Stored rather than held in component state because it decides the exported
- * theme's `baseTheme`, and that has to survive a reload: the params and the
- * palette are persisted, so a returning user with a dark theme would otherwise
- * get it emitted on top of the light base theme.
- *
- * The id alone, not the preset - the definitions move, and a copy in local
- * storage would keep resolving to whatever it was when the user last visited.
+ * Which preset the current theme was started from. Persisted alongside the params
+ * and the palette because it decides the exported theme's `baseTheme`. The id
+ * alone: a stored copy of the definition would go stale.
  */
 const selectedPresetAtom = atomWithJSONStorage<string | undefined>('charts-preset', undefined);
 
@@ -23,18 +17,9 @@ export const setSelectedPresetId = (store: Store, id: string) => store.set(selec
 export const getSelectedPresetId = (store: Store) => store.get(selectedPresetAtom);
 
 /**
- * A base theme that came from imported code rather than from a preset.
- *
- * The preset id above is the only other source of one, and an imported theme has
- * no preset - so without somewhere of its own to sit, an imported dark theme
- * would render on whichever base the last preset chose, taking the light theme's
- * donut slice strokes and dark-mode overlay flag with it.
- *
- * Separate from the preset id rather than replacing it, because the two answer
- * different questions: this is the base theme in force, while the preset id is
- * the starting point the user picked and still the source of the palette and the
- * page colour. Choosing a preset clears this, that being the point at which the
- * imported theme stops being the one on screen.
+ * A base theme that came from imported code rather than from a preset. Kept apart
+ * from the preset id, which stays the source of the palette and the page colour;
+ * choosing a preset clears this.
  */
 const importedBaseThemeAtom = atomWithJSONStorage<AgChartThemeName | undefined>('charts-base-theme', undefined);
 

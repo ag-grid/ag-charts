@@ -10,23 +10,14 @@ import { validateChartsThemeCode } from './chartsThemeImport';
 import { type ChartsThemeSelection, renderChartsThemeCode, toChartTheme } from './chartsThemeOutput';
 import { getStoredPalette } from './paletteModel';
 import { getImportedBaseTheme } from './presetModel';
-// Points the shared param model at AG Charts' params rather than grid's, which
-// everything below reads through. Imported for its side effects alone, as the
-// builder itself does - and they land in time wherever the import sits, because
-// `allParamModels()` memoizes on the catalogue it finds when first called, which
-// is inside a test and not while this module is being evaluated.
+// Side-effect import, as in the builder itself: it points the shared param model
+// at AG Charts' params, which everything below reads through.
 import './registerThemeBuilderConfig';
 
 /**
- * The export and the import are one feature: a theme leaves the builder as a
- * snippet and has to come back as the same theme. So most of what follows is a
- * round trip rather than an assertion about the parsed shape - the shape is an
- * implementation detail, and what a user notices is whether the tool they paste
- * a theme into looks like the tool they copied it from.
- *
- * A plain `createStore()` rather than `initialiseStore()`, which reads
- * `localStorage` to check its format version. The atoms themselves are
- * node-safe; only that version check is not.
+ * Export and import are one feature, so most of what follows is a round trip
+ * rather than an assertion about the parsed shape. A plain `createStore()`,
+ * since `initialiseStore()` reads `localStorage` to check its format version.
  */
 
 const paramModel = (property: string) => {

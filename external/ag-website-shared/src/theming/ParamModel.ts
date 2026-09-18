@@ -71,10 +71,9 @@ let paramDocsProvider: ParamDocsProvider = () => undefined;
 
 /**
  * Hosts can plug in a source of per-param documentation strings (e.g. JSDoc
- * comments extracted from the theming engine at doc-site build time). Read on
- * demand rather than at construction, so a host whose docs only arrive once it
- * renders - generated at build time and handed to the app as a prop - can
- * register them then, and reach the models already built.
+ * extracted from the theming engine at doc-site build time). Read on demand
+ * rather than at construction, so a host whose docs arrive as a render prop can
+ * register them then and still reach the models already built.
  */
 export const setParamDocsProvider = (provider: ParamDocsProvider) => {
     paramDocsProvider = provider;
@@ -86,11 +85,9 @@ let paramDocsUrlProvider: ParamDocsUrlProvider = () => undefined;
 
 /**
  * Hosts can plug in a page to send the reader to for a param's full
- * documentation - the site's API reference, anchored on the param itself. Read
- * on demand, and separate from the descriptions rather than bundled with them,
- * because a host can well have the text without having a page to link to.
- * Registering neither leaves a param's tooltip explaining without linking,
- * which is what it did before this existed.
+ * documentation - the site's API reference, anchored on the param itself. Kept
+ * apart from the descriptions, a host being able to have the text without
+ * having a page to link to; registering neither leaves the tooltip unlinked.
  */
 export const setParamDocsUrlProvider = (provider: ParamDocsUrlProvider) => {
     paramDocsUrlProvider = provider;

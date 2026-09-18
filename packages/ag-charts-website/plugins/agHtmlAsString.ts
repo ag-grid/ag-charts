@@ -3,19 +3,10 @@ import type { Plugin } from 'vite';
 const SOURCE_PATTERN = /packages\/ag-charts-(community|enterprise|core)\/src\//;
 
 /*
- * The sibling of `agCssAsString`, for the same reason and with the same lifetime.
- *
- * The library source imports DOM templates as strings (`import NORMAL_DOM from
- * './domLayout.html'`), which its own build pipeline resolves to the file
- * contents. Vite instead treats a `.html` import as an asset and hands back a
- * URL, so `templateEl.innerHTML = NORMAL_DOM` produces a text node and the chart
- * dies on the first property access against its root element.
- *
- * This only bites where the site imports the library *source* - the dev-server
- * alias - rather than a built bundle, which is why nothing hit it until a page
- * rendered a chart from an island rather than through the example runner.
- *
- * Remove alongside `agCssAsString` once the library source uses explicit `?raw`.
+ * The sibling of `agCssAsString`, and removable alongside it once the library
+ * source uses an explicit `?raw`. The library imports DOM templates as strings,
+ * which Vite resolves to an asset URL rather than the file contents, so
+ * `innerHTML = NORMAL_DOM` yields a text node and the chart dies on it.
  */
 export default function agHtmlAsString(): Plugin {
     return {

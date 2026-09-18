@@ -21,12 +21,10 @@ interface Props {
 }
 
 /**
- * One of the two preview charts, with the controls deciding what it shows.
- *
- * The controls sit above the chart's box rather than inside it, because they are
- * the tool's own chrome and not part of the theme: inside, they kept the site's
- * colours while standing on whatever background the preset chose, so a light
- * theme in dark mode put dark pills on a white surface.
+ * One of the two preview charts, with the controls deciding what it shows. The
+ * controls sit above the chart's box because they are the tool's own chrome:
+ * inside it they kept the site's colours on the preset's background, putting
+ * dark pills on a white surface for a light theme in dark mode.
  */
 export const PreviewPane = ({ pane, theme, strokesEnabled }: Props) => {
     const [chartType, setChartType] = usePreviewChartType(pane);
@@ -34,27 +32,23 @@ export const PreviewPane = ({ pane, theme, strokesEnabled }: Props) => {
     const [features, setFeatures] = usePreviewFeatures(pane);
     const setEditedGroup = useSetEditedGroup();
 
-    // With the palette's strokes off, an outline would be drawn in the fill's
-    // own colour - so the feature is neither offered nor applied, rather than
-    // left as a checkbox that changes nothing. What the pane had chosen stays
-    // in storage and comes back with the strokes.
+    // With the palette's strokes off an outline would be drawn in the fill's own
+    // colour, so the feature is withheld rather than left doing nothing. What the
+    // pane chose stays in storage and comes back with the strokes.
     const availableFeatures = strokesEnabled
         ? chartType.features
         : chartType.features.filter((id) => id !== 'seriesStrokes');
-    // Memoised because the chart rebuilds its options whenever these change by
-    // identity, and a fresh object every render would restart the preview's
-    // animation on any parent render.
+    // Memoised: the chart rebuilds its options on an identity change, so a fresh
+    // object each render would restart the animation on any parent render.
     const activeFeatures = useMemo(
         () => (strokesEnabled ? features : { ...features, seriesStrokes: false }),
         [strokesEnabled, features]
     );
 
     return (
-        // Reaching for the preview - the chart or the controls above it - lets go
-        // of any tooltip the panel is holding open here. A held tooltip is frozen
-        // and so ignores the mouse, which would otherwise leave the user unable
-        // to hover their own chart; and switching the type or the series count
-        // rebuilds what the tooltip was pointing at.
+        // Reaching for the preview releases any tooltip the panel holds open
+        // here: a held tooltip is frozen, so it would otherwise leave the user
+        // unable to hover their own chart.
         <Pane onPointerDownCapture={() => setEditedGroup(null)}>
             <Toolbar>
                 <PreviewOptions
@@ -69,12 +63,8 @@ export const PreviewPane = ({ pane, theme, strokesEnabled }: Props) => {
                 />
             </Toolbar>
             <Chart>
-                {/*
-                 * Keyed on the factory rather than the type: a chart's preset is
-                 * fixed at creation, so moving in or out of the financial one has
-                 * to remount. Switching between the plain types still updates in
-                 * place and keeps its animation.
-                 */}
+                {/* Keyed on the factory, not the type: a preset is fixed at
+                    creation, so moving in or out of one has to remount. */}
                 <ChartPreview
                     key={chartType.preset ?? 'plain'}
                     theme={theme}
@@ -96,9 +86,7 @@ const Pane = styled('div')`
     gap: 12px;
 `;
 
-// Flush with the left edge of the chart below it, so each pair reads as one
-// column - right-aligned, the left pane's controls would sit against the right
-// pane's chart and look like a caption for it.
+// Flush with the left edge of the chart below, so each pair reads as one column.
 const Toolbar = styled('div')`
     flex-shrink: 0;
     display: flex;

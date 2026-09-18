@@ -24,81 +24,46 @@ import {
 export type PreviewChartOptions = AgChartOptions | AgFinancialChartOptions;
 
 /**
- * An AG Charts preset a preview type is built through, named as AG Charts names
- * it: the same string reaches `ModuleRegistry` as the preset module's name, so
- * a test can check the registered bundles answer for every type that asks.
+ * An AG Charts preset a preview type is built through. The same string reaches
+ * `ModuleRegistry` as the preset module's name.
  */
 export type PreviewPreset = 'price-volume';
 
 /**
- * A stable id for the nth series of a preview.
- *
- * Set by hand because the panel has to be able to name a series back to the
- * chart - `setState` takes a `seriesId` - and AG Charts' own ids are generated,
- * `BarSeries-3` and the like, which its options documentation says outright may
- * change between releases.
+ * A stable id for the nth series of a preview. Set by hand because the panel
+ * names a series back to the chart through `setState`, and AG Charts' generated
+ * ids are documented as liable to change between releases.
  */
 export const previewSeriesId = (index: number) => `preview-series-${index}`;
 
-/**
- * A datum the preview can ask the chart to open a tooltip on: a series this file
- * named, and the datum's index within it.
- */
+/** A datum the preview can ask the chart to open a tooltip on. */
 export type PreviewTooltipTarget = { seriesId: string; itemId: number };
 
-/**
- * Q2 of the first series. One of the four quarters rather than the axis or the
- * padding, so every cartesian type has a datum there, and left of centre so the
- * tooltip opens over the chart rather than off its right edge.
- */
+/** Q2 of the first series: left of centre, so the tooltip opens over the chart. */
 const CARTESIAN_TOOLTIP_TARGET: PreviewTooltipTarget = { seriesId: previewSeriesId(0), itemId: 1 };
 
 /**
- * The chart types the preview can be switched between.
- *
- * A theme is not only a bar chart: markers, area fills, callout labels and the
- * polar layouts each pick up different parts of it, and a param that looks
- * unimportant against bars (say `subtleTextColor`) is the whole story on a
- * donut. Switching type is the cheapest way to see that before committing to a
- * theme.
- *
- * Each entry builds its whole options object rather than patching a shared base
- * - cartesian and polar charts do not take the same shape, and `axes` on a donut
- * is a type error rather than an ignored key.
+ * A chart type the preview can be switched to. Each entry builds its whole
+ * options object rather than patching a shared base, `axes` on a donut being a
+ * type error rather than an ignored key.
  */
 export type PreviewChartType = {
     id: string;
     label: string;
-    /**
-     * The same icon the docs menu gives this series, so the control names a
-     * chart the way the rest of the site already names it.
-     */
+    /** The same icon the docs menu gives this series. */
     icon: IconName;
-    /**
-     * What the count control is called for this type - a donut has slices.
-     * Absent where there is nothing to count, which hides the control rather
-     * than leaving one that does nothing.
-     */
+    /** What the count control is called - a donut has slices. Absent hides it. */
     countLabel?: string;
-    /**
-     * The features this type can show. A feature missing here is one this chart
-     * has no surface for, so the popup leaves it out rather than offering a
-     * checkbox that changes nothing.
-     */
+    /** The features this type has a surface for; the popup leaves out the rest. */
     features: ChartFeatureId[];
     /**
-     * Which factory builds it. The price-volume preset assembles the navigator,
-     * range buttons, status bar and drawing tools that a hand-built chart would
-     * have to wire up one at a time - and it is fixed at creation, so a pane
-     * switching in or out of it remounts rather than updates.
+     * Which factory builds it. Fixed at creation, so a pane switching in or out
+     * of a preset remounts rather than updates.
      */
     preset?: PreviewPreset;
     /**
-     * The datum whose tooltip is held open while the tooltip params are being
-     * edited, so that what those params change is on screen while it changes.
-     *
-     * Absent where the preview cannot name a series to point at: the
-     * price-volume preset assembles its own, and their ids are generated.
+     * The datum whose tooltip is held open while the tooltip params are edited.
+     * Absent where the preview cannot name a series: a preset generates its own ids.
      */
     tooltipTarget?: PreviewTooltipTarget;
     /** The main preview: the full chart, titled and with a legend. */
@@ -106,20 +71,9 @@ export type PreviewChartType = {
 };
 
 /**
- * The chart every preset card draws, whichever types the two panes are showing.
- *
- * Bars, and only bars. A card's job is to separate one theme from another at a
- * glance, and a row of cards can only do that if they are all the same chart -
- * a reader comparing twelve themes should be reading twelve palettes, not
- * re-reading one shape. Bars carry the most of a theme in the least space:
- * every palette slot as a filled block, plus the axes, the grid lines and the
- * background behind them.
- *
- * Built from its own data rather than a shrunk copy of the preview, and fixed
- * at eight series whatever the count control says: the stock palettes only
- * diverge a few slots in, so at a user-chosen count of two, Default, Material
- * and Vivid would be indistinguishable again. The cards are swatches of the
- * theme, not previews of the user's data.
+ * The chart every preset card draws, so a row of cards reads as a row of
+ * palettes rather than of shapes. Eight series, the stock palettes only
+ * diverging a few slots in.
  */
 export const THUMBNAIL_OPTIONS: AgChartOptions = {
     // Fewer columns than the data carries: eight grouped bars across six
@@ -128,8 +82,8 @@ export const THUMBNAIL_OPTIONS: AgChartOptions = {
     series: THUMBNAIL_SERIES_KEYS.map((key) => ({ type: 'bar', xKey: 'period', yKey: key })),
     axes: {
         x: { type: 'category', position: 'bottom', label: { enabled: false } },
-        // `nice: false` because with no labels there are only a couple of ticks,
-        // and rounding the domain out to the next tick leaves the plot half empty.
+        // With no labels there are only a couple of ticks, and rounding the
+        // domain out to the next one leaves the series area half empty.
         y: { type: 'number', position: 'left', label: { enabled: false }, nice: false },
     },
     legend: { enabled: false },
@@ -150,16 +104,9 @@ const COMMON_FEATURES: ChartFeatureId[] = ['seriesStrokes', 'legend', 'contextMe
 const CARTESIAN_FEATURES: ChartFeatureId[] = ['seriesStrokes', 'legend', 'crosshairs', 'contextMenu'];
 
 /**
- * A width for the series outline, so the palette's strokes are drawn at all.
- *
- * They are not, otherwise: AG Charts resolves a series' `strokeWidth` to zero
- * unless the chart sets a stroke of its own, so a palette can carry a stroke for
- * every slot and show none of them. That leaves half the palette editor changing
- * colours the user cannot see, which is what this answers.
- *
- * The widths are AG Charts' own - what it picks the moment a chart does set a
- * stroke - so the preview shows the colour as a real chart would draw it rather
- * than an outline thickened to make a point.
+ * AG Charts resolves a series' `strokeWidth` to zero unless the chart sets a
+ * stroke of its own, so without this a palette carries a stroke per slot and
+ * draws none of them. The widths are AG Charts' own defaults.
  */
 const SHAPE_STROKE_WIDTH = 2;
 
@@ -169,17 +116,13 @@ const MARKER_STROKE_WIDTH = 1;
 const shapeStroke = (features: ChartFeatures) =>
     isFeatureActive(features, 'seriesStrokes') ? { strokeWidth: SHAPE_STROKE_WIDTH } : {};
 
-/**
- * A line series draws its line in the palette *fill*, so its stroke has nowhere
- * to go but the markers - which is also the only place a user would look for it.
- */
+/** A line series draws its line in the palette *fill*, leaving only the markers. */
 const markerStroke = (features: ChartFeatures) =>
     isFeatureActive(features, 'seriesStrokes') ? { marker: { strokeWidth: MARKER_STROKE_WIDTH } } : {};
 
 /**
- * Crosshairs default on for continuous axes only, so a category x-axis has to
- * ask for one or the user gets half a crosshair and no x label - which is the
- * label carrying `crosshairLabelBackgroundColor`.
+ * Crosshairs default on for continuous axes only, so a category x-axis must ask
+ * for one or there is no x label to carry `crosshairLabelBackgroundColor`.
  */
 const cartesianAxes = (features: ChartFeatures) => {
     const crosshair = { enabled: isFeatureActive(features, 'crosshairs') };
@@ -192,8 +135,8 @@ const cartesianAxes = (features: ChartFeatures) => {
 /** Applied to every non-preset type, so one switch covers bars and donuts alike. */
 const commonOptions = (features: ChartFeatures) => ({
     legend: { ...LEGEND, enabled: isFeatureActive(features, 'legend') },
-    // Enabled by default once the module is registered, so this is as much about
-    // being able to turn it off as on.
+    // Enabled by default once the module is registered, so this is as much
+    // about being able to turn it off as on.
     contextMenu: { enabled: isFeatureActive(features, 'contextMenu') },
 });
 
@@ -318,20 +261,9 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
         features: ['zoom', 'navigator', 'rangeButtons', 'toolbar', 'statusBar', 'volume'],
         preset: 'price-volume',
         /**
-         * The one preview built for the chart's own UI rather than for its
-         * series. Navigator, range buttons, drawing tools and status bar all
-         * live on the chrome params, and this is the chart AG Charts ships them
-         * for - a bar chart with a navigator under it would be a demonstration
-         * of nothing.
-         *
-         * The count is ignored: there is one instrument, so `countLabel` is
-         * absent and the control is hidden rather than left doing nothing.
-         *
-         * No series-strokes switch either, unlike every other type here. Two
-         * years of daily candles come out a shade over one pixel wide, and below
-         * three AG Charts draws the wick line alone - no body - so at the only
-         * density this pane ever shows, the stroke is not an outline round the
-         * candle, it is the candle. A switch for it could only blank the series.
+         * The one preview built for the chart's own UI rather than its series.
+         * No series-strokes switch: daily candles render barely a pixel wide,
+         * below the three AG Charts needs to draw a body rather than a wick.
          */
         buildOptions: (_count, features) => ({
             data: CANDLESTICK_DATA,
@@ -348,14 +280,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
 
 const DEFAULT_CHART_TYPE = PREVIEW_CHART_TYPES[0];
 
-/**
- * The preview is two charts, not one, and each pane chooses its own type.
- *
- * A theme is judged by comparison, and comparing two shapes of chart from memory
- * - switch to donut, remember what the bars did - is exactly the comparison a
- * user is worst at. Side by side, a param that decides nothing on bars and
- * everything on a donut shows both facts at once.
- */
+/** The preview is two charts, each pane choosing its own type. */
 export const PREVIEW_PANES = ['left', 'right'] as const;
 
 export type PreviewPaneId = (typeof PREVIEW_PANES)[number];
@@ -367,26 +292,15 @@ export const PREVIEW_PANE_LABELS: Record<PreviewPaneId, string> = {
 };
 
 /**
- * A plain chart and a chart made mostly of UI, because those are the two halves
- * of what the editor panel edits. Bars answer for the palette, the axes and the
- * text; the candlestick pane is the only place a navigator, a toolbar or a range
- * button appears, and those carry three whole groups of params that are
- * otherwise invisible.
- *
- * It costs the polar preview a default slot - a donut is one click away - and
- * that trade is deliberate: a donut differs from bars in shape, where the
- * candlestick differs in which params it can show at all.
- *
- * Guarded by a test, since an id that no longer exists would quietly collapse
- * both panes onto the same default.
+ * A plain chart and a chart made mostly of UI: bars answer for the palette, the
+ * axes and the text, and the candlestick pane for the chrome params.
  */
 export const DEFAULT_CHART_TYPE_IDS: Record<PreviewPaneId, string> = {
     left: 'bar',
     right: 'candlestick',
 };
 
-// Stored per pane, so a returning user finds the pairing they left, not just
-// the chart they last touched.
+// Per pane, so a returning user finds the pairing they left.
 const chartTypeAtoms: Record<PreviewPaneId, PersistentAtom<string>> = {
     left: atomWithJSONStorage<string>('charts-preview-type-left', DEFAULT_CHART_TYPE_IDS.left),
     right: atomWithJSONStorage<string>('charts-preview-type-right', DEFAULT_CHART_TYPE_IDS.right),
@@ -404,9 +318,8 @@ const seriesCountAtoms: Record<PreviewPaneId, PersistentAtom<number>> = {
 };
 
 /**
- * Snapped rather than clamped, because the offered counts are sparse: a stored
- * value outlives the scale that produced it, and one landing between two options
- * would leave the control displaying a count it has no way to select again.
+ * Snapped rather than clamped: the offered counts are sparse, and a stored value
+ * between two of them would leave the control showing a count it cannot reselect.
  */
 export const snapSeriesCount = (count: number) =>
     Number.isFinite(count)
@@ -421,10 +334,8 @@ export const usePreviewSeriesCount = (pane: PreviewPaneId) => {
 };
 
 /**
- * Features are per pane for the same reason the type is: which of them mean
- * anything is decided entirely by the chart showing them, and a pane on bars has
- * no navigator to toggle. Shared state would put six dead checkboxes in front of
- * whichever pane was not the financial one.
+ * Per pane like the type, since which features mean anything is decided by the
+ * chart showing them - a pane on bars has no navigator to toggle.
  */
 const chartFeatureAtoms: Record<PreviewPaneId, PersistentAtom<ChartFeatures>> = {
     left: atomWithJSONStorage<ChartFeatures>('charts-preview-features-left', DEFAULT_CHART_FEATURES),

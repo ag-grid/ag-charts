@@ -6,11 +6,9 @@ import { CHARTS_FONT_FAMILY_OPTIONS } from './fonts';
 import { PRESETS } from './presets';
 
 /**
- * The presets are hand-authored, so nothing about them is derived from the AG
- * Charts runtime any more. These tests are what replaces that: they check the
- * hand-written values still line up with the API, the font menu and the
- * thumbnails, none of which would fail loudly on their own - a mistyped param
- * name is silently ignored, and an unlisted font silently falls back.
+ * The presets are hand-authored, and nothing checks them at runtime: a mistyped
+ * param name is silently ignored and an unlisted font silently falls back. So
+ * these hold them against the API, the font menu and the thumbnails.
  */
 describe('charts theme builder presets', () => {
     it('gives every preset a unique id and a real base theme', () => {

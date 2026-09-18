@@ -15,28 +15,15 @@ interface Props {
     seriesCount: number;
     onSeriesCountChange: (count: number) => void;
     features: ChartFeatures;
-    /**
-     * Which features to offer. The pane's chart type decides most of it, but not
-     * all - a feature can also be held off by something outside the chart, so
-     * the list arrives ready made.
-     */
+    /** Which features to offer: the chart type decides most, but not all, of it. */
     availableFeatures: ChartFeatureId[];
     onFeaturesChange: (features: ChartFeatures) => void;
 }
 
 /**
- * What the preview is showing, as opposed to how it is themed.
- *
- * Grouped rather than left as loose controls because the list keeps growing -
- * it began as a type and a count, has a features button now, and category count
- * is the obvious next one - and a group has somewhere to put them.
- *
- * Sized and shaped like the framework selector in the docs - `isLarge` and
- * `isPopper`, an icon beside each option - because this is chrome on a docs
- * page, and a control that dresses differently reads as part of the preview it
- * sits above rather than as part of the site. The features button follows the
- * same rule: grid's floats over the grid because a grid fills its box, but here
- * it is one control among three and is sized to stand in their row.
+ * What the preview is showing, as opposed to how it is themed. Shaped like the
+ * docs framework selector, because a control that dresses differently reads as
+ * part of the preview below it rather than as part of the site.
  */
 export const PreviewOptions = ({
     paneLabel,
@@ -118,9 +105,8 @@ const TypeField = styled(Field)`
     }
 `;
 
-// The popup button is built for the sidebar, where it is a full-width call to
-// action; here it stands beside two selects, so it takes their height and only
-// the width of its own label.
+// The popup button is built for the sidebar as a full-width call to action;
+// here it stands beside two selects, at their height and its own label's width.
 const FeaturesField = styled(Field)`
     button {
         height: 36px;

@@ -1,8 +1,6 @@
 /**
- * Countries rather than regions, because the series count runs into the tens and
- * there are not that many coherent world regions - a legend reading "Europe,
- * Nordics, Iberia" is worse than no story at all. Countries stay plausible at
- * any count, and the labels are short enough for a legend.
+ * Countries rather than regions: the series count runs into the tens, and there
+ * are not that many coherent world regions to name.
  */
 const CURATED_SERIES = [
     { key: 'germany', name: 'Germany' },
@@ -18,11 +16,8 @@ const CURATED_SERIES = [
 ];
 
 /**
- * The tail of the list, reached only at the top of the count scale. Real
- * countries, so a paginated legend still reads as data rather than as
- * "Series 27", but their figures are generated: past a dozen series nobody
- * reads an individual value, and hand-writing a hundred more would be a hundred
- * more chances to fat-finger one.
+ * The tail of the list, reached only at the top of the count scale. Named so a
+ * paginated legend still reads as data, but with generated figures.
  */
 const EXTRA_COUNTRIES = [
     'Norway',
@@ -56,19 +51,10 @@ const EXTRA_SERIES = EXTRA_COUNTRIES.map((name) => ({ key: name.toLowerCase(), n
 export const PREVIEW_SERIES = [...CURATED_SERIES, ...EXTRA_SERIES];
 
 /**
- * An exponential scale rather than every integer: six series and seven look the
- * same, so the steps worth offering are further apart than one.
- *
- * Each step past 8 answers a question the smaller ones cannot. Every preset
- * carries at least eight fills, so 13 is where a user finds out whether their
- * palette survives repeating; the counts above it are there to run the legend
- * out of room, since its pagination buttons and label are themed too, and to
- * crowd a donut until its slice strokes compete with its fills.
- *
- * It stops at 34 deliberately. Beyond that the count demonstrates the chart
- * engine rather than the theme, and this is the one place that costs something:
- * the preview is rebuilt on every param edit, so a colour picker dragged against
- * a thousand series would stutter under the hand doing the dragging.
+ * An exponential scale, since six series and seven look the same. 13 is where a
+ * palette starts repeating, and the counts above it run the legend out of room
+ * so its themed pagination shows. Capped at 34: the preview is rebuilt on every
+ * param edit, and a dragged colour picker must not stutter.
  */
 export const SERIES_COUNT_OPTIONS = [2, 3, 5, 8, 13, 21, 34];
 
@@ -77,14 +63,9 @@ export const MAX_SERIES_COUNT = SERIES_COUNT_OPTIONS[SERIES_COUNT_OPTIONS.length
 export const DEFAULT_SERIES_COUNT = 5;
 
 /**
- * The values deliberately cross over rather than all trending the same way: a
- * different country leads in each quarter, Brazil declines while Canada grows,
- * and Japan climbs from last to first. Data that only descended left-to-right
- * made all four groups the same silhouette repeated, so nothing about the chart
- * - or a theme change - was legible from its shape.
- *
- * The first five carry that crossover on their own, since five is the default
- * and the count only ever takes a prefix of this list.
+ * The values cross over rather than all trending the same way, so the four
+ * groups are not one silhouette repeated. The first five carry the crossover on
+ * their own, a count taking a prefix of the list.
  */
 const CURATED_DATA = [
     {
@@ -142,10 +123,9 @@ const CURATED_DATA = [
 ];
 
 /**
- * Deterministic, so the preview and anything asserting against it are stable,
- * and phase-shifted by a stride that jumps rather than creeps - a phase that
- * advanced smoothly with the index would fan 34 lines into a moiré pattern, and
- * stack 34 bands into one wave. Peaks land in all four quarters instead.
+ * Deterministic, and phase-shifted by a stride that jumps rather than creeps: a
+ * phase advancing smoothly with the index would fan 34 lines into a moiré
+ * pattern and stack 34 bands into one wave.
  */
 const generatedRevenue = (index: number, quarter: number) => {
     const base = 70 + ((index * 37) % 90);
@@ -155,8 +135,8 @@ const generatedRevenue = (index: number, quarter: number) => {
 
 /**
  * The hand-written quarters, extended with a figure for every country past the
- * tenth. Typed loosely because half of it is computed; the half that is written
- * out keeps its literal types at `CURATED_DATA`, which is where a typo matters.
+ * tenth. Typed loosely because half is computed; `CURATED_DATA` keeps its
+ * literal types, which is where a typo matters.
  */
 export const PREVIEW_DATA: Record<string, number | string>[] = CURATED_DATA.map((row, quarter) => ({
     ...row,
@@ -166,9 +146,8 @@ export const PREVIEW_DATA: Record<string, number | string>[] = CURATED_DATA.map(
 export const seriesFor = (count: number) => PREVIEW_SERIES.slice(0, count);
 
 /**
- * The same story reshaped for the single-series types: full-year totals per
- * country. Derived rather than written out, so the donut and the bars can never
- * disagree about the numbers behind them.
+ * Full-year totals per country, for the single-series types. Derived, so the
+ * donut and the bars cannot disagree about the numbers behind them.
  */
 export const totalsFor = (count: number) =>
     seriesFor(count).map(({ key, name }) => ({
@@ -177,20 +156,12 @@ export const totalsFor = (count: number) =>
     }));
 
 /**
- * The thumbnails need a different shape from the main preview.
- *
- * The stock palettes run the same hue sequence - blue, orange, green, cyan,
- * yellow - and differ mainly in saturation and tone, so a card showing two or
- * three of them leaves Default, Material and Vivid near-indistinguishable.
- * Eight reach far enough into each palette for those differences to read.
+ * Eight, because the stock palettes run the same hue sequence and differ mainly
+ * in saturation - two or three slots leave Default, Material and Vivid alike.
  */
 export const THUMBNAIL_SERIES_KEYS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
-/**
- * Six columns, so the bars stay slim enough to read as a chart at card size,
- * with enough variation in the totals and in each band that the columns are not
- * six copies of one another. The card itself takes a prefix of these.
- */
+/** Varied enough that the columns are not six copies of one another. */
 export const THUMBNAIL_DATA = [
     { period: '1', a: 38, b: 41, c: 22, d: 31, e: 14, f: 24, g: 9, h: 17 },
     { period: '2', a: 52, b: 27, c: 35, d: 18, e: 26, f: 12, g: 19, h: 8 },
@@ -201,12 +172,9 @@ export const THUMBNAIL_DATA = [
 ];
 
 /**
- * Two years of weekday bars for the candlestick preview.
- *
- * Two years rather than a few months because the range buttons are the point:
- * they offer 1M through 1Y and All, and a shorter history would leave half of
- * them disabled. Weekdays only, so the ordinal-time axis has no weekend gaps to
- * either draw or collapse.
+ * Two years, because the range buttons offer 1M through 1Y and All, and a
+ * shorter history would leave half of them disabled. Weekdays only, so the
+ * ordinal-time axis has no weekend gaps to draw or collapse.
  */
 const TRADING_DAYS = 2 * 261;
 
@@ -220,9 +188,8 @@ export interface PreviewCandle {
 }
 
 /**
- * Ending today rather than on a fixed date, so the chart never reads as stale
- * and "year to date" - which the range buttons measure from the end of the data,
- * not from the clock - covers the year the user is actually in.
+ * Ending today, so the chart never reads as stale and "year to date" - which the
+ * range buttons measure from the end of the data - covers the current year.
  */
 const tradingDaysEndingToday = (count: number) => {
     const today = new Date();
@@ -239,9 +206,8 @@ const tradingDaysEndingToday = (count: number) => {
 };
 
 /**
- * A seeded generator rather than `Math.random`, so every visit and every test
- * run sees the same chart: a preview that redrew itself differently on each
- * reload would make it impossible to tell a theme change from a data change.
+ * Seeded rather than `Math.random`, so a preview that redrew itself differently
+ * on each reload cannot hide a theme change behind a data change.
  */
 const seededRandom = (seed: number) => {
     let state = seed >>> 0;
@@ -254,9 +220,8 @@ const seededRandom = (seed: number) => {
 const to2dp = (value: number) => Math.round(value * 100) / 100;
 
 /**
- * A random walk with a slight upward bias, rather than hand-written prices:
- * five hundred bars is past the point where anyone reads an individual value,
- * and a walk is the only thing that produces the runs and reversals that make a
+ * A random walk with a slight upward bias: at five hundred bars nobody reads an
+ * individual value, and only a walk gives the runs and reversals that make a
  * candlestick chart look like one.
  */
 const buildCandles = (dates: Date[]): PreviewCandle[] => {

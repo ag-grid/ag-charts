@@ -49,14 +49,10 @@ function extractParts(identifiers: string[]): Part<any>[] {
 }
 
 /**
- * The outcome of reading pasted theme code, ready for the dialog to render and,
- * where there is something to apply, to apply.
- *
- * A host's parser decides both halves: `summary` is what the dialog says it
- * found ("Found 12 theme parameters" by default), and `apply` is how the found
- * theme reaches the store. The dialog itself knows nothing about either shape,
- * so a host whose themes are not param bags - a charts options object, say -
- * needs no change here.
+ * The outcome of reading pasted theme code, ready for the dialog to render and
+ * to apply. A host's parser decides both halves - `summary` is what the dialog
+ * says it found, `apply` is how the theme reaches the store - so a host whose
+ * themes are not param bags, a charts options object say, needs no change here.
  */
 export type ValidationResult =
     | { status: 'empty'; validParamCount: 0 }

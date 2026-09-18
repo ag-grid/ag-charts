@@ -7,36 +7,23 @@ import { toChartTheme } from './chartsThemeOutput';
 import type { ChartsPreset } from './presets';
 import { useChart } from './useChart';
 
-/**
- * A theme thumbnail: a real chart in that theme, so the card predicts what the
- * user's charts will look like rather than abstracting the theme into a strip of
- * colour swatches.
- *
- * Always the same chart, whatever the two panes are showing: a row of cards can
- * only separate one theme from another if the only thing differing between them
- * is the theme. See `THUMBNAIL_OPTIONS`.
- *
- * Unlike grid's thumbnails - which render a large grid and crop it, because a
- * grid's header and first rows stay recognisable under a crop - this renders a
- * whole chart at card size. A cropped chart just loses its frame and reads as
- * disconnected blocks of colour.
- *
- * The theme is built from the preset through the same path as the main preview,
- * so a card cannot show something the tool would not produce.
- */
 interface Props {
     preset: ChartsPreset;
 }
 
+/**
+ * A theme thumbnail: a whole chart at card size, themed through the same path as
+ * the main preview so a card cannot show something the tool would not produce.
+ * Rendered whole rather than cropped like grid's - a cropped chart loses its
+ * frame and reads as disconnected blocks of colour.
+ */
 export const PresetPreview = memo(({ preset }: Props) => {
     const options = useMemo<AgChartOptions>(() => {
         const theme = toChartTheme({ baseTheme: preset.baseTheme, params: preset.params, palette: preset.palette });
         return {
             ...THUMBNAIL_OPTIONS,
-            // Padding is pinned because the presets choose their own, and a card
-            // laid out differently from its neighbours stops reading as a
-            // comparable swatch. The main preview keeps the preset's own value,
-            // which is the one the user is actually choosing.
+            // Pinned because the presets choose their own, and a card laid out
+            // differently from its neighbours stops reading as a comparable swatch.
             theme: { ...theme, params: { ...theme.params, chartPadding: 6 } },
         };
     }, [preset]);
@@ -76,8 +63,7 @@ const Card = styled('div')`
     }
 `;
 
-// Inset rather than bled: the whole chart is the subject, so it gets a margin
-// from the card edge the way a real chart sits in a real page.
+// Inset rather than bled, the way a real chart sits in a real page.
 const ChartContainer = styled('div')`
     position: absolute;
     inset: 10px;

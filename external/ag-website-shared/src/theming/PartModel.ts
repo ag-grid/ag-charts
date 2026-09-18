@@ -35,9 +35,7 @@ const partDocs: Record<string, string | undefined> = {
 
 // Lazy, because reading grid's theme is only correct for a host that uses grid's
 // parts. A host with no swappable parts (`setFeatureModels(() => [])`) must be
-// able to load this module without grid's theming engine being involved at all -
-// AG Charts' builder runs against a theme grid did not create, and eagerly
-// unwrapping themeQuartz here threw before any of its own config could apply.
+// able to load this module without grid's theming engine being involved at all.
 const getQuartzParts = memoize(() => new Set<Part>(_asThemeImpl(themeQuartz).parts));
 
 export class FeatureModel {

@@ -1,18 +1,7 @@
 /**
- * The chart features the preview can turn on, and which of them each chart type
- * can actually show.
- *
- * These exist because most of what the editor panel themes has no surface in a
- * plain chart. Three whole groups of params - Chrome, Buttons & Inputs, Menus &
- * Panels - only reach the screen through a toolbar, a menu or a settings panel,
- * so without a way to summon those, half the tool edits values the user cannot
- * see. The palette has the same problem in miniature: a chart resolves its
- * series stroke width to zero unless asked, so the strokes column edits colours
- * that never appear. Every feature here is one that puts otherwise-invisible
- * values on screen.
- *
- * Deliberately not a list of everything a chart can do: a feature earns a place
- * only if switching it on changes something the editor panel can edit.
+ * The chart features the preview can turn on. Not a list of everything a chart
+ * can do - a feature earns a place only by putting something the editor panel
+ * edits on screen, which a plain chart leaves invisible.
  */
 export const CHART_FEATURE_IDS = [
     'seriesStrokes',
@@ -37,9 +26,8 @@ export interface ChartFeatureConfig {
     /** What it puts on screen, since half of these are invisible until used. */
     hint: string;
     /**
-     * A feature this one cannot work without. The chart quietly ignores such a
-     * feature when its requirement is off, which would leave a ticked checkbox
-     * with nothing behind it - so the popup disables it and says why instead.
+     * A feature this one cannot work without. The chart ignores it silently when
+     * the requirement is off, so the popup disables the checkbox and says why.
      */
     requires?: ChartFeatureId;
 }
@@ -69,14 +57,8 @@ export const CHART_FEATURES: ChartFeatureConfig[] = [
 
 /**
  * On by default, because a feature nobody switches on is a param nobody sees.
- * Volume is the exception: it takes a fifth of the plot height for a series the
+ * Volume is the exception: it takes a fifth of the series area for a series the
  * theme treats no differently from any other.
- *
- * That applies to series strokes with particular force - they are the one thing
- * here a chart will not draw on its own, so left off the palette's strokes
- * column would look broken rather than subtle. The cost is that the preview is
- * not what a plain chart of the same theme draws, which is what the hint on the
- * checkbox is for.
  */
 export const DEFAULT_CHART_FEATURES: ChartFeatures = {
     seriesStrokes: true,
@@ -100,11 +82,8 @@ export const isFeatureEnabled = (features: ChartFeatures, id: ChartFeatureId): b
     features[id] ?? DEFAULT_CHART_FEATURES[id] ?? false;
 
 /**
- * What the chart will actually show: chosen, and with anything it depends on
- * chosen too.
- *
- * The choice itself is kept either way rather than being written back as false,
- * so switching zoom off and on again returns the range buttons the user had.
+ * Chosen, and with anything it depends on chosen too. The choice itself is never
+ * written back as false, so switching zoom off and on returns the range buttons.
  */
 export const isFeatureActive = (features: ChartFeatures, id: ChartFeatureId): boolean => {
     const { requires } = FEATURE_BY_ID[id];

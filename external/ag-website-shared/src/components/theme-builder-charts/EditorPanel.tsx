@@ -22,8 +22,7 @@ const ALL_PARAMS_SECTION = 'All Parameters';
 const DEFAULT_OPEN_SECTIONS = [
     PALETTE_SECTION,
     ...PARAM_GROUPS.filter((group) => !group.collapsed).map((group) => group.label),
-    // Open by default, as in the grid builder: a param pinned here has been asked
-    // for explicitly, and a closed section would hide it along with the box.
+    // A param pinned here was asked for explicitly; a closed section would hide it.
     ALL_PARAMS_SECTION,
 ];
 
@@ -45,13 +44,9 @@ const paramEditor = (param: ChartsParamConfig) => (
         key={param.key}
         param={param.key}
         label={param.label}
-        // The curated labels are short and repeat between sections - three
-        // sections have a "Background Color" - so the tooltip carries the part
-        // the label leaves out: which of the chart's parts this one paints.
+        // Three sections have a "Background Color", so the tooltip carries what
+        // the short label leaves out: which part of the chart this one paints.
         showDocs
-        // Most of these params follow another one, and the editor shows the
-        // value that resolves to - so the field says so underneath until the
-        // param is given a value of its own.
         note={<InheritedValueNote param={param.key} />}
         icon={iconFor(param.icon)}
         swipeAdjustmentDivisor={param.swipeAdjustmentDivisor}
@@ -78,16 +73,10 @@ export const EditorPanel = () => {
         onToggle: () => toggleSection(heading),
     });
 
-    // Which group is being worked in, for the preview to answer with - see
-    // `editedGroup.ts`. Capture handlers, so that an interaction inside a group
-    // is seen here first and by the group second: the panel clears the group and
-    // the group then names itself, and an interaction anywhere else in the panel
-    // - another section, its heading, the search box - clears it and stops there.
-    //
-    // Deliberately no release on blur. A colour picker is rendered in a portal,
-    // outside this element, so the moment a swatch was clicked the panel would
-    // read as abandoned and the tooltip would close - exactly when the user is
-    // dragging a colour they want to see land.
+    // See `editedGroup.ts`. Capture handlers, so the panel clears the group and
+    // the group under the pointer then names itself; anywhere else in the panel
+    // clears it and stops there. No release on blur: colour pickers render in a
+    // portal, so a swatch click would read as abandoning the panel.
     const releaseGroup = {
         onFocusCapture: () => setEditedGroup(null),
         onPointerDownCapture: () => setEditedGroup(null),
@@ -99,24 +88,19 @@ export const EditorPanel = () => {
 
     return (
         <PanelWrapper {...releaseGroup}>
-            {/* Palette leads: for a chart theme it is the change with the most
-                visible effect, and unlike the params below it has no default
-                surfaced anywhere else in the panel. */}
             <CollapsibleSection {...sectionProps(PALETTE_SECTION)}>
                 <PaletteEditor value={palette} onChange={setPalette} />
             </CollapsibleSection>
-            {/* Every group, and every param in it. A param that follows another
-                one is still worth a place: the panel is where you find out what
-                a theme can change, and hiding the followers hid three sections
-                of it - and with them the fact that a chart has menus, tooltips
-                and axes whose colours are yours to set. */}
+            {/* Every group, and every param in it - including params that follow
+                another one, since the panel is where you find out what a theme
+                can change. */}
             {PARAM_GROUPS.map((group) => (
                 <CollapsibleSection key={group.id} {...sectionProps(group.label)}>
                     <Fields {...holdGroup(group.id)}>{group.params.map(paramEditor)}</Fields>
                 </CollapsibleSection>
             ))}
-            {/* Last: the same params, searchable by name or by what they do -
-                for finding one without knowing which section holds it. */}
+            {/* The same params, searchable, for finding one without knowing
+                which section holds it. */}
             <CollapsibleSection {...sectionProps(ALL_PARAMS_SECTION)}>
                 <AdvancedParamSelector />
             </CollapsibleSection>

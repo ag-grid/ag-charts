@@ -14,13 +14,9 @@ import { useMemo } from 'react';
  */
 
 /**
- * What each theme param does, keyed by name, for the editors' tooltips.
- *
- * Held here rather than passed down because the shared model reads descriptions
- * through a registry, and registering a provider that closes over a prop would
- * mean re-registering on every render. Docs are read on demand, so the value
- * only has to be in place before an editor renders - which it is, this being
- * their parent.
+ * What each theme param does, keyed by name, for the editors' tooltips. Held in
+ * a module variable because the shared model reads descriptions through a
+ * registry, and a provider closing over a prop would re-register every render.
  */
 let siteParamDocs: Record<string, string> = {};
 
@@ -28,18 +24,9 @@ setParamDocsProvider((property) => siteParamDocs[property]);
 
 /**
  * A param's row in the Themes API reference, which the page expands and scrolls
- * to on a matching hash.
- *
- * The shape is the reference's own, from `anchorId` in `ApiReference.tsx`:
- * `reference-<root interface>-<member>`, then a segment per level below it. The
- * docs pages write these by hand too - `/themes-api/#reference-AgChartTheme-params`
- * in the themes page - so this follows the site's convention rather than
- * introducing one.
- *
- * Linked only for the params the reference is known to carry - the descriptions
- * are read from it, so a param with one has a row to anchor on. A param without
- * would otherwise get a link to a hash that exists nowhere on the page, which
- * loads the reference and quietly leaves the reader at the top of it.
+ * to on a matching hash. The shape is `anchorId`'s, from `ApiReference.tsx`.
+ * Linked only where a description was found, a param the reference does not
+ * carry having no row to anchor on.
  */
 const paramAnchor = (property: string) => `reference-AgChartTheme-params-${property}`;
 

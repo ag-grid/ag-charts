@@ -21,20 +21,10 @@ import { setImportedBaseTheme } from './presetModel';
 
 /**
  * The inbound half of the theme snippet, mirroring `chartsThemeOutput.ts`: read
- * an `AgChartTheme` object literal back into the builder.
- *
- * There is no charts-shaped tokenizer to write, because `parseThemeCode` does
- * not parse a shape - it scans for any name the host recognises and reads the
- * value after it, wherever it sits. So a theme's `params` block, its `palette`
- * and its `baseTheme` are all found in one pass, and the `withParams` chain grid
- * and Studio emit needs no special case here.
- *
- * Nor is there much to convert. The two formats were designed to line up, and
- * the one place they differ - a pixel length, which AG Charts writes as a plain
- * number - is a form the builder already holds natively: every stock default and
- * every preset stores lengths as numbers, and `lengthValueToCss` turns one into
- * `Npx` itself. So param values pass through untouched, and what is left to do
- * is the palette, whose editor carries bookkeeping a theme cannot.
+ * an `AgChartTheme` object literal back into the builder. `parseThemeCode` scans
+ * for recognised names rather than parsing a shape, so params, palette and base
+ * theme are all found in one pass. Param values need no conversion; the palette
+ * does, its editor carrying bookkeeping a theme cannot.
  */
 
 /** Charts' own preset backgrounds, so an imported theme lands on one of them. */
@@ -59,11 +49,9 @@ const toAccent = (value: unknown): PaletteAccent | undefined =>
     isPlainObject(value) ? { fill: asColor(value.fill), stroke: asColor(value.stroke) } : undefined;
 
 /**
- * An `AgChartThemePalette` in the editor's shape.
- *
- * Fills and strokes are index-paired, so a fill the editor cannot show - a
- * gradient or a pattern, which `fills` also admits - takes its stroke with it
- * rather than shifting every later stroke onto the wrong fill.
+ * An `AgChartThemePalette` in the editor's shape. Fills and strokes are
+ * index-paired, so a fill the editor cannot show - `fills` also admits gradients
+ * and patterns - takes its stroke with it rather than shifting the rest along.
  */
 const toEditorPalette = (value: unknown, warnings: string[]): Palette | undefined => {
     if (!isPlainObject(value)) {
@@ -95,19 +83,12 @@ const toEditorPalette = (value: unknown, warnings: string[]): Palette | undefine
     const palette: Palette = {
         fills,
         strokes,
-        // `toThemePalette` writes "strokes off" as a stroke matching its fill,
-        // an AG Charts palette having no way to say "no stroke" - so a palette
-        // whose every stroke is its own fill is one whose strokes were switched
-        // off, and reading it back that way returns the toggle to where the user
-        // left it instead of leaving it on over outlines nobody can see.
+        // Inverting `toThemePalette`, which writes "strokes off" as a stroke
+        // matching its fill.
         ...(strokesMatchFills(fills, strokes) ? { strokesEnabled: false } : {}),
-        // `strokesDerived` is deliberately absent, which means derived. A theme
-        // does not record which strokes were chosen and which followed their
-        // fill, and it cannot be inferred: re-deriving each fill and comparing
-        // would read a stock palette's hand-tuned strokes as chosen, since they
-        // are close to the derived colour but not equal to it. Absent gives the
-        // imported strokes the same standing as a stock theme's - shown as they
-        // arrived, and replaced only once the fill they belong to changes.
+        // `strokesDerived` is deliberately absent, meaning derived: a theme does
+        // not record which strokes were chosen, and re-deriving to compare would
+        // read a stock palette's hand-tuned strokes as chosen.
         ...accentEntries(value),
     };
 
@@ -134,11 +115,9 @@ const andList = (items: string[]) =>
     items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
 
 /**
- * Read pasted code as an AG Charts theme, for the shared import dialog.
- *
- * A theme can be partial in every direction - params only, a palette only, a
- * base theme only - so anything recognised is enough to apply, and the summary
- * names what was found rather than counting params alone.
+ * Read pasted code as an AG Charts theme, for the shared import dialog. A theme
+ * can be partial in every direction, so anything recognised is enough to apply
+ * and the summary names what was found rather than counting params alone.
  */
 export const validateChartsThemeCode = (code: string): ValidationResult => {
     if (!code.trim()) {
@@ -188,10 +167,9 @@ export const validateChartsThemeCode = (code: string): ValidationResult => {
     }
 
     const apply = (store: Store) => {
-        // Params first: `applyPreset` clears every param the theme does not
-        // name, which is what makes this an import rather than a merge, and it
-        // resets the pinned "All Parameters" list - so the palette and the base
-        // theme, which it knows nothing about, are set after it and not before.
+        // Params first: `applyPreset` clears every param the theme does not name
+        // - what makes this an import rather than a merge - and knows nothing of
+        // the palette or the base theme, so those are set after it.
         applyPreset(store, preset as Preset);
         if (palette) {
             setStoredPalette(store, palette);

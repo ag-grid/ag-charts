@@ -7,16 +7,10 @@ import { useMemo } from 'react';
 import { DEFAULT_THEME_NAME, getPalette } from './chartsTheme';
 
 /**
- * Where AG Charts keeps its palette.
- *
- * The palette is the half of an AG Charts theme with no counterpart in the shared
- * param model, which knows only about flat named params - so it lives in its own
- * atom alongside them, and the host composes the two when it builds the preview
- * theme and the exported snippet.
- *
- * Only the storage binding is here. The shape, the transforms and the editor are
- * host-agnostic and live in `theme-builder/palette.ts`, because Studio has the
- * same palette spread across numbered theme params and can reuse all three.
+ * The palette has no counterpart in the shared param model, which knows only flat
+ * named params, so it gets an atom of its own and the host composes the two. Only
+ * the storage binding is here - the shape and transforms are host-agnostic and
+ * live in `theme-builder/palette.ts`.
  */
 
 const DEFAULT_PALETTE = getPalette(DEFAULT_THEME_NAME);

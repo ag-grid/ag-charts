@@ -82,10 +82,8 @@ export const PresetButton = styled('button')`
 // instead of collapsing to 0. Nesting an extra plain block between this and
 // Main would break that.
 const Wrapper = styled('div')`
-    // Grid's live-grid thumbnails set the default. A host whose thumbnails are a
-    // different size overrides --preset-scroller-height on an ancestor; it needs
-    // a second name because this property is declared here, so an inherited
-    // --scroller-height would lose to it.
+    // A second name, because a host overriding --scroller-height on an ancestor
+    // would lose to this declaration of it.
     --scroller-height: var(--preset-scroller-height, 192px);
 
     position: relative;

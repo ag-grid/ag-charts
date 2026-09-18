@@ -126,11 +126,9 @@ const Button = styled('button')`
     }
 `;
 
-// An animation name written into a template literal is global - Emotion only
-// scopes the ones this helper generates - so two components that each call
-// theirs `scaleIn` share whichever the page inserted last. That is how the
-// dropdown came to borrow the tooltip's zoom: a scale from nothing to full size
-// over 0.1s, which reads as the content snapping out to fill the box.
+// An animation name written into a template literal is global - Emotion scopes
+// only the ones this helper generates - so two components that each call theirs
+// `scaleIn` share whichever the page inserted last.
 const slideIn = keyframes`
     from {
         opacity: 0;

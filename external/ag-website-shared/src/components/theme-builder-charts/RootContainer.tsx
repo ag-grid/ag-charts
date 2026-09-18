@@ -23,10 +23,9 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
     const preset = findPreset(useSelectedPresetId()) ?? initialPreset;
     const importedBaseTheme = useImportedBaseTheme();
 
-    // A first visit: the provider has applied the starting preset's params, but
-    // the palette and the preset itself live outside the shared param model, so
-    // they are seeded here. Each is guarded on its own - a returning user who
-    // has since edited their palette must keep it.
+    // The palette and the preset live outside the shared param model, so a first
+    // visit seeds them here. Guarded separately: a returning user may have edited
+    // their palette without having chosen a preset, or the reverse.
     useLayoutEffect(() => {
         if (getSelectedPresetId(store) == null) setSelectedPresetId(store, initialPreset.id);
         if (storedPalette == null) setStoredPalette(store, initialPreset.palette);
@@ -34,8 +33,7 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
 
     const selection: ChartsThemeSelection = useMemo(
         () => ({
-            // An imported theme names its own base and has no preset to take one
-            // from, so it wins here until a preset is chosen again.
+            // An imported theme names its own base, and wins until a preset is chosen.
             baseTheme: importedBaseTheme ?? preset.baseTheme,
             params: overriddenParams,
             palette: storedPalette ?? preset.palette,
@@ -44,9 +42,8 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
     );
     const previewTheme = useMemo(() => toChartTheme(selection), [selection]);
 
-    // Fill from the tool's actual top offset to the viewport bottom. The docs
-    // layout puts a sticky header - and sometimes an announcement banner - above
-    // the island, so a fixed `100vh - header` overflows; measure instead.
+    // Measured rather than `100vh - header`: the docs layout can also put an
+    // announcement banner above the island, and a fixed offset then overflows.
     const containerRef = useRef<HTMLDivElement>(null);
     const [height, setHeight] = useState<string>();
     useLayoutEffect(() => {
@@ -131,8 +128,7 @@ const SidebarHeader = styled('h2')`
 `;
 
 // Pinned to the foot of the sidebar so the way out of the tool is reachable
-// however far the editor list is scrolled. The fade sits over the scroller's
-// last few pixels, marking the edge the button would otherwise butt against.
+// however far the editor list is scrolled.
 const MenuBottom = styled('div')`
     flex-shrink: 0;
     position: relative;
@@ -160,14 +156,13 @@ const Main = styled('div')`
     gap: 12px;
     padding: 16px 0 20px 16px;
 
-    // A mini chart reads at a shorter card than grid's live-grid thumbnails,
-    // whose size the shared scroller defaults to.
+    // Shorter than the shared scroller's default, which is sized for grid's
+    // live-grid thumbnails.
     --preset-scroller-height: 152px;
 `;
 
 // Side by side rather than stacked: the panes share the height they would
-// otherwise halve, and the tool already refuses to render below 900px wide, so
-// neither pane is ever squeezed past a chart's useful width.
+// otherwise halve, and the tool refuses to render below 900px wide anyway.
 const PreviewRow = styled('div')`
     flex: 1;
     min-width: 0;

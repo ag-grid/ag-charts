@@ -201,10 +201,8 @@ describe('preview chart types', () => {
     });
 
     it('registers a module for every preset a preview type is built through', () => {
-        // The candlestick pane is created through AgCharts.createFinancialChart,
-        // which resolves a preset by name at creation. Without the module that
-        // carries it, the options never expand into a series and the pane draws
-        // a title over "No data to display" - with no error to follow.
+        // A preset is resolved by name at creation, so without its module the
+        // options never expand into a series - and nothing reports an error.
         const registered = new Set(
             PREVIEW_MODULES.filter((module) => module.type === 'preset').map((module) => module.name)
         );
@@ -215,10 +213,8 @@ describe('preview chart types', () => {
     });
 
     it('draws a series outline for the palette strokes to appear in', () => {
-        // A chart resolves `strokeWidth` to zero unless it is asked for a
-        // stroke, so a palette can carry a stroke for every slot and draw none
-        // of them - which leaves the strokes column of the palette editor
-        // changing colours nothing on screen ever uses.
+        // `strokeWidth` resolves to zero unless a stroke is asked for, which
+        // leaves the palette editor's strokes column changing nothing visible.
         for (const type of SERIES_STROKE_TYPES) {
             for (const series of seriesOf(type.buildOptions(DEFAULT_SERIES_COUNT, ALL_ON))) {
                 expect(strokeWidthOf(series), type.id).toBeGreaterThan(0);

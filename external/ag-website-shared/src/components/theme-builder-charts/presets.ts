@@ -5,29 +5,14 @@ import type { AgChartThemeName } from 'ag-charts-community';
 import { getPalette } from './chartsTheme';
 
 /**
- * The starting points offered above the preview.
- *
- * These were the six AG Charts stock themes, and that turned out to be the wrong
- * source: the light ones differ from `ag-default` by palette alone, and the dark
- * ones by a handful of colour params on top, so the row read as one theme
- * repeated at six saturations. A starting point has to propose a *look* - a
- * typeface, a background, a density - or there is nothing to start from.
- *
- * So they are hand-authored, the way grid's are, and each is pinned to light or
- * dark rather than following the site's theme toggle. A dark preset is a design
- * in its own right, not the dark half of a light one, and switching the docs to
- * dark mode must not quietly redesign the theme a user is working on.
- *
- * `Default` and `Midnight` are the exceptions, and deliberately so: they carry
- * no param overrides and take their palette from the AG Charts runtime, so they
- * are exactly what a chart looks like with no theme applied. Everything else is
- * written out here.
+ * The starting points offered above the preview. Hand-authored as grid's are,
+ * since the stock themes differ from `ag-default` by little more than palette
+ * and a starting point has to propose a look. Each is pinned to light or dark,
+ * so the site's theme toggle cannot redesign a theme mid-edit. `Default` and
+ * `Midnight` are the exceptions - no overrides, so a chart with no theme.
  */
 
-/**
- * `[fill, stroke]` pairs, which is how the colours are actually chosen - a
- * series' outline is picked against its fill, not from a separate list.
- */
+/** `[fill, stroke]` pairs: an outline is picked against its fill, not separately. */
 type ColorPair = [fill: string, stroke: string];
 
 interface PaletteSpec {
@@ -50,29 +35,21 @@ export type ChartsPreset = {
     id: string;
     label: string;
     /**
-     * Light or dark, fixed. This is not only a starting set of params: it also
-     * carries the theme-level decisions the param API does not expose - the
-     * stroke drawn between donut slices, and the dark-mode flag the overlays
-     * read - so a dark design on `ag-default` gets white slice separators.
+     * Light or dark, fixed. Carries the theme-level decisions the param API does
+     * not expose, so a dark design on `ag-default` gets white slice separators.
      */
     baseTheme: AgChartThemeName;
     /**
-     * The page the chart is imagined to sit on - not part of the theme, and not
-     * drawn anywhere yet: the preview is filled edge to edge by the chart's own
-     * background. Required by the shared `Preset`, which persists it, and it is
-     * what a surround or a page-colour picker would read if charts grows one, so
-     * each preset names a colour that belongs with it rather than a placeholder.
+     * The page the chart is imagined to sit on. Not part of the theme and not
+     * drawn anywhere yet, but required by the shared `Preset`, so each preset
+     * names a colour that belongs with it rather than a placeholder.
      */
     pageBackgroundColor: string;
     params: Record<string, unknown>;
     palette: Palette;
 };
 
-/**
- * Ordered light, dark, light, dark. Neighbouring cards are the comparison a user
- * actually makes, and alternating is the cheapest way to keep any two of them
- * from reading as the same theme twice.
- */
+/** Ordered light, dark, light, dark, so no two neighbouring cards look alike. */
 export const PRESETS: ChartsPreset[] = [
     {
         id: 'default',
@@ -91,7 +68,7 @@ export const PRESETS: ChartsPreset[] = [
         palette: getPalette('ag-default-dark'),
     },
     {
-        // Airy and low-contrast: white plot, grid lines barely above the
+        // Airy and low-contrast: white series area, grid lines barely above the
         // background, and the weight carried by the series colours alone.
         id: 'coastal',
         label: 'Coastal',
@@ -128,10 +105,8 @@ export const PRESETS: ChartsPreset[] = [
         }),
     },
     {
-        // Phosphor on black. The identity is the monospaced type, the near-black
-        // plot and the green-led first slots; the later slots widen out of green
-        // because eight series still have to be told apart, which is not
-        // something a grid's equivalent theme has to solve.
+        // Phosphor on black: monospaced type, a near-black series area and
+        // green-led first slots, widening out so eight can be told apart.
         id: 'terminal',
         label: 'Terminal',
         baseTheme: 'ag-default-dark',
@@ -167,9 +142,8 @@ export const PRESETS: ChartsPreset[] = [
         }),
     },
     {
-        // Printed almanac: cream stock, a serif face, and pigments rather than
-        // screen colours. Square corners and generous padding, so it reads as
-        // something set on a page rather than rendered in a panel.
+        // Printed almanac: cream stock, a serif face, pigments rather than
+        // screen colours, square corners and generous padding.
         id: 'vintage',
         label: 'Vintage',
         baseTheme: 'ag-default',
@@ -242,8 +216,7 @@ export const PRESETS: ChartsPreset[] = [
     },
     {
         // Drafting paper: a blue-tinted ground, monospaced labels, hairline
-        // rules. The orange in slot two is the drafting pencil - a warm colour
-        // is what stops eight cool ones collapsing into one another.
+        // rules. The orange in slot two stops eight cool colours collapsing.
         id: 'blueprint',
         label: 'Blueprint',
         baseTheme: 'ag-default',
@@ -278,9 +251,8 @@ export const PRESETS: ChartsPreset[] = [
         }),
     },
     {
-        // Warm charcoal rather than navy, which is what keeps it distinct from
-        // Midnight at card size. Muted series colours and a lot of padding: the
-        // restrained dark option, against Neon and Terminal.
+        // Warm charcoal rather than navy, to stay distinct from Midnight at card
+        // size. The restrained dark option, against Neon and Terminal.
         id: 'graphite',
         label: 'Graphite',
         baseTheme: 'ag-default-dark',

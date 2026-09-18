@@ -65,9 +65,8 @@ const TooltipImpl = ({ title, children, suppressPortal }: TooltipProps) => {
 
 const TooltipPopup = styled('div')``;
 
-// Through the helper, so the name is unique: an animation name written into a
-// template literal is global, and this one used to reach every other component
-// that had called its own `scaleIn`.
+// Through the helper, so the name is unique: an animation name written straight
+// into a template literal is global, and would collide with any other `scaleIn`.
 const scaleIn = keyframes`
     from {
         opacity: 0;

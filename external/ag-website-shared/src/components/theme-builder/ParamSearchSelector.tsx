@@ -105,16 +105,11 @@ export function ParamSearchSelector<T>({
 
     const inputProps = getInputProps();
 
-    // Floating UI and Downshift both want to set a ref, merge them into one.
-    //
-    // The merged callback has to keep the same identity across renders. React
-    // reattaches a function ref whose identity changed - calling it with `null`
-    // and then with the element - and Floating UI's `setReference` holds the
-    // element in state, so an inline callback writes state twice per commit.
-    // React counts those as nested updates and aborts the tree at 50, which is
-    // reached the moment anything outside Downshift re-renders this component.
-    // Downshift hands out a fresh ref each render, so the latest one is read
-    // through a ref rather than captured.
+    // Floating UI and Downshift both want to set a ref, merged into one whose
+    // identity must hold across renders: React reattaches a changed function ref
+    // as null-then-element, and `setReference` stores it, so an inline callback
+    // sets state twice per commit until React aborts the tree at 50 nested
+    // updates. Downshift's ref is fresh each render, so it is read through one.
     const downshiftInputRef = useRef<(instance: HTMLInputElement | null) => void>();
     downshiftInputRef.current = (inputProps as any).ref;
     const inputRef = useCallback(

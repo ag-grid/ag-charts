@@ -20,19 +20,10 @@ interface Props {
 }
 
 /**
- * The chart's own UI, switched on and off - grid's Grid Features dropdown, for
- * charts.
- *
- * It exists because a chart is not a grid: a grid draws its header, menus and
- * status bar whether you ask or not, so the params behind them are always on
- * screen, while a chart draws a plot and nothing else. Three of the editor
- * panel's groups only reach the screen through a toolbar, a menu or a settings
- * panel, and without this the user edits them blind.
- *
- * Only the features the pane's chart type supports are listed. A checkbox that
- * cannot change anything is worse than an absent one, and unlike grid - whose
- * dropdown warns about combinations that fight each other - what applies here is
- * decided entirely by the chart type, which the user has already chosen.
+ * The chart's own UI, switched on and off. A grid draws its header, menus and
+ * status bar unasked, where a chart draws only its series - so three of the
+ * editor panel's groups reach the screen through this or not at all. Lists only
+ * what the pane's chart type supports, a dead checkbox being worse than none.
  */
 export const PreviewFeatures = ({ paneLabel, available, features, onChange }: Props) => {
     const shown = CHART_FEATURES.filter(({ id }) => available.includes(id));

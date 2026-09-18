@@ -12,14 +12,12 @@ const WEBSITE_PATH_PREFIX = {
     'ag-studio': '../../packages/ag-studio-docs',
 };
 
-// Which container repository we are running inside. An unrecognised container is treated as
-// ag-charts so the aliases below still point at a real website package.
+// An unrecognised container is treated as ag-charts, so the aliases below still resolve.
 const CONTAINER_REPO = packageJson.name in WEBSITE_PATH_PREFIX ? packageJson.name : 'ag-charts';
 
-// Each container hosts exactly one product's theme builder, but every container receives all of
-// them - the subrepo syncs whole. A foreign host's tests assert against a product this repo need
-// not have installed, and where it is installed the version is whatever this repo happens to pin,
-// so a release of one product could redden an unrelated repository's CI. Run only our own host.
+// The subrepo syncs whole, so every container receives all three theme builders. A foreign host's
+// tests assert against a product this repo may not install, or pins at its own version, so a
+// release of one product could redden an unrelated repository's CI. Run only our own host.
 const THEME_BUILDER_HOSTS = {
     'ag-grid': 'theme-builder-grid',
     'ag-charts': 'theme-builder-charts',
