@@ -16,6 +16,7 @@ import {
     impliedModules,
     intrinsicDefaults,
     moduleToPackage,
+    nestedPluginOptionToModule,
     pluginOptionToModule,
     polarAxisPluginToModule,
     polarSeriesModules,
@@ -25,6 +26,10 @@ import {
     seriesTypeToModule,
     validModuleIds,
 } from './module-mappings.mjs';
+
+// Top-level options that host a module-owned nested option, e.g. `seriesArea` for
+// `seriesArea.backgroundRegions`, so the visitor descends into them.
+const nestedPluginOptionHosts = new Set([...nestedPluginOptionToModule.keys()].map((path) => path.split('.')[0]));
 
 /** @type {import('eslint').Rule.RuleModule} */
 export default {
@@ -518,6 +523,19 @@ export default {
                 }
             }
 
+            // Check for nested options owned by a module, e.g. `seriesArea.backgroundRegions`
+            if (nestedPluginOptionHosts.has(keyName) && valueNode.type === 'ObjectExpression') {
+                for (const nestedProp of valueNode.properties) {
+                    if (nestedProp.type !== 'Property') continue;
+                    const nestedKey =
+                        nestedProp.key.type === 'Identifier' ? nestedProp.key.name : getStringValue(nestedProp.key);
+                    const nestedModuleId = nestedPluginOptionToModule.get(`${keyName}.${nestedKey}`);
+                    if (nestedModuleId && !isFeatureDisabled(nestedProp.value)) {
+                        requireModule(nestedModuleId, `option '${keyName}.${nestedKey}'`, nestedProp);
+                    }
+                }
+            }
+
             // Check for nested options under annotations
             if (keyName === 'annotations' && valueNode.type === 'ObjectExpression') {
                 for (const nestedProp of valueNode.properties) {
@@ -868,7 +886,11 @@ export default {
                     if (node.value.type === 'ObjectExpression') {
                         processAxisObject(node.value, node);
                     }
-                } else if (pluginOptionToModule.has(keyName) || keyName === 'listeners') {
+                } else if (
+                    pluginOptionToModule.has(keyName) ||
+                    nestedPluginOptionHosts.has(keyName) ||
+                    keyName === 'listeners'
+                ) {
                     processPluginOption(keyName, node.value, node);
                 } else if (keyName === 'type') {
                     // Handle type properties anywhere in the file

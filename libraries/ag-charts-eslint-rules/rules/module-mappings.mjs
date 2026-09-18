@@ -17,6 +17,7 @@ export {
     enterpriseModules,
     impliedModules,
     moduleToPackage,
+    nestedPluginOptionToModule,
     pluginOptionToModule,
     polarAxisPluginToModule,
     polarSeriesModules,
