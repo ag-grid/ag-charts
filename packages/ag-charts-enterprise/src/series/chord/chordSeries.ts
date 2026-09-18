@@ -2,8 +2,9 @@ import { _ModuleSupport } from 'ag-charts-community';
 import {
     type CallbackParamRules,
     type DynamicContext,
-    type FillStrokeMorph,
-    type Normalised,
+    type NormalisedChordSeriesLinkStyle,
+    type NormalisedChordSeriesNodeStyle,
+    type NormalisedChordSeriesOwnOptions,
     type RequireOptional,
     angleBetween,
     cachedTextMeasurer,
@@ -17,12 +18,7 @@ import {
     toPlainText,
     wrapText,
 } from 'ag-charts-core';
-import type {
-    AgChordSeriesLabelFormatterParams,
-    AgChordSeriesNodeItemStylerParams,
-    AgChordSeriesNodeStyle,
-    AgChordSeriesOptions,
-} from 'ag-charts-types';
+import type { AgChordSeriesLabelFormatterParams, AgChordSeriesNodeItemStylerParams } from 'ag-charts-types';
 
 import { type FlowLinkDatumIndex, type FlowNodeDatumIndex, toFlowNodeOffset } from '../flow-proportion/flowDatumIndex';
 import {
@@ -32,11 +28,8 @@ import {
     type FlowProportionSeriesContext,
 } from '../flow-proportion/flowProportionSeries';
 import { ChordLink, type ChordLinkNodeEdge, bezierControlPoints } from './chordLink';
-import { ChordSeriesProperties } from './chordSeriesProperties';
 
 const { SeriesNodePickMode, createDatumId, Sector, getShapeStyle, getLabelStyles, BBox } = _ModuleSupport;
-
-type NormalisedChordSeriesNodeStyle = Normalised<AgChordSeriesNodeStyle, never, FillStrokeMorph>;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum<ChordNodeDatum, ChordLinkDatum> {
     centerX: number;
@@ -81,15 +74,12 @@ export class ChordSeries extends FlowProportionSeries<
     ChordNodeDatum,
     ChordLinkDatum,
     ChordNodeLabelDatum,
-    AgChordSeriesOptions,
-    ChordSeriesProperties,
+    NormalisedChordSeriesOwnOptions,
     _ModuleSupport.Sector<ChordNodeDatum>,
     ChordLink<ChordLinkDatum>
 > {
     static override readonly className = 'ChordSeries';
     static readonly type = 'chord' as const;
-
-    override properties = new ChordSeriesProperties();
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
@@ -99,7 +89,7 @@ export class ChordSeries extends FlowProportionSeries<
     }
 
     private isLabelEnabled() {
-        return (this.properties.labelKey != null || this.nodes == null) && this.properties.label.enabled;
+        return (this.options.labelKey != null || this.nodes == null) && this.options.label.enabled;
     }
 
     protected linkFactory() {
@@ -110,11 +100,43 @@ export class ChordSeries extends FlowProportionSeries<
         return new Sector<ChordNodeDatum>();
     }
 
+    /** The themed style of one node, its palette colours cycled by the node offset. */
+    private nodeStyle(index: number): Required<NormalisedChordSeriesNodeStyle> {
+        const { fills, strokes, node } = this.options;
+        const {
+            fillOpacity,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            cornerRadius,
+            fill = fills[index % fills.length],
+            stroke = strokes[index % fills.length],
+        } = node;
+        return { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius };
+    }
+
+    /** The themed style of one link, its palette colours cycled by the source node offset. */
+    private linkStyle(index: number): Required<NormalisedChordSeriesLinkStyle> {
+        const { fills, strokes, link } = this.options;
+        const {
+            fillOpacity,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            tension,
+            fill = fills[index % fills.length],
+            stroke = strokes[index % fills.length],
+        } = link;
+        return { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, tension };
+    }
+
     override createNodeData(): ChordNodeDataContext | undefined {
         const {
             id: seriesId,
             _nodeDataDependencies: { seriesRectWidth, seriesRectHeight } = { seriesRectWidth: 0, seriesRectHeight: 0 },
-            properties,
+            options,
         } = this;
         const {
             fromKey,
@@ -123,7 +145,7 @@ export class ChordSeries extends FlowProportionSeries<
             labelKey,
             label: { spacing: labelSpacing, maxWidth: labelMaxWidth, fontSize },
             node: { width: nodeWidth, spacing: nodeSpacing },
-        } = properties;
+        } = options;
         const centerX = seriesRectWidth / 2;
         const centerY = seriesRectHeight / 2;
 
@@ -152,7 +174,7 @@ export class ChordSeries extends FlowProportionSeries<
             { includeCircularReferences: true }
         );
 
-        const labelFit = resolveLabelFit(properties.label, false);
+        const labelFit = resolveLabelFit(options.label, false);
 
         let totalSize = 0;
         for (const [id, { datum: node, linksBefore, linksAfter }] of nodeGraph.entries()) {
@@ -162,7 +184,7 @@ export class ChordSeries extends FlowProportionSeries<
             if (size === 0) {
                 nodeGraph.delete(id);
             } else {
-                const { label } = properties;
+                const { label } = options;
                 node.size = size;
                 totalSize += node.size;
 
@@ -186,7 +208,7 @@ export class ChordSeries extends FlowProportionSeries<
 
         let labelInset = 0;
         if (this.isLabelEnabled()) {
-            const measurer = cachedTextMeasurer(this.properties.label);
+            const measurer = cachedTextMeasurer(options.label);
             let maxMeasuredLabelWidth = 0;
             for (const { datum: node } of nodeGraph.values()) {
                 const { id, label } = node;
@@ -194,7 +216,7 @@ export class ChordSeries extends FlowProportionSeries<
 
                 const text = wrapText(label, {
                     maxWidth: labelMaxWidth,
-                    font: this.properties.label,
+                    font: options.label,
                     textWrap: 'never',
                 });
                 const { width } = measurer.measureLines(text);
@@ -283,7 +305,7 @@ export class ChordSeries extends FlowProportionSeries<
 
             nodeData.push(node);
         }
-        const { tension } = this.properties.link;
+        const { tension } = options.link;
         for (const link of links) {
             link.radius = radius;
 
@@ -366,9 +388,9 @@ export class ChordSeries extends FlowProportionSeries<
         >;
     }) {
         const params: AgChordSeriesLabelFormatterParams = {
-            toKey: this.properties.toKey,
-            fromKey: this.properties.fromKey,
-            sizeKey: this.properties.sizeKey,
+            toKey: this.options.toKey,
+            fromKey: this.options.fromKey,
+            sizeKey: this.options.sizeKey,
             size: Number.NaN,
         } satisfies RequireOptional<AgChordSeriesLabelFormatterParams>;
 
@@ -382,7 +404,7 @@ export class ChordSeries extends FlowProportionSeries<
                 this,
                 undefined,
                 params,
-                this.properties.label,
+                this.options.label,
                 isHighlight,
                 activeHighlightDatum
             );
@@ -427,18 +449,13 @@ export class ChordSeries extends FlowProportionSeries<
         fromNodeDatumIndex: FlowNodeDatumIndex,
         isHighlight: boolean
     ) {
-        const { properties } = this;
-        const { fills, strokes, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
-        const { itemStyler } = properties.node;
+        const { fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = this.options;
+        const { itemStyler } = this.options.node;
 
         const nodeOffset = toFlowNodeOffset(fromNodeDatumIndex);
         const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum.datumIndex);
         const selectionStyle = this.getSelectionStyle(nodeDatum.datumIndex);
-        const baseStyle = mergeDefaults(
-            selectionStyle,
-            highlightStyle,
-            properties.node.getStyle(fills, strokes, nodeOffset)
-        );
+        const baseStyle = mergeDefaults(selectionStyle, highlightStyle, this.nodeStyle(nodeOffset));
 
         let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
@@ -474,7 +491,7 @@ export class ChordSeries extends FlowProportionSeries<
         style: Required<NormalisedChordSeriesNodeStyle>
     ) {
         const { id: seriesId } = this;
-        const { fromKey, toKey, sizeKey } = this.properties;
+        const { fromKey, toKey, sizeKey } = this.options;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
@@ -538,18 +555,14 @@ export class ChordSeries extends FlowProportionSeries<
         fromNodeDatumIndex: FlowNodeDatumIndex,
         isHighlight: boolean
     ) {
-        const { id: seriesId, properties } = this;
-        const { fills, strokes, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
-        const { itemStyler } = properties.link;
+        const { id: seriesId, options } = this;
+        const { fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = options;
+        const { itemStyler } = options.link;
 
         const nodeOffset = toFlowNodeOffset(fromNodeDatumIndex);
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
-        const baseStyle = mergeDefaults(
-            selectionStyle,
-            highlightStyle,
-            properties.link.getStyle(fills, strokes, nodeOffset)
-        );
+        const baseStyle = mergeDefaults(selectionStyle, highlightStyle, this.linkStyle(nodeOffset));
 
         let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
@@ -595,7 +608,7 @@ export class ChordSeries extends FlowProportionSeries<
      * draw. Undefined when the node has no rounding for a link end to follow.
      */
     private nodeEdge(node: ChordNodeDatum, cornerRadius: number): ChordLinkNodeEdge | undefined {
-        const { strokeWidth } = this.properties.node;
+        const { strokeWidth } = this.options.node;
         const inset = strokeWidth / 2;
         const innerRadius = node.innerRadius > 0 ? node.innerRadius + inset : 0;
         const outerRadius = Math.max(node.outerRadius - inset, 0);
@@ -679,11 +692,9 @@ export class ChordSeries extends FlowProportionSeries<
     }
 
     protected override hasItemStylers(): boolean {
+        const { node, link, label } = this.options;
         return (
-            this.properties.selection.enabled ||
-            this.properties.node.itemStyler != null ||
-            this.properties.link.itemStyler != null ||
-            this.properties.label.itemStyler != null
+            this.isSelectionEnabled() || node.itemStyler != null || link.itemStyler != null || label.itemStyler != null
         );
     }
 }
