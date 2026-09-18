@@ -1,5 +1,6 @@
 import { type AgChordSeriesOptions, VERSION } from 'ag-charts-community';
 import {
+    COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
@@ -26,9 +27,11 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
     options: chordSeriesOptionsDef,
     themeTemplate: {
         series: {
+            ...COMMON_SERIES_THEME_DEFAULTS,
             fills: { $palette: 'fills' },
             strokes: { $palette: 'strokes' },
             highlight: SINGLE_SERIES_HIGHLIGHT_STYLE,
+            tooltip: { interaction: { enabled: false } },
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 enabled: true,
@@ -42,11 +45,19 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
             node: {
                 spacing: 8,
                 width: 10,
+                cornerRadius: 0,
+                fillOpacity: 1,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
+                strokeOpacity: 1,
+                lineDash: [0],
+                lineDashOffset: 0,
             },
             link: {
                 fillOpacity: 0.5,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
+                strokeOpacity: 1,
+                lineDash: [0],
+                lineDashOffset: 0,
                 tension: 0.4,
             },
             ...undocumentedThemeOptions({

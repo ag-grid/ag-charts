@@ -25,6 +25,8 @@ import {
     type DynamicContext,
     type Normalised,
     type NormalisedColorType,
+    type NormalisedOrganizationSeriesNodeTextOptions,
+    type NormalisedOrganizationSeriesOwnOptions,
     type NormalisedTextOrSegments,
     Vertex,
     boxCollides,
@@ -41,7 +43,6 @@ import { NetworkTreeLayout, type NetworkTreeLayoutUpdateOptions } from '../netwo
 import type { NetworkLinkInterpolation } from '../network/networkTypes';
 import { OrganizationGraph } from './organizationGraph';
 import { OrganizationNode, OrganizationNodeTag } from './organizationNode';
-import { OrganizationSeriesNodeTextProperties, OrganizationSeriesProperties } from './organizationSeriesProperties';
 import type {
     NormalisedOrganizationNodeStyle,
     NormalisedOrganizationNodeTextStyle,
@@ -57,6 +58,9 @@ const { keyProperty, valueProperty } = _ModuleSupport;
 
 /** Highlight part naming the expander pill, as distinct from the card behind it. */
 const EXPANDER_HIGHLIGHT_PART = 'expander';
+
+// Shared so a series with no label tiers allocates nothing per node.
+const NO_LABEL_TIERS: NormalisedOrganizationSeriesNodeTextOptions[] = [];
 
 interface DatumCallbackState {
     allChildren: number;
@@ -75,12 +79,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     OrganizationNode,
     OrganizationDatum,
     OrganizationLinkDatum,
-    NetworkTreeLayout<OrganizationVertex, OrganizationEdge>
+    NetworkTreeLayout<OrganizationVertex, OrganizationEdge>,
+    NormalisedOrganizationSeriesOwnOptions
 > {
     static override readonly className = 'OrganizationSeries';
     static readonly type = 'organization' as const;
-
-    override properties = new OrganizationSeriesProperties();
 
     private rootVertex?: Vertex<OrganizationVertex, OrganizationEdge>;
 
@@ -141,7 +144,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 subtitle: { key: subtitleKey },
                 labels,
             },
-        } = this.properties;
+        } = this.options;
 
         const props = [
             keyProperty(idKey, undefined, { id: 'idValue' }),
@@ -156,7 +159,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         ];
 
         let index = 0;
-        for (const label of labels) {
+        for (const label of labels ?? NO_LABEL_TIERS) {
             // Skip disabled tiers — without a `key` they crash `dataModel`. The slot is
             // preserved as `undefined` in `createGraphData` so tier indexing stays aligned.
             if (label.enabled) {
@@ -206,15 +209,15 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     hasItemStylers() {
-        const { expander, node, link, selection } = this.properties;
+        const { expander, node, link } = this.options;
         return (
-            selection.enabled ||
+            this.isSelectionEnabled() ||
             expander.itemStyler != null ||
             node.itemStyler != null ||
             link.itemStyler != null ||
             node.title.itemStyler != null ||
             node.subtitle.itemStyler != null ||
-            node.labels.some((label) => label.itemStyler != null)
+            node.labels?.some((label) => label.itemStyler != null) === true
         );
     }
 
@@ -258,15 +261,15 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             node.opacity = this.getNodeOpacity(datumIndex, isHighlight, highlightState);
 
             const fields = this.resolveVertexFields(datum.vertex);
-            const title = this.formatText(fields.title, this.properties.node.title.formatter, datumIndex, datumState);
+            const title = this.formatText(fields.title, this.options.node.title.formatter, datumIndex, datumState);
             const subtitle = this.formatText(
                 fields.subtitle,
-                this.properties.node.subtitle.formatter,
+                this.options.node.subtitle.formatter,
                 datumIndex,
                 datumState
             );
             const labels = fields.labels?.map((label, index) =>
-                this.formatText(label, this.properties.node.labels[index]?.formatter, datumIndex, datumState)
+                this.formatText(label, this.options.node.labels?.[index]?.formatter, datumIndex, datumState)
             );
 
             let defaultExpanderText = '';
@@ -278,7 +281,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 defaultExpanderText = `${directChildren}`;
             }
             const expanderText =
-                this.formatText(defaultExpanderText, this.properties.expander.text.formatter, datumIndex, datumState) ??
+                this.formatText(defaultExpanderText, this.options.expander.text.formatter, datumIndex, datumState) ??
                 defaultExpanderText;
 
             node.update(
@@ -423,7 +426,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     // A pointer click toggles collapse only on the expander pill, which `clickToExpand` widens to the
     // whole card. Keyboard activations carry no pointer target, so they toggle only when it is enabled.
     override hasBuiltinListener(target: _ModuleSupport.Node<unknown> | undefined): boolean {
-        return this.isExpanderTarget(target) || this.properties.node.clickToExpand;
+        return this.isExpanderTarget(target) || this.options.node.clickToExpand;
     }
 
     // Expanding is a distinct interaction from activating a node, so the expander pill keeps its
@@ -499,7 +502,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const instructions = [
             this.ctx.localeManager.t(isCollapsed ? 'ariaDescriptionExpandNode' : 'ariaDescriptionCollapseNode'),
         ];
-        if (this.properties.node.clickToExpand) {
+        if (this.options.node.clickToExpand) {
             instructions.push(this.ctx.localeManager.t('ariaDescriptionToggleNode'));
         }
         // Locale tooling has no `[plural]` annotation, so split the key by child count.
@@ -535,11 +538,14 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         if (nodeDatum == null) return;
 
         return this.formatTooltipWithContext(
-            this.properties.tooltip,
+            this.options.tooltip,
             { heading: this.resolveVertexFields(nodeDatum.vertex).title },
             {
                 seriesId: this.id,
                 datum: datum,
+                title: undefined,
+                idKey: this.options.idKey,
+                parentIdKey: this.options.parentIdKey,
             }
         );
     }
@@ -553,7 +559,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     // Hit-test the card only: the default full-bbox predicate also spans the expander pill's overhang,
     // so a drag-rect touching only the pill would wrongly pick the node.
     protected override pickNodesInBBoxPredicate() {
-        const { containment } = this.properties.selection;
+        const containment = this.options.selection?.containment ?? 'any';
         return (selectionBox: BoxBounds, node: _ModuleSupport.Node): boolean => {
             // The card is the only selectable target; a node without one is never a hit.
             if (!(node instanceof OrganizationNode)) return false;
@@ -566,7 +572,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
     protected override makeLayoutUpdateOptions(): OrganizationLayoutUpdateOptions {
         const {
-            properties: { node, expander, innerSpacing, outerSpacing, depthSpacing, layout },
+            options: { node, expander, innerSpacing, outerSpacing, depthSpacing, layout },
         } = this;
 
         return {
@@ -580,9 +586,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             hiddenOnCollapse: true,
 
             direction: this.getNetworkTreeLayoutDirection(),
-            depthSpacing: depthSpacing ?? 0,
-            innerSpacing: innerSpacing ?? 0,
-            outerSpacing: outerSpacing ?? 0,
+            depthSpacing,
+            innerSpacing,
+            outerSpacing,
 
             verticalSpacingExtra: expander.enabled
                 ? (expander.text.fontSize + expander.padding.top + expander.padding.bottom + expander.strokeWidth) / 2
@@ -710,10 +716,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         );
 
         const labelsValues: (string[] | undefined)[] = [];
-        for (let i = 0; i < this.properties.node.labels.length; i++) {
+        const labelTiers = this.options.node.labels ?? NO_LABEL_TIERS;
+        for (let i = 0; i < labelTiers.length; i++) {
             // Disabled tiers have no value-property; preserve slot so tier indexing stays aligned.
             labelsValues.push(
-                this.properties.node.labels[i].enabled
+                labelTiers[i].enabled
                     ? dataModel.resolveColumnById<string>(this, `labelValue-${i}`, processedData, 'object')
                     : undefined
             );
@@ -822,7 +829,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         toIndex: number | undefined
     ): DeepRequired<AgOrganizationSeriesLinkStyle> {
         const { dataModel, processedData } = this;
-        const { itemStyler: linkStyler } = this.properties.link;
+        const { itemStyler: linkStyler } = this.options.link;
 
         let style = this.getLinkDefaultStyle();
 
@@ -854,20 +861,26 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         isExpanderHovered: boolean
     ): NormalisedOrganizationNodeStyle {
         const { dataModel, processedData } = this;
-        const { itemStyler } = this.properties.node;
-        const { itemStyler: titleStyler } = this.properties.node.title;
-        const { itemStyler: subtitleStyler } = this.properties.node.subtitle;
-        const { itemStyler: expanderStyler } = this.properties.expander;
+        const { node, expander } = this.options;
+        const { itemStyler, title, subtitle, labels = NO_LABEL_TIERS } = node;
+        const { itemStyler: titleStyler } = title;
+        const { itemStyler: subtitleStyler } = subtitle;
+        const { itemStyler: expanderStyler } = expander;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const selectionStyle = this.getSelectionStyle(datumIndex);
 
-        let style = mergeDefaults(selectionStyle, highlightStyle, this.getNodeDefaultStyle(), {
-            title: this.getNodeTextDefaultStyle(this.properties.node.title),
-            subtitle: this.getNodeTextDefaultStyle(this.properties.node.subtitle),
-            labels: this.properties.node.labels.map((label) => this.getNodeTextDefaultStyle(label)),
-            expander: this.getExpanderDefaultStyle(),
-        });
+        let style: NormalisedOrganizationNodeStyle = mergeDefaults(
+            selectionStyle,
+            highlightStyle,
+            this.getNodeDefaultStyle(),
+            {
+                title: this.getNodeTextDefaultStyle(title),
+                subtitle: this.getNodeTextDefaultStyle(subtitle),
+                labels: labels.map((label) => this.getNodeTextDefaultStyle(label)),
+                expander: this.getExpanderDefaultStyle(),
+            }
+        );
 
         style = this.getNodeItemStylerStyle(
             itemStyler,
@@ -917,7 +930,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         }
 
         let labelIndex = 0;
-        for (const { itemStyler: labelStyler } of this.properties.node.labels) {
+        for (const { itemStyler: labelStyler } of labels) {
             style.labels[labelIndex] = this.getNodeTextItemStylerStyle(
                 labelStyler,
                 style.labels[labelIndex],
@@ -968,7 +981,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             strokeOpacity,
             strokeWidth,
             width,
-        } = this.properties.node;
+        } = this.options.node;
         return {
             cornerRadius,
             fill,
@@ -984,7 +997,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 spacing: image.spacing,
             },
             lineDash,
-            lineDashOffset: lineDashOffset ?? 0,
+            lineDashOffset,
             maxHeight: maxHeight ?? Infinity,
             maxWidth: maxWidth ?? Infinity,
             padding: {
@@ -1013,14 +1026,14 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             strokeWidth,
             strokeOpacity,
             text,
-        } = this.properties.expander;
+        } = this.options.expander;
         return {
             cornerRadius,
             enabled,
             fill,
             fillOpacity,
             lineDash,
-            lineDashOffset: lineDashOffset ?? 0,
+            lineDashOffset,
             padding: {
                 top: padding.top,
                 right: padding.right,
@@ -1046,7 +1059,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     private applyExpanderHoverStyle(
         style: NormalisedOrganizationSeriesExpanderStyle
     ): NormalisedOrganizationSeriesExpanderStyle {
-        const { hoverStyle } = this.properties.expander;
+        const { hoverStyle } = this.options.expander;
         return {
             ...style,
             fill: hoverStyle.fill ?? style.fill,
@@ -1057,25 +1070,27 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             strokeOpacity: hoverStyle.strokeOpacity ?? style.strokeOpacity,
             text: {
                 ...style.text,
-                color: hoverStyle.text.color ?? style.text.color,
-                fontWeight: hoverStyle.text.fontWeight ?? style.text.fontWeight,
+                color: hoverStyle.text?.color ?? style.text.color,
+                fontWeight: hoverStyle.text?.fontWeight ?? style.text.fontWeight,
             },
         };
     }
 
     private getLinkDefaultStyle(): DeepRequired<AgOrganizationSeriesLinkStyle> {
-        const { interpolation, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = this.properties.link;
+        const { interpolation, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = this.options.link;
         return {
             interpolation,
             lineDash,
-            lineDashOffset: lineDashOffset ?? 0,
+            lineDashOffset,
             stroke,
             strokeOpacity,
             strokeWidth,
         };
     }
 
-    private getNodeTextDefaultStyle(props: OrganizationSeriesNodeTextProperties): NormalisedOrganizationNodeTextStyle {
+    private getNodeTextDefaultStyle(
+        props: NormalisedOrganizationSeriesNodeTextOptions
+    ): NormalisedOrganizationNodeTextStyle {
         return {
             color: props.color,
             enabled: props.enabled,
@@ -1372,7 +1387,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     private getNetworkTreeLayoutDirection(): AgNetworkSeriesTreeLayoutDirection {
-        const { direction, reverse } = this.properties;
+        const { direction, reverse } = this.options;
         if (reverse) {
             return direction === 'horizontal' ? 'left' : 'up';
         }

@@ -1,5 +1,6 @@
 import { type AgSankeySeriesOptions, VERSION } from 'ag-charts-community';
 import {
+    COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
@@ -32,6 +33,7 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
             },
         },
         series: {
+            ...COMMON_SERIES_THEME_DEFAULTS,
             fills: { $palette: 'fills' },
             strokes: { $palette: 'strokes' },
             highlight: {
@@ -40,6 +42,7 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                     opacity: 0.5,
                 },
             },
+            tooltip: { interaction: { enabled: false } },
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 enabled: true,
@@ -53,11 +56,22 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                 spacing: { $if: [{ $greaterThan: [{ $path: './minSpacing' }, 20] }, { $path: './minSpacing' }, 20] },
                 minSpacing: 0,
                 width: 10,
+                cornerRadius: 0,
+                alignment: 'justify',
+                verticalAlignment: 'center',
+                sort: 'auto',
+                fillOpacity: 1,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
+                strokeOpacity: 1,
+                lineDash: [0],
+                lineDashOffset: 0,
             },
             link: {
                 fillOpacity: 0.5,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
+                strokeOpacity: 1,
+                lineDash: [0],
+                lineDashOffset: 0,
             },
             ...undocumentedThemeOptions({
                 selection: SERIES_SELECTION_THEME,

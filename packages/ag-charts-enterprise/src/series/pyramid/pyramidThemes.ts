@@ -1,4 +1,5 @@
 import {
+    COMMON_SERIES_THEME_DEFAULTS,
     DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
@@ -14,9 +15,15 @@ import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 export const PYRAMID_SERIES_THEME: ExtensibleSeriesTheme<'pyramid'> = {
     series: {
+        ...COMMON_SERIES_THEME_DEFAULTS,
         direction: 'vertical',
+        fillOpacity: 1,
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
+        strokeOpacity: 1,
+        lineDash: [0],
+        lineDashOffset: 0,
         spacing: 2,
+        tooltip: { interaction: { enabled: false } },
         fills: {
             $applyCycle: [
                 { $size: { $path: ['./data', { $path: '/data' }] } },
