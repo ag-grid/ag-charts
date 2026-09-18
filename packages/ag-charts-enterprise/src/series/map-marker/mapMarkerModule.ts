@@ -1,5 +1,6 @@
 import { type AgMapMarkerSeriesOptions, VERSION } from 'ag-charts-community';
 import {
+    COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
@@ -10,6 +11,7 @@ import {
     SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
     ValidationError,
+    undocumentedThemeOptions,
     validate,
 } from 'ag-charts-core';
 
@@ -30,6 +32,8 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
+            ...COMMON_SERIES_THEME_DEFAULTS,
+            ...undocumentedThemeOptions({ topologyIdKey: 'name' }),
             shape: 'circle',
             size: 7,
             maxSize: 30,
@@ -56,18 +60,25 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
                         },
                     ],
                 },
+                mode: 'continuous',
             },
             fillOpacity: 0.5,
+            strokeWidth: 1,
+            strokeOpacity: 1,
+            lineDash: [0],
+            lineDashOffset: 0,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 ...LABEL_OVERFLOW_DEFAULTS,
                 enabled: false,
+                placement: 'bottom',
                 fontSize: { $ref: 'fontSize' },
                 fontFamily: { $ref: 'fontFamily' },
                 fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'textColor' },
                 collision: { alwaysShow: false },
             },
+            tooltip: { interaction: { enabled: false } },
             highlight: applyMapPalette(MULTI_SERIES_HIGHLIGHT_STYLE),
             selection: SERIES_SELECTION_THEME,
         },

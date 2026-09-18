@@ -257,7 +257,7 @@ describe('MapShapeSeries', () => {
                 return (chart.series[0].contextNodeData?.labelData ?? []).map((d: { text: string }) => d.text);
             };
 
-            const resolvedTruncate = () => chart.series[0].properties.label.truncate;
+            const resolvedTruncate = () => chart.series[0].options.label.truncate;
 
             it('warns and maps `ellipsis` onto `truncate`', async () => {
                 const texts = await render({ overflowStrategy: 'ellipsis' });
@@ -469,7 +469,7 @@ describe('MapShapeSeries', () => {
                 const { x, y } = item.series.datumMidPoint(item);
                 return [x, y];
             },
-            getDatumValues: (item, series) => [item.datum[series.properties.idKey]],
+            getDatumValues: (item, series) => [item.datum[series.options.idKey]],
             getTooltipRenderedValues: ({ datum, idKey }) => [datum[idKey]],
             getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
         });

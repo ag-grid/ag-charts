@@ -4,16 +4,17 @@ import type {
     DynamicContext,
     Feature,
     FeatureCollection,
-    FillStrokeMorph,
     Geometry,
-    Normalised,
     PlacedLabel,
 } from 'ag-charts-core';
 import {
     type ITextMeasurer,
     type LabelFit,
     type NormalisedChartLabelStyleOptions,
+    type NormalisedMapLineSeriesOwnOptions,
+    type NormalisedMapLineSeriesStyle,
     type Point,
+    type PointLabelDatum,
     cachedTextMeasurer,
     findDiscreteColorBinLabel,
     fitLabelText,
@@ -26,7 +27,6 @@ import type {
     AgDrawingMode,
     AgMapLineSeriesItemStylerParams,
     AgMapLineSeriesLabelFormatterParams,
-    AgMapLineSeriesOptions,
 } from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
@@ -37,7 +37,6 @@ import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { TopologySeries } from '../map-util/topologySeries';
 import type { ITopology } from '../map-util/topologyTypes';
-import { type MapLineNodeDatum, type MapLineNodeLabelDatum, MapLineSeriesProperties } from './mapLineSeriesProperties';
 
 const {
     getMissCount,
@@ -57,6 +56,21 @@ const {
     Transformable,
 } = _ModuleSupport;
 
+export interface MapLineNodeLabelDatum extends PointLabelDatum {
+    readonly datumIndex: number;
+    readonly idValue: string;
+}
+
+export interface MapLineNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
+    readonly idValue: string;
+    readonly labelValue: string | undefined;
+    readonly colorValue: number | undefined;
+    readonly sizeValue: number | undefined;
+    readonly legendItemName: string | undefined;
+    readonly projectedGeometry: Geometry | undefined;
+    style: AgMapLineSeriesStyle;
+}
+
 interface MapLineNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
     MapLineNodeDatum,
     MapLineNodeLabelDatum
@@ -69,13 +83,10 @@ interface LineDataValues {
     readonly labelValue: string | undefined;
 }
 
-type NormalisedMapLineSeriesStyle = Normalised<AgMapLineSeriesStyle, never, FillStrokeMorph>;
-
 export class MapLineSeries
     extends TopologySeries<
         MapLineNodeDatum,
-        AgMapLineSeriesOptions,
-        MapLineSeriesProperties,
+        NormalisedMapLineSeriesOwnOptions,
         MapLineNodeLabelDatum,
         MapLineNodeDataContext
     >
@@ -88,8 +99,6 @@ export class MapLineSeries
 
     public topologyBounds: LonLatBBox | undefined;
 
-    override properties = new MapLineSeriesProperties();
-
     private _chartTopology?: FeatureCollection = undefined;
 
     public override getNodeData(): MapLineNodeDatum[] | undefined {
@@ -97,7 +106,7 @@ export class MapLineSeries
     }
 
     private get topology() {
-        return this.properties.topology ?? this._chartTopology;
+        return this.options.topology ?? this._chartTopology;
     }
 
     override get hasData() {
@@ -165,7 +174,7 @@ export class MapLineSeries
     }
 
     private isLabelEnabled() {
-        return this.properties.labelKey != null && this.properties.label.enabled;
+        return this.options.labelKey != null && this.options.label.enabled;
     }
 
     private nodeFactory(): GeoGeometry<MapLineNodeDatum> {
@@ -180,7 +189,7 @@ export class MapLineSeries
         if (this.data == null) return;
 
         const { data, topology, sizeScale, colorScale } = this;
-        const { topologyIdKey, idKey, sizeKey, colorKey, labelKey, sizeDomain } = this.properties;
+        const { topologyIdKey, idKey, sizeKey, colorKey, labelKey, sizeDomain } = this.options;
 
         const featureById = new Map<string, Feature>();
         for (const feature of topology?.features.values() ?? []) {
@@ -230,7 +239,7 @@ export class MapLineSeries
         if (this.isColorScaleValid()) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
             const domain = processedData.domain.values[colorKeyIdx];
-            configureColorScale(colorScale, this.properties.colorScale, domain, this.ctx.logger);
+            configureColorScale(colorScale, this.options.colorScale, domain, this.ctx.logger);
         }
 
         if (topology == null) {
@@ -239,7 +248,7 @@ export class MapLineSeries
     }
 
     private isColorScaleValid() {
-        const { colorKey } = this.properties;
+        const { colorKey } = this.options;
         if (!colorKey) {
             return false;
         }
@@ -271,7 +280,7 @@ export class MapLineSeries
         const lineString = largestLineString(projectedGeometry);
         if (lineString == null) return;
 
-        const { idKey, idName, sizeKey, sizeName, colorKey, colorName, labelKey, labelName, label } = this.properties;
+        const { labelKey, label } = this.options;
         // A label the styler disabled is left out of the label data, so it reserves no placement space and
         // acts as no obstacle — hiding it at render time alone would still displace its neighbours.
         if (labelKey == null || !label.enabled || !labelStyle.enabled) return;
@@ -283,18 +292,7 @@ export class MapLineSeries
             'label',
             [],
             label,
-            {
-                value: labelValue,
-                datum,
-                idKey,
-                idName,
-                sizeKey,
-                sizeName,
-                colorKey,
-                colorName,
-                labelKey,
-                labelName,
-            }
+            { value: labelValue, datum, ...this.makeLabelFormatterParams() }
         );
         if (labelText == null) return;
 
@@ -331,7 +329,7 @@ export class MapLineSeries
     }
 
     private resolveLineDataColumns(processedData: _ModuleSupport.ProcessedData<any>) {
-        const { sizeKey, colorKey, labelKey } = this.properties;
+        const { sizeKey, colorKey, labelKey } = this.options;
 
         return {
             idValues: this.dataModel!.resolveColumnById(this, 'idValue', processedData, 'string'),
@@ -382,8 +380,8 @@ export class MapLineSeries
     }
 
     override createNodeData() {
-        const { id: seriesId, dataModel, processedData, sizeScale, properties } = this;
-        const { label, legendItemName } = properties;
+        const { id: seriesId, dataModel, processedData, sizeScale, options } = this;
+        const { label, legendItemName, strokeWidth, maxStrokeWidth } = options;
 
         if (dataModel == null || processedData == null) return;
 
@@ -395,15 +393,14 @@ export class MapLineSeries
 
         // `minStrokeWidth` is the explicit lower bound when `sizeKey` is present, defaulting to `strokeWidth`.
         // It is authoritative: raise the upper bound to it when a smaller `maxStrokeWidth` would invert the range.
-        const minStrokeWidth = properties.minStrokeWidth ?? properties.strokeWidth;
-        const maxStrokeWidth = properties.maxStrokeWidth ?? properties.strokeWidth;
+        const minStrokeWidth = options.minStrokeWidth ?? strokeWidth;
         sizeScale.range = [minStrokeWidth, Math.max(minStrokeWidth, maxStrokeWidth)];
         // The styler takes no datum here, so one resolved style governs every label of this series;
         // measuring and reserving against it keeps each collision footprint equal to the box drawn.
         const labelStyle = getLabelStyles<AgMapLineSeriesLabelFormatterParams>(
             this,
             undefined,
-            properties,
+            this.makeLabelFormatterParams(),
             label,
             false,
             undefined
@@ -517,16 +514,24 @@ export class MapLineSeries
         { datumIndex = 0, datum, colorValue, sizeValue }: Partial<MapLineNodeDatum>,
         isHighlight: boolean
     ): Required<NormalisedMapLineSeriesStyle> {
-        const { properties, colorScale, sizeScale } = this;
-        const { colorKey, colorScale: colorScaleProps, itemStyler } = properties;
+        const { options, colorScale, sizeScale } = this;
+        const { colorKey, colorScale: colorScaleProps, itemStyler } = options;
         const { missingDataFill } = colorScaleProps;
 
-        const baseStyle = properties.getStyle();
+        const { stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = options;
+        const baseStyle: Required<NormalisedMapLineSeriesStyle> & { opacity: number } = {
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            lineDashOffset,
+            opacity: 1,
+        };
 
         if (colorValue != null) {
             baseStyle.stroke = this.isColorScaleValid()
                 ? colorScale.convert(colorValue)
-                : (colorScaleProps.fills[0]?.color ?? properties.stroke);
+                : (colorScaleProps.fills[0]?.color ?? stroke);
         } else if (colorKey != null && missingDataFill != null) {
             baseStyle.stroke = missingDataFill;
         }
@@ -558,6 +563,11 @@ export class MapLineSeries
         return overrides ? mergeDefaults(style, overrides) : style;
     }
 
+    private makeLabelFormatterParams() {
+        const { idKey, idName, sizeKey, sizeName, colorKey, colorName, labelKey, labelName } = this.options;
+        return { idKey, idName, sizeKey, sizeName, colorKey, colorName, labelKey, labelName };
+    }
+
     private makeItemStylerParams(
         datum: unknown,
         datumIndex: number,
@@ -565,7 +575,7 @@ export class MapLineSeries
         style: Required<NormalisedMapLineSeriesStyle>
     ) {
         const { id: seriesId } = this;
-        const { sizeKey, idKey, labelKey, colorKey } = this.properties;
+        const { sizeKey, idKey, labelKey, colorKey } = this.options;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
@@ -642,15 +652,15 @@ export class MapLineSeries
         >;
         isHighlight: boolean;
     }) {
-        const { properties } = this;
+        const { options } = this;
         const activeHighlight = this.getHighlightedDatum();
         labelSelection.each((label, placedLabel) => {
             const { x, y, width, height, text, datum: labelDatum } = placedLabel;
             const style = getLabelStyles<AgMapLineSeriesLabelFormatterParams>(
                 this,
                 undefined,
-                properties,
-                properties.label,
+                this.makeLabelFormatterParams(),
+                options.label,
                 isHighlight,
                 activeHighlight
             );
@@ -701,7 +711,7 @@ export class MapLineSeries
 
     // Labels centre on the line with no directional placement, so defaults carry avoidance only.
     override getLabelDefaults() {
-        return resolveSeriesLabelDefaults(this.properties.label.collision);
+        return resolveSeriesLabelDefaults(this.options.label.collision);
     }
 
     override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
@@ -742,11 +752,11 @@ export class MapLineSeries
     }
 
     private legendItemSymbol(datumIndex?: number): _ModuleSupport.LegendSymbolOptions {
-        const { dataModel, processedData, properties } = this;
-        const { colorKey, strokeWidth, strokeOpacity, lineDash } = properties;
-        const { missingDataFill } = properties.colorScale;
+        const { dataModel, processedData, options } = this;
+        const { colorKey, strokeWidth, strokeOpacity, lineDash } = options;
+        const { missingDataFill } = options.colorScale;
 
-        let { stroke } = properties;
+        let { stroke } = options;
         if (datumIndex != null && this.isColorScaleValid()) {
             const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!, 'mixed-numeric');
             const colorValue = colorValues[datumIndex];
@@ -794,7 +804,7 @@ export class MapLineSeries
             colorKey,
             colorScale: colorScaleProps,
             showInLegend,
-        } = this.properties;
+        } = this.options;
         const hasColorScale = colorScaleProps.fills.length > 0;
 
         if (legendType === 'gradient' && colorKey != null && hasColorScale) {
@@ -826,7 +836,7 @@ export class MapLineSeries
                 label: { text: legendItemName ?? title ?? idName ?? idKey },
                 symbol: this.legendItemSymbol(),
                 legendItemName,
-                hideInLegend: !showInLegend,
+                hideInLegend: showInLegend === false,
             };
             return [legendDatum];
         } else {
@@ -839,7 +849,7 @@ export class MapLineSeries
             id: seriesId,
             dataModel,
             processedData,
-            properties,
+            options,
             ctx: { formatManager },
         } = this;
         const {
@@ -854,7 +864,7 @@ export class MapLineSeries
             title,
             legendItemName,
             tooltip,
-        } = properties;
+        } = options;
         if (!dataModel || !processedData) return;
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
@@ -924,7 +934,7 @@ export class MapLineSeries
             });
             const binLabel = findDiscreteColorBinLabel(
                 this.colorScale,
-                properties.colorScale.fills,
+                options.colorScale.fills,
                 colorValue,
                 formatValue
             );
@@ -964,10 +974,6 @@ export class MapLineSeries
     }
 
     protected override hasItemStylers(): boolean {
-        return (
-            this.properties.selection.enabled ||
-            this.properties.itemStyler != null ||
-            this.properties.label.itemStyler != null
-        );
+        return this.isSelectionEnabled() || this.options.itemStyler != null || this.options.label.itemStyler != null;
     }
 }

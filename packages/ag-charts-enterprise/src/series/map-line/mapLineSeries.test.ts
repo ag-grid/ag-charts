@@ -585,7 +585,7 @@ describe('MapLineSeries', () => {
                 const { x, y } = item.series.datumMidPoint(item);
                 return [x, y];
             },
-            getDatumValues: (item, series) => [item.datum[series.properties.idKey]],
+            getDatumValues: (item, series) => [item.datum[series.options.idKey]],
             getTooltipRenderedValues: ({ datum, idKey }) => [datum[idKey]],
             getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
         });
