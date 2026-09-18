@@ -24,6 +24,7 @@ export * from './types/normalised-options/normalisedSeriesOptions';
 export * from './types/normalised-options/normalisedLabelOptions';
 export * from './types/normalised-options/normalisedNetworkSeries';
 export * from './types/normalised-options/normalisedLegendOptions';
+export * from './types/normalised-options/normalisedMapSeries';
 export * from './types/normalised-options/normalisedSeriesArea';
 export * from './types/normalised-options/normalisedSelectionOptions';
 export * from './types/normalised-options/normalisedZoomOptions';
