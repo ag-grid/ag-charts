@@ -5,6 +5,7 @@ import {
     FILL_PATTERN_DEFAULTS,
     FONT_SIZE_RATIO,
     LABEL_BOXING_DEFAULTS,
+    SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
     undocumentedThemeOptions,
@@ -26,6 +27,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
     options: treemapSeriesOptionsDef,
     themeTemplate: {
         series: {
+            ...SERIES_INTERACTION_THEME_DEFAULTS,
             fills: {
                 $applyCycle: [
                     { $size: { $path: ['./data', { $path: '/data' }] } },
@@ -46,7 +48,9 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
             },
             colorScale: {
                 fills: { $map: [{ color: { $value: '$1' } }, { $palette: 'divergingColors' }] },
+                mode: 'continuous',
             },
+            tooltip: { interaction: { enabled: false } },
             group: {
                 label: {
                     ...LABEL_BOXING_DEFAULTS,
@@ -60,11 +64,15 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 },
                 fill: undefined, // Override default fill
                 fills: { $palette: 'hierarchyColors' },
+                fillOpacity: 1,
                 stroke: undefined, // Override default stroke
                 strokeWidth: 1,
+                strokeOpacity: 1,
+                cornerRadius: 0,
                 padding: 4,
                 gap: 2,
                 textAlign: 'left',
+                interactive: true,
                 highlight: {
                     enabled: { $circular: { $path: '/highlight/enabled' } },
                     unhighlightedItem: {
@@ -101,8 +109,13 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                     overflowStrategy: 'ellipsis',
                 },
                 fill: undefined, // Override default fill
+                fillOpacity: 1,
                 stroke: undefined, // Override default stroke
                 strokeWidth: { $isUserOption: ['../strokes/0', 2, { $isUserOption: ['./stroke', 2, 0] }] },
+                strokeOpacity: 1,
+                cornerRadius: 0,
+                textAlign: 'center',
+                verticalAlign: 'middle',
                 padding: 3,
                 gap: 1,
                 highlight: {
@@ -119,6 +132,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 selection: SERIES_SELECTION_THEME,
             },
             ...undocumentedThemeOptions({
+                childrenKey: 'children',
                 undocumentedGroupStrokes: { $palette: 'secondHierarchyColors' },
             }),
         },

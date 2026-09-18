@@ -6,8 +6,10 @@ import {
     FILL_PATTERN_DEFAULTS,
     FONT_SIZE_RATIO,
     LABEL_BOXING_DEFAULTS,
+    SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
+    undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -17,6 +19,7 @@ import { sunburstSeriesOptionsDef } from './sunburstSeriesOptionsDef';
 
 const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
     series: {
+        ...SERIES_INTERACTION_THEME_DEFAULTS,
         fills: {
             $applyCycle: [
                 { $size: { $path: ['./data', { $path: '/data' }] } },
@@ -37,8 +40,13 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
         },
         colorScale: {
             fills: { $map: [{ color: { $value: '$1' } }, { $palette: 'divergingColors' }] },
+            mode: 'continuous',
         },
+        tooltip: { interaction: { enabled: false } },
+        fillOpacity: 1,
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
+        strokeOpacity: 1,
+        cornerRadius: 0,
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: true,
@@ -86,6 +94,7 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
             },
         },
         selection: SERIES_SELECTION_THEME,
+        ...undocumentedThemeOptions({ childrenKey: 'children' }),
     },
     legend: {
         enabled: {
