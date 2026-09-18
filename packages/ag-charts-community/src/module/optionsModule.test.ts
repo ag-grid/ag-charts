@@ -963,6 +963,7 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1062,6 +1063,7 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1161,6 +1163,7 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1260,6 +1263,7 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1304,7 +1308,10 @@ describe('ChartOptions', () => {
                   "yName": "Services",
                 },
                 {
+                  "connectMissingData": false,
+                  "cursor": "default",
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedSeries": {
                       "opacity": 0.2,
@@ -1347,17 +1354,26 @@ describe('ChartOptions', () => {
                   ],
                   "lineDashOffset": 0,
                   "marker": {
+                    "enabled": true,
                     "fill": "#e1cc00",
+                    "fillOpacity": 1,
+                    "lineDash": [
+                      0,
+                    ],
+                    "lineDashOffset": 0,
                     "shape": "circle",
                     "size": 7,
                     "stroke": "#a69400",
+                    "strokeOpacity": 1,
                     "strokeWidth": 0,
                   },
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1369,10 +1385,14 @@ describe('ChartOptions', () => {
                       "opacity": 0.2,
                     },
                   },
+                  "showInLegend": true,
                   "stroke": "#e1cc00",
                   "strokeOpacity": 1,
                   "strokeWidth": 2,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "node",
                       "offset": 12,
@@ -1388,7 +1408,10 @@ describe('ChartOptions', () => {
                   "yName": "Mac",
                 },
                 {
+                  "connectMissingData": false,
+                  "cursor": "default",
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedSeries": {
                       "opacity": 0.2,
@@ -1431,17 +1454,26 @@ describe('ChartOptions', () => {
                   ],
                   "lineDashOffset": 0,
                   "marker": {
+                    "enabled": true,
                     "fill": "#9669cb",
+                    "fillOpacity": 1,
+                    "lineDash": [
+                      0,
+                    ],
+                    "lineDashOffset": 0,
                     "shape": "circle",
                     "size": 7,
                     "stroke": "#603c88",
+                    "strokeOpacity": 1,
                     "strokeWidth": 0,
                   },
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1453,10 +1485,14 @@ describe('ChartOptions', () => {
                       "opacity": 0.2,
                     },
                   },
+                  "showInLegend": true,
                   "stroke": "#9669cb",
                   "strokeOpacity": 1,
                   "strokeWidth": 2,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "node",
                       "offset": 12,
@@ -1538,6 +1574,7 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1637,6 +1674,7 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1736,6 +1774,7 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1835,6 +1874,7 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1879,7 +1919,10 @@ describe('ChartOptions', () => {
                   "yName": "Services",
                 },
                 {
+                  "connectMissingData": false,
+                  "cursor": "default",
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedSeries": {
                       "opacity": 0.2,
@@ -1922,17 +1965,26 @@ describe('ChartOptions', () => {
                   ],
                   "lineDashOffset": 0,
                   "marker": {
+                    "enabled": true,
                     "fill": "#e1cc00",
+                    "fillOpacity": 1,
+                    "lineDash": [
+                      0,
+                    ],
+                    "lineDashOffset": 0,
                     "shape": "circle",
                     "size": 7,
                     "stroke": "#a69400",
+                    "strokeOpacity": 1,
                     "strokeWidth": 0,
                   },
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1944,10 +1996,14 @@ describe('ChartOptions', () => {
                       "opacity": 0.2,
                     },
                   },
+                  "showInLegend": true,
                   "stroke": "#e1cc00",
                   "strokeOpacity": 1,
                   "strokeWidth": 2,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "node",
                       "offset": 12,
@@ -1963,7 +2019,10 @@ describe('ChartOptions', () => {
                   "yName": "Mac",
                 },
                 {
+                  "connectMissingData": false,
+                  "cursor": "default",
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedSeries": {
                       "opacity": 0.2,
@@ -2006,17 +2065,26 @@ describe('ChartOptions', () => {
                   ],
                   "lineDashOffset": 0,
                   "marker": {
+                    "enabled": true,
                     "fill": "#9669cb",
+                    "fillOpacity": 1,
+                    "lineDash": [
+                      0,
+                    ],
+                    "lineDashOffset": 0,
                     "shape": "circle",
                     "size": 7,
                     "stroke": "#603c88",
+                    "strokeOpacity": 1,
                     "strokeWidth": 0,
                   },
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -2028,10 +2096,14 @@ describe('ChartOptions', () => {
                       "opacity": 0.2,
                     },
                   },
+                  "showInLegend": true,
                   "stroke": "#9669cb",
                   "strokeOpacity": 1,
                   "strokeWidth": 2,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "node",
                       "offset": 12,
@@ -2113,6 +2185,7 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -2212,6 +2285,7 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -2311,6 +2385,7 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -2410,6 +2485,7 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -2454,7 +2530,10 @@ describe('ChartOptions', () => {
                   "yName": "Services",
                 },
                 {
+                  "connectMissingData": false,
+                  "cursor": "default",
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedSeries": {
                       "opacity": 0.2,
@@ -2497,17 +2576,26 @@ describe('ChartOptions', () => {
                   ],
                   "lineDashOffset": 0,
                   "marker": {
+                    "enabled": true,
                     "fill": "#e1cc00",
+                    "fillOpacity": 1,
+                    "lineDash": [
+                      0,
+                    ],
+                    "lineDashOffset": 0,
                     "shape": "circle",
                     "size": 7,
                     "stroke": "#a69400",
+                    "strokeOpacity": 1,
                     "strokeWidth": 0,
                   },
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -2519,10 +2607,14 @@ describe('ChartOptions', () => {
                       "opacity": 0.2,
                     },
                   },
+                  "showInLegend": true,
                   "stroke": "#e1cc00",
                   "strokeOpacity": 1,
                   "strokeWidth": 2,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "node",
                       "offset": 12,
@@ -2538,7 +2630,10 @@ describe('ChartOptions', () => {
                   "yName": "Mac",
                 },
                 {
+                  "connectMissingData": false,
+                  "cursor": "default",
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedSeries": {
                       "opacity": 0.2,
@@ -2581,17 +2676,26 @@ describe('ChartOptions', () => {
                   ],
                   "lineDashOffset": 0,
                   "marker": {
+                    "enabled": true,
                     "fill": "#9669cb",
+                    "fillOpacity": 1,
+                    "lineDash": [
+                      0,
+                    ],
+                    "lineDashOffset": 0,
                     "shape": "circle",
                     "size": 7,
                     "stroke": "#603c88",
+                    "strokeOpacity": 1,
                     "strokeWidth": 0,
                   },
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -2603,10 +2707,14 @@ describe('ChartOptions', () => {
                       "opacity": 0.2,
                     },
                   },
+                  "showInLegend": true,
                   "stroke": "#9669cb",
                   "strokeOpacity": 1,
                   "strokeWidth": 2,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "node",
                       "offset": 12,
