@@ -57,7 +57,6 @@ import {
     processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
-import { LabelValueFormatter } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import { type LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -175,10 +174,8 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     static readonly type = 'line' as const;
 
     private markerDirty = true;
-    private readonly labelFormatter = new LabelValueFormatter<AgLineSeriesLabelFormatterParams>();
 
     protected override syncOptionDerivedState(optionsDiff: DeepPartial<NormalisedLineSeriesOptions> | undefined) {
-        this.labelFormatter.label = this.options.label;
         if (optionsDiff == null || markerStyleChanged(optionsDiff.marker)) {
             this.markerDirty = true;
         }
@@ -581,7 +578,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                       ctx.yKey,
                       'y',
                       ctx.yDomain,
-                      this.labelFormatter,
+                      this.options.label,
                       {
                           value: scratch.yDatum,
                           datum: scratch.datum,

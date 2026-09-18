@@ -39,7 +39,11 @@ interface FormatterCache {
     formatter: ((value: any, fractionDigits?: number) => string) | undefined;
 }
 
-type LabelFormatSource<TParams, TDatum> = Pick<NormalisedSeriesLabelOptions<TParams, TDatum>, 'formatter' | 'format'>;
+/** The label keys formatting reads; plain post-theme label options satisfy it directly. */
+export type LabelFormatSource<TParams, TDatum> = Pick<
+    NormalisedSeriesLabelOptions<TParams, TDatum>,
+    'formatter' | 'format'
+>;
 type LabelFormatParams<TParams, TDatum> = AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>;
 
 /** Formats `value` via the label `formatter`, then its `format` string; `cache` keeps the compiled format string. */
@@ -71,13 +75,13 @@ export function formatLabelValue<TParams, TDatum>(
     return result == null || isArray(result) ? result : String(result);
 }
 
-/** Series-owned formatter over its current `label` options; swap `label` when the options are replaced. */
+/** Formats through one plain label options object, keeping its compiled `format` string; owned by base Series. */
 export class LabelValueFormatter<TParams = never, TDatum = any> implements AxisFormattableLabel<
     LabelFormatParams<TParams, TDatum>
 > {
     formatterCache: FormatterCache | undefined = undefined;
 
-    constructor(public label: LabelFormatSource<TParams, TDatum> = {}) {}
+    constructor(private readonly label: LabelFormatSource<TParams, TDatum>) {}
 
     formatValue(
         formatWithContext: ContextFormatter<LabelFormatParams<TParams, TDatum>>,

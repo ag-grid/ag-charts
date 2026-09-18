@@ -82,6 +82,7 @@ import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
 import type { DataModel, ProcessedData } from '../data/dataModel';
 import { DataSet } from '../data/dataSet';
+import { type LabelFormatSource, LabelValueFormatter } from '../label';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
 import { markerStrokePickInflation } from '../marker/marker';
@@ -399,6 +400,8 @@ export abstract class Series<
     private _dataConnected = true;
 
     private readonly datumCallbackCache = new Map<any, any>();
+    /** Compiled-format caches keyed by label options object; replaced options simply start a new entry. */
+    private readonly labelFormatters = new WeakMap<object, AxisFormattableLabel<any>>();
 
     connectsToYAxis = false;
 
@@ -1445,17 +1448,38 @@ export abstract class Series<
         );
     }
 
+    /** Legacy label holders format themselves; plain label options are wrapped once per options object. */
+    private labelFormatterFor<TParams extends object>(
+        label:
+            | AxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>
+            | LabelFormatSource<TParams, any>
+    ): AxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>> {
+        if ('formatValue' in label) {
+            return label;
+        }
+        let formatter = this.labelFormatters.get(label);
+        if (formatter == null) {
+            formatter = new LabelValueFormatter(label);
+            this.labelFormatters.set(label, formatter);
+        }
+        return formatter;
+    }
+
     protected getLabelText<TParams extends object>(
         value: any,
         datum: any,
         key: string,
         property: FormatterPropertyType,
         domain: any[],
-        label: AxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>,
+        labelSource:
+            | AxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>
+            | LabelFormatSource<TParams, any>,
         baseParams: RequireOptional<TParams> & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>,
         allowNullValue: boolean = false
     ): NormalisedTextOrSegments {
         if (value == null && !allowNullValue) return '';
+
+        const label = this.labelFormatterFor(labelSource);
 
         const { axes, canHaveAxes, ctx, id: seriesId, options } = this;
         const source = 'series-label';
