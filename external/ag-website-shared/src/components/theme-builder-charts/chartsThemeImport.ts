@@ -17,7 +17,7 @@ import type { AgChartThemeName } from 'ag-charts-community';
 
 import { PUBLIC_PARAM_NAMES } from './chartsTheme';
 import { setStoredPalette } from './paletteModel';
-import { setImportedBaseTheme } from './presetModel';
+import { setImportedBaseTheme, setSelectedPresetId } from './presetModel';
 
 /**
  * The inbound half of the theme snippet, mirroring `chartsThemeOutput.ts`: read
@@ -167,16 +167,12 @@ export const validateChartsThemeCode = (code: string): ValidationResult => {
     }
 
     const apply = (store: Store) => {
-        // Params first: `applyPreset` clears every param the theme does not name
-        // - what makes this an import rather than a merge - and knows nothing of
-        // the palette or the base theme, so those are set after it.
+        // `applyPreset` clears every param the theme does not name - what makes this
+        // an import rather than a merge - and the three below go the same way.
         applyPreset(store, preset as Preset);
-        if (palette) {
-            setStoredPalette(store, palette);
-        }
-        if (baseTheme) {
-            setImportedBaseTheme(store, baseTheme);
-        }
+        setStoredPalette(store, palette);
+        setImportedBaseTheme(store, baseTheme);
+        setSelectedPresetId(store, null);
     };
 
     const summary = `Found ${andList(found)}`;

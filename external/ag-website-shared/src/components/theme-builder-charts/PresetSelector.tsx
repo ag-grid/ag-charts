@@ -6,12 +6,12 @@ import { useStore } from 'jotai';
 import { useState } from 'react';
 
 import { PresetPreview } from './PresetPreview';
-import { setStoredPalette } from './paletteModel';
+import { completePalette, setStoredPalette } from './paletteModel';
 import { setImportedBaseTheme, setSelectedPresetId } from './presetModel';
 import { type ChartsPreset, PRESETS, toSharedPreset } from './presets';
 
 interface Props {
-    selectedId: string | undefined;
+    selectedId: string | null | undefined;
 }
 
 export const PresetSelector = ({ selectedId }: Props) => {
@@ -20,20 +20,16 @@ export const PresetSelector = ({ selectedId }: Props) => {
     const [pendingPreset, setPendingPreset] = useState<ChartsPreset | null>(null);
 
     const apply = (preset: ChartsPreset) => {
+        // Neither the palette nor the base theme is part of the shared preset, so
+        // both are applied here - after applyPreset, which resets the change count.
         applyPreset(store, toSharedPreset(preset));
-        // Neither the palette nor the base theme is part of the shared preset,
-        // so both are applied here - after applyPreset, which resets the change
-        // counter the guard below reads.
-        setStoredPalette(store, preset.palette);
+        setStoredPalette(store, completePalette(preset.palette));
         setSelectedPresetId(store, preset.id);
-        // The preset's own base theme takes over from any imported one.
         setImportedBaseTheme(store, undefined);
     };
 
     const selectPreset = (preset: ChartsPreset) => {
-        // Only warn about losing manual edits; a single change is the preset
-        // application itself, mirroring the other hosts' threshold.
-        if (getChangedModelItemCount(store) > 1) {
+        if (getChangedModelItemCount(store) > 0) {
             setPendingPreset(preset);
             setShowDialog(true);
         } else {

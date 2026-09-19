@@ -8,8 +8,8 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_THEME_NAME, getPalette } from './chartsTheme';
 import { validateChartsThemeCode } from './chartsThemeImport';
 import { type ChartsThemeSelection, renderChartsThemeCode, toChartTheme } from './chartsThemeOutput';
-import { getStoredPalette } from './paletteModel';
-import { getImportedBaseTheme } from './presetModel';
+import { getStoredPalette, setStoredPalette } from './paletteModel';
+import { getImportedBaseTheme, getSelectedPresetId, setImportedBaseTheme, setSelectedPresetId } from './presetModel';
 // Side-effect import, as in the builder itself: it points the shared param model
 // at AG Charts' params, which everything below reads through.
 import './registerThemeBuilderConfig';
@@ -110,6 +110,32 @@ describe('importing an AG Charts theme', () => {
 
         expect(store.get(accentColor.valueAtom)).toBeUndefined();
         expect(store.get(paramModel('backgroundColor').valueAtom)).toBe('#FFFFFF');
+    });
+
+    it('replaces the palette, base theme and preset that were standing', () => {
+        // Leaving the preset selected would also re-seed its palette on the next reload.
+        const store = createStore();
+        setSelectedPresetId(store, 'midnight');
+        setStoredPalette(store, getPalette('ag-vivid'));
+        setImportedBaseTheme(store, 'ag-vivid');
+
+        importInto(store, "export const myTheme = { params: { backgroundColor: '#FFFFFF' } };");
+
+        expect(getStoredPalette(store)).toBeUndefined();
+        expect(getImportedBaseTheme(store)).toBeUndefined();
+        // Null, not unset: unset is a first visit, which seeds a preset back in.
+        expect(getSelectedPresetId(store)).toBeNull();
+    });
+
+    it('leaves an accent the imported palette omits unset', () => {
+        // Omitting one says "keep the base theme's candles"; filling it in makes every import full.
+        const store = createStore();
+        importInto(store, "export const myTheme = { palette: { fills: ['#FF0000'], strokes: ['#880000'] } };");
+
+        const stored = getStoredPalette(store);
+        expect(stored?.up).toBeUndefined();
+        expect(stored?.down).toBeUndefined();
+        expect(stored?.neutral).toBeUndefined();
     });
 
     it('reads a theme that is nothing but a palette', () => {

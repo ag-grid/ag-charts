@@ -10,7 +10,7 @@ import { PresetSelector } from './PresetSelector';
 import { PreviewPane } from './PreviewPane';
 import { PREVIEW_PANES } from './chartTypes';
 import { type ChartsThemeSelection, toChartTheme } from './chartsThemeOutput';
-import { setStoredPalette, useStoredPalette } from './paletteModel';
+import { completePalette, setStoredPalette, useStoredPalette } from './paletteModel';
 import { getSelectedPresetId, setSelectedPresetId, useImportedBaseTheme, useSelectedPresetId } from './presetModel';
 import { type ChartsPreset, findPreset } from './presets';
 
@@ -20,15 +20,16 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
     const { overriddenParams } = useRenderedThemeInfo();
     const storedPalette = useStoredPalette();
 
-    const preset = findPreset(useSelectedPresetId()) ?? initialPreset;
+    const selectedPresetId = useSelectedPresetId();
+    const preset = findPreset(selectedPresetId) ?? initialPreset;
     const importedBaseTheme = useImportedBaseTheme();
 
     // The palette and the preset live outside the shared param model, so a first
     // visit seeds them here. Guarded separately: a returning user may have edited
     // their palette without having chosen a preset, or the reverse.
     useLayoutEffect(() => {
-        if (getSelectedPresetId(store) == null) setSelectedPresetId(store, initialPreset.id);
-        if (storedPalette == null) setStoredPalette(store, initialPreset.palette);
+        if (getSelectedPresetId(store) === undefined) setSelectedPresetId(store, initialPreset.id);
+        if (storedPalette == null) setStoredPalette(store, completePalette(initialPreset.palette));
     }, []);
 
     const selection: ChartsThemeSelection = useMemo(
@@ -67,7 +68,7 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
                 </MenuBottom>
             </Menu>
             <Main>
-                <PresetSelector selectedId={preset.id} />
+                <PresetSelector selectedId={selectedPresetId} />
                 <PreviewRow>
                     {PREVIEW_PANES.map((pane) => (
                         <PreviewPane

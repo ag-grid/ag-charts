@@ -1,8 +1,9 @@
 import { type Palette, withPaletteDefaults } from '@ag-website-shared/components/theme-builder/palette';
 import { atomWithJSONStorage } from '@ag-website-shared/theming/JSONStorage';
+import { addChangedModelItem } from '@ag-website-shared/theming/changed-model-items';
 import type { Store } from '@ag-website-shared/theming/store';
-import { useAtom, useAtomValue } from 'jotai';
-import { useMemo } from 'react';
+import { useAtom, useAtomValue, useStore } from 'jotai';
+import { useCallback } from 'react';
 
 import { DEFAULT_THEME_NAME, getPalette } from './chartsTheme';
 
@@ -18,25 +19,25 @@ const DEFAULT_PALETTE = getPalette(DEFAULT_THEME_NAME);
 /** Unset means "inherit the base theme's palette". */
 const paletteAtom = atomWithJSONStorage<Palette | undefined>('charts-palette', undefined);
 
-const completed = (palette: Palette) => withPaletteDefaults(palette, DEFAULT_PALETTE);
+/** Only a preset: an import omits an accent to say the base theme's should show through. */
+export const completePalette = (palette: Palette) => withPaletteDefaults(palette, DEFAULT_PALETTE);
 
 export const usePalette = () => {
+    const store = useStore();
     const [stored, setStored] = useAtom(paletteAtom);
-    const palette = useMemo(() => (stored == null ? DEFAULT_PALETTE : completed(stored)), [stored]);
-    return [palette, setStored] as const;
+    // No ParamModel for the provider's listeners to watch, so an edit reports itself.
+    const setPalette = useCallback(
+        (palette: Palette) => {
+            setStored(palette);
+            addChangedModelItem(store, 'charts-palette');
+        },
+        [store, setStored]
+    );
+    return [stored ?? DEFAULT_PALETTE, setPalette] as const;
 };
 
-// Memoised because the preview theme is rebuilt whenever this changes by
-// identity, and a fresh object every render would restart the chart's animation.
-export const useStoredPalette = () => {
-    const stored = useAtomValue(paletteAtom);
-    return useMemo(() => (stored == null ? undefined : completed(stored)), [stored]);
-};
+export const useStoredPalette = () => useAtomValue(paletteAtom);
 
 export const setStoredPalette = (store: Store, palette: Palette | undefined) => store.set(paletteAtom, palette);
 
-/** `useStoredPalette` for callers outside React, completions and all. */
-export const getStoredPalette = (store: Store) => {
-    const stored = store.get(paletteAtom);
-    return stored == null ? undefined : completed(stored);
-};
+export const getStoredPalette = (store: Store) => store.get(paletteAtom);
