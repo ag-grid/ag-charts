@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "repo": "ag-grid/ag-charts",
+  "pr": 8219,
+  "sha": "6d69fe0a37087712bb254a0004319e9c4fe81f40",
+  "base": "https://ag-grid.github.io/ag-charts/pr-8219/",
+  "umd": {
+    "ag-charts-community": "ag-charts-community.min.js",
+    "ag-charts-enterprise": "ag-charts-enterprise.min.js"
+  },
+  "packages": {
+    "ag-charts-angular": {
+      "version": "14.2.0",
+      "paths": {
+        "fesm2022/ag-charts-angular.mjs": "ag-charts-angular/fesm2022/ag-charts-angular.mjs"
+      }
+    },
+    "ag-charts-community": {
+      "version": "14.2.0",
+      "paths": {
+        "dist/package/main.esm.mjs": "ag-charts-community/dist/package/main.esm.mjs"
+      }
+    },
+    "ag-charts-core": {
+      "version": "14.2.0",
+      "paths": {
+        "dist/package/main.esm.mjs": "ag-charts-core/dist/package/main.esm.mjs"
+      }
+    },
+    "ag-charts-enterprise": {
+      "version": "14.2.0",
+      "paths": {
+        "dist/package/main.esm.mjs": "ag-charts-enterprise/dist/package/main.esm.mjs"
+      }
+    },
+    "ag-charts-locale": {
+      "version": "14.2.0",
+      "paths": {
+        "dist/package/main.esm.mjs": "ag-charts-locale/dist/package/main.esm.mjs"
+      }
+    },
+    "ag-charts-react": {
+      "version": "14.2.0",
+      "paths": {
+        "dist/package/index.esm.mjs": "ag-charts-react/dist/package/index.esm.mjs"
+      }
+    },
+    "ag-charts-types": {
+      "version": "14.2.0",
+      "paths": {
+        "dist/package/main.esm.mjs": "ag-charts-types/dist/package/main.esm.mjs"
+      }
+    },
+    "ag-charts-vue3": {
+      "version": "14.2.0",
+      "paths": {
+        "dist/package/index.esm.mjs": "ag-charts-vue3/dist/package/index.esm.mjs"
+      }
+    }
+  }
+}
