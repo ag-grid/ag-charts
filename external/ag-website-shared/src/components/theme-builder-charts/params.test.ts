@@ -13,7 +13,7 @@ import {
 
 describe('charts theme builder param layout', () => {
     it('covers every public AG Charts theme param', () => {
-        // A param added to the AG Charts API should show up here as a failure,
+        // A new param in the AG Charts API should show up here as a failure,
         // not as a control the builder silently never offers.
         const missing = PUBLIC_PARAM_NAMES.filter((name) => !CURATED_KEYS.includes(name));
         expect(missing).toEqual([]);

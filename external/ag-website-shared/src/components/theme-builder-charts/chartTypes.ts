@@ -34,7 +34,7 @@ export type PreviewPreset = 'price-volume';
  * names a series back to the chart through `setState`, and AG Charts' generated
  * ids are documented as liable to change between releases.
  */
-export const previewSeriesId = (index: number) => `preview-series-${index}`;
+const previewSeriesId = (index: number) => `preview-series-${index}`;
 
 /** A datum the preview can ask the chart to open a tooltip on. */
 export type PreviewTooltipTarget = { seriesId: string; itemId: number };

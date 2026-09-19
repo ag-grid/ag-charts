@@ -279,7 +279,7 @@ describe('preview chart types', () => {
     });
 
     it('opens the two panes on two chart types that exist', () => {
-        // An id no longer in the list falls back to the first type without
+        // An id missing from the list falls back to the first type without
         // complaint, so a rename would silently open both panes on the same
         // chart - losing the comparison the second pane is there to make.
         const ids = PREVIEW_PANES.map((pane) => DEFAULT_CHART_TYPE_IDS[pane]);

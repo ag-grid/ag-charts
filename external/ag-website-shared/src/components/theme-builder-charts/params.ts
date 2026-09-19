@@ -1,8 +1,8 @@
 /**
  * The curated editor layout. Value type and default are derived by the shared
  * layer, so only presentation hints live here. Every public param must appear in
- * exactly one group, which `params.test.ts` asserts so that a param added to the
- * API cannot quietly go missing from the builder.
+ * exactly one group, which `params.test.ts` asserts so that a new API param
+ * cannot quietly go missing from the builder.
  */
 import { paramToVariableName } from '@ag-website-shared/theming/utils';
 
