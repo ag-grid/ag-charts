@@ -1,13 +1,13 @@
 import {
     AgDocument,
     type StrictHTMLElement,
-    attachListener,
     createElement,
     createId,
     createStyleElement,
     entries,
     isDirectionRtl,
     isDocumentFragment,
+    isNode,
     isObject,
     kebabCase,
     setAttribute,
@@ -35,6 +35,7 @@ const DOM_ELEMENT_CLASSES = [
     'canvas-overlay',
     'canvas-proxy',
     'series-area',
+    'series-area-bounds',
     'tooltip-container',
     'style-sensors',
 ] as const;
@@ -54,6 +55,7 @@ const domElementConfig: Map<DOMElementClass, DOMElementConfig> = new Map([
     ['canvas-overlay', { childElementType: 'div' }],
     ['canvas-center', { childElementType: 'div' }],
     ['series-area', { childElementType: 'div' }],
+    ['series-area-bounds', { childElementType: 'div' }],
     ['tooltip-container', { childElementType: 'div' }],
 ]);
 
@@ -219,6 +221,7 @@ export class DOMManager extends BaseManager {
         this.rootElements = this.initRootElements();
 
         this.rootElements['canvas'].element.style.setProperty('anchor-name', this.anchorName);
+        this.element.addEventListener('focusin', this.onFocusIn);
 
         this.sizeMonitor.observe(this.rootElements['canvas'].element, () => this.invalidateRectCaches(), {
             skipInitialRead: this.mode === 'minimal',
@@ -270,7 +273,8 @@ export class DOMManager extends BaseManager {
         const seriesArea = createElement('div');
         element.appendChild(seriesArea);
         seriesArea.role = 'presentation';
-        seriesArea.classList.add('ag-charts-series-area');
+        // Both classes on one element: minimal mode has nothing for the series area to offset against.
+        seriesArea.classList.add('ag-charts-series-area', 'ag-charts-series-area-bounds');
         return element;
     }
 
@@ -317,6 +321,7 @@ export class DOMManager extends BaseManager {
         this.observer?.unobserve(this.element);
         this.disconnectAttachObservers();
         this.sizeMonitor.unobserve(this.rootElements['canvas'].element);
+        this.element.removeEventListener('focusin', this.onFocusIn);
         if (this.container) {
             this.sizeMonitor.unobserve(this.container);
         }
@@ -627,28 +632,11 @@ export class DOMManager extends BaseManager {
         setAttribute(this.rootElements['canvas-proxy'].element, 'aria-label', ariaLabel);
     }
 
-    private getEventElement<K extends keyof HTMLElementEventMap>(defaultElem: HTMLElement, eventType: K) {
-        // For now, the only element managed by DOMManager that is focusable is 'series-area'
-        const events = ['focus', 'blur', 'keydown', 'keyup'];
-        return events.includes(eventType) ? this.rootElements['series-area'].element : defaultElem;
-    }
-
-    addEventListener<K extends keyof HTMLElementEventMap>(
-        type: K,
-        listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
-        options?: boolean | AddEventListenerOptions
-    ) {
-        const element = this.getEventElement(this.element, type);
-        return attachListener(element, type, listener, options);
-    }
-
-    removeEventListener<K extends keyof HTMLElementEventMap>(
-        type: K,
-        listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
-        options?: boolean | EventListenerOptions
-    ) {
-        this.getEventElement(this.element, type).removeEventListener(type, listener, options);
-    }
+    private readonly onFocusIn = ({ target }: FocusEvent) => {
+        if (isNode(target) && !this.rootElements['series-area-bounds'].element.contains(target)) {
+            this.eventsHub.emit('dom:series-blurred', null);
+        }
+    };
 
     /** Get the main chart area client bound rect. */
     getBoundingClientRect() {
@@ -814,11 +802,6 @@ export class DOMManager extends BaseManager {
 
         const search = children?.get(id);
         return search != null && el.contains(search);
-    }
-
-    contains(element: HTMLElement, domElementClass?: DOMElementClass) {
-        if (domElementClass == null) return this.element.contains(element);
-        return this.rootElements[domElementClass].element.contains(element);
     }
 
     addStyles(id: string, styles: string) {

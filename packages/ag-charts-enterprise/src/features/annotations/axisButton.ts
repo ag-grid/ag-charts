@@ -30,17 +30,12 @@ export class AxisButton extends AbstractModuleInstance {
 
         this.snap = Boolean(axisCtx.scale.bandwidth);
 
-        ctx.domManager.addEventListener('focusin', ({ target }) => {
-            const htmlTarget = target instanceof HTMLElement ? target : undefined;
-            const isSeriesAreaChild = htmlTarget && ctx.domManager.contains(htmlTarget, 'series-area');
-            if (!isSeriesAreaChild && htmlTarget !== this.button.getElement()) this.hide();
-        });
-
         this.cleanup.register(
             ctx.widgets.seriesWidget.addListener('drag-move', (e) => this.onMouseDrag(e)),
-            ctx.widgets.seriesWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
-            ctx.widgets.seriesWidget.addListener('mouseleave', () => this.onMouseLeave()),
+            ctx.widgets.seriesBoundsWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
+            ctx.widgets.seriesBoundsWidget.addListener('mouseleave', () => this.onMouseLeave()),
             ctx.widgets.seriesDragInterpreter?.events.on('click', (e) => this.onClick(e)),
+            ctx.eventsHub.on('dom:series-blurred', () => this.hide()),
             ctx.eventsHub.on('series:focus-change', () => this.onKeyPress()),
             ctx.eventsHub.on('zoom:pan-start', () => this.hide()),
             ctx.eventsHub.on('zoom:change-complete', () => this.hide()),
@@ -59,7 +54,7 @@ export class AxisButton extends AbstractModuleInstance {
         button.addClass(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
         button.setTabIndex(-1);
         button.setAriaLabel(this.ctx.localeManager.t('ariaLabelAddHorizontalLine'));
-        this.ctx.widgets.seriesWidget.getElement().appendChild(button.getElement());
+        this.ctx.widgets.seriesBoundsWidget.getElement().appendChild(button.getElement());
         return button;
     }
 
@@ -84,8 +79,8 @@ export class AxisButton extends AbstractModuleInstance {
     }
 
     private show(event: CurrentPoint & { sourceEvent: MouseEvent | TouchEvent }) {
-        const { sourceEvent, currentX: x, currentY: y } = event;
-        if (!(this.enabled && this.ctx.widgets.seriesWidget.getElement().contains(sourceEvent.target as Node | null))) {
+        const { currentX: x, currentY: y } = event;
+        if (!(this.enabled && this.ctx.widgets.seriesBoundsWidget.containsTarget(event))) {
             this.hide();
             return;
         }
