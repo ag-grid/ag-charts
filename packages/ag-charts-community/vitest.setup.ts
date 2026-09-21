@@ -4,7 +4,13 @@ import { TextDecoder, TextEncoder } from 'node:util';
 import { DOMMatrix, Image, Path2D } from 'skia-canvas';
 import { afterEach, expect } from 'vitest';
 
-import { mockCanvas, resetTestLogging, toMatchImage } from 'ag-charts-test';
+import {
+    installPointerCapture,
+    mockCanvas,
+    resetPointerCaptures,
+    resetTestLogging,
+    toMatchImage,
+} from 'ag-charts-test';
 
 const { ModuleRegistry } = await import('ag-charts-core');
 const { AllCommunityModule } = await import('./src/module-bundles/all');
@@ -82,4 +88,7 @@ Object.setPrototypeOf(globalThis.MouseEvent, OrigMouseEvent);
 
 expect.extend({ toMatchImageSnapshot, toMatchImage });
 
+installPointerCapture();
+
 afterEach(resetTestLogging);
+afterEach(resetPointerCaptures);

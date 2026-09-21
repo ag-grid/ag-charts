@@ -10,6 +10,7 @@ import {
     type MockEvent,
     type MockTouch,
     type MockTouchTypes,
+    type PointerOpts,
     type SceneGeometrySample,
     type SceneNodeAccessor,
     WheelDeltaMode,
@@ -18,6 +19,7 @@ import {
     createSceneWalk,
     dispatchEvent,
     dispatchEventToChain,
+    dispatchPointerEvent,
     doubleClickEvent,
     keydownEvent,
     mouseDownEvent,
@@ -25,6 +27,9 @@ import {
     mouseLeaveEvent,
     mouseMoveEvent,
     mouseUpEvent,
+    pointerDownEvent,
+    pointerMoveEvent,
+    pointerUpEvent,
     sceneSampleToJSON,
     touchAverage,
     touchEvent,
@@ -761,6 +766,7 @@ export function hoverAction(
 
         dispatchEventToChain(leaveTarget, mouseLeaveEvent(leaveTarget, canvasX, canvasY, modifiers));
         dispatchEventToChain(enterTarget, mouseEnterEvent(enterTarget, canvasX, canvasY, modifiers));
+        dispatchPointerEvent(testTarget, pointerMoveEvent(testTarget, canvasX, canvasY, modifiers));
         dispatchEvent(testTarget, mouseMoveEvent(testTarget, canvasX, canvasY, modifiers));
         return delay(50);
     };
@@ -778,6 +784,7 @@ export function mouseDownAction(
         const testTarget = findChartTarget(chart, canvasX, canvasY);
         checkTargetValid(testTarget);
 
+        dispatchPointerEvent(testTarget, pointerDownEvent(testTarget, canvasX, canvasY, modifiers));
         dispatchEvent(testTarget, mouseDownEvent(testTarget, canvasX, canvasY, modifiers));
         return delay(50);
     };
@@ -793,6 +800,7 @@ export function mouseUpAction(
         const testTarget = findChartTarget(chart, canvasX, canvasY);
         checkTargetValid(testTarget);
 
+        dispatchPointerEvent(testTarget, pointerUpEvent(testTarget, canvasX, canvasY, modifiers));
         dispatchEvent(testTarget, mouseUpEvent(testTarget, canvasX, canvasY, modifiers));
         return delay(50);
     };
@@ -813,7 +821,9 @@ export function clickAction(
         checkTargetValid(testTarget);
 
         const mousedownOffset = opts?.mousedown ? { ...testTarget, ...opts.mousedown } : testTarget;
+        dispatchPointerEvent(testTarget, pointerDownEvent(mousedownOffset, canvasX, canvasY, opts));
         dispatchEvent(testTarget, mouseDownEvent(mousedownOffset, canvasX, canvasY, opts));
+        dispatchPointerEvent(testTarget, pointerUpEvent(testTarget, canvasX, canvasY, opts));
         dispatchEvent(testTarget, mouseUpEvent(testTarget, canvasX, canvasY, opts));
         dispatchEvent(testTarget, clickEvent(testTarget, canvasX, canvasY, opts));
         return delay(50);
@@ -825,12 +835,13 @@ export function doubleClickAction(canvasX: number, canvasY: number): (chart: Cha
         const chart = deproxy(chartOrProxy);
         const testTarget = findChartTarget(chart, canvasX, canvasY);
         // A double click is always preceded by two single clicks, simulate here to ensure correct handling
-        dispatchEvent(testTarget, mouseDownEvent(testTarget, canvasX, canvasY));
-        dispatchEvent(testTarget, mouseUpEvent(testTarget, canvasX, canvasY));
-        dispatchEvent(testTarget, clickEvent(testTarget, canvasX, canvasY));
-        dispatchEvent(testTarget, mouseDownEvent(testTarget, canvasX, canvasY));
-        dispatchEvent(testTarget, mouseUpEvent(testTarget, canvasX, canvasY));
-        dispatchEvent(testTarget, clickEvent(testTarget, canvasX, canvasY));
+        for (let i = 0; i < 2; i += 1) {
+            dispatchPointerEvent(testTarget, pointerDownEvent(testTarget, canvasX, canvasY));
+            dispatchEvent(testTarget, mouseDownEvent(testTarget, canvasX, canvasY));
+            dispatchPointerEvent(testTarget, pointerUpEvent(testTarget, canvasX, canvasY));
+            dispatchEvent(testTarget, mouseUpEvent(testTarget, canvasX, canvasY));
+            dispatchEvent(testTarget, clickEvent(testTarget, canvasX, canvasY));
+        }
         await delay(50);
         await waitForChartStability(chart);
         dispatchEvent(testTarget, doubleClickEvent(testTarget, canvasX, canvasY));
@@ -860,10 +871,14 @@ export function dragAction(
         checkTargetValid(fromTarget);
         checkTargetValid(toTarget);
 
+        dispatchPointerEvent(fromTarget, pointerDownEvent(fromTarget, from.x, from.y));
         dispatchEvent(fromTarget, mouseDownEvent(fromTarget, from.x, from.y));
         await delay(500);
+        dispatchPointerEvent(fromTarget, pointerMoveEvent(fromTarget, from.x, from.y));
         dispatchEvent(fromTarget, mouseMoveEvent(fromTarget, from.x, from.y));
+        dispatchPointerEvent(toTarget, pointerMoveEvent(toTarget, to.x, to.y));
         dispatchEvent(toTarget, mouseMoveEvent(toTarget, to.x, to.y));
+        dispatchPointerEvent(toTarget, pointerUpEvent(toTarget, to.x, to.y));
         dispatchEvent(toTarget, mouseUpEvent(toTarget, to.x, to.y));
         return delay(50);
     };
@@ -897,17 +912,30 @@ export function touchAction(type: MockTouchTypes, touches: MockTouch[]): (chart:
     };
 }
 
+const TOUCH_POINTER: PointerOpts = { pointerType: 'touch' };
+
+// Pointer events precede their touch counterparts and are what drives drags; the returned
+// 'touchend' carries the `defaultPrevented` deciding whether the browser would emulate a click.
+function tapOnce(testTarget: MockEvent, identifier: number, clientX: number, clientY: number): TouchEvent {
+    const pointer = { ...TOUCH_POINTER, pointerId: identifier };
+
+    dispatchPointerEvent(testTarget, pointerDownEvent(testTarget, clientX, clientY, pointer));
+    dispatchEvent(
+        testTarget,
+        touchEvent('touchstart', testTarget, [{ identifier, clientX, clientY, states: ['target'] }])
+    );
+
+    dispatchPointerEvent(testTarget, pointerUpEvent(testTarget, clientX, clientY, pointer));
+    const touchend = touchEvent('touchend', testTarget, [{ identifier, clientX, clientY, states: ['changed'] }]);
+    dispatchEvent(testTarget, touchend);
+    return touchend;
+}
+
 export function tapAction(clientX: number, clientY: number): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const testTarget = findChartTarget(chart, clientX, clientY);
-        let event: TouchEvent;
-
-        event = touchEvent('touchstart', testTarget, [{ identifier: 1, clientX, clientY, states: ['target'] }]);
-        dispatchEvent(testTarget, event);
-
-        event = touchEvent('touchend', testTarget, [{ identifier: 1, clientX, clientY, states: ['changed'] }]);
-        dispatchEvent(testTarget, event);
+        const event = tapOnce(testTarget, 1, clientX, clientY);
 
         if (!event.defaultPrevented) {
             dispatchEvent(testTarget, mouseDownEvent(testTarget, clientX, clientY));
@@ -925,11 +953,7 @@ export function doubleTapAction(clientX: number, clientY: number): (chart: Chart
         const testTarget = findChartTarget(chart, clientX, clientY);
         let event: TouchEvent;
 
-        event = touchEvent('touchstart', testTarget, [{ identifier: 1, clientX, clientY, states: ['target'] }]);
-        dispatchEvent(testTarget, event);
-
-        event = touchEvent('touchend', testTarget, [{ identifier: 1, clientX, clientY, states: ['changed'] }]);
-        dispatchEvent(testTarget, event);
+        event = tapOnce(testTarget, 1, clientX, clientY);
 
         if (!event.defaultPrevented) {
             dispatchEvent(testTarget, mouseDownEvent(testTarget, clientX, clientY));
@@ -937,11 +961,7 @@ export function doubleTapAction(clientX: number, clientY: number): (chart: Chart
             dispatchEvent(testTarget, clickEvent(testTarget, clientX, clientY));
         }
 
-        event = touchEvent('touchstart', testTarget, [{ identifier: 2, clientX, clientY, states: ['target'] }]);
-        dispatchEvent(testTarget, event);
-
-        event = touchEvent('touchend', testTarget, [{ identifier: 2, clientX, clientY, states: ['changed'] }]);
-        dispatchEvent(testTarget, event);
+        event = tapOnce(testTarget, 2, clientX, clientY);
 
         if (!event.defaultPrevented) {
             dispatchEvent(testTarget, mouseDownEvent(testTarget, clientX, clientY));
@@ -979,21 +999,19 @@ export function touchDragAction(
         const testTarget = findChartTarget(chart, from.x, to.x);
 
         const identifier = 1;
-        let clientX: number;
-        let clientY: number;
-        let event: TouchEvent;
+        const pointer: PointerOpts = { ...TOUCH_POINTER, pointerId: identifier };
 
-        clientX = from.x;
-        clientY = from.y;
-        event = touchEvent('touchstart', testTarget, [{ identifier, clientX, clientY, states: ['target'] }]);
-        dispatchEvent(testTarget, event);
+        const touch = (type: MockTouchTypes, x: number, y: number, state: 'target' | 'changed') =>
+            touchEvent(type, testTarget, [{ identifier, clientX: x, clientY: y, states: [state] }]);
 
-        clientX = to.x;
-        clientY = to.y;
-        event = touchEvent('touchmove', testTarget, [{ identifier, clientX, clientY, states: ['target'] }]);
-        dispatchEvent(testTarget, event);
-        event = touchEvent('touchend', testTarget, [{ identifier, clientX, clientY, states: ['changed'] }]);
-        dispatchEvent(testTarget, event);
+        dispatchPointerEvent(testTarget, pointerDownEvent(testTarget, from.x, from.y, pointer));
+        dispatchEvent(testTarget, touch('touchstart', from.x, from.y, 'target'));
+
+        dispatchPointerEvent(testTarget, pointerMoveEvent(testTarget, to.x, to.y, pointer));
+        dispatchEvent(testTarget, touch('touchmove', to.x, to.y, 'target'));
+
+        dispatchPointerEvent(testTarget, pointerUpEvent(testTarget, to.x, to.y, pointer));
+        dispatchEvent(testTarget, touch('touchend', to.x, to.y, 'changed'));
 
         await delay(50);
     };
