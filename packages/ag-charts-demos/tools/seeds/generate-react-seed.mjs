@@ -16,6 +16,7 @@ import {
     readDemoIds,
     readDemoSourceCommit,
     readJson,
+    readPinnedChartsVersion,
     toPosix,
 } from './seed-common.mjs';
 
@@ -26,6 +27,13 @@ import {
  * The demo source under `src/demos/<id>/` is the hand-maintained golden master; this copies it
  * into the seed's `src/` and emits the scaffolding around it. Nothing in a seed may reference a
  * path above its own root, because StackBlitz imports only the seed folder from GitHub.
+ *
+ * The `ag-charts-*` pins must exist on npm, since that is where a StackBlitz user installs from.
+ * A release branch pins the workspace version exactly; a pre-release workspace (`latest`, whose
+ * betas are never published) pins the newest released version from the website's versions data
+ * instead. See `readPinnedChartsVersion` in seed-common.mjs. The seeds are not Yarn workspaces, so
+ * locally the pins are inert: the seed folder has no node_modules and every import resolves up
+ * through the root node_modules, where `ag-charts-*` link to the local packages.
  *
  * Usage: node tools/seeds/generate-react-seed.mjs [--out <dir>] [<demo-id> ...]
  *   --out   Write below this directory instead of `seeds/` (the freshness check uses this).
@@ -71,14 +79,13 @@ function humanLabel(demoId) {
 }
 
 /** Dependency ranges for the seed: exact `ag-charts-*` pins, everything else as the demos package declares it. */
-function buildDependencies(demoId, imported) {
+function buildDependencies(demoId, imported, pinnedVersion) {
     const demosPackage = readJson(join(DEMOS_ROOT, 'package.json'));
-    const chartsVersion = readJson(join(WORKSPACE_ROOT, 'packages', 'ag-charts-community', 'package.json')).version;
 
     const dependencies = {};
     for (const name of [...imported, ...RUNTIME_ALWAYS].sort()) {
         if (name.startsWith('ag-charts-')) {
-            dependencies[name] = chartsVersion;
+            dependencies[name] = pinnedVersion;
         } else if (demosPackage.dependencies[name]) {
             dependencies[name] = demosPackage.dependencies[name];
         } else {
@@ -193,7 +200,14 @@ Files under \`src/vendored/\` are copied from sibling demos that this one shares
 ${vendored.map((file) => `\n-   \`src/demos/${file}\``).join('')}
 `;
 
-const renderReadme = (demoId, vendored) => `# AG Charts demo: ${humanLabel(demoId)} (React)
+const renderPinNote = ({ pinnedVersion, pinSource }) =>
+    pinSource === 'workspace'
+        ? `The \`ag-charts-*\` dependencies are pinned to ${pinnedVersion}, the version the demo was generated against.`
+        : `The \`ag-charts-*\` dependencies are pinned to ${pinnedVersion}, the latest release at the time this seed was
+generated from a pre-release build. The demo itself may already use features of the next release; if
+so, this seed catches up when that release is published.`;
+
+const renderReadme = (demoId, vendored, pin) => `# AG Charts demo: ${humanLabel(demoId)} (React)
 
 A standalone Vite + React project running the AG Charts "${humanLabel(demoId)}" demo app. Use it
 to see how the demo is built, or as the starting point for an application of your own.
@@ -214,7 +228,7 @@ This project is generated from the React demo source in
 \`tools/seeds/generate-react-seed.mjs\`. The demo source lives in \`src/\`, with \`src/main.tsx\`
 mounting it. Do not edit the seed in place: change the demo source and regenerate.
 ${renderVendoredNote(vendored)}
-The \`ag-charts-*\` dependencies are pinned to the exact version the demo was generated against.
+${renderPinNote(pin)}
 AG Charts Enterprise features show a watermark until a licence key is set.
 `;
 
@@ -246,13 +260,14 @@ export async function generateReactSeed(demoId, outRoot = SEEDS_DIR) {
     writeFileSync(join(seedSrcDir, 'main.tsx'), renderMainTsx(demoId));
 
     const imported = collectImportedPackages(seedSrcDir, listFiles(seedSrcDir));
-    const packageJson = renderPackageJson(demoId, buildDependencies(demoId, imported));
+    const pin = readPinnedChartsVersion();
+    const packageJson = renderPackageJson(demoId, buildDependencies(demoId, imported, pin.pinnedVersion));
 
     writeJson(join(seedDir, 'package.json'), packageJson, 2);
     writeFileSync(join(seedDir, 'tsconfig.json'), TSCONFIG);
     writeFileSync(join(seedDir, 'vite.config.ts'), VITE_CONFIG);
     writeFileSync(join(seedDir, 'index.html'), renderIndexHtml(demoId));
-    writeFileSync(join(seedDir, 'README.md'), renderReadme(demoId, vendored));
+    writeFileSync(join(seedDir, 'README.md'), renderReadme(demoId, vendored, pin));
     writeFileSync(join(seedDir, '.gitignore'), GITIGNORE);
     writeJson(
         join(seedDir, MANIFEST_FILENAME),
@@ -261,6 +276,8 @@ export async function generateReactSeed(demoId, outRoot = SEEDS_DIR) {
             framework: FRAMEWORK,
             sourceHash: hashDemoSource(demoId),
             sourceCommit: readDemoSourceCommit(demoId),
+            pinnedVersion: pin.pinnedVersion,
+            pinSource: pin.pinSource,
             vendored,
         },
         4

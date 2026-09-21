@@ -22,6 +22,41 @@ export const WORKSPACE_ROOT = resolve(DEMOS_ROOT, '..', '..');
 
 export const MANIFEST_FILENAME = '.seed-manifest.json';
 
+/** The website's record of released versions, newest first; `tools/updateVersionsData.js` prepends each release. */
+export const RELEASED_VERSIONS_PATH = join(
+    WORKSPACE_ROOT,
+    'packages',
+    'ag-charts-website',
+    'src',
+    'content',
+    'versions',
+    'ag-charts-versions.json'
+);
+
+/**
+ * The `ag-charts-*` version a seed pins, and where it came from.
+ *
+ * A seed is installed from npm, so its pin must be a published version. On a release branch the
+ * workspace version is the release itself (`14.2.0`), so it is pinned exactly and the release
+ * bump regenerates the seeds with it. Anywhere else the workspace carries a pre-release
+ * (`14.2.0-beta.20260920`) that is never published, so the newest entry of the website's released
+ * versions is pinned instead. Stripping the suffix would not do: on `latest` the beta already
+ * carries the next release's number, which is unpublished until that release ships.
+ *
+ * @returns {{ pinnedVersion: string, pinSource: 'workspace' | 'released' }}
+ */
+export function readPinnedChartsVersion() {
+    const workspaceVersion = readJson(join(WORKSPACE_ROOT, 'packages', 'ag-charts-community', 'package.json')).version;
+    if (!workspaceVersion.includes('-')) {
+        return { pinnedVersion: workspaceVersion, pinSource: 'workspace' };
+    }
+    const [newest] = readJson(RELEASED_VERSIONS_PATH);
+    if (typeof newest?.version !== 'string' || newest.version.includes('-')) {
+        throw new Error(`${relative(WORKSPACE_ROOT, RELEASED_VERSIONS_PATH)} does not start with a released version`);
+    }
+    return { pinnedVersion: newest.version, pinSource: 'released' };
+}
+
 /**
  * Demo ids in registry order. `src/registry.ts` is TypeScript, so the ids are read off its
  * `id: '...'` entries rather than by importing it; each must have a matching source folder.

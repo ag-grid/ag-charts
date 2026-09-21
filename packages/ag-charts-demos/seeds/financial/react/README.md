@@ -19,5 +19,7 @@ This project is generated from the React demo source in
 `tools/seeds/generate-react-seed.mjs`. The demo source lives in `src/`, with `src/main.tsx`
 mounting it. Do not edit the seed in place: change the demo source and regenerate.
 
-The `ag-charts-*` dependencies are pinned to the exact version the demo was generated against.
+The `ag-charts-*` dependencies are pinned to 14.2.0, the latest release at the time this seed was
+generated from a pre-release build. The demo itself may already use features of the next release; if
+so, this seed catches up when that release is published.
 AG Charts Enterprise features show a watermark until a licence key is set.
