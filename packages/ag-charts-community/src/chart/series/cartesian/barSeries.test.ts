@@ -4115,10 +4115,7 @@ describe('BarSeries', () => {
 
             // The unfiltered segments of one x stack fill the whole normalised bar.
             const stackHeights = [0, 1, 2].map((datumIndex) =>
-                series.reduce(
-                    (total, s) => total + s.contextNodeData.phantomNodeData[datumIndex].clipBBox.height,
-                    0
-                )
+                series.reduce((total, s) => total + s.contextNodeData.phantomNodeData[datumIndex].clipBBox.height, 0)
             );
             const fullHeight = Math.max(...stackHeights);
             for (const stackHeight of stackHeights) {
