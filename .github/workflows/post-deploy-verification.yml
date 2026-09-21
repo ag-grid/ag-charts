@@ -103,6 +103,15 @@ jobs:
                   PUBLIC_SITE_URL: ${{ inputs.staging_url || steps.staging_url.outputs.url }}
               run: /tmp/pw/node_modules/.bin/playwright test --config playwright.staging.config.ts --project=chromium
 
+            # The demo pages link each seed project on GitHub (and in StackBlitz) at the release tag
+            # matching the deployed version. Verifies those folders resolve; StackBlitz itself cannot be
+            # driven headlessly, and it imports the same folder.
+            - name: Check demo seed links resolve
+              if: always() && steps.run_tests.outcome != 'skipped'
+              env:
+                  PUBLIC_SITE_URL: ${{ inputs.staging_url || steps.staging_url.outputs.url }}
+              run: node tools/ci/check-demo-seed-links.mjs "$PUBLIC_SITE_URL"
+
             - name: Publish CTRF Report
               if: always()
               uses: ctrf-io/github-test-reporter@7974087018bf4857cf5a9d78723e152038c3fa31 # v1.3.0
