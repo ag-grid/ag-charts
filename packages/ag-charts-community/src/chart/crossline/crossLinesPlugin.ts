@@ -181,7 +181,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
 
         this.instances = options.map((crossLineOptions) => {
             const instance = this.ctx.crossLine;
-            instance.set(crossLineOptions);
+            instance.applyOptions(crossLineOptions);
             this.attachInstance(instance);
             this.initInstance(instance);
             return instance;

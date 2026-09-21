@@ -1,21 +1,12 @@
-import {
-    BaseProperties,
-    Property,
-    cachedTextMeasurer,
-    clampArray,
-    createId,
-    findMinMax,
-    fitLabelText,
-    toRadians,
-} from 'ag-charts-core';
-import type { BoxBounds, CanvasPoint, CrossLineLabelOverflow, Scale } from 'ag-charts-core';
+import { cachedTextMeasurer, clampArray, createId, findMinMax, fitLabelText, toRadians } from 'ag-charts-core';
 import type {
-    AgCartesianAxisPosition,
-    AgCartesianCrossLineLabelOptions,
-    AgCrossLineLabelPosition,
-    AgCrossLineListeners,
-    Padding,
-} from 'ag-charts-types';
+    BoxBounds,
+    CanvasPoint,
+    NormalisedAxisCrossLineLabelOptions,
+    NormalisedAxisCrossLineOptions,
+    Scale,
+} from 'ag-charts-core';
+import type { AgCartesianAxisPosition, AgCrossLineLabelPosition, AgCrossLineListeners } from 'ag-charts-types';
 
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
@@ -23,7 +14,6 @@ import { PointerEvents } from '../../scene/node';
 import { Range } from '../../scene/shape/range';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
-import { LabelStyle } from '../label';
 import { rangeAlignment } from '../rangeAlignment';
 import { bandRangeExpansion } from '../scaleValue';
 import { type CrossLine, type CrossLineType, validateCrossLineValue } from './crossLine';
@@ -143,31 +133,11 @@ function availableExtent(anchorAt: number, labelDir: AnchorDirection, pad: numbe
     return 2 * Math.min(anchorAt - low, high - anchorAt);
 }
 
-class CartesianCrossLineLabel extends LabelStyle implements AgCartesianCrossLineLabelOptions {
-    @Property
-    enabled!: boolean;
-
-    @Property
-    override padding: Padding = 5;
-
-    @Property
-    text?: string;
-
-    @Property
+export type CartesianCrossLineLabelOptions = NormalisedAxisCrossLineLabelOptions & {
     position?: CrossLineLabelPosition;
-
-    @Property
-    overflow?: CrossLineLabelOverflow;
-
-    @Property
-    reserveSpace: boolean = false;
-
-    @Property
-    rotation?: number;
-
-    @Property
+    reserveSpace: boolean;
     parallel?: boolean;
-}
+};
 
 type NodeData = [number, number];
 
@@ -178,50 +148,24 @@ export function crossLineHitTolerance(strokeWidth: number | undefined): number {
     return Math.max(CROSS_LINE_MIN_HIT_TOLERANCE, (strokeWidth ?? 1) / 2);
 }
 
-export class CartesianCrossLine extends BaseProperties implements CrossLine<CartesianCrossLineLabel> {
+const DEFAULT_RANGE_FILL = '#c16068';
+
+export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOptions> {
     static readonly className = 'CrossLine';
     readonly internalId = createId(this);
 
-    @Property
     id?: string;
-
-    @Property
     enabled?: boolean;
-
-    @Property
     type!: CrossLineType;
-
-    @Property
     range?: [unknown, unknown];
-
-    @Property
     value?: unknown;
-
-    @Property
-    defaultColorRange: string[] = [];
-
-    @Property
-    fill: string = '#c16068';
-
-    @Property
+    fill: string = DEFAULT_RANGE_FILL;
     fillOpacity?: number;
-
-    @Property
     stroke?: string;
-
-    @Property
     strokeWidth?: number;
-
-    @Property
     strokeOpacity?: number;
-
-    @Property
-    lineDash?: [];
-
-    @Property
-    label: CartesianCrossLineLabel = new CartesianCrossLineLabel();
-
-    @Property
+    lineDash?: number[];
+    label!: CartesianCrossLineLabelOptions;
     listeners?: AgCrossLineListeners<unknown>;
 
     scale?: Scale<any, number> = undefined; // TODO: this type does not match the interface
@@ -246,8 +190,25 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     private endLine: boolean = false;
 
     constructor() {
-        super();
         this.crossLineRange.pointerEvents = PointerEvents.None;
+    }
+
+    applyOptions(options: NormalisedAxisCrossLineOptions) {
+        const { id, enabled, type, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, listeners } =
+            options;
+        this.id = id;
+        this.enabled = enabled;
+        this.type = type;
+        this.range = options.type === 'range' ? options.range : undefined;
+        this.value = options.type === 'line' ? options.value : undefined;
+        this.fill = fill ?? DEFAULT_RANGE_FILL;
+        this.fillOpacity = fillOpacity;
+        this.stroke = stroke;
+        this.strokeWidth = strokeWidth;
+        this.strokeOpacity = strokeOpacity;
+        this.lineDash = lineDash;
+        this.listeners = listeners;
+        this.label = { reserveSpace: false, ...options.label };
     }
 
     /**

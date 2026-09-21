@@ -1,11 +1,10 @@
-import type { AgBaseCrossLineLabelOptions, AgCrossLineListeners } from 'ag-charts-community';
+import type { AgCrossLineListeners } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
-    BaseProperties,
     type CanvasPoint,
     ChartAxisDirection,
-    type CrossLineLabelOverflow,
-    Property,
+    type NormalisedAxisCrossLineLabelOptions,
+    type NormalisedAxisCrossLineOptions,
     type Scale,
     clamp,
     createId,
@@ -21,33 +20,18 @@ const {
     BandScale,
     ContinuousScale,
     Group,
-    LabelStyle,
     Path,
     RotatableText,
     Sector,
     Transformable,
 } = _ModuleSupport;
 
-export class PolarCrossLineLabel extends LabelStyle implements AgBaseCrossLineLabelOptions {
-    @Property
-    enabled?: boolean;
+/** Polar axes reserve no padding, so `overflow: 'pad-chart'` leaves the label at its configured position. */
+export type PolarCrossLineLabelOptions = NormalisedAxisCrossLineLabelOptions;
 
-    @Property
-    override padding: number = 5;
-
-    @Property
-    text?: string;
-
-    @Property
-    parallel?: boolean;
-
-    /** Polar axes reserve no padding, so `'pad-chart'` leaves the label at its configured position. */
-    @Property
-    overflow?: CrossLineLabelOverflow;
-
-    /** Used by radius cross-lines only; ignored on angle cross-lines. */
-    @Property
-    positionAngle?: number = undefined;
+/** A polar label offsets along a radius, so only a uniform numeric padding can position it. */
+function labelOffset(label: PolarCrossLineLabelOptions): number {
+    return typeof label.padding === 'number' ? label.padding : 0;
 }
 
 /**
@@ -57,53 +41,23 @@ export class PolarCrossLineLabel extends LabelStyle implements AgBaseCrossLineLa
  * appropriate direction; `applyPolarLayout` populates whichever fields the active direction
  * consumes (`ticks` for angle, `gridAngles` for radius).
  */
-export class PolarCrossLine extends BaseProperties implements _ModuleSupport.PolarCrossLine {
+export class PolarCrossLine implements _ModuleSupport.PolarCrossLine<PolarCrossLineLabelOptions> {
     static readonly className = 'PolarCrossLine';
     readonly internalId = createId(this);
 
-    @Property
     id?: string;
-
-    @Property
     enabled?: boolean;
-
-    @Property
     type!: _ModuleSupport.CrossLineType;
-
-    @Property
     range?: [unknown, unknown];
-
-    @Property
     value?: unknown;
-
-    @Property
-    defaultColorRange: string[] = [];
-
-    @Property
     fill?: string;
-
-    @Property
     fillOpacity?: number;
-
-    @Property
     stroke?: string;
-
-    @Property
     strokeWidth?: number;
-
-    @Property
     strokeOpacity?: number;
-
-    @Property
-    lineDash?: [];
-
-    @Property
+    lineDash?: number[];
     shape: 'polygon' | 'circle' = 'polygon';
-
-    @Property
-    label = new PolarCrossLineLabel();
-
-    @Property
+    label!: PolarCrossLineLabelOptions;
     listeners?: AgCrossLineListeners<unknown>;
 
     scale?: Scale<any, number> = undefined;
@@ -139,7 +93,6 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
     private _isRange: boolean | undefined = undefined;
 
     constructor(direction: ChartAxisDirection) {
-        super();
         this.direction = direction;
 
         this.crossLineRange.append(this.polygonNode);
@@ -148,6 +101,24 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
             this.crossLineRange.append(this.lineNode);
         }
         this.labelGroup.append(this.labelNode);
+    }
+
+    applyOptions(options: NormalisedAxisCrossLineOptions) {
+        const { id, enabled, type, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, listeners } =
+            options;
+        this.id = id;
+        this.enabled = enabled;
+        this.type = type;
+        this.range = options.type === 'range' ? options.range : undefined;
+        this.value = options.type === 'line' ? options.value : undefined;
+        this.fill = fill;
+        this.fillOpacity = fillOpacity;
+        this.stroke = stroke;
+        this.strokeWidth = strokeWidth;
+        this.strokeOpacity = strokeOpacity;
+        this.lineDash = lineDash;
+        this.listeners = listeners;
+        this.label = options.label;
     }
 
     applyPolarLayout(layout: _ModuleSupport.PolarAxisLayout): void {
@@ -371,8 +342,8 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
             const midX = ((axisInnerRadius + axisOuterRadius) / 2) * Math.cos(angle);
             const midY = ((axisInnerRadius + axisOuterRadius) / 2) * Math.sin(angle);
 
-            labelX = midX + label.padding * Math.cos(angle + Math.PI / 2);
-            labelY = midY + label.padding * Math.sin(angle + Math.PI / 2);
+            labelX = midX + labelOffset(label) * Math.cos(angle + Math.PI / 2);
+            labelY = midY + labelOffset(label) * Math.sin(angle + Math.PI / 2);
             textBaseline = isRightSide ? 'top' : 'bottom';
             rotation = isRightSide ? angle : angle - Math.PI;
         } else {
@@ -386,9 +357,9 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
 
             let distance: number;
             if (this.shape === 'circle' || ticks.length < 3) {
-                distance = axisOuterRadius - label.padding;
+                distance = axisOuterRadius - labelOffset(label);
             } else {
-                distance = axisOuterRadius * Math.cos(Math.PI / ticks.length) - label.padding;
+                distance = axisOuterRadius * Math.cos(Math.PI / ticks.length) - labelOffset(label);
             }
 
             labelX = distance * Math.cos(angle);
@@ -535,11 +506,11 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
         let distance: number;
         const angles = this.gridAngles ?? [];
         if (type === 'line') {
-            distance = innerRadius + label.padding;
+            distance = innerRadius + labelOffset(label);
         } else if (shape === 'circle' || angles.length < 3) {
-            distance = innerRadius - label.padding;
+            distance = innerRadius - labelOffset(label);
         } else {
-            distance = innerRadius * Math.cos(Math.PI / angles.length) - label.padding;
+            distance = innerRadius * Math.cos(Math.PI / angles.length) - labelOffset(label);
         }
 
         const labelX = distance * Math.cos(angle);
