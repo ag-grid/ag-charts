@@ -18,8 +18,9 @@ export class Image {
     }
 
     applyOptions(options: ImageOptions) {
+        const urlChanged = this.options?.url !== options.url;
         this.options = options;
-        if (this.imageElement.src !== options.url) {
+        if (urlChanged) {
             this.imageElement.src = options.url;
             this.loadedSynchronously = this.complete;
         }
