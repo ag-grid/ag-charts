@@ -348,6 +348,13 @@ jobs:
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --exclude all
 
+            # The committed seed projects under packages/ag-charts-demos/seeds are generated from the
+            # React demos; this fails when a demo (or the workspace version) changed without them.
+            - name: nx check-seeds
+              id: check-seeds
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              run: yarn nx run ag-charts-demos:check-seeds
+
     generate:
         runs-on: ubuntu-24.04
         name: Generate (${{ matrix.shard }}/${{ strategy.job-total }})

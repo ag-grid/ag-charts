@@ -1,0 +1,31 @@
+{
+  "name": "ag-charts-demo-web-analytics-react",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@radix-ui/react-label": "^2.1.12",
+    "@radix-ui/react-popover": "^1.1.0",
+    "@radix-ui/react-select": "^2.0.0",
+    "@radix-ui/react-tabs": "^1.1.0",
+    "ag-charts-community": "14.2.0-beta.20260920",
+    "ag-charts-enterprise": "14.2.0-beta.20260920",
+    "ag-charts-react": "14.2.0-beta.20260920",
+    "ag-grid-community": "~35.0.1",
+    "ag-grid-enterprise": "~35.0.1",
+    "ag-grid-react": "~35.0.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "~5.8.3",
+    "vite": "5.4.20"
+  }
+}
