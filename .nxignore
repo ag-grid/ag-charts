@@ -17,6 +17,7 @@ patches/
 .nxignore
 .prettierignore
 
-# Seed projects are Yarn workspaces (so their exact ag-charts-* pins link to the local packages) but
-# not Nx projects of their own: ag-charts-demos-seeds builds and type-checks them as one project.
+# Seed projects are not Yarn workspaces (their ag-charts-* pins are for npm; locally they resolve through
+# the root node_modules) and not Nx projects of their own: ag-charts-demos-seeds builds and type-checks
+# them as one project.
 packages/ag-charts-demos/seeds/*/*/package.json

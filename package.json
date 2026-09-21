@@ -132,7 +132,6 @@
       "packages/ag-charts-community",
       "packages/ag-charts-community-examples",
       "packages/ag-charts-demos",
-      "packages/ag-charts-demos/seeds/*/*",
       "packages/ag-charts-enterprise",
       "packages/ag-charts-angular",
       "packages/ag-charts-locale",
