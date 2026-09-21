@@ -23,9 +23,10 @@ import type { Styler } from './callbackOptions';
 import type { AgBaseThemeableChartOptions, AgSeriesAreaOptions } from './chartOptions';
 import type {
     AgBaseCrossLineLabelOptions,
-    AgBaseCrossLineOptions,
     AgCrossLineLabelPosition,
     AgCrossLineThemeOptions,
+    AgLineCrossLineOptions,
+    AgRangeCrossLineOptions,
 } from './crossLineOptions';
 import type { AgBaseCrosshairLabel, AgCrosshairLabel, AgCrosshairOptions } from './crosshairOptions';
 import type { AgNumericValue, AgTimeValue } from './dataValues';
@@ -563,11 +564,17 @@ export interface AgUnitTimeAxisThemeOptions<CrossLineLabelType = AgBaseCrossLine
         AgCartesianAxisThemeOptions<AgUnitTimeAxisOptions<TContext>>,
         AgCartesianAxesCrossLineThemeOptions<CrossLineLabelType> {}
 
-export type AgCartesianCrossLineOptions<TValue = AxisValue, TContext = ContextDefault> = AgBaseCrossLineOptions<
-    TValue,
-    AgCartesianCrossLineLabelOptions,
-    TContext
->;
+/** A Cartesian axis Cross Line rendered as a single line at `value`. The label supports `position` and `rotation`. */
+export interface AgCartesianLineCrossLineOptions<TValue = AxisValue, TContext = ContextDefault>
+    extends AgLineCrossLineOptions<TValue, AgCartesianCrossLineLabelOptions, TContext> {}
+
+/** A Cartesian axis Cross Line rendered as a shaded band spanning `range`. The label supports `position` and `rotation`. */
+export interface AgCartesianRangeCrossLineOptions<TValue = AxisValue, TContext = ContextDefault>
+    extends AgRangeCrossLineOptions<TValue, AgCartesianCrossLineLabelOptions, TContext> {}
+
+export type AgCartesianCrossLineOptions<TValue = AxisValue, TContext = ContextDefault> =
+    | AgCartesianLineCrossLineOptions<TValue, TContext>
+    | AgCartesianRangeCrossLineOptions<TValue, TContext>;
 
 export interface AgCartesianCrossLineLabelOptions extends AgBaseCrossLineLabelOptions {
     /** The position of the Cross Line label. */

@@ -4,7 +4,12 @@ import type {
     AgContinuousAxisOptions,
     AgNumericAxisFormattableLabelOptions,
 } from './axisOptions';
-import type { AgBaseCrossLineLabelOptions, AgBaseCrossLineOptions, AgCrossLineThemeOptions } from './crossLineOptions';
+import type {
+    AgBaseCrossLineLabelOptions,
+    AgCrossLineThemeOptions,
+    AgLineCrossLineOptions,
+    AgRangeCrossLineOptions,
+} from './crossLineOptions';
 import type { AgNumericValue } from './dataValues';
 import type { AxisValue, ContextDefault, Degree, Ratio } from './types';
 
@@ -71,9 +76,15 @@ export interface AgAngleAxisFormattableLabelOptions<TContext = ContextDefault>
 export interface AgAngleAxisLabelOptions<TContext = ContextDefault>
     extends AgBaseAxisLabelOptions<TContext>, OrientableLabel {}
 
-export type AgAngleCrossLineOptions<TValue = AxisValue> = AgBaseCrossLineOptions<
-    TValue,
-    AgBaseCrossLineLabelOptions,
-    ContextDefault
->;
+/** An angle axis Cross Line rendered as a single line at `value`. The label supports the common label options only. */
+export interface AgAngleLineCrossLineOptions<TValue = AxisValue>
+    extends AgLineCrossLineOptions<TValue, AgBaseCrossLineLabelOptions, ContextDefault> {}
+
+/** An angle axis Cross Line rendered as a shaded band spanning `range`. The label supports the common label options only. */
+export interface AgAngleRangeCrossLineOptions<TValue = AxisValue>
+    extends AgRangeCrossLineOptions<TValue, AgBaseCrossLineLabelOptions, ContextDefault> {}
+
+export type AgAngleCrossLineOptions<TValue = AxisValue> =
+    | AgAngleLineCrossLineOptions<TValue>
+    | AgAngleRangeCrossLineOptions<TValue>;
 export interface AgAngleCrossLineThemeOptions extends AgCrossLineThemeOptions<AgBaseCrossLineLabelOptions> {}
