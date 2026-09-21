@@ -155,15 +155,52 @@ describe('resolveTarget', () => {
         expect(jira.calls[0].query).toEqual({ fields: 'issuetype,parent,status' });
     });
 
-    it('climbs from a Sub-task to its parent', async () => {
+    it('climbs from a Sub-task to its parent and checks the parent', async () => {
         const jira = fakeJira({
             'GET /issue/AG-18200': {
                 fields: { issuetype: { name: 'Sub-task', subtask: true }, parent: { key: 'AG-18147' } },
             },
+            'GET /issue/AG-18147': {
+                fields: { issuetype: { name: 'Task', subtask: false }, status: { name: 'To Do' } },
+            },
         });
-        await expect(resolveTarget(jira, 'AG-18200')).resolves.toMatchObject({
+        await expect(resolveTarget(jira, 'AG-18200')).resolves.toEqual({
             issueType: 'Sub-task',
             parentKey: 'AG-18147',
+            reason: 'AG-18147 is a Task (To Do) (parent of Sub-task AG-18200)',
+        });
+        expect(jira.calls.map(({ path }) => path)).toEqual(['/issue/AG-18200', '/issue/AG-18147']);
+    });
+
+    it('routes to the showcase epic when the parent is Done, since a Sub-task there never shows on the board', async () => {
+        const jira = fakeJira({
+            'GET /issue/AG-18147': {
+                fields: {
+                    issuetype: { name: 'Task', subtask: false },
+                    status: { name: 'Done', statusCategory: { key: 'done' } },
+                },
+            },
+        });
+        await expect(resolveTarget(jira, 'AG-18147')).resolves.toEqual({
+            issueType: 'Task',
+            parentKey: FALLBACK_EPIC,
+            reason: 'parent AG-18147 is Done',
+        });
+    });
+
+    it('applies the Done check to the parent reached through a Sub-task', async () => {
+        const jira = fakeJira({
+            'GET /issue/AG-18200': {
+                fields: { issuetype: { name: 'Sub-task', subtask: true }, parent: { key: 'AG-18147' } },
+            },
+            'GET /issue/AG-18147': {
+                fields: { issuetype: { name: 'Task' }, status: { statusCategory: { key: 'done' } } },
+            },
+        });
+        await expect(resolveTarget(jira, 'AG-18200')).resolves.toMatchObject({
+            issueType: 'Task',
+            parentKey: FALLBACK_EPIC,
+            reason: 'parent AG-18147 is Done (parent of Sub-task AG-18200)',
         });
     });
 
@@ -201,7 +238,7 @@ describe('findOpenSyncIssue', () => {
     it('searches with the dedupe JQL and returns the first open match', async () => {
         const jira = fakeJira({
             'GET /search/jql': {
-                issues: [{ key: 'AG-18300', fields: { summary: 'Charts Sync demo ports: financial to 1234' } }],
+                issues: [{ key: 'AG-18300', fields: { summary: '[Charts] Sync demo ports: financial to 1234' } }],
             },
         });
         await expect(findOpenSyncIssue(jira, 'AG-18147')).resolves.toMatchObject({ key: 'AG-18300' });
@@ -248,9 +285,9 @@ describe('transitionTo', () => {
 
 describe('payloads', () => {
     it('names every stale demo once in the summary', () => {
-        expect(buildSummary(stale, 'e4340dd5')).toBe('Charts Sync demo ports: financial to e4340dd5');
+        expect(buildSummary(stale, 'e4340dd5')).toBe('[Charts] Sync demo ports: financial to e4340dd5');
         expect(buildSummary([...stale, { ...stale[0], demo: 'procurement' }], 'e4340dd5')).toBe(
-            'Charts Sync demo ports: financial, procurement to e4340dd5'
+            '[Charts] Sync demo ports: financial, procurement to e4340dd5'
         );
     });
 
@@ -310,7 +347,7 @@ describe('run', () => {
             'POST /issue/AG-18300/transitions',
         ]);
         const { fields } = jira.calls[2].body;
-        expect(fields.summary).toBe('Charts Sync demo ports: financial to e4340dd5');
+        expect(fields.summary).toBe('[Charts] Sync demo ports: financial to e4340dd5');
         expect(fields.labels).toEqual(['ai-eligible']);
         const rendered = JSON.stringify(fields.description);
         expect(rendered).toContain('packages/ag-charts-demos/seeds/financial/angular/PORTING.md');

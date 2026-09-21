@@ -167,45 +167,42 @@ export async function readMergedBranchNames(commits, github) {
 /**
  * Where the sync issue goes. A Sub-task hangs off the derived ticket, or off its parent when the
  * derived ticket is itself a Sub-task. An Epic cannot own a Sub-task, so it gets a Task instead;
- * so does the showcase epic when no key was derivable or the derived issue does not exist.
+ * so does the showcase epic when no key was derivable, the derived issue does not exist, or the
+ * parent is Done (a Sub-task under a closed parent never appears on the board).
  * Returns `{ issueType, parentKey, reason }`.
  */
 export async function resolveTarget(jira, derivedKey) {
-    if (!derivedKey) {
-        return { issueType: 'Task', parentKey: FALLBACK_EPIC, reason: 'no ticket key in the pushed commits' };
-    }
+    const fallback = (reason) => ({ issueType: 'Task', parentKey: FALLBACK_EPIC, reason });
+    if (!derivedKey) return fallback('no ticket key in the pushed commits');
+
+    const getIssue = (key) => jira.request('GET', `/issue/${key}`, { query: { fields: 'issuetype,parent,status' } });
+    let parentKey = derivedKey;
     let issue;
     try {
-        issue = await jira.request('GET', `/issue/${derivedKey}`, { query: { fields: 'issuetype,parent,status' } });
+        issue = await getIssue(parentKey);
+        if (issue?.fields?.issuetype?.subtask) {
+            if (!issue.fields.parent?.key) throw new Error(`${derivedKey} is a Sub-task but has no parent`);
+            parentKey = issue.fields.parent.key;
+            issue = await getIssue(parentKey);
+        }
     } catch (error) {
         if (error.status !== 404) throw error;
-        return { issueType: 'Task', parentKey: FALLBACK_EPIC, reason: `${derivedKey} does not exist in JIRA` };
+        return fallback(`${parentKey} does not exist in JIRA`);
     }
     if (!issue) {
-        return {
-            issueType: 'Sub-task',
-            parentKey: derivedKey,
-            reason: `dry run: assuming ${derivedKey} is a standard issue`,
-        };
+        return { issueType: 'Sub-task', parentKey, reason: `dry run: assuming ${parentKey} is an open standard issue` };
     }
-    const { issuetype = {}, parent, status } = issue.fields ?? {};
-    if (issuetype.subtask) {
-        if (!parent?.key) throw new Error(`${derivedKey} is a Sub-task but has no parent`);
-        return {
-            issueType: 'Sub-task',
-            parentKey: parent.key,
-            reason: `${derivedKey} is a Sub-task; using its parent`,
-        };
-    }
+
+    const via = parentKey === derivedKey ? '' : ` (parent of Sub-task ${derivedKey})`;
+    const { issuetype = {}, status } = issue.fields ?? {};
     if (/^epic$/i.test(issuetype.name ?? '')) {
-        return {
-            issueType: 'Task',
-            parentKey: derivedKey,
-            reason: `${derivedKey} is an Epic, which cannot own a Sub-task`,
-        };
+        return { issueType: 'Task', parentKey, reason: `${parentKey} is an Epic, which cannot own a Sub-task${via}` };
+    }
+    if (status?.statusCategory?.key === 'done') {
+        return fallback(`parent ${parentKey} is Done${via}`);
     }
     const state = status?.name ? ` (${status.name})` : '';
-    return { issueType: 'Sub-task', parentKey: derivedKey, reason: `${derivedKey} is a ${issuetype.name}${state}` };
+    return { issueType: 'Sub-task', parentKey, reason: `${parentKey} is a ${issuetype.name}${state}${via}` };
 }
 
 export function syncIssueJql(parentKey) {
@@ -246,7 +243,7 @@ export async function transitionTo(jira, key, name) {
 
 export function buildSummary(stale, shortSha) {
     const demos = [...new Set(stale.map((port) => port.demo))];
-    return `Charts ${SUMMARY_MARKER}: ${demos.join(', ')} to ${shortSha}`;
+    return `[Charts] ${SUMMARY_MARKER}: ${demos.join(', ')} to ${shortSha}`;
 }
 
 /** The create-issue `fields`, per the jira skill's Sub-task conventions for project AG / Charts. */
