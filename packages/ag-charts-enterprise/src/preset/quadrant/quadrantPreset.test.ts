@@ -813,6 +813,25 @@ describe('Quadrant Preset context menu region', () => {
         expect(area.region).toBe('top-right');
     });
 
+    it('leaves an overlapping series-area scope without a region when an axis label takes the click', async () => {
+        const getItems = vi.fn((_params: any) => []);
+        // Only crossing-placed labels put an axis hit target inside the series area.
+        await prepareChart({ enabled: true, getItems }, { axisPlacement: { label: 'crossing' } });
+
+        const { x, y, width } = deproxy(chart).seriesRect!;
+        const yAxis = (deproxy(chart).axes as any[]).find((a) => a.direction === 'y');
+        await rightClick({ canvasX: x + width * 0.3, canvasY: y + yAxis.scale.convert(PIVOT.y) });
+
+        const params = getItems.mock.calls[0][0];
+        expect(params.showOn).toBe('axis');
+        // An axis click reports no coordinates, so the region behind it cannot be derived.
+        expect(params.coordinates).toBeUndefined();
+        const area = params.allShowOnParams.find((p: any) => p.showOn === 'series-area');
+        expect(area).toBeDefined();
+        expect('region' in area).toBe(true);
+        expect(area.region).toBeUndefined();
+    });
+
     it('leaves a click outside the series area without a region', async () => {
         const getItems = vi.fn((_params: any) => []);
         await prepareChart({ enabled: true, getItems });
