@@ -74,8 +74,8 @@ describe('CrossLine colour references', () => {
 
     // Polar axes get the enterprise `polarCrossLines` module, which the module map keys by that
     // name — so `getCrossLinesPlugin`, which looks up `crossLines`, only resolves cartesian axes.
-    const crossLines = (chart: Chart, axisId: string) => {
-        const axis = chart.axes.findById(axisId);
+    const crossLineInstances = (target: Chart, axisId: string) => {
+        const axis = target.axes.findById(axisId);
         if (axis == null) return [];
         const plugin =
             _ModuleSupport.getCrossLinesPlugin(axis) ??
@@ -83,9 +83,9 @@ describe('CrossLine colour references', () => {
         return plugin?.getInstances() ?? [];
     };
 
-    const crossLineFills = (chart: Chart, axisId: string) => crossLines(chart, axisId).map((c) => c.fill);
+    const crossLineFills = (target: Chart, axisId: string) => crossLineInstances(target, axisId).map((c) => c.fill);
 
-    const crossLineStrokes = (chart: Chart, axisId: string) => crossLines(chart, axisId).map((c) => c.stroke);
+    const crossLineStrokes = (target: Chart, axisId: string) => crossLineInstances(target, axisId).map((c) => c.stroke);
 
     const cartesianOptions = (crossLines: AgCartesianCrossLineOptions[]): AgCartesianChartOptions => ({
         data: [
@@ -133,7 +133,7 @@ describe('CrossLine colour references', () => {
         chart = deproxy(AgCharts.create(prepareEnterpriseTestOptions(options, container)));
         await waitForChartStability(chart);
 
-        const [range, line] = crossLines(chart, 'y');
+        const [range, line] = crossLineInstances(chart, 'y');
         expect(range.fill).toBe('rgb(0, 128, 0)');
         expect(line.stroke).toBe('rgb(0, 128, 0)');
     });
