@@ -737,7 +737,12 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                     processedData,
                     'mixed-numeric'
                 );
-                yFilterEndValues = dataModel.resolveColumnById(this, 'yFilterValue-end', processedData, 'mixed-numeric');
+                yFilterEndValues = dataModel.resolveColumnById(
+                    this,
+                    'yFilterValue-end',
+                    processedData,
+                    'mixed-numeric'
+                );
             }
         }
 

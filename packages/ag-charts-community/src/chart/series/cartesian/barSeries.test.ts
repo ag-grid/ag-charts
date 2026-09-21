@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ChartAxisDirection } from 'ag-charts-core';
-
 import type {
     AgBarSeriesItemStylerParams,
     AgBarSeriesLabelPlacement,
@@ -4179,7 +4178,6 @@ describe('BarSeries', () => {
                 expect(filtered.clipBBox.height / unfiltered.clipBBox.height).toBeCloseTo(ratio, 5);
             }
         });
-
     });
 
     describe('AG-16933 reverse + bandAlignment', () => {
