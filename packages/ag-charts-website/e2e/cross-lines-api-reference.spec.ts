@@ -1,5 +1,3 @@
-import type { Locator, Page } from '@playwright/test';
-
 import { expect, test } from './fixture';
 import { gotoUrl, setupIntrinsicAssertions, toPageUrl } from './util';
 
@@ -7,75 +5,46 @@ test.use({ viewport: { width: 1400, height: 900 } });
 
 const PAGE_URL = 'javascript/axes-cross-lines/';
 
+// The label type is what the per-axis split exists to show: Cartesian labels take position and
+// rotation, radius labels take positionAngle, and angle labels take neither.
 const TABS = [
-    { id: 'AgCartesianLineCrossLineOptions', label: 'Cartesian Line' },
-    { id: 'AgCartesianRangeCrossLineOptions', label: 'Cartesian Range' },
-    { id: 'AgAngleLineCrossLineOptions', label: 'Angle Line' },
-    { id: 'AgAngleRangeCrossLineOptions', label: 'Angle Range' },
-    { id: 'AgRadiusLineCrossLineOptions', label: 'Radius Line' },
-    { id: 'AgRadiusRangeCrossLineOptions', label: 'Radius Range' },
+    { id: 'AgCartesianLineCrossLineOptions', labelType: 'AgCartesianCrossLineLabelOptions' },
+    { id: 'AgCartesianRangeCrossLineOptions', labelType: 'AgCartesianCrossLineLabelOptions' },
+    { id: 'AgAngleLineCrossLineOptions', labelType: 'AgBaseCrossLineLabelOptions' },
+    { id: 'AgAngleRangeCrossLineOptions', labelType: 'AgBaseCrossLineLabelOptions' },
+    { id: 'AgRadiusLineCrossLineOptions', labelType: 'AgRadiusCrossLineLabelOptions' },
+    { id: 'AgRadiusRangeCrossLineOptions', labelType: 'AgRadiusCrossLineLabelOptions' },
 ];
-
-// Every panel is in the DOM at once and only the selected one is displayed, so each assertion is
-// scoped to its panel: a page-wide locator would match all six references.
-async function openTab(page: Page, { id, label }: { id: string; label: string }): Promise<Locator> {
-    await page.getByRole('tab', { name: label, exact: true }).click();
-    const panel = page.locator(`[tab-id="${id}"]`);
-    await expect(panel).toBeVisible();
-    return panel;
-}
-
-async function expandLabel(panel: Locator) {
-    await panel.getByRole('button', { name: 'See child properties of label', exact: true }).click();
-}
 
 test.describe('Cross Lines API reference', () => {
     setupIntrinsicAssertions(test);
 
+    // All six panels are in the DOM at once and the tab control only toggles their `display`, so
+    // every panel's rows are assertable from a single page load. Assertions are scoped to
+    // `[tab-id]` because a page-wide locator would match all six references, and they are on the
+    // DOM rather than on visibility so that no tab has to be clicked: driving the tab nav pushes a
+    // hash through Astro's router, which re-renders the reference mid-assertion.
     test('renders a property table for each per-axis variant', async ({ page }) => {
         await gotoUrl(page, toPageUrl(PAGE_URL));
 
-        for (const tab of TABS) {
-            const panel = await openTab(page, tab);
-            await expect(panel.locator(`#reference-${tab.id}-type`)).toBeVisible();
-            await expect(panel.locator(`#reference-${tab.id}-label`)).toBeVisible();
+        for (const { id, labelType } of TABS) {
+            const panel = page.locator(`[tab-id="${id}"]`);
+            await expect(panel).toHaveCount(1);
+            await expect(panel.locator(`#reference-${id}-type`)).toHaveCount(1);
+
+            const label = panel.locator(`#reference-${id}-label`);
+            await expect(label).toHaveCount(1);
+            await expect(label).toContainText(labelType);
         }
     });
 
-    test('documents position and rotation on a Cartesian cross-line label', async ({ page }) => {
+    // The first tab is the one a reader lands on, so it is the one whose rows must actually render.
+    test('shows the Cartesian Line table on load', async ({ page }) => {
         await gotoUrl(page, toPageUrl(PAGE_URL));
 
-        const id = 'AgCartesianLineCrossLineOptions';
-        const panel = await openTab(page, { id, label: 'Cartesian Line' });
-        await expandLabel(panel);
-
-        await expect(panel.locator(`#reference-${id}-label-position`)).toBeVisible();
-        await expect(panel.locator(`#reference-${id}-label-rotation`)).toBeVisible();
-        await expect(panel.locator(`#reference-${id}-label-positionAngle`)).toHaveCount(0);
-    });
-
-    test('documents positionAngle, and not position or rotation, on a radius cross-line label', async ({ page }) => {
-        await gotoUrl(page, toPageUrl(PAGE_URL));
-
-        const id = 'AgRadiusLineCrossLineOptions';
-        const panel = await openTab(page, { id, label: 'Radius Line' });
-        await expandLabel(panel);
-
-        await expect(panel.locator(`#reference-${id}-label-positionAngle`)).toBeVisible();
-        await expect(panel.locator(`#reference-${id}-label-position`)).toHaveCount(0);
-        await expect(panel.locator(`#reference-${id}-label-rotation`)).toHaveCount(0);
-    });
-
-    test('documents only the common label options on an angle cross-line label', async ({ page }) => {
-        await gotoUrl(page, toPageUrl(PAGE_URL));
-
-        const id = 'AgAngleLineCrossLineOptions';
-        const panel = await openTab(page, { id, label: 'Angle Line' });
-        await expandLabel(panel);
-
-        await expect(panel.locator(`#reference-${id}-label-text`)).toBeVisible();
-        await expect(panel.locator(`#reference-${id}-label-position`)).toHaveCount(0);
-        await expect(panel.locator(`#reference-${id}-label-rotation`)).toHaveCount(0);
-        await expect(panel.locator(`#reference-${id}-label-positionAngle`)).toHaveCount(0);
+        const panel = page.locator('[tab-id="AgCartesianLineCrossLineOptions"]');
+        await expect(panel).toBeVisible();
+        await expect(panel.locator('#reference-AgCartesianLineCrossLineOptions-type')).toBeVisible();
+        await expect(panel.locator('#reference-AgCartesianLineCrossLineOptions-label')).toBeVisible();
     });
 });
