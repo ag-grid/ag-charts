@@ -4127,6 +4127,57 @@ describe('BarSeries', () => {
             }
         });
 
+        it('normalizedTo: a null filter value produces no NaN geometry', async () => {
+            const data = normalizedFilterData.map((d, i) => (i === 1 ? { ...d, aFiltered: null } : d));
+            chart = AgCharts.create(normalizedFilterOptions(data));
+            await waitForChartStability(chart);
+
+            const { nodeData, phantomNodeData } = (deproxy(chart).series[0] as any).contextNodeData;
+            // The null-filter datum is dropped upstream by the data model, so it contributes no node at all.
+            expect(nodeData.map((d: any) => d.xValue)).toEqual(['Q1', 'Q3']);
+
+            for (const datum of [...nodeData, ...phantomNodeData]) {
+                for (const value of [datum.clipBBox.x, datum.clipBBox.y, datum.clipBBox.width, datum.clipBBox.height]) {
+                    expect(Number.isNaN(value)).toBe(false);
+                }
+            }
+
+            for (const [xValue, ratio] of Object.entries({ Q1: 200 / 300, Q3: 400 / 800 })) {
+                const filtered = nodeData.find((d: any) => d.xValue === xValue);
+                const unfiltered = phantomNodeData.find((d: any) => d.xValue === xValue);
+                expect(filtered.clipBBox.height / unfiltered.clipBBox.height).toBeCloseTo(ratio, 5);
+            }
+        });
+        it('normalizedTo: a stack mixing filtered and unfiltered series keeps the normalised domain', async () => {
+            const options = prepareTestOptions({
+                data: normalizedFilterData,
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'quarter',
+                        yKey: 'a',
+                        stacked: true,
+                        normalizedTo: 100,
+                        yFilterKey: 'aFiltered',
+                    } as any,
+                    { type: 'bar', xKey: 'quarter', yKey: 'b', stacked: true, normalizedTo: 100 } as any,
+                ],
+            });
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const { axes, series } = deproxy(chart);
+            const yAxis = axes.find((a: any) => a.direction === ChartAxisDirection.Y);
+            expect(yAxis!.dataDomain.domain).toEqual([0, 100]);
+
+            const { nodeData, phantomNodeData } = (series[0] as any).contextNodeData;
+            for (const [xValue, ratio] of Object.entries({ Q1: 200 / 300, Q2: 300 / 500, Q3: 400 / 800 })) {
+                const filtered = nodeData.find((d: any) => d.xValue === xValue);
+                const unfiltered = phantomNodeData.find((d: any) => d.xValue === xValue);
+                expect(filtered.clipBBox.height / unfiltered.clipBBox.height).toBeCloseTo(ratio, 5);
+            }
+        });
+
     });
 
     describe('AG-16933 reverse + bandAlignment', () => {
