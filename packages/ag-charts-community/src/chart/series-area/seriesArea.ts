@@ -69,9 +69,8 @@ export class SeriesArea {
     }
 
     getPadding() {
-        const { border, padding } = this.options;
-        const strokeWidth = border?.enabled ? border.strokeWidth : 0;
-        const { top, right, bottom, left } = resolvePadding(padding);
+        const { strokeWidth } = this.borderNode;
+        const { top, right, bottom, left } = resolvePadding(this.options.padding);
         return {
             top: top + strokeWidth,
             right: right + strokeWidth,

@@ -1080,7 +1080,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 if (this.checkUpdateShortcut(ChartUpdateType.SERIES_UPDATE)) break;
 
                 this.seriesRoot.renderToOffscreenCanvas =
-                    this.ctx.chartState.getValue('options', 'highlight')?.drawingMode === 'cutout';
+                    this.ctx.chartState.getValue('options')?.highlight?.drawingMode === 'cutout';
 
                 await this.updateSeries(seriesToUpdate);
 

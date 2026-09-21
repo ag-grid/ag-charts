@@ -598,13 +598,20 @@ export abstract class Series<
         return hasDimmedOpacity(unhighlightedItem) || hasDimmedOpacity(unhighlightedSeries);
     }
 
+    /** The chart-level `highlight` options; the single-key read avoids a sub-path split on per-datum paths. */
+    protected getChartHighlightOptions() {
+        return this.ctx.chartState.getValue('options')?.highlight;
+    }
+
+    protected getChartHighlightDrawingMode(): AgDrawingMode {
+        return this.getChartHighlightOptions()?.drawingMode ?? 'overlay';
+    }
+
     protected getDrawingMode(isHighlight?: boolean, highlightDrawingMode: AgDrawingMode = 'cutout'): AgDrawingMode {
         if (isHighlight) {
             return highlightDrawingMode;
         }
-        return this.hasHighlightOpacity()
-            ? (this.ctx.chartState.getValue('options', 'highlight')?.drawingMode ?? 'overlay')
-            : 'overlay';
+        return this.hasHighlightOpacity() ? this.getChartHighlightDrawingMode() : 'overlay';
     }
 
     protected getAnimationDrawingModes() {
@@ -848,13 +855,16 @@ export abstract class Series<
      * `undefined` when there is none, for series-level highlights, and for the hovered series itself.
      */
     private getSharedCategoryMatch(highlightedDatum: HighlightNodeDatum | undefined): DatumIndex | undefined {
-        const { chartService, chartState } = this.ctx;
-        if (highlightedDatum == null || chartState.getValue('options', 'highlight')?.mode !== 'shared') return;
+        if (highlightedDatum == null || this.getChartHighlightOptions()?.mode !== 'shared') return;
         if (highlightedDatum.series == null || !this.isDatumHighlight(highlightedDatum)) return;
         // The hovered series is styled as in `'single'` mode, so a match of its own would only repaint it.
         if (highlightedDatum.series === this) return;
 
-        return chartService.getSharedHighlightMatch?.(highlightedDatum.series, highlightedDatum.datumIndex, this);
+        return this.ctx.chartService.getSharedHighlightMatch?.(
+            highlightedDatum.series,
+            highlightedDatum.datumIndex,
+            this
+        );
     }
 
     public getDataSelectionState(datumIndex: DatumIndex | undefined): SelectionState | undefined {
