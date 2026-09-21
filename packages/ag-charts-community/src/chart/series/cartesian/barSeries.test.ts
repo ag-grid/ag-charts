@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { ChartAxisDirection } from 'ag-charts-core';
 import type {
     AgBarSeriesItemStylerParams,
     AgBarSeriesLabelPlacement,
@@ -4047,6 +4048,132 @@ describe('BarSeries', () => {
             await waitForChartStability(chart);
 
             await compare();
+        });
+
+        const normalizedFilterData = [
+            { quarter: 'Q1', a: 300, b: 700, aFiltered: 200, bFiltered: 300 },
+            { quarter: 'Q2', a: 500, b: 500, aFiltered: 300, bFiltered: 100 },
+            { quarter: 'Q3', a: 800, b: 200, aFiltered: 400, bFiltered: 100 },
+        ];
+        const normalizedFilterOptions = (data: any[] = normalizedFilterData) =>
+            prepareTestOptions({
+                data,
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'quarter',
+                        yKey: 'a',
+                        stacked: true,
+                        normalizedTo: 100,
+                        yFilterKey: 'aFiltered',
+                    } as any,
+                    {
+                        type: 'bar',
+                        xKey: 'quarter',
+                        yKey: 'b',
+                        stacked: true,
+                        normalizedTo: 100,
+                        yFilterKey: 'bFiltered',
+                    } as any,
+                ],
+            });
+
+        it('normalizedTo: y-axis domain stays [0, normalizedTo] when yFilterKey is set', async () => {
+            // Filter values all sit below their base values, so only the raw-column domain union can stretch the axis.
+            chart = AgCharts.create(normalizedFilterOptions());
+            await waitForChartStability(chart);
+
+            const { axes } = deproxy(chart);
+            const yAxis = axes.find((a: any) => a.direction === ChartAxisDirection.Y);
+            expect(yAxis!.dataDomain.domain).toEqual([0, 100]);
+        });
+
+        it('normalizedTo: filtered overlay is drawn as its true proportion of the bar', async () => {
+            chart = AgCharts.create(normalizedFilterOptions());
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).series as any[];
+            expect(series[0].processedData.reduced.filteredValueExceedUnfiltered).toBe(false);
+
+            const expectedRatios: Array<Record<string, number>> = [
+                { Q1: 200 / 300, Q2: 300 / 500, Q3: 400 / 800 },
+                { Q1: 300 / 700, Q2: 100 / 500, Q3: 100 / 200 },
+            ];
+
+            for (const [seriesIndex, ratios] of expectedRatios.entries()) {
+                const { nodeData, phantomNodeData } = series[seriesIndex].contextNodeData;
+                expect(nodeData).toHaveLength(3);
+                expect(phantomNodeData).toHaveLength(3);
+
+                for (const [xValue, ratio] of Object.entries(ratios)) {
+                    const filtered = nodeData.find((d: any) => d.xValue === xValue);
+                    const unfiltered = phantomNodeData.find((d: any) => d.xValue === xValue);
+                    // clipBBox is the drawn segment; `height` is the whole-stack bbox and is equal for every segment.
+                    expect(filtered.clipBBox.height / unfiltered.clipBBox.height).toBeCloseTo(ratio, 5);
+                }
+            }
+
+            // The unfiltered segments of one x stack fill the whole normalised bar.
+            const stackHeights = [0, 1, 2].map((datumIndex) =>
+                series.reduce((total, s) => total + s.contextNodeData.phantomNodeData[datumIndex].clipBBox.height, 0)
+            );
+            const fullHeight = Math.max(...stackHeights);
+            for (const stackHeight of stackHeights) {
+                expect(stackHeight).toBeCloseTo(fullHeight, 5);
+            }
+
+            await compare();
+        });
+
+        it('normalizedTo: a null filter value produces no NaN geometry', async () => {
+            const data = normalizedFilterData.map((d, i) => (i === 1 ? { ...d, aFiltered: null } : d));
+            chart = AgCharts.create(normalizedFilterOptions(data));
+            await waitForChartStability(chart);
+
+            const { nodeData, phantomNodeData } = (deproxy(chart).series[0] as any).contextNodeData;
+            // The null-filter datum is dropped upstream by the data model, so it contributes no node at all.
+            expect(nodeData.map((d: any) => d.xValue)).toEqual(['Q1', 'Q3']);
+
+            for (const datum of [...nodeData, ...phantomNodeData]) {
+                for (const value of [datum.clipBBox.x, datum.clipBBox.y, datum.clipBBox.width, datum.clipBBox.height]) {
+                    expect(Number.isNaN(value)).toBe(false);
+                }
+            }
+
+            for (const [xValue, ratio] of Object.entries({ Q1: 200 / 300, Q3: 400 / 800 })) {
+                const filtered = nodeData.find((d: any) => d.xValue === xValue);
+                const unfiltered = phantomNodeData.find((d: any) => d.xValue === xValue);
+                expect(filtered.clipBBox.height / unfiltered.clipBBox.height).toBeCloseTo(ratio, 5);
+            }
+        });
+        it('normalizedTo: a stack mixing filtered and unfiltered series keeps the normalised domain', async () => {
+            const options = prepareTestOptions({
+                data: normalizedFilterData,
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'quarter',
+                        yKey: 'a',
+                        stacked: true,
+                        normalizedTo: 100,
+                        yFilterKey: 'aFiltered',
+                    } as any,
+                    { type: 'bar', xKey: 'quarter', yKey: 'b', stacked: true, normalizedTo: 100 } as any,
+                ],
+            });
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const { axes, series } = deproxy(chart);
+            const yAxis = axes.find((a: any) => a.direction === ChartAxisDirection.Y);
+            expect(yAxis!.dataDomain.domain).toEqual([0, 100]);
+
+            const { nodeData, phantomNodeData } = (series[0] as any).contextNodeData;
+            for (const [xValue, ratio] of Object.entries({ Q1: 200 / 300, Q2: 300 / 500, Q3: 400 / 800 })) {
+                const filtered = nodeData.find((d: any) => d.xValue === xValue);
+                const unfiltered = phantomNodeData.find((d: any) => d.xValue === xValue);
+                expect(filtered.clipBBox.height / unfiltered.clipBBox.height).toBeCloseTo(ratio, 5);
+            }
         });
     });
 
