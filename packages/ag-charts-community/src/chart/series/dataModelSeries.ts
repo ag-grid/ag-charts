@@ -147,13 +147,14 @@ export abstract class DataModelSeries<
             return;
         }
 
-        const datumIndex = this.computeFocusDatumIndex(opts, nodeData);
-        if (datumIndex === undefined) {
+        const nodeDatumIndex = this.computeFocusNodeIndex(opts, nodeData);
+        if (nodeDatumIndex === undefined) {
             return;
         }
 
         const { clipFocusBox } = this;
-        const datum = nodeData[datumIndex];
+        const datum = nodeData[nodeDatumIndex];
+        const datumIndex = datum.datumIndex;
         const derivedOpts = { ...opts, datumIndex };
         const bounds = this.computeFocusBounds(derivedOpts);
         if (bounds !== undefined) {
@@ -167,48 +168,37 @@ export abstract class DataModelSeries<
         return matches;
     }
 
-    protected isDatumEnabled(nodeData: TDatum[], datumIndex: number): boolean {
-        const { missing = false, enabled = true, focusable = true } = nodeData[datumIndex];
+    protected isDatumEnabled(nodeData: TDatum[], nodeDatumIndex: number): boolean {
+        const { missing = false, enabled = true, focusable = true } = nodeData[nodeDatumIndex];
         return !missing && enabled && focusable;
     }
 
-    private computeFocusDatumIndex(opts: PickFocusInputs, nodeData: TDatum[]): number | undefined {
-        const searchBackward = (datumIndex: number, delta: number): number | undefined => {
-            while (datumIndex >= 0 && !this.isDatumEnabled(nodeData, datumIndex)) {
-                datumIndex += delta;
+    private computeFocusNodeIndex(opts: PickFocusInputs, nodeData: TDatum[]): number | undefined {
+        const searchBackward = (nodeDatumIndex: number, delta: number): number | undefined => {
+            while (nodeDatumIndex >= 0 && !this.isDatumEnabled(nodeData, nodeDatumIndex)) {
+                nodeDatumIndex += delta;
             }
-            return datumIndex === -1 ? undefined : datumIndex;
+            return nodeDatumIndex === -1 ? undefined : nodeDatumIndex;
         };
-        const searchForward = (datumIndex: number, delta: number): number | undefined => {
-            while (datumIndex < nodeData.length && !this.isDatumEnabled(nodeData, datumIndex)) {
-                datumIndex += delta;
+        const searchForward = (nodeDatumIndex: number, delta: number): number | undefined => {
+            while (nodeDatumIndex < nodeData.length && !this.isDatumEnabled(nodeData, nodeDatumIndex)) {
+                nodeDatumIndex += delta;
             }
-            return datumIndex === nodeData.length ? undefined : datumIndex;
+            return nodeDatumIndex === nodeData.length ? undefined : nodeDatumIndex;
         };
 
         // Search forward or backwards depending on the delta direction.
-        let datumIndex: number | undefined;
+        let nodeIndex: number | undefined;
         const clampedIndex = clamp(0, opts.datumIndex, nodeData.length - 1);
         if (opts.datumIndexDelta < 0) {
-            datumIndex = searchBackward(clampedIndex, opts.datumIndexDelta);
+            nodeIndex = searchBackward(clampedIndex, opts.datumIndexDelta);
         } else if (opts.datumIndexDelta > 0) {
-            datumIndex = searchForward(clampedIndex, opts.datumIndexDelta);
+            nodeIndex = searchForward(clampedIndex, opts.datumIndexDelta);
         } /* opts.datumIndexDelta === 0 */ else {
-            datumIndex = searchForward(clampedIndex, +1) ?? searchBackward(clampedIndex, -1);
+            nodeIndex = searchForward(clampedIndex, +1) ?? searchBackward(clampedIndex, -1);
         }
 
-        if (datumIndex === undefined) {
-            if (opts.datumIndexDelta === 0) {
-                return;
-            } else {
-                // If datumIndex is undefined, then this datum is the first or last enabled datum.
-                // last enabled datum. If that's the case, then reverse the keyboard delta to stay on
-                // this datum.
-                return opts.datumIndex - opts.datumIndexDelta;
-            }
-        } else {
-            return datumIndex;
-        }
+        return nodeIndex;
     }
 
     // Workaround - it would be nice if this difference didn't exist
