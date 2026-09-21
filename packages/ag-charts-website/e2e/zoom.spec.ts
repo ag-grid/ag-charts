@@ -1,12 +1,9 @@
 import type { Page } from 'playwright/test';
 
-import type { ClientPoint } from 'ag-charts-core';
-
 import { evalPageFunction, getChartState } from './agE2E';
 import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
-    SELECTORS,
     canvasToPageTransformer,
     delay,
     dragCanvas,
