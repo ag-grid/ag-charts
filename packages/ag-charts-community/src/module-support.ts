@@ -431,7 +431,6 @@ export { OrdinalTimeScale } from './scale/ordinalTimeScale';
 export { ApproximateOrdinalTimeScale } from './scale/approximateOrdinalTimeScale';
 export { APPROXIMATE_THRESHOLD } from './scale/discreteTimeScale';
 export {
-    LabelStyle,
     expandLabelBoxExtent,
     expandPlacementLabelBoxExtent,
     labelHasBox,
