@@ -15,22 +15,24 @@ import type {
     AgBaseCartesianAxisLabelOptions,
     AgBaseCartesianAxisOptions,
     AgBaseCrossLineLabelOptions,
-    AgBaseCrossLineOptions,
     AgBaseCrosshairLabel,
     AgCartesianAxisCaptionOptions,
     AgCartesianAxisLabelOptions,
     AgCartesianTimeAxisLabelOptions,
     AgCategoryAxisOptions,
+    AgCrossLineLabelPosition,
     AgCrosshairLabel,
     AgCrosshairOptions,
     AgGroupedCategoryAxisLabelOptions,
     AgGroupedCategoryAxisOptions,
+    AgLineCrossLineOptions,
     AgLogAxisOptions,
     AgNumberAxisOptions,
     AgNumericAxisFormattableLabelOptions,
     AgOrdinalTimeAxisOptions,
     AgRadiusCategoryAxisOptions,
     AgRadiusNumberAxisOptions,
+    AgRangeCrossLineOptions,
     AgTimeAxisOptions,
     AgTimeAxisParentLevel,
     AgTimeInterval,
@@ -377,22 +379,38 @@ export type CrossLineLabelOverflow = 'pad-chart' | 'realign-text' | 'clip-text';
 export type NormalisedAxisCrossLineLabelOptions = Normalised<
     AgBaseCrossLineLabelOptions,
     'fontSize' | 'fontFamily' | 'fontWeight' | 'padding' | 'color' | 'cornerRadius',
-    { fontFamily: string }
+    { fontFamily: string; color?: CssColor; fill?: NormalisedColorType; border?: NormalisedBorderOptions }
 > & {
     overflow?: CrossLineLabelOverflow;
     reserveSpace?: boolean;
+    /** Cartesian cross lines only. */
+    position?: AgCrossLineLabelPosition;
+    /** Cartesian cross lines only. */
+    rotation?: number;
+    /** Radius cross lines only. */
+    positionAngle?: number;
 };
 
-// The cross-lines theme template applies `fill`/`fillOpacity` to every cross-line, so the
-// normalised shape carries them on both variants — via the morph, as they are not common keys.
+// The cross-lines theme template applies `fill`/`fillOpacity` to every cross-line and always
+// supplies `label`, so the normalised shape carries them on both variants — via the morph, as they
+// are not common keys.
 interface CrossLineLabelMorph {
-    label?: NormalisedAxisCrossLineLabelOptions;
+    label: NormalisedAxisCrossLineLabelOptions;
+    stroke?: CssColor;
     fill?: CssColor;
     fillOpacity?: Opacity;
 }
 
-export type NormalisedAxisCrossLineOptions = Normalised<
-    AgBaseCrossLineOptions<AxisValue, AgBaseCrossLineLabelOptions, ContextDefault>,
-    'enabled' | 'stroke' | 'strokeWidth',
-    CrossLineLabelMorph
->;
+// Normalised per variant so `type` still discriminates `value` from `range`.
+type CrossLineRequiredKeys = 'enabled' | 'stroke' | 'strokeWidth';
+export type NormalisedAxisCrossLineOptions =
+    | Normalised<
+          AgLineCrossLineOptions<AxisValue, AgBaseCrossLineLabelOptions, ContextDefault>,
+          CrossLineRequiredKeys,
+          CrossLineLabelMorph
+      >
+    | Normalised<
+          AgRangeCrossLineOptions<AxisValue, AgBaseCrossLineLabelOptions, ContextDefault>,
+          CrossLineRequiredKeys,
+          CrossLineLabelMorph
+      >;
