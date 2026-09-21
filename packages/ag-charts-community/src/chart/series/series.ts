@@ -602,7 +602,9 @@ export abstract class Series<
         if (isHighlight) {
             return highlightDrawingMode;
         }
-        return this.hasHighlightOpacity() ? (this.ctx.chartService.highlight?.drawingMode ?? 'overlay') : 'overlay';
+        return this.hasHighlightOpacity()
+            ? (this.ctx.chartState.getValue('options', 'highlight')?.drawingMode ?? 'overlay')
+            : 'overlay';
     }
 
     protected getAnimationDrawingModes() {
@@ -846,8 +848,8 @@ export abstract class Series<
      * `undefined` when there is none, for series-level highlights, and for the hovered series itself.
      */
     private getSharedCategoryMatch(highlightedDatum: HighlightNodeDatum | undefined): DatumIndex | undefined {
-        const { chartService } = this.ctx;
-        if (highlightedDatum == null || chartService.highlight?.mode !== 'shared') return;
+        const { chartService, chartState } = this.ctx;
+        if (highlightedDatum == null || chartState.getValue('options', 'highlight')?.mode !== 'shared') return;
         if (highlightedDatum.series == null || !this.isDatumHighlight(highlightedDatum)) return;
         // The hovered series is styled as in `'single'` mode, so a match of its own would only repaint it.
         if (highlightedDatum.series === this) return;

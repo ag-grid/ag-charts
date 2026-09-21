@@ -1,9 +1,6 @@
-import type { AxisID, DynamicContext, NormalisedTextOrSegments } from 'ag-charts-core';
+import type { AxisID, DynamicContext, NormalisedAxisTitleOptions, NormalisedTextOrSegments } from 'ag-charts-core';
 import {
-    BaseProperties,
     FONT_SIZE,
-    Property,
-    ProxyPropertyOnWrite,
     callWithContext,
     createId,
     isArray,
@@ -44,18 +41,13 @@ type CaptionNodeDatum = {
     rotation: number;
 };
 
-class CaptionTooltipProperties extends BaseProperties {
-    @Property
+interface CaptionTooltipOptions {
     visible?: 'auto' | 'always' | 'never';
-
-    @Property
     text?: string;
-
-    @Property
     renderer?: Renderer<AgCaptionTooltipRendererParams, never>;
 }
 
-export class Caption extends BaseProperties implements CaptionLike {
+export class Caption implements CaptionLike {
     static readonly className = 'Caption';
 
     readonly id = createId(this);
@@ -64,61 +56,41 @@ export class Caption extends BaseProperties implements CaptionLike {
         pointerEvents: PointerEvents.None,
     });
 
-    @Property
-    @ProxyPropertyOnWrite('node', 'visible')
     enabled: boolean = false;
-
-    @Property
-    @ProxyPropertyOnWrite('node')
     text?: NormalisedTextOrSegments;
-
-    @Property
-    @ProxyPropertyOnWrite('node')
     textAlign: TextAlign = 'center';
-
-    @Property
-    @ProxyPropertyOnWrite('node')
     fontStyle?: FontStyle;
-
-    @Property
-    @ProxyPropertyOnWrite('node')
     fontWeight?: FontWeight;
-
-    @Property
-    @ProxyPropertyOnWrite('node')
     fontSize: number = FONT_SIZE.SMALLER;
-
-    @Property
-    @ProxyPropertyOnWrite('node')
     fontFamily: string = 'sans-serif';
-
-    @Property
-    @ProxyPropertyOnWrite('node', 'fill')
     color?: string;
-
-    @Property
     spacing?: number;
-
-    @Property
     maxWidth?: number;
-
-    @Property
     maxHeight?: number;
-
-    @Property
     wrapping: TextWrap = 'always';
-
-    @Property
     truncate: boolean = true;
-
-    @Property
     padding: number = 0;
-
-    @Property
     layoutStyle: 'block' | 'overlay' = 'block';
+    readonly tooltip: CaptionTooltipOptions = {};
 
-    @Property
-    readonly tooltip = new CaptionTooltipProperties();
+    /** Copies the title style onto the caption and its text node; visibility and text are set by the axis. */
+    applyTitle(title: NormalisedAxisTitleOptions) {
+        const { node } = this;
+        this.enabled = node.visible = title.enabled;
+        this.color = node.fill = title.color;
+        this.fontFamily = node.fontFamily = title.fontFamily;
+        this.fontSize = node.fontSize = title.fontSize;
+        this.fontStyle = node.fontStyle = title.fontStyle;
+        this.fontWeight = node.fontWeight = title.fontWeight;
+        this.wrapping = title.wrapping;
+        this.truncate = title.truncate;
+        this.maxWidth = title.maxWidth;
+        this.maxHeight = title.maxHeight;
+    }
+
+    setText(text: NormalisedTextOrSegments | undefined) {
+        this.text = this.node.text = text;
+    }
 
     private truncated = false;
     private proxyText?: BoundedTextWidget;

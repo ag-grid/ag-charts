@@ -942,8 +942,8 @@ export abstract class CartesianAxis<
     protected titleProps(caption: Caption, domain: D[], spacing: number) {
         const title = this.options.title;
 
+        caption.applyTitle(title);
         if (!title.enabled) {
-            caption.enabled = false;
             return {
                 visible: false,
                 text: '',
@@ -956,17 +956,6 @@ export abstract class CartesianAxis<
                 rotation: 0,
             };
         }
-
-        caption.enabled = true;
-        caption.color = title.color;
-        caption.fontFamily = title.fontFamily;
-        caption.fontSize = title.fontSize;
-        caption.fontStyle = title.fontStyle;
-        caption.fontWeight = title.fontWeight;
-        caption.wrapping = title.wrapping;
-        caption.truncate = title.truncate;
-        caption.maxWidth = title.maxWidth;
-        caption.maxHeight = title.maxHeight;
 
         const { range } = this;
         const midOffset = (range[0] + range[1]) / 2;
@@ -1000,7 +989,7 @@ export abstract class CartesianAxis<
 
         const { formatter = (p) => p.defaultValue } = title;
         const text = this.cachedCallWithContext(formatter, this.getTitleFormatterParams(domain));
-        caption.text = text;
+        caption.setText(text);
 
         return {
             visible: true,

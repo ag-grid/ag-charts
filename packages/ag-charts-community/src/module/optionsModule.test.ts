@@ -834,8 +834,7 @@ describe('ChartOptions', () => {
             const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
             expect(messages.some((m) => m.includes('Option `highlight.mode` cannot be set to `"invalid"`'))).toBe(true);
             expect(messages.some((m) => m.includes("expecting a keyword such as 'single' or 'shared'"))).toBe(true);
-            // The invalid value is dropped rather than substituted, so `ChartHighlight`'s own
-            // `mode = 'single'` property default applies at the chart-instance level.
+            // The invalid value is dropped rather than substituted; consumers fall back to 'single'.
             expect((options as any).highlight?.mode).toBeUndefined();
         });
     });
