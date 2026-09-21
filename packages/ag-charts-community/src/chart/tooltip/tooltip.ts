@@ -184,13 +184,7 @@ export class Tooltip {
         this.delay = options.delay ?? 0;
         this.range = options.range;
         this.wrapping = options.wrapping ?? 'hyphenate';
-        this.position = {
-            xOffset: options.position?.xOffset ?? 0,
-            yOffset: options.position?.yOffset ?? 0,
-            offset: options.position?.offset,
-            anchorTo: options.position?.anchorTo,
-            placement: options.position?.placement,
-        };
+        this.position = { xOffset: 0, yOffset: 0, ...options.position };
         this.pagination = options.pagination ?? false;
         this.darkTheme = options.darkTheme ?? false;
         this.bounds = options.bounds ?? 'extended';

@@ -1373,7 +1373,7 @@ export class DonutSeries extends PolarSeries<
         const { legendItemValues } = this.getProcessedDataValues(dataModel, processedData);
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum, legendItemValues);
 
-        const drawingMode = this.ctx.chartState.getValue('options', 'highlight')?.drawingMode ?? 'overlay';
+        const drawingMode = this.getChartHighlightDrawingMode();
         this.highlightGroup.visible = visible && seriesHighlighted;
         this.labelGroup.visible = visible;
 

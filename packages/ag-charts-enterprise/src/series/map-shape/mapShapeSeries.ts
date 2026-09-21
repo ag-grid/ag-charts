@@ -550,7 +550,7 @@ export class MapShapeSeries
 
         this.contentGroup.visible = this.visible;
         this.labelGroup.visible = this.visible;
-        const drawingMode = this.ctx.chartState.getValue('options', 'highlight')?.drawingMode ?? 'overlay';
+        const drawingMode = this.getChartHighlightDrawingMode();
 
         const highlightedDatum = this.getHighlightedDatum();
 

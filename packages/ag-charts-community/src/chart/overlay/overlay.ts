@@ -69,7 +69,9 @@ export class Overlay {
         protected className: string,
         protected defaultMessageId: string,
         private readonly defaultRenderer?: Overlay['renderer']
-    ) {}
+    ) {
+        this.renderer = defaultRenderer;
+    }
 
     applyOptions(options: NormalisedChartOverlayOptions | undefined) {
         this.enabled = options?.enabled ?? true;
