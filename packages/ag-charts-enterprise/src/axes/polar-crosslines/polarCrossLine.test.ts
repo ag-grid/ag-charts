@@ -157,7 +157,11 @@ describe('CrossLine colour references', () => {
                     type: 'radius-number',
                     crossLines: [
                         { type: 'range', range: [0, 1], fill: { ref: 'foregroundColor' } },
-                        { type: 'range', range: [1, 2], fill: { ref: 'foregroundColor', mix: 0.2, onto: 'backgroundColor' } },
+                        {
+                            type: 'range',
+                            range: [1, 2],
+                            fill: { ref: 'foregroundColor', mix: 0.2, onto: 'backgroundColor' },
+                        },
                         { type: 'range', range: [2, 3], fill: 'var(--my-colour)' },
                     ],
                 },
