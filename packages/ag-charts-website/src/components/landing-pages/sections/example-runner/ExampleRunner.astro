@@ -7,7 +7,6 @@
  */
 import type { InternalFramework } from '@ag-grid-types';
 import ExampleRunnerContainer from '@components/example-runner/components/ExampleRunnerContainer.astro';
-import { getIsDev } from '@utils/env';
 import { DocsExampleRunner } from '@components/docs/components/DocsExampleRunner';
 import { getGeneratedContents, type GeneratedExampleParams } from '@components/example-generator';
 
@@ -20,7 +19,6 @@ interface Props {
 }
 
 const { title, name, pageName, exampleHeight = 450, framework } = Astro.props;
-const isDev = getIsDev();
 
 const generatedExampleParams: GeneratedExampleParams = {
     type: 'docs',
@@ -52,7 +50,6 @@ try {
                 name={name}
                 exampleHeight={exampleHeight}
                 pageName={pageName}
-                isDev={isDev}
                 hasExampleConsoleLog={hasExampleConsoleLog}
             />
         </ExampleRunnerContainer>
