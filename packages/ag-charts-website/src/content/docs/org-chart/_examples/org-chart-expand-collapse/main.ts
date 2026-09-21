@@ -60,15 +60,7 @@ function collapseAll() {
     const { version } = chart.getState();
     chart.setState({
         version,
-        collapsed: [
-            'Julia Howe',
-            'Gabriella Garcia',
-            'Mr. Jeffrey Brown',
-            'Nathan Jones',
-            'Justin Contreras',
-            'Lawrence Martinez',
-            'Eric Jensen',
-        ],
+        collapsed: ['Ashley Rivers'],
     });
 }
 
