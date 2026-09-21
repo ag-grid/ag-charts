@@ -4125,6 +4125,8 @@ describe('BarSeries', () => {
             for (const stackHeight of stackHeights) {
                 expect(stackHeight).toBeCloseTo(fullHeight, 5);
             }
+
+            await compare();
         });
 
         it('normalizedTo: a null filter value produces no NaN geometry', async () => {
