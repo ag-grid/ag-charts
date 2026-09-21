@@ -1001,9 +1001,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const nodeLabelText = phantom ? undefined : prepared.labelText;
 
         // Non-filtered: params.yEnd stays in domain space (possibly bigint) for a full-precision convert().
-        // Cross-filter: yFilterValue is already Number-narrowed, so yStart narrows here too and currY is Number.
-        // params.yStart is in normalised stack space when the series is normalised, so the overlay must be
-        // sized by the normalised filter delta rather than the raw filter value.
+        // Cross-filter: params.yStart is in normalised stack space, so the overlay is sized by the normalised
+        // filter delta (already Number-narrowed, so currY is Number) rather than the raw filter value.
         const yFilterGeometryValue = prepared.yFilterStackValue;
 
         let currY: AgNumericValue;
