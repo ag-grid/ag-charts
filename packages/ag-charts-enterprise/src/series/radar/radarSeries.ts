@@ -427,7 +427,7 @@ export abstract class RadarSeries<
         if (this.markerDirty) {
             this.highlightSelection.clear();
             this.highlightSelection.cleanup();
-            this.highlightSelection = Selection.select(this.highlightGroup, () => this.nodeFactory(), false);
+            this.highlightSelection = Selection.select(this.highlightGroup, () => this.nodeFactory());
         }
 
         const markersEnabled = styler == null ? marker.enabled : this.getStyle(undefined).marker.enabled;
