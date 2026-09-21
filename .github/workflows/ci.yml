@@ -1345,6 +1345,21 @@ jobs:
                     npx playwright test
               timeout-minutes: 15
 
+            # Pixel parity of the framework ports against the React reference, served from the
+            # dist/ the init job built. Until the seeds land (AG-18147 phases 1 and 3) there are no
+            # ports, so this compares the React app with itself and guards its determinism.
+            - name: playwright parity ag-charts-demos
+              id: demos_parity
+              if: ${{ !cancelled() }}
+              run: |
+                  docker run --rm --ipc=host --init \
+                    -v "$(pwd)":/data \
+                    -w /data/packages/ag-charts-demos \
+                    -e CI \
+                    ${PLAYWRIGHT_IMAGE} \
+                    npx playwright test -c playwright.parity.config.ts
+              timeout-minutes: 15
+
             - name: Persist test results
               if: always()
               uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -1353,6 +1368,7 @@ jobs:
                   path: |
                       reports/
                       packages/ag-charts-demos/test-results/
+                      packages/ag-charts-demos/e2e/parity/results/
 
     fw_pkg_test:
         runs-on: ubuntu-24.04
