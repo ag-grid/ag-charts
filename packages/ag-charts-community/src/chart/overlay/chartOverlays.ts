@@ -26,8 +26,6 @@ export class ChartOverlays {
             'overlayValidation',
             defaultRenderers?.validation
         );
-        this.loading.applyOptions(undefined);
-        this.validation.applyOptions(undefined);
     }
 
     applyOptions(options: NormalisedChartOverlaysOptions) {
