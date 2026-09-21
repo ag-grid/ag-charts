@@ -1955,7 +1955,7 @@ describe('CrossLine theme colour references', () => {
         expect(crossLineInstances('y').map((c) => c.fill)).toEqual(['#0000ff']);
     });
 
-    it('rejects a malformed reference and leaves the fill unresolved', async () => {
+    it('ignores malformed reference members and still resolves the reference', async () => {
         chart = await createChart(
             chartOptions([
                 {
