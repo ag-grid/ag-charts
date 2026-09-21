@@ -1,4 +1,5 @@
 import { LoadFontFamilyMenuFonts } from '@ag-website-shared/components/theme-builder/FontFamilyValueEditor';
+import { NarrowScreenNotice } from '@ag-website-shared/components/theme-builder/NarrowScreenNotice';
 import { ThemeBuilderProvider } from '@ag-website-shared/components/theme-builder/ThemeBuilderProvider';
 
 import { RootContainer } from './RootContainer';
@@ -15,6 +16,10 @@ export const ThemeBuilder = ({ isDark }: { isDark: boolean }) => {
         <ThemeBuilderProvider initialPreset={toSharedPreset(initialPreset)}>
             <LoadFontFamilyMenuFonts />
             <RootContainer initialPreset={initialPreset} />
+            <NarrowScreenNotice>
+                Visit us on a larger device to explore our preset themes, customise colours, typography and spacing, and
+                download your own AG Charts theme.
+            </NarrowScreenNotice>
         </ThemeBuilderProvider>
     );
 };

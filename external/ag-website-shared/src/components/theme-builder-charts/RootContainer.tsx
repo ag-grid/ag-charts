@@ -1,3 +1,4 @@
+import { BUILDER_MIN_WIDTH } from '@ag-website-shared/components/theme-builder/NarrowScreenNotice';
 import { strokesAreEnabled } from '@ag-website-shared/components/theme-builder/palette';
 import { useRenderedTheme, useRenderedThemeInfo } from '@ag-website-shared/theming/rendered-theme';
 import styled from '@emotion/styled';
@@ -98,7 +99,7 @@ const Container = styled('div')`
 
     font-family: var(--text-font-family);
 
-    @media screen and (max-width: 900px) {
+    @media screen and (max-width: ${BUILDER_MIN_WIDTH - 1}px) {
         display: none;
     }
 `;
