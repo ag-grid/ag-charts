@@ -2,8 +2,6 @@ import {
     type AgTreemapHighlightState,
     type AgTreemapSeriesItemStylerParams,
     type AgTreemapSeriesLabelFormatterParams,
-    type AgTreemapSeriesOptions,
-    type AgTreemapSeriesStyle,
     type FontStyle,
     type FontWeight,
     type TextAlign,
@@ -12,11 +10,14 @@ import {
 } from 'ag-charts-community';
 import {
     type CallbackParamRules,
-    type InternalAgColorType,
+    type NormalisedColorType,
     type NormalisedTextOrSegments,
+    type NormalisedTreemapSeriesOwnOptions,
+    type NormalisedTreemapSeriesStyle,
     type Point,
     type RequireOptional,
     type ResolvedTextAlign,
+    STROKE_STYLE_THEME_DEFAULTS,
     cachedTextMeasurer,
     calcLineHeight,
     findDiscreteColorBinLabel,
@@ -31,7 +32,6 @@ import {
 
 import { HierarchyDataSet } from '../../charts/hierarchyDataSet';
 import { formatLabels } from '../util/labelFormatter';
-import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
 const {
     createDatumId,
@@ -39,6 +39,7 @@ const {
     Group,
     BBox,
     Selection,
+    SelectionState,
     Text,
     Transformable,
     getLabelStyles,
@@ -86,8 +87,8 @@ enum TextNodeTag {
     Secondary,
 }
 
-type ItemStyle = Pick<AgTreemapSeriesStyle, 'fill' | 'stroke'> &
-    Omit<Required<AgTreemapSeriesStyle>, 'fill' | 'stroke'>;
+type ItemStyle = Pick<NormalisedTreemapSeriesStyle, 'fill' | 'stroke'> &
+    Omit<Required<NormalisedTreemapSeriesStyle>, 'fill' | 'stroke'>;
 type HighlightStyle = Partial<ItemStyle> & { opacity?: number };
 
 function nodeSize(node: TreemapNode) {
@@ -109,15 +110,12 @@ const verticalAlignFactors: Record<VerticalAlign, number | undefined> = {
 export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     TreemapNode,
     _ModuleSupport.Rect<TreemapNode>,
-    AgTreemapSeriesOptions,
-    TreemapSeriesProperties
+    NormalisedTreemapSeriesOwnOptions
 > {
     static override readonly className = 'TreemapSeries';
     static readonly type = 'treemap' as const;
 
     override NodeClass = TreemapNode;
-
-    override properties = new TreemapSeriesProperties();
 
     private readonly rectGroup = this.contentGroup.appendChild(new Group());
 
@@ -143,7 +141,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
     private groupTitleHeight(node: TreemapNode, bbox: _ModuleSupport.BBox): number | undefined {
         const heightRatioThreshold = 3;
-        const { label } = this.properties.group;
+        const { label } = this.options.group;
         const { labelValue } = node;
         const { fontSize } = label;
 
@@ -162,14 +160,14 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         if (node.parent == null) {
             return { top: 0, right: 0, bottom: 0, left: 0 };
         } else if (node.children.length === 0) {
-            const { padding } = this.properties.tile;
+            const { padding } = this.options.tile;
             return { top: padding, right: padding, bottom: padding, left: padding };
         }
 
         const {
             padding,
             label: { spacing },
-        } = this.properties.group;
+        } = this.options.group;
         const fontHeight = this.groupTitleHeight(node, bbox);
         const titleHeight = fontHeight == null ? 0 : fontHeight + spacing;
 
@@ -366,7 +364,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     }
 
     private applyGap(innerBox: _ModuleSupport.BBox, childBox: _ModuleSupport.BBox, allLeafNodes: boolean) {
-        const gap = allLeafNodes ? this.properties.tile.gap * 0.5 : this.properties.group.gap * 0.5;
+        const gap = allLeafNodes ? this.options.tile.gap * 0.5 : this.options.group.gap * 0.5;
         const getBounds = (box: _ModuleSupport.BBox): Record<Side, number> => ({
             left: box.x,
             top: box.y,
@@ -392,13 +390,13 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         isLeaf: boolean,
         isHighlight: boolean
     ) {
-        const { properties, colorScale } = this;
-        const { itemStyler, colorKey } = properties;
-        const { missingDataFill } = properties.colorScale;
+        const { options, colorScale } = this;
+        const { itemStyler, colorKey } = options;
+        const { missingDataFill } = options.colorScale;
         const rootIndex = nodeDatum.path?.[0] ?? 0;
 
-        const fills = isLeaf ? properties.fills : properties.group.fills;
-        const strokes = isLeaf ? properties.strokes : properties.undocumentedGroupStrokes;
+        const fills = isLeaf ? options.fills : options.group.fills;
+        const strokes = isLeaf ? options.strokes : options.undocumentedGroupStrokes;
         const index = isLeaf ? rootIndex : (nodeDatum.depth ?? -1);
 
         const highlightedNode = this.getActiveHighlightNode();
@@ -409,14 +407,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         const highlightStyle = isLeaf
             ? this.getTileHighlightStyle(tileHighlightState, groupHighlightState, highlightedNode)
             : this.getGroupHighlightStyle(groupHighlightState);
-        const selectionStyle = isLeaf
-            ? this.getTileSelectionStyle(nodeDatum.datumIndex)
-            : this.getGroupSelectionStyle(nodeDatum.datumIndex);
-        const baseStyle = mergeDefaults(
-            selectionStyle,
-            highlightStyle,
-            properties.getStyle(isLeaf, fills, strokes, index)
-        );
+        const selectionStyle = isLeaf ? this.getTileSelectionStyle(nodeDatum.datumIndex) : undefined;
+        const baseStyle = mergeDefaults(selectionStyle, highlightStyle, this.itemStyle(isLeaf, fills, strokes, index));
 
         if (isLeaf && nodeDatum.colorValue != null && highlightStyle?.fill == null) {
             baseStyle.fill = colorScale.convert(nodeDatum.colorValue);
@@ -450,15 +442,31 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         return style;
     }
 
+    private itemStyle(
+        isLeaf: boolean,
+        fills: NormalisedColorType[],
+        strokes: string[],
+        index: number
+    ): Required<NormalisedTreemapSeriesStyle> & { opacity: number } {
+        const {
+            fillOpacity,
+            strokeWidth,
+            strokeOpacity,
+            fill = fills[index % fills.length],
+            stroke = isLeaf ? strokes[index % strokes.length] : strokes[Math.min(index, strokes.length)],
+        } = isLeaf ? this.options.tile : this.options.group;
+        return { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, opacity: 1 };
+    }
+
     private makeItemStylerParams(
         nodeDatum: Pick<TreemapNode, 'datum' | 'datumIndex' | 'depth'>,
         style: Required<ItemStyle>,
         highlightState: AgTreemapHighlightState
     ) {
         const { id: seriesId } = this;
-        const { colorKey, childrenKey, sizeKey, labelKey, secondaryLabelKey } = this.properties;
+        const { colorKey, childrenKey, sizeKey, labelKey, secondaryLabelKey } = this.options;
 
-        const fill = this.filterItemStylerFillParams(style.fill as InternalAgColorType) ?? style.fill;
+        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
             seriesId,
@@ -503,7 +511,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
     protected override getActiveHighlightNode(): TreemapNode | undefined {
         const highlightedNode = super.getActiveHighlightNode();
-        if (highlightedNode?.children.length && !this.properties.group.interactive) {
+        if (highlightedNode?.children.length && !this.options.group.interactive) {
             return undefined;
         }
         return highlightedNode;
@@ -512,7 +520,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     updateNodes() {
         const { rootNode, data } = this;
         const { childrenKey, colorKey, colorName, labelKey, secondaryLabelKey, sizeKey, sizeName, tile, group } =
-            this.properties;
+            this.options;
         const { seriesRect } = this.chart ?? {};
 
         if (!seriesRect || !data) return;
@@ -604,9 +612,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 };
                 const formatting = formatLabels(
                     labelText ?? labelValue,
-                    this.properties.tile.label,
+                    tile.label,
                     secondaryLabelText ?? secondaryLabelValue,
-                    this.properties.tile.secondaryLabel,
+                    tile.secondaryLabel,
                     { padding: tile.padding },
                     () => layout
                 );
@@ -629,12 +637,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                     (bbox.height - 2 * padding - labelHeight) * verticalAlignFactor;
 
                 if (label != null) {
-                    const {
-                        fontStyle = 'normal',
-                        fontFamily,
-                        fontWeight = 'normal',
-                        color = 'black',
-                    } = this.properties.tile.label;
+                    const { fontStyle = 'normal', fontFamily, fontWeight = 'normal', color = 'black' } = tile.label;
                     node.label = {
                         text: label.text,
                         fontSize: label.fontSize,
@@ -655,7 +658,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                         fontFamily,
                         fontWeight = 'normal',
                         color = 'black',
-                    } = this.properties.tile.secondaryLabel;
+                    } = tile.secondaryLabel;
                     node.secondaryLabel = {
                         text: secondaryLabel.text,
                         fontSize: secondaryLabel.fontSize,
@@ -687,12 +690,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 const resolvedTextAlign = resolveTextAlign(textAlign, this.ctx.domManager.isRtl);
                 const textAlignFactor = textAlignFactors[resolvedTextAlign] ?? 0.5;
 
-                const {
-                    fontStyle = 'normal',
-                    fontFamily,
-                    fontWeight = 'normal',
-                    color = 'black',
-                } = this.properties.group.label;
+                const { fontStyle = 'normal', fontFamily, fontWeight = 'normal', color = 'black' } = group.label;
 
                 node.label = {
                     text,
@@ -785,14 +783,14 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             const { opacity: highlightOpacity } = this.getItemStyle(node, isLeaf, highlighted) ?? {};
 
             const params: RequireOptional<AgTreemapSeriesLabelFormatterParams> = {
-                childrenKey: this.properties.childrenKey,
-                colorKey: this.properties.colorKey,
-                colorName: this.properties.colorName ?? this.properties.colorKey,
+                childrenKey,
+                colorKey,
+                colorName: colorName ?? colorKey,
                 depth: node.depth ?? Number.NaN,
-                labelKey: this.properties.labelKey,
-                secondaryLabelKey: this.properties.secondaryLabelKey,
-                sizeKey: this.properties.sizeKey,
-                sizeName: this.properties.sizeName ?? this.properties.sizeKey,
+                labelKey,
+                secondaryLabelKey,
+                sizeKey,
+                sizeName: sizeName ?? sizeKey,
             };
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const style = getLabelStyles(this, node, params, labelProps, highlighted, activeHighlight, labelPath);
@@ -867,15 +865,16 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             return { fillOpacity: groupStyle.fillOpacity, strokeOpacity: groupStyle.strokeOpacity };
         }
 
-        if (!this.properties.tile.highlight.enabled) {
+        const { highlight } = this.options.tile;
+        if (!highlight.enabled) {
             return undefined;
         }
 
-        return this.getHierarchyHighlightStyles(tileHighlightState, this.properties.tile.highlight);
+        return this.getHierarchyHighlightStyles(tileHighlightState, highlight);
     }
 
     private getGroupHighlightStyle(highlightState: _ModuleSupport.HierarchyHighlightState): HighlightStyle | undefined {
-        const { highlight } = this.properties.group;
+        const { highlight } = this.options.group;
         if (!highlight.enabled) {
             return undefined;
         }
@@ -890,7 +889,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     }
 
     public override isSelectionEnabled(): boolean {
-        return this.properties.tile.selection.enabled;
+        return this.options.tile.selection.enabled;
     }
 
     public override isDatumSelectable(datumIndex: _ModuleSupport.DatumIndex): boolean {
@@ -899,15 +898,17 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     }
 
     public getTileSelectionStyle(datumIndex?: _ModuleSupport.DatumIndex) {
-        const selectionState = this.getDataSelectionState(datumIndex);
-        if (selectionState === undefined) return undefined;
-        return this.properties.tile.selection.getStyle(selectionState);
-    }
-
-    public getGroupSelectionStyle(datumIndex?: _ModuleSupport.DatumIndex) {
-        const selectionState = this.getDataSelectionState(datumIndex);
-        if (selectionState === undefined) return undefined;
-        return this.properties.group.selection.getStyle(selectionState);
+        const { selectedItem, unselectedItem, unselectedSeries } = this.options.tile.selection;
+        switch (this.getDataSelectionState(datumIndex)) {
+            case SelectionState.Item:
+                return selectedItem;
+            case SelectionState.OtherItem:
+                return unselectedItem;
+            case SelectionState.OtherSeries:
+                return unselectedSeries;
+            default:
+                return undefined;
+        }
     }
 
     public override getHighlightStateString(
@@ -966,10 +967,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     }
 
     override getTooltipContent(datumIndex: _ModuleSupport.DatumIndex): _ModuleSupport.TooltipContent | undefined {
-        const { id: seriesId, properties, ctx } = this;
+        const { id: seriesId, options, ctx } = this;
         const { formatManager } = ctx;
-        const { labelKey, secondaryLabelKey, childrenKey, sizeKey, sizeName, colorKey, colorName, tooltip } =
-            properties;
+        const { labelKey, secondaryLabelKey, childrenKey, sizeKey, sizeName, colorKey, colorName, tooltip } = options;
 
         const nodeDatum = this.dfsFind(datumIndex);
         if (nodeDatum == null) return;
@@ -1019,7 +1019,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             });
             const binLabel = findDiscreteColorBinLabel(
                 this.colorScale,
-                properties.colorScale.fills,
+                options.colorScale.fills,
                 datumColor,
                 formatValue
             );
@@ -1037,7 +1037,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             false
         );
 
-        const color = format.fill as InternalAgColorType;
+        const color = format.fill;
 
         const markerStyle = {
             shape: 'square' as const,
@@ -1045,9 +1045,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             fillOpacity: 1,
             stroke: undefined,
             strokeWidth: 0,
-            strokeOpacity: 1,
-            lineDash: [0],
-            lineDashOffset: 0,
+            ...STROKE_STYLE_THEME_DEFAULTS,
         };
 
         if (isGradientFill(markerStyle.fill)) {
@@ -1085,11 +1083,12 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     }
 
     protected override hasItemStylers(): boolean {
+        const { itemStyler, tile, group } = this.options;
         return (
             this.isSelectionEnabled() ||
-            this.properties.itemStyler != null ||
-            this.properties.tile.label.itemStyler != null ||
-            this.properties.group.label.itemStyler != null
+            itemStyler != null ||
+            tile.label.itemStyler != null ||
+            group.label.itemStyler != null
         );
     }
 }

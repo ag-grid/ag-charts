@@ -5,7 +5,6 @@ import { testLogger } from 'ag-charts-test';
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { setupMockConsole } from '../../util/test/mockConsole';
 import { BBox } from '../bbox';
-import { DropShadow } from '../dropShadow';
 import { Rect } from './rect';
 
 describe('Rect', () => {
@@ -14,7 +13,13 @@ describe('Rect', () => {
     describe('rendering', () => {
         const canvasCtx = setupMockCanvas({ height: 1000 });
 
-        const shadowFn = (offset: number) => new DropShadow().set({ xOffset: offset, yOffset: offset });
+        const shadowFn = (offset: number) => ({
+            enabled: true,
+            color: 'rgba(0, 0, 0, 0.5)',
+            xOffset: offset,
+            yOffset: offset,
+            blur: 5,
+        });
 
         const GAP = 20;
         const DEFAULTS: Partial<Rect> = { width: 20, height: 20 };

@@ -65,6 +65,31 @@ export interface OptionsGraphAccessorResolvePartialOptions {
 }
 
 export const createOptionsGraphMemoised = simpleMemorize(createOptionsGraph);
+
+/** Theme defaults for one series type, resolved without user options or theme overrides. */
+export const resolveSeriesThemeDefaultsMemoised = simpleMemorize(resolveSeriesThemeDefaults);
+function resolveSeriesThemeDefaults(
+    theme: ChartTheme,
+    seriesType: string,
+    moduleRegistry: ModuleScope,
+    cssVariables: Record<string, string> | undefined
+): PlainObject {
+    const optionsGraph = new OptionsGraph(
+        theme.config,
+        { series: [{ type: seriesType }] },
+        theme.params,
+        theme.getThemeParameters(),
+        theme.palette,
+        undefined,
+        theme.getTemplateParameters(),
+        cssVariables,
+        undefined,
+        moduleRegistry
+    );
+    const { series } = optionsGraph.resolve(undefined);
+    optionsGraph.clearSafe();
+    return Array.isArray(series) && isPlainObject(series[0]) ? series[0] : {};
+}
 export function createOptionsGraph(
     theme: ChartTheme,
     options: PlainObject,

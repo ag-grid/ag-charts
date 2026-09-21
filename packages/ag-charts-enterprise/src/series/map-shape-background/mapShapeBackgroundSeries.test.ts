@@ -7,8 +7,10 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
     deproxy,
+    hoverAction,
     setupMockCanvas,
     setupMockConsole,
+    waitForChartStability,
 } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
@@ -47,6 +49,16 @@ describe('MapShapeBackgroundSeries', () => {
 
             chart = deproxy(AgCharts.create(options));
             await compare();
+        });
+
+        it('should ignore hover picks, having no tooltip option', async () => {
+            const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            await hoverAction(400, 300)(chart);
+            await waitForChartStability(chart);
         });
     });
 

@@ -18,6 +18,7 @@ import {
     doubleClickAction,
     dragAction,
     expectSceneSamplesMatch,
+    expectWarningsCalls,
     hoverAction,
     looserSnapshotDefaults,
     setupMockCanvas,
@@ -2208,6 +2209,30 @@ describe('OrganizationSeries', () => {
     });
 
     describe('layout', () => {
+        it('should treat the deprecated verticalSpacing as depthSpacing', async () => {
+            const parentChildGap = async (spacing: { depthSpacing?: number; verticalSpacing?: number }) => {
+                const options: AgChartOptions = {
+                    ...SIMPLE_ORG_CHART,
+                    series: SIMPLE_ORG_CHART.series.map((series) => ({ ...series, ...spacing })),
+                };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+                const gap = centreOf('cto', OrganizationNodeTag.Card).y - centreOf('ceo', OrganizationNodeTag.Card).y;
+                chart.destroy();
+                (chart as unknown) = undefined;
+                return gap;
+            };
+
+            const aliased = await parentChildGap({ verticalSpacing: 120 });
+            expectWarningsCalls().toEqual([
+                ['AG Charts - Option `series[0].verticalSpacing` is deprecated. Use `depthSpacing` instead.'],
+            ]);
+            expect(aliased).toBe(await parentChildGap({ depthSpacing: 120 }));
+            expect(aliased).not.toBe(await parentChildGap({}));
+        });
+
         it('should not overlap younger siblings over older siblings with no children', async () => {
             const options: AgChartOptions = {
                 ...SIMPLE_ORG_CHART,

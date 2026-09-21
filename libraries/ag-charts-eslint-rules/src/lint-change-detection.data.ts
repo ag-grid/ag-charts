@@ -134,3 +134,8 @@ abstract class TestIgnoredDecorator extends SeriesProperties<any> {
     @Property() lineDash?: number[];
     @Property() node: object[] = [];
 }
+
+class TestSceneObjectChangeDetectionIntersection extends Node {
+    @SceneObjectChangeDetection({ equals }) requiredIntersection: { a: number } & { b: string } = { a: 0, b: '' };
+    @SceneObjectChangeDetection({ equals }) optionalIntersection?: { a: number } & { b: string };
+}

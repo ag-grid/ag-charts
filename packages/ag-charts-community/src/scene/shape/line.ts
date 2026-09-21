@@ -99,7 +99,6 @@ export class Line<D = unknown> extends Shape<D> implements DistantObject {
 
         this.fillStroke(ctx, renderCtx.logger);
 
-        this.fillShadow?.markClean();
         super.render(renderCtx);
     }
 

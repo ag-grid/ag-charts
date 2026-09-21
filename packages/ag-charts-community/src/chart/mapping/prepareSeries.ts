@@ -40,7 +40,7 @@ export function matchSeriesOptions<S extends ISeries<any, any, any>>(
     const seriesMap = new Map<string, [S, number][]>();
     let idx = 0;
     for (const s of series) {
-        const key = generateKey(s.type, s.properties, oldOptsSeries?.[idx]);
+        const key = generateKey(s.type, s.options, oldOptsSeries?.[idx]);
         if (!seriesMap.has(key)) {
             seriesMap.set(key, []);
         }

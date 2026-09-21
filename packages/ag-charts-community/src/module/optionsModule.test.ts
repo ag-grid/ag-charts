@@ -41,6 +41,7 @@ import { createProvisionalRuntime } from '../chart/validation/chartValidations';
 import { VERSION } from '../version';
 import { CategoryAxisModule } from './axis-modules/categoryAxisModule';
 import { NumberAxisModule } from './axis-modules/numberAxisModule';
+import { resolveSeriesThemeDefaultsMemoised } from './optionsGraph';
 import { ChartOptions } from './optionsModule';
 import { __clearStructuralCacheForTests } from './optionsStructuralCache';
 
@@ -908,10 +909,13 @@ describe('ChartOptions', () => {
             expect(options).toMatchInlineSnapshot(`
               [
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "pink",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -958,11 +962,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -990,8 +996,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": true,
                   "stroke": "#2b5c95",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -1007,10 +1017,13 @@ describe('ChartOptions', () => {
                   "yName": "IPhone",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "red",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -1057,11 +1070,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1089,8 +1104,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": false,
                   "stroke": "#cc6f10",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -1106,10 +1125,13 @@ describe('ChartOptions', () => {
                   "yName": "Mac",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "#459d55",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -1156,11 +1178,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1188,8 +1212,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": true,
                   "stroke": "#1e652e",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -1205,10 +1233,13 @@ describe('ChartOptions', () => {
                   "yName": "Wearables",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "#34bfe1",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -1255,11 +1286,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1287,8 +1320,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": false,
                   "stroke": "#18859e",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -1304,7 +1341,10 @@ describe('ChartOptions', () => {
                   "yName": "Services",
                 },
                 {
+                  "connectMissingData": false,
+                  "cursor": "default",
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedSeries": {
                       "opacity": 0.2,
@@ -1347,17 +1387,26 @@ describe('ChartOptions', () => {
                   ],
                   "lineDashOffset": 0,
                   "marker": {
+                    "enabled": true,
                     "fill": "#e1cc00",
+                    "fillOpacity": 1,
+                    "lineDash": [
+                      0,
+                    ],
+                    "lineDashOffset": 0,
                     "shape": "circle",
                     "size": 7,
                     "stroke": "#a69400",
+                    "strokeOpacity": 1,
                     "strokeWidth": 0,
                   },
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1369,10 +1418,14 @@ describe('ChartOptions', () => {
                       "opacity": 0.2,
                     },
                   },
+                  "showInLegend": true,
                   "stroke": "#e1cc00",
                   "strokeOpacity": 1,
                   "strokeWidth": 2,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "node",
                       "offset": 12,
@@ -1388,7 +1441,10 @@ describe('ChartOptions', () => {
                   "yName": "Mac",
                 },
                 {
+                  "connectMissingData": false,
+                  "cursor": "default",
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedSeries": {
                       "opacity": 0.2,
@@ -1431,17 +1487,26 @@ describe('ChartOptions', () => {
                   ],
                   "lineDashOffset": 0,
                   "marker": {
+                    "enabled": true,
                     "fill": "#9669cb",
+                    "fillOpacity": 1,
+                    "lineDash": [
+                      0,
+                    ],
+                    "lineDashOffset": 0,
                     "shape": "circle",
                     "size": 7,
                     "stroke": "#603c88",
+                    "strokeOpacity": 1,
                     "strokeWidth": 0,
                   },
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1453,10 +1518,14 @@ describe('ChartOptions', () => {
                       "opacity": 0.2,
                     },
                   },
+                  "showInLegend": true,
                   "stroke": "#9669cb",
                   "strokeOpacity": 1,
                   "strokeWidth": 2,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "node",
                       "offset": 12,
@@ -1483,10 +1552,13 @@ describe('ChartOptions', () => {
             expect(options).toMatchInlineSnapshot(`
               [
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "pink",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -1533,11 +1605,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1565,8 +1639,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": true,
                   "stroke": "#2b5c95",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -1582,10 +1660,13 @@ describe('ChartOptions', () => {
                   "yName": "IPhone",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "red",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -1632,11 +1713,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1664,8 +1747,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": false,
                   "stroke": "#cc6f10",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -1681,10 +1768,13 @@ describe('ChartOptions', () => {
                   "yName": "Mac",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "#459d55",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -1731,11 +1821,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1763,8 +1855,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": true,
                   "stroke": "#1e652e",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -1780,10 +1876,13 @@ describe('ChartOptions', () => {
                   "yName": "Wearables",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "#34bfe1",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -1830,11 +1929,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1862,8 +1963,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": false,
                   "stroke": "#18859e",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -1879,7 +1984,10 @@ describe('ChartOptions', () => {
                   "yName": "Services",
                 },
                 {
+                  "connectMissingData": false,
+                  "cursor": "default",
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedSeries": {
                       "opacity": 0.2,
@@ -1922,17 +2030,26 @@ describe('ChartOptions', () => {
                   ],
                   "lineDashOffset": 0,
                   "marker": {
+                    "enabled": true,
                     "fill": "#e1cc00",
+                    "fillOpacity": 1,
+                    "lineDash": [
+                      0,
+                    ],
+                    "lineDashOffset": 0,
                     "shape": "circle",
                     "size": 7,
                     "stroke": "#a69400",
+                    "strokeOpacity": 1,
                     "strokeWidth": 0,
                   },
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1944,10 +2061,14 @@ describe('ChartOptions', () => {
                       "opacity": 0.2,
                     },
                   },
+                  "showInLegend": true,
                   "stroke": "#e1cc00",
                   "strokeOpacity": 1,
                   "strokeWidth": 2,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "node",
                       "offset": 12,
@@ -1963,7 +2084,10 @@ describe('ChartOptions', () => {
                   "yName": "Mac",
                 },
                 {
+                  "connectMissingData": false,
+                  "cursor": "default",
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedSeries": {
                       "opacity": 0.2,
@@ -2006,17 +2130,26 @@ describe('ChartOptions', () => {
                   ],
                   "lineDashOffset": 0,
                   "marker": {
+                    "enabled": true,
                     "fill": "#9669cb",
+                    "fillOpacity": 1,
+                    "lineDash": [
+                      0,
+                    ],
+                    "lineDashOffset": 0,
                     "shape": "circle",
                     "size": 7,
                     "stroke": "#603c88",
+                    "strokeOpacity": 1,
                     "strokeWidth": 0,
                   },
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -2028,10 +2161,14 @@ describe('ChartOptions', () => {
                       "opacity": 0.2,
                     },
                   },
+                  "showInLegend": true,
                   "stroke": "#9669cb",
                   "strokeOpacity": 1,
                   "strokeWidth": 2,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "node",
                       "offset": 12,
@@ -2058,10 +2195,13 @@ describe('ChartOptions', () => {
             expect(options).toMatchInlineSnapshot(`
               [
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "pink",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -2108,11 +2248,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -2140,8 +2282,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": true,
                   "stroke": "#2b5c95",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -2157,10 +2303,13 @@ describe('ChartOptions', () => {
                   "yName": "IPhone",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "red",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -2207,11 +2356,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -2239,8 +2390,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": false,
                   "stroke": "#cc6f10",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -2256,10 +2411,13 @@ describe('ChartOptions', () => {
                   "yName": "Mac",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "#459d55",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -2306,11 +2464,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -2338,8 +2498,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": true,
                   "stroke": "#1e652e",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -2355,10 +2519,13 @@ describe('ChartOptions', () => {
                   "yName": "Wearables",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "#34bfe1",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -2405,11 +2572,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -2437,8 +2606,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": false,
                   "stroke": "#18859e",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -2454,7 +2627,10 @@ describe('ChartOptions', () => {
                   "yName": "Services",
                 },
                 {
+                  "connectMissingData": false,
+                  "cursor": "default",
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedSeries": {
                       "opacity": 0.2,
@@ -2497,17 +2673,26 @@ describe('ChartOptions', () => {
                   ],
                   "lineDashOffset": 0,
                   "marker": {
+                    "enabled": true,
                     "fill": "#e1cc00",
+                    "fillOpacity": 1,
+                    "lineDash": [
+                      0,
+                    ],
+                    "lineDashOffset": 0,
                     "shape": "circle",
                     "size": 7,
                     "stroke": "#a69400",
+                    "strokeOpacity": 1,
                     "strokeWidth": 0,
                   },
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -2519,10 +2704,14 @@ describe('ChartOptions', () => {
                       "opacity": 0.2,
                     },
                   },
+                  "showInLegend": true,
                   "stroke": "#e1cc00",
                   "strokeOpacity": 1,
                   "strokeWidth": 2,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "node",
                       "offset": 12,
@@ -2538,7 +2727,10 @@ describe('ChartOptions', () => {
                   "yName": "Mac",
                 },
                 {
+                  "connectMissingData": false,
+                  "cursor": "default",
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedSeries": {
                       "opacity": 0.2,
@@ -2581,17 +2773,26 @@ describe('ChartOptions', () => {
                   ],
                   "lineDashOffset": 0,
                   "marker": {
+                    "enabled": true,
                     "fill": "#9669cb",
+                    "fillOpacity": 1,
+                    "lineDash": [
+                      0,
+                    ],
+                    "lineDashOffset": 0,
                     "shape": "circle",
                     "size": 7,
                     "stroke": "#603c88",
+                    "strokeOpacity": 1,
                     "strokeWidth": 0,
                   },
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -2603,10 +2804,14 @@ describe('ChartOptions', () => {
                       "opacity": 0.2,
                     },
                   },
+                  "showInLegend": true,
                   "stroke": "#9669cb",
                   "strokeOpacity": 1,
                   "strokeWidth": 2,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "node",
                       "offset": 12,
@@ -4181,6 +4386,19 @@ describe('ChartOptions', () => {
             const updated = new ChartOptions(base, {} as AgChartOptions, {}, {}, {}, { width: 400 });
 
             expect(updated.fonts).toContain('900 16px "Font Awesome 6 Free"');
+        });
+    });
+
+    describe('mini-chart series theme defaults', () => {
+        it('substitutes css variables while resolving the series defaults', () => {
+            const theme = new ChartTheme({ params: { foregroundColor: 'var(--fg)' } });
+
+            const defaults = resolveSeriesThemeDefaultsMemoised(theme, 'line', ModuleRegistry.resolveModuleScope(), {
+                'var(--fg)': '#123456',
+            });
+
+            expect(defaults.type).toBe('line');
+            expect(JSON.stringify(defaults)).not.toContain('var(--fg)');
         });
     });
 

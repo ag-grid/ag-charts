@@ -1,40 +1,12 @@
 import {
-    BaseProperties,
     type ColorScaleMode,
     type GradientColorStop,
     type NormalisedGradientColorStop,
-    PropertiesArray,
-    Property,
     discreteColorStops,
     resolveStopPositions,
 } from 'ag-charts-core';
 
 import { ColorScale } from '../../scale/colorScale';
-
-export class StopProperties extends BaseProperties implements NormalisedGradientColorStop {
-    @Property
-    stop?: number;
-
-    @Property
-    color: string = 'black';
-
-    @Property
-    name?: string;
-}
-
-export class ColorScaleProperties extends BaseProperties {
-    @Property
-    fills = new PropertiesArray<StopProperties>(StopProperties);
-
-    @Property
-    domain?: [number, number];
-
-    @Property
-    mode: ColorScaleMode = 'continuous';
-
-    @Property
-    missingDataFill?: string;
-}
 
 function getDefaultColorStops(defaultColorStops: string[], fillMode: ColorScaleMode) {
     const stopOffset = fillMode === 'discrete' ? 1 : 0;

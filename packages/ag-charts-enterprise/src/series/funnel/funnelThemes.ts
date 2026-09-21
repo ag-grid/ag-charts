@@ -9,6 +9,8 @@ import {
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
+    SERIES_INTERACTION_THEME_DEFAULTS,
+    STROKE_STYLE_THEME_DEFAULTS,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -66,8 +68,12 @@ export const FUNNEL_SERIES_AXES: any = {
 
 export const FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'funnel'> = {
     series: {
+        ...SERIES_INTERACTION_THEME_DEFAULTS,
         direction: 'vertical',
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
+        fillOpacity: 1,
+        ...STROKE_STYLE_THEME_DEFAULTS,
+        cornerRadius: 0,
         spacingRatio: 0.25,
         fills: {
             $applyCycle: [
@@ -113,7 +119,9 @@ export const FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'funnel'> = {
             enabled: true,
             fillOpacity: 0.2,
             strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
+            ...STROKE_STYLE_THEME_DEFAULTS,
         },
+        tooltip: { interaction: { enabled: false } },
         shadow: {
             enabled: false,
             color: DEFAULT_SHADOW_COLOUR,

@@ -1,5 +1,6 @@
 import { type AgWaterfallSeriesItemOptions, type WithThemeParams } from 'ag-charts-community';
 import {
+    COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_KEYED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_KEYED_DEFAULTS,
@@ -8,6 +9,7 @@ import {
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     SINGLE_SERIES_HIGHLIGHT_STYLE,
+    STROKE_STYLE_THEME_DEFAULTS,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { AgChartLabelPlacementStyleOptions, ExtensibleSeriesTheme, Operation } from 'ag-charts-types';
@@ -76,6 +78,9 @@ function itemTheme(
         },
         stroke: { $palette: `${key}.stroke` },
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
+        fillOpacity: 1,
+        ...STROKE_STYLE_THEME_DEFAULTS,
+        cornerRadius: 0,
         label: {
             enabled: inherited('enabled'),
             fill: inherited('fill'),
@@ -195,6 +200,8 @@ const seriesLabelTheme = {
 
 export const WATERFALL_SERIES_THEME: ExtensibleSeriesTheme<'waterfall'> = {
     series: {
+        ...COMMON_SERIES_THEME_DEFAULTS,
+        direction: 'vertical',
         label: seriesLabelTheme,
         item: {
             positive: itemTheme('altUp', 0),
@@ -202,12 +209,12 @@ export const WATERFALL_SERIES_THEME: ExtensibleSeriesTheme<'waterfall'> = {
             total: itemTheme('neutral', 2),
         },
         line: {
+            enabled: true,
             stroke: { $palette: 'neutral.stroke' },
-            strokeOpacity: 1,
-            lineDash: [0],
-            lineDashOffset: 0,
+            ...STROKE_STYLE_THEME_DEFAULTS,
             strokeWidth: 2,
         },
+        tooltip: { interaction: { enabled: false } },
         highlight: SINGLE_SERIES_HIGHLIGHT_STYLE,
     },
     legend: {

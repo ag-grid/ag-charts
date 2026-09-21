@@ -1,10 +1,14 @@
-import type { ChartAnimationPhase, NormalisedSeriesSegmentation, Scaling } from 'ag-charts-core';
+import type {
+    ChartAnimationPhase,
+    NormalisedCartesianSeriesOptionsCommon,
+    NormalisedSeriesOptions,
+    Scaling,
+} from 'ag-charts-core';
 import {
     ChartAxisDirection,
     Debug,
     DebugMetrics,
     type Point,
-    Property,
     type Scale,
     StateMachine,
     extractDomain,
@@ -46,14 +50,12 @@ import type {
     SeriesDirectionKeysMapping,
     SeriesNodePickMatch,
 } from '../series';
-import { Segmentation, SeriesProperties } from '../seriesProperties';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import { type ShapeFillBBox } from '../shapeUtil';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
 import type {
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
-    CartesianSeriesPropertiesBase,
     CartesianSeriesTypes,
     ContextOf,
     CreateNodeDataContextOf,
@@ -61,15 +63,14 @@ import type {
     LabelOf,
     NodeOf,
     OptionsOf,
-    PropertiesOf,
     StackContextOf,
 } from './cartesianSeriesTypes';
 
 type CartesianSeriesOpts<TTypes extends CartesianSeriesTypes> = {
     pathsPerSeries: string[];
     pathsZIndexSubOrderOffset: number[];
-    propertyKeys: SeriesDirectionKeysMapping<PropertiesOf<TTypes>>;
-    propertyNames: SeriesDirectionKeysMapping<PropertiesOf<TTypes>>;
+    propertyKeys: SeriesDirectionKeysMapping<OptionsOf<TTypes>>;
+    propertyNames: SeriesDirectionKeysMapping<OptionsOf<TTypes>>;
     datumSelectionGarbageCollection: boolean;
     animationAlwaysUpdateSelections: boolean;
     animationAlwaysPopulateNodeData: boolean;
@@ -122,35 +123,16 @@ export interface CartesianAnimationData<
     duration?: number;
 }
 
-export abstract class CartesianSeriesProperties<T extends object>
-    extends SeriesProperties<T>
-    implements CartesianSeriesPropertiesBase<T>
-{
-    @Property
-    xKeyAxis: string = 'x';
-
-    @Property
-    yKeyAxis: string = 'y';
-
-    @Property
-    legendItemName?: string;
-
-    @Property
-    pickOutsideVisibleMinorAxis = false;
-
-    @Property
-    segmentation: NormalisedSeriesSegmentation = new Segmentation();
-}
-
 export const RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD = 100;
 
 export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> extends DataModelSeries<
     DatumOf<TTypes>,
     OptionsOf<TTypes>,
-    PropertiesOf<TTypes>,
     LabelOf<TTypes>,
     ContextOf<TTypes>
 > {
+    declare options: NormalisedSeriesOptions<OptionsOf<TTypes>> & NormalisedCartesianSeriesOptionsCommon;
+
     private _contextNodeData?: ContextOf<TTypes>;
     get contextNodeData() {
         return this._contextNodeData;
@@ -204,7 +186,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         ...otherOpts
     }: Partial<CartesianSeriesOpts<TTypes>> &
         Pick<CartesianSeriesOpts<TTypes>, 'propertyKeys' | 'propertyNames'> &
-        DataModelSeriesConstructorOpts<PropertiesOf<TTypes>>) {
+        DataModelSeriesConstructorOpts<OptionsOf<TTypes>>) {
         super({
             propertyKeys,
             propertyNames,
@@ -295,12 +277,13 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     }
 
     override getKeyAxis(direction: ChartAxisDirection): string | undefined {
+        const { xKeyAxis = 'x', yKeyAxis = 'y' } = this.options;
         if (this.shouldFlipXY()) {
-            if (direction === ChartAxisDirection.X) return this.properties.yKeyAxis;
-            if (direction === ChartAxisDirection.Y) return this.properties.xKeyAxis;
+            if (direction === ChartAxisDirection.X) return yKeyAxis;
+            if (direction === ChartAxisDirection.Y) return xKeyAxis;
         }
-        if (direction === ChartAxisDirection.X) return this.properties.xKeyAxis;
-        if (direction === ChartAxisDirection.Y) return this.properties.yKeyAxis;
+        if (direction === ChartAxisDirection.X) return xKeyAxis;
+        if (direction === ChartAxisDirection.Y) return yKeyAxis;
     }
 
     override attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined): void {
@@ -359,23 +342,24 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     public override isSeriesHighlighted(
         highlightedDatum: HighlightNodeDatum | undefined
     ): highlightedDatum is DatumOf<TTypes> {
-        if (!this.properties.highlight.enabled) {
+        if (!this.isHighlightEnabled()) {
             return false;
         }
 
         const { series, legendItemName: activeLegendItemName } = highlightedDatum ?? {};
 
-        const { legendItemName } = this.properties;
+        const { legendItemName } = this.options;
 
         return series === this || (legendItemName != null && legendItemName === activeLegendItemName);
     }
 
     protected strokewidthChange() {
-        const unhighlightedStrokeWidth = ('strokeWidth' in this.properties && this.properties.strokeWidth) ?? 0;
+        const { options } = this;
+        const seriesStrokeWidth: unknown = 'strokeWidth' in options ? options.strokeWidth : undefined;
+        const unhighlightedStrokeWidth = typeof seriesStrokeWidth === 'number' ? seriesStrokeWidth : 0;
         const highlightedSeriesStrokeWidth =
-            this.properties.highlight.highlightedSeries.strokeWidth ?? unhighlightedStrokeWidth;
-        const highlightedItemStrokeWidth =
-            this.properties.highlight.highlightedItem?.strokeWidth ?? unhighlightedStrokeWidth;
+            options.highlight?.highlightedSeries?.strokeWidth ?? unhighlightedStrokeWidth;
+        const highlightedItemStrokeWidth = options.highlight?.highlightedItem?.strokeWidth ?? unhighlightedStrokeWidth;
         return (
             unhighlightedStrokeWidth > highlightedItemStrokeWidth ||
             highlightedSeriesStrokeWidth > highlightedItemStrokeWidth
@@ -1043,7 +1027,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     ): SeriesNodePickMatch | undefined {
         const { x, y } = point;
         const { axes, _contextNodeData: contextNodeData } = this;
-        const { pickOutsideVisibleMinorAxis } = this.properties;
+        const { pickOutsideVisibleMinorAxis } = this.options;
         if (!contextNodeData) return;
 
         const xAxis = axes[ChartAxisDirection.X];

@@ -1,4 +1,5 @@
 import {
+    COMMON_SERIES_THEME_DEFAULTS,
     ChartAxisDirection,
     DEFAULT_SHADOW_COLOUR,
     DIRECTION_SWAP_AXES,
@@ -13,6 +14,7 @@ import {
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
@@ -28,6 +30,7 @@ import { predictCartesianNonPrimitiveAxis } from './util';
 
 const themeTemplate: ExtensibleSeriesTheme<'bar'> = {
     series: {
+        ...COMMON_SERIES_THEME_DEFAULTS,
         direction: 'vertical',
         fill: {
             $applySwitch: [
@@ -41,8 +44,8 @@ const themeTemplate: ExtensibleSeriesTheme<'bar'> = {
         fillOpacity: 1,
         stroke: { $palette: 'stroke' },
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
-        lineDash: [0],
-        lineDashOffset: 0,
+        ...STROKE_STYLE_THEME_DEFAULTS,
+        cornerRadius: 0,
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,
@@ -68,7 +71,8 @@ const themeTemplate: ExtensibleSeriesTheme<'bar'> = {
             yOffset: 3,
             blur: 5,
         },
-        highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+        tooltip: { interaction: { enabled: false } },
+        highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
     },

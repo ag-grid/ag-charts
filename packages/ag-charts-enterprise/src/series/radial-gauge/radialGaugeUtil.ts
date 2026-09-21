@@ -1,13 +1,122 @@
 import { type TextAlign, type VerticalAlign, _ModuleSupport } from 'ag-charts-community';
-import { toPlainText } from 'ag-charts-core';
-import type { AgNumericValue } from 'ag-charts-types';
+import {
+    type GradientColorStop,
+    type InternalAgGradientColor,
+    type NormalisedGaugeColorStop,
+    type NormalisedGaugeSeriesStyle,
+    type NormalisedRadialGaugeBarOptions,
+    type NormalisedRadialGaugeScaleOptions,
+    type NormalisedRadialGaugeTargetOptions,
+    normalizeAngle360,
+    normalizeAngle360Inclusive,
+    toDegrees,
+    toNumberOrUndefined,
+    toPlainText,
+} from 'ag-charts-core';
+import type { AgGaugeFillMode, AgNumericValue } from 'ag-charts-types';
 
 import { getLabelText } from '../gauge-util/label';
 import { type LabelFormatting, formatSingleLabel, formatStackedLabels } from '../util/labelFormatter';
 import type { RadialGaugeNeedle } from './radialGaugeNeedle';
-import { LabelType, type RadialGaugeLabelDatum } from './radialGaugeSeriesProperties';
+import { LabelType, type RadialGaugeLabelDatum } from './radialGaugeTypes';
 
-const { SectorBox } = _ModuleSupport;
+const { SectorBox, getColorStops } = _ModuleSupport;
+
+export function createConicGradient(
+    fills: NormalisedGaugeColorStop[] | undefined,
+    fillMode: AgGaugeFillMode,
+    defaultColorRange: string[],
+    scale: _ModuleSupport.LinearScale
+): InternalAgGradientColor {
+    const { domain, range } = scale;
+    const [startAngle, endAngle] = range;
+
+    const conicAngle = normalizeAngle360((startAngle + endAngle) / 2 + Math.PI);
+    const sweepAngle = normalizeAngle360Inclusive(endAngle - startAngle);
+
+    // Colour-stop positions are fractional thresholds, so Number is exact enough here.
+    const stops = fills?.map(({ color, stop }) => ({ color, stop: toNumberOrUndefined(stop) })) ?? [];
+    const colorStops = getColorStops(stops, defaultColorRange, domain.map(Number), fillMode).map(
+        ({ color, stop }): GradientColorStop => {
+            stop = Math.min(Math.max(stop, 0), 1);
+            const angle = startAngle + sweepAngle * stop;
+            stop = (angle - conicAngle) / (2 * Math.PI);
+            stop = ((stop % 1) + 1) % 1;
+            return { stop, color };
+        }
+    );
+
+    return {
+        type: 'gradient',
+        gradient: 'conic',
+        colorSpace: 'oklch',
+        colorStops,
+        bounds: 'series',
+        rotation: toDegrees(conicAngle) + 90,
+    };
+}
+
+export function getRadialGaugeBarStyle(
+    bar: NormalisedRadialGaugeBarOptions,
+    defaultColorRange: string[],
+    scale: _ModuleSupport.LinearScale
+): Required<NormalisedGaugeSeriesStyle> {
+    const {
+        enabled,
+        fill,
+        fills,
+        fillMode,
+        fillOpacity,
+        stroke,
+        strokeWidth,
+        strokeOpacity,
+        lineDash,
+        lineDashOffset,
+    } = bar;
+    const barFill = enabled ? (fill ?? createConicGradient(fills, fillMode, defaultColorRange, scale)) : 'none';
+    return { fill: barFill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset };
+}
+
+export function getRadialGaugeScaleStyle(
+    scaleOptions: NormalisedRadialGaugeScaleOptions,
+    barEnabled: boolean,
+    defaultColorRange: string[],
+    scale: _ModuleSupport.LinearScale
+): Required<NormalisedGaugeSeriesStyle> {
+    const {
+        fill,
+        fills,
+        defaultFill,
+        fillMode,
+        fillOpacity,
+        stroke,
+        strokeWidth,
+        strokeOpacity,
+        lineDash,
+        lineDashOffset,
+    } = scaleOptions;
+    const scaleFill =
+        fill ??
+        (barEnabled && (fills == null || fills.length === 0) ? defaultFill : undefined) ??
+        createConicGradient(fills, fillMode, defaultColorRange, scale);
+    return { fill: scaleFill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset };
+}
+
+/** Radial targets never inherit style from the themed default target, so unset keys fall back to a plain black marker. */
+export function getRadialGaugeTargetStyle(
+    target: NormalisedRadialGaugeTargetOptions
+): Required<NormalisedGaugeSeriesStyle> {
+    const {
+        fill = 'black',
+        fillOpacity = 1,
+        stroke = 'black',
+        strokeWidth = 0,
+        strokeOpacity = 1,
+        lineDash = [0],
+        lineDashOffset = 0,
+    } = target;
+    return { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset };
+}
 
 type AnimatableSectorDatum = {
     itemId: string;
@@ -180,7 +289,7 @@ const verticalAlignFactors: Record<VerticalAlign, number> = {
 };
 
 export function formatRadialGaugeLabels(
-    series: _ModuleSupport.Series<any, object, any>,
+    series: _ModuleSupport.Series<any, any, any>,
     ctx: Ctx,
     selection: _ModuleSupport.Selection<RadialGaugeLabelDatum, _ModuleSupport.Text<RadialGaugeLabelDatum>>,
     opts: { padding: number; textAlign: TextAlign; verticalAlign: VerticalAlign },

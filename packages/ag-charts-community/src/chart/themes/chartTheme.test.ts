@@ -195,22 +195,22 @@ describe('ChartTheme', () => {
             for (let i = 0; i < 5; i++) {
                 expect(chart.series[i].type).toBe('bar');
                 const barSeries = classCast(chart.series[i], BarSeries);
-                expect(barSeries.properties.fill).toEqual(fills[i]);
-                expect(barSeries.properties.stroke).toEqual(strokes[i]);
-                expect(barSeries.properties.label.enabled).toBe(true);
-                expect(barSeries.properties.label.color).toBe('yellow');
-                expect(barSeries.properties.label.fontSize).toBe(18);
-                expect(barSeries.properties.tooltip.enabled).toBe(false);
-                expect(barSeries.properties.tooltip.renderer).toBeDefined();
+                expect(barSeries.options.fill).toEqual(fills[i]);
+                expect(barSeries.options.stroke).toEqual(strokes[i]);
+                expect(barSeries.options.label.enabled).toBe(true);
+                expect(barSeries.options.label.color).toBe('yellow');
+                expect(barSeries.options.label.fontSize).toBe(18);
+                expect(barSeries.options.tooltip.enabled).toBe(false);
+                expect(barSeries.options.tooltip.renderer).toBeDefined();
             }
 
             const areaFills = ['blue', 'red', 'green', 'blue', 'red'];
             const areaStrokes = ['cyan', 'cyan', 'cyan', 'cyan', 'cyan'];
             for (let i = 5; i < 10; i++) {
                 expect(chart.series[i].type).toBe('area');
-                expect((chart.series[i] as unknown as AreaSeries).properties.fill).toEqual(areaFills[i - 5]);
-                expect((chart.series[i] as unknown as AreaSeries).properties.stroke).toEqual(areaStrokes[i - 5]);
-                expect((chart.series[i] as unknown as AreaSeries).properties.marker.itemStyler).toBeDefined();
+                expect((chart.series[i] as unknown as AreaSeries).options.fill).toEqual(areaFills[i - 5]);
+                expect((chart.series[i] as unknown as AreaSeries).options.stroke).toEqual(areaStrokes[i - 5]);
+                expect((chart.series[i] as unknown as AreaSeries).options.marker.itemStyler).toBeDefined();
             }
         });
     });
@@ -288,13 +288,13 @@ describe('ChartTheme', () => {
 
             expect(chart.series[0].type).toBe('pie');
             const pieSeries = classCast(chart.series[0], PieSeries);
-            expect(pieSeries.properties.fills).toEqual(['red', 'green', 'blue', 'red', 'green']);
-            expect(pieSeries.properties.strokes).toEqual(['cyan', 'cyan', 'cyan', 'cyan', 'cyan']);
-            expect(pieSeries.properties.calloutLabel.enabled).toBe(true);
-            expect(pieSeries.properties.calloutLabel.color).toBe('yellow');
-            expect(pieSeries.properties.calloutLabel.fontSize).toBe(18);
-            expect(pieSeries.properties.tooltip.enabled).toBe(false);
-            expect(pieSeries.properties.tooltip.renderer).toBeDefined();
+            expect(pieSeries.options.fills).toEqual(['red', 'green', 'blue', 'red', 'green']);
+            expect(pieSeries.options.strokes).toEqual(['cyan', 'cyan', 'cyan', 'cyan', 'cyan']);
+            expect(pieSeries.options.calloutLabel.enabled).toBe(true);
+            expect(pieSeries.options.calloutLabel.color).toBe('yellow');
+            expect(pieSeries.options.calloutLabel.fontSize).toBe(18);
+            expect(pieSeries.options.tooltip.enabled).toBe(false);
+            expect(pieSeries.options.tooltip.renderer).toBeDefined();
         });
     });
 
@@ -441,13 +441,13 @@ describe('ChartTheme', () => {
             for (let i = 0; i < 5; i++) {
                 expect(chart.series[i].type).toBe('bar');
                 const barSeries = classCast(chart.series[i], BarSeries);
-                expect(barSeries.properties.fill).toEqual(fills[i]);
-                expect(barSeries.properties.stroke).toEqual(strokes[i]);
-                expect(barSeries.properties.label.enabled).toBe(true);
-                expect(barSeries.properties.label.color).toBe('blue');
-                expect(barSeries.properties.label.fontSize).toBe(18);
-                expect(barSeries.properties.tooltip.enabled).toBe(false);
-                expect(barSeries.properties.tooltip.renderer).toBeDefined();
+                expect(barSeries.options.fill).toEqual(fills[i]);
+                expect(barSeries.options.stroke).toEqual(strokes[i]);
+                expect(barSeries.options.label.enabled).toBe(true);
+                expect(barSeries.options.label.color).toBe('blue');
+                expect(barSeries.options.label.fontSize).toBe(18);
+                expect(barSeries.options.tooltip.enabled).toBe(false);
+                expect(barSeries.options.tooltip.renderer).toBeDefined();
             }
         });
 
@@ -465,13 +465,13 @@ describe('ChartTheme', () => {
 
             expect(chart.series[0].type).toBe('pie');
             const pieSeries = classCast(chart.series[0], PieSeries);
-            expect(pieSeries.properties.fills).toEqual(['red', 'green', 'blue', 'red', 'green']);
-            expect(pieSeries.properties.strokes).toEqual(['cyan', 'cyan', 'cyan', 'cyan', 'cyan']);
-            expect(pieSeries.properties.calloutLabel.enabled).toBe(true);
-            expect(pieSeries.properties.calloutLabel.color).toBe('yellow');
-            expect(pieSeries.properties.calloutLabel.fontSize).toBe(18);
-            expect(pieSeries.properties.tooltip.enabled).toBe(false);
-            expect(pieSeries.properties.tooltip.renderer).toBeDefined();
+            expect(pieSeries.options.fills).toEqual(['red', 'green', 'blue', 'red', 'green']);
+            expect(pieSeries.options.strokes).toEqual(['cyan', 'cyan', 'cyan', 'cyan', 'cyan']);
+            expect(pieSeries.options.calloutLabel.enabled).toBe(true);
+            expect(pieSeries.options.calloutLabel.color).toBe('yellow');
+            expect(pieSeries.options.calloutLabel.fontSize).toBe(18);
+            expect(pieSeries.options.tooltip.enabled).toBe(false);
+            expect(pieSeries.options.tooltip.renderer).toBeDefined();
         });
     });
 
@@ -1075,10 +1075,10 @@ describe('ChartTheme', () => {
             expect(series[1].type).toEqual('bar');
             expect(series[2].type).toEqual('line');
             expect(series[3].type).toEqual('area');
-            expect(classCast(series[0], BarSeries).properties.strokeWidth).toEqual(16);
-            expect(classCast(series[1], BarSeries).properties.strokeWidth).toEqual(16);
-            expect(classCast(series[2], LineSeries).properties.strokeWidth).toEqual(17);
-            expect(classCast(series[3], AreaSeries).properties.strokeWidth).toEqual(18);
+            expect(classCast(series[0], BarSeries).options.strokeWidth).toEqual(16);
+            expect(classCast(series[1], BarSeries).options.strokeWidth).toEqual(16);
+            expect(classCast(series[2], LineSeries).options.strokeWidth).toEqual(17);
+            expect(classCast(series[3], AreaSeries).options.strokeWidth).toEqual(18);
         });
     });
 });

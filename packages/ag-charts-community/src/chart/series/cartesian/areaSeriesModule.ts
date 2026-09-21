@@ -2,6 +2,7 @@ import type { DynamicContext, SeriesModuleDefinition } from 'ag-charts-core';
 import {
     CARTESIAN_AXIS_TYPE,
     CARTESIAN_POSITION,
+    COMMON_SERIES_THEME_DEFAULTS,
     ChartAxisDirection,
     DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_DEFAULTS,
@@ -15,6 +16,8 @@ import {
     MARKER_SERIES_HIGHLIGHT_STYLE,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
+    interpolationThemeTemplate,
 } from 'ag-charts-core';
 import type { AgAreaSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -28,6 +31,7 @@ import { predictCartesianNonPrimitiveAxis } from './util';
 
 const themeTemplate: ExtensibleSeriesTheme<'area'> = {
     series: {
+        ...COMMON_SERIES_THEME_DEFAULTS,
         nodeClickRange: { $if: [{ $path: '/selection/enabled' }, 10, 'nearest'] },
         fill: {
             $applySwitch: [
@@ -40,10 +44,8 @@ const themeTemplate: ExtensibleSeriesTheme<'area'> = {
         },
         stroke: { $palette: 'stroke' },
         fillOpacity: 0.8,
-        strokeOpacity: 1,
+        ...STROKE_STYLE_THEME_DEFAULTS,
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
-        lineDash: [0],
-        lineDashOffset: 0,
         shadow: {
             enabled: false,
             color: DEFAULT_SHADOW_COLOUR,
@@ -51,13 +53,14 @@ const themeTemplate: ExtensibleSeriesTheme<'area'> = {
             yOffset: 3,
             blur: 5,
         },
-        interpolation: {
-            type: 'linear',
-        },
+        connectMissingData: false,
+        interpolation: interpolationThemeTemplate(),
         marker: {
             enabled: false,
             shape: 'circle',
             size: 7,
+            fillOpacity: 1,
+            ...STROKE_STYLE_THEME_DEFAULTS,
             strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
             fill: {
                 $applySwitch: [
@@ -87,8 +90,9 @@ const themeTemplate: ExtensibleSeriesTheme<'area'> = {
             position: {
                 anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
             },
+            interaction: { enabled: false },
         },
-        highlight: MARKER_SERIES_HIGHLIGHT_STYLE,
+        highlight: { ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
     },

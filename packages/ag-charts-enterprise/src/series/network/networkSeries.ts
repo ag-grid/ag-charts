@@ -17,14 +17,11 @@ import {
 import { NetworkGraph } from './networkGraph';
 import type { NetworkLayout, NetworkLayoutUpdateOptions } from './networkLayout';
 import { NetworkLinkNode } from './networkLinkNode';
-import { NetworkSeriesProperties } from './networkSeriesProperties';
 import type { NetworkLinkInterpolation, NetworkSeriesVertexID } from './networkTypes';
 
 export interface NetworkDatum<NetworkVertex, TNetworkEdge> extends _ModuleSupport.SeriesNodeDatum {
     vertex: Vertex<NetworkVertex, TNetworkEdge>;
 }
-
-export interface NetworkSeriesOptions {}
 
 export interface NetworkSeriesContextNodeData<NetworkVertex, TNetworkEdge> extends _ModuleSupport.SeriesNodeDataContext<
     NetworkDatum<NetworkVertex, TNetworkEdge>
@@ -128,15 +125,13 @@ export abstract class AbstractNetworkSeries<
     TDatum extends NetworkDatum<TVertex, TEdge>,
     TLinkDatum extends NetworkLinkDatum<TVertex, TEdge>,
     TLayout extends NetworkLayout<TVertex, TEdge>,
+    TOptions extends object,
 > extends _ModuleSupport.Series<
     NetworkDatum<TVertex, TEdge>,
-    NetworkSeriesOptions,
-    NetworkSeriesProperties,
+    TOptions,
     TDatum,
     NetworkSeriesContextNodeData<TVertex, TEdge>
 > {
-    override properties = new NetworkSeriesProperties();
-
     protected dataModel?: _ModuleSupport.DataModel<any, any, any>;
     protected processedData?: _ModuleSupport.ProcessedData<any>;
 

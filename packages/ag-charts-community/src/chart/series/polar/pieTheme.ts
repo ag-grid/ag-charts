@@ -1,4 +1,5 @@
 import {
+    COMMON_SERIES_THEME_DEFAULTS,
     DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
@@ -8,13 +9,16 @@ import {
     LABEL_OVERFLOW_DEFAULTS,
     PART_WHOLE_HIGHLIGHT_STYLE,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
     series: {
+        ...COMMON_SERIES_THEME_DEFAULTS,
         title: {
             enabled: true,
+            showInLegend: false,
             fontWeight: { $ref: 'fontWeight' },
             fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
             fontFamily: { $ref: 'fontFamily' },
@@ -31,6 +35,7 @@ export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
             color: { $ref: 'textColor' },
             offset: 3,
             minAngle: 0.001,
+            avoidCollisions: true,
         },
         sectorLabel: {
             ...LABEL_BOXING_DEFAULTS,
@@ -90,12 +95,14 @@ export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
             $applyCycle: [{ $cacheMax: { $size: { $path: ['./data', { $path: '/data' }] } } }, { $palette: 'strokes' }],
         },
         fillOpacity: 1,
-        strokeOpacity: 1,
+        ...STROKE_STYLE_THEME_DEFAULTS,
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
-        lineDash: [0],
-        lineDashOffset: 0,
+        cornerRadius: 0,
         rotation: 0,
+        outerRadiusOffset: 0,
+        outerRadiusRatio: 1,
         sectorSpacing: 1,
+        hideZeroValueSectorsInLegend: false,
         shadow: {
             enabled: false,
             color: DEFAULT_SHADOW_COLOUR,
@@ -103,7 +110,8 @@ export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
             yOffset: 3,
             blur: 5,
         },
-        highlight: PART_WHOLE_HIGHLIGHT_STYLE,
+        tooltip: { interaction: { enabled: false } },
+        highlight: { ...PART_WHOLE_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
     },
     legend: { enabled: true },

@@ -1,4 +1,4 @@
-import type { ChartAnimationPhase, DynamicContext } from 'ag-charts-core';
+import type { ChartAnimationPhase, DynamicContext, NormalisedHierarchySeriesKeys } from 'ag-charts-core';
 import {
     type Point,
     StateMachine,
@@ -30,11 +30,34 @@ import {
 } from '../../legend/legendDatum';
 import { type PickFocusInputs, type PickFocusOutputs, Series, SeriesNodePickMode } from '../series';
 import type { DatumIndex, ISeries, ItemId, SeriesNodeDatum } from '../seriesTypes';
-import {
-    HierarchyHighlightState,
-    type HierarchySeriesProperties,
-    toHierarchyHighlightString,
-} from './hierarchySeriesProperties';
+
+export enum HierarchyHighlightState {
+    None,
+    Item,
+    OtherItem,
+    Branch,
+    OtherBranch,
+}
+
+export function toHierarchyHighlightString(
+    state: HierarchyHighlightState
+): 'highlighted-item' | 'unhighlighted-item' | 'highlighted-branch' | 'unhighlighted-branch' | 'none' {
+    const unreachable = (a: never): never => a;
+    switch (state) {
+        case HierarchyHighlightState.Item:
+            return 'highlighted-item';
+        case HierarchyHighlightState.OtherItem:
+            return 'unhighlighted-item';
+        case HierarchyHighlightState.Branch:
+            return 'highlighted-branch';
+        case HierarchyHighlightState.OtherBranch:
+            return 'unhighlighted-branch';
+        case HierarchyHighlightState.None:
+            return 'none';
+        default:
+            return unreachable(state);
+    }
+}
 
 type Mutable<T> = {
     -readonly [k in keyof T]: T[k];
@@ -125,9 +148,8 @@ export class HierarchyNode<This extends HierarchyNode<This, TDatum> = any, TDatu
 export abstract class HierarchySeries<
     TNodeClass extends HierarchyNode,
     TNode extends Node<TNodeClass>,
-    TOpts extends object,
-    TProps extends HierarchySeriesProperties<TOpts>,
-> extends Series<TNodeClass, TOpts, TProps> {
+    TOptions extends NormalisedHierarchySeriesKeys,
+> extends Series<TNodeClass, TOptions> {
     protected abstract NodeClass: new (...params: ConstructorParameters<typeof HierarchyNode<any, any>>) => TNodeClass;
 
     rootNode: TNodeClass | undefined;
@@ -198,7 +220,7 @@ export abstract class HierarchySeries<
         this.data?.commitPendingTransactions(this.ctx.dataSelectionService);
 
         const { NodeClass } = this;
-        const { childrenKey, sizeKey, colorKey } = this.properties;
+        const { childrenKey, sizeKey, colorKey } = this.options;
 
         let maxDepth = 0;
         let minColor = Infinity;
@@ -269,7 +291,7 @@ export abstract class HierarchySeries<
         const colorDomain = [minColor, maxColor];
 
         const dataDomain: [number, number] = minColor < maxColor ? [minColor, maxColor] : [0, 1];
-        configureColorScale(this.colorScale, this.properties.colorScale, dataDomain, this.ctx.logger);
+        configureColorScale(this.colorScale, this.options.colorScale, dataDomain, this.ctx.logger);
 
         this.rootNode = rootNode;
         this.maxDepth = maxDepth;
@@ -351,7 +373,7 @@ export abstract class HierarchySeries<
     }
 
     override getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] | GradientLegendDatum[] {
-        const { colorKey, colorScale: colorScaleProps } = this.properties;
+        const { colorKey, colorScale: colorScaleProps } = this.options;
         const hasColorScale = colorScaleProps.fills.length > 0;
         const {
             id: seriesId,
@@ -469,7 +491,7 @@ export abstract class HierarchySeries<
     }
 
     protected getActiveHighlightNode(): TNodeClass | undefined {
-        if (!this.properties.highlight.enabled) {
+        if (!this.isHighlightEnabled()) {
             return undefined;
         }
 
@@ -530,7 +552,7 @@ export abstract class HierarchySeries<
         datumIndex?: DatumIndex,
         _legendItemValues?: string[]
     ): ReturnType<typeof toHierarchyHighlightString> {
-        if (!this.properties.highlight.enabled) {
+        if (!this.isHighlightEnabled()) {
             return toHierarchyHighlightString(HierarchyHighlightState.None);
         }
         if (datumIndex == null) {

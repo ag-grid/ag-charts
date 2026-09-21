@@ -7,11 +7,14 @@ import {
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
     SAFE_FILLS_OPERATION,
+    SERIES_INTERACTION_THEME_DEFAULTS,
+    STROKE_STYLE_THEME_DEFAULTS,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
     series: {
+        ...SERIES_INTERACTION_THEME_DEFAULTS,
         direction: 'vertical',
         fills: {
             $applyCycle: [
@@ -47,6 +50,8 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
             ],
         },
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
+        fillOpacity: 1,
+        ...STROKE_STYLE_THEME_DEFAULTS,
         label: {
             ...LABEL_BOXING_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,
@@ -64,6 +69,7 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
         },
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
+            interaction: { enabled: false },
         },
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },

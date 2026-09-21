@@ -5,14 +5,15 @@ import {
     type DynamicContext,
     type Feature,
     type FeatureCollection,
-    type FillStrokeMorph,
     type Geometry,
     type ITextMeasurer,
     type LabelFit,
-    type Normalised,
     type NormalisedChartLabelStyleOptions,
+    type NormalisedMapMarkerSeriesOwnOptions,
+    type NormalisedMapMarkerSeriesStyle,
     type PlacedLabel,
     type Point,
+    type PointLabelDatum,
     type SizedPoint,
     StateMachine,
     cachedTextMeasurer,
@@ -28,7 +29,6 @@ import {
     type AgDrawingMode,
     type AgMapMarkerSeriesItemStylerParams,
     type AgMapMarkerSeriesLabelFormatterParams,
-    type AgMapMarkerSeriesOptions,
 } from 'ag-charts-types';
 
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
@@ -39,11 +39,6 @@ import { markerPositions } from '../map-util/markerUtil';
 import { getTopologyShapeFillBBox } from '../map-util/shapeFillBBox';
 import { TopologySeries } from '../map-util/topologySeries';
 import type { ITopology } from '../map-util/topologyTypes';
-import {
-    type MapMarkerNodeDatum,
-    type MapMarkerNodeLabelDatum,
-    MapMarkerSeriesProperties,
-} from './mapMarkerSeriesProperties';
 
 const {
     fromToMotion,
@@ -66,7 +61,23 @@ const {
     expandLabelBoxExtent,
 } = _ModuleSupport;
 
-type NormalisedMapMarkerSeriesStyle = Normalised<AgMapMarkerSeriesStyle, never, FillStrokeMorph>;
+export interface MapMarkerNodeLabelDatum extends PointLabelDatum {
+    readonly datumIndex: number;
+    readonly datumId: string | number | boolean;
+}
+
+export interface MapMarkerNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
+    readonly index: number;
+    readonly idValue: string | undefined;
+    readonly lonValue: number | undefined;
+    readonly latValue: number | undefined;
+    readonly labelValue: string | undefined;
+    readonly colorValue: number | undefined;
+    readonly sizeValue: number | undefined;
+    readonly legendItemName: string | undefined;
+    readonly point: Readonly<SizedPoint>;
+    style: AgMapMarkerSeriesStyle;
+}
 
 interface MapMarkerNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
     MapMarkerNodeDatum,
@@ -96,8 +107,7 @@ type MapMarkerAnimationEvent = {
 export class MapMarkerSeries
     extends TopologySeries<
         MapMarkerNodeDatum,
-        AgMapMarkerSeriesOptions,
-        MapMarkerSeriesProperties,
+        NormalisedMapMarkerSeriesOwnOptions,
         MapMarkerNodeLabelDatum,
         MapMarkerNodeDataContext
     >
@@ -110,8 +120,6 @@ export class MapMarkerSeries
 
     public topologyBounds: LonLatBBox | undefined;
 
-    override properties = new MapMarkerSeriesProperties();
-
     private _chartTopology?: FeatureCollection = undefined;
 
     public override getNodeData(): MapMarkerNodeDatum[] | undefined {
@@ -119,11 +127,12 @@ export class MapMarkerSeries
     }
 
     private get topology() {
-        return this.properties.topology ?? this._chartTopology;
+        return this.options.topology ?? this._chartTopology;
     }
 
     override get hasData() {
-        const hasLatLon = this.properties.latitudeKey != null && this.properties.longitudeKey != null;
+        const { latitudeKey, longitudeKey } = this.options;
+        const hasLatLon = latitudeKey != null && longitudeKey != null;
         return super.hasData && (this.topology != null || hasLatLon);
     }
 
@@ -240,7 +249,7 @@ export class MapMarkerSeries
     }
 
     private isLabelEnabled() {
-        return this.properties.labelKey != null && this.properties.label.enabled;
+        return this.options.labelKey != null && this.options.label.enabled;
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
@@ -248,7 +257,7 @@ export class MapMarkerSeries
 
         const { data, sizeScale, colorScale } = this;
         const { topologyIdKey, idKey, latitudeKey, longitudeKey, sizeKey, colorKey, labelKey, sizeDomain } =
-            this.properties;
+            this.options;
 
         const featureById = this.buildFeatureMap(topologyIdKey);
 
@@ -318,14 +327,14 @@ export class MapMarkerSeries
         if (this.isColorScaleValid()) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
             const domain = processedData.domain.values[colorKeyIdx];
-            configureColorScale(colorScale, this.properties.colorScale, domain, this.ctx.logger);
+            configureColorScale(colorScale, this.options.colorScale, domain, this.ctx.logger);
         }
 
         this.animationState.transition('updateData');
     }
 
     private isColorScaleValid() {
-        const { colorKey } = this.properties;
+        const { colorKey } = this.options;
         if (!colorKey) {
             return false;
         }
@@ -353,22 +362,7 @@ export class MapMarkerSeries
         // acts as no obstacle — hiding it at render time alone would still displace its neighbours.
         if (labelValue == null || !labelStyle.enabled) return;
 
-        const {
-            idKey,
-            idName,
-            latitudeKey,
-            latitudeName,
-            longitudeKey,
-            longitudeName,
-            sizeKey,
-            sizeName,
-            colorKey,
-            colorName,
-            labelKey,
-            labelName,
-            label,
-            shape,
-        } = this.properties;
+        const { labelKey, label, shape } = this.options;
         if (labelKey == null || !label.enabled) return;
 
         const { datum, datumIndex, index, idValue, lonValue, latValue, point } = node;
@@ -380,22 +374,7 @@ export class MapMarkerSeries
             'label',
             [],
             label,
-            {
-                value: labelValue,
-                datum,
-                idKey,
-                idName,
-                latitudeKey,
-                latitudeName,
-                longitudeKey,
-                longitudeName,
-                sizeKey,
-                sizeName,
-                colorKey,
-                colorName,
-                labelKey,
-                labelName,
-            }
+            { value: labelValue, datum, ...this.makeLabelFormatterParams() }
         );
         if (labelText == null) return;
 
@@ -429,7 +408,7 @@ export class MapMarkerSeries
     }
 
     private resolveDataColumns(processedData: _ModuleSupport.ProcessedData<any>) {
-        const { idKey, latitudeKey, longitudeKey, sizeKey, colorKey, labelKey } = this.properties;
+        const { idKey, latitudeKey, longitudeKey, sizeKey, colorKey, labelKey } = this.options;
         const hasLatLon = latitudeKey != null && longitudeKey != null;
 
         return {
@@ -469,7 +448,7 @@ export class MapMarkerSeries
     }
 
     private calculateMarkerSize(sizeValue: number | undefined): number {
-        return sizeValue == null ? this.properties.size : this.sizeScale.convertClamped(sizeValue);
+        return sizeValue == null ? this.options.size : this.sizeScale.convertClamped(sizeValue);
     }
 
     private buildNodeDatum(
@@ -487,7 +466,7 @@ export class MapMarkerSeries
             ...dataValues,
             point,
             midPoint: { x: point.x, y: point.y },
-            legendItemName: this.properties.legendItemName,
+            legendItemName: this.options.legendItemName,
             style: this.getMarkerItemStyle(
                 { datumIndex, datum, colorValue: dataValues.colorValue, sizeValue: dataValues.sizeValue },
                 false
@@ -575,8 +554,8 @@ export class MapMarkerSeries
     }
 
     override createNodeData() {
-        const { id: seriesId, dataModel, processedData, sizeScale, properties, scale } = this;
-        const { label } = properties;
+        const { id: seriesId, dataModel, processedData, sizeScale, options, scale } = this;
+        const { label, maxSize } = options;
 
         if (dataModel == null || processedData == null || scale == null) return;
 
@@ -588,15 +567,14 @@ export class MapMarkerSeries
 
         // `minSize` is the explicit lower bound when `sizeKey` is present, defaulting to `size`. It is
         // authoritative: raise the upper bound to it when a smaller `maxSize` would invert the range.
-        const markerMinSize = properties.minSize ?? properties.size;
-        const markerMaxSize = properties.maxSize ?? properties.size;
-        sizeScale.range = [markerMinSize, Math.max(markerMinSize, markerMaxSize)];
+        const markerMinSize = options.minSize ?? options.size;
+        sizeScale.range = [markerMinSize, Math.max(markerMinSize, maxSize)];
         // The styler takes no datum here, so one resolved style governs every label of this series;
         // measuring and reserving against it keeps each collision footprint equal to the box drawn.
         const labelStyle = getLabelStyles<AgMapMarkerSeriesLabelFormatterParams>(
             this,
             undefined,
-            properties,
+            this.makeLabelFormatterParams(),
             label,
             false,
             undefined
@@ -744,7 +722,7 @@ export class MapMarkerSeries
         >;
         isHighlight: boolean;
     }) {
-        const { properties } = this;
+        const { options } = this;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         labelSelection.each((label, placedLabel) => {
             const { x, y, width, height, text, datum: labelDatum } = placedLabel;
@@ -752,8 +730,8 @@ export class MapMarkerSeries
             const style = getLabelStyles<P>(
                 this,
                 undefined,
-                properties,
-                properties.label,
+                this.makeLabelFormatterParams(),
+                options.label,
                 isHighlight,
                 activeHighlight
             );
@@ -829,13 +807,27 @@ export class MapMarkerSeries
         { datumIndex, datum, colorValue, sizeValue }: Partial<MapMarkerNodeDatum>,
         isHighlight: boolean
     ): Required<NormalisedMapMarkerSeriesStyle> {
-        const { properties, colorScale, sizeScale } = this;
-        const { colorKey, colorScale: colorScaleProps, itemStyler } = properties;
+        const { options, colorScale, sizeScale } = this;
+        const { colorKey, colorScale: colorScaleProps, itemStyler } = options;
         const { missingDataFill } = colorScaleProps;
 
+        const { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } =
+            options;
+        const ownStyle: Required<NormalisedMapMarkerSeriesStyle> & { opacity: number } = {
+            size,
+            shape,
+            fill,
+            fillOpacity,
+            opacity: 1,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+        };
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
-        const baseStyle = mergeDefaults(selectionStyle, highlightStyle, properties.getStyle());
+        const baseStyle = mergeDefaults(selectionStyle, highlightStyle, ownStyle);
 
         if (colorValue != null) {
             const fillOverride = this.isColorScaleValid()
@@ -874,6 +866,25 @@ export class MapMarkerSeries
         return style as Required<NormalisedMapMarkerSeriesStyle>;
     }
 
+    private makeLabelFormatterParams() {
+        const { idKey, idName, latitudeKey, latitudeName, longitudeKey, longitudeName } = this.options;
+        const { sizeKey, sizeName, colorKey, colorName, labelKey, labelName } = this.options;
+        return {
+            idKey,
+            idName,
+            latitudeKey,
+            latitudeName,
+            longitudeKey,
+            longitudeName,
+            sizeKey,
+            sizeName,
+            colorKey,
+            colorName,
+            labelKey,
+            labelName,
+        };
+    }
+
     private makeItemStylerParams(
         datum: unknown,
         datumIndex: number,
@@ -881,7 +892,7 @@ export class MapMarkerSeries
         style: Required<NormalisedMapMarkerSeriesStyle>
     ) {
         const { id: seriesId } = this;
-        const { sizeKey, idKey, labelKey, colorKey, latitudeKey, longitudeKey } = this.properties;
+        const { sizeKey, idKey, labelKey, colorKey, latitudeKey, longitudeKey } = this.options;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
@@ -973,7 +984,7 @@ export class MapMarkerSeries
     }
 
     override getLabelDefaults() {
-        const { label } = this.properties;
+        const { label } = this.options;
         return resolveSeriesLabelDefaults(label.collision, toArray(label.placement), label.spacing);
     }
 
@@ -1000,12 +1011,11 @@ export class MapMarkerSeries
     }
 
     private legendItemSymbol(datumIndex?: number): _ModuleSupport.LegendSymbolOptions {
-        const { dataModel, processedData, properties } = this;
-        const { colorKey, shape, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } =
-            properties;
-        const { missingDataFill } = properties.colorScale;
+        const { dataModel, processedData, options } = this;
+        const { colorKey, shape, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = options;
+        const { missingDataFill } = options.colorScale;
 
-        let { fill } = properties;
+        let { fill } = options;
         if (datumIndex != null && this.isColorScaleValid()) {
             const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!, 'mixed-numeric');
             const colorValue = colorValues[datumIndex];
@@ -1046,7 +1056,7 @@ export class MapMarkerSeries
             colorKey,
             colorScale: colorScaleProps,
             showInLegend,
-        } = this.properties;
+        } = this.options;
         const hasColorScale = colorScaleProps.fills.length > 0;
 
         if (legendType === 'gradient' && colorKey != null && hasColorScale) {
@@ -1078,7 +1088,7 @@ export class MapMarkerSeries
                 label: { text: legendItemName ?? title ?? idName ?? idKey ?? seriesId },
                 symbol: this.legendItemSymbol(),
                 legendItemName,
-                hideInLegend: !showInLegend,
+                hideInLegend: showInLegend === false,
             };
             return [legendDatum];
         } else {
@@ -1091,7 +1101,7 @@ export class MapMarkerSeries
             id: seriesId,
             dataModel,
             processedData,
-            properties,
+            options,
             ctx: { formatManager },
         } = this;
         const {
@@ -1110,7 +1120,7 @@ export class MapMarkerSeries
             title,
             legendItemName,
             tooltip,
-        } = properties;
+        } = options;
         if (!dataModel || !processedData) return;
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
@@ -1179,7 +1189,7 @@ export class MapMarkerSeries
             });
             const binLabel = findDiscreteColorBinLabel(
                 this.colorScale,
-                properties.colorScale.fills,
+                options.colorScale.fills,
                 colorValue,
                 formatValue
             );
@@ -1237,10 +1247,6 @@ export class MapMarkerSeries
     }
 
     protected override hasItemStylers(): boolean {
-        return (
-            this.properties.selection.enabled ||
-            this.properties.itemStyler != null ||
-            this.properties.label.itemStyler != null
-        );
+        return this.isSelectionEnabled() || this.options.itemStyler != null || this.options.label.itemStyler != null;
     }
 }

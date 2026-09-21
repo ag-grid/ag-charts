@@ -146,7 +146,7 @@ describe('SunburstSeries', () => {
         });
 
         const seriesHighlightEnabled = (series: SunburstSeries) =>
-            (series as unknown as { properties: { highlight: { enabled: boolean } } }).properties.highlight.enabled;
+            (series as unknown as { options: { highlight: { enabled: boolean } } }).options.highlight.enabled;
 
         it('cascades chart-level highlight.enabled = false to the series', async () => {
             const options: AgChartOptions = {
@@ -481,7 +481,7 @@ describe('SunburstSeries', () => {
             },
             getDatumValues: (item, series) => {
                 const { datum } = item.datum;
-                return [datum[series.properties.labelKey], datum[series.properties.sizeKey]];
+                return [datum[series.options.labelKey], datum[series.options.sizeKey]];
             },
             getTooltipRenderedValues: (params) => {
                 const { datum } = params;
@@ -2118,10 +2118,11 @@ describe('SunburstSeries', () => {
                 expectWarningsCalls().toEqual([]);
             });
 
-            it('defaults innerLabels to an empty array so no theme default can populate it', async () => {
+            it('leaves innerLabels absent so no theme default can populate it', async () => {
                 const series = await createChart();
-                const { properties } = series as unknown as { properties: { innerLabels: unknown[] } };
-                expect(properties.innerLabels).toHaveLength(0);
+                const { options } = series as unknown as { options: { innerLabels?: unknown[] } };
+                expect(options.innerLabels).toBeUndefined();
+                expect(series.innerLabelsSelection.nodes()).toHaveLength(0);
                 expectWarningsCalls().toEqual([]);
             });
         });

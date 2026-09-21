@@ -4,12 +4,13 @@ import type {
     DynamicContext,
     Feature,
     FeatureCollection,
-    FillStrokeMorph,
     FontOptions,
     Geometry,
     ITextMeasurer,
     LabelFit,
-    Normalised,
+    NormalisedMapShapeSeriesLabelOptions,
+    NormalisedMapShapeSeriesOwnOptions,
+    NormalisedMapShapeSeriesStyle,
     NormalisedTextOrSegments,
     Point,
     Position,
@@ -33,7 +34,6 @@ import type {
     AgDrawingMode,
     AgMapShapeSeriesItemStylerParams,
     AgMapShapeSeriesLabelFormatterParams,
-    AgMapShapeSeriesOptions,
     AgMapShapeSeriesStyle,
 } from 'ag-charts-types';
 
@@ -47,12 +47,6 @@ import { polygonFitRegion, preferredLabelCenter } from '../map-util/polygonLabel
 import { getTopologyShapeFillBBox } from '../map-util/shapeFillBBox';
 import { TopologySeries } from '../map-util/topologySeries';
 import type { ITopology } from '../map-util/topologyTypes';
-import {
-    type MapShapeNodeDatum,
-    type MapShapeNodeLabelDatum,
-    type MapShapeSeriesLabel,
-    MapShapeSeriesProperties,
-} from './mapShapeSeriesProperties';
 
 const {
     getMissCount,
@@ -73,6 +67,26 @@ const {
     getLabelStyles,
 } = _ModuleSupport;
 
+export interface MapShapeNodeLabelDatum {
+    readonly x: number;
+    readonly y: number;
+    readonly text: NormalisedTextOrSegments;
+    readonly fontSize: number;
+    readonly lineHeight: number | undefined;
+    readonly datumIndex: number;
+    readonly idValue: string;
+    readonly datumId: string | number | boolean;
+}
+
+export interface MapShapeNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
+    readonly idValue: string;
+    readonly colorValue: number | undefined;
+    readonly labelValue: string | undefined;
+    readonly legendItemName: string | undefined;
+    readonly projectedGeometry: Geometry | undefined;
+    style: AgMapShapeSeriesStyle;
+}
+
 interface MapShapeNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
     MapShapeNodeDatum,
     MapShapeNodeLabelDatum
@@ -83,8 +97,6 @@ interface ShapeDataValues {
     readonly colorValue: number | undefined;
     readonly labelValue: string | undefined;
 }
-
-type NormalisedMapShapeSeriesStyle = Normalised<AgMapShapeSeriesStyle, never, FillStrokeMorph>;
 
 const fixedScale = _ModuleSupport.MercatorScale.fixedScale();
 
@@ -111,7 +123,7 @@ interface LabelFitting {
 
 // The shape always bounds the label, so overflow control is always on: a label that does not fit is hidden
 // unless `truncate` asks for an ellipsis instead. The theme maps the deprecated `overflowStrategy` onto it.
-function resolveLabelFitting<P>(label: MapShapeSeriesLabel<P>, padding: number): LabelFitting {
+function resolveLabelFitting(label: NormalisedMapShapeSeriesLabelOptions, padding: number): LabelFitting {
     const { maxWidth, maxHeight, wrapping, truncate, minimumFontSize, lineHeight } = label;
     const { fontFamily, fontStyle, fontWeight, fontSize } = label;
     const fit = resolveLabelFit({ maxWidth, maxHeight, wrapping, truncate, minimumFontSize }, true);
@@ -128,8 +140,7 @@ function resolveLabelFitting<P>(label: MapShapeSeriesLabel<P>, padding: number):
 export class MapShapeSeries
     extends TopologySeries<
         MapShapeNodeDatum,
-        AgMapShapeSeriesOptions,
-        MapShapeSeriesProperties,
+        NormalisedMapShapeSeriesOwnOptions,
         MapShapeNodeLabelDatum,
         MapShapeNodeDataContext
     >
@@ -142,8 +153,6 @@ export class MapShapeSeries
 
     public topologyBounds: LonLatBBox | undefined;
 
-    override properties = new MapShapeSeriesProperties();
-
     private _chartTopology?: FeatureCollection = undefined;
 
     public override getNodeData(): MapShapeNodeDatum[] | undefined {
@@ -151,7 +160,7 @@ export class MapShapeSeries
     }
 
     private get topology() {
-        return this.properties.topology ?? this._chartTopology;
+        return this.options.topology ?? this._chartTopology;
     }
 
     override get hasData() {
@@ -214,7 +223,7 @@ export class MapShapeSeries
     }
 
     private isLabelEnabled() {
-        return this.properties.labelKey != null && this.properties.label.enabled;
+        return this.options.labelKey != null && this.options.label.enabled;
     }
 
     private nodeFactory(): GeoGeometry<MapShapeNodeDatum> {
@@ -228,7 +237,7 @@ export class MapShapeSeries
         if (this.data == null) return;
 
         const { data, topology, colorScale } = this;
-        const { topologyIdKey, idKey, colorKey, labelKey } = this.properties;
+        const { topologyIdKey, idKey, colorKey, labelKey } = this.options;
 
         const featureById = new Map<string, Feature>();
         for (const feature of topology?.features.values() ?? []) {
@@ -270,7 +279,7 @@ export class MapShapeSeries
         if (this.isColorScaleValid()) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
             const domain = processedData.domain.values[colorKeyIdx];
-            configureColorScale(colorScale, this.properties.colorScale, domain, this.ctx.logger);
+            configureColorScale(colorScale, this.options.colorScale, domain, this.ctx.logger);
         }
 
         if (topology == null) {
@@ -279,7 +288,7 @@ export class MapShapeSeries
     }
 
     private isColorScaleValid() {
-        const { colorKey } = this.properties;
+        const { colorKey } = this.options;
         if (!colorKey) {
             return false;
         }
@@ -305,7 +314,7 @@ export class MapShapeSeries
     ): LabelLayout | undefined {
         if (labelValue == null || geometry == null) return;
 
-        const { idKey, idName, colorKey, colorName, labelKey, labelName, padding, label } = this.properties;
+        const { labelKey, padding, label } = this.options;
         if (labelKey == null || !label.enabled) return;
 
         const labelText = this.getLabelText<AgMapShapeSeriesLabelFormatterParams>(
@@ -315,16 +324,7 @@ export class MapShapeSeries
             'label',
             [],
             label,
-            {
-                value: labelValue,
-                datum,
-                idKey,
-                idName,
-                colorKey,
-                colorName,
-                labelKey,
-                labelName,
-            }
+            { value: labelValue, datum, ...this.makeLabelFormatterParams() }
         );
         if (labelText == null) return;
 
@@ -424,7 +424,7 @@ export class MapShapeSeries
     }
 
     private resolveShapeDataColumns(processedData: _ModuleSupport.ProcessedData<any>) {
-        const { colorKey, labelKey } = this.properties;
+        const { colorKey, labelKey } = this.options;
 
         return {
             idValues: this.dataModel!.resolveColumnById(this, 'idValue', processedData, 'string'),
@@ -454,9 +454,9 @@ export class MapShapeSeries
 
     private previousLabelLayouts: Map<string, LabelLayout> | undefined = undefined;
     override createNodeData() {
-        const { id: seriesId, dataModel, processedData, properties, scale, previousLabelLayouts } = this;
-        const { label, legendItemName, colorKey } = properties;
-        const { missingDataFill } = properties.colorScale;
+        const { id: seriesId, dataModel, processedData, options, scale, previousLabelLayouts } = this;
+        const { label, legendItemName, colorKey } = options;
+        const { missingDataFill } = options.colorScale;
 
         if (dataModel == null || processedData == null) return;
 
@@ -467,7 +467,7 @@ export class MapShapeSeries
         const columns = this.resolveShapeDataColumns(processedData);
 
         const measurer = cachedTextMeasurer(label);
-        const labelFitting = resolveLabelFitting(label, properties.padding);
+        const labelFitting = resolveLabelFitting(label, options.padding);
 
         const labelLayouts = new Map<string, LabelLayout>();
         this.previousLabelLayouts = labelLayouts;
@@ -599,12 +599,21 @@ export class MapShapeSeries
         { datumIndex, datum, colorValue }: Partial<MapShapeNodeDatum>,
         isHighlight: boolean
     ): Required<NormalisedMapShapeSeriesStyle> {
-        const { properties, colorScale } = this;
-        const { colorKey, colorScale: colorScaleProps, itemStyler } = properties;
+        const { options, colorScale } = this;
+        const { colorKey, colorScale: colorScaleProps, itemStyler } = options;
         const { missingDataFill } = colorScaleProps;
 
-        // Colour refs are resolved during theme-merge before getStyle() returns.
-        const baseStyle = properties.getStyle() as Required<NormalisedMapShapeSeriesStyle> & { opacity: number };
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = options;
+        const baseStyle: Required<NormalisedMapShapeSeriesStyle> & { opacity: number } = {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            opacity: 1,
+        };
 
         if (colorValue != null) {
             const fillOverride = this.isColorScaleValid()
@@ -641,6 +650,11 @@ export class MapShapeSeries
         return style;
     }
 
+    private makeLabelFormatterParams() {
+        const { idKey, idName, colorKey, colorName, labelKey, labelName } = this.options;
+        return { idKey, idName, colorKey, colorName, labelKey, labelName };
+    }
+
     private makeItemStylerParams(
         datum: unknown,
         datumIndex: number,
@@ -648,7 +662,7 @@ export class MapShapeSeries
         style: Required<NormalisedMapShapeSeriesStyle>
     ) {
         const { id: seriesId } = this;
-        const { idKey, labelKey, colorKey } = this.properties;
+        const { idKey, labelKey, colorKey } = this.options;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
@@ -728,7 +742,7 @@ export class MapShapeSeries
         labelSelection: _ModuleSupport.Selection<MapShapeNodeLabelDatum, _ModuleSupport.Text<MapShapeNodeLabelDatum>>;
         isHighlight: boolean;
     }) {
-        const { properties } = this;
+        const { options } = this;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         labelSelection.each((label, labelDatum) => {
             const { x, y, text, fontSize, lineHeight, datumIndex } = labelDatum;
@@ -736,8 +750,8 @@ export class MapShapeSeries
             const style = getLabelStyles<P>(
                 this,
                 undefined,
-                properties,
-                properties.label,
+                this.makeLabelFormatterParams(),
+                options.label,
                 isHighlight,
                 activeHighlight
             );
@@ -805,11 +819,11 @@ export class MapShapeSeries
     }
 
     private legendItemSymbol(datumIndex?: number): _ModuleSupport.LegendSymbolOptions {
-        const { dataModel, processedData, properties } = this;
-        const { colorKey, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = properties;
-        const { missingDataFill } = properties.colorScale;
+        const { dataModel, processedData, options } = this;
+        const { colorKey, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = options;
+        const { missingDataFill } = options.colorScale;
 
-        let { fill } = properties;
+        let { fill } = options;
         if (datumIndex != null && this.isColorScaleValid()) {
             const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!, 'mixed-numeric');
             const colorValue = colorValues[datumIndex];
@@ -849,7 +863,7 @@ export class MapShapeSeries
             colorKey,
             colorScale: colorScaleProps,
             showInLegend,
-        } = this.properties;
+        } = this.options;
         const hasColorScale = colorScaleProps.fills.length > 0;
 
         if (legendType === 'gradient' && colorKey != null && hasColorScale) {
@@ -881,7 +895,7 @@ export class MapShapeSeries
                 label: { text: legendItemName ?? title ?? idName ?? idKey },
                 symbol: this.legendItemSymbol(),
                 legendItemName,
-                hideInLegend: !showInLegend,
+                hideInLegend: showInLegend === false,
             };
             return [legendDatum];
         } else {
@@ -894,10 +908,10 @@ export class MapShapeSeries
             id: seriesId,
             dataModel,
             processedData,
-            properties,
+            options,
             ctx: { formatManager },
         } = this;
-        const { idKey, idName, colorKey, colorName, labelKey, labelName, legendItemName, title, tooltip } = properties;
+        const { idKey, idName, colorKey, colorName, labelKey, labelName, legendItemName, title, tooltip } = options;
         if (!dataModel || !processedData) return;
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
@@ -949,7 +963,7 @@ export class MapShapeSeries
             });
             const binLabel = findDiscreteColorBinLabel(
                 this.colorScale,
-                properties.colorScale.fills,
+                options.colorScale.fills,
                 colorValue,
                 formatValue
             );
@@ -975,10 +989,6 @@ export class MapShapeSeries
     }
 
     protected override hasItemStylers(): boolean {
-        return (
-            this.properties.selection.enabled ||
-            this.properties.itemStyler != null ||
-            this.properties.label.itemStyler != null
-        );
+        return this.isSelectionEnabled() || this.options.itemStyler != null || this.options.label.itemStyler != null;
     }
 }

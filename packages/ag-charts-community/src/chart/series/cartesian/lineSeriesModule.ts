@@ -2,6 +2,7 @@ import type { DynamicContext, SeriesModuleDefinition } from 'ag-charts-core';
 import {
     CARTESIAN_AXIS_TYPE,
     CARTESIAN_POSITION,
+    COMMON_SERIES_THEME_DEFAULTS,
     ChartAxisDirection,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
@@ -14,6 +15,8 @@ import {
     SAFE_STROKE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
+    interpolationThemeTemplate,
 } from 'ag-charts-core';
 import type { AgLineSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -27,17 +30,18 @@ import { predictCartesianNonPrimitiveAxis } from './util';
 
 const themeTemplate: ExtensibleSeriesTheme<'line'> = {
     series: {
+        ...COMMON_SERIES_THEME_DEFAULTS,
         stroke: SAFE_STROKE_FILL_OPERATION,
         strokeWidth: 2,
-        strokeOpacity: 1,
-        lineDash: [0],
-        lineDashOffset: 0,
-        interpolation: {
-            type: 'linear',
-        },
+        ...STROKE_STYLE_THEME_DEFAULTS,
+        connectMissingData: false,
+        interpolation: interpolationThemeTemplate(),
         marker: {
+            enabled: true,
             shape: 'circle',
             size: 7,
+            fillOpacity: 1,
+            ...STROKE_STYLE_THEME_DEFAULTS,
             strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
             fill: {
                 $applySwitch: [
@@ -74,8 +78,9 @@ const themeTemplate: ExtensibleSeriesTheme<'line'> = {
             position: {
                 anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
             },
+            interaction: { enabled: false },
         },
-        highlight: MARKER_SERIES_HIGHLIGHT_STYLE,
+        highlight: { ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
     },

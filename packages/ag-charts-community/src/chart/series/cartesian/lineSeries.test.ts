@@ -1469,7 +1469,7 @@ describe('LineSeries', () => {
             await frames.runToEnd(chart);
             const sampleScene = createSceneGeometrySampler(chart);
 
-            const strokeOf = () => (deproxy(chart).series[0] as any).properties.stroke;
+            const strokeOf = () => (deproxy(chart).series[0] as any).options.stroke;
             const strokeBefore = strokeOf();
             await chart.update({ ...options, theme: 'ag-sheets' });
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);

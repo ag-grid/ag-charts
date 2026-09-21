@@ -668,8 +668,8 @@ describe('Chart highlighting', () => {
         });
 
         const seriesHighlightEnabled = (chartInstance: Chart, seriesIndex: number) =>
-            (chartInstance.series[seriesIndex] as unknown as { properties: { highlight: { enabled: boolean } } })
-                .properties.highlight.enabled;
+            (chartInstance.series[seriesIndex] as unknown as { options: { highlight: { enabled: boolean } } }).options
+                .highlight.enabled;
 
         it('cascades chart highlight.enabled = false to series that do not override it', async () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({

@@ -1,10 +1,19 @@
-import { type AgOhlcSeriesOptions, CartesianChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgOhlcSeriesItemOptions,
+    type AgOhlcSeriesOptions,
+    CartesianChartModule,
+    VERSION,
+    type WithThemeParams,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import {
     CARTESIAN_AXIS_TYPE,
     CARTESIAN_POSITION,
     ChartAxisDirection,
     MULTI_SERIES_HIGHLIGHT_STYLE,
+    SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -15,33 +24,33 @@ import { ohlcSeriesOptionsDef } from './ohlcSeriesOptionsDef';
 
 const { predictCartesianFinancialAxis } = _ModuleSupport;
 
+function itemTheme(key: 'up' | 'down'): WithThemeParams<AgOhlcSeriesItemOptions> {
+    return {
+        stroke: {
+            $if: [
+                { $eq: [{ $palette: 'type' }, 'user-indexed'] },
+                { $palette: 'stroke' },
+                { $palette: `${key}.stroke` },
+            ],
+        },
+        strokeWidth: 1,
+        ...STROKE_STYLE_THEME_DEFAULTS,
+    };
+}
+
 const themeTemplate: ExtensibleSeriesTheme<'ohlc'> = {
     animation: { enabled: false },
     series: {
+        ...SERIES_INTERACTION_THEME_DEFAULTS,
         item: {
-            up: {
-                stroke: {
-                    $if: [
-                        { $eq: [{ $palette: 'type' }, 'user-indexed'] },
-                        { $palette: 'stroke' },
-                        { $palette: 'up.stroke' },
-                    ],
-                },
-            },
-            down: {
-                stroke: {
-                    $if: [
-                        { $eq: [{ $palette: 'type' }, 'user-indexed'] },
-                        { $palette: 'stroke' },
-                        { $palette: 'down.stroke' },
-                    ],
-                },
-            },
+            up: itemTheme('up'),
+            down: itemTheme('down'),
         },
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
+            interaction: { enabled: false },
         },
-        highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+        highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
     },
     axes: {

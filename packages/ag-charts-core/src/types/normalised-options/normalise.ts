@@ -16,3 +16,6 @@ export type Normalised<T, R extends keyof T = never, O extends Partial<Record<ke
     Normalise<T, O>,
     R
 >;
+
+/** Callback whose parameter stays bivariant, so a leaf typed on richer params satisfies a plainer caller. */
+export type BivariantCallback<P, R> = { bivarianceHack(this: void, params: P): R }['bivarianceHack'];

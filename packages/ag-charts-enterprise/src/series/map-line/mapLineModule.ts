@@ -1,12 +1,15 @@
 import { type AgMapLineSeriesOptions, VERSION } from 'ag-charts-community';
 import {
+    COMMON_SERIES_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     LABEL_OVERFLOW_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SAFE_RANGE2_OPERATION,
     SAFE_STROKE_FILL_OPERATION,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
+    undocumentedThemeOptions,
 } from 'ag-charts-core';
 
 import { TopologyChartModule } from '../../charts/topologyChartModule';
@@ -26,6 +29,8 @@ export const MapLineSeriesModule: SeriesModuleDefinition<AgMapLineSeriesOptions>
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
+            ...COMMON_SERIES_THEME_DEFAULTS,
+            ...undocumentedThemeOptions({ topologyIdKey: 'name' }),
             stroke: applyMapPalette(SAFE_STROKE_FILL_OPERATION),
             colorScale: {
                 fills: {
@@ -40,11 +45,11 @@ export const MapLineSeriesModule: SeriesModuleDefinition<AgMapLineSeriesOptions>
                         },
                     ],
                 },
+                mode: 'continuous',
             },
             strokeWidth: 1,
+            ...STROKE_STYLE_THEME_DEFAULTS,
             maxStrokeWidth: 3,
-            lineDash: [0],
-            lineDashOffset: 0,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 ...LABEL_OVERFLOW_DEFAULTS,
@@ -55,6 +60,7 @@ export const MapLineSeriesModule: SeriesModuleDefinition<AgMapLineSeriesOptions>
                 color: { $ref: 'textColor' },
                 collision: { alwaysShow: false },
             },
+            tooltip: { interaction: { enabled: false } },
             highlight: applyMapPalette(MULTI_SERIES_HIGHLIGHT_STYLE),
             selection: SERIES_SELECTION_THEME,
         },

@@ -1,5 +1,5 @@
 import { type AgMapLineBackgroundOptions, VERSION } from 'ag-charts-community';
-import { type SeriesModuleDefinition } from 'ag-charts-core';
+import { STROKE_STYLE_THEME_DEFAULTS, type SeriesModuleDefinition } from 'ag-charts-core';
 
 import { TopologyChartModule } from '../../charts/topologyChartModule';
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
@@ -20,8 +20,7 @@ export const MapLineBackgroundSeriesModule: SeriesModuleDefinition<AgMapLineBack
         series: {
             stroke: { $path: ['/1', { $mapPalette: 'stroke' }, { $mapPalette: 'secondHierarchyColors' }] },
             strokeWidth: 1,
-            lineDash: [0],
-            lineDashOffset: 0,
+            ...STROKE_STYLE_THEME_DEFAULTS,
         },
     },
 

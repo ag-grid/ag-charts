@@ -126,7 +126,6 @@ export class Range<D = any> extends Shape<D> {
             ctx.globalAlpha = globalAlpha;
         }
 
-        this.fillShadow?.markClean();
         super.render(renderCtx);
     }
 }

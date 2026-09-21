@@ -1,8 +1,4 @@
-import type {
-    AgBaseRadialColumnSeriesOptions,
-    AgRadialSeriesLabelFormatterParams,
-    AgRadialSeriesStyle,
-} from 'ag-charts-community';
+import type { AgRadialSeriesLabelFormatterParams, AgRadialSeriesStyle } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     ChartAxisDirection,
@@ -10,8 +6,10 @@ import {
     type DynamicContext,
     type FillStrokeMorph,
     type Normalised,
+    type NormalisedRadialColumnSeriesBaseOwnOptions,
     type NormalisedTextOrSegments,
     type Point,
+    type RequireOptional,
     isDefined,
     isGradientFill,
     maxValue,
@@ -23,7 +21,6 @@ import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
 import { type RadialSeriesStyleResult, getItemStyle, getStyle } from '../util/radialUtil';
-import type { RadialColumnSeriesBaseProperties } from './radialColumnSeriesBaseProperties';
 
 const {
     DEFAULT_POLAR_DIRECTION_KEYS,
@@ -87,10 +84,10 @@ export abstract class RadialColumnSeriesBase<
     ItemPathType extends
         | _ModuleSupport.Sector<RadialColumnNodeDatum>
         | _ModuleSupport.RadialColumnShape<RadialColumnNodeDatum>,
+    TOptions extends NormalisedRadialColumnSeriesBaseOwnOptions = NormalisedRadialColumnSeriesBaseOwnOptions,
 > extends _ModuleSupport.PolarSeries<
     RadialColumnNodeDatum,
-    AgBaseRadialColumnSeriesOptions,
-    RadialColumnSeriesBaseProperties<AgBaseRadialColumnSeriesOptions>,
+    TOptions,
     ItemPathType,
     RadialColumnNodeDatum,
     RadialColumnSeriesNodeDataContext
@@ -98,8 +95,8 @@ export abstract class RadialColumnSeriesBase<
     override createNodeParams(datum: RadialColumnNodeDatum) {
         return {
             ...super.createNodeParams(datum),
-            angleKey: this.properties.angleKey,
-            radiusKey: this.properties.radiusKey,
+            angleKey: this.options.angleKey,
+            radiusKey: this.options.radiusKey,
         };
     }
 
@@ -155,7 +152,8 @@ export abstract class RadialColumnSeriesBase<
     protected abstract getStackId(): string;
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        const { angleKey, radiusKey, normalizedTo } = this.properties;
+        const { angleKey, radiusKey } = this.options;
+        const normalizedTo: number | undefined = this.options.normalizedTo;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const stackGroupId = this.getStackId();
         const stackGroupTrailingId = `${stackGroupId}-trailing`;
@@ -176,7 +174,7 @@ export abstract class RadialColumnSeriesBase<
 
         const radiusScaleType = this.axes[ChartAxisDirection.Radius]?.scale.type;
         const angleScaleType = this.axes[ChartAxisDirection.Angle]?.scale.type;
-        const allowNullKey = this.properties.allowNullKeys ?? false;
+        const allowNullKey = this.options.allowNullKeys ?? false;
 
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
@@ -296,7 +294,7 @@ export abstract class RadialColumnSeriesBase<
 
         const axisTotalRadius = axisOuterRadius + axisInnerRadius;
 
-        const { angleKey, radiusKey, angleName, radiusName, legendItemName, label } = this.properties;
+        const { angleKey, radiusKey, angleName, radiusName, legendItemName, label } = this.options;
 
         const radiusDomain = this.getSeriesDomain(ChartAxisDirection.Radius).domain;
 
@@ -339,7 +337,7 @@ export abstract class RadialColumnSeriesBase<
             const datum = rawData[datumIndex];
             const angleDatum = angleValues[datumIndex];
             // eslint-disable-next-line sonarjs/different-types-comparison
-            if (angleDatum === undefined && !this.properties.allowNullKeys) return;
+            if (angleDatum === undefined && !this.options.allowNullKeys) return;
 
             const radiusDatum = radiusRawValues[datumIndex];
             const isPositive = radiusDatum >= 0 && !Object.is(radiusDatum, -0);
@@ -369,7 +367,7 @@ export abstract class RadialColumnSeriesBase<
             const x = Math.cos(angle) * midRadius;
             const y = Math.sin(angle) * midRadius;
 
-            const labelNodeDatum = this.properties.label.enabled
+            const labelNodeDatum = this.options.label.enabled
                 ? getLabelNodeDatum(datum as any, radiusDatum, x, y)
                 : undefined;
 
@@ -464,9 +462,7 @@ export abstract class RadialColumnSeriesBase<
         const hasItemStylers = this.hasItemStylers();
         // No itemStyler: style is a pure function of (highlightState, selectionState); cache by state.
         const styleCache =
-            hasItemStylers && this.properties.itemStyler == null
-                ? new Map<string, RadialSeriesStyleResult>()
-                : undefined;
+            hasItemStylers && this.options.itemStyler == null ? new Map<string, RadialSeriesStyleResult>() : undefined;
 
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
@@ -527,7 +523,14 @@ export abstract class RadialColumnSeriesBase<
             });
     }
 
+    private makeLabelFormatterParams(): RequireOptional<AgRadialSeriesLabelFormatterParams> {
+        const { angleKey, radiusKey, angleName, radiusName, legendItemName } = this.options;
+        return { angleKey, radiusKey, angleName, radiusName, legendItemName };
+    }
+
     protected updateLabels() {
+        const { label } = this.options;
+        const params = this.makeLabelFormatterParams();
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightDatum =
             activeHighlight?.series === this && activeHighlight?.datum
@@ -536,20 +539,14 @@ export abstract class RadialColumnSeriesBase<
         const highlightData = highlightDatum ? [highlightDatum] : [];
 
         this.labelSelection.update(this.nodeData).each((node, datum) => {
-            updateLabelNode(this, node, this.properties, this.properties.label, datum.label, {
-                isHighlight: false,
-                activeHighlight,
-            });
+            updateLabelNode(this, node, params, label, datum.label, { isHighlight: false, activeHighlight });
             node.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
         });
 
         this.highlightLabelSelection
             .update(highlightData, undefined, (datum) => this.getDatumId(datum))
             .each((node, datum) => {
-                updateLabelNode(this, node, this.properties, this.properties.label, datum.label, {
-                    isHighlight: true,
-                    activeHighlight,
-                });
+                updateLabelNode(this, node, params, label, datum.label, { isHighlight: true, activeHighlight });
                 node.fillOpacity = this.getHighlightStyle(true, datum.datumIndex).opacity ?? 1;
             });
     }
@@ -590,8 +587,8 @@ export abstract class RadialColumnSeriesBase<
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, axes, properties } = this;
-        const { angleKey, angleName, radiusKey, radiusName, legendItemName, tooltip } = properties;
+        const { id: seriesId, dataModel, processedData, axes, options } = this;
+        const { angleKey, angleName, radiusKey, radiusName, legendItemName, tooltip } = options;
         const angleAxis = axes[ChartAxisDirection.Angle];
         const radiusAxis = axes[ChartAxisDirection.Radius];
         const nodeDatum = this.nodeData?.[datumIndex];
@@ -605,7 +602,7 @@ export abstract class RadialColumnSeriesBase<
         ];
 
         // eslint-disable-next-line sonarjs/different-types-comparison
-        if (angleValue === undefined && !this.properties.allowNullKeys) return;
+        if (angleValue === undefined && !this.options.allowNullKeys) return;
 
         const format = getItemStyle(this, nodeDatum, false, undefined, undefined, undefined);
         return this.formatTooltipWithContext(
@@ -679,7 +676,7 @@ export abstract class RadialColumnSeriesBase<
 
         const { id: seriesId, visible } = this;
 
-        const { radiusKey, radiusName, legendItemName, showInLegend } = this.properties;
+        const { radiusKey, radiusName, legendItemName, showInLegend } = this.options;
 
         return [
             {
@@ -693,7 +690,7 @@ export abstract class RadialColumnSeriesBase<
                 },
                 symbol: this.legendItemSymbol(),
                 legendItemName,
-                hideInLegend: !showInLegend,
+                hideInLegend: showInLegend === false,
             },
         ];
     }
@@ -704,5 +701,10 @@ export abstract class RadialColumnSeriesBase<
 
     override computeLabelsBBox() {
         return null;
+    }
+
+    protected override hasItemStylers(): boolean {
+        const { itemStyler, styler, label } = this.options;
+        return this.isSelectionEnabled() || itemStyler != null || styler != null || label.itemStyler != null;
     }
 }

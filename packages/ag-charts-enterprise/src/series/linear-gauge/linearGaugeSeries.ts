@@ -1,9 +1,7 @@
 import {
     type AgActiveItemState,
     type AgLinearGaugeMarkerShape,
-    type AgLinearGaugeOptions,
     type AgLinearGaugeTargetPlacement,
-    type AgSeriesMarkerStyle,
     type FontStyle,
     type FontWeight,
     _ModuleSupport,
@@ -11,8 +9,9 @@ import {
 import {
     type ChartAnimationPhase,
     type DynamicContext,
-    type FillStrokeMorph,
-    type Normalised,
+    type NormalisedGaugeSeriesStyle,
+    type NormalisedLinearGaugeLabelOptions,
+    type NormalisedLinearGaugeSeriesOwnOptions,
     type NormalisedTextOrSegments,
     type Point,
     StateMachine,
@@ -23,10 +22,11 @@ import {
     measureTextSegments,
     mergeDefaults,
     tickFormat,
+    toNumberOrUndefined,
     toRadians,
     toTextString,
 } from 'ag-charts-core';
-import type { AgLinearGaugeSeriesStyle, AgNumericValue } from 'ag-charts-types';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';
@@ -34,17 +34,19 @@ import { getGaugeTooltipInfo } from '../gauge-util/gaugeTooltip';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { LineMarker, lineMarker } from '../gauge-util/lineMarker';
 import { findGaugeNodeDatum, pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
+import { getGaugeSegments } from '../gauge-util/segmentation';
 import {
     type LinearGaugeLabelDatum,
-    LinearGaugeLabelProperties,
     type LinearGaugeNodeDatum,
-    LinearGaugeSeriesProperties,
     type LinearGaugeTargetDatum,
     type LinearGaugeTargetDatumLabel,
     NodeDataType,
-} from './linearGaugeSeriesProperties';
+} from './linearGaugeTypes';
 import {
     formatLinearGaugeLabels,
+    getLinearGaugeBarStyle,
+    getLinearGaugeScaleStyle,
+    getLinearGaugeTargetStyle,
     prepareLinearGaugeSeriesAnimationFunctions,
     resetLinearGaugeSeriesResetRectFunction,
 } from './linearGaugeUtil';
@@ -68,8 +70,6 @@ const {
 
 type SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum;
 
-type NormalisedLinearGaugeSeriesStyle = Normalised<AgLinearGaugeSeriesStyle, never, FillStrokeMorph>;
-
 interface TargetLabel {
     enabled: boolean;
     color: string;
@@ -82,14 +82,14 @@ interface TargetLabel {
 
 interface Target {
     text: string | undefined;
-    value: number;
+    value: AgNumericValue;
     shape: AgLinearGaugeMarkerShape;
     placement: AgLinearGaugeTargetPlacement;
     spacing: number;
     size: number;
     rotation: number;
     label: TargetLabel;
-    style: AgSeriesMarkerStyle;
+    style: Required<NormalisedGaugeSeriesStyle>;
 }
 
 type GaugeAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
@@ -126,15 +126,12 @@ const verticalTargetPlacementRotation: Record<AgLinearGaugeTargetPlacement, numb
 
 export class LinearGaugeSeries extends _ModuleSupport.Series<
     LinearGaugeNodeDatum,
-    AgLinearGaugeOptions,
-    LinearGaugeSeriesProperties,
+    NormalisedLinearGaugeSeriesOwnOptions,
     LinearGaugeLabelDatum,
     LinearGaugeNodeDataContext
 > {
     static override readonly className = 'LinearGaugeSeries';
     static readonly type = 'linear-gauge' as const;
-
-    override properties = new LinearGaugeSeriesProperties();
 
     private seriesRect = BBox.NaN;
     private gaugeRect = BBox.NaN;
@@ -147,7 +144,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     public originX = 0;
     public originY = 0;
     get horizontal() {
-        return this.properties.direction === 'horizontal';
+        return this.options.direction === 'horizontal';
     }
 
     private readonly scaleGroup = this.contentGroup.appendChild(new Group({ name: 'scaleGroup' }));
@@ -251,12 +248,12 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }
 
     public formatLabel(value: AgNumericValue) {
-        return formatLabel(value, this.properties.scale);
+        return formatLabel(value, this.options.scale);
     }
 
     protected getShapeFillBBox(): _ModuleSupport.ShapeFillBBox {
-        const { properties, originX, originY, horizontal, scale } = this;
-        const { thickness } = properties;
+        const { options, originX, originY, horizontal, scale } = this;
+        const { thickness } = options;
 
         const length = findRangeExtent(scale.range);
         const bbox = new BBox(originX, originY, horizontal ? length : thickness, horizontal ? thickness : length);
@@ -268,27 +265,26 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }
 
     private getTargets(): Target[] {
-        const { properties } = this;
-        const defaultTarget = properties.defaultTarget;
-        return Array.from(properties.targets).map((target): Target => {
+        const { targets = [], defaultTarget } = this.options;
+        return targets.map((target): Target => {
             const {
                 text = defaultTarget.text,
-                value = defaultTarget.value ?? 0,
-                shape = defaultTarget.shape ?? 'triangle',
-                rotation = defaultTarget.rotation ?? 0,
-                placement = defaultTarget.placement ?? 'middle',
-                spacing = defaultTarget.spacing ?? 0,
-                size = defaultTarget.size ?? 0,
+                value,
+                shape = defaultTarget.shape,
+                rotation = defaultTarget.rotation,
+                placement = defaultTarget.placement,
+                spacing = defaultTarget.spacing,
+                size = defaultTarget.size,
             } = target;
             const {
                 enabled: labelEnabled = defaultTarget.label.enabled,
-                color: labelColor = defaultTarget.label.color ?? 'black',
-                fontStyle: labelFontStyle = defaultTarget.label.fontStyle ?? 'normal',
-                fontWeight: labelFontWeight = defaultTarget.label.fontWeight ?? 'normal',
+                color: labelColor = defaultTarget.label.color,
+                fontStyle: labelFontStyle = defaultTarget.label.fontStyle,
+                fontWeight: labelFontWeight = defaultTarget.label.fontWeight,
                 fontSize: labelFontSize = defaultTarget.label.fontSize,
                 fontFamily: labelFontFamily = defaultTarget.label.fontFamily,
-                spacing: labelSpacing = defaultTarget.label.spacing ?? 0,
-            } = target.label;
+                spacing: labelSpacing = defaultTarget.label.spacing,
+            } = target.label ?? {};
 
             return {
                 text,
@@ -307,14 +303,14 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                     fontFamily: labelFontFamily,
                     spacing: labelSpacing,
                 },
-                style: target.getStyle(defaultTarget),
+                style: getLinearGaugeTargetStyle(target, defaultTarget),
             };
         });
     }
 
     private getTargetPoint(target: Target) {
-        const { properties, originX, originY, horizontal, scale, gaugeRect } = this;
-        const { thickness } = properties;
+        const { options, originX, originY, horizontal, scale, gaugeRect } = this;
+        const { thickness } = options;
         const { value, placement, spacing, size } = target;
 
         const mainOffset = scale.convert(value);
@@ -385,7 +381,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         };
     }
 
-    labelDatum(label: LinearGaugeLabelProperties, value: AgNumericValue): LinearGaugeLabelDatum {
+    labelDatum(label: NormalisedLinearGaugeLabelOptions, value: AgNumericValue): LinearGaugeLabelDatum {
         const {
             placement,
             avoidCollisions,
@@ -425,7 +421,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }
 
     private verticalLabelInset() {
-        const { label } = this.properties;
+        const { label } = this.options;
         const measurer = cachedTextMeasurer(label);
         const lines = label.text?.split('\n');
         const labelSize = (label.lineHeight ?? measurer.lineHeight()) * (lines?.length ?? 1);
@@ -434,23 +430,23 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }
 
     private horizontalLabelInset() {
-        const { scale, properties } = this;
-        const { scale: scaleProps, label } = properties;
+        const { scale, options } = this;
+        const { scale: scaleOptions, label } = options;
 
         const lines = label.text?.split('\n');
 
         const measurer = cachedTextMeasurer(label);
         const ticks =
-            scaleProps.interval.values ??
+            scaleOptions.interval?.values ??
             scale.ticks(
                 {
                     nice: [false, false],
-                    interval: scaleProps.interval.step,
+                    interval: toNumberOrUndefined(scaleOptions.interval?.step),
                     minTickCount: 0,
                     maxTickCount: 6,
                     tickCount: 5,
                 },
-                [scaleProps.min, scaleProps.max]
+                [scaleOptions.min, scaleOptions.max]
             )?.ticks ??
             [];
         const linesOrTicks =
@@ -470,7 +466,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         domain: AgNumericValue[],
         ticks: AgNumericValue[]
     ): (value: AgNumericValue, index: number) => NormalisedTextOrSegments {
-        const { format, formatter } = this.properties.scale.label;
+        const { format, formatter } = this.options.scale.label;
         let tickFormatter: ((value: AgNumericValue) => NormalisedTextOrSegments) | undefined;
         if (format != null) {
             tickFormatter = tickFormat(ticks, typeof format === 'string' ? format : undefined);
@@ -493,7 +489,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }
 
     override createNodeData() {
-        const { id: seriesId, properties, horizontal, scale, seriesRect } = this;
+        const { id: seriesId, options, horizontal, scale, seriesRect } = this;
         const {
             value,
             segmentation,
@@ -501,13 +497,13 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             cornerRadius,
             cornerMode,
             bar,
-            scale: scaleProps,
+            scale: scaleOptions,
             label,
             defaultColorRange,
             defaultScale,
-        } = properties;
+        } = options;
 
-        scale.domain = [scaleProps.min, scaleProps.max];
+        scale.domain = [scaleOptions.min, scaleOptions.max];
         // Required to generate ticks in horizontalLabelInset
         scale.range = horizontal ? [0, seriesRect.width] : [seriesRect.height, 0];
 
@@ -516,7 +512,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         if (horizontal) {
             sideFlag = 1;
             axisRotation = Math.PI / -2;
-        } else if (scaleProps.label.placement === 'before') {
+        } else if (scaleOptions.label.placement === 'before') {
             sideFlag = 1;
             axisRotation = 0;
         } else {
@@ -557,19 +553,19 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
         const originX = 0;
         const originY = 0;
-        scale.domain = [scaleProps.min, scaleProps.max];
+        scale.domain = [scaleOptions.min, scaleOptions.max];
         scale.range = horizontal ? [x0, x1] : [y0, y1];
 
-        const scaleLabel = mergeDefaults(scaleProps.label, defaultScale.label);
+        const scaleLabel = mergeDefaults(scaleOptions.label, defaultScale.label);
         const {
             tickData: { ticks: tickData },
         } = generateTicks({
             scale,
             label: scaleLabel,
             parallel: horizontal,
-            interval: scaleProps.interval,
+            interval: { values: scaleOptions.interval?.values, step: toNumberOrUndefined(scaleOptions.interval?.step) },
             tickFormatter: (domain: AgNumericValue[], ticks: AgNumericValue[]) => this.tickFormatter(domain, ticks),
-            domain: [scaleProps.min, scaleProps.max],
+            domain: [scaleOptions.min, scaleOptions.max],
             range: this.range,
             reverse: false,
             primaryTickCount: undefined,
@@ -610,11 +606,11 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
         const maxTicks = Math.ceil(mainAxisSize);
         let segments = segmentation.enabled
-            ? segmentation.interval.getSegments(scale, maxTicks, this.ctx.logger)
+            ? getGaugeSegments(segmentation.interval, scale, maxTicks, this.ctx.logger)
             : undefined;
 
-        const barStyle = bar.getStyle(defaultColorRange, horizontal, scale);
-        const scaleStyle = scaleProps.getStyle(bar.enabled, defaultColorRange, horizontal, scale);
+        const barStyle = getLinearGaugeBarStyle(bar, defaultColorRange, horizontal, scale);
+        const scaleStyle = getLinearGaugeScaleStyle(scaleOptions, bar.enabled, defaultColorRange, horizontal, scale);
 
         if (segments == null && cornersOnAllItems) {
             // convert() maps these whole-domain endpoints to the range ends, so a Number-narrow is precision-safe.
@@ -898,20 +894,18 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const { datumSelection } = opts;
         const { ctx } = this;
         const animationDisabled = ctx.animationManager.isSkipped();
+        const barEnabled = this.options.bar.enabled;
         const fillBBox = this.getShapeFillBBox();
         datumSelection.each((rect, datum) => {
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
 
-            // Colour refs are resolved during theme-merge, so the style is already normalised by render.
-            rect.setStyleProperties(datum.style as NormalisedLinearGaugeSeriesStyle, fillBBox);
+            rect.setStyleProperties(datum.style, fillBBox);
             rect.topLeftCornerRadius = topLeftCornerRadius;
             rect.topRightCornerRadius = topRightCornerRadius;
             rect.bottomRightCornerRadius = bottomRightCornerRadius;
             rect.bottomLeftCornerRadius = bottomLeftCornerRadius;
-            rect.pointerEvents = this.properties.bar.enabled
-                ? _ModuleSupport.PointerEvents.All
-                : _ModuleSupport.PointerEvents.None;
+            rect.pointerEvents = barEnabled ? _ModuleSupport.PointerEvents.All : _ModuleSupport.PointerEvents.None;
 
             if (animationDisabled || rect.previousDatum == null) {
                 rect.setProperties(resetLinearGaugeSeriesResetRectFunction(rect, datum));
@@ -969,8 +963,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
 
-            // Colour refs are resolved during theme-merge, so the style is already normalised by render.
-            rect.setStyleProperties(datum.style as NormalisedLinearGaugeSeriesStyle, fillBBox);
+            rect.setStyleProperties(datum.style, fillBBox);
 
             rect.setProperties(resetLinearGaugeSeriesResetRectFunction(rect, datum));
             rect.topLeftCornerRadius = topLeftCornerRadius;
@@ -1078,8 +1071,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             _ModuleSupport.TransformableText<_ModuleSupport.TickDatum>
         >;
     }) {
-        const { gaugeRect, properties } = this;
-        const defaultScale = properties.defaultScale;
+        const { gaugeRect, options } = this;
+        const { defaultScale } = options;
         const {
             enabled,
             color = defaultScale.label.color,
@@ -1088,9 +1081,9 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             fontStyle,
             fontWeight = defaultScale.label.fontWeight,
             spacing,
-        } = properties.scale.label;
-        let { placement } = properties.scale.label;
-        const rotation = toRadians(properties.scale.label.rotation ?? 0);
+        } = options.scale.label;
+        let { placement } = options.scale.label;
+        const rotation = toRadians(options.scale.label.rotation ?? 0);
 
         let textAlign: CanvasTextAlign;
         let textBaseline: CanvasTextBaseline;
@@ -1173,7 +1166,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const { labelSelection, horizontal, scale, seriesRect, gaugeRect } = this;
         const { x, y, width, height } = gaugeRect;
 
-        const value = datum?.label ?? this.properties.value;
+        const value = datum?.label ?? this.options.value;
 
         let barRect: _ModuleSupport.BBox;
         if (horizontal) {
@@ -1186,7 +1179,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
         const bboxes = { seriesRect, gaugeRect, barRect };
 
-        const { margin: padding } = this.properties;
+        const { margin: padding } = this.options;
 
         formatLinearGaugeLabels(this, this.ctx, labelSelection, { padding, horizontal }, bboxes, datum);
     }
@@ -1301,8 +1294,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     override getTooltipContent(
         datumIndex: _ModuleSupport.DatumIndex | undefined
     ): _ModuleSupport.TooltipContent | undefined {
-        const { id: seriesId, properties } = this;
-        const { tooltip } = properties;
+        const { id: seriesId, options } = this;
+        const { tooltip } = options;
         if (datumIndex == null) return;
 
         const { value, text, fallbackLabel } = getGaugeTooltipInfo(this, datumIndex);
@@ -1326,7 +1319,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }
 
     getCaptionText(): string {
-        return this.formatLabel(this.properties.value);
+        return this.formatLabel(this.options.value);
     }
 
     getCategoryValue(_datumIndex: _ModuleSupport.DatumIndex) {
@@ -1338,6 +1331,6 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.selection.enabled || this.properties.label.itemStyler != null;
+        return this.isSelectionEnabled() || this.options.label.itemStyler != null;
     }
 }

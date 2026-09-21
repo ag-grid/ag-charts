@@ -2,6 +2,7 @@ import type { DynamicContext, SeriesModuleDefinition } from 'ag-charts-core';
 import {
     CARTESIAN_AXIS_TYPE,
     CARTESIAN_POSITION,
+    COMMON_SERIES_THEME_DEFAULTS,
     ChartAxisDirection,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
@@ -11,6 +12,7 @@ import {
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type {
@@ -30,7 +32,7 @@ import { BubbleSeries } from './bubbleSeries';
 import { bubbleSeriesOptionsDef } from './bubbleSeriesOptionsDef';
 import { predictCartesianAxis } from './util';
 
-// Shared with scatter. The $if/$isPackageType pair resolves colorScale to a palette only under
+// Shared with scatter. The $if/$isPackageType pairs resolve colorScale defaults only under
 // enterprise, so the `colorScale` enterprise() validator never fires on a community theme default.
 export const BUBBLE_SCATTER_COLOR_SCALE_THEME: Operation | WithThemeParams<AgColorScale> = {
     fills: {
@@ -40,6 +42,7 @@ export const BUBBLE_SCATTER_COLOR_SCALE_THEME: Operation | WithThemeParams<AgCol
             undefined,
         ],
     },
+    mode: { $if: [{ $isPackageType: 'enterprise' }, 'continuous', undefined] },
 };
 
 // Gradient legend enables automatically for any series that supplies `colorKey` together with
@@ -61,6 +64,7 @@ export const BUBBLE_SCATTER_GRADIENT_LEGEND_THEME: WithThemeParams<AgGradientLeg
 
 const themeTemplate: ExtensibleSeriesTheme<'bubble'> = {
     series: {
+        ...COMMON_SERIES_THEME_DEFAULTS,
         shape: 'circle',
         minSize: 7,
         maxSize: 30,
@@ -75,6 +79,8 @@ const themeTemplate: ExtensibleSeriesTheme<'bubble'> = {
         },
         stroke: { $palette: 'stroke' },
         fillOpacity: 0.8,
+        strokeWidth: 1,
+        ...STROKE_STYLE_THEME_DEFAULTS,
         maxRenderedItems: 2000,
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
@@ -87,6 +93,7 @@ const themeTemplate: ExtensibleSeriesTheme<'bubble'> = {
             insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('chartBackgroundColor'),
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
             collision: { alwaysShow: false, ...undocumentedThemeOptions({ collideWith: { seriesArea: false } }) },
+            placement: 'top',
         },
         tooltip: {
             range: {
@@ -99,8 +106,9 @@ const themeTemplate: ExtensibleSeriesTheme<'bubble'> = {
             position: {
                 anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
             },
+            interaction: { enabled: false },
         },
-        highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+        highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
         colorScale: BUBBLE_SCATTER_COLOR_SCALE_THEME,
     },

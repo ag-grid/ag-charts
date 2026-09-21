@@ -300,7 +300,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
   },
   "series": [
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -345,16 +348,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       "marker": {
         "enabled": false,
         "fill": "#3d7ab0",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#3d7ab0",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -366,10 +377,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#3d7ab0",
       "strokeOpacity": 1,
       "strokeWidth": 5,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -387,7 +402,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       "yName": "Marriages",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -432,16 +450,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       "marker": {
         "enabled": false,
         "fill": "#b03d65",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#b03d65",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -453,10 +479,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#b03d65",
       "strokeOpacity": 1,
       "strokeWidth": 5,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -474,7 +504,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       "yName": "Civil partnerships",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -519,16 +552,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       "marker": {
         "enabled": false,
         "fill": "#80b03d",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#80b03d",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -540,10 +581,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#80b03d",
       "strokeOpacity": 1,
       "strokeWidth": 5,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -945,10 +990,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#c16068",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -995,11 +1043,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -1025,9 +1075,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#c16068",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -1045,10 +1100,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "yName": "Male cattle",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#a2bf8a",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -1095,11 +1153,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -1125,9 +1185,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#a2bf8a",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -1145,7 +1210,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "yName": "Female cattle",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -1190,16 +1258,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "marker": {
         "enabled": false,
         "fill": "#80a0c3",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#80a0c3",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -1211,10 +1287,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#80a0c3",
       "strokeOpacity": 1,
       "strokeWidth": 5,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -1555,7 +1635,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
   },
   "series": [
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
@@ -1601,17 +1684,26 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       ],
       "lineDashOffset": 0,
       "marker": {
+        "enabled": true,
         "fill": "#f3622d",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 10,
         "stroke": "#aa4520",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -1623,11 +1715,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#f3622d",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Still wine",
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -1644,7 +1740,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "yKeyAxis": "y",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
@@ -1690,17 +1789,26 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       ],
       "lineDashOffset": 0,
       "marker": {
+        "enabled": true,
         "fill": "#fba71b",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "cross",
         "size": 10,
         "stroke": "#b07513",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -1712,11 +1820,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#fba71b",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Sparkling wine",
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -1733,7 +1845,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "yKeyAxis": "y",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
@@ -1779,17 +1894,26 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       ],
       "lineDashOffset": 0,
       "marker": {
+        "enabled": true,
         "fill": "#57b757",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "diamond",
         "size": 10,
         "stroke": "#3d803d",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -1801,11 +1925,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#57b757",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Made-wine",
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -1822,7 +1950,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "yKeyAxis": "y",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
@@ -1868,17 +1999,26 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       ],
       "lineDashOffset": 0,
       "marker": {
+        "enabled": true,
         "fill": "#41a9c9",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "plus",
         "size": 10,
         "stroke": "#2d768d",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -1890,11 +2030,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#41a9c9",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Whisky",
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -1911,7 +2055,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "yKeyAxis": "y",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
@@ -1957,17 +2104,26 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       ],
       "lineDashOffset": 0,
       "marker": {
+        "enabled": true,
         "fill": "#4258c9",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "square",
         "size": 10,
         "stroke": "#2e3e8d",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -1979,11 +2135,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#4258c9",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Potable spirits",
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -2000,7 +2160,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "yKeyAxis": "y",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
@@ -2046,17 +2209,26 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       ],
       "lineDashOffset": 0,
       "marker": {
+        "enabled": true,
         "fill": "#9a42c8",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "triangle",
         "size": 10,
         "stroke": "#6c2e8c",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -2068,11 +2240,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#9a42c8",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Beer",
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -2089,7 +2265,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "yKeyAxis": "y",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
@@ -2135,17 +2314,26 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       ],
       "lineDashOffset": 0,
       "marker": {
+        "enabled": true,
         "fill": "#c84164",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": [Function],
         "size": 10,
         "stroke": "#8c2d46",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -2157,11 +2345,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#c84164",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Cider",
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -2500,10 +2692,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#5090dc",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -2550,11 +2745,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -2580,9 +2777,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2b5c95",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -2601,10 +2803,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "yName": "Large household appliances",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#ffa03a",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -2651,11 +2856,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -2681,9 +2888,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#cc6f10",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -2702,10 +2914,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "yName": "Small household appliances",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#459d55",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -2752,11 +2967,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -2782,9 +2999,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#1e652e",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -2803,10 +3025,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "yName": "IT and telecomms equipment",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#34bfe1",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -2853,11 +3078,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -2883,9 +3110,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#18859e",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -2904,10 +3136,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "yName": "Consumer equipment",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#e1cc00",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -2954,11 +3189,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -2984,9 +3221,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#a69400",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -3005,10 +3247,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "yName": "Electrical and electronic tools",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#9669cb",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -3055,11 +3300,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -3085,9 +3332,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#603c88",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -3106,10 +3358,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "yName": "Display equipment",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#b5b5b5",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -3156,11 +3411,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -3186,9 +3443,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#575757",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -3207,10 +3469,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "yName": "Cooling appliances containing refrigerants",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#bd5aa7",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -3257,11 +3522,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -3287,9 +3554,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#7d2f6d",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -3623,9 +3895,11 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
   },
   "series": [
     {
+      "cursor": "default",
       "fill": "#5090dc",
       "fillOpacity": 0.7,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -3665,11 +3939,18 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
           "color": "#181d1f",
         },
         "padding": 8,
+        "placement": "top",
       },
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
       "maxRenderedItems": 2000,
       "maxSize": 100,
       "minSize": 5,
+      "nodeClickRange": "exact",
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -3682,12 +3963,16 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
         },
       },
       "shape": "circle",
+      "showInLegend": true,
       "sizeKey": "magnitude",
       "sizeName": "Magnitude",
       "stroke": "#2b5c95",
       "strokeOpacity": 0.7,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -4047,7 +4332,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
   },
   "series": [
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -4092,16 +4380,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "marker": {
         "enabled": false,
         "fill": "#5BC0EB",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#5BC0EB",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -4113,11 +4409,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#5BC0EB",
       "strokeOpacity": 1,
       "strokeWidth": 3,
       "title": "Southern California Seismic Network",
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -4134,7 +4434,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "yKeyAxis": "y",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -4179,16 +4482,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "marker": {
         "enabled": false,
         "fill": "#FDE74C",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#FDE74C",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -4200,11 +4511,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#FDE74C",
       "strokeOpacity": 1,
       "strokeWidth": 3,
       "title": "Hawaiian Volcano Observatory Network",
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -4221,7 +4536,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "yKeyAxis": "y",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -4266,16 +4584,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "marker": {
         "enabled": false,
         "fill": "#9BC53D",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#9BC53D",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -4287,11 +4613,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#9BC53D",
       "strokeOpacity": 1,
       "strokeWidth": 3,
       "title": "USGS Northern California Network",
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -4308,7 +4638,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "yKeyAxis": "y",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -4353,16 +4686,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "marker": {
         "enabled": false,
         "fill": "#E55934",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#E55934",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -4374,11 +4715,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#E55934",
       "strokeOpacity": 1,
       "strokeWidth": 3,
       "title": "Oklahoma Seismic Network",
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -4716,9 +5061,12 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
   },
   "series": [
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "#FA7921",
       "fillOpacity": 0.6,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
@@ -4766,9 +5114,15 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "marker": {
         "enabled": false,
         "fill": "#FA7921",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#af5517",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -4777,6 +5131,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -4795,10 +5150,14 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#af5517",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -4816,9 +5175,12 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "yName": "Natural gas",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "#5BC0EB",
       "fillOpacity": 0.6,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
@@ -4866,9 +5228,15 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "marker": {
         "enabled": false,
         "fill": "#5BC0EB",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#4086a4",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -4877,6 +5245,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -4895,10 +5264,14 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#4086a4",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -4916,9 +5289,12 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "yName": "Coal",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "#9BC53D",
       "fillOpacity": 0.6,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
@@ -4966,9 +5342,15 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "marker": {
         "enabled": false,
         "fill": "#9BC53D",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#6c8a2b",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -4977,6 +5359,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -4995,10 +5378,14 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#6c8a2b",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -5016,9 +5403,12 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "yName": "Primary oil",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "#E55934",
       "fillOpacity": 0.6,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
@@ -5066,9 +5456,15 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "marker": {
         "enabled": false,
         "fill": "#E55934",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#a03e24",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -5077,6 +5473,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -5095,10 +5492,14 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#a03e24",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -5116,9 +5517,12 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "yName": "Petroleum",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "#FDE74C",
       "fillOpacity": 0.6,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
@@ -5166,9 +5570,15 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "marker": {
         "enabled": false,
         "fill": "#FDE74C",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#b1a235",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -5177,6 +5587,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -5195,10 +5606,14 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#b1a235",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -5537,10 +5952,13 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "#5090dc",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -5587,11 +6005,13 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -5617,9 +6037,14 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2b5c95",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -5958,10 +6383,13 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "rgba(0, 117, 163, 0.9)",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "fill": "#0ab9ff",
@@ -6013,11 +6441,13 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -6043,9 +6473,14 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2b5c95",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -6391,9 +6826,11 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
   },
   "series": [
     {
+      "cursor": "default",
       "fill": "#cc5b58",
       "fillOpacity": 0.85,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -6432,11 +6869,18 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
           "color": "#181d1f",
         },
         "padding": 8,
+        "placement": "top",
       },
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
       "maxRenderedItems": 2000,
       "maxSize": 30,
       "minSize": 0,
+      "nodeClickRange": "exact",
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -6449,12 +6893,17 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
         },
       },
       "shape": "circle",
+      "showInLegend": true,
       "sizeKey": "size",
       "sizeName": "Commits",
       "stroke": "#2b5c95",
       "strokeOpacity": 0.85,
+      "strokeWidth": 1,
       "title": "Punch Card",
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -6794,9 +7243,11 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
   },
   "series": [
     {
+      "cursor": "default",
       "fill": "#5090dc",
       "fillOpacity": 0.5,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -6835,13 +7286,20 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
           "color": "#181d1f",
         },
         "padding": 8,
+        "placement": "top",
       },
       "labelKey": "city",
       "labelName": "City",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
       "maxRenderedItems": 2000,
       "maxSize": 100,
       "minSize": 5,
+      "nodeClickRange": "exact",
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -6854,12 +7312,17 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
         },
       },
       "shape": "circle",
+      "showInLegend": true,
       "sizeKey": "population",
       "sizeName": "Population",
       "stroke": "#2b5c95",
       "strokeOpacity": 0.5,
+      "strokeWidth": 1,
       "title": "Most populous cities",
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -7199,10 +7662,13 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#19A0AA",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -7249,11 +7715,13 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -7279,9 +7747,14 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#19A0AA",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -7297,10 +7770,13 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
       "yName": "Male",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#F15F36",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -7347,11 +7823,13 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -7377,9 +7855,14 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#F15F36",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -7716,10 +8199,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "rgba(0, 117, 163, 0.9)",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 1,
@@ -7769,11 +8255,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -7799,9 +8287,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "rgba(0, 117, 163, 0.9)",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -7819,10 +8312,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
       "yName": "Annual growth in total pay",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "rgba(226, 188, 34, 0.9)",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 1,
@@ -7872,11 +8368,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -7902,9 +8400,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "rgba(226, 188, 34, 0.9)",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -8244,10 +8747,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#5090dc",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -8300,11 +8806,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -8330,9 +8838,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2b5c95",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -8349,10 +8862,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "yKeyAxis": "y",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#ffa03a",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -8405,11 +8921,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -8435,9 +8953,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#cc6f10",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -8454,10 +8977,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "yKeyAxis": "y",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#459d55",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -8510,11 +9036,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -8540,9 +9068,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#1e652e",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -8559,10 +9092,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "yKeyAxis": "y",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#34bfe1",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -8615,11 +9151,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -8645,9 +9183,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#18859e",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -8664,10 +9207,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "yKeyAxis": "y",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#e1cc00",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -8720,11 +9266,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -8750,9 +9298,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#a69400",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -8769,10 +9322,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "yKeyAxis": "y",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#9669cb",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -8825,11 +9381,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -8855,9 +9413,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#603c88",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -8874,10 +9437,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "yKeyAxis": "y",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#b5b5b5",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -8930,11 +9496,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -8960,9 +9528,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#575757",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -9304,7 +9877,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
   },
   "series": [
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -9352,16 +9928,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "marker": {
         "enabled": true,
         "fill": "#0b1791",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#0b1791",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -9373,10 +9957,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#0b1791",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -9394,7 +9982,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "yName": "Belize",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -9442,16 +10033,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "marker": {
         "enabled": true,
         "fill": "#be2a2c",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#f6d24a",
+        "strokeOpacity": 1,
         "strokeWidth": 2,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -9463,10 +10062,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#be2a2c",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -9484,7 +10087,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "yName": "Cameroon",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -9532,16 +10138,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "marker": {
         "enabled": true,
         "fill": "#f6d24a",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#f6d24a",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -9553,10 +10167,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#f6d24a",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -9574,7 +10192,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "yName": "Columbia",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -9622,16 +10243,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "marker": {
         "enabled": true,
         "fill": "#ce1126",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#ce1126",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -9643,10 +10272,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#ce1126",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -9664,7 +10297,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "yName": "Costa Rica",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -9712,16 +10348,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "marker": {
         "enabled": true,
         "fill": "#002d62",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#ce1126",
+        "strokeOpacity": 1,
         "strokeWidth": 2,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -9733,10 +10377,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#002d62",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -9754,7 +10402,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "yName": "Dominican Republic",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -9802,16 +10453,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "marker": {
         "enabled": true,
         "fill": "#1b4e9e",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#fade4b",
+        "strokeOpacity": 1,
         "strokeWidth": 2,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -9823,10 +10482,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#1b4e9e",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -9844,7 +10507,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "yName": "Ecuador",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -9892,16 +10558,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "marker": {
         "enabled": true,
         "fill": "#f6d24a",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#be2a2c",
+        "strokeOpacity": 1,
         "strokeWidth": 2,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -9913,10 +10587,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#f6d24a",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -9934,7 +10612,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "yName": "Ghana",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -9982,16 +10663,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "marker": {
         "enabled": true,
         "fill": "#0073cf",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#0073cf",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -10003,10 +10692,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#0073cf",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -10024,7 +10717,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "yName": "Honduras",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -10072,16 +10768,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "marker": {
         "enabled": true,
         "fill": "#e88532",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#469c65",
+        "strokeOpacity": 1,
         "strokeWidth": 2,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -10093,10 +10797,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#e88532",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -10114,7 +10822,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "yName": "Ivory Coast",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -10162,16 +10873,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "marker": {
         "enabled": true,
         "fill": "#000000",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#fed100",
+        "strokeOpacity": 1,
         "strokeWidth": 2,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -10183,10 +10902,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#000000",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -10204,7 +10927,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "yName": "Jamaica",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -10252,16 +10978,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "marker": {
         "enabled": true,
         "fill": "#006847",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#ce1126",
+        "strokeOpacity": 1,
         "strokeWidth": 2,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -10273,10 +11007,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#006847",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -10294,7 +11032,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "yName": "Mexico",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -10342,16 +11083,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "marker": {
         "enabled": true,
         "fill": "#c22b38",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#1e5190",
+        "strokeOpacity": 1,
         "strokeWidth": 2,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -10363,10 +11112,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#c22b38",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -10384,7 +11137,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "yName": "Panama",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -10432,16 +11188,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "marker": {
         "enabled": true,
         "fill": "#042279",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#bf2b30",
+        "strokeOpacity": 1,
         "strokeWidth": 2,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -10453,10 +11217,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#042279",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -10474,7 +11242,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "yName": "Windward Isles",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -10522,16 +11293,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "marker": {
         "enabled": true,
         "fill": "#4997d0",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#4997d0",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -10543,10 +11322,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#4997d0",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -10564,7 +11347,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "yName": "Guatemala",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -10612,16 +11398,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "marker": {
         "enabled": true,
         "fill": "#ffffff",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#2868c1",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -10633,10 +11427,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#2868c1",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -10654,7 +11452,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "yName": "Nicaragua",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -10702,16 +11503,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "marker": {
         "enabled": true,
         "fill": "#459945",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#459945",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -10723,10 +11532,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#459945",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -11061,7 +11874,10 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
   },
   "series": [
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -11104,17 +11920,26 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
       ],
       "lineDashOffset": 0,
       "marker": {
+        "enabled": true,
         "fill": "#5090dc",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#2b5c95",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -11126,10 +11951,14 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#5090dc",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -11468,9 +12297,12 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
   },
   "series": [
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "#5090dc",
       "fillOpacity": 0.8,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -11518,9 +12350,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "marker": {
         "enabled": false,
         "fill": "#5090dc",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#2b5c95",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -11530,6 +12368,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -11555,10 +12394,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2b5c95",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -11576,9 +12419,12 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "yName": "Coal",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "#ffa03a",
       "fillOpacity": 0.8,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -11626,9 +12472,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "marker": {
         "enabled": false,
         "fill": "#ffa03a",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#cc6f10",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -11638,6 +12490,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -11663,10 +12516,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#cc6f10",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -11684,9 +12541,12 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "yName": "Petroleum",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "#459d55",
       "fillOpacity": 0.8,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -11734,9 +12594,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "marker": {
         "enabled": false,
         "fill": "#459d55",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#1e652e",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -11746,6 +12612,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -11771,10 +12638,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#1e652e",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -11792,9 +12663,12 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "yName": "Natural gas",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "#34bfe1",
       "fillOpacity": 0.8,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -11842,9 +12716,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "marker": {
         "enabled": false,
         "fill": "#34bfe1",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#18859e",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -11854,6 +12734,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -11879,10 +12760,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#18859e",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -11900,9 +12785,12 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "yName": "Bioenergy & waste",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "#e1cc00",
       "fillOpacity": 0.8,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -11950,9 +12838,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "marker": {
         "enabled": false,
         "fill": "#e1cc00",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#a69400",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -11962,6 +12856,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -11987,10 +12882,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#a69400",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -12008,9 +12907,12 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "yName": "Nuclear",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "#9669cb",
       "fillOpacity": 0.8,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -12058,9 +12960,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "marker": {
         "enabled": false,
         "fill": "#9669cb",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#603c88",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -12070,6 +12978,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -12095,10 +13004,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#603c88",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -12116,9 +13029,12 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "yName": "Wind, solar & hydro",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "#b5b5b5",
       "fillOpacity": 0.8,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 4,
@@ -12166,9 +13082,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "marker": {
         "enabled": false,
         "fill": "#b5b5b5",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#575757",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -12178,6 +13100,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -12203,10 +13126,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#575757",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -12547,10 +13474,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "#00c851",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 1,
@@ -12600,12 +13530,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 1,
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -12631,9 +13563,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#006428",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -12651,10 +13588,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "yName": "Used in last 3 months",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "#ffbb33",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 1,
@@ -12704,12 +13644,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 1,
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -12735,9 +13677,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#996500",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -12755,10 +13702,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "yName": "Used over 3 months ago",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "#ff4444",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 1,
@@ -12808,12 +13758,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 1,
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -12839,9 +13791,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#a10000",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -13181,10 +14138,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#f1c40f",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -13231,12 +14191,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -13262,9 +14224,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#f39c12",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -13282,10 +14249,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "yName": "White",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#e67e22",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -13332,12 +14302,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -13363,9 +14335,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#d35400",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -13383,10 +14360,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "yName": "Mixed",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#2ecc71",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -13433,12 +14413,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -13464,9 +14446,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#27ae60",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -13484,10 +14471,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "yName": "Asian",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#3498db",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -13534,12 +14524,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -13565,9 +14557,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2980b9",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -13585,10 +14582,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "yName": "Black",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#9b59b6",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -13635,12 +14635,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -13666,9 +14668,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#8e44ad",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -13686,10 +14693,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "yName": "Chinese",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#34495e",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -13736,12 +14746,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -13767,9 +14779,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2c3e50",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -14137,9 +15154,12 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
   },
   "series": [
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "#c16068",
       "fillOpacity": 0.8,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -14184,9 +15204,15 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "marker": {
         "enabled": false,
         "fill": "#5090dc",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#2b5c95",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -14195,6 +15221,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -14213,10 +15240,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2b5c95",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -14234,9 +15265,12 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "yName": "Tate Modern",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "#a2bf8a",
       "fillOpacity": 0.8,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -14281,9 +15315,15 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "marker": {
         "enabled": false,
         "fill": "#ffa03a",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#cc6f10",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -14292,6 +15332,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -14310,10 +15351,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#cc6f10",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -14331,9 +15376,12 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "yName": "Tate Britain",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "#ebcc87",
       "fillOpacity": 0.8,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -14378,9 +15426,15 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "marker": {
         "enabled": false,
         "fill": "#459d55",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#1e652e",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -14389,6 +15443,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -14407,10 +15462,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#1e652e",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -14428,9 +15487,12 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "yName": "Tate Liverpool",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "#80a0c3",
       "fillOpacity": 0.8,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -14475,9 +15537,15 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "marker": {
         "enabled": false,
         "fill": "#34bfe1",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#18859e",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -14486,6 +15554,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -14504,10 +15573,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#18859e",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -14847,10 +15920,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#0084e7",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -14899,11 +15975,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -14929,9 +16007,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2b5c95",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -15146,6 +16229,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
     {
       "angleKey": "count",
       "calloutLabel": {
+        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
@@ -15176,6 +16260,8 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
         "length": 10,
         "strokeWidth": 2,
       },
+      "cornerRadius": 0,
+      "cursor": "default",
       "fillOpacity": 0.9,
       "fills": [
         "#fb7451",
@@ -15187,7 +16273,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
         "#b499b5",
         "#b7b5ba",
       ],
+      "hideZeroValueSectorsInLegend": false,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "fillOpacity": 0,
@@ -15238,6 +16326,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
+      "outerRadiusOffset": 0,
+      "outerRadiusRatio": 1,
       "rotation": 0,
       "sectorLabel": {
         "border": {
@@ -15259,6 +16350,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
       "sectorLabelKey": "count",
       "sectorSpacing": 1,
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -15277,6 +16369,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "strokes": [
@@ -15295,10 +16388,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 14,
         "fontWeight": 400,
+        "showInLegend": false,
         "spacing": 5,
         "text": "Annual Count",
       },
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -15661,7 +16758,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
   },
   "series": [
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
@@ -15707,17 +16807,26 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
       ],
       "lineDashOffset": 0,
       "marker": {
+        "enabled": true,
         "fill": "#01c185",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#01c185",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -15729,10 +16838,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#01c185",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -15749,7 +16862,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
       "yKeyAxis": "y",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 3,
@@ -15795,17 +16911,26 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
       ],
       "lineDashOffset": 0,
       "marker": {
+        "enabled": true,
         "fill": "#000000",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#000000",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -15817,10 +16942,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "stroke": "#000000",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -16034,6 +17163,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
     {
       "angleKey": "population",
       "calloutLabel": {
+        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
@@ -16064,6 +17194,8 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
         "length": 10,
         "strokeWidth": 2,
       },
+      "cornerRadius": 0,
+      "cursor": "default",
       "fillOpacity": 1,
       "fills": [
         "#49afda",
@@ -16075,7 +17207,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
         "#72508c",
         "#b7b5ba",
       ],
+      "hideZeroValueSectorsInLegend": false,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "fillOpacity": 0,
@@ -16093,6 +17227,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
+      "outerRadiusOffset": 0,
+      "outerRadiusRatio": 1,
       "rotation": 0,
       "sectorLabel": {
         "border": {
@@ -16114,6 +17251,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
       "sectorLabelKey": "population",
       "sectorSpacing": 1,
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -16132,6 +17270,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "strokes": [
@@ -16150,9 +17289,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 14,
         "fontWeight": 400,
+        "showInLegend": false,
         "spacing": 5,
       },
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -16480,9 +17623,11 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
   },
   "series": [
     {
+      "cursor": "default",
       "fill": "#002D72",
       "fillOpacity": 0.5,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -16521,9 +17666,16 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
+        "placement": "top",
       },
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
       "maxRenderedItems": 2000,
+      "nodeClickRange": "exact",
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -16536,10 +17688,15 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
         },
       },
       "shape": "circle",
+      "showInLegend": true,
       "size": 12,
       "stroke": "#2b5c95",
       "strokeOpacity": 0,
+      "strokeWidth": 1,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -16904,9 +18061,12 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
   },
   "series": [
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "#5BC0EB",
       "fillOpacity": 0.8,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -16951,9 +18111,15 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "marker": {
         "enabled": true,
         "fill": "#5BC0EB",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#4086a4",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -16962,6 +18128,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -16987,10 +18154,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#4086a4",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -17008,9 +18179,12 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "yName": "Science Museum",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "#FDE74C",
       "fillOpacity": 0.8,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -17055,9 +18229,15 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "marker": {
         "enabled": true,
         "fill": "#FDE74C",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#b1a235",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -17066,6 +18246,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -17091,10 +18272,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#b1a235",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -17112,9 +18297,12 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "yName": "National Media Museum",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "#9BC53D",
       "fillOpacity": 0.8,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -17159,9 +18347,15 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "marker": {
         "enabled": true,
         "fill": "#9BC53D",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#6c8a2b",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -17170,6 +18364,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -17195,10 +18390,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#6c8a2b",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -17216,9 +18415,12 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "yName": "National Railway Museum",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "#E55934",
       "fillOpacity": 0.8,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -17263,9 +18465,15 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "marker": {
         "enabled": true,
         "fill": "#E55934",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#a03e24",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -17274,6 +18482,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -17299,10 +18508,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#a03e24",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -17320,9 +18533,12 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "yName": "Locomotion",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "#FA7921",
       "fillOpacity": 0.8,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -17367,9 +18583,15 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "marker": {
         "enabled": true,
         "fill": "#FA7921",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#af5517",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -17378,6 +18600,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -17403,10 +18626,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#af5517",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -17424,9 +18651,12 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "yName": "Museum of Science and Industry, Manchester",
     },
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "#fa3081",
       "fillOpacity": 0.8,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -17471,9 +18701,15 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "marker": {
         "enabled": true,
         "fill": "#fa3081",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 7,
         "stroke": "#af225a",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -17482,6 +18718,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -17507,10 +18744,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#af225a",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -17850,10 +19091,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "#5090dc",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 1,
@@ -17903,11 +19147,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -17933,9 +19179,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2b5c95",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -17953,10 +19204,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "yName": "Owner occupied",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "#ffa03a",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 1,
@@ -18006,11 +19260,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -18036,9 +19292,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#cc6f10",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -18056,10 +19317,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "yName": "Private rented",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "#459d55",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 1,
@@ -18109,11 +19373,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -18139,9 +19405,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#1e652e",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -18159,10 +19430,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "yName": "Local authority",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "#34bfe1",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedSeries": {
           "strokeWidth": 1,
@@ -18212,11 +19486,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -18242,9 +19518,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#18859e",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -18585,10 +19866,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
   },
   "series": [
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#5BC0EB",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -18638,11 +19922,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -18668,9 +19954,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#4086a4",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -18688,10 +19979,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "yName": "Early",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#FDE74C",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -18741,11 +20035,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -18771,9 +20067,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#b1a235",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -18791,10 +20092,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "yName": "Morning peak",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#9BC53D",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -18844,11 +20148,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -18874,9 +20180,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#6c8a2b",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -18894,10 +20205,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "yName": "Between peak",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#E55934",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -18947,11 +20261,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -18977,9 +20293,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#a03e24",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -18997,10 +20318,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "yName": "Afternoon peak",
     },
     {
+      "cornerRadius": 0,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#FA7921",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "strokeWidth": 1,
@@ -19050,11 +20374,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -19080,9 +20406,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#af5517",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -19447,11 +20778,14 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
   },
   "series": [
     {
+      "cornerRadius": 0,
       "crisp": false,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#fac858",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -19500,11 +20834,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -19530,10 +20866,15 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "sparklineMode": true,
       "stroke": "#2b5c95",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -19911,11 +21252,14 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
   },
   "series": [
     {
+      "cornerRadius": 0,
       "crisp": false,
+      "cursor": "default",
       "direction": "vertical",
       "fill": "#fac858",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -19962,11 +21306,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -19992,10 +21338,15 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "sparklineMode": true,
       "stroke": "#2b5c95",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -20375,11 +21726,14 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
   },
   "series": [
     {
+      "cornerRadius": 0,
       "crisp": false,
+      "cursor": "default",
       "direction": "horizontal",
       "fill": "#5470c6",
       "fillOpacity": 1,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedItem": {
           "opacity": 0.6,
@@ -20426,11 +21780,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -20456,10 +21812,15 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "sparklineMode": true,
       "stroke": "#2b5c95",
+      "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "pointer",
           "offset": 12,
@@ -20837,7 +22198,10 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
   },
   "series": [
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -20882,17 +22246,25 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
       "marker": {
         "enabled": true,
         "fill": "#5090dc",
+        "fillOpacity": 1,
         "itemStyler": [Function],
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 0,
         "stroke": "#2b5c95",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -20904,11 +22276,15 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "sparklineMode": true,
       "stroke": "rgb(124, 255, 178)",
       "strokeOpacity": 1,
       "strokeWidth": 1,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -21285,7 +22661,10 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
   },
   "series": [
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -21330,16 +22709,24 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
       "marker": {
         "enabled": false,
         "fill": "#5090dc",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 3,
         "stroke": "#2b5c95",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -21351,11 +22738,15 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "sparklineMode": true,
       "stroke": "rgb(124, 255, 178)",
       "strokeOpacity": 1,
       "strokeWidth": 1,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -21732,7 +23123,10 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
   },
   "series": [
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -21777,16 +23171,24 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
       "marker": {
         "enabled": false,
         "fill": "#5090dc",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 3,
         "stroke": "#2b5c95",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
+      "nodeClickRange": "exact",
       "segmentation": {
         "enabled": false,
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -21798,11 +23200,15 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
           "opacity": 0.2,
         },
       },
+      "showInLegend": true,
       "sparklineMode": true,
       "stroke": "rgb(124, 255, 178)",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,
@@ -22179,9 +23585,12 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
   },
   "series": [
     {
+      "connectMissingData": false,
+      "cursor": "default",
       "fill": "rgba(216, 204, 235, 0.3)",
       "fillOpacity": 0.5,
       "highlight": {
+        "bringToFront": true,
         "enabled": true,
         "unhighlightedSeries": {
           "opacity": 0.2,
@@ -22226,10 +23635,16 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
       "marker": {
         "enabled": true,
         "fill": "#5090dc",
+        "fillOpacity": 1,
         "itemStyler": [Function],
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
         "shape": "circle",
         "size": 0,
         "stroke": "#2b5c95",
+        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -22238,6 +23653,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
         "key": "x",
       },
       "selection": {
+        "containment": "any",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -22256,10 +23672,14 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "rgb(119,77,185)",
       "strokeOpacity": 1,
       "strokeWidth": 1,
       "tooltip": {
+        "interaction": {
+          "enabled": false,
+        },
         "position": {
           "anchorTo": "node",
           "offset": 12,

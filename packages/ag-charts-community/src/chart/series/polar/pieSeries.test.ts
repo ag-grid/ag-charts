@@ -1492,7 +1492,7 @@ describe('PieSeries', () => {
         });
 
         test('reprocesses palette entries for new data', async () => {
-            expect(pieSeries.properties.fills).toEqual(['red', 'green']);
+            expect(pieSeries.options.fills).toEqual(['red', 'green']);
 
             await chartProxy.applyTransaction({
                 add: [
@@ -1503,7 +1503,7 @@ describe('PieSeries', () => {
             await waitForChartStability(chart);
 
             const nodeData = pieSeries.getNodeData() ?? [];
-            expect(pieSeries.properties.fills).toEqual(['red', 'green', 'red', 'green']);
+            expect(pieSeries.options.fills).toEqual(['red', 'green', 'red', 'green']);
             expect(nodeData).toHaveLength(4);
             expect(nodeData.map((datum) => datum.sectorFormat.fill)).toEqual(['red', 'green', 'red', 'green']);
         });

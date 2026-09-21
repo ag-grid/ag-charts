@@ -986,7 +986,7 @@ describe('DonutSeries', () => {
         });
 
         test('reprocesses palette entries for new data', async () => {
-            expect(donutSeries.properties.fills).toEqual(['red', 'green']);
+            expect(donutSeries.options.fills).toEqual(['red', 'green']);
 
             await chartProxy.applyTransaction({
                 add: [
@@ -996,7 +996,7 @@ describe('DonutSeries', () => {
             });
             await waitForChartStability(chart);
 
-            expect(donutSeries.properties.fills).toEqual(['red', 'green', 'red', 'green']);
+            expect(donutSeries.options.fills).toEqual(['red', 'green', 'red', 'green']);
             const nodeData = donutSeries.getNodeData() ?? [];
             expect(nodeData).toHaveLength(4);
             expect(nodeData.map((datum) => datum.sectorFormat.fill)).toEqual(['red', 'green', 'red', 'green']);

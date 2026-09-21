@@ -2,6 +2,7 @@ import type {
     CandidateStyleResolver,
     LabelMeasureContext,
     MeasuredLabel,
+    NormalisedPlacedSeriesLabelOptions,
     NormalisedTextOrSegments,
     PlacedLabel,
     Point,
@@ -20,7 +21,6 @@ import type { AgMarkerShape } from 'ag-charts-types';
 
 import { PointerEvents } from '../../../scene/node';
 import type { Text } from '../../../scene/shape/text';
-import type { PlacedSeriesLabel } from '../../label';
 import {
     expandPlacementLabelBoxExtent,
     placedLabelTextOffset,
@@ -115,8 +115,8 @@ export abstract class PlacedLabelCartesianSeries<
     /** Reads the label anchor point from a datum. */
     protected abstract readLabelPoint(datum: LabelOf<TTypes>): Point;
     protected abstract makeLabelFormatterParams(): TTypes['labelParams'];
-    /** The series' typed label property; bridges `properties.label` to the shared base generic. */
-    protected abstract get labelProperty(): PlacedSeriesLabel<TTypes['labelParams']>;
+    /** The series' typed label options; bridges the concrete series onto the shared base generic. */
+    protected abstract get labelProperty(): NormalisedPlacedSeriesLabelOptions<TTypes['labelParams']>;
 
     /**
      * Series-constant geometry for a marker-anchored placed label.

@@ -1,4 +1,5 @@
 import {
+    COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_RADIAL_SERIES_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
@@ -7,11 +8,13 @@ import {
     POLAR_AXIS_SHAPE,
     POLAR_AXIS_TYPE,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 export const RADIAL_COLUMN_SERIES_THEME: ExtensibleSeriesTheme<'radial-column'> = {
     series: {
+        ...COMMON_SERIES_THEME_DEFAULTS,
         fill: {
             $applySwitch: [
                 { $path: 'type' },
@@ -21,10 +24,13 @@ export const RADIAL_COLUMN_SERIES_THEME: ExtensibleSeriesTheme<'radial-column'> 
                 ['pattern', FILL_PATTERN_DEFAULTS],
             ],
         },
+        fillOpacity: 1,
         stroke: { $palette: 'stroke' },
         columnWidthRatio: 0.5,
         maxColumnWidthRatio: 0.5,
         strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
+        ...STROKE_STYLE_THEME_DEFAULTS,
+        cornerRadius: 0,
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,
@@ -33,7 +39,8 @@ export const RADIAL_COLUMN_SERIES_THEME: ExtensibleSeriesTheme<'radial-column'> 
             fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'textColor' },
         },
-        highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+        tooltip: { interaction: { enabled: false } },
+        highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
     },
     axes: {

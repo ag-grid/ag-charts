@@ -5,12 +5,16 @@ import type {
     CandidateStyleResolver,
     CanvasPoint,
     ChartAnimationPhase,
-    CollideWith,
+    DeepPartial,
     DistantObject,
     DomainWithMetadata,
     DynamicContext,
+    NormalisedChartLabelCollisionOptions,
     NormalisedColorType,
+    NormalisedSeriesMarkerOptions,
     NormalisedSeriesMarkerStyle,
+    NormalisedSeriesOptions,
+    NormalisedSeriesTooltipOptions,
     NormalisedTextOrSegments,
     PlacedLabel,
     Point,
@@ -32,11 +36,11 @@ import {
     boxContains,
     callWithContext,
     createId,
-    isEmptyObject,
     isGradientFill,
     isPatternFill,
     jsonDiff,
     nearestSquared,
+    resolveCollideWith,
     without,
 } from 'ag-charts-core';
 import type {
@@ -48,7 +52,6 @@ import type {
     AgNodeClickEvent,
     AgNodeClickParams,
     AgNodeContextMenuActionEvent,
-    AgSeriesTooltipRendererParams,
     AgSeriesVisibilityChange,
     FormatterParams,
     FormatterPropertyType,
@@ -79,16 +82,23 @@ import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
 import type { DataModel, ProcessedData } from '../data/dataModel';
 import { DataSet } from '../data/dataSet';
+import { type FormatterCache, type LabelFormatSource, LabelValueFormatter } from '../label';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
 import { markerStrokePickInflation } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 import { getItemId } from './pickManager';
 import { mergeMarkerStyles, mergeMarkerStylesPair } from './seriesMarker';
-import type { SeriesMarker } from './seriesMarker';
-import { isUnselected, stagedSelectionState, toHighlightString, toSelectionString } from './seriesProperties';
-import type { SeriesProperties } from './seriesProperties';
-import type { SeriesTooltip } from './seriesTooltip';
+import {
+    getHighlightStyle,
+    getSelectionStyle,
+    hasStateStyle,
+    isUnselected,
+    stagedSelectionState,
+    toHighlightString,
+    toSelectionString,
+} from './seriesProperties';
+import { formatSeriesTooltip } from './seriesTooltip';
 import {
     type BucketLookupFeature,
     type DatumIndex,
@@ -210,22 +220,25 @@ export type MarkerStyleApply<TSeries, TCtx, TDatum, TCache> = (
     cached: TCache
 ) => void;
 
-export type SeriesDirectionKeysMapping<P extends SeriesProperties<any>> = {
-    [key in ChartAxisDirection | FormatterPropertyType]?: (keyof P & string)[];
+/** Option keys of a series; the bare `object` stands for unknown options and admits any key. */
+export type SeriesOptionKey<TOpts extends object> = object extends TOpts ? string : keyof TOpts & string;
+
+export type SeriesDirectionKeysMapping<TOpts extends object> = {
+    [key in ChartAxisDirection | FormatterPropertyType]?: SeriesOptionKey<TOpts>[];
 };
 
 export class SeriesGroupingChangedEvent {
     constructor(
-        public series: Series<any, object, any>,
+        public series: Series<any, any, any>,
         public seriesGrouping: SeriesGrouping | undefined
     ) {}
 }
 
-export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
+export type SeriesConstructorOpts<TOpts extends object> = {
     moduleCtx: DynamicContext<ChartRegistry>;
     pickModes: SeriesNodePickMode[];
-    propertyKeys?: SeriesDirectionKeysMapping<TProps>;
-    propertyNames?: SeriesDirectionKeysMapping<TProps>;
+    propertyKeys?: SeriesDirectionKeysMapping<TOpts>;
+    propertyNames?: SeriesDirectionKeysMapping<TOpts>;
     canHaveAxes?: boolean;
     usesPlacedLabels?: boolean;
     alwaysClip?: boolean;
@@ -262,18 +275,19 @@ function axisDirectionProperty(direction: ChartAxisDirection): FormatterProperty
     }
 }
 
-export type UnknownSeries = Series<SeriesNodeDatum, object, SeriesProperties<object>>;
+export type UnknownSeries = Series<SeriesNodeDatum, object>;
 
 export abstract class Series<
     TDatum extends SeriesNodeDatum,
     TOpts extends object,
-    TProps extends SeriesProperties<TOpts>,
     TLabel = TDatum,
     TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
-> implements ISeries<TDatum, TProps, TLabel> {
+> implements ISeries<TDatum, NormalisedSeriesOptions<TOpts>, TLabel> {
     static readonly className: string = 'Series';
     protected cleanup = new CleanupRegistry();
-    abstract readonly properties: TProps;
+    /** Post-theme options, replaced wholesale by {@link applyOptions}; never mutated by the series. */
+    options!: NormalisedSeriesOptions<TOpts>;
+    private _visible = true;
 
     pickModes: SeriesNodePickMode[];
     usesPlacedLabels: boolean = false;
@@ -288,7 +302,7 @@ export abstract class Series<
         return 'main';
     }
 
-    @ActionOnSet<Series<TDatum, TOpts, TProps, TLabel>>({
+    @ActionOnSet<Series<TDatum, TOpts, TLabel>>({
         changeValue: function (newVal, oldVal) {
             this.onSeriesGroupingChange(oldVal, newVal);
         },
@@ -298,7 +312,7 @@ export abstract class Series<
     readonly internalId = createId(this);
 
     get id() {
-        return this.properties?.id ?? this.internalId;
+        return this.options?.id ?? this.internalId;
     }
 
     readonly canHaveAxes: boolean;
@@ -354,8 +368,8 @@ export abstract class Series<
     axes: { [K in ChartAxisDirection]?: ChartAxis } = {};
     directions: ChartAxisDirection[] = [ChartAxisDirection.X, ChartAxisDirection.Y];
 
-    private readonly propertyKeys: SeriesDirectionKeysMapping<TProps>;
-    private readonly propertyNames: SeriesDirectionKeysMapping<TProps>;
+    private readonly propertyKeys: SeriesDirectionKeysMapping<TOpts>;
+    private readonly propertyNames: SeriesDirectionKeysMapping<TOpts>;
 
     // Flag to determine if we should recalculate node data.
     private _nodeDataRefresh = true;
@@ -382,6 +396,11 @@ export abstract class Series<
     private _dataConnected = true;
 
     private readonly datumCallbackCache = new Map<any, any>();
+    /** Compiled-format caches keyed by label options object; replaced options simply start a new entry. */
+    private readonly labelFormatters = new WeakMap<object, AxisFormattableLabel<any>>();
+    private readonly compiledLabelFormats = new Map<string, FormatterCache>();
+    private legendItemName?: string;
+    private legendItemKey?: unknown;
 
     connectsToYAxis = false;
 
@@ -394,15 +413,13 @@ export abstract class Series<
     }
 
     set visible(newVisibility: boolean) {
-        // @ts-expect-error(2341) Ensure properties.visible is only accessed from here
-        this.properties.visible = newVisibility;
+        this._visible = newVisibility;
         this.ctx.legendManager?.toggleItem(newVisibility, this.id);
         this.visibleMaybeChanged();
     }
 
     get visible() {
-        // @ts-expect-error(2341) Ensure properties.visible is only accessed from here
-        return this.ctx.legendManager?.getSeriesEnabled(this.id) ?? this.properties.visible;
+        return this.ctx.legendManager?.getSeriesEnabled(this.id) ?? this._visible;
     }
 
     get hasData() {
@@ -412,7 +429,23 @@ export abstract class Series<
     }
 
     get tooltipEnabled() {
-        return this.properties.tooltip?.enabled;
+        return this.options.tooltip?.enabled;
+    }
+
+    /** Replaces the series options; `diff` holds only the changed keys, `undefined` on the initial apply. */
+    applyOptions(options: NormalisedSeriesOptions<TOpts>, diff?: DeepPartial<NormalisedSeriesOptions<TOpts>>) {
+        this.options = options;
+        this.legendItemName =
+            'legendItemName' in options && typeof options.legendItemName === 'string'
+                ? options.legendItemName
+                : undefined;
+        this.legendItemKey = 'legendItemKey' in options ? options.legendItemKey : undefined;
+        this.syncOptionDerivedState(diff);
+    }
+
+    /** Hook for state a series derives from its options (caches, dirty flags); see {@link applyOptions}. */
+    protected syncOptionDerivedState(_diff: DeepPartial<NormalisedSeriesOptions<TOpts>> | undefined) {
+        // For override by subclasses.
     }
 
     protected onDataChange() {
@@ -427,11 +460,11 @@ export abstract class Series<
     }
 
     public isHighlightEnabled(): boolean {
-        return this.properties.highlight.enabled;
+        return this.options.highlight?.enabled !== false;
     }
 
     public isSelectionEnabled(): boolean {
-        return this.properties.selection.enabled;
+        return this.options.selection?.enabled === true;
     }
 
     public isDatumSelectable(_datumIndex: DatumIndex): boolean {
@@ -458,8 +491,7 @@ export abstract class Series<
                 type,
                 visible,
                 seriesGrouping: next,
-                // TODO: is there a better way to pass width through here?
-                width: 'width' in this.properties ? (this.properties.width as number) : 0,
+                width: this.getSeriesWidth(),
             });
         }
 
@@ -473,7 +505,7 @@ export abstract class Series<
     public readonly ctx: DynamicContext<ChartRegistry>;
     private moduleContext?: DynamicContext<ChartSeriesRegistry>;
 
-    constructor(seriesOpts: SeriesConstructorOpts<TProps>) {
+    constructor(seriesOpts: SeriesConstructorOpts<TOpts>) {
         const {
             moduleCtx,
             pickModes,
@@ -556,12 +588,13 @@ export abstract class Series<
     }
 
     protected hasHighlightOpacity() {
-        if (!this.properties.highlight.enabled) return false;
+        const { highlight } = this.options;
+        if (!highlight?.enabled) return false;
         const activeHighlight = this.ctx.highlightManager.getActiveHighlight();
         if (activeHighlight == null) return false;
         if (activeHighlight.series?.isHighlightEnabled() === false) return false;
 
-        const { unhighlightedItem, unhighlightedSeries } = this.properties.highlight;
+        const { unhighlightedItem, unhighlightedSeries } = highlight;
         return hasDimmedOpacity(unhighlightedItem) || hasDimmedOpacity(unhighlightedSeries);
     }
 
@@ -603,7 +636,7 @@ export abstract class Series<
 
     private getPropertyValues(
         property: FormatterPropertyType,
-        properties: { [key in FormatterPropertyType]?: string[] }
+        properties: SeriesDirectionKeysMapping<TOpts>
     ): string[] {
         const direction = propertyAxisDirection(property);
         const resolvedProperty =
@@ -627,7 +660,8 @@ export abstract class Series<
             }
         };
 
-        addValues(...keys.map((key) => (this.properties as any)[key]));
+        const { options } = this;
+        addValues(...keys.map((key) => options[key as keyof typeof options]));
 
         return values;
     }
@@ -640,7 +674,7 @@ export abstract class Series<
         return this.getPropertyValues(axisDirectionProperty(direction), this.propertyKeys);
     }
 
-    getKeyProperties(direction: ChartAxisDirection): (keyof TProps & string)[] {
+    getKeyProperties(direction: ChartAxisDirection): SeriesOptionKey<TOpts>[] {
         return this.propertyKeys[this.resolveKeyDirection(direction)] ?? [];
     }
 
@@ -736,6 +770,13 @@ export abstract class Series<
         this.visibleMaybeChanged();
     }
 
+    // TODO: is there a better way to pass width through here?
+    private getSeriesWidth(): number | undefined {
+        const { options } = this;
+        const width: unknown = 'width' in options ? options.width : undefined;
+        return typeof width === 'number' ? width : undefined;
+    }
+
     private visibleMaybeChanged() {
         const { internalId, seriesGrouping, type, visible } = this;
 
@@ -744,8 +785,7 @@ export abstract class Series<
             type,
             visible,
             seriesGrouping,
-            // TODO: is there a better way to pass width through here?
-            width: 'width' in this.properties ? (this.properties.width as number) : 0,
+            width: this.getSeriesWidth(),
         });
     }
 
@@ -755,7 +795,7 @@ export abstract class Series<
     public getOpacity(): number {
         const defaultOpacity = 1;
 
-        if (!this.properties.highlight) {
+        if (!this.options.highlight) {
             return defaultOpacity;
         }
 
@@ -768,7 +808,7 @@ export abstract class Series<
         datumIndex?: DatumIndex,
         legendItemValues?: string[]
     ): HighlightState {
-        if (!this.properties.highlight.enabled) {
+        if (!this.isHighlightEnabled()) {
             return HighlightState.None;
         }
 
@@ -922,26 +962,24 @@ export abstract class Series<
             }
         }
 
-        const { highlightedSeries, unhighlightedItem, unhighlightedSeries } = this.properties.highlight;
+        const { highlight } = this.options;
 
         this.hasChangesOnHighlight =
             hasItemStylers ||
-            !isEmptyObject(highlightedSeries) ||
-            !isEmptyObject(unhighlightedItem) ||
-            !isEmptyObject(unhighlightedSeries);
+            hasStateStyle(highlight?.highlightedSeries) ||
+            hasStateStyle(highlight?.unhighlightedItem) ||
+            hasStateStyle(highlight?.unhighlightedSeries);
     }
 
     public bringToFront() {
         if (this.hasDataSelection()) return true;
-        return (
-            this.properties.highlight.enabled &&
-            this.properties.highlight.bringToFront &&
-            this.isSeriesHighlighted(this.ctx.highlightManager.getActiveHighlight())
-        );
+        const { highlight } = this.options;
+        if (highlight?.enabled === false || highlight?.bringToFront === false) return false;
+        return this.isSeriesHighlighted(this.ctx.highlightManager.getActiveHighlight());
     }
 
     public isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined, _legendItemValues?: string[]) {
-        if (!this.properties.highlight.enabled) {
+        if (!this.isHighlightEnabled()) {
             return false;
         }
 
@@ -974,7 +1012,7 @@ export abstract class Series<
             const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
             highlightState = this.getHighlightState(highlightedDatum, isHighlight, datumIndex, legendItemValues);
         }
-        return this.properties.highlight.getStyle(highlightState);
+        return getHighlightStyle(this.options.highlight, highlightState);
     }
 
     public getSelectionStyle(
@@ -986,7 +1024,7 @@ export abstract class Series<
         selectionState ??= this.getDataSelectionState(datumIndex);
         const staged = stagedSelectionState(selectionState, candidateState);
         if (staged === undefined) return undefined;
-        return this.properties.selection.getStyle(staged);
+        return getSelectionStyle(this.options.selection, staged);
     }
 
     protected resolveMarkerDrawingModeForState(
@@ -1036,11 +1074,11 @@ export abstract class Series<
 
         let maxDistance = Infinity;
         if (intent === 'tooltip' || intent === 'highlight-tooltip') {
-            const { tooltip } = this.properties;
-            maxDistance = typeof tooltip.range === 'number' ? tooltip.range : Infinity;
-            exactMatchOnly ||= tooltip.range === 'exact';
+            const range = this.options.tooltip?.range;
+            maxDistance = typeof range === 'number' ? range : Infinity;
+            exactMatchOnly ||= range === 'exact';
         } else if (intent === 'event' || intent === 'context-menu') {
-            const { nodeClickRange } = this.properties;
+            const { nodeClickRange = 'exact' } = this.options;
             maxDistance = typeof nodeClickRange === 'number' ? nodeClickRange : Infinity;
             if (nodeClickRange === 'exact' && !hasPickableNodeShapes) {
                 maxDistance = MARKERLESS_NODE_PICK_RANGE;
@@ -1155,7 +1193,7 @@ export abstract class Series<
 
     protected pickNodesInBBoxPredicate(): PickNodesInBBoxPredicate {
         // Box hit-testing by default; series with complex shapes (pie sectors, map paths) override this.
-        const { containment } = this.properties.selection;
+        const containment = this.options.selection?.containment ?? 'any';
         const unreachable = (a: never): never => a;
         switch (containment) {
             case 'any':
@@ -1223,7 +1261,7 @@ export abstract class Series<
     }
 
     hasNodeClickListener(): boolean {
-        const seriesListeners = this.properties.listeners;
+        const seriesListeners = this.options.listeners;
         const chartListeners = this.ctx.chartService.listeners;
         return (
             seriesListeners?.seriesNodeClick != null ||
@@ -1238,10 +1276,10 @@ export abstract class Series<
         // widening the listeners to `Listener<any>`.
         type Rules = undefined | { [K in (typeof event)['type']]?: Listener<Extract<typeof event, { type: K }>> };
         type UserListener = Listener<any> | undefined;
-        const seriesListener: UserListener = (this.properties.listeners satisfies Rules)?.[event.type];
+        const seriesListener: UserListener = (this.options.listeners satisfies Rules)?.[event.type];
         const chartListener: UserListener = (this.ctx.chartService.listeners satisfies Rules)?.[event.type];
 
-        const callers = [this.properties, this.ctx.chartService];
+        const callers = [this.options, this.ctx.chartService];
         if (seriesListener != null) callWithContext(callers, seriesListener, event);
         if (chartListener != null) callWithContext(callers, chartListener, event);
         return !!event.defaultPrevented;
@@ -1309,9 +1347,7 @@ export abstract class Series<
 
     onLegendItemClick(event: LegendItemClickEvent) {
         const { enabled, itemId, series, legendType } = event;
-        const legendItemName =
-            'legendItemName' in this.properties ? (this.properties.legendItemName as string) : undefined;
-        const legendItemKey = 'legendItemKey' in this.properties ? this.properties.legendItemKey : undefined;
+        const { legendItemName, legendItemKey } = this;
 
         const matchedLegendItemName = legendItemName != undefined && legendItemName === event.legendItemName;
         if (series.id === this.id || matchedLegendItemName || legendItemKey != undefined) {
@@ -1321,9 +1357,7 @@ export abstract class Series<
 
     onLegendItemDoubleClick(event: LegendItemDoubleClickEvent) {
         const { enabled, itemId, series, numVisibleItems, legendType } = event;
-        const legendItemName =
-            'legendItemName' in this.properties ? (this.properties.legendItemName as string) : undefined;
-        const legendItemKey = 'legendItemKey' in this.properties ? this.properties.legendItemKey : undefined;
+        const { legendItemName, legendItemKey } = this;
 
         const matchedLegendItemName = legendItemName != undefined && legendItemName === event.legendItemName;
         if (series.id === this.id || matchedLegendItemName || legendItemKey != undefined) {
@@ -1390,10 +1424,10 @@ export abstract class Series<
         legendItemName: string | undefined,
         allowNull?: boolean
     ) {
-        const { id: seriesId, properties } = this;
+        const { id: seriesId, options } = this;
 
         return axis.formatDatum(
-            properties,
+            options,
             value,
             source,
             seriesId,
@@ -1407,21 +1441,35 @@ export abstract class Series<
         );
     }
 
+    /** Plain label options are wrapped once per options object so the compiled format string is reused. */
+    private labelFormatterFor<TParams extends object>(
+        label: LabelFormatSource<TParams, any>
+    ): AxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>> {
+        let formatter = this.labelFormatters.get(label);
+        if (formatter == null) {
+            formatter = new LabelValueFormatter(label, this.compiledLabelFormats);
+            this.labelFormatters.set(label, formatter);
+        }
+        return formatter;
+    }
+
     protected getLabelText<TParams extends object>(
         value: any,
         datum: any,
         key: string,
         property: FormatterPropertyType,
         domain: any[],
-        label: AxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>,
+        labelSource: LabelFormatSource<TParams, any>,
         baseParams: RequireOptional<TParams> & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>,
         allowNullValue: boolean = false
     ): NormalisedTextOrSegments {
         if (value == null && !allowNullValue) return '';
 
-        const { axes, canHaveAxes, ctx, id: seriesId, properties } = this;
+        const label = this.labelFormatterFor(labelSource);
+
+        const { axes, canHaveAxes, ctx, id: seriesId, options } = this;
         const source = 'series-label';
-        const legendItemName = 'legendItemName' in properties ? (properties.legendItemName as string) : undefined;
+        const { legendItemName } = this;
         const params: AgChartLabelFormatterParams<any> & RequireOptional<TParams> = {
             seriesId: this.id,
             ...baseParams,
@@ -1431,7 +1479,7 @@ export abstract class Series<
         const axis = direction == null ? undefined : axes[this.resolveKeyDirection(direction)];
         if (axis != null) {
             return axis.formatDatum(
-                properties,
+                options,
                 value,
                 source,
                 seriesId,
@@ -1499,7 +1547,7 @@ export abstract class Series<
     }
 
     public getMarkerStyle<TParams>(
-        marker: SeriesMarker<TParams>,
+        marker: NormalisedSeriesMarkerOptions<TParams>,
         { datumIndex, datum, point }: Partial<TDatum>,
         params?: TParams,
         opts?: {
@@ -1561,7 +1609,7 @@ export abstract class Series<
             selectionStyle,
             highlightStyle,
             defaultOverrideStyle,
-            marker.getStyle(),
+            marker,
             inheritedStyle
         );
 
@@ -1717,8 +1765,8 @@ export abstract class Series<
     }
 
     /** The plot-area containment rect when the label opts into `collideWith.seriesArea`, else `undefined`. */
-    protected resolveLabelPlotRegion(collision: { resolveCollideWith(): CollideWith }): BoxBounds | undefined {
-        return collision.resolveCollideWith().seriesArea ? this.getSeriesPlotRegion() : undefined;
+    protected resolveLabelPlotRegion(collision: NormalisedChartLabelCollisionOptions): BoxBounds | undefined {
+        return resolveCollideWith(collision).seriesArea ? this.getSeriesPlotRegion() : undefined;
     }
 
     protected _nodeDataDependencies?: NodeDataDependencies;
@@ -1779,19 +1827,19 @@ export abstract class Series<
         params: CallbackParam<F>,
         cacheKey?: string
     ): ReturnType<F> | undefined {
-        return this.ctx.callbackCache.call([this.properties, this.ctx.chartService], fn, params, cacheKey);
+        return this.ctx.callbackCache.call([this.options, this.ctx.chartService], fn, params, cacheKey);
     }
 
     public callWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> {
-        return callWithContext([this.properties, this.ctx.chartService], fn, params);
+        return callWithContext([this.options, this.ctx.chartService], fn, params);
     }
 
-    protected formatTooltipWithContext<P extends AgSeriesTooltipRendererParams<any>, Tooltip extends SeriesTooltip<P>>(
-        tooltip: Tooltip,
+    protected formatTooltipWithContext<P>(
+        tooltip: NormalisedSeriesTooltipOptions<P>,
         content: TooltipStructuredContent,
-        params: RequireOptional<P>
+        params: P
     ) {
-        return tooltip.formatTooltip([this.properties, this.ctx.chartService], content, params);
+        return formatSeriesTooltip(tooltip, [this.options, this.ctx.chartService], content, params);
     }
 
     abstract getCategoryValue(datumIndex: DatumIndex): any;

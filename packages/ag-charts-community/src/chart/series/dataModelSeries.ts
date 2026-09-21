@@ -17,7 +17,6 @@ import type {
     SeriesNodePickMatch,
 } from './series';
 import { Series } from './series';
-import type { SeriesProperties } from './seriesProperties';
 import { type SeriesNodeDatum } from './seriesTypes';
 import { findNodeDatumInArray } from './util';
 
@@ -31,7 +30,7 @@ export interface DataModelSeriesNodeDataContext<TDatum, TLabel = TDatum> extends
     TLabel
 > {}
 
-export type DataModelSeriesConstructorOpts<TProps extends SeriesProperties<any>> = SeriesConstructorOpts<TProps> & {
+export type DataModelSeriesConstructorOpts<TOpts extends object> = SeriesConstructorOpts<TOpts> & {
     categoryKey: string | undefined;
     clipFocusBox?: boolean;
 };
@@ -39,10 +38,9 @@ export type DataModelSeriesConstructorOpts<TProps extends SeriesProperties<any>>
 export abstract class DataModelSeries<
     TDatum extends SeriesNodeDatum,
     TOpts extends object,
-    TProps extends SeriesProperties<TOpts>,
     TLabel = TDatum,
     TContext extends DataModelSeriesNodeDataContext<TDatum, TLabel> = DataModelSeriesNodeDataContext<TDatum, TLabel>,
-> extends Series<TDatum, TOpts, TProps, TLabel, TContext> {
+> extends Series<TDatum, TOpts, TLabel, TContext> {
     protected dataModel?: DataModel<any, any, any>;
     protected processedData?: ProcessedData<any>;
     private categoryValueLookup?: {
@@ -53,7 +51,7 @@ export abstract class DataModelSeries<
     private readonly categoryKey: string | undefined;
     private readonly clipFocusBox: boolean;
 
-    protected constructor({ clipFocusBox, categoryKey, ...seriesOpts }: DataModelSeriesConstructorOpts<TProps>) {
+    protected constructor({ clipFocusBox, categoryKey, ...seriesOpts }: DataModelSeriesConstructorOpts<TOpts>) {
         super(seriesOpts);
 
         this.categoryKey = categoryKey;

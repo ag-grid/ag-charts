@@ -1,8 +1,11 @@
 import type {
+    DeepPartial,
     DomainWithMetadata,
     DynamicContext,
     InternalAgColorType,
     NormalisedAreaSeriesMarkerItemStylerParams,
+    NormalisedAreaSeriesOptions,
+    NormalisedAreaSeriesOwnOptions,
     NormalisedAreaSeriesStylerResult,
     NormalisedColorType,
     NormalisedSeriesMarkerStyle,
@@ -19,6 +22,7 @@ import {
     extent,
     isContinuous,
     isDefined,
+    markerRebuildNeeded,
     maxValue,
     mergeDefaults,
     minValue,
@@ -27,7 +31,6 @@ import {
 } from 'ag-charts-core';
 import {
     type AgAreaSeriesLabelFormatterParams,
-    type AgAreaSeriesOptions,
     type AgAreaSeriesStylerParams,
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
@@ -84,7 +87,6 @@ import {
     aggregateAreaDataFromDataModel,
     aggregateAreaDataFromDataModelPartial,
 } from './areaAggregation';
-import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
     type AreaSeriesNodeDataContext,
     type LabelSelectionDatum,
@@ -122,7 +124,7 @@ type AreaAnimationData = CartesianAnimationDataOf<AreaSeriesTypes>;
 
 /** Per-pass context for the no-itemStyler marker-style pass. */
 interface AreaNoStylerPassCtx {
-    marker: AreaSeriesProperties['marker'];
+    marker: NormalisedAreaSeriesOptions['marker'];
     hideWithSize0: boolean;
     isHighlight: boolean;
 }
@@ -219,8 +221,7 @@ interface AreaNodeDatumScratch {
  */
 interface AreaSeriesTypes extends PlacedLabelSeriesTypes {
     readonly node: Marker<MarkerSelectionDatum>;
-    readonly options: AgAreaSeriesOptions;
-    readonly properties: AreaSeriesProperties;
+    readonly options: NormalisedAreaSeriesOwnOptions;
     readonly datum: MarkerSelectionDatum;
     readonly label: LabelSelectionDatum;
     readonly labelParams: AgAreaSeriesLabelFormatterParams;
@@ -233,13 +234,19 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     static override readonly className = 'AreaSeries';
     static readonly type = 'area' as const;
 
-    override properties = new AreaSeriesProperties();
+    private markerDirty = true;
+
+    protected override syncOptionDerivedState(optionsDiff: DeepPartial<NormalisedAreaSeriesOptions> | undefined) {
+        if (optionsDiff == null || markerRebuildNeeded(optionsDiff.marker)) {
+            this.markerDirty = true;
+        }
+    }
 
     override createNodeParams(datum: MarkerSelectionDatum) {
         return {
             ...super.createNodeParams(datum),
-            xKey: this.properties.xKey,
-            yKey: this.properties.yKey,
+            xKey: this.options.xKey,
+            yKey: this.options.yKey,
         };
     }
 
@@ -329,7 +336,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     }
 
     private isNormalized() {
-        return this.properties.normalizedTo != null;
+        return this.options.normalizedTo != null;
     }
 
     private _isStacked: boolean | undefined = undefined;
@@ -357,7 +364,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         if (this.data == null) return;
 
         const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 1 } = {} } = this;
-        const { xKey, yKey, selectedKey, connectMissingData, normalizedTo } = this.properties;
+        const { xKey, yKey, selectedKey, connectMissingData, normalizedTo } = this.options;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
@@ -378,7 +385,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             common.forceValue = 0;
         }
 
-        const allowNullKey = this.properties.allowNullKeys ?? false;
+        const allowNullKey = this.options.allowNullKeys ?? false;
         const props: PropertyDefinition<any, any>[] = [
             keyProperty(xKey, xScaleType, { id: 'xValue', allowNullKey }),
             valueProperty(yKey, yScaleType, { id: `yValueRaw`, ...common }),
@@ -418,14 +425,14 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     }
 
     override xCoordinateRange(xValue: any, pixelSize: number): [number, number] {
-        const { marker } = this.properties;
+        const { marker } = this.options;
         const x = this.axes[ChartAxisDirection.X]!.scale.convert(xValue);
         const r = marker.enabled ? 0.5 * marker.size * pixelSize : 0;
         return [x - r, x + r];
     }
 
     override yCoordinateRange(yValues: any[], pixelSize: number): [number, number] {
-        const { marker } = this.properties;
+        const { marker } = this.options;
         const y = this.axes[ChartAxisDirection.Y]!.scale.convert(yValues[0]);
         const r = marker.enabled ? 0.5 * marker.size * pixelSize : 0;
         return [y - r, y + r];
@@ -596,7 +603,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         const { scale: yScale } = yAxis;
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
-        const connectMissingData = !this.isStacked() && this.properties.connectMissingData;
+        const connectMissingData = !this.isStacked() && this.options.connectMissingData;
         const invalidData = processedData.invalidData?.get(this.id);
 
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
@@ -766,12 +773,12 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     }
 
     private stackYValueData(): AreaSeriesStackContext | undefined {
-        const { visible, axes, dataModel, processedData, seriesBelowStackContext, properties } = this;
+        const { visible, axes, dataModel, processedData, seriesBelowStackContext, options } = this;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
         if (xAxis == null || yAxis == null || dataModel == null || processedData == null) return;
-        const { interpolation } = properties;
+        const { interpolation } = options;
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
 
@@ -780,7 +787,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         let xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
         let yValues = dataModel.resolveColumnById(this, this.yValueKey(), processedData, 'mixed-numeric');
 
-        const connectMissingData = !this.isStacked() && this.properties.connectMissingData;
+        const connectMissingData = !this.isStacked() && this.options.connectMissingData;
 
         const invalidKeys = processedData.invalidKeys?.get(this.id);
         const invalidData = connectMissingData ? processedData.invalidData?.get(this.id) : undefined;
@@ -982,7 +989,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             fill: seriesFill,
             stroke: seriesStroke,
             normalizedTo,
-        } = this.properties;
+        } = this.options;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -1057,7 +1064,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             markerSize: marker.size,
             markerFill: marker.fill ?? seriesFill,
             markerStroke: marker.stroke ?? seriesStroke,
-            markerStrokeWidth: marker.strokeWidth ?? this.properties.strokeWidth,
+            markerStrokeWidth: marker.strokeWidth ?? this.options.strokeWidth,
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
 
             // Mutable state (nodes instead of markerData to match base interface)
@@ -1103,7 +1110,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     ): void {
         // Populate scratch from context arrays
         scratch.xDatum = ctx.xValues[datumIndex];
-        if (scratch.xDatum === undefined && !this.properties.allowNullKeys) return;
+        if (scratch.xDatum === undefined && !this.options.allowNullKeys) return;
 
         scratch.datum = ctx.rawData[datumIndex];
         scratch.yDatum = ctx.yRawValues[datumIndex];
@@ -1165,7 +1172,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 ctx.yKey,
                 'y',
                 ctx.yDomain,
-                this.properties.label,
+                this.options.label,
                 {
                     value: scratch.yDatum,
                     datum: scratch.datum,
@@ -1186,7 +1193,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 labelText,
                 point: { x: scratch.x, y: scratch.y, size: ctx.markerSize },
                 label: this.measureLabel(ctx, labelText),
-                fit: placedLabelFit(labelText, this.properties.label, ctx),
+                fit: placedLabelFit(labelText, this.options.label, ctx),
                 anchor: ctx.labelAnchor,
                 insideOffset: ctx.labelInsideOffset,
                 insideSize: ctx.labelInsideSize,
@@ -1253,8 +1260,8 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             scales: this.calculateScaling(),
             visible: this.visible,
             stackVisible: visibleSameStackCount > 0,
-            crossFiltering: this.properties.selectedKey != null,
-            styles: getMarkerStyles(this, this.properties, this.properties.marker),
+            crossFiltering: this.options.selectedKey != null,
+            styles: getMarkerStyles(this, this.options, this.options.marker),
             segments: undefined,
         };
     }
@@ -1272,7 +1279,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
 
         // Calculate segments (only computed field needed beyond what initializeResult provides)
         result.segments = calculateSegments(
-            this.properties.segmentation,
+            this.options.segmentation,
             ctx.xAxis,
             ctx.yAxis,
             seriesRect,
@@ -1284,7 +1291,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     }
 
     protected override isPathOrSelectionDirty(): boolean {
-        return this.properties.marker.isDirty();
+        return this.markerDirty;
     }
 
     protected override updatePathNodes(opts: { paths: SegmentedPath[]; visible: boolean; animationEnabled: boolean }) {
@@ -1323,7 +1330,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             segments,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
-            fillShadow: this.properties.shadow,
+            fillShadow: this.options.shadow,
             opacity,
             visible: visible || animationEnabled,
         });
@@ -1375,13 +1382,13 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         datumSelection: Selection<MarkerSelectionDatum, Marker<MarkerSelectionDatum>>;
     }) {
         const { nodeData, datumSelection } = opts;
-        const { contextNodeData, processedData, axes, properties } = this;
-        const { marker, styler } = properties;
+        const { contextNodeData, processedData, axes, options } = this;
+        const { marker, styler } = options;
 
         const markerStyle = styler ? this.getStyle(undefined).marker : undefined;
 
         const markerDrawMode = cartesianMarkerDrawMode(
-            properties,
+            options,
             contextNodeData,
             processedData!,
             axes,
@@ -1392,7 +1399,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         this.hideWithSize0 = markerDrawMode.hideWithSize0;
         this.markerNodesPickable = markerDrawMode.needsNodeData && !markerDrawMode.hideWithSize0;
 
-        if (marker.isDirty()) {
+        if (this.markerDirty) {
             datumSelection.clear();
             datumSelection.cleanup();
         }
@@ -1462,7 +1469,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     }) {
         const { hideWithSize0 } = this;
         const { datumSelection, isHighlight } = opts;
-        const { marker } = this.properties;
+        const { marker } = this.options;
         const { itemStyler } = marker;
 
         if (itemStyler == null) {
@@ -1532,12 +1539,12 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         });
 
         if (!isHighlight) {
-            this.properties.marker.markClean();
+            this.markerDirty = false;
         }
     }
 
     protected override get labelProperty() {
-        return this.properties.label;
+        return this.options.label;
     }
 
     protected override writeLabelPoint(datum: LabelSelectionDatum, x: number, y: number): LabelSelectionDatum {
@@ -1555,7 +1562,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     ): AgAreaSeriesStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
         const { marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth, xKey, yKey } =
-            this.properties;
+            this.options;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
         const selectionState = toSelectionString(selectionStateEnum);
         const candidateState = toSelectionString(candidateStateEnum);
@@ -1599,7 +1606,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         datumIndex: number,
         style: Required<NormalisedSeriesMarkerStyle>
     ): NormalisedAreaSeriesMarkerItemStylerParams<unknown, unknown> {
-        const { xKey, yKey } = this.properties;
+        const { xKey, yKey } = this.options;
 
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData, 'mixed-numeric')[datumIndex];
@@ -1620,14 +1627,14 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     }
 
     protected override makeLabelFormatterParams(): AgAreaSeriesLabelFormatterParams {
-        const { xKey, xName, yKey, yName, legendItemName } = this.properties;
+        const { xKey, xName, yKey, yName, legendItemName } = this.options;
         return { xKey, xName, yKey, yName, legendItemName } satisfies RequireOptional<AgAreaSeriesLabelFormatterParams>;
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, axes, properties } = this;
-        const { xKey, xName, yKey, yName, tooltip, legendItemName } = properties;
-        const allowNullKeys = properties.allowNullKeys ?? false;
+        const { id: seriesId, dataModel, processedData, axes, options } = this;
+        const { xKey, xName, yKey, yName, tooltip, legendItemName } = options;
+        const allowNullKeys = options.allowNullKeys ?? false;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -1644,7 +1651,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);
 
         const format = this.getMarkerStyle<NormalisedAreaSeriesMarkerItemStylerParams<unknown, unknown>>(
-            this.properties.marker,
+            this.options.marker,
             { datumIndex, datum },
             params,
             { isHighlight: false },
@@ -1685,7 +1692,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         const legendMarkerFill = useAreaFill ? fill : marker.fill;
 
         const markerStyle = this.getMarkerStyle(
-            this.properties.marker,
+            this.options.marker,
             {},
             undefined,
             { isHighlight: false, checkForHighlight: false },
@@ -1724,7 +1731,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             visible,
         } = this;
 
-        const { yKey: itemId, yName, legendItemName, showInLegend } = this.properties;
+        const { yKey: itemId, yName, legendItemName, showInLegend } = this.options;
 
         return [
             {
@@ -1738,7 +1745,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                     text: legendItemName ?? yName ?? itemId,
                 },
                 symbol: this.legendItemSymbol(),
-                hideInLegend: !showInLegend,
+                hideInLegend: showInLegend === false,
             },
         ];
     }
@@ -1841,7 +1848,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     }
 
     protected isLabelEnabled() {
-        return this.properties.label.enabled;
+        return this.options.label.enabled;
     }
 
     protected nodeFactory() {
@@ -1852,7 +1859,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         marker: Required<NormalisedSeriesMarkerStyle> & { enabled: boolean };
     } {
         const { styler, marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } =
-            this.properties;
+            this.options;
         const { size, shape, fill: markerFill = 'transparent', fillOpacity: markerFillOpacity } = marker;
         let stylerResult: NormalisedAreaSeriesStylerResult & { marker?: { enabled?: boolean } } = {};
         if (styler) {
@@ -1901,7 +1908,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         );
 
         return this.getMarkerStyle<NormalisedAreaSeriesMarkerItemStylerParams<unknown, unknown>>(
-            this.properties.marker,
+            this.options.marker,
             datum,
             params,
             { isHighlight: true },
@@ -1932,10 +1939,10 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
 
     protected override hasItemStylers(): boolean {
         return (
-            this.properties.selection.enabled ||
-            this.properties.styler != null ||
-            this.properties.marker.itemStyler != null ||
-            this.properties.label.itemStyler != null
+            this.isSelectionEnabled() ||
+            this.options.styler != null ||
+            this.options.marker.itemStyler != null ||
+            this.options.label.itemStyler != null
         );
     }
 }
