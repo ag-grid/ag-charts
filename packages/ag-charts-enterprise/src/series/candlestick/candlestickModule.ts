@@ -2,6 +2,7 @@ import { type AgCandlestickSeriesOptions, CartesianChartModule, VERSION, _Module
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, ChartAxisDirection } from 'ag-charts-core';
 
+import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
 import { CandlestickSeries } from './candlestickSeries';
 import { candlestickSeriesOptionsDef } from './candlestickSeriesOptionsDef';
 import { CANDLESTICK_SERIES_THEME } from './candlestickThemes';
@@ -15,7 +16,7 @@ export const CandlestickSeriesModule: SeriesModuleDefinition<AgCandlestickSeries
     enterprise: true,
     groupable: false,
     version: VERSION,
-    dependencies: [CartesianChartModule],
+    dependencies: [CartesianChartModule, BackgroundRegionsModule],
 
     options: candlestickSeriesOptionsDef,
     matchingKeys: ['xKey', 'lowKey', 'highKey', 'openKey', 'closeKey', 'normalizedTo'],

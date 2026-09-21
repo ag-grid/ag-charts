@@ -23,6 +23,9 @@ globs:
     `chart.ts` or the ESLint rule. Add the location to the owning module instead.
 -   Do not add feature hooks to `enterpriseRegistry`; a community/enterprise pair shares a `name` and
     the enterprise definition replaces the community one.
+-   A feature nested under another module's option key (`seriesArea.backgroundRegions`) is its own
+    module that `contributes` the nested path and attaches to the host through a service; it does not
+    override the host module.
 -   `expectedModules.generated.ts` and `module-mappings.generated.mjs` are generated. After changing a
     definition, bundle or `main.ts` export run
     `UPDATE_MODULE_TABLES=1 yarn nx test ag-charts-enterprise -- moduleTables`, then `yarn nx format`.

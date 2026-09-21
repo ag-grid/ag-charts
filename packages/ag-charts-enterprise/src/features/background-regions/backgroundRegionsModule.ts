@@ -1,21 +1,22 @@
-import { VERSION, _ModuleSupport } from 'ag-charts-community';
+import { SeriesAreaModule, VERSION, _ModuleSupport } from 'ag-charts-community';
 import { type PluginModuleDefinition, arrayOfDefs, fillOptionsDef, strokeOptionsDef } from 'ag-charts-core';
 import type { AgSeriesAreaBackgroundRegion } from 'ag-charts-types';
 
-import { backgroundRegionsTheme } from '../background-regions/backgroundRegionsTheme';
-import { SeriesArea } from './seriesArea';
+import { BackgroundRegions } from './backgroundRegions';
+import { backgroundRegionsTheme } from './backgroundRegionsTheme';
 
 const { seriesAreaBackgroundRegionLabelDef, seriesAreaBackgroundRegionRangeDef } = _ModuleSupport;
 
-export const SeriesAreaModule: PluginModuleDefinition<never, _ModuleSupport.ChartRegistry> = {
+export const BackgroundRegionsModule: PluginModuleDefinition<never, _ModuleSupport.ChartRegistry> = {
     type: 'plugin',
-    name: 'series-area',
+    name: 'background-regions',
+    chartType: 'cartesian',
     enterprise: true,
     version: VERSION,
+    dependencies: [SeriesAreaModule],
     contributes: [
         {
             path: 'seriesArea.backgroundRegions',
-            chartTypes: ['cartesian'],
             options: arrayOfDefs<AgSeriesAreaBackgroundRegion>({
                 ...fillOptionsDef,
                 ...strokeOptionsDef,
@@ -26,9 +27,5 @@ export const SeriesAreaModule: PluginModuleDefinition<never, _ModuleSupport.Char
             themeTemplate: backgroundRegionsTheme,
         },
     ],
-    register: (ctx) => {
-        if (ctx.has('seriesArea')) return;
-        ctx.service('seriesArea', (c) => new SeriesArea(c));
-    },
-    create: (ctx) => ctx.seriesArea,
+    create: (ctx) => new BackgroundRegions(ctx, ctx.moduleRegistry.moduleContributions(BackgroundRegionsModule.name)),
 };

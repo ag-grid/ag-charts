@@ -38,7 +38,7 @@ import type {
 /** Chart-level keys owned by plugin modules; their defs arrive through the modules' contributions. */
 export type ModuleOwnedChartOptions = 'annotations' | 'navigator' | 'scrollbar';
 
-/** `seriesArea.backgroundRegions` is owned by the enterprise series area module. */
+/** `seriesArea.backgroundRegions` is owned by the enterprise background regions module. */
 export type CartesianChartDefOptions = Omit<AgCartesianChartOptions, ModuleOwnedChartOptions | 'seriesArea'> & {
     seriesArea?: Omit<AgCartesianSeriesAreaThemableOptions, 'backgroundRegions'>;
 };

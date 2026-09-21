@@ -3,6 +3,7 @@ import type { ModuleDefinition } from 'ag-charts-core';
 import { AnimationModule } from '../features/animation/animationModule';
 import { AnnotationsModule } from '../features/annotations/annotationsModule';
 import { AxisInteractionModule } from '../features/axis-interaction/axisInteractionModule';
+import { BackgroundRegionsModule } from '../features/background-regions/backgroundRegionsModule';
 import { BandHighlightModule } from '../features/band-highlight/bandHighlightModule';
 import { ChartToolbarModule } from '../features/chart-toolbar/chartToolbarModule';
 import { ContextMenuModule } from '../features/context-menu/contextMenuModule';
@@ -14,7 +15,6 @@ import { FlashOnUpdateModule } from '../features/flash-on-update/flashOnUpdateMo
 import { NavigatorModule } from '../features/navigator/navigatorModule';
 import { RangesModule } from '../features/ranges/rangesModule';
 import { ScrollbarModule } from '../features/scrollbar/scrollbarModule';
-import { SeriesAreaModule } from '../features/series-area/seriesAreaModule';
 import { StatusBarModule } from '../features/status-bar/statusBarModule';
 import { SyncModule } from '../features/sync/syncModule';
 import { ZoomModule } from '../features/zoom/zoomModule';
@@ -41,7 +41,7 @@ export const AllCartesianModule: ModuleDefinition[] = [
     RangesModule,
     ScrollbarModule,
     SelectionModule,
-    SeriesAreaModule,
+    BackgroundRegionsModule,
     StatusBarModule,
     SyncModule,
     ZoomModule,

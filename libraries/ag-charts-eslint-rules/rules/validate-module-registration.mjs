@@ -10,6 +10,7 @@ import {
     bundleContents,
     cartesianSeriesModules,
     chartListenerToModule,
+    chartOptionPathToModule,
     enterpriseBundleContents,
     enterpriseImpliedModules,
     enterpriseModules,
@@ -25,6 +26,8 @@ import {
     seriesTypeToModule,
     validModuleIds,
 } from './module-mappings.mjs';
+
+const nestedChartOptionHeads = new Set([...chartOptionPathToModule.keys()].map((path) => path.split('.')[0]));
 
 /** @type {import('eslint').Rule.RuleModule} */
 export default {
@@ -492,6 +495,33 @@ export default {
             }
         }
 
+        /** Requires the owner of an option nested below a chart-level key, e.g. `seriesArea.backgroundRegions`. */
+        function processNestedChartOptions(keyName, valueNode) {
+            for (const [path, moduleId] of chartOptionPathToModule) {
+                const [head, ...rest] = path.split('.');
+                if (head !== keyName) continue;
+                const nested = findNestedProperty(valueNode, rest);
+                if (nested == null || isFeatureDisabled(nested.value)) continue;
+                requireModule(moduleId, `option '${path}'`, nested);
+            }
+        }
+
+        function findNestedProperty(valueNode, keys) {
+            let current = valueNode;
+            let prop = null;
+            for (const key of keys) {
+                if (current?.type !== 'ObjectExpression') return null;
+                prop = current.properties.find(
+                    (p) =>
+                        p.type === 'Property' &&
+                        (p.key.type === 'Identifier' ? p.key.name : getStringValue(p.key)) === key
+                );
+                if (prop == null) return null;
+                current = prop.value;
+            }
+            return prop;
+        }
+
         /**
          * Process top-level plugin options
          */
@@ -504,6 +534,8 @@ export default {
                 const moduleId = pluginOptionToModule.get(keyName);
                 requireModule(moduleId, `option '${keyName}'`, propNode);
             }
+
+            processNestedChartOptions(keyName, valueNode);
 
             // Check for chart-level listeners whose events are dispatched by a plugin
             if (keyName === 'listeners' && valueNode.type === 'ObjectExpression') {
@@ -868,7 +900,11 @@ export default {
                     if (node.value.type === 'ObjectExpression') {
                         processAxisObject(node.value, node);
                     }
-                } else if (pluginOptionToModule.has(keyName) || keyName === 'listeners') {
+                } else if (
+                    pluginOptionToModule.has(keyName) ||
+                    nestedChartOptionHeads.has(keyName) ||
+                    keyName === 'listeners'
+                ) {
                     processPluginOption(keyName, node.value, node);
                 } else if (keyName === 'type') {
                     // Handle type properties anywhere in the file

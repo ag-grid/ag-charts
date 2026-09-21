@@ -9,6 +9,7 @@ import {
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
+import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
 import { OhlcSeries } from './ohlcSeries';
 import { ohlcSeriesOptionsDef } from './ohlcSeriesOptionsDef';
 
@@ -64,7 +65,7 @@ export const OhlcSeriesModule: SeriesModuleDefinition<AgOhlcSeriesOptions> = {
     chartType: 'cartesian',
     enterprise: true,
     version: VERSION,
-    dependencies: [CartesianChartModule],
+    dependencies: [CartesianChartModule, BackgroundRegionsModule],
 
     options: ohlcSeriesOptionsDef,
     matchingKeys: ['xKey', 'lowKey', 'highKey', 'openKey', 'closeKey', 'normalizedTo'],

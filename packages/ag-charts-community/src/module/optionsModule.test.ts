@@ -706,10 +706,10 @@ describe('ChartOptions', () => {
                 seriesArea: { backgroundRegions: [{ xRange: { start: 0, end: 1 } }] },
             }) as AgCartesianChartOptions;
 
-        it('reports SeriesAreaModule for `seriesArea.backgroundRegions` and drops it outside enterprise', () => {
+        it('reports BackgroundRegionsModule for `seriesArea.backgroundRegions` and drops it outside enterprise', () => {
             const processedOptions = prepareOptions(backgroundRegionsOptions(), new Logger());
 
-            expect(moduleMessages()).toEqual([expect.stringContaining('SeriesAreaModule')]);
+            expect(moduleMessages()).toEqual([expect.stringContaining('BackgroundRegionsModule')]);
             expect(processedOptions.seriesArea?.backgroundRegions).toBeUndefined();
         });
 

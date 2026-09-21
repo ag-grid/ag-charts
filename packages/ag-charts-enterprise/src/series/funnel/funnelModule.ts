@@ -1,6 +1,7 @@
 import { type AgFunnelSeriesOptions, CartesianChartModule, VERSION } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
+import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
 import { FunnelSeries } from './funnelSeries';
 import { funnelSeriesOptionsDef } from './funnelSeriesOptionsDef';
 import { FUNNEL_SERIES_AXES, FUNNEL_SERIES_THEME } from './funnelThemes';
@@ -12,7 +13,7 @@ export const FunnelSeriesModule: SeriesModuleDefinition<AgFunnelSeriesOptions> =
     enterprise: true,
     solo: true,
     version: VERSION,
-    dependencies: [CartesianChartModule],
+    dependencies: [CartesianChartModule, BackgroundRegionsModule],
 
     options: funnelSeriesOptionsDef,
     defaultAxes: FUNNEL_SERIES_AXES,

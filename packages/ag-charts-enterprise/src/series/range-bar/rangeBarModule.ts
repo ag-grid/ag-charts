@@ -1,6 +1,7 @@
 import { type AgRangeBarSeriesOptions, CartesianChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
 import { ChartAxisDirection, DIRECTION_SWAP_AXES, type SeriesModuleDefinition } from 'ag-charts-core';
 
+import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
 import { RangeBarSeries } from './rangeBarSeries';
 import { rangeBarSeriesOptionsDef } from './rangeBarSeriesOptionsDef';
 import { RANGE_BAR_SERIES_THEME } from './rangeBarThemes';
@@ -14,7 +15,7 @@ export const RangeBarSeriesModule: SeriesModuleDefinition<AgRangeBarSeriesOption
     enterprise: true,
     groupable: true,
     version: VERSION,
-    dependencies: [CartesianChartModule],
+    dependencies: [CartesianChartModule, BackgroundRegionsModule],
 
     options: rangeBarSeriesOptionsDef,
     matchingKeys: ['xKey', 'yLowKey', 'yHighKey', 'normalizedTo'],
