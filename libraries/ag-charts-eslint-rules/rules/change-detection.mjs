@@ -91,6 +91,9 @@ export default {
             if (type.isUnion()) {
                 return type.types.some(isObjectType);
             }
+            if (type.isIntersection()) {
+                return type.types.every(isObjectType);
+            }
             return (type.flags & ts.TypeFlags.Object) !== 0 || type.flags === ts.TypeFlags.NonPrimitive;
         }
 

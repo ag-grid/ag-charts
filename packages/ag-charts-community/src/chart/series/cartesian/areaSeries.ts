@@ -43,7 +43,6 @@ import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
 import { BBox } from '../../../scene/bbox';
-import { DropShadow } from '../../../scene/dropShadow';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
@@ -236,10 +235,8 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     static readonly type = 'area' as const;
 
     private markerDirty = true;
-    private readonly fillShadow = new DropShadow();
 
     protected override syncOptionDerivedState(optionsDiff: DeepPartial<NormalisedAreaSeriesOptions> | undefined) {
-        this.fillShadow.set(this.options.shadow);
         if (optionsDiff == null || markerRebuildNeeded(optionsDiff.marker)) {
             this.markerDirty = true;
         }
@@ -1333,7 +1330,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             segments,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
-            fillShadow: this.fillShadow,
+            fillShadow: this.options.shadow,
             opacity,
             visible: visible || animationEnabled,
         });

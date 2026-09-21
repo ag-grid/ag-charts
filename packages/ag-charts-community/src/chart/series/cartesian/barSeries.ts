@@ -62,7 +62,6 @@ import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { BandScale } from '../../../scale/bandScale';
 import { BBox } from '../../../scene/bbox';
-import { DropShadow } from '../../../scene/dropShadow';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
@@ -328,12 +327,6 @@ type BarAnimationData = AbstractBarSeriesAnimationData<BarSeriesTypes>;
 export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     static override readonly className = 'BarSeries';
     static readonly type = 'bar' as const;
-
-    private readonly shadow = new DropShadow();
-
-    protected override syncOptionDerivedState() {
-        this.shadow.set(this.options.shadow);
-    }
 
     override createNodeParams(datum: BarNodeDatum) {
         return {
@@ -1805,7 +1798,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
-        const { shadow } = this;
+        const { shadow } = this.options;
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
         const fillBBox = this.getShapeFillBBox();
 

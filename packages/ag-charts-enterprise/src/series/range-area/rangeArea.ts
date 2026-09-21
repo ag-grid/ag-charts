@@ -104,7 +104,6 @@ const {
     PointerEvents,
     Marker,
     BBox,
-    DropShadow,
     processedDataIsAnimatable,
     cartesianMarkerDrawMode,
     getMarkerStyles,
@@ -276,13 +275,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     static readonly type = 'range-area' as const;
 
     private markerDirty = true;
-    private readonly fillShadow = new DropShadow();
     /** Item markers with the series-level `marker.itemStyler` folded in; the item level has no such key. */
     private itemMarkers!: Record<AgRangeAreaSeriesItemType, NormalisedRangeAreaSeriesMarkerOptions>;
 
     protected override syncOptionDerivedState(optionsDiff: DeepPartial<NormalisedRangeAreaSeriesOptions> | undefined) {
-        const { item, marker, shadow } = this.options;
-        this.fillShadow.set(shadow);
+        const { item, marker } = this.options;
         this.itemMarkers = {
             low: { ...item.low.marker, itemStyler: marker.itemStyler },
             high: { ...item.high.marker, itemStyler: marker.itemStyler },
@@ -1052,7 +1049,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             segments: fillSegments,
             pointerEvents: PointerEvents.None,
             lineJoin: 'round',
-            fillShadow: this.fillShadow,
+            fillShadow: this.options.shadow,
             opacity,
             visible,
         });

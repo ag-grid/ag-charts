@@ -101,8 +101,7 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
             return;
         }
 
-        this.dirtyPath =
-            this.path.isDirty() || (this.fillShadow?.isDirty() ?? false) || (this._clipPath?.isDirty() ?? false);
+        this.dirtyPath = this.path.isDirty() || (this._clipPath?.isDirty() ?? false);
     }
 
     resetPathDirty() {
@@ -213,7 +212,6 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
             this.drawPath(ctx, renderCtx.logger);
         }
 
-        this.fillShadow?.markClean();
         super.render(renderCtx);
     }
 

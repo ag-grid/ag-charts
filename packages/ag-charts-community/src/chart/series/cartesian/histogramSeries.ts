@@ -57,7 +57,6 @@ import type {
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { BBox } from '../../../scene/bbox';
-import { DropShadow } from '../../../scene/dropShadow';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
@@ -236,12 +235,6 @@ interface HistogramSeriesNodeDatumContext extends CartesianCreateNodeDataContext
 export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     static override readonly className = 'HistogramSeries';
     static readonly type = 'histogram' as const;
-
-    private readonly shadow = new DropShadow();
-
-    protected override syncOptionDerivedState() {
-        this.shadow.set(this.options.shadow);
-    }
 
     /** The series-level style before any styler, highlight or selection overrides. */
     private baseStyle(): RequireOptional<NormalisedHistogramSeriesStyle> & { opacity: number } {
@@ -1024,7 +1017,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
-        const { shadow } = this;
+        const { shadow } = this.options;
         const fillBBox = this.getShapeFillBBox();
 
         opts.datumSelection.each((rect, datum) => {

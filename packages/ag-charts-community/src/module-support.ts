@@ -421,7 +421,6 @@ export { configureColorScale } from './scale/colorScaleUtil';
 export { LinearScale } from './scale/linearScale';
 export type { SyncGroupState, SyncDerivedDomain, SyncAxisLike, SyncChartLike } from './chart/interaction/syncManager';
 
-export { DropShadow } from './scene/dropShadow';
 export { Node, PointerEvents } from './scene/node';
 export type { RenderContext } from './scene/node';
 export { Rotatable, Translatable, Transformable, Scalable } from './scene/transformable';

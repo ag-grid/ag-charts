@@ -70,7 +70,6 @@ import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { LinearScale } from '../../../scale/linearScale';
 import { BBox } from '../../../scene/bbox';
-import { DropShadow } from '../../../scene/dropShadow';
 import type { GradientParams } from '../../../scene/gradient/gradient';
 import { Group, TranslatableGroup } from '../../../scene/group';
 import { boxCrossesSegment } from '../../../scene/intersection';
@@ -401,12 +400,6 @@ export class DonutSeries extends PolarSeries<
 > {
     static override readonly className: string = 'DonutSeries';
     static readonly type: string = 'donut';
-
-    private readonly shadow = new DropShadow();
-
-    protected override syncOptionDerivedState() {
-        this.shadow.set(this.options.shadow);
-    }
 
     private phantomNodeData: PieDonutNodeDatum[] | undefined = undefined;
     private get calloutNodeData() {
@@ -1418,7 +1411,7 @@ export class DonutSeries extends PolarSeries<
 
             sector.drawingMode = mode;
             sector.cornerRadius = format.cornerRadius;
-            sector.fillShadow = this.shadow;
+            sector.fillShadow = this.options.shadow;
             this.applySectorSpacing(sector, format.stroke != null, format.strokeWidth);
             this.applySelectedOffset(sector, datum.datumIndex);
         };

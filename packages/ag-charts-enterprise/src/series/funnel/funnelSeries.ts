@@ -18,7 +18,6 @@ import {
 } from './funnelLabelPlacement';
 
 const {
-    DropShadow,
     resetBarSelectionsFn,
     prepareBarAnimationFunctions,
     midpointStartingBarPosition,
@@ -39,12 +38,6 @@ interface FunnelSeriesTypes extends BaseFunnelSeriesTypes {
 export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
     static override readonly className = 'FunnelSeries';
     static readonly type = 'funnel' as const;
-
-    private readonly shadow = new DropShadow();
-
-    protected override syncOptionDerivedState() {
-        this.shadow.set(this.options.shadow);
-    }
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
@@ -156,7 +149,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
             return;
         }
 
-        const { shadow } = this;
+        const { shadow } = this.options;
         const { cornerRadius } = this.options;
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;

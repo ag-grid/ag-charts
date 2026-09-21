@@ -60,7 +60,6 @@ import {
 import { applyPyramidDatum, preparePyramidAnimationFunctions } from './pyramidUtil';
 
 const {
-    DropShadow,
     barLabelDataContext,
     valueProperty,
     SeriesNodePickMode,
@@ -172,12 +171,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 > {
     static override readonly className = 'PyramidSeries';
     static readonly type = 'pyramid' as const;
-
-    private readonly shadow = new DropShadow();
-
-    protected override syncOptionDerivedState() {
-        this.shadow.set(this.options.shadow);
-    }
 
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
     private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
@@ -945,7 +938,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         datumSelection: _ModuleSupport.Selection<PyramidNodeDatum, FunnelConnector<PyramidNodeDatum>>;
         isHighlight: boolean;
     }) {
-        const { shadow } = this;
+        const { shadow } = this.options;
 
         const bounds = this.contextNodeData?.bounds;
         const fillBBox: _ModuleSupport.ShapeFillBBox | undefined = bounds

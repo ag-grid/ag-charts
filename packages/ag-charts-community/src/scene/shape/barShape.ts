@@ -1,7 +1,6 @@
-import { DeclaredSceneChangeDetection } from 'ag-charts-core';
+import { DeclaredSceneChangeDetection, type NormalisedDropShadowOptions } from 'ag-charts-core';
 import type { AgDrawingMode } from 'ag-charts-types';
 
-import type { DropShadow } from '../dropShadow';
 import { Rect } from './rect';
 
 export const FEATHERED_THRESHOLD = 1e-3;
@@ -35,7 +34,7 @@ export class BarShape<D = any> extends Rect<D> {
         bottomLeftCornerRadius: number,
         visible: boolean,
         crisp: boolean,
-        fillShadow: DropShadow | undefined,
+        fillShadow: NormalisedDropShadowOptions | undefined,
         direction?: 'x' | 'y',
         featherRatio?: number,
         crispCentreDirection?: 'x' | 'y'

@@ -1,9 +1,8 @@
-import type { Logger, SerializedNodeState, SerializedRectProps } from 'ag-charts-core';
+import type { Logger, NormalisedDropShadowOptions, SerializedNodeState, SerializedRectProps } from 'ag-charts-core';
 import { DeclaredSceneChangeDetection, type DistantObject, boxesEqual, isNumberEqual } from 'ag-charts-core';
 import type { AgDrawingMode } from 'ag-charts-types';
 
 import { BBox } from '../bbox';
-import type { DropShadow } from '../dropShadow';
 import { ExtendedPath2D } from '../extendedPath2D';
 import { type Corner, drawCorner } from '../util/corner';
 import { Path } from './path';
@@ -530,7 +529,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         bottomLeftCornerRadius: number,
         visible: boolean,
         crisp: boolean,
-        fillShadow: DropShadow | undefined
+        fillShadow: NormalisedDropShadowOptions | undefined
     ): void {
         // Direct backing field writes bypass SceneChangeDetection decorators
         this.__drawingMode = drawingMode;
