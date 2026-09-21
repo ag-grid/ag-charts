@@ -1,0 +1,130 @@
+name: Demo port sync
+
+# Keeps the Angular, Vue and TypeScript demo seeds in step with the React demos they are ported
+# from. A push to `latest` that changes a React demo makes the ports stale (their
+# .seed-manifest.json records the source hash they were last synced to); this files one JIRA
+# Sub-task under the ticket the change belongs to, labelled ai-eligible and moved to In Progress,
+# which the JIRA automation rule turns into a `jira-resume` dispatch for jira-agent-pipeline.yml.
+# The AI Workflow then ports the change and opens a PR gated by the demo parity check.
+#
+# Dedupe: an open "Sync demo ports" issue under the same parent gets a comment instead of a
+# second issue, and is never re-transitioned (a run may be in flight). The whole workflow is
+# best-effort: nothing here may paint a green push red, so the JIRA step continues on error and
+# a failure is posted to the CI alert channel instead.
+#
+# Prerequisites (all shared with ci.yml's "Comment on deployed JIRA tickets" step and the CI alert):
+#   secrets: JIRA_AI_BOT_EMAIL, JIRA_AI_BOT_API_TOKEN, SLACK_BOT_OAUTH_TOKEN
+#   vars:    JIRA_SITE_URL, CI_FAILURE_SLACK_CHANNEL
+
+on:
+    push:
+        branches: [latest]
+        paths:
+            - 'packages/ag-charts-demos/src/**'
+    workflow_dispatch:
+        inputs:
+            dry_run:
+                description: 'Print the JIRA requests instead of making them'
+                type: boolean
+                required: false
+                default: true
+
+permissions:
+    contents: read
+    # The merged-PR lookup that derives a ticket from a branch name when no commit names one.
+    pull-requests: read
+
+# Two pushes in quick succession must not race the dedupe search: queue, never cancel.
+concurrency:
+    group: demo-port-sync
+    cancel-in-progress: false
+
+env:
+    # Disable git's post-fetch background gc/maintenance for every git invocation
+    # (injected via git's GIT_CONFIG_* protocol). Otherwise it rewrites .git/shallow
+    # concurrently with the next chained `git fetch --depth 1`, intermittently failing
+    # job setup with "fatal: shallow file has changed since we read it".
+    GIT_CONFIG_COUNT: 2
+    GIT_CONFIG_KEY_0: gc.auto
+    GIT_CONFIG_VALUE_0: '0'
+    GIT_CONFIG_KEY_1: maintenance.auto
+    GIT_CONFIG_VALUE_1: 'false'
+
+jobs:
+    sync:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - name: Checkout
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  # The ticket is derived from the pushed range `before..sha`, and the stale
+                  # report records the last commit to touch each demo, so the history has to be
+                  # there. Full depth is the simple, always-correct choice for a workflow that
+                  # runs a handful of times a week.
+                  fetch-depth: 0
+
+            - name: Setup Node
+              uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+              with:
+                  node-version-file: '.nvmrc'
+
+            # No install: the seed tooling's --stale path and the JIRA script use only Node
+            # built-ins, which is what lets this run in seconds on a bare checkout.
+            - name: Stale demo ports
+              id: stale
+              run: |
+                  node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --stale | tee stale-ports.json
+                  echo "count=$(jq '.stale | length' stale-ports.json)" >> "$GITHUB_OUTPUT"
+
+            - name: Nothing stale
+              if: steps.stale.outputs.count == '0'
+              run: echo "Every ported seed matches its React demo; no Sub-task needed."
+
+            - name: File the port sync Sub-task
+              id: subtask
+              if: steps.stale.outputs.count != '0'
+              # A JIRA outage or a permissions problem must never turn a green push red; the
+              # step below tells the CI alert channel instead.
+              continue-on-error: true
+              env:
+                  CURRENT_SHA: ${{ github.sha }}
+                  # Empty on workflow_dispatch and all zeros on a first push; the script then
+                  # uses the pushed commit alone.
+                  BEFORE_SHA: ${{ github.event.before }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                  JIRA_EMAIL: ${{ secrets.JIRA_AI_BOT_EMAIL }}
+                  JIRA_API_TOKEN: ${{ secrets.JIRA_AI_BOT_API_TOKEN }}
+                  JIRA_SITE_URL: ${{ vars.JIRA_SITE_URL }}
+                  DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+              run: |
+                  ARGS=(--stale-report stale-ports.json)
+                  if [[ "$DRY_RUN" == "true" ]]; then ARGS+=(--dry-run); fi
+                  node packages/ag-charts-demos/tools/seeds/create-port-sync-subtask.mjs "${ARGS[@]}"
+
+            # The same bot-token chat.postMessage the CI status alert in ci.yml uses, to the same
+            # channel, so a silent JIRA failure is seen where the team already looks. Skipped
+            # when the channel or token is not configured.
+            - name: Report a JIRA failure to the CI alert channel
+              if: steps.subtask.outcome == 'failure' && vars.CI_FAILURE_SLACK_CHANNEL != ''
+              env:
+                  SLACK_BOT_OAUTH_TOKEN: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
+                  SLACK_CHANNEL: ${{ vars.CI_FAILURE_SLACK_CHANNEL }}
+                  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                  SHORT_SHA: ${{ github.sha }}
+              run: |
+                  if [[ -z "$SLACK_BOT_OAUTH_TOKEN" ]]; then
+                      echo "::warning::SLACK_BOT_OAUTH_TOKEN is not set; the JIRA failure was not reported to Slack."
+                      exit 0
+                  fi
+                  PORTS=$(jq -r '[.stale[] | "\(.demo)/\(.framework)"] | join(", ")' stale-ports.json)
+                  TEXT=":warning: *ag-charts demo port sync could not file its JIRA Sub-task* for \`${SHORT_SHA:0:8}\` (stale: ${PORTS}). File it by hand or re-run: <${RUN_URL}|workflow run>."
+                  PAYLOAD=$(jq -nc --arg ch "$SLACK_CHANNEL" --arg text "$TEXT" '{channel:$ch, text:$text}')
+                  RESP=$(curl -sS -X POST https://slack.com/api/chat.postMessage \
+                      -H "Authorization: Bearer ${SLACK_BOT_OAUTH_TOKEN}" \
+                      -H 'Content-type: application/json; charset=utf-8' \
+                      --data "$PAYLOAD" || echo '{}')
+                  if ! echo "$RESP" | jq -e '.ok' >/dev/null 2>&1; then
+                      echo "::warning::chat.postMessage failed: $(echo "$RESP" | jq -r '.error // "no response"')"
+                  fi
