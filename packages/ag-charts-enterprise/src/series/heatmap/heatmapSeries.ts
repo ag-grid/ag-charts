@@ -19,6 +19,7 @@ import {
     type NormalisedTextOrSegments,
     type Point,
     type ResolvedTextAlign,
+    STROKE_STYLE_THEME_DEFAULTS,
     type SizedPoint,
     extent,
     findDiscreteColorBinLabel,
@@ -903,9 +904,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                           fillOpacity: 1,
                           stroke: undefined,
                           strokeWidth: 0,
-                          strokeOpacity: 1,
-                          lineDash: [0],
-                          lineDashOffset: 0,
+                          ...STROKE_STYLE_THEME_DEFAULTS,
                       },
                   };
 

@@ -7,6 +7,7 @@ import {
     MULTI_SERIES_HIGHLIGHT_STYLE,
     POLAR_AXIS_TYPE,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -25,9 +26,7 @@ export const RADIAL_BAR_SERIES_THEME: ExtensibleSeriesTheme<'radial-bar'> = {
         fillOpacity: 1,
         stroke: { $palette: 'stroke' },
         strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
-        strokeOpacity: 1,
-        lineDash: [0],
-        lineDashOffset: 0,
+        ...STROKE_STYLE_THEME_DEFAULTS,
         cornerRadius: 0,
         label: {
             ...LABEL_BOXING_DEFAULTS,

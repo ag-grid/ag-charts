@@ -12,6 +12,7 @@ import {
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type {
@@ -79,9 +80,7 @@ const themeTemplate: ExtensibleSeriesTheme<'bubble'> = {
         stroke: { $palette: 'stroke' },
         fillOpacity: 0.8,
         strokeWidth: 1,
-        strokeOpacity: 1,
-        lineDash: [0],
-        lineDashOffset: 0,
+        ...STROKE_STYLE_THEME_DEFAULTS,
         maxRenderedItems: 2000,
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,

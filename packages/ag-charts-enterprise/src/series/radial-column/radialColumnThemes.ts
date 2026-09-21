@@ -8,6 +8,7 @@ import {
     POLAR_AXIS_SHAPE,
     POLAR_AXIS_TYPE,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -28,9 +29,7 @@ export const RADIAL_COLUMN_SERIES_THEME: ExtensibleSeriesTheme<'radial-column'> 
         columnWidthRatio: 0.5,
         maxColumnWidthRatio: 0.5,
         strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
-        strokeOpacity: 1,
-        lineDash: [0],
-        lineDashOffset: 0,
+        ...STROKE_STYLE_THEME_DEFAULTS,
         cornerRadius: 0,
         label: {
             ...LABEL_BOXING_DEFAULTS,

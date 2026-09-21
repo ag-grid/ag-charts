@@ -14,6 +14,7 @@ import {
     type NonNullablePath,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
     interpolationThemeTemplate,
 } from 'ag-charts-core';
 
@@ -127,9 +128,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
         fillOpacity: 0.7,
         stroke: { $palette: 'stroke' },
         strokeWidth: 1,
-        strokeOpacity: 1,
-        lineDash: [0],
-        lineDashOffset: 0,
+        ...STROKE_STYLE_THEME_DEFAULTS,
         marker: {
             enabled: false,
             fill: {
@@ -146,9 +145,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
             size: 6,
             fillOpacity: 1,
             strokeWidth: 2,
-            strokeOpacity: 1,
-            lineDash: [0],
-            lineDashOffset: 0,
+            ...STROKE_STYLE_THEME_DEFAULTS,
         },
         nodeClickRange: { $if: [{ $path: '/selection/enabled' }, 10, 'nearest'] },
         item: {

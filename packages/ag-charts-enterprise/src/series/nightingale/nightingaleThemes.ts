@@ -8,6 +8,7 @@ import {
     POLAR_AXIS_SHAPE,
     POLAR_AXIS_TYPE,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -28,9 +29,7 @@ export const NIGHTINGALE_SERIES_THEME: ExtensibleSeriesTheme<'nightingale'> = {
         },
         fillOpacity: 1,
         strokeWidth: 1,
-        strokeOpacity: 1,
-        lineDash: [0],
-        lineDashOffset: 0,
+        ...STROKE_STYLE_THEME_DEFAULTS,
         cornerRadius: 0,
         label: {
             ...LABEL_BOXING_DEFAULTS,

@@ -12,6 +12,7 @@ import {
     type NormalisedTextOrSegments,
     type Point,
     type RequireOptional,
+    STROKE_STYLE_THEME_DEFAULTS,
     findDiscreteColorBinLabel,
     formatValue,
     isGradientFill,
@@ -814,9 +815,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             fillOpacity: 1,
             stroke: undefined,
             strokeWidth: 0,
-            strokeOpacity: 1,
-            lineDash: [0],
-            lineDashOffset: 0,
+            ...STROKE_STYLE_THEME_DEFAULTS,
         };
 
         if (isGradientFill(markerStyle.fill)) {

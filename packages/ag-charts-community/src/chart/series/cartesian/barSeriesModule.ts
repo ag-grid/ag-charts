@@ -14,6 +14,7 @@ import {
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
@@ -43,9 +44,7 @@ const themeTemplate: ExtensibleSeriesTheme<'bar'> = {
         fillOpacity: 1,
         stroke: { $palette: 'stroke' },
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
-        strokeOpacity: 1,
-        lineDash: [0],
-        lineDashOffset: 0,
+        ...STROKE_STYLE_THEME_DEFAULTS,
         cornerRadius: 0,
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,

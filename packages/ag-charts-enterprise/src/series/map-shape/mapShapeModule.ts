@@ -8,6 +8,7 @@ import {
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SAFE_RANGE2_OPERATION,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
@@ -58,9 +59,7 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
             },
             fillOpacity: 1,
             strokeWidth: 1,
-            strokeOpacity: 1,
-            lineDash: [0],
-            lineDashOffset: 0,
+            ...STROKE_STYLE_THEME_DEFAULTS,
             padding: 2,
             label: {
                 ...LABEL_BOXING_DEFAULTS,

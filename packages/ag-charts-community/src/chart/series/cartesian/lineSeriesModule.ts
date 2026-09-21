@@ -15,6 +15,7 @@ import {
     SAFE_STROKE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
     interpolationThemeTemplate,
 } from 'ag-charts-core';
 import type { AgLineSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -32,9 +33,7 @@ const themeTemplate: ExtensibleSeriesTheme<'line'> = {
         ...COMMON_SERIES_THEME_DEFAULTS,
         stroke: SAFE_STROKE_FILL_OPERATION,
         strokeWidth: 2,
-        strokeOpacity: 1,
-        lineDash: [0],
-        lineDashOffset: 0,
+        ...STROKE_STYLE_THEME_DEFAULTS,
         connectMissingData: false,
         interpolation: interpolationThemeTemplate(),
         marker: {
@@ -42,10 +41,8 @@ const themeTemplate: ExtensibleSeriesTheme<'line'> = {
             shape: 'circle',
             size: 7,
             fillOpacity: 1,
-            strokeOpacity: 1,
+            ...STROKE_STYLE_THEME_DEFAULTS,
             strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
-            lineDash: [0],
-            lineDashOffset: 0,
             fill: {
                 $applySwitch: [
                     { $path: 'type' },

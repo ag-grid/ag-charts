@@ -17,6 +17,7 @@ import {
     type Point,
     type RequireOptional,
     type ResolvedTextAlign,
+    STROKE_STYLE_THEME_DEFAULTS,
     cachedTextMeasurer,
     calcLineHeight,
     findDiscreteColorBinLabel,
@@ -1044,9 +1045,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             fillOpacity: 1,
             stroke: undefined,
             strokeWidth: 0,
-            strokeOpacity: 1,
-            lineDash: [0],
-            lineDashOffset: 0,
+            ...STROKE_STYLE_THEME_DEFAULTS,
         };
 
         if (isGradientFill(markerStyle.fill)) {

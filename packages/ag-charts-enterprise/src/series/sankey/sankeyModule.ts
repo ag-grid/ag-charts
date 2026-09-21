@@ -7,6 +7,7 @@ import {
     LABEL_BOXING_DEFAULTS,
     SAFE_FILLS_OPERATION,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
@@ -62,16 +63,12 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                 sort: 'auto',
                 fillOpacity: 1,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
-                strokeOpacity: 1,
-                lineDash: [0],
-                lineDashOffset: 0,
+                ...STROKE_STYLE_THEME_DEFAULTS,
             },
             link: {
                 fillOpacity: 0.5,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
-                strokeOpacity: 1,
-                lineDash: [0],
-                lineDashOffset: 0,
+                ...STROKE_STYLE_THEME_DEFAULTS,
             },
             ...undocumentedThemeOptions({
                 selection: SERIES_SELECTION_THEME,

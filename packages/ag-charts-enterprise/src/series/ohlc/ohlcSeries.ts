@@ -1,5 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { FillStrokeMorph, Normalised, NormalisedOhlcSeriesOwnOptions } from 'ag-charts-core';
+import { STROKE_STYLE_THEME_DEFAULTS } from 'ag-charts-core';
 
 import { OhlcNode } from './ohlcNode';
 import { type OhlcNodeDatum, OhlcSeriesBase, type OhlcSeriesBaseTypes } from './ohlcSeriesBase';
@@ -116,9 +117,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
                         fillOpacity: up.strokeOpacity,
                         stroke: undefined,
                         strokeWidth: 0,
-                        strokeOpacity: 1,
-                        lineDash: [0],
-                        lineDashOffset: 0,
+                        ...STROKE_STYLE_THEME_DEFAULTS,
                     },
                 },
                 legendItemName,

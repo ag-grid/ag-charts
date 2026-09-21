@@ -6,6 +6,7 @@ import {
     SAFE_STROKE_FILL_OPERATION,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
     radialGaugeSeriesOptionsDef,
     undocumentedThemeOptions,
@@ -45,9 +46,7 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
                 fillOpacity: 1,
                 stroke: { $path: ['/2', SAFE_STROKE_FILL_OPERATION, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
-                strokeOpacity: 1,
-                lineDash: [0],
-                lineDashOffset: 0,
+                ...STROKE_STYLE_THEME_DEFAULTS,
                 interval: {
                     ...undocumentedThemeOptions({
                         minSpacing: 0,
@@ -73,9 +72,7 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
                 fillOpacity: 1,
                 stroke: 'black',
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
-                strokeOpacity: 1,
-                lineDash: [0],
-                lineDashOffset: 0,
+                ...STROKE_STYLE_THEME_DEFAULTS,
             },
             segmentation: {
                 enabled: false,
@@ -88,9 +85,7 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
                 fillOpacity: 1,
                 stroke: 'black',
                 strokeWidth: 0,
-                strokeOpacity: 1,
-                lineDash: [0],
-                lineDashOffset: 0,
+                ...STROKE_STYLE_THEME_DEFAULTS,
                 spacing: 10,
             },
             label: {

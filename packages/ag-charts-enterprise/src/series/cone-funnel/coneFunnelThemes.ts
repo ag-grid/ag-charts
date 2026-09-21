@@ -8,6 +8,7 @@ import {
     LABEL_OVERFLOW_DEFAULTS,
     SAFE_FILLS_OPERATION,
     SERIES_INTERACTION_THEME_DEFAULTS,
+    STROKE_STYLE_THEME_DEFAULTS,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -50,9 +51,7 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
         },
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         fillOpacity: 1,
-        strokeOpacity: 1,
-        lineDash: [0],
-        lineDashOffset: 0,
+        ...STROKE_STYLE_THEME_DEFAULTS,
         label: {
             ...LABEL_BOXING_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,

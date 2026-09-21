@@ -9,6 +9,7 @@ import {
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
+    STROKE_STYLE_THEME_DEFAULTS,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -19,9 +20,7 @@ export const PYRAMID_SERIES_THEME: ExtensibleSeriesTheme<'pyramid'> = {
         direction: 'vertical',
         fillOpacity: 1,
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
-        strokeOpacity: 1,
-        lineDash: [0],
-        lineDashOffset: 0,
+        ...STROKE_STYLE_THEME_DEFAULTS,
         spacing: 2,
         tooltip: { interaction: { enabled: false } },
         fills: {

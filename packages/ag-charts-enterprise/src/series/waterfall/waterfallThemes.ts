@@ -9,6 +9,7 @@ import {
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     SINGLE_SERIES_HIGHLIGHT_STYLE,
+    STROKE_STYLE_THEME_DEFAULTS,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { AgChartLabelPlacementStyleOptions, ExtensibleSeriesTheme, Operation } from 'ag-charts-types';
@@ -78,9 +79,7 @@ function itemTheme(
         stroke: { $palette: `${key}.stroke` },
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
         fillOpacity: 1,
-        strokeOpacity: 1,
-        lineDash: [0],
-        lineDashOffset: 0,
+        ...STROKE_STYLE_THEME_DEFAULTS,
         cornerRadius: 0,
         label: {
             enabled: inherited('enabled'),
@@ -212,9 +211,7 @@ export const WATERFALL_SERIES_THEME: ExtensibleSeriesTheme<'waterfall'> = {
         line: {
             enabled: true,
             stroke: { $palette: 'neutral.stroke' },
-            strokeOpacity: 1,
-            lineDash: [0],
-            lineDashOffset: 0,
+            ...STROKE_STYLE_THEME_DEFAULTS,
             strokeWidth: 2,
         },
         tooltip: { interaction: { enabled: false } },

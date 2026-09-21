@@ -7,6 +7,7 @@ import {
     SAFE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -38,9 +39,7 @@ export const BOX_PLOT_SERIES_THEME: ExtensibleSeriesTheme<'box-plot'> = {
         stroke: { $palette: 'stroke' },
         strokeWidth: 2,
         fillOpacity: 1,
-        strokeOpacity: 1,
-        lineDash: [0],
-        lineDashOffset: 0,
+        ...STROKE_STYLE_THEME_DEFAULTS,
         cornerRadius: 0,
         cap: { lengthRatio: 0.5 },
         tooltip: { interaction: { enabled: false } },

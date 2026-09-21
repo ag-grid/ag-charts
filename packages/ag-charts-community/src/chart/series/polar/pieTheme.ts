@@ -9,6 +9,7 @@ import {
     LABEL_OVERFLOW_DEFAULTS,
     PART_WHOLE_HIGHLIGHT_STYLE,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -94,10 +95,8 @@ export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
             $applyCycle: [{ $cacheMax: { $size: { $path: ['./data', { $path: '/data' }] } } }, { $palette: 'strokes' }],
         },
         fillOpacity: 1,
-        strokeOpacity: 1,
+        ...STROKE_STYLE_THEME_DEFAULTS,
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
-        lineDash: [0],
-        lineDashOffset: 0,
         cornerRadius: 0,
         rotation: 0,
         outerRadiusOffset: 0,

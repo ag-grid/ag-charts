@@ -7,6 +7,7 @@ import {
     LABEL_BOXING_DEFAULTS,
     SERIES_SELECTION_THEME,
     SINGLE_SERIES_HIGHLIGHT_STYLE,
+    STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
@@ -48,16 +49,12 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
                 cornerRadius: 0,
                 fillOpacity: 1,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
-                strokeOpacity: 1,
-                lineDash: [0],
-                lineDashOffset: 0,
+                ...STROKE_STYLE_THEME_DEFAULTS,
             },
             link: {
                 fillOpacity: 0.5,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
-                strokeOpacity: 1,
-                lineDash: [0],
-                lineDashOffset: 0,
+                ...STROKE_STYLE_THEME_DEFAULTS,
                 tension: 0.4,
             },
             ...undocumentedThemeOptions({

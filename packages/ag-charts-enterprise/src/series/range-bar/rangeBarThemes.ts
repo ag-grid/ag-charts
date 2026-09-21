@@ -12,6 +12,7 @@ import {
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 
@@ -31,9 +32,7 @@ export const RANGE_BAR_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['rang
         stroke: { $palette: 'stroke' },
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
         fillOpacity: 1,
-        strokeOpacity: 1,
-        lineDash: [0],
-        lineDashOffset: 0,
+        ...STROKE_STYLE_THEME_DEFAULTS,
         cornerRadius: 0,
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,

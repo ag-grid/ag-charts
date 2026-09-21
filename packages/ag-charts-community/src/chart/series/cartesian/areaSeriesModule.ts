@@ -16,6 +16,7 @@ import {
     MARKER_SERIES_HIGHLIGHT_STYLE,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
     interpolationThemeTemplate,
 } from 'ag-charts-core';
 import type { AgAreaSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -43,10 +44,8 @@ const themeTemplate: ExtensibleSeriesTheme<'area'> = {
         },
         stroke: { $palette: 'stroke' },
         fillOpacity: 0.8,
-        strokeOpacity: 1,
+        ...STROKE_STYLE_THEME_DEFAULTS,
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
-        lineDash: [0],
-        lineDashOffset: 0,
         shadow: {
             enabled: false,
             color: DEFAULT_SHADOW_COLOUR,
@@ -61,10 +60,8 @@ const themeTemplate: ExtensibleSeriesTheme<'area'> = {
             shape: 'circle',
             size: 7,
             fillOpacity: 1,
-            strokeOpacity: 1,
+            ...STROKE_STYLE_THEME_DEFAULTS,
             strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
-            lineDash: [0],
-            lineDashOffset: 0,
             fill: {
                 $applySwitch: [
                     { $path: 'type' },

@@ -13,6 +13,7 @@ import {
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
+    STROKE_STYLE_THEME_DEFAULTS,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { AgHistogramSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -40,9 +41,7 @@ const themeTemplate: ExtensibleSeriesTheme<'histogram'> = {
         stroke: { $palette: 'stroke' },
         strokeWidth: 1,
         fillOpacity: 1,
-        strokeOpacity: 1,
-        lineDash: [0],
-        lineDashOffset: 0,
+        ...STROKE_STYLE_THEME_DEFAULTS,
         cornerRadius: 0,
         areaPlot: false,
         aggregation: 'sum',

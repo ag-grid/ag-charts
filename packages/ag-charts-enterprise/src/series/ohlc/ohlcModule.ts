@@ -13,6 +13,7 @@ import {
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -32,9 +33,7 @@ function itemTheme(key: 'up' | 'down'): WithThemeParams<AgOhlcSeriesItemOptions>
             ],
         },
         strokeWidth: 1,
-        strokeOpacity: 1,
-        lineDash: [0],
-        lineDashOffset: 0,
+        ...STROKE_STYLE_THEME_DEFAULTS,
     };
 }
 

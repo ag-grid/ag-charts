@@ -7,6 +7,7 @@ import {
     SAFE_RANGE2_OPERATION,
     SAFE_STROKE_FILL_OPERATION,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
@@ -47,10 +48,8 @@ export const MapLineSeriesModule: SeriesModuleDefinition<AgMapLineSeriesOptions>
                 mode: 'continuous',
             },
             strokeWidth: 1,
-            strokeOpacity: 1,
+            ...STROKE_STYLE_THEME_DEFAULTS,
             maxStrokeWidth: 3,
-            lineDash: [0],
-            lineDashOffset: 0,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 ...LABEL_OVERFLOW_DEFAULTS,
