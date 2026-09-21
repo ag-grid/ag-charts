@@ -1,8 +1,10 @@
 // Mock market-data engine for the Financial trading-terminal demo.
 //
-// Everything here is synthetic: a seeded-ish random walk produces OHLC bars and
-// volume for a handful of instruments, and `MarketFeed` advances them over time
-// so the terminal can render live, streaming charts without a backend.
+// Everything here is synthetic: a random walk produces OHLC bars and volume for a
+// handful of instruments, and `MarketFeed` advances them over time so the terminal
+// can render live, streaming charts without a backend. Every draw comes through
+// `randomSource`, so deterministic mode (see deterministic.ts) freezes the data.
+import { randomSource, seededRandom } from './deterministic';
 import { type MoverRow } from './types';
 
 export interface Bar {
@@ -138,23 +140,10 @@ export const INSTRUMENTS: Instrument[] = [
 // Number of points shown in a trend sparkline.
 const SPARK_POINTS = 24;
 
-// Deterministic PRNG seeded by ticker so each display-only spark is stable across reloads.
-function seededRandom(seed: string): () => number {
-    let h = 2166136261;
-    for (let i = 0; i < seed.length; i++) {
-        h = Math.imul(h ^ seed.charCodeAt(i), 16777619);
-    }
-    return () => {
-        h += 0x6d2b79f5;
-        let t = Math.imul(h ^ (h >>> 15), 1 | h);
-        t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-}
-
 type MoverSeed = Omit<MoverRow, 'history' | 'baseline'>;
 
 // Drift the walk toward the day's % change, so the sparkline agrees with the value in the row.
+// Seeded by ticker so each display-only spark is stable across reloads.
 function withSpark(row: MoverSeed): MoverRow {
     const rand = seededRandom(row.ticker);
     const totalReturn = row.changePct / 100;
@@ -233,9 +222,11 @@ const MOVER_VOLATILITY = 0.0025;
  */
 export class MoverFeed {
     private readonly rows: MoverRow[];
+    private readonly rand: () => number;
 
     constructor(seed: MoverRow[]) {
         this.rows = seed.map((row) => ({ ...row, history: [...row.history] }));
+        this.rand = randomSource(`movers:${seed.map((row) => row.ticker).join(',')}`);
     }
 
     snapshot(): MoverRow[] {
@@ -244,10 +235,10 @@ export class MoverFeed {
 
     tick(): MoverRow[] {
         for (const row of this.rows) {
-            const last = nextClose(row.last, MOVER_VOLATILITY);
+            const last = nextClose(row.last, MOVER_VOLATILITY, this.rand);
             row.last = last;
             row.changePct = (last / row.baseline - 1) * 100;
-            row.volume = Math.max(0.1, row.volume + (Math.random() - 0.5) * row.volume * 0.05);
+            row.volume = Math.max(0.1, row.volume + (this.rand() - 0.5) * row.volume * 0.05);
             row.history = [...row.history.slice(1), last];
         }
         return this.snapshot();
@@ -265,11 +256,14 @@ export const MAX_RETAINED_BARS = 10_000;
 const VOLUME_BASE = 1_800;
 
 // --- synthetic price generation ----------------------------------------------
+// Every generator takes its random source as `rand`; the feeds own one source each.
 
-function nextClose(prevClose: number, volatility: number): number {
+type Random = () => number;
+
+function nextClose(prevClose: number, volatility: number, rand: Random): number {
     // Random walk with a slight mean-reverting drift so prices stay in a sane band.
-    const shock = (Math.random() - 0.5) * 2 * volatility * prevClose;
-    const drift = (Math.random() - 0.48) * volatility * prevClose * 0.5;
+    const shock = (rand() - 0.5) * 2 * volatility * prevClose;
+    const drift = (rand() - 0.48) * volatility * prevClose * 0.5;
     return Math.max(1, prevClose + shock + drift);
 }
 
@@ -285,28 +279,28 @@ export interface GaugeMetrics {
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 /** Random walk with mean reversion toward `baseline`, clamped to [min, max]. */
-function driftToward(value: number, baseline: number, step: number, min: number, max: number): number {
-    const shock = (Math.random() - 0.5) * 2 * step;
+function driftToward(value: number, baseline: number, step: number, min: number, max: number, rand: Random): number {
+    const shock = (rand() - 0.5) * 2 * step;
     const pull = (baseline - value) * 0.05;
     return clamp(value + shock + pull, min, max);
 }
 
-function makeBar(time: number, open: number, close: number, volatility: number): Bar {
-    const spread = Math.abs(close - open) + Math.random() * volatility * open * 2;
-    const high = Math.max(open, close) + Math.random() * spread;
-    const low = Math.min(open, close) - Math.random() * spread;
-    const volume = Math.round(VOLUME_BASE * (0.4 + Math.random() * 1.2));
+function makeBar(time: number, open: number, close: number, volatility: number, rand: Random): Bar {
+    const spread = Math.abs(close - open) + rand() * volatility * open * 2;
+    const high = Math.max(open, close) + rand() * spread;
+    const low = Math.min(open, close) - rand() * spread;
+    const volume = Math.round(VOLUME_BASE * (0.4 + rand() * 1.2));
     return { time, open, high, low, close, volume };
 }
 
-function seedHistory(instrument: Instrument, now: number): Bar[] {
+function seedHistory(instrument: Instrument, now: number, rand: Random): Bar[] {
     const bars: Bar[] = [];
     let prevClose = instrument.seed;
     const start = now - HISTORY_BARS * BAR_INTERVAL_MS;
     for (let i = 0; i < HISTORY_BARS; i++) {
         const open = prevClose;
-        const close = nextClose(open, instrument.volatility);
-        const bar = makeBar(start + i * BAR_INTERVAL_MS, open, close, instrument.volatility);
+        const close = nextClose(open, instrument.volatility, rand);
+        const bar = makeBar(start + i * BAR_INTERVAL_MS, open, close, instrument.volatility, rand);
         bars.push(bar);
         prevClose = close;
     }
@@ -323,10 +317,12 @@ export class MarketFeed {
     // `bars[0]` is not a stable session reference once the window drops its oldest bar; capture the open once.
     private readonly openPrice: number;
     private readonly gaugeMetrics: GaugeMetrics;
+    private readonly rand: Random;
 
     constructor(instrument: Instrument, now: number) {
         this.instrument = instrument;
-        this.bars = seedHistory(instrument, now);
+        this.rand = randomSource(`bars:${instrument.ticker}`);
+        this.bars = seedHistory(instrument, now, this.rand);
         this.openPrice = this.bars[0].open;
         this.gaugeMetrics = {
             sentiment: instrument.sentiment,
@@ -343,9 +339,9 @@ export class MarketFeed {
     private driftMetrics(): void {
         const m = this.gaugeMetrics;
         const { sentiment, beta, analystRating } = this.instrument;
-        m.sentiment = Math.round(driftToward(m.sentiment, sentiment, 2, 0, 100));
-        m.beta = Math.round(driftToward(m.beta, beta, 0.02, 0, 2) * 100) / 100;
-        m.analystRating = Math.round(driftToward(m.analystRating, analystRating, 2, 0, 100));
+        m.sentiment = Math.round(driftToward(m.sentiment, sentiment, 2, 0, 100, this.rand));
+        m.beta = Math.round(driftToward(m.beta, beta, 0.02, 0, 2, this.rand) * 100) / 100;
+        m.analystRating = Math.round(driftToward(m.analystRating, analystRating, 2, 0, 100, this.rand));
     }
 
     /** The current bar window (a copy, so React sees a new reference each update). */
@@ -379,8 +375,8 @@ export class MarketFeed {
         const prev = this.bars[this.bars.length - 1];
         const { volatility } = this.instrument;
         const open = prev.close;
-        const close = nextClose(open, volatility);
-        const bar = makeBar(prev.time + BAR_INTERVAL_MS, open, close, volatility);
+        const close = nextClose(open, volatility, this.rand);
+        const bar = makeBar(prev.time + BAR_INTERVAL_MS, open, close, volatility, this.rand);
 
         this.bars.push(bar);
         this.evict(retainFrom);
@@ -525,6 +521,7 @@ export class PeerPerformanceFeed {
     private readonly baseSpx = SPX_SEED;
     private spx = SPX_SEED;
     private time: number;
+    private readonly rand = randomSource('peers');
 
     // OPTIMIZATION: a row depends only on its own immutable sample and the fixed origin, so it never
     // changes once computed.
@@ -551,10 +548,10 @@ export class PeerPerformanceFeed {
 
     private advance(): void {
         this.time += BAR_INTERVAL_MS;
-        this.spx = nextClose(this.spx, SPX_VOLATILITY);
+        this.spx = nextClose(this.spx, SPX_VOLATILITY, this.rand);
         const prices: Record<string, number> = {};
         for (const company of ALL_PEER_COMPANIES) {
-            const next = nextClose(this.prices[company.ticker], company.volatility);
+            const next = nextClose(this.prices[company.ticker], company.volatility, this.rand);
             this.prices[company.ticker] = next;
             prices[company.ticker] = next;
         }
