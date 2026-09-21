@@ -4,8 +4,8 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 
-import { FRAMEWORK, generateReactSeed, isPreservedPath } from './generate-react-seed.mjs';
 import { MANIFEST_FILENAME, SEEDS_DIR, WORKSPACE_ROOT, listFiles, readDemoIds } from './seed-common.mjs';
+import { GENERATED_FRAMEWORK, findStalePorts } from './stale-ports.mjs';
 
 /**
  * Freshness check for the committed seed projects.
@@ -15,7 +15,15 @@ import { MANIFEST_FILENAME, SEEDS_DIR, WORKSPACE_ROOT, listFiles, readDemoIds } 
  * master (or the workspace version moved), so the check exits non-zero with a summary of what
  * changed and how to fix it.
  *
+ * `--stale` reports the hand-maintained framework ports whose `.seed-manifest.json` no longer
+ * matches the hash of their golden master, as JSON on stdout:
+ * `{ "stale": [{ demo, framework, sourceHash, manifestHash, sourceCommit, manifestCommit }] }`.
+ * It is a report, so it exits 0 whatever it finds unless `--fail-on-stale` is also passed.
+ * It needs nothing installed: the generator (and its Prettier dependency) is only loaded for
+ * `--react`, so the demo-port-sync workflow can run it on a bare checkout.
+ *
  * Usage: node tools/seeds/check-seeds.mjs --react
+ *        node tools/seeds/check-seeds.mjs --stale [--fail-on-stale]
  */
 
 /** Manifest fields the comparison ignores: a shallow CI checkout cannot reproduce the source commit. */
@@ -53,9 +61,9 @@ function describeTextDifference(expected, actual) {
 }
 
 /** Compares one committed seed with its regenerated twin; returns the report lines, empty when identical. */
-function compareSeed(demoId, freshRoot) {
-    const committedDir = join(SEEDS_DIR, demoId, FRAMEWORK);
-    const freshDir = join(freshRoot, demoId, FRAMEWORK);
+function compareSeed(demoId, freshRoot, isPreservedPath) {
+    const committedDir = join(SEEDS_DIR, demoId, GENERATED_FRAMEWORK);
+    const freshDir = join(freshRoot, demoId, GENERATED_FRAMEWORK);
     const label = relative(WORKSPACE_ROOT, committedDir);
 
     if (!existsSync(committedDir)) {
@@ -92,12 +100,13 @@ function compareSeed(demoId, freshRoot) {
 }
 
 async function checkReact() {
+    const { generateReactSeed, isPreservedPath } = await import('./generate-react-seed.mjs');
     const freshRoot = mkdtempSync(join(tmpdir(), 'ag-charts-seeds-'));
     try {
         const stale = [];
         for (const demoId of readDemoIds()) {
             await generateReactSeed(demoId, freshRoot);
-            const report = compareSeed(demoId, freshRoot);
+            const report = compareSeed(demoId, freshRoot, isPreservedPath);
             if (report.length) stale.push(report);
         }
 
@@ -119,11 +128,22 @@ async function checkReact() {
     }
 }
 
+function reportStale(failOnStale) {
+    const stale = findStalePorts({ onSkip: (message) => console.error(`check-seeds: ${message}`) });
+    console.log(JSON.stringify({ stale }, null, 2));
+    return failOnStale && stale.length > 0 ? 1 : 0;
+}
+
 async function main(argv) {
     if (argv.includes('--react')) {
         return checkReact();
     }
-    console.error('check-seeds: pass --react to verify the committed React seeds are fresh.');
+    if (argv.includes('--stale')) {
+        return reportStale(argv.includes('--fail-on-stale'));
+    }
+    console.error(
+        'check-seeds: pass --react to verify the committed React seeds are fresh, or --stale to report ported seeds behind their golden master.'
+    );
     return 2;
 }
 
