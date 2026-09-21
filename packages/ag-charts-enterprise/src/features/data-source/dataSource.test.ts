@@ -625,6 +625,24 @@ describe('DataSource', () => {
                 expect(windows).toEqual([expected]);
             });
 
+            // A range the domain cannot place — one lying beyond the loaded data — is unresolvable
+            // rather than early, so it must not stay pending and override the viewport for good.
+            it('falls back to the full range when a populated domain cannot resolve it', async () => {
+                await prepareWithWindowCapture(NUMERIC_OPTIONS, NUMERIC_RESPONSE, {
+                    zoom: { rangeX: { start: 40, end: 70 } },
+                });
+
+                expect(windows).toEqual([{ windowStart: 40, windowEnd: 70 }]);
+                expect(chart.getState().zoom.ratioX).toEqual({ start: 0, end: 1 });
+
+                // The unresolved range must no longer stand in for the viewport, or every later
+                // window would match it and no zoom could ever ask for its own data again.
+                await scrollAction(cx, cy, -1)(chart);
+                await settleUntil(() => windows.length > 1, 'the zoom-triggered data request');
+
+                expect(windows.at(-1)).not.toEqual({ windowStart: 40, windowEnd: 70 });
+            });
+
             it('requests the range once for a grouping-valued range', async () => {
                 await prepareWithWindowCapture(CATEGORY_OPTIONS, CATEGORY_RESPONSE, {
                     zoom: {

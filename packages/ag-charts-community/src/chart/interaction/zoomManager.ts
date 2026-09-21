@@ -378,13 +378,12 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         if (memento?.rangeX) {
             const ratioX = this.rangeToRatioDirection(ChartAxisDirection.X, memento.rangeX);
 
-            // Keep a pending ratio memento until the axis is available to resolve against.
-            if (!ratioX) {
+            if (!ratioX && this.canRangeStillResolve(ChartAxisDirection.X)) {
                 this.pendingMemento = { version, mementoVersion, memento };
                 return;
             }
 
-            zoom.x = ratioX;
+            zoom.x = ratioX ?? { min: 0, max: 1 };
         } else if (memento?.ratioX) {
             zoom.x = {
                 min: memento.ratioX.start ?? 0,
@@ -949,6 +948,14 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         }
 
         return { start, end };
+    }
+
+    private canRangeStillResolve(direction: CartesianAxisDirection) {
+        const axis = this.getPrimaryAxis(direction);
+        if (!axis || !this.getDomainPixelExtents(axis)) return true;
+        if (axis.scale.domainMin == null || axis.scale.domainMax == null) return true;
+
+        return this.ctx.dataService.isLoading();
     }
 
     public getPendingRangeX(): ZoomMementoRange | undefined {
