@@ -41,6 +41,10 @@
                 "path": "/examples"
             },
             {
+                "title": "Theme Builder",
+                "path": "/theme-builder"
+            },
+            {
                 "title": "Gallery",
                 "path": "/gallery"
             },
