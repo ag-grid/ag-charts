@@ -4093,7 +4093,7 @@ describe('BarSeries', () => {
             await waitForChartStability(chart);
 
             const series = deproxy(chart).series as any[];
-            expect((series[0] as any).processedData.reduced.filteredValueExceedUnfiltered).toBe(false);
+            expect(series[0].processedData.reduced.filteredValueExceedUnfiltered).toBe(false);
 
             const expectedRatios: Array<Record<string, number>> = [
                 { Q1: 200 / 300, Q2: 300 / 500, Q3: 400 / 800 },
@@ -4101,7 +4101,7 @@ describe('BarSeries', () => {
             ];
 
             for (const [seriesIndex, ratios] of expectedRatios.entries()) {
-                const { nodeData, phantomNodeData } = (series[seriesIndex] as any).contextNodeData;
+                const { nodeData, phantomNodeData } = series[seriesIndex].contextNodeData;
                 expect(nodeData).toHaveLength(3);
                 expect(phantomNodeData).toHaveLength(3);
 
@@ -4116,7 +4116,7 @@ describe('BarSeries', () => {
             // The unfiltered segments of one x stack fill the whole normalised bar.
             const stackHeights = [0, 1, 2].map((datumIndex) =>
                 series.reduce(
-                    (total, s) => total + (s as any).contextNodeData.phantomNodeData[datumIndex].clipBBox.height,
+                    (total, s) => total + s.contextNodeData.phantomNodeData[datumIndex].clipBBox.height,
                     0
                 )
             );
