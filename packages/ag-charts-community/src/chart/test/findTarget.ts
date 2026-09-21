@@ -7,12 +7,14 @@ import { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
 import { AxisWidget } from '../../widget/axisWidget';
+import { BoundedTextWidget } from '../../widget/boundedTextWidget';
 import { ListWidget } from '../../widget/listWidget';
 import { NativeWidget } from '../../widget/nativeWidget';
 import { SliderWidget } from '../../widget/sliderWidget';
 import { ToolbarWidget } from '../../widget/toolbarWidget';
 import { Widget } from '../../widget/widget';
 import type { Chart } from '../chart';
+import { ChartCaption } from '../chartCaption';
 import { WidgetSet } from '../interaction/widgetSet';
 import { Legend } from '../legend/legend';
 import { LegendDOMProxy } from '../legend/legendDOMProxy';
@@ -185,6 +187,31 @@ function findAxisTarget(axisInteractionModule: unknown, clientX: number, clientY
     return undefined;
 }
 
+/**
+ * A chart caption (title, subtitle or footnote) owns a proxy text element sized to the caption's canvas
+ * bbox, and it is that element the caption's own `contextmenu`/`click` listeners are attached to. The
+ * caption sits outside the series area, so without this branch a click on it would fall through to the
+ * container widget.
+ */
+function findCaptionTarget(chart: Chart, clientX: number, clientY: number): MockEvent | undefined {
+    for (const captionType of ['title', 'subtitle', 'footnote'] as const) {
+        const caption = new Caster(chart[captionType]).cast(ChartCaption).value;
+        if (!caption.enabled) continue;
+
+        // `proxyText` only exists while the caption is enabled and has text.
+        const proxyText = new Caster(caption).accessNullableProperty('proxyText').castNullable(BoundedTextWidget).value;
+        if (!isClickable(proxyText)) continue;
+
+        // The same bbox the caption feeds to `proxyText.setBounds()`, so the offsets below match what the
+        // caption reads back when it maps a pointer event into canvas space.
+        const bbox = Transformable.toCanvas(caption.node);
+        if (!bbox.containsPoint(clientX, clientY)) continue;
+
+        const target = proxyText.getElement();
+        return makeMockEvent({ target, offsetX: clientX - bbox.x, offsetY: clientY - bbox.y, clientX, clientY });
+    }
+}
+
 function findSeriesAreaTarget(chart: unknown, widgets: WidgetSet, clientX: number, clientY: number): MockEvent {
     const seriesRect = new Caster(chart)
         .accessProperty('seriesAreaManager')
@@ -210,6 +237,7 @@ export function findChartTarget(chart: Chart, clientX: number, clientY: number):
         findLegendTarget(getModule('legend'), clientX, clientY) ??
         findNavigatorTarget(getModule('navigator'), clientX, clientY) ??
         findAxisTarget(getModule('axis-interaction'), clientX, clientY) ??
+        findCaptionTarget(chart, clientX, clientY) ??
         findSeriesAreaTarget(chart, widgets, clientX, clientY)
     );
 }
