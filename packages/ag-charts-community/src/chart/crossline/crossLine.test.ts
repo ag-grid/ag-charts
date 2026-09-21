@@ -1,4 +1,4 @@
-import { afterEach, describe, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { type CrossLineLabelOverflow, mapValues } from 'ag-charts-core';
 import type {
@@ -24,6 +24,7 @@ import {
     createChart,
     doubleClickAction,
     expectWarningMessages,
+    prepareTestOptions,
     repeat,
     setupMockCanvas,
     setupMockConsole,
@@ -1850,5 +1851,125 @@ describe('CrossLine', () => {
 
             expect(await clickAxisExtreme('y', 'min')).toEqual([RULER]);
         });
+    });
+});
+
+describe('CrossLine theme colour references', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    const PARAMS = { foregroundColor: '#ff0000', backgroundColor: '#00ff00', fontFamily: 'Verdana, sans-serif' };
+
+    let chart: Chart;
+
+    afterEach(() => {
+        if (chart) {
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+    });
+
+    const crossLineInstances = (axisId: string) => {
+        const axis = chart.axes.findById(axisId);
+        const plugin = axis ? getCrossLinesPlugin(axis) : undefined;
+        return plugin?.getInstances() ?? [];
+    };
+
+    const chartOptions = (
+        crossLines: AgCartesianCrossLineOptions[],
+        theme?: AgCartesianChartOptions['theme']
+    ): AgCartesianChartOptions => ({
+        data: [
+            { x: 'a', y: 1 },
+            { x: 'b', y: 3 },
+        ],
+        series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+        axes: {
+            x: { type: 'category' },
+            y: { type: 'number', min: 0, max: 4, crossLines },
+        },
+        theme: theme ?? { params: PARAMS },
+    });
+
+    it('resolves a plain param reference on a range fill', async () => {
+        chart = await createChart(chartOptions([{ type: 'range', range: [1, 3], fill: { ref: 'foregroundColor' } }]));
+
+        expect(crossLineInstances('y').map((c) => c.fill)).toEqual(['#ff0000']);
+    });
+
+    it('resolves a reference blended onto another param', async () => {
+        chart = await createChart(
+            chartOptions([
+                { type: 'range', range: [1, 3], fill: { ref: 'foregroundColor', mix: 0.2, onto: 'backgroundColor' } },
+            ])
+        );
+
+        expect(crossLineInstances('y').map((c) => c.fill)).toEqual(['#33cc00']);
+    });
+
+    it('resolves a reference blended onto a literal colour', async () => {
+        chart = await createChart(
+            chartOptions([
+                { type: 'range', range: [1, 3], fill: { ref: 'foregroundColor', mix: 0.25, ontoColor: '#00ff00' } },
+            ])
+        );
+
+        expect(crossLineInstances('y').map((c) => c.fill)).toEqual(['#40bf00']);
+    });
+
+    it('resolves references on the stroke of both cross line variants', async () => {
+        chart = await createChart(
+            chartOptions([
+                { type: 'range', range: [1, 3], stroke: { ref: 'backgroundColor' } },
+                { type: 'line', value: 2, stroke: { ref: 'foregroundColor', mix: 0.5 } },
+            ])
+        );
+
+        expect(crossLineInstances('y').map((c) => c.stroke)).toEqual(['#00ff00', 'rgba(255, 0, 0, 0.5)']);
+    });
+
+    it('resolves a reference supplied through a theme override', async () => {
+        chart = await createChart(
+            chartOptions([{ type: 'range', range: [1, 3] }], {
+                params: PARAMS,
+                overrides: { common: { axes: { number: { crossLines: { fill: { ref: 'foregroundColor' } } } } } },
+            })
+        );
+
+        expect(crossLineInstances('y').map((c) => c.fill)).toEqual(['#ff0000']);
+    });
+
+    it('re-resolves the fill when the referenced param changes', async () => {
+        const crossLines: AgCartesianCrossLineOptions[] = [
+            { type: 'range', range: [1, 3], fill: { ref: 'foregroundColor' } },
+        ];
+        chart = await createChart(chartOptions(crossLines));
+
+        expect(crossLineInstances('y').map((c) => c.fill)).toEqual(['#ff0000']);
+
+        await chart.publicApi!.update(
+            prepareTestOptions(chartOptions(crossLines, { params: { ...PARAMS, foregroundColor: '#0000ff' } }))
+        );
+        await waitForChartStability(chart);
+
+        expect(crossLineInstances('y').map((c) => c.fill)).toEqual(['#0000ff']);
+    });
+
+    it('rejects a malformed reference and leaves the fill unresolved', async () => {
+        chart = await createChart(
+            chartOptions([
+                {
+                    type: 'range',
+                    range: [1, 3],
+                    fill: { ref: 'foregroundColor', mix: 'backgroundColor', ratio: 0.2 },
+                } as unknown as AgCartesianCrossLineOptions,
+            ])
+        );
+
+        expectWarningMessages([
+            'AG Charts - Option `axes.y.crossLines[0][type=range].fill.mix` cannot be set to `"backgroundColor"`; expecting a number greater than or equal to 0, ignoring.',
+            'AG Charts - Unknown option `axes.y.crossLines[0][type=range].fill.ratio`, ignoring.',
+        ]);
+        expect(crossLineInstances('y').map((c) => c.fill)).toEqual(['#ff0000']);
     });
 });
