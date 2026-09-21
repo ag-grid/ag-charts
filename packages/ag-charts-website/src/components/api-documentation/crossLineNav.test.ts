@@ -124,10 +124,7 @@ describe('cross-line union navigation', () => {
     });
 });
 
-// Mirrors the current generator output: the axis-specific cross-line alias is now a direct union
-// type alias over the per-axis Line/Range interfaces (`resolveAliasedUnion`'s first branch), and
-// each variant interface carries the per-axis label type on its own `genericsMap` rather than on
-// the alias. Node shapes copied from `resolved-interfaces.AUTO.json`.
+// Node shapes copied from the generated `resolved-interfaces.AUTO.json`.
 const directUnionReference = new Map<string, any>(
     entries({
         AgCartesianCrossLineOptions: {

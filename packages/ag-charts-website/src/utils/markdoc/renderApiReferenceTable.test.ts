@@ -179,9 +179,6 @@ describe('buildApiReferenceTable', () => {
         expect(row(table, 'crossLines.value')?.[1]).toBe('NumericValue');
     });
 
-    // Mirrors the emitted shape of a per-axis cross-line interface (e.g.
-    // AgCartesianLineCrossLineOptions): the copied members survive, `LabelType` is resolved via
-    // the interface's own genericsMap rather than its typeParams.
     it("resolves a cross-line label member from the interface's own genericsMap", () => {
         const reference = makeReference({
             AgCartesianLineCrossLineOptions: iface(
@@ -215,9 +212,6 @@ describe('buildApiReferenceTable', () => {
         expect(propertyPaths(table)).toContain('label.rotation');
     });
 
-    // The ticket's original defect, pinned: when `LabelType` is declared as a typeParam with a
-    // default instead of being set on genericsMap, the default wins and the per-axis label never
-    // resolves.
     it('renders neither label.position nor label.rotation when LabelType is only a typeParam default', () => {
         const reference = makeReference({
             AgAngleLineCrossLineOptions: iface(
