@@ -64,13 +64,17 @@ test.describe('interactive-tooltip', () => {
         await expectChartScreenshot(page, page, 'interactive-tooltip-hidden.png');
     });
 
-    test('tap', async ({ page }) => {
-        // Playwright's touch support is limited, so only tooltip show/hide from taps is covered.
-        await page.touchscreen.tap(400, 150);
-        await expectChartScreenshot(page, page, 'interactive-tooltip-visible.png');
+    test.describe('touch', () => {
+        test.use({ hasTouch: true });
 
-        await page.touchscreen.tap(20, 20);
-        await expectChartScreenshot(page, page, 'interactive-tooltip-hidden.png');
+        test('tap', async ({ page }) => {
+            // Playwright's touch support is limited, so only tooltip show/hide from taps is covered.
+            await page.touchscreen.tap(400, 150);
+            await expectChartScreenshot(page, page, 'interactive-tooltip-visible.png');
+
+            await page.touchscreen.tap(20, 20);
+            await expectChartScreenshot(page, page, 'interactive-tooltip-hidden.png');
+        });
     });
 
     test.describe('AG-14347', () => {
