@@ -179,6 +179,8 @@ interface BarSeriesNodeDatumContext {
     readonly xValues: any[];
     readonly yRawValues: any[];
     readonly yFilterValues: any[] | undefined;
+    readonly yFilterStartValues: any[] | undefined;
+    readonly yFilterEndValues: any[] | undefined;
     readonly yStartValues: any[] | undefined;
     readonly yEndValues: any[] | undefined;
 
@@ -263,6 +265,7 @@ interface PreparedBarNodeDatumState {
     xValue: any;
     yRawValue: number;
     yFilterValue?: number;
+    yFilterStackValue?: number;
     labelText?: NormalisedTextOrSegments;
     inset: boolean;
     isPositive: boolean;
@@ -549,8 +552,13 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             const yKey = this.yCumulativeKey(dataModel);
             yExtent = this.domainForClippedRange(direction, [yKey], 'xValue');
 
-            const yFilterExtent = dataModel.hasColumnById(this, 'yFilterValue-raw')
-                ? dataModel.getDomain(this, 'yFilterValue-raw', 'value', processedData).domain
+            // The stacked filter columns are normalised alongside the base ones; the raw column never is,
+            // so unioning it into a normalised extent stretches the axis to raw magnitudes.
+            const filterKey = dataModel.hasColumnById(this, 'yFilterValue-end')
+                ? 'yFilterValue-end'
+                : 'yFilterValue-raw';
+            const yFilterExtent = dataModel.hasColumnById(this, filterKey)
+                ? dataModel.getDomain(this, filterKey, 'value', processedData).domain
                 : undefined;
             if (yFilterExtent != null) {
                 // minValue/maxValue (not Math.min/max, which throw on bigint) preserve exact bigint endpoints.
@@ -704,6 +712,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         let yStartValues: AgNumericValue[] | undefined;
         let yEndValues: AgNumericValue[] | undefined;
         let yFilterValues: AgNumericValue[] | undefined;
+        let yFilterStartValues: AgNumericValue[] | undefined;
+        let yFilterEndValues: AgNumericValue[] | undefined;
         if (filteredValueExceedUnfiltered) {
             yStartValues = dataModel.resolveColumnById(this, 'yFilterValue-start', processedData, 'mixed-numeric');
             yEndValues = dataModel.resolveColumnById(this, 'yFilterValue-end', processedData, 'mixed-numeric');
@@ -720,6 +730,15 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             yFilterValues = isCrossFilteringEnabled
                 ? dataModel.resolveColumnById(this, 'yFilterValue-raw', processedData, 'mixed-numeric')
                 : undefined;
+            if (isCrossFilteringEnabled && dataModel.hasColumnById(this, 'yFilterValue-end')) {
+                yFilterStartValues = dataModel.resolveColumnById(
+                    this,
+                    'yFilterValue-start',
+                    processedData,
+                    'mixed-numeric'
+                );
+                yFilterEndValues = dataModel.resolveColumnById(this, 'yFilterValue-end', processedData, 'mixed-numeric');
+            }
         }
 
         return {
@@ -730,6 +749,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             yStartValues,
             yEndValues,
             yFilterValues,
+            yFilterStartValues,
+            yFilterEndValues,
             xScale,
             yScale,
             xAxis,
@@ -794,6 +815,19 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         return x + ctx.groupOffset + ctx.barOffset + this.getDatumOffset(ctx.xValues[datumIndex]);
     }
 
+    private resolveFilterStackValue(
+        ctx: BarSeriesNodeDatumContext,
+        datumIndex: number,
+        yFilterValue: number | undefined
+    ): number | undefined {
+        const { yFilterStartValues, yFilterEndValues } = ctx;
+        if (yFilterValue == null || yFilterStartValues == null || yFilterEndValues == null) return yFilterValue;
+        // A null filter value is skipped by the stack accumulator and normalises to undefined; fall back to the
+        // raw value so such a datum keeps drawing a zero-height overlay rather than NaN geometry.
+        const delta = Number(yFilterEndValues[datumIndex]) - Number(yFilterStartValues[datumIndex]);
+        return Number.isFinite(delta) ? delta : yFilterValue;
+    }
+
     private prepareNodeDatumState(
         ctx: BarSeriesNodeDatumContext,
         nodeDatumScratch: PreparedBarNodeDatumState,
@@ -845,6 +879,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         nodeDatumScratch.xValue = xValue;
         nodeDatumScratch.yRawValue = yRawValue;
         nodeDatumScratch.yFilterValue = yFilterValue;
+        nodeDatumScratch.yFilterStackValue = this.resolveFilterStackValue(ctx, datumIndex, yFilterValue);
         nodeDatumScratch.labelText = labelText;
         nodeDatumScratch.inset = yFilterValue != null && yFilterValue > yRawValue;
         nodeDatumScratch.isPositive = isPositive;
@@ -962,18 +997,22 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         // Non-filtered: params.yEnd stays in domain space (possibly bigint) for a full-precision convert().
         // Cross-filter: yFilterValue is already Number-narrowed, so yStart narrows here too and currY is Number.
+        // params.yStart is in normalised stack space when the series is normalised, so the overlay must be
+        // sized by the normalised filter delta rather than the raw filter value.
+        const yFilterGeometryValue = prepared.yFilterStackValue;
+
         let currY: AgNumericValue;
-        if (phantom || prepared.yFilterValue == null) {
+        if (phantom || yFilterGeometryValue == null) {
             currY = params.yEnd;
         } else {
-            currY = Number(params.yStart) + prepared.yFilterValue;
+            currY = Number(params.yStart) + yFilterGeometryValue;
         }
 
         let nodeYRange: AgNumericValue;
-        if (phantom || prepared.yFilterValue == null) {
+        if (phantom || yFilterGeometryValue == null) {
             nodeYRange = params.yRange;
         } else {
-            nodeYRange = Math.max(Number(params.yStart) + prepared.yFilterValue, Number(params.yRange));
+            nodeYRange = Math.max(Number(params.yStart) + yFilterGeometryValue, Number(params.yRange));
         }
 
         let crossScale: number | undefined;
@@ -1444,6 +1483,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 xValue: undefined,
                 yRawValue: 0,
                 yFilterValue: undefined,
+                yFilterStackValue: undefined,
                 labelText: undefined,
                 inset: false,
                 isPositive: false,
