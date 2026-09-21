@@ -2,7 +2,7 @@ import type { Listener } from './callbackOptions';
 import type { AgCrossLineClickEvent, AgCrossLineDoubleClickEvent } from './eventOptions';
 import type { AgChartLabelStyleOptions } from './labelOptions';
 import type { AgCssColorOrRef } from './themeParamsOptions';
-import type { AxisValue, ContextDefault, CssColor, FontFamilyFull, Opacity, PixelSize } from './types';
+import type { AxisValue, ContextDefault, FontFamilyFull, Opacity, PixelSize } from './types';
 
 /** Cross Line listeners. Cartesian charts only. */
 export interface AgCrossLineListeners<TContext = ContextDefault> {
@@ -51,8 +51,8 @@ export interface AgRangeCrossLineOptions<
     type: 'range';
     /** The `[start, end]` data values bounding the shaded region. */
     range: [TValue, TValue];
-    /** The colour to use for the fill of the range. */
-    fill?: CssColor;
+    /** The colour to use for the fill of the range. A colour string, or a theme-colour reference object. */
+    fill?: AgCssColorOrRef;
     /** The opacity of the fill for the range. */
     fillOpacity?: Opacity;
 }
@@ -69,8 +69,8 @@ export interface AgCrossLineThemeOptions<LabelType = AgBaseCrossLineLabelOptions
     AgCommonCrossLineOptions<LabelType, ContextDefault>,
     'id' | 'listeners'
 > {
-    /** The colour to use for the fill of the range. */
-    fill?: CssColor;
+    /** The colour to use for the fill of the range. A colour string, or a theme-colour reference object. */
+    fill?: AgCssColorOrRef;
     /** The opacity of the fill for the range. */
     fillOpacity?: Opacity;
 }
