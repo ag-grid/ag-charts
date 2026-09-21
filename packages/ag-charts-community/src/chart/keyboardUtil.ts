@@ -4,6 +4,7 @@ import type { AgCoordinates } from 'ag-charts-types';
 import { BBox } from '../scene/bbox';
 import { Transformable } from '../scene/transformable';
 import type { PickFocusOutputs } from './series/pickTypes';
+import { SeriesNodeDatumSentinel } from './series/pickTypes';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
 import { getDatumRefPoint } from './series/util';
 import type { TooltipPointerEvent } from './tooltip/tooltip';
@@ -12,8 +13,13 @@ type CoordinateCalculator = {
     toAgCoordinates(point: CanvasPoint): AgCoordinates | undefined;
 };
 
+function computeRefPoint(series: ISeries<any, any, any>, pick: PickFocusOutputs) {
+    if (pick.datum === SeriesNodeDatumSentinel.CULLED) return undefined;
+    return getDatumRefPoint(series, pick.datum, pick.movedBounds);
+}
+
 function computeCenter(series: ISeries<any, any, any>, hoverRect: BBox, pick: PickFocusOutputs) {
-    const refPoint = getDatumRefPoint(series, pick.datum, pick.movedBounds);
+    const refPoint = computeRefPoint(series, pick);
     if (refPoint != null) return { x: refPoint.canvasX, y: refPoint.canvasY };
 
     const bboxOrPath = pick.bounds;

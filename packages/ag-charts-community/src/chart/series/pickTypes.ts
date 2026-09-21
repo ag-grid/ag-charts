@@ -15,6 +15,12 @@ export enum SeriesNodePickMode {
     AXIS_ALIGNED,
 }
 
+/** SeriesNodeDatum values with a special meaning */
+export enum SeriesNodeDatumSentinel {
+    /** This SeriesNodeDatum does not exist: it's culled as part of a rendering optimisation like M4 aggregation. */
+    CULLED = 1,
+}
+
 export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'highlight-tooltip' | 'context-menu' | 'event';
 
 export type SeriesNodePickMatch = {
@@ -46,7 +52,7 @@ export type PickViewportFocusInputs = {
 
 export type PickFocusOutputs = {
     datumIndex: number;
-    datum: SeriesNodeDatum;
+    datum: SeriesNodeDatum | SeriesNodeDatumSentinel;
     otherIndex?: number;
     bounds: BBox | Path;
     movedBounds?: BBox;

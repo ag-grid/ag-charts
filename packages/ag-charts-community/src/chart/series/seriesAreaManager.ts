@@ -59,6 +59,7 @@ import {
 } from '../tooltip/tooltip';
 import { PickManager, type PickedNode, type PickedNodes, getItemId } from './pickManager';
 import type { PickFocusInputs, PickFocusOutputs, PickViewportFocusInputs, SeriesNodePickIntent } from './pickTypes';
+import { SeriesNodeDatumSentinel } from './pickTypes';
 import type { UnknownSeries } from './series';
 import type { DatumIndex, FireNodeEventParams, SeriesNodeDatum } from './seriesTypes';
 import { SelectionState } from './seriesTypes';
@@ -225,6 +226,11 @@ export class SeriesAreaManager extends BaseManager {
         return this.chart.ctx.widgets.seriesWidget.focusIndicator;
     }
 
+    private getFocusedNodeDatum(): SeriesNodeDatum | undefined {
+        const { datum } = this.focus;
+        return datum === SeriesNodeDatumSentinel.CULLED ? undefined : datum;
+    }
+
     private getSwapChain() {
         return this.chart.ctx.widgets.seriesWidget.swapChain;
     }
@@ -237,7 +243,7 @@ export class SeriesAreaManager extends BaseManager {
         series: undefined as UnknownSeries | undefined,
         seriesIndex: 0,
         datumIndex: 0,
-        datum: undefined as SeriesNodeDatum | undefined,
+        datum: undefined as PickFocusOutputs['datum'] | undefined,
         pendingViewportFocus: undefined as PickViewportFocusInputs['where'] | undefined,
     };
 
@@ -738,7 +744,7 @@ export class SeriesAreaManager extends BaseManager {
         const { type, sourceEvent } = event;
         const payload: SeriesAreaClickEvent = { type, consumed, sourceEvent, clickedNode, target };
 
-        const { datum } = this.focus;
+        const datum = this.getFocusedNodeDatum();
         const oldSelectionState = datum?.series.getDataSelectionState(datum.datumIndex);
         this.chart.ctx.eventsHub.emit('series-area:click', payload);
         const newSelectionState = datum?.series.getDataSelectionState(datum.datumIndex);
@@ -869,7 +875,8 @@ export class SeriesAreaManager extends BaseManager {
 
     private onSubmit(event: KeyboardWidgetEvent<'keydown'>): void {
         if (!this.onNav(event)) return;
-        const { series, datum } = this.focus;
+        const { series } = this.focus;
+        const datum = this.getFocusedNodeDatum();
         const sourceEvent = event.sourceEvent;
         if (series != null && datum != null) {
             const coordinates: AgCoordinates | undefined = makeKeyboardAgCoordinates(
@@ -901,7 +908,7 @@ export class SeriesAreaManager extends BaseManager {
         type: 'series:keynav-expand' | 'series:keynav-collapse',
         widgetEvent: KeyboardWidgetEvent<'keydown'>
     ) {
-        const nodeDatum = this.focus.datum;
+        const nodeDatum = this.getFocusedNodeDatum();
         if (nodeDatum) {
             this.chart.ctx.eventsHub.emit(type, { nodeDatum, widgetEvent });
         }
@@ -1177,6 +1184,9 @@ export class SeriesAreaManager extends BaseManager {
                 }
             }
         }
+        if (datum === SeriesNodeDatumSentinel.CULLED) {
+            return PickedFocusStatus.PAN_REQUIRED;
+        }
 
         // Update the bounds of the focus indicator:
         this.getFocusIndicator()?.update(pick.movedBounds ?? pick.bounds, this.seriesRect, pick.clipFocusBox);
@@ -1211,6 +1221,7 @@ export class SeriesAreaManager extends BaseManager {
             otherIndexDelta,
             oldOtherIndex,
             pick,
+            datum,
             tooltipContent
         );
 
@@ -1223,6 +1234,7 @@ export class SeriesAreaManager extends BaseManager {
         otherIndexDelta: number,
         oldOtherIndex: number,
         pick: PickFocusOutputs,
+        nodeDatum: SeriesNodeDatum,
         tooltipContent: TooltipContent[]
     ) {
         const { focus } = this;
@@ -1244,12 +1256,12 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         if (mode === 'always') {
-            this.getSwapChain().update(this.getDatumAriaText('keynav', pick.datum, tooltipContent));
+            this.getSwapChain().update(this.getDatumAriaText('keynav', nodeDatum, tooltipContent));
         }
     }
 
     private announceDataSelectionChange(): void {
-        const { datum } = this.focus;
+        const datum = this.getFocusedNodeDatum();
         if (datum !== undefined) {
             const tooltipContent = this.getTooltipContent(datum, 'aria-label');
             this.getSwapChain().update(this.getDatumAriaText('selectionChange', datum, tooltipContent));
