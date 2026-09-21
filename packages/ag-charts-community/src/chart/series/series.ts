@@ -1078,9 +1078,9 @@ export abstract class Series<
 
         let maxDistance = Infinity;
         if (intent === 'tooltip' || intent === 'highlight-tooltip') {
-            const { tooltip } = this.options;
-            maxDistance = typeof tooltip.range === 'number' ? tooltip.range : Infinity;
-            exactMatchOnly ||= tooltip.range === 'exact';
+            const range = this.options.tooltip?.range;
+            maxDistance = typeof range === 'number' ? range : Infinity;
+            exactMatchOnly ||= range === 'exact';
         } else if (intent === 'event' || intent === 'context-menu') {
             const { nodeClickRange = 'exact' } = this.options;
             maxDistance = typeof nodeClickRange === 'number' ? nodeClickRange : Infinity;

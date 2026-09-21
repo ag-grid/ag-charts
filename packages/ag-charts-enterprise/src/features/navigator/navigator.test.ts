@@ -464,7 +464,7 @@ describe('Navigator', () => {
 
             expectWarningsCalls().toEqual([]);
             const navigator = deproxy(chart).modulesManager.getModule<any>('navigator');
-            expect(navigator.miniChart.series[0].properties.strokeWidth).toBe(1);
+            expect(navigator.miniChart.series[0].options.strokeWidth).toBe(1);
         });
     });
 

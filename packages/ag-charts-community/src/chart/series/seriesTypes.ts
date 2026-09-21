@@ -119,7 +119,7 @@ export interface ISeriesOptions {
     xKey?: string;
     yKey?: string;
     context?: unknown;
-    tooltip: { enabled?: boolean };
+    tooltip?: { enabled?: boolean };
 }
 
 export interface ISeries<TDatum extends SeriesNodeDatum, TOptions extends ISeriesOptions, TLabel = TDatum> {

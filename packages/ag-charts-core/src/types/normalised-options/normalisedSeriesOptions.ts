@@ -56,7 +56,7 @@ export type NormalisedSeriesTooltipOptions<TRendererParams = RequireOptional<AgS
 
 type NormaliseSeriesTooltip<T> = T extends { tooltip?: AgSeriesTooltip<infer P> }
     ? NormalisedSeriesTooltipOptions<RequireOptional<Omit<P, 'context'>>>
-    : NormalisedSeriesTooltipOptions;
+    : NormalisedSeriesTooltipOptions | undefined;
 
 /** The state buckets the base series reads; a series normalising its own `highlight` block extends this. */
 export interface NormalisedSeriesHighlightBase<TStyle extends object = NormalisedSeriesStateStyle> {

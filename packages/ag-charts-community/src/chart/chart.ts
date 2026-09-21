@@ -695,7 +695,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         removeMeDatum: SeriesNodeDatum,
         purpose: 'aria-label' | 'tooltip'
     ): TooltipContent[] {
-        const useTooltip = purpose === 'aria-label' || series.options.tooltip.enabled !== false;
+        const useTooltip = purpose === 'aria-label' || series.options.tooltip?.enabled !== false;
         const baseTooltipContent = useTooltip ? series.getTooltipContent(datumIndex, removeMeDatum) : undefined;
         const tooltipContent = baseTooltipContent == null ? [] : [baseTooltipContent];
         if (this.tooltip.mode !== 'shared' || this.series.length === 1) {
@@ -707,7 +707,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         return this.series.flatMap<TooltipContent>((s) => {
             if (s === series) return tooltipContent;
-            if (s.options.tooltip.enabled === false) return [];
+            if (s.options.tooltip?.enabled === false) return [];
             const seriesDatumIndex = group.get(s);
             const seriesTooltipContent =
                 seriesDatumIndex == null ? undefined : s.getTooltipContent(seriesDatumIndex, undefined);
@@ -2196,8 +2196,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 if (owner !== 'series') continue;
                 visitOptionsPath(seriesOptions, relative, (host, key, location) => {
                     if (!(key in host)) return;
-                    const moduleDiff = diff == null ? undefined : host[key];
-                    moduleInstance?.applyOptions(getPath(options, location), moduleDiff);
+                    moduleInstance?.applyOptions(getPath(options, location), diff && host[key]);
                     delete host[key];
                 });
             }

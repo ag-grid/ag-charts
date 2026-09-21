@@ -1587,7 +1587,7 @@ export class SeriesAreaManager extends BaseManager {
         const tooltipIntent = intent === 'tooltip' || intent === 'highlight-tooltip';
         const getIntentRange = (series: UnknownSeries) => {
             if (clickIntent) return series.options.nodeClickRange;
-            if (tooltipIntent) return series.options.tooltip.range;
+            if (tooltipIntent) return series.options.tooltip?.range;
             return undefined;
         };
 
