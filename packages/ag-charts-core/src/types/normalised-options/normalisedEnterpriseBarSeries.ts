@@ -44,7 +44,7 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
-import type { Normalised } from './normalise';
+import type { BivariantCallback, Normalised } from './normalise';
 import type {
     NormalisedBarSeriesLabelOptions,
     NormalisedCartesianSeriesOptionsCommon,
@@ -178,11 +178,10 @@ export type NormalisedOhlcSeriesBaseOwnOptions = Omit<
     type: 'ohlc' | 'candlestick';
     item: Record<'up' | 'down', NormalisedOhlcSeriesItemOptions & Partial<NormalisedCandlestickSeriesItemOptions>>;
     tooltip?: AgSeriesTooltip<AgOhlcSeriesTooltipRendererParams<any> & AgCandlestickSeriesTooltipRendererParams<any>>;
-    // Method syntax keeps the params bivariant, so each leaf's own styler types satisfy the shared shape.
-    itemStyler?(
-        this: void,
-        params: AgOhlcSeriesItemStylerParams<unknown> | AgCandlestickSeriesItemStylerParams<unknown>
-    ): AgOhlcSeriesItemOptions | AgCandlestickSeriesItemOptions | undefined;
+    itemStyler?: BivariantCallback<
+        AgOhlcSeriesItemStylerParams<unknown> | AgCandlestickSeriesItemStylerParams<unknown>,
+        AgOhlcSeriesItemOptions | AgCandlestickSeriesItemOptions | undefined
+    >;
 };
 
 /** OHLC options the series owns, before the common series keys are layered on. */

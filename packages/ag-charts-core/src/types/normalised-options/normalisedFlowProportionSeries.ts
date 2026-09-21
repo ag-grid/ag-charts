@@ -26,7 +26,7 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
-import type { Normalised } from './normalise';
+import type { BivariantCallback, Normalised } from './normalise';
 import type {
     FillStrokeMorph,
     NormalisedColorType,
@@ -68,11 +68,10 @@ export interface NormalisedFlowProportionSeriesKeys
     fills: NormalisedColorType[];
     strokes: CssColor[];
     tooltip?: AgSeriesTooltip<FlowProportionTooltipRendererParams>;
-    // Method syntax keeps the params bivariant, so each leaf's own callback type satisfies the shared shape.
-    getItemId?(
-        this: void,
-        params: AgSankeySeriesGetItemIdParams<any, any> | AgChordSeriesGetItemIdParams<any, any>
-    ): string;
+    getItemId?: BivariantCallback<
+        AgSankeySeriesGetItemIdParams<any, any> | AgChordSeriesGetItemIdParams<any, any>,
+        string
+    >;
 }
 
 type FlowStyleRequiredKeys = 'fillOpacity' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset';

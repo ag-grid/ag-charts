@@ -17,7 +17,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { RequireOptional } from '../global';
-import type { Normalised } from './normalise';
+import type { BivariantCallback, Normalised } from './normalise';
 import type { NormalisedColorType } from './normalisedCommonOptions';
 
 // Unlike the strict `NormalisedBorderOptions` (used by the legend), a label border leaves
@@ -63,11 +63,10 @@ export type NormalisedSeriesLabelOptions<TParams = never, TDatum = any> = Normal
         fill?: NormalisedColorType;
         border?: Normalised<BorderOptions, never, { stroke?: CssColor }>;
         collision: NormalisedChartLabelCollisionOptions;
-        // Method syntax keeps the params bivariant, so a label typed on richer formatter params satisfies a plainer caller.
-        formatter?(
-            this: void,
-            params: AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>
-        ): ReturnType<RichFormatter<never>>;
+        formatter?: BivariantCallback<
+            AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>,
+            ReturnType<RichFormatter<never>>
+        >;
         itemStyler?: Styler<AgChartLabelStylerParams<TDatum, ContextDefault>, AgChartLabelStyleOptions>;
     }
 >;

@@ -12,7 +12,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { RequireOptional } from '../global';
-import type { Normalised } from './normalise';
+import type { BivariantCallback, Normalised } from './normalise';
 import type { NormalisedColorType } from './normalisedCommonOptions';
 
 /** Style overrides a highlight or selection state bucket may carry once colour refs are resolved. */
@@ -49,8 +49,7 @@ export type NormalisedSeriesTooltipOptions<TRendererParams = RequireOptional<AgS
         'position',
         {
             position: NormalisedTooltipPositionOptions;
-            // Method syntax keeps the params bivariant, so a tooltip typed on richer renderer params satisfies a plainer caller.
-            renderer?(this: void, params: TRendererParams): ReturnType<Renderer<never, AgTooltipRendererResult>>;
+            renderer?: BivariantCallback<TRendererParams, ReturnType<Renderer<never, AgTooltipRendererResult>>>;
         }
     >;
 

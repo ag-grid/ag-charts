@@ -18,7 +18,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { RequireOptional } from '../global';
-import type { Normalised } from './normalise';
+import type { BivariantCallback, Normalised } from './normalise';
 import type { NormalisedCartesianSeriesOptionsCommon } from './normalisedCartesianSeries';
 import type { NormalisedColorType } from './normalisedCommonOptions';
 import type { NormalisedPlacedSeriesLabelOptions } from './normalisedLabelOptions';
@@ -57,11 +57,10 @@ interface BubbleScatterOverrides<TKeys> {
     fill: NormalisedColorType;
     stroke: CssColor;
     colorScale?: NormalisedColorScaleOptions;
-    // Method syntax keeps the params bivariant; the series feeds this into its derived marker's `itemStyler`.
-    itemStyler?(
-        this: void,
-        params: NormalisedSeriesMarkerStylerParams<unknown, unknown> & RequireOptional<Omit<TKeys, 'context'>>
-    ): AgSeriesMarkerStyle | undefined;
+    itemStyler?: BivariantCallback<
+        NormalisedSeriesMarkerStylerParams<unknown, unknown> & RequireOptional<Omit<TKeys, 'context'>>,
+        AgSeriesMarkerStyle | undefined
+    >;
 }
 
 /** Bubble options the series owns, before the common series keys are layered on. */
@@ -110,11 +109,10 @@ export type NormalisedBubbleScatterSeriesOwnOptions = Omit<
     minSize?: number;
     maxSize?: number;
     size?: number;
-    // Method syntax keeps the stylers bivariant, so each leaf's own styler types satisfy the shared shape.
-    styler?(
-        this: void,
-        params: AgBubbleSeriesStylerParams<unknown, unknown> | AgScatterSeriesStylerParams<unknown, unknown>
-    ): AgBubbleSeriesStylerResult | AgScatterSeriesStylerResult | undefined;
+    styler?: BivariantCallback<
+        AgBubbleSeriesStylerParams<unknown, unknown> | AgScatterSeriesStylerParams<unknown, unknown>,
+        AgBubbleSeriesStylerResult | AgScatterSeriesStylerResult | undefined
+    >;
     itemStyler?: BubbleScatterOverrides<AgBubbleSeriesOptionsKeys | AgScatterSeriesOptionsKeys>['itemStyler'];
 };
 

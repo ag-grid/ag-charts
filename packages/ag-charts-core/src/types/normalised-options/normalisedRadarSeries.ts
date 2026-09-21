@@ -11,7 +11,7 @@ import type {
     DatumDefault,
 } from 'ag-charts-types';
 
-import type { Normalised } from './normalise';
+import type { BivariantCallback, Normalised } from './normalise';
 import type { NormalisedColorType } from './normalisedCommonOptions';
 import type { NormalisedCollisionFreeSeriesLabelOptions } from './normalisedLabelOptions';
 import type { NormalisedSeriesMarkerOptions } from './normalisedSeriesMarkerOptions';
@@ -50,11 +50,7 @@ export type NormalisedRadarSeriesOwnOptions<TStyle extends AgRadarSeriesStyle = 
     Omit<AgBaseRadarSeriesOptions<DatumDefault, ContextDefault, TStyle>, 'highlight'>,
     RadarRequiredKeys,
     RadarOverrides & {
-        // Method syntax keeps the params bivariant, so a leaf typed on its own styler params satisfies the base.
-        styler?(
-            this: void,
-            params: AgRadarSeriesStylerParams<DatumDefault, ContextDefault, TStyle>
-        ): TStyle | undefined;
+        styler?: BivariantCallback<AgRadarSeriesStylerParams<DatumDefault, ContextDefault, TStyle>, TStyle | undefined>;
     }
 > &
     RadarAxisKeys;
