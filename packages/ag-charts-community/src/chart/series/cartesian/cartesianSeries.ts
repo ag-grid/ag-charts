@@ -699,7 +699,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         this.highlightGroup.visible = (animationEnabled || visible) && itemHighlighted;
 
         this.updateDatumStyles({ datumSelection: highlightSelection, isHighlight: true });
-        const drawingMode = this.ctx.chartService.highlight?.drawingMode ?? 'overlay';
+        const drawingMode = this.ctx.chartState.getValue('options', 'highlight')?.drawingMode ?? 'overlay';
 
         this.updateDatumNodes({
             datumSelection: highlightSelection,

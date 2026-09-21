@@ -4,7 +4,6 @@ import {
     ActionOnSet,
     ChartAxisDirection,
     type DynamicContext,
-    Padding,
     ProxyProperty,
     ZIndexMap,
     calcLineHeight,
@@ -251,7 +250,7 @@ export class MiniChart extends AbstractModuleInstance {
     }
 
     computeAxisPadding() {
-        const padding = new Padding();
+        const padding = { top: 0, right: 0, bottom: 0, left: 0 };
         if (!this.enabled) {
             return padding;
         }

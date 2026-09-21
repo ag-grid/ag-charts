@@ -673,7 +673,7 @@ export class MapMarkerSeries
         const scaleChange = this.checkScaleChange();
 
         const { markerSelection, highlightMarkerSelection } = this;
-        const drawingMode = this.ctx.chartService.highlight?.drawingMode ?? 'overlay';
+        const drawingMode = this.ctx.chartState.getValue('options', 'highlight')?.drawingMode ?? 'overlay';
 
         this.updateSelections();
 

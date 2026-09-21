@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import type { CurrentPoint, DynamicContext, Point } from 'ag-charts-core';
-import { AbstractModuleInstance, ChartAxisDirection, Property, getIconClassNames } from 'ag-charts-core';
+import { AbstractModuleInstance, ChartAxisDirection, getIconClassNames } from 'ag-charts-core';
 
 import { convert, invert } from './utils/values';
 
@@ -8,7 +8,6 @@ const { InteractionState } = _ModuleSupport;
 export const DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS = `ag-charts-annotations__axis-button`;
 
 export class AxisButton extends AbstractModuleInstance {
-    @Property
     public enabled = true;
 
     private readonly button: _Widget.ButtonWidget;

@@ -1,50 +1,28 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import {
-    BaseProperties,
-    ObserveChanges,
-    type Placement,
-    Property,
-    ProxyProperty,
-    calculatePlacement,
-    createElement,
-} from 'ag-charts-core';
+import { type Placement, calculatePlacement, createElement } from 'ag-charts-core';
+import type { AgChartBackground } from 'ag-charts-types';
 
-export class Image extends BaseProperties {
-    @Property
-    top?: number;
+type ImageOptions = NonNullable<AgChartBackground['image']>;
 
-    @Property
-    right?: number;
-
-    @Property
-    bottom?: number;
-
-    @Property
-    left?: number;
-
-    @Property
-    width?: number;
-
-    @Property
-    height?: number;
-
-    @Property
-    opacity: number = 1;
-
-    @ProxyProperty('imageElement.src')
-    @ObserveChanges<Image>((target) => (target.loadedSynchronously = target.complete))
-    url?: string;
+export class Image {
+    private options: ImageOptions | undefined;
 
     private readonly imageElement: HTMLImageElement;
     private loadedSynchronously: boolean = true;
     readonly node: _ModuleSupport.Image;
 
     constructor() {
-        super();
-
         this.imageElement = createElement('img');
         this.imageElement.onload = this.onImageLoad;
         this.node = new _ModuleSupport.Image(this.imageElement);
+    }
+
+    applyOptions(options: ImageOptions) {
+        this.options = options;
+        if (this.imageElement.src !== options.url) {
+            this.imageElement.src = options.url;
+            this.loadedSynchronously = this.complete;
+        }
     }
 
     get complete() {
@@ -60,16 +38,9 @@ export class Image extends BaseProperties {
         this.containerWidth = containerWidth;
         this.containerHeight = containerHeight;
         const container = { width: containerWidth, height: containerHeight };
-        const placement = calculatePlacement(this.imageElement.width, this.imageElement.height, container, this);
-        this.node.setProperties(
-            this.complete
-                ? {
-                      visible: true,
-                      opacity: this.opacity,
-                      ...placement,
-                  }
-                : { visible: false }
-        );
+        const { opacity = 1, ...bounds } = this.options ?? {};
+        const placement = calculatePlacement(this.imageElement.width, this.imageElement.height, container, bounds);
+        this.node.setProperties(this.complete ? { visible: true, opacity, ...placement } : { visible: false });
 
         return placement;
     }
