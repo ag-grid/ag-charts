@@ -73,7 +73,6 @@ export class Caption implements CaptionLike {
     layoutStyle: 'block' | 'overlay' = 'block';
     readonly tooltip: CaptionTooltipOptions = {};
 
-    /** Copies the title style onto the caption and its text node; visibility and text are set by the axis. */
     applyTitle(title: NormalisedAxisTitleOptions) {
         const { node } = this;
         this.enabled = node.visible = title.enabled;
