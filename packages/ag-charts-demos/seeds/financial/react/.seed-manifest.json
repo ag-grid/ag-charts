@@ -1,7 +1,7 @@
 {
     "demo": "financial",
     "framework": "react",
-    "sourceHash": "sha256-1a8ab43457428d2fe4c7f2b6bc6cb99e78aa293253c004c7fe06245e793d1800",
-    "sourceCommit": "0be904dc5dcaace480b6901b6310b24ddfebe9ab",
+    "sourceHash": "sha256-489f7b6cf37ff7db05e37c8d2ce75d676828eaa98fe6dfda187e621123e4f56b",
+    "sourceCommit": "dd007184322164613f1db20c69ceb776ae0ca613",
     "vendored": []
 }
