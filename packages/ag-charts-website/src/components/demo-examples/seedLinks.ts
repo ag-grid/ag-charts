@@ -1,6 +1,7 @@
 import type { DemoPageOpenIn } from '@ag-website-shared/components/demo-page/types';
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
 import { agChartsVersion } from '@constants';
+import { getIsProduction } from '@utils/env';
 
 /**
  * Frameworks a demo can be seeded in, as the folder names under
@@ -22,17 +23,25 @@ export const AVAILABLE_SEED_FRAMEWORKS: readonly SeedFramework[] = ['react'];
 const REPOSITORY = 'ag-grid/ag-charts';
 const SEEDS_PATH = 'packages/ag-charts-demos/seeds';
 
-interface SeedLinkParams {
+/** The branch every non-production build links to: it always carries the current seeds. */
+export const SEED_DEVELOPMENT_REF = 'latest';
+
+interface SeedRefParams {
+    /** The package version the site displays; defaults to the build's `PUBLIC_PACKAGE_VERSION`. */
+    version?: string;
+    /** Whether this is a production build; defaults to the build's own environment. */
+    isProduction?: boolean;
+}
+
+interface SeedLinkParams extends SeedRefParams {
     /** Demo app id, as registered in `ag-charts-demos` and used for its seed folder. */
     demoId: string;
     framework: SeedFramework;
-    /** The package version the site displays; defaults to the build's `PUBLIC_PACKAGE_VERSION`. */
-    version?: string;
 }
 
 /**
- * The git tag a seed link targets for a given package version. A beta such as
- * `14.2.0-beta.20260920` links to the released `release-14.2.0`: release tags carry no
+ * The git tag a production seed link targets for a given package version. A beta such as
+ * `14.2.0-beta.20260920` maps to the released `release-14.2.0`: release tags carry no
  * pre-release suffix, and the seeds pinned there are the ones npm can install.
  */
 export function getSeedReleaseTag(version: string): string {
@@ -43,39 +52,48 @@ export function getSeedReleaseTag(version: string): string {
     return `release-${major}.${minor}.${patchNum}`;
 }
 
+/**
+ * The git ref a seed link targets. Production links the release tag matching the site's version,
+ * so the seed a reader opens is the one that shipped. Every other build (dev, staging, preview)
+ * links the `latest` branch, which has the seeds as soon as they merge, so those links never 404
+ * while a release is still pending.
+ */
+export function getSeedGitRef({ version, isProduction }: Required<SeedRefParams>): string {
+    return isProduction ? getSeedReleaseTag(version) : SEED_DEVELOPMENT_REF;
+}
+
+function resolveSeedGitRef({ version = agChartsVersion, isProduction = getIsProduction() }: SeedRefParams): string {
+    return getSeedGitRef({ version, isProduction });
+}
+
 /** Folder of the seed inside the repository, relative to its root. */
 export function getSeedPath(demoId: string, framework: SeedFramework): string {
     return `${SEEDS_PATH}/${demoId}/${framework}`;
 }
 
-/** The seed's source folder on GitHub at the release tag. */
-export function getSeedGithubUrl({ demoId, framework, version = agChartsVersion }: SeedLinkParams): string {
-    return `https://github.com/${REPOSITORY}/tree/${getSeedReleaseTag(version)}/${getSeedPath(demoId, framework)}`;
+/** The seed's source folder on GitHub at the ref for this build. */
+export function getSeedGithubUrl({ demoId, framework, ...ref }: SeedLinkParams): string {
+    return `https://github.com/${REPOSITORY}/tree/${resolveSeedGitRef(ref)}/${getSeedPath(demoId, framework)}`;
 }
 
 /**
  * Opens the seed in StackBlitz straight from GitHub. StackBlitz imports only the sub-folder,
  * runs `npm install` and starts the `dev` script; `title` names the resulting project.
  */
-export function getSeedStackBlitzUrl({
-    demoId,
-    framework,
-    title,
-    version = agChartsVersion,
-}: SeedLinkParams & { title: string }): string {
+export function getSeedStackBlitzUrl({ demoId, framework, title, ...ref }: SeedLinkParams & { title: string }): string {
     const projectTitle = `AG Charts ${title} (${SEED_FRAMEWORK_DISPLAY_TEXT[framework]})`;
-    return `https://stackblitz.com/github/${REPOSITORY}/tree/${getSeedReleaseTag(version)}/${getSeedPath(demoId, framework)}?title=${encodeURIComponent(projectTitle)}`;
+    return `https://stackblitz.com/github/${REPOSITORY}/tree/${resolveSeedGitRef(ref)}/${getSeedPath(demoId, framework)}?title=${encodeURIComponent(projectTitle)}`;
 }
 
 /** The demo page's "open in" entries, one per available seed framework. */
 export function getDemoOpenInLinks({
     demoId,
     title,
-    version = agChartsVersion,
+    ...ref
 }: Omit<SeedLinkParams, 'framework'> & { title: string }): DemoPageOpenIn[] {
     return AVAILABLE_SEED_FRAMEWORKS.map((framework) => ({
         framework: SEED_FRAMEWORK_DISPLAY_TEXT[framework],
-        href: getSeedStackBlitzUrl({ demoId, framework, title, version }),
-        sourceHref: getSeedGithubUrl({ demoId, framework, version }),
+        href: getSeedStackBlitzUrl({ demoId, framework, title, ...ref }),
+        sourceHref: getSeedGithubUrl({ demoId, framework, ...ref }),
     }));
 }
