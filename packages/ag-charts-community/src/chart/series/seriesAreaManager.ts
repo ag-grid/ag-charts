@@ -39,7 +39,6 @@ import type {
     MouseWidgetEvent,
     WheelWidgetEvent,
 } from '../../widget/widgetEvents';
-import type { ChartHighlight } from '../chartHighlight';
 import type { ChartType } from '../chartType';
 import { type PendingCrossLineCallbacks, fireAllPendingCrossLineCallbacks } from '../crossline/crossLine';
 import type { ContextMenuRegionContexts } from '../interaction/contextMenuTypes';
@@ -124,7 +123,6 @@ export interface SeriesAreaChartDependencies {
     seriesRoot: TranslatableGroup;
     ctx: DynamicContext<ChartRegistry>;
     tooltip: Tooltip;
-    highlight: ChartHighlight;
     overlays: ChartOverlays;
 }
 
@@ -1436,8 +1434,8 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        const { range } = this.chart.highlight;
-        const intent = range === 'tooltip' ? 'highlight-tooltip' : 'highlight';
+        const range = this.chart.ctx.chartState.getValue('options', 'highlight')?.range;
+        const intent = range === 'node' ? 'highlight' : 'highlight-tooltip';
 
         const pickedNodes =
             opts?.active == null ? this.pickNodes({ x: event.currentX, y: event.currentY }, intent) : undefined;
@@ -1544,7 +1542,7 @@ export class SeriesAreaManager extends BaseManager {
         // Known bug: on the `seriesToUpdate` branch, `setState` resets every excluded series to an
         // unhighlighted style — hence the full update for that case.
         const sharedHighlight =
-            this.chart.highlight.mode === 'shared' &&
+            this.chart.ctx.chartState.getValue('options', 'highlight')?.mode === 'shared' &&
             (isDatumHighlight(event.currentHighlight) || isDatumHighlight(event.previousHighlight));
 
         if (

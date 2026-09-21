@@ -58,10 +58,7 @@ export function captionFont(opts: NormalisedChartCaptionOptions) {
 /**
  * Chart-level caption (title/subtitle/footnote). Reads its option subtree from
  * `ctx.chartState.getValue('options', key)` and applies values to its scene node
- * during layout. Mirrors the Legend/Zoom pattern.
- *
- * For axis/series titles (which use `Caption`), the BaseProperties-based
- * `Caption` class continues to be used.
+ * during layout. Mirrors the Legend/Zoom pattern. Axis titles use `Caption` instead.
  */
 export class ChartCaption implements CaptionLike {
     static readonly className = 'ChartCaption';

@@ -30,7 +30,7 @@ export class Foreground extends _ModuleSupport.Background {
                 this.node.appendChild(this.image.node);
                 this.imageInScene = true;
             }
-            this.image.set(opts.image);
+            this.image.applyOptions(opts.image);
         }
         this.textNode.text = opts?.text;
     }

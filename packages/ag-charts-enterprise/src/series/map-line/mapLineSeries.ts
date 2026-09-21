@@ -483,7 +483,7 @@ export class MapLineSeries
 
         this.contentGroup.visible = this.visible;
         this.labelGroup.visible = this.visible;
-        const drawingMode = this.ctx.chartService.highlight?.drawingMode ?? 'overlay';
+        const drawingMode = this.ctx.chartState.getValue('options', 'highlight')?.drawingMode ?? 'overlay';
 
         const highlightedDatum = this.getHighlightedDatum();
         const nodeData = this.contextNodeData?.nodeData ?? [];

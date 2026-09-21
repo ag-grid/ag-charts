@@ -289,16 +289,7 @@ export abstract class RadiusAxis<
         const title = this.options.title;
         const { formatter = identityFormatter } = title;
 
-        caption.enabled = title.enabled;
-        caption.fontFamily = title.fontFamily;
-        caption.fontSize = title.fontSize;
-        caption.fontStyle = title.fontStyle;
-        caption.fontWeight = title.fontWeight;
-        caption.color = title.color;
-        caption.wrapping = title.wrapping;
-        caption.truncate = title.truncate;
-        caption.maxWidth = title.maxWidth;
-        caption.maxHeight = title.maxHeight;
+        caption.applyTitle(title);
 
         let titleVisible = false;
         const titleNode = caption.node;
@@ -313,8 +304,7 @@ export abstract class RadiusAxis<
             titleNode.textAlign = 'center';
             titleNode.textBaseline = 'bottom';
 
-            titleNode.text = this.cachedCallWithContext(formatter, this.getTitleFormatterParams(this.scale.domain));
-            caption.text = titleNode.text;
+            caption.setText(this.cachedCallWithContext(formatter, this.getTitleFormatterParams(this.scale.domain)));
             caption.computeTextWrap(axisLength, Infinity);
         }
 

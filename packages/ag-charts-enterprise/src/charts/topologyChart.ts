@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { AxisID, CanvasPoint, FeatureCollection, Position } from 'ag-charts-core';
-import { ChartAxisDirection, Property, createId } from 'ag-charts-core';
+import { ChartAxisDirection, createId } from 'ag-charts-core';
 import type { AgCoordinates, AgTopologyChartOptions } from 'ag-charts-types';
 
 import type { LonLatBBox } from '../series/map-util/lonLatBbox';
@@ -23,7 +23,6 @@ export class TopologyChart extends Chart {
     private readonly xAxis = { id: createId<AxisID>(_ModuleSupport.Axis), direction: ChartAxisDirection.X } as const;
     private readonly yAxis = { id: createId<AxisID>(_ModuleSupport.Axis), direction: ChartAxisDirection.Y } as const;
 
-    @Property
     topology?: FeatureCollection;
 
     constructor(options: _ModuleSupport.ChartOptions, resources?: _ModuleSupport.TransferableResources) {
