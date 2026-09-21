@@ -77,12 +77,18 @@ export interface AgAngleAxisLabelOptions<TContext = ContextDefault>
     extends AgBaseAxisLabelOptions<TContext>, OrientableLabel {}
 
 /** An angle axis Cross Line rendered as a single line at `value`. The label supports the common label options only. */
-export interface AgAngleLineCrossLineOptions<TValue = AxisValue>
-    extends AgLineCrossLineOptions<TValue, AgBaseCrossLineLabelOptions, ContextDefault> {}
+export interface AgAngleLineCrossLineOptions<TValue = AxisValue> extends AgLineCrossLineOptions<
+    TValue,
+    AgBaseCrossLineLabelOptions,
+    ContextDefault
+> {}
 
 /** An angle axis Cross Line rendered as a shaded band spanning `range`. The label supports the common label options only. */
-export interface AgAngleRangeCrossLineOptions<TValue = AxisValue>
-    extends AgRangeCrossLineOptions<TValue, AgBaseCrossLineLabelOptions, ContextDefault> {}
+export interface AgAngleRangeCrossLineOptions<TValue = AxisValue> extends AgRangeCrossLineOptions<
+    TValue,
+    AgBaseCrossLineLabelOptions,
+    ContextDefault
+> {}
 
 export type AgAngleCrossLineOptions<TValue = AxisValue> =
     | AgAngleLineCrossLineOptions<TValue>

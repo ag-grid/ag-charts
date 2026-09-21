@@ -75,12 +75,18 @@ export interface AgRadiusCategoryAxisOptions<TContext = ContextDefault> extends 
 }
 
 /** A radius axis Cross Line rendered as a single line at `value`. The label supports `positionAngle`. */
-export interface AgRadiusLineCrossLineOptions<TValue = AxisValue>
-    extends AgLineCrossLineOptions<TValue, AgRadiusCrossLineLabelOptions, ContextDefault> {}
+export interface AgRadiusLineCrossLineOptions<TValue = AxisValue> extends AgLineCrossLineOptions<
+    TValue,
+    AgRadiusCrossLineLabelOptions,
+    ContextDefault
+> {}
 
 /** A radius axis Cross Line rendered as a shaded band spanning `range`. The label supports `positionAngle`. */
-export interface AgRadiusRangeCrossLineOptions<TValue = AxisValue>
-    extends AgRangeCrossLineOptions<TValue, AgRadiusCrossLineLabelOptions, ContextDefault> {}
+export interface AgRadiusRangeCrossLineOptions<TValue = AxisValue> extends AgRangeCrossLineOptions<
+    TValue,
+    AgRadiusCrossLineLabelOptions,
+    ContextDefault
+> {}
 
 export type AgRadiusCrossLineOptions<TValue = AxisValue> =
     | AgRadiusLineCrossLineOptions<TValue>
