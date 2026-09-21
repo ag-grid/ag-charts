@@ -156,7 +156,18 @@ export type AgContextMenuItem<TDatum = DatumDefault, TContext = ContextDefault> 
     | AgContextMenuItemSeriesNode<TDatum, TContext>
     | AgContextMenuItemLegendItem<TDatum, TContext>;
 
+// `event` is omitted from the inherited action-event type and re-declared on `ShowOnParamsMixin` below, so that
+// it carries a context-menu-specific description rather than the private, undocumented base member.
 type GetItemsParamsOmissions = 'type' | 'event' | 'coordinates' | 'defaultPrevented' | 'preventDefault';
+
+interface ShowOnParamsMixin {
+    /**
+     * The DOM event that opened the context menu — a `MouseEvent` for a right-click, or a `PointerEvent` synthesised
+     * for a touch long-press. Its default action has already been prevented; to suppress the chart's own menu, return
+     * an empty array from `getItems`.
+     */
+    event: Event;
+}
 
 // Note: The unused `_TDatumReserved = never` are reserved for future-proofing.
 //
@@ -170,7 +181,9 @@ type GetItemsParamsOmissions = 'type' | 'event' | 'coordinates' | 'defaultPreven
 export interface AgContextMenuShowOnParamsAlways<_TDatumReserved = never, TContext = ContextDefault> extends Omit<
     AgChartContextMenuEvent<TContext>,
     GetItemsParamsOmissions
-> {
+>,
+    ShowOnParamsMixin
+{
     /** Which clicked element this menu item should be shown for. */
     showOn: 'always';
 }
@@ -178,7 +191,9 @@ export interface AgContextMenuShowOnParamsAlways<_TDatumReserved = never, TConte
 export interface AgContextMenuShowOnParamsAxis<_TDatumReserved = never, TContext = ContextDefault> extends Omit<
     AgAxisContextMenuActionEvent<TContext>,
     GetItemsParamsOmissions
-> {
+>,
+    ShowOnParamsMixin
+{
     /** Which clicked element this menu item should be shown for. */
     showOn: 'axis';
 }
@@ -186,7 +201,9 @@ export interface AgContextMenuShowOnParamsAxis<_TDatumReserved = never, TContext
 export interface AgContextMenuShowOnParamsCrossLine<_TDatumReserved = never, TContext = ContextDefault> extends Omit<
     AgCrossLineContextMenuActionEvent<TContext>,
     GetItemsParamsOmissions
-> {
+>,
+    ShowOnParamsMixin
+{
     /** Which clicked element this menu item should be shown for. */
     showOn: 'cross-line';
 }
@@ -194,7 +211,9 @@ export interface AgContextMenuShowOnParamsCrossLine<_TDatumReserved = never, TCo
 export interface AgContextMenuShowOnParamsCaption<_TDatumReserved = never, TContext = ContextDefault> extends Omit<
     AgCaptionContextMenuActionEvent<TContext>,
     GetItemsParamsOmissions
-> {
+>,
+    ShowOnParamsMixin
+{
     /** Which clicked element this menu item should be shown for. */
     showOn: 'caption';
 }
@@ -202,7 +221,9 @@ export interface AgContextMenuShowOnParamsCaption<_TDatumReserved = never, TCont
 export interface AgContextMenuShowOnParamsSeriesArea<_TDatumReserved = never, TContext = ContextDefault> extends Omit<
     AgSeriesAreaContextMenuActionEvent<TContext>,
     GetItemsParamsOmissions
-> {
+>,
+    ShowOnParamsMixin
+{
     /** Which clicked element this menu item should be shown for. */
     showOn: 'series-area';
 }
@@ -210,7 +231,9 @@ export interface AgContextMenuShowOnParamsSeriesArea<_TDatumReserved = never, TC
 export interface AgContextMenuShowOnParamsSeriesNode<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
     Omit<AgNodeContextMenuActionEvent<TDatum, TContext>, 'allMatchedParams'>,
     GetItemsParamsOmissions
-> {
+>,
+    ShowOnParamsMixin
+{
     /** Which clicked element this menu item should be shown for. */
     showOn: 'series-node';
     /** The current selection state of this datum. Set to `undefined` if the selection module is not enabled. */
@@ -222,7 +245,9 @@ export interface AgContextMenuShowOnParamsSeriesNode<TDatum = DatumDefault, TCon
 export interface AgContextMenuShowOnParamsLegendItem<_TDatumReserved = never, TContext = ContextDefault> extends Omit<
     AgChartLegendContextMenuEvent<TContext>,
     GetItemsParamsOmissions
-> {
+>,
+    ShowOnParamsMixin
+{
     /** Which clicked element this menu item should be shown for. */
     showOn: 'legend-item';
     /** Whether the series of this legend item is visible or hidden. */
