@@ -1,15 +1,17 @@
-// AG Grid overrides for the header's per-repo-tunable breakpoints (see
+// AG Charts overrides for the header's per-repo-tunable breakpoints (see
 // external/ag-website-shared/src/components/site-header/_breakpoints.scss for what each
-// token controls). The Grid top nav carries more items than the shared defaults were
-// tuned for (Products switcher + 7 links), so both thresholds are raised:
+// token controls, and ./README.md for how the override takes effect).
 //
-// - $nav-collapse: the full inline nav + Products switcher only fit on a single row
-//   above this width; below it the header collapses to the mobile hamburger. Kept high
-//   enough that the Products switcher is never stranded on its own wrapped line.
-// - $docs-search-inline: the header only goes fully inline (search in the same row as
-//   the nav) once there is room for the search box at a usable width; below it the
-//   search box wraps to its own full-width row instead of being squeezed.
+// Both are sums, so both want remeasuring whenever a nav item is added or renamed. At
+// 17px/500 with the header's clamped link padding, the logo cell is 234px, the Products
+// switcher and the 8 nav links together 997px, and the grid's two column gaps 20px each.
+//
+// - $nav-collapse: 234 + 997, the header's width with no search box. Below it the nav
+//   hamburgers rather than wrapping and stranding the switcher on the row above.
+// - $docs-search-inline: the same plus both gaps plus ~210px of search box (it caps at
+//   372px). The nav's links are nowrap, so the single-row grid cannot shrink: give it
+//   less and it squeezes the search box to nothing, then overflows the nav off screen.
 @forward '../../../../../external/ag-website-shared/src/design-system/site-header-tokens' with (
-    $nav-collapse: 1120px,
-    $docs-search-inline: 1300px
+    $nav-collapse: 1275px,
+    $docs-search-inline: 1520px
 );

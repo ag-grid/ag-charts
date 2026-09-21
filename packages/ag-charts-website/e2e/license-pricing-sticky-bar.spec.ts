@@ -5,10 +5,10 @@ import { gotoUrl, toPageUrl } from './util';
 
 // The pricing page's sticky summary bar pins below the site header, which is itself sticky and
 // paints above it. The header is two rows tall wherever its search box has wrapped, so a fixed
-// offset leaves the bar partly hidden in that band (CRT-1226). 1200px sits inside it; 1400px is
-// the single-row control.
-const TWO_ROW_HEADER_WIDTH = 1200;
-const ONE_ROW_HEADER_WIDTH = 1400;
+// offset leaves the bar partly hidden in that band (CRT-1226). Both widths come from this repo's
+// header tokens: 1400px sits between $nav-collapse and $docs-search-inline, 1650px above both.
+const TWO_ROW_HEADER_WIDTH = 1400;
+const ONE_ROW_HEADER_WIDTH = 1650;
 
 // getBoundingClientRect values are fractional, so compare with a sub-pixel tolerance.
 const OVERLAP_TOLERANCE_PX = 0.5;

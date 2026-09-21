@@ -43,6 +43,9 @@ const isRedirectPage = (page: string) => {
 const isNonPublicContent = (page: string) => {
     return (
         page.endsWith('/style-guide/') ||
+        // Noindex, and so excluded here too: the production-only noindex filter would otherwise
+        // leave it listed in every other build, where it has no markdown twin to serve.
+        page.endsWith('/theme-builder/') ||
         // Post-submission confirmations are robots-disallowed, so listing them here would make
         // Search Console report "submitted URL blocked by robots.txt".
         page.endsWith('/contact/failure/') ||

@@ -70,7 +70,7 @@ export interface AgBaseChartThemeParams {
     buttonFontWeight?: FontWeight;
     /** Text colour of standard action buttons. A colour string, or a theme-colour reference object. */
     buttonTextColor?: AgCssColorOrRef;
-    /** Shadow around UI controls that have focus e.g. text inputs and buttons. The value must a valid CSS box-shadow. */
+    /** Shadow around UI controls that have focus e.g. text inputs and buttons. The value must be a valid CSS box-shadow. */
     focusShadow?: CssShadow;
     /**
      * Default colour for neutral UI elements. Most text, borders and backgrounds are defined as a blend between the
@@ -138,7 +138,13 @@ export interface AgBaseChartThemeParams {
 export interface AgChartThemeParams extends AgBaseChartThemeParams {
     /** Default colour for axis lines and ticks. A colour string, or a theme-colour reference object. */
     axisLineColor?: AgCssColorOrRef;
-    /** Background colour of the chart. A colour string, or a theme-colour reference object. */
+    /**
+     * Colour painted behind the chart. Follows backgroundColor, which is also blended into text, borders and other
+     * backgrounds - so change that one to shift the whole theme, and this one to repaint the chart alone. A colour
+     * string, or a theme-colour reference object.
+     *
+     * Default: `backgroundColor`
+     */
     chartBackgroundColor?: AgCssColorOrRef;
     /** The outer chart padding. */
     chartPadding?: PixelSize;
