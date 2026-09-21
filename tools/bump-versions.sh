@@ -31,6 +31,9 @@ for package in ${PACKAGES[@]}; do
     node ${TOOLS_DIR}/update-package-json-deps.js $package "$NEW_VERSION"
 done
 
+# The demo seed projects pin ag-charts-* exactly, so regenerate them from the new version.
+node ./packages/ag-charts-demos/tools/seeds/generate-react-seed.mjs
+
 echo >./packages/ag-charts-community/src/version.ts "// DO NOT UPDATE MANUALLY: Generated from script during build time
 export const VERSION = '${NEW_VERSION}';"
 

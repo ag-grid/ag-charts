@@ -91,6 +91,23 @@
         "cwd": "{projectRoot}"
       }
     },
+    "generate-seeds": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "node tools/seeds/generate-react-seed.mjs"
+      }
+    },
+    "check-seeds": {
+      "executor": "nx:run-commands",
+      "outputs": [],
+      "cache": false,
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "node tools/seeds/check-seeds.mjs --react"
+      }
+    },
     "lint:eslint": {},
     "lint": {
       "executor": "nx:noop",
