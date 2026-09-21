@@ -9,13 +9,8 @@ import type { DataController } from '../data/dataController';
 import type { DataModel, DataModelOptions, ProcessedData } from '../data/dataModel';
 import type { PropertyDefinition } from '../data/dataModelTypes';
 import { DataSet } from '../data/dataSet';
-import type {
-    PickFocusInputs,
-    PickFocusOutputs,
-    SeriesConstructorOpts,
-    SeriesNodeDataContext,
-    SeriesNodePickMatch,
-} from './series';
+import type { PickFocusInputs, PickFocusOutputs, SeriesNodePickMatch } from './pickTypes';
+import type { SeriesConstructorOpts, SeriesNodeDataContext } from './series';
 import { Series } from './series';
 import { type SeriesNodeDatum } from './seriesTypes';
 import { findNodeDatumInArray } from './util';

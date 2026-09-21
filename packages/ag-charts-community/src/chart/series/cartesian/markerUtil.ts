@@ -18,7 +18,7 @@ import { Transformable } from '../../../scene/transformable';
 import type { AnimationManager } from '../../interaction/animationManager';
 import type { MarkerStrokePickStyle } from '../../marker/marker';
 import { Marker, markerStrokePickInflation } from '../../marker/marker';
-import type { PickFocusInputs } from '../series';
+import type { PickFocusInputs } from '../pickTypes';
 import { highlightStates } from '../seriesProperties';
 import type { HighlightState, ISeries, ISeriesOptions, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';

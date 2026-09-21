@@ -44,12 +44,8 @@ import type { ChartAxis } from '../../chartAxis';
 import { processedDataIsAnimatable } from '../../data/processors';
 import { getPickedFocusBBox } from '../../keyboardUtil';
 import { DataModelSeries, type DataModelSeriesConstructorOpts } from '../dataModelSeries';
-import type {
-    PickFocusOutputs,
-    PickViewportFocusInputs,
-    SeriesDirectionKeysMapping,
-    SeriesNodePickMatch,
-} from '../series';
+import type { PickFocusOutputs, PickViewportFocusInputs, SeriesNodePickMatch } from '../pickTypes';
+import type { SeriesDirectionKeysMapping } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import { type ShapeFillBBox } from '../shapeUtil';
 import { countExpandingSearch, visibleRangeIndices } from '../util';

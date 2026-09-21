@@ -58,13 +58,8 @@ import {
     tooltipContentAriaLabel,
 } from '../tooltip/tooltip';
 import { PickManager, type PickedNode, type PickedNodes, getItemId } from './pickManager';
-import {
-    type PickFocusInputs,
-    type PickFocusOutputs,
-    type PickViewportFocusInputs,
-    type SeriesNodePickIntent,
-    type UnknownSeries,
-} from './series';
+import type { PickFocusInputs, PickFocusOutputs, PickViewportFocusInputs, SeriesNodePickIntent } from './pickTypes';
+import type { UnknownSeries } from './series';
 import type { DatumIndex, FireNodeEventParams, SeriesNodeDatum } from './seriesTypes';
 import { SelectionState } from './seriesTypes';
 import { getDatumRefPoint, isDatumHighlight } from './util';
