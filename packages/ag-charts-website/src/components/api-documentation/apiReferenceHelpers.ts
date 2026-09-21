@@ -798,12 +798,13 @@ export function formatUnionSignature(
 }
 
 /**
- * Resolves a reference that represents a union, whether directly (a union type alias) or
- * indirectly. Axis-specific cross-line aliases (e.g. `AgCartesianCrossLineOptions`) are
- * emitted as an interface with no own members whose single heritage is a union type alias
- * (`AgBaseCrossLineOptions`); without this they resolve to zero members and disappear from
- * the navigation and options page. The alias' `genericsMap` is returned so generic members
- * of the union variants (e.g. `label`) resolve to the per-axis type.
+ * Resolves a reference that represents a union, whether directly (a union type alias, e.g. the
+ * axis-specific cross-line aliases `AgCartesianCrossLineOptions` et al.) or indirectly. The
+ * indirect form covers an alias whose RHS is a `typeRef` to a union alias rather than the union
+ * itself: it is emitted as an interface with no own members whose single heritage entry points at
+ * the union alias (e.g. `AnyLeaf` → `Leaf`); without this it resolves to zero members and
+ * disappears from the navigation and options page. Either way, the alias' `genericsMap` is
+ * returned so generic members of the union variants (e.g. `label`) resolve to the per-axis type.
  */
 export function resolveAliasedUnion(
     interfaceRef?: NodeTypes,
@@ -862,8 +863,10 @@ export function getVariantDiscriminator(node?: NodeTypes): { key: string; value:
  * Resolves the discriminated variants of an aliased union (see {@link resolveAliasedUnion}) into
  * `{ name, type }` navigation entries — `name` being the variant's discriminator value and
  * `type` its interface name. Returns the alias' `genericsMap` so callers can resolve generic
- * members (e.g. the per-axis `label`) when rendering each variant. Mirrors the shape produced for
- * direct union aliases so both can feed the same typed-union navigation rendering.
+ * members inherited from the union itself; a per-axis cross-line alias instead carries the
+ * per-axis `label` type on each variant's own `genericsMap`, since the alias' union members are
+ * the axis-specific interfaces directly. Mirrors the shape produced for the member-less-interface
+ * form so both can feed the same typed-union navigation rendering.
  *
  * For a mixed union, `primitive` carries the non-interface members joined with ` | ` (the part the
  * variant rows omit, mirroring the right-hand signature from {@link formatUnionSignature}); it is
