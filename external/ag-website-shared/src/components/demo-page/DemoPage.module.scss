@@ -241,6 +241,38 @@ $breakpoint-demo-fits: $demo-held-width + $hero-max-width + $demo-column-gap + $
     }
 }
 
+// Seed project links: one row per framework, beneath the CTAs so the "get started" pair keeps
+// its prominence. Placement is provisional pending design review.
+.openIn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $spacing-size-2;
+    margin: $spacing-size-4 0 0;
+    padding: 0;
+    list-style: none;
+
+    @media screen and (min-width: $breakpoint-docs-search-medium) {
+        align-items: flex-start;
+    }
+}
+
+.openInItem {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: $spacing-size-3;
+}
+
+.openInButton,
+.openInSource {
+    gap: $spacing-size-2;
+    :global(.icon) {
+        --icon-size: #{$spacing-size-4};
+    }
+}
+
 .demoCard {
     position: relative;
     // The demo has no usable small-screen form: it is held at $demo-held-width, so a phone
