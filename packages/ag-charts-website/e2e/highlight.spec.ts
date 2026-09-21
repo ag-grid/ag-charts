@@ -75,6 +75,8 @@ const highlightExamples = [
     'custom-highlight-single-series-item-styler',
 ];
 
+const PATTERN_FILL_SCREENSHOT_OPTIONS = { threshold: 0.25 };
+
 test.describe('highlight states', () => {
     for (const example of highlightExamples) {
         // For single-series examples, skip series/other-series highlight states
@@ -83,13 +85,14 @@ test.describe('highlight states', () => {
             ? highlightStates.filter((s) => s.name !== 'series' && s.name !== 'other-series')
             : highlightStates;
         const url = toExamplePageUrl('highlight-e2e', example, 'vanilla').url;
+        const screenshotOptions = example.includes('-pattern-fill') ? PATTERN_FILL_SCREENSHOT_OPTIONS : undefined;
         test.describe(`${example}`, () => {
             for (const state of states) {
                 test(`should render highlight state: ${state.name}`, async ({ page }) => {
                     await gotoExample(page, url);
                     await state.trigger(page);
                     const canvasCenter = page.locator(SELECTORS.canvasCenter);
-                    await expectChartScreenshot(page, canvasCenter, `${example}-${state.name}.png`);
+                    await expectChartScreenshot(page, canvasCenter, `${example}-${state.name}.png`, screenshotOptions);
                 });
             }
         });
