@@ -11,7 +11,7 @@ export default [
         rules: reactHooksPlugin.configs.recommended.rules,
     },
     {
-        ignores: ['dist/', 'e2e/', 'playwright.config.ts'],
+        ignores: ['dist/', 'e2e/', 'playwright.config.ts', 'playwright.parity.config.ts'],
     },
     {
         rules: {
