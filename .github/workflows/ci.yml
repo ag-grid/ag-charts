@@ -1606,13 +1606,27 @@ jobs:
                   fi
                   echo "workflowStatus=${WORKFLOW_STATUS}" >> $GITHUB_OUTPUT
 
-                  LAST_WORKFLOW_STATUS=$(gh run list --workflow .github/workflows/ci.yml -b ${{ github.ref_name }} | grep -oh "completed.*" | grep -v "cancelled" | head -1 | awk '{print $2}')
+                  # The workflow-runs listing intermittently serves a stale, unordered page (observed
+                  # returning months-old runs first), so do not trust the first row to be the newest
+                  # run. Constrain the query to recent runs, sort locally by creation time, and drop
+                  # this run, unfinished runs and cancelled runs before taking the head.
+                  SINCE=$(date -u -d '14 days ago' +%Y-%m-%d)
+                  LAST_WORKFLOW_STATUS=$(gh run list --workflow .github/workflows/ci.yml -b ${{ github.ref_name }} \
+                      --created ">=${SINCE}" -L 50 --json databaseId,status,conclusion,createdAt \
+                    | jq -r --argjson self "${GITHUB_RUN_ID}" '
+                        map(select(.databaseId != $self and .status == "completed" and .conclusion != "cancelled"))
+                        | sort_by(.createdAt) | reverse | .[0].conclusion // ""')
                   if [ "$GITHUB_RUN_ATTEMPT" -ge 2 ]; then
                     # Handle re-run cases - there is no way to query the previous run status, so we assume the most
                     # common scenario will be re-run after failure.
                     LAST_WORKFLOW_STATUS="failure"
                   fi
-                  if [ "$LAST_WORKFLOW_STATUS" != "$WORKFLOW_STATUS" ]; then
+                  if [ -z "$LAST_WORKFLOW_STATUS" ]; then
+                    # No usable previous run (empty or stale listing): prefer a possibly redundant
+                    # notification over silently swallowing a real state change.
+                    echo "previous workflow status unknown, treating as a state change"
+                    echo "changedState=true" >> $GITHUB_OUTPUT
+                  elif [ "$LAST_WORKFLOW_STATUS" != "$WORKFLOW_STATUS" ]; then
                     echo "status changed from $LAST_WORKFLOW_STATUS to $WORKFLOW_STATUS"
                     echo "changedState=true" >> $GITHUB_OUTPUT
                   else
