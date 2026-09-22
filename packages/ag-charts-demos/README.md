@@ -18,9 +18,11 @@ There are three demo apps: `financial`, `web-analytics` and `procurement`. Each 
 type-checked, unit-tested and e2e-tested in CI (a broken demo fails CI) and deployed with the website
 at `/charts/demos/<id>`, marked `noindex`, which also keeps the pages out of the sitemap.
 
-Seed projects — a downloadable, runnable copy of each demo in every supported framework — are
-**planned** under [AG-18147](https://ag-grid.atlassian.net/browse/AG-18147); see
-[Seed projects (planned)](#seed-projects-planned) below.
+Each demo is also published as runnable seed projects — a standalone copy per framework, opened in
+StackBlitz from the demo page — under `seeds/`; see [Seed projects](#seed-projects) below. The React
+seed exists for every demo; the Angular, Vue and TypeScript ports land demo by demo
+([AG-18147](https://ag-grid.atlassian.net/browse/AG-18147)), and a demo page offers whichever of them
+are committed.
 
 ## Layout
 
@@ -37,36 +39,62 @@ src/
     data.ts          #   sample data
     *.test.ts        #   unit tests (vitest)
 e2e/                 # Playwright specs: a registry smoke plus one spec per demo
+  parity/            #   screenshot-diff harness: each port against the React demo (see its README)
+seeds/               # standalone seed projects, one folder per demo and framework (Nx project ag-charts-demos-seeds)
+  <id>/react/        #   GENERATED from src/demos/<id> plus scaffolding; committed, CI-checked fresh
+  <id>/angular/      #   port of the React demo, hand-maintained
+  <id>/vue/          #   port
+  <id>/typescript/   #   vanilla port: Vite + TypeScript, no framework
+  <id>/<framework>/.seed-manifest.json   # what the seed is and which src/demos/<id> it was last synced to
+  <id>/<framework>/PORTING.md            # a port's mapping rules (React construct -> port equivalent)
+tools/seeds/         # generator, freshness and staleness checks, sync automation (see its README)
 ```
 
-Planned additions (AG-18147; none of these exist yet):
+## Seed projects
 
-```
-seeds/<id>/react/               generated from src/demos/<id> plus scaffolding; committed, CI-checked fresh
-seeds/<id>/angular/             port of the React demo
-seeds/<id>/vue/                 port
-seeds/<id>/typescript/          vanilla port: Vite + TypeScript, no framework
-seeds/<id>/<framework>/.seed-manifest.json   { sourceHash, sourceCommit } of src/demos/<id> last synced
-tools/seeds/generate-react-seed.mjs
-tools/seeds/check-seeds.mjs     freshness and staleness report (JSON)
-e2e/parity/                     screenshot-diff harness: each port against the React demo
-```
-
-## Seed projects (planned)
-
-Each demo/framework pair will be a standalone Vite project committed under `seeds/<id>/<framework>/`
-and opened in StackBlitz straight from GitHub at the release tag matching the version the website
-displays (`https://stackblitz.com/github/ag-grid/ag-charts/tree/release-<version>/<path>`). There is
-no separate demos repository and no zip download.
+Each demo/framework pair is a standalone Vite project committed under `seeds/<id>/<framework>/`,
+with exact `ag-charts-*` pins, and is opened in StackBlitz straight from GitHub. There is no separate
+demos repository and no zip download.
 
 - The React demo under `src/demos/<id>` is the golden master. The React seed is **generated** from it
-  and a CI check fails if the committed seed is stale.
+  (`tools/seeds/generate-react-seed.mjs`) and CI fails if the committed seed is stale.
 - The Angular, Vue and vanilla TypeScript seeds are ports of the React demo. They are built,
-  type-checked and e2e-tested in CI only; the website keeps rendering React.
+  type-checked and e2e-tested in CI only; the website keeps rendering React. When a React demo
+  changes, CI files a JIRA Sub-task that gets the ports re-synced; how that works, and how to do a
+  sync by hand, is in [`tools/seeds/README.md`](tools/seeds/README.md).
 - Parity is a hard gate: a Playwright screenshot diff of each port against the React demo at fixed
-  viewports with frozen data and time.
+  viewports with frozen data and time, plus the functional specs run against each port. The harness
+  and its `PARITY_DISCOVER=1` mode, which finds every committed port by its manifest, are described
+  in [`e2e/parity/README.md`](e2e/parity/README.md).
 - Seeds must be fully self-contained — nothing in a seed may reference a path above its own root —
   so that StackBlitz can import the folder on its own.
+
+### How the demo pages link the seeds
+
+The showcase pages (`ag-charts-website/src/pages/examples*.astro`, rendered through
+`src/components/demo-examples/DemoPage.astro`) show one "Open in StackBlitz" button and one
+"See on GitHub" link per framework the demo has a seed for. The set is not configured anywhere:
+`seedLinks.ts` in that folder reads every `seeds/<id>/<framework>/.seed-manifest.json` when the
+site builds and offers exactly the frameworks that have one, in the order React, Angular, Vue,
+TypeScript. **A new port becomes visible on the site by committing its folder with a manifest;
+nothing on the website side changes.** A folder without a manifest is not a seed and is not linked.
+A manifest that does not parse, or that names a different demo or framework from the folder it is
+in, fails the website build.
+
+The links point at the seed folder in this repository at a git ref chosen per build
+(`getSeedGitRef` in `seedLinks.ts`):
+
+- production links the release tag matching the version the site displays (`release-14.2.0` for
+  `PUBLIC_PACKAGE_VERSION=14.2.0`, or for a `14.2.0-beta.*`), so a reader opens the seed that
+  shipped with the version they are reading about;
+- every other build — dev, staging, PR previews — links the `latest` branch, which carries the seeds
+  from the moment they merge.
+
+StackBlitz imports only the linked sub-folder, runs `npm install` against the seed's exact pins and
+starts its `dev` script. After each staging deploy, `tools/ci/check-demo-seed-links.mjs` (run by
+`.github/workflows/post-deploy-verification.yml`) HEADs the GitHub folder of every seed the
+manifests declare at the ref that site links, so a link that would 404 is caught; StackBlitz
+itself cannot be driven headlessly.
 
 ## Commands
 
@@ -77,6 +105,10 @@ no separate demos repository and no zip download.
   DST-observing `TZ` for the `*Timezone.test.ts` specs.
 - `yarn nx test:e2e ag-charts-demos` — Playwright: loads each demo and asserts it renders with no
   console errors, plus per-demo interaction specs.
+- `yarn nx run ag-charts-demos-seeds:build` — builds and type-checks every committed seed, ports
+  included; `yarn nx run ag-charts-demos:check-seeds` — fails if a React seed is stale.
+- `PARITY_DISCOVER=1 yarn nx test:e2e:parity ag-charts-demos` — the parity harness against every
+  committed port (details in `e2e/parity/README.md`).
 
 ### In the website dev server
 

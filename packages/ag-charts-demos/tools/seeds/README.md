@@ -9,6 +9,43 @@ Every seed carries a `.seed-manifest.json` whose `sourceHash` is a content hash 
 `src/demos/<demo>/**` (`hashDemoSource` in `seed-common.mjs`) and whose `sourceCommit` is the last
 commit that touched it. The React generator writes it; a port's is stamped by hand after a sync.
 
+## The manifest is what makes a seed exist
+
+Nothing lists the seeds. Everything that needs to know which seeds there are walks
+`seeds/<demo>/<framework>/` and takes the folders that carry a `.seed-manifest.json`:
+
+- the website: the demo page offers an "Open in StackBlitz" button and a "See on GitHub" link for
+  every framework with a manifest, in the order React, Angular, Vue, TypeScript (`readSeedManifests`
+  in `packages/ag-charts-website/src/components/demo-examples/seedLinks.ts`);
+- the parity harness, with `PARITY_DISCOVER=1`, serves and compares every port with a manifest
+  (`e2e/parity/README.md`, "Discovered ports");
+- `check-seeds.mjs --stale` reports every port with a manifest whose `sourceHash` is behind;
+- the post-deploy check `tools/ci/check-demo-seed-links.mjs` verifies that every seed with a
+  manifest resolves on GitHub at the ref the deployed site links.
+
+So a new port becomes visible on the site, and part of the CI gates, by committing its folder with a
+manifest; no registry, website or workflow change is needed. A folder without a manifest is ignored
+by all of the above, which is what a port in progress should be. A manifest whose `demo` or
+`framework` disagrees with the folder it lives in fails the website build and every check.
+
+A port's manifest carries:
+
+```json
+{
+    "demo": "financial",
+    "framework": "angular",
+    "sourceHash": "sha256-…", // of src/demos/<demo>/** when last synced; written by stamp-port-manifest.mjs
+    "sourceCommit": "…", // the commit that last touched src/demos/<demo>; also stamped
+    "pinnedVersion": "14.2.0", // the ag-charts-* version the seed's package.json pins
+    "pinSource": "released", // "workspace" on a release branch, "released" on a pre-release build
+    "dist": "dist" // the seed-relative build output the parity harness serves
+}
+```
+
+`framework` must be one of `react`, `angular`, `vue` or `typescript`: the website has a label for
+those and fails on anything else. The Nx targets in `seeds/project.json` are per framework, so a
+seed in a new framework also needs its build and typecheck targets there.
+
 ## Scripts
 
 All commands run from the repository root.
