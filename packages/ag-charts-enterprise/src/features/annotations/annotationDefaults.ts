@@ -16,8 +16,10 @@ import {
     type LineTextAlignment,
     type LineTextPosition,
 } from './annotationTypes';
-import type { AnnotationProperties } from './annotationsSuperTypes';
-import { setColor, setFontSize, setLineStyle } from './utils/styles';
+import type { AnnotationDatum } from './annotationsSuperTypes';
+import { hasLineStyle, hasLineText } from './utils/has';
+import { setColor, setFontSize, setLineStyle, setLineTextPosition } from './utils/styles';
+import { isFibonacciType } from './utils/types';
 
 interface DefaultsMemento {
     colors: DefaultColors;
@@ -198,7 +200,7 @@ export class AnnotationDefaults implements MementoOriginator<DefaultsMemento> {
         this.fibonacciOptions.set(type, options);
     }
 
-    applyDefaults(datum: AnnotationProperties) {
+    applyDefaults(datum: AnnotationDatum) {
         for (const [annotationType, colors] of this.colors) {
             if (datum.type !== annotationType) continue;
 
@@ -214,31 +216,23 @@ export class AnnotationDefaults implements MementoOriginator<DefaultsMemento> {
             setFontSize(datum, size);
         }
 
-        for (const [annotationType, style] of this.lineStyles) {
-            if (datum.type !== annotationType || style == null) continue;
-            setLineStyle(datum, style);
+        if (hasLineStyle(datum)) {
+            const style = this.lineStyles.get(datum.type);
+            if (style != null) setLineStyle(datum, style);
         }
 
-        for (const [annotationType, position] of this.lineTextPositions) {
-            if (datum.type !== annotationType || position == null) continue;
-            datum.text.position = position;
+        if (hasLineText(datum)) {
+            const position = this.lineTextPositions.get(datum.type);
+            const alignment = this.lineTextAlignments.get(datum.type);
+            if (position != null) setLineTextPosition(datum, position);
+            if (alignment != null) datum.text.alignment = alignment;
         }
 
-        for (const [annotationType, alignment] of this.lineTextAlignments) {
-            if (datum.type !== annotationType || alignment == null) continue;
-            datum.text.alignment = alignment;
-        }
-
-        for (const [annotationType, options] of this.fibonacciOptions) {
-            if (datum.type !== annotationType || options == null) continue;
-
-            for (const option of Object.keys(options)) {
-                const value = (options as any)[option];
-                if (value == null) {
-                    continue;
-                }
-                datum.set({ [option]: value });
-            }
+        if (isFibonacciType(datum)) {
+            const { bands, reverse, showFill } = this.fibonacciOptions.get(datum.type) ?? {};
+            if (bands != null) datum.bands = bands;
+            if (reverse != null) datum.reverse = reverse;
+            if (showFill != null) datum.showFill = showFill;
         }
     }
 }

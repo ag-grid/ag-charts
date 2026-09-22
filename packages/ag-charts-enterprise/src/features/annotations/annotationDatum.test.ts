@@ -231,13 +231,12 @@ describe('Annotation datum lifecycle', () => {
             expect(annotation.text?.label).toBe('Kept');
         });
 
-        it('warns about an unknown property in restored state', async () => {
+        it('restores state containing an unknown property without warning', async () => {
             await prepareChart([MINIMAL_ANNOTATIONS.line]);
             await restore([{ ...MINIMAL_ANNOTATIONS.line, bogus: 1 }]);
 
-            expectWarningsCalls().toEqual([
-                ['AG Charts - unable to set [bogus] in LineProperties - property is unknown'],
-            ]);
+            expectWarningsCalls().toEqual([]);
+            expect(chart.getState().annotations).toHaveLength(1);
         });
     });
 

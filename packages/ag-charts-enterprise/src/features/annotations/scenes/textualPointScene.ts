@@ -1,14 +1,27 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { BoxBounds, Point } from 'ag-charts-core';
 
-import type { AnnotationContext } from '../annotationTypes';
-import type { TextualPointProperties } from '../properties/textualPointProperties';
-import { getBBox, updateTextNode } from '../text/util';
+import type { TextInputLayout } from '../../text-input/textInput';
+import type { AnnotationContext, Padding } from '../annotationTypes';
+import type { TextualPointDatum } from '../datum/textualDatum';
+import {
+    type AnnotationTextAlignment,
+    type AnnotationTextPosition,
+    type TextOptions,
+    getAnnotationText,
+    getBBox,
+    uniformPadding,
+    updateTextNode,
+} from '../text/util';
 import { convertPoint, invertCoords } from '../utils/values';
 import { PointScene } from './pointScene';
 
-export abstract class TextualPointScene<Datum extends TextualPointProperties> extends PointScene<Datum> {
+export abstract class TextualPointScene<Datum extends TextualPointDatum> extends PointScene<Datum> {
     override activeHandle?: string;
+
+    protected abstract textPosition: AnnotationTextPosition;
+    protected abstract readonly textAlignment: AnnotationTextAlignment;
+    protected readonly textWidth?: number;
 
     protected readonly label = new _ModuleSupport.Text({ zIndex: 1 });
 
@@ -36,11 +49,11 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         this.anchor = this.updateAnchor(datum, bbox, context);
     }
 
-    public override copy(datum: Datum, copiedDatum: Datum, context: AnnotationContext) {
+    public override copy<D extends Datum>(datum: D, copiedDatum: D, context: AnnotationContext): D | undefined {
         const coords = convertPoint(datum, context);
         const bbox = this.getTextBBox(datum, coords, context);
 
-        const padding = datum.getPadding();
+        const padding = this.getPadding(datum);
         const horizontalPadding = padding.left + padding.right;
         const verticalPadding = padding.top + padding.bottom;
 
@@ -66,20 +79,61 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         return super.getNodeAtCoords(x, y);
     }
 
-    protected getTextBBox(datum: Datum, coords: Point, _context: AnnotationContext) {
-        const { text } = datum.getText();
-        return getBBox(datum, text, { x: coords.x, y: coords.y }, this.textInputBBox);
+    public getTextInputLayout(datum: TextualPointDatum, context: AnnotationContext): TextInputLayout {
+        return {
+            getTextInputCoords: (height) => this.getTextInputCoords(datum, context, height),
+            getTextPosition: () => this.textPosition,
+            alignment: this.textAlignment,
+            textAlign: datum.textAlign,
+            width: this.textWidth,
+        };
+    }
+
+    public getPlaceholderColor(_datum: TextualPointDatum): string | undefined {
+        return undefined;
+    }
+
+    protected getTextInputCoords(datum: TextualPointDatum, context: AnnotationContext, _height: number): Point {
+        return convertPoint(datum, context);
+    }
+
+    protected getPadding(datum: TextualPointDatum): Padding {
+        return uniformPadding(datum.padding ?? 0);
+    }
+
+    protected getTextOptions(datum: TextualPointDatum): TextOptions & { width?: number } {
+        const { fontFamily, fontSize, fontStyle, fontWeight, textAlign } = datum;
+        return {
+            fontFamily,
+            fontSize,
+            fontStyle,
+            fontWeight,
+            textAlign,
+            position: this.textPosition,
+            width: this.textWidth,
+        };
+    }
+
+    protected getTextBBox(datum: Datum, coords: Point, context: AnnotationContext) {
+        const { text } = getAnnotationText(datum.text, context.localeManager);
+        return getBBox(this.getTextOptions(datum), text, { x: coords.x, y: coords.y }, this.textInputBBox);
     }
 
     protected updateLabel(datum: Datum, bbox: BoxBounds, context: AnnotationContext) {
-        const { text, isPlaceholder } = datum.getText();
+        const { text, isPlaceholder } = getAnnotationText(datum.text, context.localeManager);
         const labelCoords = this.getLabelCoords(datum, bbox);
 
         if (context.isRtl) {
             labelCoords.x += bbox.width;
         }
 
-        updateTextNode(this.label, text, isPlaceholder, datum, labelCoords, this.getTextBaseline(datum));
+        const config = {
+            ...this.getTextOptions(datum),
+            visible: datum.visible,
+            color: datum.color,
+            placeholderColor: this.getPlaceholderColor(datum),
+        };
+        updateTextNode(this.label, text, isPlaceholder, config, labelCoords, this.getTextBaseline(datum));
     }
 
     protected updateShape(_datum: Datum, _bbox: BoxBounds) {
@@ -98,8 +152,8 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         return bbox;
     }
 
-    protected getTextBaseline(datum: Datum): CanvasTextBaseline {
-        return datum.position == 'center' ? 'middle' : datum.position;
+    protected getTextBaseline(_datum: Datum): CanvasTextBaseline {
+        return this.textPosition == 'center' ? 'middle' : this.textPosition;
     }
 
     protected override getHandleCoords(_datum: Datum, _coords: Point, bbox: _ModuleSupport.BBox): Point {

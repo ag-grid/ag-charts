@@ -2,17 +2,19 @@ import { type TextOptions, _ModuleSupport } from 'ag-charts-community';
 import { type Bounds4, type Point, Vec4 } from 'ag-charts-core';
 
 import type { AnnotationAxisContext, AnnotationContext, LineTextAlignment } from '../annotationTypes';
-import type { FibonacciProperties } from '../properties/fibonacciProperties';
+import type { FibonacciDatum } from '../datum/fibonacciDatum';
 import { applySceneNodeTopCenterAnchor } from '../utils/coords';
+import { isWriteable } from '../utils/datum';
 import type { FibonacciRangeDatum } from '../utils/fibonacci';
 import { FibonacciNodeTag, createFibonacciRangesData } from '../utils/fibonacci';
+import { getLineCap, getLineDash } from '../utils/line';
 import { updateLineText } from '../utils/lineWithText';
 import { convertLine } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
 import { CollidableLine } from './collidableLineScene';
 import { CollidableText } from './collidableTextScene';
 
-export abstract class FibonacciScene<Datum extends FibonacciProperties> extends AnnotationScene<Datum> {
+export abstract class FibonacciScene<Datum extends FibonacciDatum> extends AnnotationScene<Datum> {
     protected readonly trendLine = new CollidableLine<never>();
     public text?: CollidableText<never>;
 
@@ -109,7 +111,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
 
         line.setProperties({
             ...coords,
-            lineCap: datum.getLineCap(),
+            lineCap: getLineCap(datum),
             lineDash: [3, 4],
             lineDashOffset,
             strokeWidth,
@@ -133,8 +135,8 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
                 stroke: color,
                 strokeOpacity,
                 strokeWidth,
-                lineCap: datum.getLineCap(),
-                lineDash: datum.getLineDash(),
+                lineCap: getLineCap(datum),
+                lineDash: getLineDash(datum),
                 lineDashOffset,
                 tag,
             });
@@ -181,8 +183,8 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
                 fill: color,
                 fillOpacity: (strokeOpacity ?? 1) * 0.15,
                 strokeWidth,
-                lineCap: datum.getLineCap(),
-                lineDash: datum.getLineDash(),
+                lineCap: getLineCap(datum),
+                lineDash: getLineDash(datum),
                 lineDashOffset,
                 visible: true,
             });
@@ -314,7 +316,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
     }
 
     public drag(datum: Datum, target: Point, context: AnnotationContext, snapping: boolean) {
-        if (!datum.isWriteable()) return;
+        if (!isWriteable(datum)) return;
 
         if (this.activeHandle) {
             this.dragHandle(datum, target, context, snapping);
@@ -343,7 +345,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
 
     public abstract translate(datum: Datum, translation: Point, context: AnnotationContext): void;
 
-    public abstract copy(datum: Datum, copiedDatum: Datum, context: AnnotationContext): void;
+    public abstract copy<D extends Datum>(datum: D, copiedDatum: D, context: AnnotationContext): D | undefined;
 
     public abstract snapToAngle(datum: Datum, coords: Point, context: AnnotationContext): void;
 

@@ -1,64 +1,70 @@
 import type {
-    ChannelPropertiesType,
-    EphemeralPropertiesType,
-    FibonacciPropertiesType,
-    LinePropertiesType,
-    MeasurerPropertiesType,
-    TextualPropertiesType,
+    ChannelDatumType,
+    EphemeralDatumType,
+    FibonacciDatumType,
+    LineDatumType,
+    MeasurerDatumType,
+    ShapeDatumType,
+    TextualDatumType,
 } from '../annotationsSuperTypes';
-import { CalloutProperties } from '../callout/calloutProperties';
-import { CommentProperties } from '../comment/commentProperties';
-import { HorizontalLineProperties, VerticalLineProperties } from '../cross-line/crossLineProperties';
-import { DisjointChannelProperties } from '../disjoint-channel/disjointChannelProperties';
-import { FibonacciRetracementTrendBasedProperties } from '../fibonacci-retracement-trend-based/fibonacciRetracementTrendBasedProperties';
-import { FibonacciRetracementProperties } from '../fibonacci-retracement/fibonacciRetracementProperties';
-import { ArrowProperties, LineProperties } from '../line/lineProperties';
+import { arrowDownDatum } from '../arrow-down/arrowDownDatum';
+import { arrowUpDatum } from '../arrow-up/arrowUpDatum';
+import { calloutDatum } from '../callout/calloutDatum';
+import { commentDatum } from '../comment/commentDatum';
+import { type CrossLineDatum, horizontalLineDatum, verticalLineDatum } from '../cross-line/crossLineDatum';
+import { disjointChannelDatum } from '../disjoint-channel/disjointChannelDatum';
+import { fibonacciRetracementTrendBasedDatum } from '../fibonacci-retracement-trend-based/fibonacciRetracementTrendBasedDatum';
+import { fibonacciRetracementDatum } from '../fibonacci-retracement/fibonacciRetracementDatum';
+import { arrowDatum, lineDatum } from '../line/lineDatum';
 import {
-    DatePriceRangeProperties,
-    DateRangeProperties,
-    PriceRangeProperties,
-    QuickDatePriceRangeProperties,
-} from '../measurer/measurerProperties';
-import { NoteProperties } from '../note/noteProperties';
-import { ParallelChannelProperties } from '../parallel-channel/parallelChannelProperties';
-import { TextProperties } from '../text/textProperties';
+    datePriceRangeDatum,
+    dateRangeDatum,
+    priceRangeDatum,
+    quickDatePriceRangeDatum,
+} from '../measurer/measurerDatum';
+import { noteDatum } from '../note/noteDatum';
+import { parallelChannelDatum } from '../parallel-channel/parallelChannelDatum';
+import { textDatum } from '../text/textDatum';
 
-export function isEphemeralType(datum: unknown): datum is EphemeralPropertiesType {
-    return QuickDatePriceRangeProperties.is(datum);
+export function isEphemeralType(datum: unknown): datum is EphemeralDatumType {
+    return quickDatePriceRangeDatum.is(datum);
 }
 
-export function isLineType(datum: unknown): datum is LinePropertiesType {
+export function isLineType(datum: unknown): datum is LineDatumType {
     return (
-        LineProperties.is(datum) ||
-        HorizontalLineProperties.is(datum) ||
-        VerticalLineProperties.is(datum) ||
-        ArrowProperties.is(datum) ||
+        lineDatum.is(datum) ||
+        horizontalLineDatum.is(datum) ||
+        verticalLineDatum.is(datum) ||
+        arrowDatum.is(datum) ||
         isFibonacciType(datum)
     );
 }
 
-export function isChannelType(datum: unknown): datum is ChannelPropertiesType {
-    return DisjointChannelProperties.is(datum) || ParallelChannelProperties.is(datum);
+export function isCrossLineType(datum: unknown): datum is CrossLineDatum {
+    return horizontalLineDatum.is(datum) || verticalLineDatum.is(datum);
 }
 
-export function isFibonacciType(datum: unknown): datum is FibonacciPropertiesType {
-    return FibonacciRetracementProperties.is(datum) || FibonacciRetracementTrendBasedProperties.is(datum);
+export function isChannelType(datum: unknown): datum is ChannelDatumType {
+    return disjointChannelDatum.is(datum) || parallelChannelDatum.is(datum);
 }
 
-export function isTextType(datum: unknown): datum is TextualPropertiesType {
+export function isFibonacciType(datum: unknown): datum is FibonacciDatumType {
+    return fibonacciRetracementDatum.is(datum) || fibonacciRetracementTrendBasedDatum.is(datum);
+}
+
+export function isTextType(datum: unknown): datum is TextualDatumType {
+    return calloutDatum.is(datum) || commentDatum.is(datum) || noteDatum.is(datum) || textDatum.is(datum);
+}
+
+export function isShapeType(datum: unknown): datum is ShapeDatumType {
+    return arrowUpDatum.is(datum) || arrowDownDatum.is(datum);
+}
+
+export function isMeasurerType(datum: unknown): datum is MeasurerDatumType {
     return (
-        CalloutProperties.is(datum) ||
-        CommentProperties.is(datum) ||
-        NoteProperties.is(datum) ||
-        TextProperties.is(datum)
-    );
-}
-
-export function isMeasurerType(datum: unknown): datum is MeasurerPropertiesType {
-    return (
-        DateRangeProperties.is(datum) ||
-        PriceRangeProperties.is(datum) ||
-        DatePriceRangeProperties.is(datum) ||
-        QuickDatePriceRangeProperties.is(datum)
+        dateRangeDatum.is(datum) ||
+        priceRangeDatum.is(datum) ||
+        datePriceRangeDatum.is(datum) ||
+        quickDatePriceRangeDatum.is(datum)
     );
 }

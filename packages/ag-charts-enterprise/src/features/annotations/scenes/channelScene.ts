@@ -2,8 +2,8 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { Bounds4, Logger, Point } from 'ag-charts-core';
 
-import type { ChannelTextProperties } from '../annotationProperties';
 import type { AnnotationContext, DataPoint } from '../annotationTypes';
+import type { ChannelTypeDatum } from '../datum/channelDatum';
 import { convertLine } from '../utils/values';
 import { CollidableLine } from './collidableLineScene';
 import type { CollidableText } from './collidableTextScene';
@@ -13,19 +13,7 @@ import { WithBackgroundScene } from './withBackgroundScene';
 
 type ChannelHandle = Partial<'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight' | 'topMiddle' | 'bottomMiddle'>;
 
-export abstract class ChannelScene<
-    Datum extends {
-        background: { fill?: string; fillOpacity?: number };
-        locked?: boolean;
-        visible?: boolean;
-        start: DataPoint;
-        end: DataPoint;
-        getBottom(logger: Logger): { start: DataPoint; end: DataPoint };
-        strokeWidth?: number;
-        text?: ChannelTextProperties;
-        isWriteable: () => boolean;
-    },
-> extends LinearScene<Datum> {
+export abstract class ChannelScene<Datum extends ChannelTypeDatum> extends LinearScene<Datum> {
     protected handles: { [key: string]: Handle } = {};
     protected override overflowContinuous = 2;
 
@@ -39,7 +27,7 @@ export abstract class ChannelScene<
         const { locked, visible } = datum;
 
         const top = convertLine(datum, context);
-        const bottom = convertLine(datum.getBottom(context.logger), context);
+        const bottom = convertLine(this.getBottom(datum, context.logger), context);
 
         if (top == null || bottom == null) {
             this.visible = false;
@@ -128,6 +116,8 @@ export abstract class ChannelScene<
             if (child.containsPoint(x, y)) return 'handle';
         }
     }
+
+    protected abstract getBottom(datum: Datum, logger: Logger): { start: DataPoint; end: DataPoint };
 
     protected abstract updateLines(
         datum: Datum,

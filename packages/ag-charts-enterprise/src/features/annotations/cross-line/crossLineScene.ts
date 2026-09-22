@@ -8,10 +8,12 @@ import { CollidableLine } from '../scenes/collidableLineScene';
 import { CollidableText } from '../scenes/collidableTextScene';
 import { UnivariantHandle } from '../scenes/handle';
 import { translate } from '../utils/coords';
+import { isWriteable } from '../utils/datum';
+import { getLineCap, getLineDash } from '../utils/line';
 import { updateLineText } from '../utils/lineWithText';
 import { getGroupingValue } from '../utils/scale';
 import { convert, invertCoords } from '../utils/values';
-import { type CrossLineProperties, HorizontalLineProperties } from './crossLineProperties';
+import { type CrossLineDatum, horizontalLineDatum } from './crossLineDatum';
 
 export class CrossLineScene extends AnnotationScene<never> {
     static override is(value: unknown): value is CrossLineScene {
@@ -39,11 +41,11 @@ export class CrossLineScene extends AnnotationScene<never> {
         this.append([this.line, this.middle]);
     }
 
-    public update(datum: CrossLineProperties, context: AnnotationContext) {
+    public update(datum: CrossLineDatum, context: AnnotationContext) {
         const { seriesRect } = context;
         this.seriesRect = seriesRect;
 
-        this.isHorizontal = HorizontalLineProperties.is(datum);
+        this.isHorizontal = horizontalLineDatum.is(datum);
         const axisContext = this.isHorizontal ? context.yAxis : context.xAxis;
 
         const coords = this.convertCrossLine(datum, axisContext);
@@ -62,7 +64,7 @@ export class CrossLineScene extends AnnotationScene<never> {
         this.updateAxisLabel(datum, axisContext, coords);
     }
 
-    private updateLine(datum: CrossLineProperties, coords: Bounds4) {
+    private updateLine(datum: CrossLineDatum, coords: Bounds4) {
         const { line } = this;
         const { lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
         const { x1, y1, x2, y2 } = coords;
@@ -72,8 +74,8 @@ export class CrossLineScene extends AnnotationScene<never> {
             y1,
             x2,
             y2,
-            lineCap: datum.getLineCap(),
-            lineDash: datum.getLineDash(),
+            lineCap: getLineCap(datum),
+            lineDash: getLineDash(datum),
             lineDashOffset,
             stroke,
             strokeWidth,
@@ -82,7 +84,7 @@ export class CrossLineScene extends AnnotationScene<never> {
         });
     }
 
-    private updateHandle(datum: CrossLineProperties, coords: Bounds4) {
+    private updateHandle(datum: CrossLineDatum, coords: Bounds4) {
         const { middle } = this;
         const { locked, stroke, strokeWidth, strokeOpacity } = datum;
 
@@ -104,7 +106,7 @@ export class CrossLineScene extends AnnotationScene<never> {
         middle.toggleLocked(locked ?? false);
     }
 
-    private updateText(datum: CrossLineProperties, coords: Bounds4) {
+    private updateText(datum: CrossLineDatum, coords: Bounds4) {
         this.text = this.updateNode(CollidableText<never>, this.text, !!datum.text.label);
 
         updateLineText(this.line.id, this.line, coords, datum.text, this.text, datum.text.label, datum.strokeWidth);
@@ -116,7 +118,7 @@ export class CrossLineScene extends AnnotationScene<never> {
         return axisLabel;
     }
 
-    private updateAxisLabel(datum: CrossLineProperties, axisContext: AnnotationAxisContext, coords: Bounds4) {
+    private updateAxisLabel(datum: CrossLineDatum, axisContext: AnnotationAxisContext, coords: Bounds4) {
         this.axisLabel ??= this.createAxisLabel(axisContext);
 
         const { axisLabel, seriesRect } = this;
@@ -169,8 +171,8 @@ export class CrossLineScene extends AnnotationScene<never> {
         this.middle.toggleActive(active);
     }
 
-    public dragStart(datum: CrossLineProperties, target: Point, context: AnnotationContext) {
-        const middle = HorizontalLineProperties.is(datum)
+    public dragStart(datum: CrossLineDatum, target: Point, context: AnnotationContext) {
+        const middle = horizontalLineDatum.is(datum)
             ? { x: target.x, y: convert(datum.value, context.yAxis) }
             : { x: convert(datum.value, context.xAxis), y: target.y };
 
@@ -180,10 +182,10 @@ export class CrossLineScene extends AnnotationScene<never> {
         };
     }
 
-    public drag(datum: CrossLineProperties, target: Point, context: AnnotationContext) {
+    public drag(datum: CrossLineDatum, target: Point, context: AnnotationContext) {
         const { activeHandle, dragState } = this;
 
-        if (!datum.isWriteable() || !dragState) return;
+        if (!isWriteable(datum) || !dragState) return;
 
         if (activeHandle) {
             this[activeHandle].toggleDragging(true);
@@ -192,18 +194,18 @@ export class CrossLineScene extends AnnotationScene<never> {
         this.translatePoint(datum, dragState.middle, Vec2.sub(target, dragState.offset), context);
     }
 
-    public translate(datum: CrossLineProperties, translation: Point, context: AnnotationContext) {
-        if (!datum.isWriteable()) return;
+    public translate(datum: CrossLineDatum, translation: Point, context: AnnotationContext) {
+        if (!isWriteable(datum)) return;
 
-        const vector = HorizontalLineProperties.is(datum)
+        const vector = horizontalLineDatum.is(datum)
             ? Vec2.from(0, convert(datum.value, context.yAxis))
             : Vec2.from(convert(datum.value, context.xAxis), 0);
 
         this.translatePoint(datum, vector, translation, context);
     }
 
-    protected translatePoint(datum: CrossLineProperties, value: Point, translation: Point, context: AnnotationContext) {
-        const isHorizontal = HorizontalLineProperties.is(datum);
+    protected translatePoint(datum: CrossLineDatum, value: Point, translation: Point, context: AnnotationContext) {
+        const isHorizontal = horizontalLineDatum.is(datum);
         if (isHorizontal) {
             translation.x = 0;
         } else {
@@ -217,8 +219,8 @@ export class CrossLineScene extends AnnotationScene<never> {
         this.middle.toggleDragging(false);
     }
 
-    public copy(datum: CrossLineProperties, copiedDatum: CrossLineProperties, context: AnnotationContext) {
-        const isHorizontal = HorizontalLineProperties.is(datum);
+    public copy<D extends CrossLineDatum>(datum: D, copiedDatum: D, context: AnnotationContext): D | undefined {
+        const isHorizontal = horizontalLineDatum.is(datum);
         const axisContext = this.isHorizontal ? context.yAxis : context.xAxis;
 
         const coords = this.convertCrossLine(datum, axisContext);
@@ -231,7 +233,7 @@ export class CrossLineScene extends AnnotationScene<never> {
 
         const point = invertCoords({ x: coords.x1 + xOffset, y: coords.y1 + yOffset }, context);
 
-        copiedDatum.set({ value: isHorizontal ? point.y : point.x });
+        copiedDatum.value = isHorizontal ? point.y : point.x;
 
         return copiedDatum;
     }
@@ -272,7 +274,7 @@ export class CrossLineScene extends AnnotationScene<never> {
         return { x: bbox.x + bbox.width, y: bbox.y + bbox.height / 2, position: 'right' as const };
     }
 
-    private convertCrossLine(datum: CrossLineProperties, context: AnnotationAxisContext) {
+    private convertCrossLine(datum: CrossLineDatum, context: AnnotationAxisContext) {
         if (datum.value == null) return;
 
         let x1 = 0;
@@ -282,7 +284,7 @@ export class CrossLineScene extends AnnotationScene<never> {
         const { bounds } = context;
         const scaledValue = convert(datum.value, context);
 
-        if (HorizontalLineProperties.is(datum)) {
+        if (horizontalLineDatum.is(datum)) {
             x2 = bounds.width;
             y1 = scaledValue;
             y2 = scaledValue;

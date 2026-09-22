@@ -1,22 +1,21 @@
 import type { Bounds4, BoxBounds, Point } from 'ag-charts-core';
 import { Vec2, Vec4, entries } from 'ag-charts-core';
 
-import type { PointProperties } from '../annotationProperties';
-import type { AnnotationContext } from '../annotationTypes';
+import type { AnnotationContext, DataPoint } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
 import { FibonacciScene } from '../scenes/fibonacciScene';
 import { DivariantHandle } from '../scenes/handle';
 import type { StartEndHandle } from '../scenes/startEndScene';
-import { getDragStartState, snapToAngle, translate } from '../utils/coords';
+import { SNAP_TO_ANGLE, getDragStartState, snapToAngle, translate } from '../utils/coords';
 import { createFibonacciRangesData, getFibonacciCoords } from '../utils/fibonacci';
 import { validateDatumPoint } from '../utils/validation';
 import { convertLine, convertPoint, invertCoords } from '../utils/values';
-import type { FibonacciRetracementTrendBasedProperties } from './fibonacciRetracementTrendBasedProperties';
+import type { FibonacciRetracementTrendBasedDatum } from './fibonacciRetracementTrendBasedDatum';
 
 type ActiveHandle = StartEndHandle | 'endRetracement';
 
-export class FibonacciRetracementTrendBasedScene extends FibonacciScene<FibonacciRetracementTrendBasedProperties> {
+export class FibonacciRetracementTrendBasedScene extends FibonacciScene<FibonacciRetracementTrendBasedDatum> {
     static override is(value: unknown): value is FibonacciRetracementTrendBasedScene {
         return AnnotationScene.isCheck(value, 'fibonacci-retracement-trend-based');
     }
@@ -44,7 +43,7 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
         this.append([this.endRetracementLine, this.start, this.end, this.endRetracement]);
     }
 
-    public override update(datum: FibonacciRetracementTrendBasedProperties, context: AnnotationContext) {
+    public override update(datum: FibonacciRetracementTrendBasedDatum, context: AnnotationContext) {
         let { coords1, coords2 } = this.getCoords(datum, context);
 
         if (coords1 == null || coords2 == null) {
@@ -115,7 +114,7 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
         return super.getNodeAtCoords(x, y);
     }
 
-    public dragStart(datum: FibonacciRetracementTrendBasedProperties, target: Point, context: AnnotationContext) {
+    public dragStart(datum: FibonacciRetracementTrendBasedDatum, target: Point, context: AnnotationContext) {
         this.dragState = {
             offset: target,
             ...getDragStartState({ start: datum.start, end: datum.end, endRetracement: datum.endRetracement }, context),
@@ -128,7 +127,7 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
         this.endRetracement.toggleDragging(false);
     }
 
-    protected dragAll(datum: FibonacciRetracementTrendBasedProperties, target: Point, context: AnnotationContext) {
+    protected dragAll(datum: FibonacciRetracementTrendBasedDatum, target: Point, context: AnnotationContext) {
         const { dragState } = this;
 
         if (!dragState) return;
@@ -144,7 +143,7 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
     }
 
     dragHandle(
-        datum: FibonacciRetracementTrendBasedProperties,
+        datum: FibonacciRetracementTrendBasedDatum,
         target: Point,
         context: AnnotationContext,
         snapping: boolean
@@ -165,10 +164,10 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
     }
 
     snapToAngle(
-        datum: FibonacciRetracementTrendBasedProperties,
+        datum: FibonacciRetracementTrendBasedDatum,
         coords: Point,
         context: AnnotationContext
-    ): Pick<PointProperties, 'x' | 'y'> | undefined {
+    ): DataPoint | undefined {
         const { activeHandle } = this;
 
         const handles: ActiveHandle[] = ['start', 'end', 'endRetracement'];
@@ -181,7 +180,7 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
 
         const fixed = convertPoint(datum[fixedHandle], context);
 
-        return invertCoords(snapToAngle(coords, fixed, datum.snapToAngle), context);
+        return invertCoords(snapToAngle(coords, fixed, SNAP_TO_ANGLE), context);
     }
 
     public translatePoints({
@@ -192,7 +191,7 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
         translation,
         context,
     }: {
-        datum: FibonacciRetracementTrendBasedProperties;
+        datum: FibonacciRetracementTrendBasedDatum;
         start: Point;
         end: Point;
         endRetracement: Point;
@@ -210,7 +209,7 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
         datum.endRetracement.y = points.endRetracement.y;
     }
 
-    public translate(datum: FibonacciRetracementTrendBasedProperties, translation: Point, context: AnnotationContext) {
+    public translate(datum: FibonacciRetracementTrendBasedDatum, translation: Point, context: AnnotationContext) {
         this.translatePoints({
             datum,
             start: convertPoint(datum.start, context),
@@ -221,11 +220,11 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
         });
     }
 
-    public copy(
-        datum: FibonacciRetracementTrendBasedProperties,
-        copiedDatum: FibonacciRetracementTrendBasedProperties,
+    public copy<D extends FibonacciRetracementTrendBasedDatum>(
+        datum: D,
+        copiedDatum: D,
         context: AnnotationContext
-    ) {
+    ): D | undefined {
         const { coords1, coords2 } = this.getCoords(datum, context);
         if (!coords1 || !coords2) {
             return;
@@ -245,7 +244,7 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
         return copiedDatum;
     }
 
-    private getCoords(datum: FibonacciRetracementTrendBasedProperties, context: AnnotationContext) {
+    private getCoords(datum: FibonacciRetracementTrendBasedDatum, context: AnnotationContext) {
         return {
             coords1: convertLine(datum, context),
             coords2: convertLine({ start: datum.end, end: datum.endRetracement }, context),
@@ -276,7 +275,7 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
     }
 
     protected updateHandles(
-        datum: FibonacciRetracementTrendBasedProperties,
+        datum: FibonacciRetracementTrendBasedDatum,
         coords1: Bounds4,
         coords2?: Bounds4,
         bbox?: BoxBounds
@@ -303,7 +302,7 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
     }
 
     protected getHandleCoords(
-        _datum: FibonacciRetracementTrendBasedProperties,
+        _datum: FibonacciRetracementTrendBasedDatum,
         coords: Bounds4,
         handle: ActiveHandle,
         _bbox?: BoxBounds

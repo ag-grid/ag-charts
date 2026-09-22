@@ -1,61 +1,57 @@
 import type { _ModuleSupport } from 'ag-charts-community';
-import type { Point } from 'ag-charts-core';
-import { BaseProperties, type StateMachine } from 'ag-charts-core';
+import type { Point, StateMachine } from 'ag-charts-core';
 
+import type { AnnotationDatumType } from './annotationDatum';
 import type { AnnotationContext, AnnotationType, Constructor, DataPoint } from './annotationTypes';
-import type { ArrowDownProperties } from './arrow-down/arrowDownProperties';
+import type { ArrowDownDatum } from './arrow-down/arrowDownDatum';
 import type { ArrowDownScene } from './arrow-down/arrowDownScene';
-import type { ArrowUpProperties } from './arrow-up/arrowUpProperties';
+import type { ArrowUpDatum } from './arrow-up/arrowUpDatum';
 import type { ArrowUpScene } from './arrow-up/arrowUpScene';
-import type { CalloutProperties } from './callout/calloutProperties';
+import type { CalloutDatum } from './callout/calloutDatum';
 import type { CalloutScene } from './callout/calloutScene';
-import type { CommentProperties } from './comment/commentProperties';
+import type { CommentDatum } from './comment/commentDatum';
 import type { CommentScene } from './comment/commentScene';
-import type { HorizontalLineProperties, VerticalLineProperties } from './cross-line/crossLineProperties';
+import type { HorizontalLineDatum, VerticalLineDatum } from './cross-line/crossLineDatum';
 import type { CrossLineScene } from './cross-line/crossLineScene';
-import type { DisjointChannelProperties } from './disjoint-channel/disjointChannelProperties';
+import type { DisjointChannelDatum } from './disjoint-channel/disjointChannelDatum';
 import type { DisjointChannelScene } from './disjoint-channel/disjointChannelScene';
-import type { FibonacciRetracementTrendBasedProperties } from './fibonacci-retracement-trend-based/fibonacciRetracementTrendBasedProperties';
+import type { FibonacciRetracementTrendBasedDatum } from './fibonacci-retracement-trend-based/fibonacciRetracementTrendBasedDatum';
 import type { FibonacciRetracementTrendBasedScene } from './fibonacci-retracement-trend-based/fibonacciRetracementTrendBasedScene';
-import type { FibonacciRetracementProperties } from './fibonacci-retracement/fibonacciRetracementProperties';
+import type { FibonacciRetracementDatum } from './fibonacci-retracement/fibonacciRetracementDatum';
 import type { FibonacciRetracementScene } from './fibonacci-retracement/fibonacciRetracementScene';
-import type { ArrowProperties, LineProperties } from './line/lineProperties';
+import type { ArrowDatum, LineDatum } from './line/lineDatum';
 import type { LineScene } from './line/lineScene';
 import type {
-    DatePriceRangeProperties,
-    DateRangeProperties,
-    PriceRangeProperties,
-    QuickDatePriceRangeProperties,
-} from './measurer/measurerProperties';
+    DatePriceRangeDatum,
+    DateRangeDatum,
+    PriceRangeDatum,
+    QuickDatePriceRangeDatum,
+} from './measurer/measurerDatum';
 import type { MeasurerScene } from './measurer/measurerScene';
-import type { NoteProperties } from './note/noteProperties';
+import type { NoteDatum } from './note/noteDatum';
 import type { NoteScene } from './note/noteScene';
-import type { ParallelChannelProperties } from './parallel-channel/parallelChannelProperties';
+import type { ParallelChannelDatum } from './parallel-channel/parallelChannelDatum';
 import type { ParallelChannelScene } from './parallel-channel/parallelChannelScene';
 import type { AnnotationScene as AnnotationSceneNode } from './scenes/annotationScene';
-import type { TextProperties } from './text/textProperties';
+import type { TextDatum } from './text/textDatum';
 import type { TextScene } from './text/textScene';
 
-type ShapePropertiesType = ArrowUpProperties | ArrowDownProperties;
-export type TextualPropertiesType = CalloutProperties | CommentProperties | NoteProperties | TextProperties;
-export type LinePropertiesType = LineProperties | HorizontalLineProperties | VerticalLineProperties | ArrowProperties;
-export type FibonacciPropertiesType = FibonacciRetracementProperties | FibonacciRetracementTrendBasedProperties;
-export type ChannelPropertiesType = ParallelChannelProperties | DisjointChannelProperties;
-export type MeasurerPropertiesType =
-    | DateRangeProperties
-    | PriceRangeProperties
-    | DatePriceRangeProperties
-    | QuickDatePriceRangeProperties;
+export type ShapeDatumType = ArrowUpDatum | ArrowDownDatum;
+export type TextualDatumType = CalloutDatum | CommentDatum | NoteDatum | TextDatum;
+export type LineDatumType = LineDatum | HorizontalLineDatum | VerticalLineDatum | ArrowDatum;
+export type FibonacciDatumType = FibonacciRetracementDatum | FibonacciRetracementTrendBasedDatum;
+export type ChannelDatumType = ParallelChannelDatum | DisjointChannelDatum;
+export type MeasurerDatumType = DateRangeDatum | PriceRangeDatum | DatePriceRangeDatum | QuickDatePriceRangeDatum;
 
-export type AnnotationProperties =
-    | LinePropertiesType
-    | ChannelPropertiesType
-    | FibonacciPropertiesType
-    | TextualPropertiesType
-    | ShapePropertiesType
-    | MeasurerPropertiesType;
+export type AnnotationDatum =
+    | LineDatumType
+    | ChannelDatumType
+    | FibonacciDatumType
+    | TextualDatumType
+    | ShapeDatumType
+    | MeasurerDatumType;
 
-export type EphemeralPropertiesType = QuickDatePriceRangeProperties;
+export type EphemeralDatumType = QuickDatePriceRangeDatum;
 
 export type AnnotationScene =
     // Lines
@@ -95,16 +91,16 @@ export interface AnnotationsStateMachineContext {
     startDragging: (index: number) => void;
 
     translate: (index: number, translation: Point) => void;
-    copy: (index: number) => AnnotationProperties | undefined;
-    paste: (datum: AnnotationProperties) => void;
-    create: (type: AnnotationType, datum: AnnotationProperties) => void;
+    copy: (index: number) => AnnotationDatum | undefined;
+    paste: (datum: AnnotationDatum) => void;
+    create: (type: AnnotationType, datum: AnnotationDatum) => void;
     delete: (index: number) => void;
     deleteAll: () => void;
     validatePoint: (point: DataPoint, options?: { overflowContinuous: boolean }) => boolean;
 
     getAnnotationType: (index: number) => AnnotationType | undefined;
 
-    datum: (index: number) => AnnotationProperties | undefined;
+    datum: (index: number) => AnnotationDatum | undefined;
     node: (index: number) => AnnotationScene | undefined;
 
     showTextInput: (index: number) => void;
@@ -121,36 +117,32 @@ export interface AnnotationsStateMachineContext {
     update: () => void;
 }
 
-export interface AnnotationTypeConfig<Datum extends BaseProperties, Scene extends AnnotationScene> {
+export interface AnnotationTypeConfig<Datum extends AnnotationDatum, Scene extends AnnotationScene> {
     type: AnnotationType;
-    isDatum: (value: unknown) => value is Datum;
-    datum: Constructor<Datum>;
+    datum: AnnotationDatumType<Datum>;
     scene: Constructor<Scene>;
-    update: (node: AnnotationSceneNode<Datum>, datum: BaseProperties, context: AnnotationContext) => void;
-    translate: (
+    update(node: AnnotationSceneNode<unknown>, datum: AnnotationDatum, context: AnnotationContext): void;
+    translate(
         node: AnnotationSceneNode<unknown>,
-        datum: BaseProperties,
+        datum: AnnotationDatum,
         translation: Point,
         context: AnnotationContext
-    ) => void;
-    copy: (
+    ): void;
+    copy(
         node: AnnotationSceneNode<unknown>,
-        datum: BaseProperties,
-        copiedDatum: BaseProperties,
+        datum: AnnotationDatum,
+        copiedDatum: AnnotationDatum,
         context: AnnotationContext
-    ) => Datum | undefined;
-    createState: (
+    ): Datum | undefined;
+    createState(
         ctx: AnnotationsCreateStateMachineContext,
         helpers: AnnotationsStateMachineHelperFns
-    ) => StateMachine<any, any>;
-    dragState: (
-        ctx: AnnotationsStateMachineContext,
-        helpers: AnnotationsStateMachineHelperFns
-    ) => StateMachine<any, any>;
+    ): StateMachine<any, any>;
+    dragState(ctx: AnnotationsStateMachineContext, helpers: AnnotationsStateMachineHelperFns): StateMachine<any, any>;
 }
 
 export interface AnnotationsStateMachineHelperFns {
-    createDatum: <T extends AnnotationProperties>(type: AnnotationType) => (datum: T) => void;
+    createDatum: <T extends AnnotationDatum>(type: AnnotationType) => (datum: T) => void;
 }
 
 export type AnnotationsCreateStateMachineContext = AnnotationsStateMachineContext & {

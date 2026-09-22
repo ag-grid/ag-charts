@@ -3,18 +3,19 @@ import { Debug, type Point, StateMachine, StateMachineProperty } from 'ag-charts
 import type { AnnotationContext, DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
-import { snapPoint } from '../utils/coords';
-import { ArrowProperties, LineProperties, LineTypeProperties } from './lineProperties';
+import { SNAP_TO_ANGLE, snapPoint } from '../utils/coords';
+import { mergeAnnotationOptions } from '../utils/datum';
+import { type ArrowDatum, type LineDatum, type LineTypeDatum, arrowDatum, lineDatum } from './lineDatum';
 import type { LineScene } from './lineScene';
 
-interface LineStateMachineContext<Datum extends LineTypeProperties> extends Omit<
+interface LineStateMachineContext<Datum extends LineTypeDatum> extends Omit<
     AnnotationsCreateStateMachineContext,
     'create'
 > {
     create: (datum: Datum) => void;
 }
 
-export abstract class LineTypeStateMachine<Datum extends LineTypeProperties> extends StateMachine<
+export abstract class LineTypeStateMachine<Datum extends LineTypeDatum> extends StateMachine<
     'start' | 'waiting-first-render' | 'end',
     Pick<
         AnnotationStateEvents,
@@ -35,7 +36,7 @@ export abstract class LineTypeStateMachine<Datum extends LineTypeProperties> ext
     constructor(ctx: LineStateMachineContext<Datum>) {
         const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = this.createDatum();
-            datum.set({ start: point, end: point });
+            mergeAnnotationOptions(datum, { start: point, end: point });
             ctx.create(datum);
         };
 
@@ -49,7 +50,7 @@ export abstract class LineTypeStateMachine<Datum extends LineTypeProperties> ext
             const { datum, snapping } = this;
             if (!datum) return;
 
-            datum.set({ end: snapPoint(offset, context, snapping, datum.start, datum.snapToAngle) });
+            mergeAnnotationOptions(datum, { end: snapPoint(offset, context, snapping, datum.start, SNAP_TO_ANGLE) });
             ctx.update();
         };
 
@@ -62,7 +63,7 @@ export abstract class LineTypeStateMachine<Datum extends LineTypeProperties> ext
 
         const onExitEnd = () => {
             ctx.showAnnotationOptions();
-            ctx.recordAction(`Create ${(this.datum as any)?.type} annotation`);
+            ctx.recordAction(`Create ${this.datum?.type} annotation`);
         };
 
         super('start', {
@@ -110,14 +111,14 @@ export abstract class LineTypeStateMachine<Datum extends LineTypeProperties> ext
     abstract createDatum(): Datum;
 }
 
-export class ArrowStateMachine extends LineTypeStateMachine<ArrowProperties> {
+export class ArrowStateMachine extends LineTypeStateMachine<ArrowDatum> {
     override createDatum() {
-        return new ArrowProperties();
+        return arrowDatum.create();
     }
 }
 
-export class LineStateMachine extends LineTypeStateMachine<LineProperties> {
+export class LineStateMachine extends LineTypeStateMachine<LineDatum> {
     override createDatum() {
-        return new LineProperties();
+        return lineDatum.create();
     }
 }

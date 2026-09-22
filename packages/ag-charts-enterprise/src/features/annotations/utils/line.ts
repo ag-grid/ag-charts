@@ -16,23 +16,18 @@ export function getComputedLineDash(strokeWidth: number, styleType: AgAnnotation
     }
 }
 
-export function getLineDash(
-    lineDash?: PixelSize[],
-    computedLineDash?: PixelSize[],
-    lineStyle?: AgAnnotationLineStyleType,
-    strokeWidth?: number
-): PixelSize[] | undefined {
-    const styleType = getLineStyle(lineDash, lineStyle);
-    return computedLineDash ?? lineDash ?? getComputedLineDash(strokeWidth ?? 1, styleType);
+export interface LineStyleSource {
+    lineDash?: PixelSize[];
+    lineStyle?: AgAnnotationLineStyleType;
+    strokeWidth?: number;
 }
 
-export function getLineCap(
-    lineCap?: _ModuleSupport.ShapeLineCap,
-    lineDash?: PixelSize[],
-    lineStyle?: AgAnnotationLineStyleType
-): _ModuleSupport.ShapeLineCap | undefined {
-    const styleType = getLineStyle(lineDash, lineStyle);
-    return (lineCap ?? styleType === 'dotted') ? 'round' : undefined;
+export function getLineDash({ lineDash, lineStyle, strokeWidth }: LineStyleSource): PixelSize[] {
+    return lineDash ?? getComputedLineDash(strokeWidth ?? 1, getLineStyle(lineDash, lineStyle));
+}
+
+export function getLineCap({ lineDash, lineStyle }: LineStyleSource): _ModuleSupport.ShapeLineCap | undefined {
+    return getLineStyle(lineDash, lineStyle) === 'dotted' ? 'round' : undefined;
 }
 
 /**

@@ -6,7 +6,7 @@ import { AnnotationScene } from '../scenes/annotationScene';
 import { AnnotationShape } from '../scenes/annotationShape';
 import { DivariantHandle } from '../scenes/handle';
 import { ShapePointScene } from '../scenes/shapePointScene';
-import type { ArrowUpProperties } from './arrowUpProperties';
+import type { ArrowUpDatum } from './arrowUpDatum';
 
 export const arrowUpPoints: Array<[number, number]> = [
     [0.5, 0],
@@ -24,7 +24,7 @@ function arrowUp(params: AgMarkerShapeFnParams) {
 
 arrowUp.anchor = { x: 0.5, y: 0 };
 
-export class ArrowUpScene extends ShapePointScene<ArrowUpProperties> {
+export class ArrowUpScene extends ShapePointScene<ArrowUpDatum> {
     static override is(value: unknown): value is ArrowUpScene {
         return AnnotationScene.isCheck(value, AnnotationType.ArrowUp);
     }
@@ -38,7 +38,7 @@ export class ArrowUpScene extends ShapePointScene<ArrowUpProperties> {
         this.append([this.shape]);
     }
 
-    protected override getHandleCoords(datum: ArrowUpProperties, point: Point): Point {
+    protected override getHandleCoords(datum: ArrowUpDatum, point: Point): Point {
         const halfSize = DivariantHandle.HANDLE_SIZE / 2;
         const handleCoords = super.getHandleCoords(datum, point);
         handleCoords.y -= halfSize;

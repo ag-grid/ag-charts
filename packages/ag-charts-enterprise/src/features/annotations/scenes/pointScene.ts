@@ -2,13 +2,14 @@ import type { _ModuleSupport } from 'ag-charts-community';
 import { type Point, Vec2 } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
-import type { PointProperties } from '../properties/pointProperties';
+import type { PointDatum } from '../datum/pointDatum';
 import { getDragStartState, translate } from '../utils/coords';
+import { isWriteable } from '../utils/datum';
 import { convertPoint, invertCoords } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
 import { DivariantHandle } from './handle';
 
-export abstract class PointScene<Datum extends PointProperties> extends AnnotationScene<Datum> {
+export abstract class PointScene<Datum extends PointDatum> extends AnnotationScene<Datum> {
     override activeHandle?: string;
 
     protected readonly handle = new DivariantHandle();
@@ -40,7 +41,7 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
 
     public drag(datum: Datum, target: Point, context: AnnotationContext) {
         const { dragState } = this;
-        if (!datum.isWriteable() || !dragState) return;
+        if (!isWriteable(datum) || !dragState) return;
 
         const { point } = translate({ point: dragState.handle }, Vec2.sub(target, dragState.offset), context);
         datum.x = point.x;
@@ -48,7 +49,7 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
     }
 
     public translate(datum: Datum, translation: Point, context: AnnotationContext) {
-        if (!datum.isWriteable()) return;
+        if (!isWriteable(datum)) return;
 
         const { point } = translate({ point: convertPoint(datum, context) }, translation, context);
         datum.x = point.x;
@@ -69,7 +70,7 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         this.handle.toggleDragging(false);
     }
 
-    public copy(datum: Datum, copiedDatum: Datum, context: AnnotationContext) {
+    public copy<D extends Datum>(datum: D, copiedDatum: D, context: AnnotationContext): D | undefined {
         const coords = convertPoint(datum, context);
 
         const point = invertCoords({ x: coords.x - 30, y: coords.y - 30 }, context);
