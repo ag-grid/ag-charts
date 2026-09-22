@@ -117,7 +117,6 @@ export * from './utils/data/numberArray';
 export * from './utils/data/numbers';
 export * from './utils/data/object';
 export * from './utils/geometry/placement';
-export * from './state/properties';
 export * from './state/proxy';
 export * from './utils/data/strings';
 export * from './state/stateMachine';

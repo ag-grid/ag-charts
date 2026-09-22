@@ -1,9 +1,4 @@
 import * as Debug from '../logging/debugLogger';
-import {
-    addObserverToInstanceProperty,
-    extractDecoratedProperties,
-    listDecoratedProperties,
-} from '../utils/types/decorator';
 
 type StateDefinition<State extends string, Events extends Record<string, any>> = {
     [key in keyof Events]?: Destination<State, Events[key]>;
@@ -34,20 +29,30 @@ type HierarchyState = '__parent' | '__child';
 const debugColor = 'color: green';
 const debugQuietColor = 'color: grey';
 
-export function StateMachineProperty() {
-    return addObserverToInstanceProperty(() => {
-        // do nothing
-    });
+const PROPERTIES_KEY = '__stateMachineProperties';
+
+type WithStateMachineProperties = { [PROPERTIES_KEY]?: string[] };
+
+/** Marks a field to copy from the parent state machine into a child on every transition into it. */
+export function StateMachineProperty(): PropertyDecorator {
+    return (target, propertyKey) => {
+        const prototype = target as WithStateMachineProperties;
+        if (Object.getOwnPropertyDescriptor(prototype, PROPERTIES_KEY) == null) {
+            Object.defineProperty(prototype, PROPERTIES_KEY, { value: [...(prototype[PROPERTIES_KEY] ?? [])] });
+        }
+        prototype[PROPERTIES_KEY]!.push(String(propertyKey));
+    };
+}
+
+function stateMachineProperties(state: object) {
+    return (state as WithStateMachineProperties)[PROPERTIES_KEY] ?? [];
 }
 
 function applyProperties(parentState: AbstractStateMachine<any>, childState: StateMachine<any, any>) {
-    const childProperties = listDecoratedProperties(childState);
-    if (childProperties.length === 0) return;
-
-    const properties = extractDecoratedProperties(parentState);
-    for (const property of childProperties) {
-        if (property in properties) {
-            (childState as any)[property] = properties[property];
+    const parentProperties = stateMachineProperties(parentState);
+    for (const property of stateMachineProperties(childState)) {
+        if (parentProperties.includes(property)) {
+            (childState as any)[property] = (parentState as any)[property] ?? null;
         }
     }
 }
