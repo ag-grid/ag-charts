@@ -6,7 +6,7 @@
   "targets": {
     "build": {
       "executor": "nx:run-commands",
-      "dependsOn": ["^build", "typecheck", "build-vue", "build-typescript"],
+      "dependsOn": ["^build", "typecheck", "build-vue", "build-typescript", "build-angular"],
       "inputs": ["production", "^production"],
       "outputs": ["{projectRoot}/*/*/dist"],
       "cache": true,
@@ -69,7 +69,35 @@
         "cwd": "{projectRoot}",
         "command": "for seed in */typescript; do echo \"== $seed\" && tsc --noEmit -p \"$seed/tsconfig.json\" || exit 1; done"
       }
+    },
+    "build-angular": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build", "typecheck-angular"],
+      "inputs": ["production", "^production"],
+      "outputs": ["{projectRoot}/*/angular/dist"],
+      "cache": true,
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "for seed in */angular; do echo \"== $seed\" && (cd \"$seed\" && NG_CLI_ANALYTICS=false ng build) || exit 1; done"
+      }
+    },
+    "typecheck-angular": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"],
+      "outputs": [],
+      "cache": true,
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "for seed in */angular; do echo \"== $seed\" && ngc --noEmit -p \"$seed/tsconfig.app.json\" || exit 1; done"
+      }
     }
   },
-  "implicitDependencies": ["ag-charts-community", "ag-charts-enterprise", "ag-charts-react", "ag-charts-vue3"]
+  "implicitDependencies": [
+    "ag-charts-community",
+    "ag-charts-enterprise",
+    "ag-charts-react",
+    "ag-charts-vue3",
+    "ag-charts-angular"
+  ]
 }

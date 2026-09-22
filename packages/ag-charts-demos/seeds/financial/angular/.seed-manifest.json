@@ -1,0 +1,9 @@
+{
+    "demo": "financial",
+    "framework": "angular",
+    "sourceHash": "sha256-489f7b6cf37ff7db05e37c8d2ce75d676828eaa98fe6dfda187e621123e4f56b",
+    "sourceCommit": "dd007184322164613f1db20c69ceb776ae0ca613",
+    "pinnedVersion": "14.2.0",
+    "pinSource": "released",
+    "dist": "dist"
+}
