@@ -5,7 +5,6 @@ import type {
     AgCartesianChartOptions,
     AgCartesianCrossLineOptions,
     AgChartInstance,
-    AgCrossLineClickEvent,
     AgCrossLineListeners,
     AgPolarAxisShape,
     AgPolarChartOptions,
@@ -25,13 +24,23 @@ import {
 } from 'ag-charts-community-test';
 import { ChartAxisDirection } from 'ag-charts-core';
 
-import { mockCssVarColorSupport, prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, mockCssVarColorSupport, prepareEnterpriseTestOptions } from '../../test/utils';
 import { PolarCrossLine } from './polarCrossLine';
 import * as examples from './test/examples';
 
 type CrossLinesPlugin = NonNullable<ReturnType<typeof _ModuleSupport.getCrossLinesPlugin>>;
 
 type TCtx = ReturnType<typeof setupMockCanvas>;
+
+// Polar axes get the enterprise `polarCrossLines` module, which the module map keys by that
+// name — so `getCrossLinesPlugin`, which looks up `crossLines`, only resolves cartesian axes.
+const crossLineInstances = (target: Chart, axisId: string) => {
+    const axis = target.axes.findById(axisId);
+    if (axis == null) return [];
+    const plugin =
+        _ModuleSupport.getCrossLinesPlugin(axis) ?? axis.getModuleMap().getModule<CrossLinesPlugin>('polarCrossLines');
+    return plugin?.getInstances() ?? [];
+};
 
 const compare = async (chart: AgChartInstance | undefined, ctx: TCtx) => {
     expect(chart).toBeDefined();
@@ -80,17 +89,6 @@ describe('CrossLine colour references', () => {
         restoreCssVarColorSupport?.();
         restoreCssVarColorSupport = undefined;
     });
-
-    // Polar axes get the enterprise `polarCrossLines` module, which the module map keys by that
-    // name — so `getCrossLinesPlugin`, which looks up `crossLines`, only resolves cartesian axes.
-    const crossLineInstances = (target: Chart, axisId: string) => {
-        const axis = target.axes.findById(axisId);
-        if (axis == null) return [];
-        const plugin =
-            _ModuleSupport.getCrossLinesPlugin(axis) ??
-            axis.getModuleMap().getModule<CrossLinesPlugin>('polarCrossLines');
-        return plugin?.getInstances() ?? [];
-    };
 
     const crossLineFills = (target: Chart, axisId: string) => crossLineInstances(target, axisId).map((c) => c.fill);
 
@@ -216,17 +214,8 @@ describe('PolarCrossLine listeners', () => {
         ...rest,
     });
 
-    const createChart = async (options: AgPolarChartOptions) => {
-        const created = deproxy(AgCharts.create(prepareEnterpriseTestOptions(options)));
-        await waitForChartStability(created);
-        return created;
-    };
-
-    const instanceOf = (target: Chart, axisId: string, index = 0): PolarCrossLine => {
-        const axis = target.axes.findById(axisId)!;
-        const plugin = axis.getModuleMap().getModule<CrossLinesPlugin>('polarCrossLines')!;
-        return plugin.getInstances()[index] as PolarCrossLine;
-    };
+    const crossLineAt = (target: Chart, axisId: string, index = 0) =>
+        crossLineInstances(target, axisId)[index] as PolarCrossLine;
 
     const canvasPoint = (instance: PolarCrossLine, radius: number, angle: number) =>
         _ModuleSupport.Transformable.toCanvasPoint(
@@ -255,16 +244,16 @@ describe('PolarCrossLine listeners', () => {
     };
 
     const labelCentre = (instance: PolarCrossLine) => {
-        const box = instance.getLabelBox()!;
-        return { canvasX: box.x + box.width / 2, canvasY: box.y + box.height / 2 };
+        const { x, y } = instance.getLabelBox()!.computeCenter();
+        return { canvasX: x, canvasY: y };
     };
 
     const click = async (target: Chart, { canvasX, canvasY }: { canvasX: number; canvasY: number }) =>
         clickAction(canvasX, canvasY)(target);
 
-    it('AC1: clicking an angle range fill fires `click` with the cross-line params', async () => {
+    it('AC3: clicking an angle range fill fires `click` with the cross-line params', async () => {
         const listener = vi.fn();
-        chart = await createChart(
+        chart = await createEnterpriseChart(
             polarOptions(
                 'polygon',
                 [{ type: 'range', range: ['Q1', 'Q2'], id: 'band', listeners: { click: listener } }],
@@ -272,7 +261,7 @@ describe('PolarCrossLine listeners', () => {
             )
         );
 
-        await click(chart, pointOn(instanceOf(chart, 'angle')));
+        await click(chart, pointOn(crossLineAt(chart, 'angle')));
 
         expect(listener).toHaveBeenCalledTimes(1);
         expect(listener).toHaveBeenCalledWith(
@@ -284,15 +273,15 @@ describe('PolarCrossLine listeners', () => {
                 crossLineType: 'range',
                 value: undefined,
                 range: ['Q1', 'Q2'],
-            }) satisfies AgCrossLineClickEvent
+            })
         );
     });
 
     it('AC2: double-clicking a radius line fires `doubleClick`', async () => {
         const listeners: AgCrossLineListeners = { click: vi.fn(), doubleClick: vi.fn() };
-        chart = await createChart(polarOptions('polygon', [], [{ type: 'line', value: 5, listeners }]));
+        chart = await createEnterpriseChart(polarOptions('polygon', [], [{ type: 'line', value: 5, listeners }]));
 
-        const { canvasX, canvasY } = pointOn(instanceOf(chart, 'radius'));
+        const { canvasX, canvasY } = pointOn(crossLineAt(chart, 'radius'));
         await doubleClickAction(canvasX, canvasY)(chart);
 
         expect(listeners.doubleClick).toHaveBeenCalledTimes(1);
@@ -308,9 +297,71 @@ describe('PolarCrossLine listeners', () => {
         expect(listeners.click).toHaveBeenCalledTimes(2);
     });
 
+    it('a near miss on a labelled radius line does not fire the cross-line listener', async () => {
+        const listener = vi.fn();
+        const chartClick = vi.fn();
+        chart = await createEnterpriseChart(
+            polarOptions(
+                'polygon',
+                [],
+                [{ type: 'line', value: 5, label: { text: 'Mid' }, listeners: { click: listener } }],
+                {
+                    listeners: { click: chartClick },
+                }
+            )
+        );
+        const instance = crossLineAt(chart, 'radius');
+        const { scale, axisInnerRadius, axisOuterRadius } = instance;
+        const missRadius = axisOuterRadius + axisInnerRadius - scale!.convert(3);
+
+        await click(chart, canvasPoint(instance, missRadius, instance.gridAngles![0]));
+
+        expect(listener).not.toHaveBeenCalled();
+        expect(chartClick).toHaveBeenCalledTimes(1);
+    });
+
+    it.each(['polygon', 'circle'] as AgPolarAxisShape[])(
+        'the hole of a %s radius range is not a click target',
+        async (shape) => {
+            const listener = vi.fn();
+            chart = await createEnterpriseChart(
+                polarOptions(shape, [], [{ type: 'range', range: [4, 8], listeners: { click: listener } }])
+            );
+            const instance = crossLineAt(chart, 'radius');
+            const { scale, axisInnerRadius, axisOuterRadius } = instance;
+            const holeRadius = axisOuterRadius + axisInnerRadius - scale!.convert(1);
+
+            await click(chart, canvasPoint(instance, holeRadius, instance.gridAngles![0]));
+
+            expect(listener).not.toHaveBeenCalled();
+        }
+    );
+
+    it('a near miss on an angle line falls through to the chart `click` listener', async () => {
+        const listener = vi.fn();
+        const chartClick = vi.fn();
+        chart = await createEnterpriseChart(
+            polarOptions(
+                'polygon',
+                [{ type: 'line', value: 'Q3', label: { text: 'Third' }, listeners: { click: listener } }],
+                [],
+                {
+                    listeners: { click: chartClick },
+                }
+            )
+        );
+        const instance = crossLineAt(chart, 'angle');
+        const midRadius = (instance.axisInnerRadius + instance.axisOuterRadius) / 2;
+
+        await click(chart, canvasPoint(instance, midRadius, instance.scale!.convert('Q3') + 0.5));
+
+        expect(listener).not.toHaveBeenCalled();
+        expect(chartClick).toHaveBeenCalledTimes(1);
+    });
+
     it('AC4: clicking a cross-line label fires `click`', async () => {
         const listener = vi.fn();
-        chart = await createChart(
+        chart = await createEnterpriseChart(
             polarOptions(
                 'polygon',
                 [{ type: 'line', value: 'Q3', label: { text: 'Third' }, listeners: { click: listener } }],
@@ -318,7 +369,7 @@ describe('PolarCrossLine listeners', () => {
             )
         );
 
-        await click(chart, labelCentre(instanceOf(chart, 'angle')));
+        await click(chart, labelCentre(crossLineAt(chart, 'angle')));
 
         expect(listener).toHaveBeenCalledTimes(1);
         expect(listener).toHaveBeenCalledWith(expect.objectContaining({ crossLineType: 'line', value: 'Q3' }));
@@ -326,7 +377,7 @@ describe('PolarCrossLine listeners', () => {
 
     it('AC5: cross lines on both axes are distinguished by `crossLineId`', async () => {
         const listener = vi.fn();
-        chart = await createChart(
+        chart = await createEnterpriseChart(
             polarOptions(
                 'polygon',
                 [{ type: 'line', value: 'Q3', id: 'angle-line', listeners: { click: listener } }],
@@ -334,32 +385,32 @@ describe('PolarCrossLine listeners', () => {
             )
         );
 
-        await click(chart, pointOn(instanceOf(chart, 'angle')));
-        await click(chart, pointOn(instanceOf(chart, 'radius')));
+        await click(chart, pointOn(crossLineAt(chart, 'angle')));
+        await click(chart, pointOn(crossLineAt(chart, 'radius')));
 
         expect(listener.mock.calls.map(([event]) => event.crossLineId)).toEqual(['angle-line', 'radius-band']);
     });
 
     it('AC6: with no cross-line listener the click falls through to the chart `click` listener', async () => {
         const chartClick = vi.fn();
-        chart = await createChart(
+        chart = await createEnterpriseChart(
             polarOptions('polygon', [{ type: 'range', range: ['Q1', 'Q2'] }], [], { listeners: { click: chartClick } })
         );
 
-        await click(chart, pointOn(instanceOf(chart, 'angle')));
+        await click(chart, pointOn(crossLineAt(chart, 'angle')));
 
         expect(chartClick).toHaveBeenCalledTimes(1);
     });
 
     it('AC7: a chart-level `crossLineClick` listener receives the cross-line event', async () => {
         const chartClick = vi.fn();
-        chart = await createChart(
+        chart = await createEnterpriseChart(
             polarOptions('polygon', [], [{ type: 'range', range: [1, 3], id: 'band' }], {
                 listeners: { crossLineClick: chartClick },
             })
         );
 
-        await click(chart, pointOn(instanceOf(chart, 'radius')));
+        await click(chart, pointOn(crossLineAt(chart, 'radius')));
 
         expect(chartClick).toHaveBeenCalledWith(
             expect.objectContaining({ type: 'crossLineClick', crossLineId: 'band', axisId: 'radius' })
@@ -368,28 +419,42 @@ describe('PolarCrossLine listeners', () => {
 
     describe('TC1: every axis, type and shape combination is a click target', () => {
         const shapes: AgPolarAxisShape[] = ['polygon', 'circle'];
-        const cases = shapes.flatMap((shape) => [
-            { shape, axisId: 'angle', crossLine: { type: 'line', value: 'Q2' } as AgAngleCrossLineOptions },
-            { shape, axisId: 'angle', crossLine: { type: 'range', range: ['Q3', 'Q4'] } as AgAngleCrossLineOptions },
-            { shape, axisId: 'radius', crossLine: { type: 'line', value: 7 } as AgRadiusCrossLineOptions },
-            { shape, axisId: 'radius', crossLine: { type: 'range', range: [2, 6] } as AgRadiusCrossLineOptions },
-        ]);
+        const angleCases: AgAngleCrossLineOptions[] = [
+            { type: 'line', value: 'Q2' },
+            { type: 'range', range: ['Q3', 'Q4'] },
+        ];
+        const radiusCases: AgRadiusCrossLineOptions[] = [
+            { type: 'line', value: 7 },
+            { type: 'range', range: [2, 6] },
+        ];
 
-        it.each(cases)('$shape $axisId $crossLine.type', async ({ shape, axisId, crossLine }) => {
-            const listener = vi.fn();
-            const withListener = { ...crossLine, listeners: { click: listener } };
-            chart = await createChart(
-                polarOptions(
-                    shape,
-                    axisId === 'angle' ? [withListener as AgAngleCrossLineOptions] : [],
-                    axisId === 'radius' ? [withListener as AgRadiusCrossLineOptions] : []
-                )
-            );
-
-            await click(chart, pointOn(instanceOf(chart, axisId)));
-
+        const expectClickTarget = async (target: Chart, axisId: string, listener: ReturnType<typeof vi.fn>) => {
+            const instance = crossLineAt(target, axisId);
+            await click(target, pointOn(instance));
             expect(listener).toHaveBeenCalledTimes(1);
-            expect(listener).toHaveBeenCalledWith(expect.objectContaining({ axisId, crossLineType: crossLine.type }));
-        });
+            expect(listener).toHaveBeenCalledWith(expect.objectContaining({ axisId, crossLineType: instance.type }));
+        };
+
+        it.each(shapes.flatMap((shape) => angleCases.map((crossLine) => ({ shape, crossLine }))))(
+            '$shape angle $crossLine.type',
+            async ({ shape, crossLine }) => {
+                const listener = vi.fn();
+                chart = await createEnterpriseChart(
+                    polarOptions(shape, [{ ...crossLine, listeners: { click: listener } }], [])
+                );
+                await expectClickTarget(chart, 'angle', listener);
+            }
+        );
+
+        it.each(shapes.flatMap((shape) => radiusCases.map((crossLine) => ({ shape, crossLine }))))(
+            '$shape radius $crossLine.type',
+            async ({ shape, crossLine }) => {
+                const listener = vi.fn();
+                chart = await createEnterpriseChart(
+                    polarOptions(shape, [], [{ ...crossLine, listeners: { click: listener } }])
+                );
+                await expectClickTarget(chart, 'radius', listener);
+            }
+        );
     });
 });

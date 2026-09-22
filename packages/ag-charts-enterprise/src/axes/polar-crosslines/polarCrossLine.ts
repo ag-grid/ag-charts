@@ -161,7 +161,7 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
     /** Hit-tests a canvas-space point against the drawn line or fill and the label. */
     containsPoint(point: CanvasPoint): boolean {
         const group = this.type === 'range' ? this.rangeGroup : this.lineGroup;
-        if (this.enabled === false || !this.scale || !group.visible) {
+        if (!this.scale || !group.visible) {
             return false;
         }
         const { x, y } = Transformable.fromCanvasPoint(this.crossLineRange, point);
