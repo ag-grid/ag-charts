@@ -304,6 +304,7 @@ jobs:
                       packages/*/dist/
                       external/*/dist/
                       packages/ag-charts-website/e2e/generated/
+                      packages/ag-charts-demos/seeds/*/*/dist/
                       !packages/*/dist/**/*.map
 
     lint:
@@ -347,6 +348,24 @@ jobs:
               id: lint
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --exclude all
+
+            # The committed seed projects under packages/ag-charts-demos/seeds are generated from the
+            # React demos; this fails when a demo (or the workspace version) changed without them.
+            - name: nx check-seeds
+              id: check-seeds
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              run: yarn nx run ag-charts-demos:check-seeds
+
+            # The Angular, Vue and TypeScript seeds are ports of the React demos, synced after the
+            # fact: a demo change is expected to leave them stale on a PR. This only tells the
+            # author so; once the change is on latest, demo-port-sync.yml files the JIRA Sub-task
+            # that gets them re-synced. Never blocks: the report is informational.
+            - name: Stale demo ports (non-blocking)
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              continue-on-error: true
+              run: |
+                  node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --stale > stale-ports.json
+                  jq -r '.stale[] | "::warning title=Stale demo port::seeds/\(.demo)/\(.framework) was last synced to \(.manifestCommit // "an unknown commit" | .[0:8]) and no longer matches src/demos/\(.demo). A \"Sync demo ports\" JIRA Sub-task will follow once this merges to latest; no action needed on this PR."' stale-ports.json
 
     generate:
         runs-on: ubuntu-24.04
@@ -1345,6 +1364,24 @@ jobs:
                     npx playwright test
               timeout-minutes: 15
 
+            # Pixel parity of the framework ports against the React reference, served from the
+            # dist/ the init job built. PARITY_DISCOVER finds every committed port by its
+            # seeds/<demo>/<framework>/.seed-manifest.json and serves the seed dist/ the init job
+            # built (ag-charts-demos-seeds:build, restored with the init outputs), so a new port
+            # joins this run by committing its manifest.
+            - name: playwright parity ag-charts-demos
+              id: demos_parity
+              if: ${{ !cancelled() }}
+              run: |
+                  docker run --rm --ipc=host --init \
+                    -v "$(pwd)":/data \
+                    -w /data/packages/ag-charts-demos \
+                    -e CI \
+                    -e PARITY_DISCOVER=1 \
+                    ${PLAYWRIGHT_IMAGE} \
+                    npx playwright test -c playwright.parity.config.ts
+              timeout-minutes: 15
+
             - name: Persist test results
               if: always()
               uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -1353,6 +1390,7 @@ jobs:
                   path: |
                       reports/
                       packages/ag-charts-demos/test-results/
+                      packages/ag-charts-demos/e2e/parity/results/
 
     fw_pkg_test:
         runs-on: ubuntu-24.04

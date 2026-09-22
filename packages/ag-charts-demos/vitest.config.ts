@@ -4,7 +4,7 @@ export default defineConfig({
     test: {
         root: new URL('.', import.meta.url).pathname,
         globals: true,
-        include: ['src/**/*.test.ts'],
+        include: ['src/**/*.test.ts', 'tools/**/*.test.mjs'],
         exclude: ['**/node_modules/**', '**/dist/**', 'src/**/*Timezone.test.ts'],
         reporters: process.env.CI
             ? ['default', ['junit', { outputFile: '../../reports/ag-charts-demos.xml' }]]
