@@ -1,0 +1,21 @@
+{
+  "name": "ag-charts-demo-procurement-typescript",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "ag-charts-community": "14.2.0",
+    "ag-charts-enterprise": "14.2.0",
+    "ag-grid-community": "~35.0.1",
+    "ag-grid-enterprise": "~35.0.1"
+  },
+  "devDependencies": {
+    "typescript": "~5.8.3",
+    "vite": "5.4.20"
+  }
+}

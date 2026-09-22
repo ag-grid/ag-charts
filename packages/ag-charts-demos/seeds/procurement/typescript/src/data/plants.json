@@ -1,0 +1,26 @@
+[
+    {
+        "plantId": "DTW",
+        "name": "Detroit Assembly",
+        "destination": {
+            "latitude": 42.33,
+            "longitude": -83.05
+        }
+    },
+    {
+        "plantId": "CHA",
+        "name": "Chattanooga Plant",
+        "destination": {
+            "latitude": 35.05,
+            "longitude": -85.31
+        }
+    },
+    {
+        "plantId": "QRO",
+        "name": "Querétaro Plant",
+        "destination": {
+            "latitude": 20.59,
+            "longitude": -100.39
+        }
+    }
+]
