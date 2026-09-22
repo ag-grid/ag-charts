@@ -1,12 +1,15 @@
 import { type AgZoomAnchorPoint, type AgZoomButtonValue, _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { AxisID, CartesianAxisDirection, DefinedZoomState, DynamicContext, ZoomMinMax } from 'ag-charts-core';
+import type {
+    AxisID,
+    CartesianAxisDirection,
+    DefinedZoomState,
+    DynamicContext,
+    NormalisedZoomButtons,
+    ZoomMinMax,
+} from 'ag-charts-core';
 import {
-    ActionOnSet,
-    BaseProperties,
     ChartAxisDirection,
     CleanupRegistry,
-    PropertiesArray,
-    Property,
     UNIT_MAX,
     UNIT_MIN,
     createElement,
@@ -15,7 +18,6 @@ import {
     entries,
 } from 'ag-charts-core';
 
-import { ToolbarButtonProperties } from '../toolbar/buttonProperties';
 import type { ZoomProperties } from './zoomTypes';
 import {
     DEFAULT_ANCHOR_POINT_X,
@@ -34,48 +36,24 @@ import {
 
 const { userInteraction, NativeWidget, Toolbar } = _ModuleSupport;
 
-class ZoomButtonProperties extends ToolbarButtonProperties {
-    @Property
-    value!: 'reset' | 'zoom-in' | 'zoom-out' | 'pan-left' | 'pan-right' | 'pan-start' | 'pan-end';
-
-    @Property
-    section!: string;
-}
-
 interface ZoomToolbarButtonOptions extends _ModuleSupport.ToolbarButtonOptions {
     value: AgZoomButtonValue;
 }
 
 type ZoomButtonsVisible = 'always' | 'zoomed' | 'hover';
 
-export class ZoomToolbar extends BaseProperties {
-    @Property
-    @ActionOnSet<ZoomToolbar>({
-        changeValue(enabled) {
-            this.toolbar?.setHidden(!enabled);
-        },
-    })
-    public enabled: boolean = false;
+/** The anchor points are undocumented options, so they sit outside the public `AgZoomButtons` shape. */
+type ZoomToolbarOptions = NormalisedZoomButtons & {
+    anchorPointX?: AgZoomAnchorPoint;
+    anchorPointY?: AgZoomAnchorPoint;
+};
 
-    @Property
-    public buttons = new PropertiesArray(ZoomButtonProperties);
-
-    @Property
-    @ActionOnSet<ZoomToolbar>({
-        changeValue(visible: ZoomButtonsVisible, oldValue: any) {
-            if (oldValue == null) return;
-            const always = visible === 'always';
-            const zoomed = visible === 'zoomed' && this.previousZoom != null && !isMaxZoom(this.previousZoom);
-            this.toggleVisibility(always || zoomed);
-        },
-    })
-    public visible: ZoomButtonsVisible = 'hover';
-
-    @Property
-    public anchorPointX?: AgZoomAnchorPoint;
-
-    @Property
-    public anchorPointY?: AgZoomAnchorPoint;
+export class ZoomToolbar {
+    private enabled: boolean = false;
+    private buttons: ZoomToolbarButtonOptions[] = [];
+    private visible: ZoomButtonsVisible = 'hover';
+    private anchorPointX?: AgZoomAnchorPoint;
+    private anchorPointY?: AgZoomAnchorPoint;
 
     private readonly verticalSpacing = 10;
     private readonly detectionRange = 38;
@@ -106,8 +84,6 @@ export class ZoomToolbar extends BaseProperties {
         private readonly resetZoom: (sourceDetail: _ModuleSupport.ZoomEventSourceDetail) => void,
         private readonly isZoomValid: (zoom: DefinedZoomState) => boolean
     ) {
-        super();
-
         this.container = new NativeWidget(createElement('div'));
         this.container.addClass('ag-charts-zoom-buttons');
         ctx.domManager.addChild('canvas-overlay', 'zoom-buttons', this.container.getElement());
@@ -133,6 +109,24 @@ export class ZoomToolbar extends BaseProperties {
 
     public destroy() {
         this.cleanup.flush();
+    }
+
+    public applyOptions(options: ZoomToolbarOptions) {
+        const { enabled, visible, anchorPointX, anchorPointY } = options;
+        if (enabled !== this.enabled) {
+            this.enabled = enabled;
+            this.toolbar.setHidden(!enabled);
+        }
+        // Copied because `onLayoutComplete` fills in the default tooltip on each button.
+        this.buttons = options.buttons.map((button) => ({ ...button }));
+        if (visible !== this.visible) {
+            this.visible = visible;
+            const always = visible === 'always';
+            const zoomed = visible === 'zoomed' && this.previousZoom != null && !isMaxZoom(this.previousZoom);
+            this.toggleVisibility(always || zoomed);
+        }
+        this.anchorPointX = anchorPointX;
+        this.anchorPointY = anchorPointY;
     }
 
     public toggleVisibleZoomed(maxZoom: boolean) {
