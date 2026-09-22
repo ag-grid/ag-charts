@@ -138,6 +138,69 @@ test.describe('toolbar', () => {
         await expectChartScreenshot(page, page, 'callout-6-change-fill-color.png', { animations: 'disabled' });
     });
 
+    test('parallel channel', async ({ page }) => {
+        await gotoExample(page, url);
+
+        await page.getByTitle('Trend Lines').click();
+        await page.getByText('Parallel Channel').click();
+
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 100, y: 200 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 100, y: 200 } });
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 300, y: 150 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 300, y: 150 } });
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 300, y: 230 } });
+        await expectChartScreenshot(page, page, 'parallel-channel-1-sizing.png', { animations: 'disabled' });
+
+        await page.click(SELECTORS.canvasProxy, { position: { x: 300, y: 230 } });
+        await expectChartScreenshot(page, page, 'parallel-channel-2-complete.png', { animations: 'disabled' });
+
+        await page.getByTitle('Settings').click();
+        await expectChartScreenshot(page, page, 'parallel-channel-3-settings.png', { animations: 'disabled' });
+    });
+
+    test('fibonacci retracement', async ({ page }) => {
+        await gotoExample(page, url);
+
+        await page.getByTitle('Fibonacci').click();
+        await page.getByText('Fib Retracement').click();
+
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 100, y: 250 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 100, y: 250 } });
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 350, y: 100 } });
+        await expectChartScreenshot(page, page, 'fibonacci-1-drawing.png', { animations: 'disabled' });
+
+        await page.click(SELECTORS.canvasProxy, { position: { x: 350, y: 100 } });
+        await expectChartScreenshot(page, page, 'fibonacci-2-complete.png', { animations: 'disabled' });
+
+        await page.getByTitle('Line Color').click();
+        await page.locator('.ag-charts-color-picker__hue-input').click({ position: { x: 30, y: 5 } });
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 500, y: 350 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 500, y: 350 } });
+        await expectChartScreenshot(page, page, 'fibonacci-3-change-line-color.png', { animations: 'disabled' });
+    });
+
+    test('measurer', async ({ page }) => {
+        await gotoExample(page, url);
+
+        await page.getByTitle('Measurers').click();
+        await page.getByText('Date and Price').click();
+
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 150, y: 250 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 150, y: 250 } });
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 350, y: 120 } });
+        await expectChartScreenshot(page, page, 'measurer-1-drawing.png', { animations: 'disabled' });
+
+        await page.click(SELECTORS.canvasProxy, { position: { x: 350, y: 120 } });
+        await expectChartScreenshot(page, page, 'measurer-2-complete.png', { animations: 'disabled' });
+
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 500, y: 350 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 500, y: 350 } });
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 250, y: 185 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 250, y: 185 } });
+        await page.getByTitle('Delete').click();
+        await expectChartScreenshot(page, page, 'measurer-3-deleted.png', { animations: 'disabled' });
+    });
+
     test('AG-13008 delete annotation', async ({ page }) => {
         await gotoExample(page, url);
         const point = await canvasToPageTransformer(page);
