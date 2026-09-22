@@ -29,6 +29,7 @@ export class DataWindowProcessor implements UpdateProcessor {
     private dirtyZoom = false;
     private dirtyDataSource = false;
     private lastWindowPending = false;
+    private abandonedPendingRange = false;
     private zoomSource: AgZoomEventSource | undefined;
     private readonly lastAxisZooms = new Map<string, ZoomMinMax>();
     private lastWindow: AgDataSourceCallbackParams | undefined;
@@ -116,7 +117,10 @@ export class DataWindowProcessor implements UpdateProcessor {
     }
 
     private onUpdateComplete(event: UpdateCompleteEvent) {
-        if (!event.apiUpdate && !this.dirtyZoom && !this.dirtyDataSource) return;
+        // Giving up on an unresolved initial range leaves the zoom untouched, so nothing else marks
+        // this update dirty - but the window that was requested is no longer the one wanted.
+        this.abandonedPendingRange ||= this.ctx.zoomManager?.consumeAbandonedPendingRange() === true;
+        if (!event.apiUpdate && !this.dirtyZoom && !this.dirtyDataSource && !this.abandonedPendingRange) return;
 
         // If the update was shortcut, skip the window update as we are expecting another update shortly.
         if (event.wasShortcut) return;
@@ -145,13 +149,14 @@ export class DataWindowProcessor implements UpdateProcessor {
             const zoom = pickDirectionZoom(this.ctx.chartState.getValue('zoom'), axis.direction) ?? DEFAULT_ZOOM;
             pendingWindow = this.getPendingWindow();
             window = pendingWindow ?? this.getAxisWindow(axis, zoom);
-            shouldRefresh = this.shouldRefresh(event, axis, zoom, window);
+            shouldRefresh = this.shouldRefresh(event, axis, zoom, window, this.abandonedPendingRange);
         }
 
         const source: AgZoomEventSource = this.dirtyZoom && this.zoomSource ? this.zoomSource : 'chart-update';
 
         this.dirtyZoom = false;
         this.dirtyDataSource = false;
+        this.abandonedPendingRange = false;
         this.zoomSource = undefined;
         this.lastWindow = window;
         this.lastWindowPending = pendingWindow != null;
@@ -174,13 +179,16 @@ export class DataWindowProcessor implements UpdateProcessor {
         event: UpdateCompleteEvent,
         axis: AxisLike,
         zoom: ZoomMinMax,
-        window: AgDataSourceCallbackParams | undefined
+        window: AgDataSourceCallbackParams | undefined,
+        abandonedPending: boolean
     ) {
         const { lastAxisZooms, lastWindow } = this;
 
         if (event.apiUpdate) return true;
         if (this.dirtyDataSource) return true;
-        if (!this.dirtyZoom) return false;
+        // Giving up on a pending range leaves the zoom untouched, so neither gate below can see that
+        // the requested window has changed; the window comparison further down still can.
+        if (!this.dirtyZoom && !abandonedPending) return false;
 
         const lastZoom = lastAxisZooms.get(axis.id);
         if (lastZoom && isNumberEqual(zoom.min, lastZoom.min) && isNumberEqual(zoom.max, lastZoom.max)) {

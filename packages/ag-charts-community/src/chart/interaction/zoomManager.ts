@@ -267,6 +267,8 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
           }
         | undefined = undefined;
 
+    private abandonedPendingRange = false;
+
     constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
         super();
 
@@ -368,6 +370,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             this.pendingMemento = { version, mementoVersion, memento };
             return;
         }
+        const wasPending = this.pendingMemento != null;
         this.pendingMemento = undefined;
 
         // Migration from older versions can be implemented here.
@@ -382,6 +385,10 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
                 this.pendingMemento = { version, mementoVersion, memento };
                 return;
             }
+
+            // Whoever requested the pending window needs to know it has been given up on, as the
+            // zoom staying at the full range is not by itself a sign that anything changed.
+            this.abandonedPendingRange ||= wasPending && !ratioX;
 
             zoom.x = ratioX ?? { min: 0, max: 1 };
         } else if (memento?.ratioX) {
@@ -953,9 +960,15 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     private canRangeStillResolve(direction: CartesianAxisDirection) {
         const axis = this.getPrimaryAxis(direction);
         if (!axis || !this.getDomainPixelExtents(axis)) return true;
-        if (axis.scale.domainMin == null || axis.scale.domainMax == null) return true;
 
         return this.ctx.dataService.isLoading();
+    }
+
+    /** Reports, once, that a pending range was given up on rather than resolved. */
+    public consumeAbandonedPendingRange(): boolean {
+        const { abandonedPendingRange } = this;
+        this.abandonedPendingRange = false;
+        return abandonedPendingRange;
     }
 
     public getPendingRangeX(): ZoomMementoRange | undefined {

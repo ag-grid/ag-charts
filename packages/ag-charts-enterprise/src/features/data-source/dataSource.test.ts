@@ -582,8 +582,21 @@ describe('DataSource', () => {
                 end: serialisableDate('2024-02-12 00:00:00'),
             };
 
+            // The shared fixture bounds its time axis to the first week, which no `rangeX` in this
+            // suite lies within; widen it so the range is one the axis can actually resolve.
+            const WIDE_TIME_OPTIONS: AgCartesianChartOptions = {
+                ...TIME_OPTIONS,
+                axes: { ...TIME_OPTIONS.axes, x: { ...TIME_OPTIONS.axes!.x, max: new Date('2024-02-12 00:00:00') } },
+            } as AgCartesianChartOptions;
+
             it.each([
-                ['time', TIME_OPTIONS, timeRange, new Date('2024-01-22 00:00:00'), new Date('2024-02-12 00:00:00')],
+                [
+                    'time',
+                    WIDE_TIME_OPTIONS,
+                    timeRange,
+                    new Date('2024-01-22 00:00:00'),
+                    new Date('2024-02-12 00:00:00'),
+                ],
                 [
                     'unit-time',
                     UNIT_TIME_OPTIONS,
@@ -632,7 +645,12 @@ describe('DataSource', () => {
                     zoom: { rangeX: { start: 40, end: 70 } },
                 });
 
-                expect(windows).toEqual([{ windowStart: 40, windowEnd: 70 }]);
+                // Asked for the stated range first, then - once the loaded domain proved it
+                // unresolvable - for the window the viewport actually shows.
+                expect(windows).toEqual([
+                    { windowStart: 40, windowEnd: 70 },
+                    { windowStart: 1, windowEnd: 7 },
+                ]);
                 expect(chart.getState().zoom.ratioX).toEqual({ start: 0, end: 1 });
 
                 // The unresolved range must no longer stand in for the viewport, or every later
@@ -641,6 +659,32 @@ describe('DataSource', () => {
                 await settleUntil(() => windows.length > 1, 'the zoom-triggered data request');
 
                 expect(windows.at(-1)).not.toEqual({ windowStart: 40, windowEnd: 70 });
+            });
+
+            // A server holding nothing for the requested window answers with no rows, leaving no
+            // domain at all; the range cannot resolve against that, and must not strand the chart.
+            it('recovers when the requested range returns no rows', async () => {
+                const windowsSeen: Array<{ windowStart: unknown; windowEnd: unknown }> = [];
+                await prepareChart(
+                    {
+                        getData: ({ windowStart, windowEnd }) => {
+                            windowsSeen.push({ windowStart, windowEnd });
+                            const outside = typeof windowStart === 'number' && windowStart > 7;
+                            return Promise.resolve(outside ? [] : NUMERIC_RESPONSE);
+                        },
+                    },
+                    { ...NUMERIC_OPTIONS, initialState: { zoom: { rangeX: { start: 40, end: 70 } } } }
+                );
+                for (let i = 0; i < 10; i++) {
+                    await waitForChartStability(chart);
+                    await delay(5);
+                }
+
+                expect(windowsSeen).toEqual([
+                    { windowStart: 40, windowEnd: 70 },
+                    { windowStart: undefined, windowEnd: undefined },
+                ]);
+                expect(chart.getState().zoom.ratioX).toEqual({ start: 0, end: 1 });
             });
 
             it('requests the range once for a grouping-valued range', async () => {
