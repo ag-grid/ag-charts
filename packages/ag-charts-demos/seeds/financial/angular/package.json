@@ -1,0 +1,32 @@
+{
+  "name": "ag-charts-demo-financial-angular",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "dev": "ng serve",
+    "build": "ng build",
+    "preview": "ng serve --configuration production"
+  },
+  "dependencies": {
+    "@angular/cdk": "^20.2.0",
+    "@angular/common": "^20.0.0",
+    "@angular/compiler": "^20.0.0",
+    "@angular/core": "^20.0.0",
+    "@angular/platform-browser": "^20.0.0",
+    "ag-charts-angular": "14.2.0",
+    "ag-charts-community": "14.2.0",
+    "ag-charts-enterprise": "14.2.0",
+    "ag-grid-angular": "~35.0.1",
+    "ag-grid-community": "~35.0.1",
+    "rxjs": "~7.8.2",
+    "tslib": "^2.8.1",
+    "zone.js": "~0.15.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^20.0.0",
+    "@angular/cli": "^20.0.0",
+    "@angular/compiler-cli": "^20.0.0",
+    "typescript": "~5.8.3"
+  }
+}
