@@ -17,6 +17,7 @@ import {
 import { ChartAxisDirection } from 'ag-charts-core';
 import { Caster } from 'ag-charts-test';
 
+import { pointOnPolarCrossLine, polarCanvasPoint, polarCrossLineAt } from '../../test/polarCrossLines';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
 
@@ -829,6 +830,87 @@ describe('Context Menu', () => {
             const payload = legendItemDoubleClick.mock.calls[0][0];
             expect(payload.event).toBe(params.event);
             expect(payload.event.type).toBe('contextmenu');
+        });
+    });
+
+    describe('polar cross-line region', () => {
+        let getItems: ReturnType<typeof vi.fn>;
+
+        beforeEach(async () => {
+            getItems = vi.fn(({ defaultItems }) => defaultItems);
+            await prepareChart(
+                { enabled: true, getItems },
+                {
+                    data: [
+                        { q: 'Q1', v: 2 },
+                        { q: 'Q2', v: 4 },
+                        { q: 'Q3', v: 6 },
+                        { q: 'Q4', v: 8 },
+                    ],
+                    series: [{ type: 'radar-line', angleKey: 'q', radiusKey: 'v' }],
+                    axes: {
+                        angle: {
+                            type: 'angle-category',
+                            shape: 'circle',
+                            crossLines: [{ id: 'band', type: 'range', range: ['Q2', 'Q3'] }],
+                        },
+                        radius: {
+                            type: 'radius-number',
+                            shape: 'circle',
+                            min: 0,
+                            max: 10,
+                            crossLines: [{ id: 'threshold', type: 'line', value: 5 }],
+                        },
+                    },
+                    contextMenu: { enabled: true },
+                }
+            );
+        });
+
+        const band = expect.objectContaining({
+            showOn: 'cross-line',
+            crossLineId: 'band',
+            axisId: 'angle',
+            direction: 'angle',
+            crossLineType: 'range',
+            range: ['Q2', 'Q3'],
+        });
+        const threshold = expect.objectContaining({
+            showOn: 'cross-line',
+            crossLineId: 'threshold',
+            axisId: 'radius',
+            direction: 'radius',
+            crossLineType: 'line',
+            value: 5,
+        });
+
+        test('AC1-AC4: right-clicking an angle range fill offers that cross line', async () => {
+            const { canvasX, canvasY } = pointOnPolarCrossLine(polarCrossLineAt(deproxy(chart), 'angle'));
+            await contextMenuAction(canvasX, canvasY)(chart);
+            await waitForChartStability(chart);
+
+            expect(getItems).toHaveBeenCalledWith(band);
+            expect(getItems).not.toHaveBeenCalledWith(threshold);
+        });
+
+        test('AC1-AC4: right-clicking a radius line offers that cross line', async () => {
+            const { canvasX, canvasY } = pointOnPolarCrossLine(polarCrossLineAt(deproxy(chart), 'radius'));
+            await contextMenuAction(canvasX, canvasY)(chart);
+            await waitForChartStability(chart);
+
+            expect(getItems).toHaveBeenCalledWith(threshold);
+            expect(getItems).not.toHaveBeenCalledWith(band);
+        });
+
+        test('AC5: right-clicking clear of both cross lines offers no cross-line region', async () => {
+            // Q1 sits at the top of the circle, outside the Q2-Q3 band; radius 3.5 is clear of the threshold and the datum.
+            const radius = polarCrossLineAt(deproxy(chart), 'radius');
+            const { canvasX, canvasY } = polarCanvasPoint(radius, radius.axisOuterRadius * 0.35, -Math.PI / 2);
+            await contextMenuAction(canvasX, canvasY)(chart);
+            await waitForChartStability(chart);
+
+            expect(getItems).toHaveBeenCalledWith(expect.objectContaining({ showOn: 'series-area' }));
+            expect(getItems).not.toHaveBeenCalledWith(expect.objectContaining({ showOn: 'cross-line' }));
         });
     });
 });
