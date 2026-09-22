@@ -123,11 +123,12 @@ Each component renders exactly what the Radix primitive renders, minus Radix's p
 - `ToggleGroup.Root` (single, `rovingFocus`, `loop`) -> `ToggleGroup` on `div[finToggleGroup]`:
   host `role="radiogroup" dir="ltr" class="fin-toggle-group" aria-label tabindex="0" style="outline: none;"`
   with `<button type="button" data-state="on|off" role="radio" aria-checked class="fin-toggle-item" tabindex>`
-  items. Roving focus: items are `tabindex="-1"` until one is focused, which then takes `0` (the
-  group keeps `0`, as Radix does while it has focusable items); a CDK `FocusKeyManager` moves focus
-  with the arrow keys, looping, and Home/End jump; focus landing on the group itself moves to the
-  item that is on. A click selects; the selected item cannot be deselected (`valueChange` only ever
-  emits a value).
+  items. Roving focus, hand-written after Radix's `RovingFocusGroup`: items are `tabindex="-1"`
+  until one is focused, which then takes `0` (the group keeps `0`); keyboard focus landing on the
+  group moves to the item that is on; arrow keys on both axes (the React demo gives the group no
+  orientation) move focus and loop; Home/End and PageUp/PageDown jump; Shift+Tab leaves the group
+  without stopping on it. A click selects; the selected item cannot be deselected (`valueChange`
+  only ever emits a value).
 - `Select` (Root/Trigger/Value/Icon/Portal/Content/Viewport/Item/ItemText) -> `Select` on
   `label[finSelect]`: the host is the Radix `Label.Root`, `<label for class="fin-labeled-select">`,
   holding `<span>Speed</span>` and the trigger
@@ -135,14 +136,18 @@ Each component renders exactly what the Radix primitive renders, minus Radix's p
   with `<span style="pointer-events: none;">label</span><span aria-hidden="true">▾</span>`. While
   open, a CDK connected overlay (`CdkConnectedOverlay`, positioned bottom-start with a 4px offset
   and flipping above when there is no room) holds
-  `<div role="listbox" id data-state="open" data-side="bottom" data-align="start" dir="ltr" class="fin-portal fin-select-content" tabindex="-1" style="box-sizing: border-box; display: flex; flex-direction: column; outline: none;">`
+  `<div role="listbox" id data-state="open" data-side="bottom|top" data-align="start" dir="ltr" class="fin-portal fin-select-content" tabindex="-1" style="box-sizing: border-box; display: flex; flex-direction: column; outline: none; pointer-events: auto;">`
   then `<div role="presentation" style="position: relative; flex: 1 1 0%; overflow: auto;">` and
-  `<div role="option" aria-selected data-state="checked|unchecked" tabindex="-1" class="fin-select-item"><span>1×</span></div>`
-  items, the highlighted one carrying `data-highlighted` (a CDK `ActiveDescendantKeyManager`, built
-  when the overlay attaches). Opens on click, ArrowUp or ArrowDown; arrows and Home/End move the
-  highlight; Enter or Space selects; Escape, Tab or a click outside closes; focus returns to the
-  trigger. Radix's typeahead and `aria-labelledby` ids are not reproduced (no functional spec or
-  parity state exercises them).
+  `<div role="option" aria-labelledby aria-selected data-state="checked|unchecked" tabindex="-1" class="fin-select-item"><span id>1×</span></div>`
+  items (`SelectItem` directives), the focused one carrying `data-highlighted`. Opens on a mouse
+  pointerdown, a touch or pen click, or Space, Enter, ArrowUp, ArrowDown; the selected item takes
+  focus; arrows and Home/End move it; Enter, Space or pointerup select; Escape or a pointerdown
+  outside closes (the CDK overlay detaches on Escape, the port on the pointerdown); focus returns
+  to the trigger. Typing searches the options as Radix does: on the closed trigger the value moves
+  to the next match, in the open listbox the match takes focus (repeating a character steps
+  through its matches; the search resets after a second). While open, the rest of the page carries
+  `aria-hidden="true"` (with Radix's `data-aria-hidden` marker) and `document.body` takes no
+  pointer events.
 - `Label` -> the `Select` host itself.
 
 ## DOM and class-name invariants
@@ -178,8 +183,9 @@ Known, accepted differences from the React render, none of which move a pixel:
   order).
 - The open select's listbox sits in the CDK overlay container (`.cdk-overlay-container` >
   `.cdk-overlay-connected-position-bounding-box` > `.cdk-overlay-pane`) rather than Radix's
-  `[data-radix-popper-content-wrapper]` div, and Radix's private attributes, CSS custom properties
-  and inline `<style>` for hiding the viewport scrollbar are omitted.
+  `[data-radix-popper-content-wrapper]` div, and Radix's private attributes, CSS custom properties,
+  inline `<style>` for hiding the viewport scrollbar, focus guards and the `data-scroll-locked` it
+  sets on `<body>` while the Select is open are omitted.
 - Angular leaves `<!--container-->` comment nodes where `@if`/`@for` blocks render.
 
 ## Deterministic mode

@@ -89,22 +89,27 @@ Each factory renders exactly what the Radix primitive renders, minus Radix's pri
 - `ToggleGroup.Root` (single, `rovingFocus`, `loop`) -> `createToggleGroup`:
   `<div dir="ltr" role="radiogroup" class="fin-toggle-group" aria-label tabindex="0" style="outline: none;">`
   with `<button type="button" data-state="on|off" role="radio" aria-checked class="fin-toggle-item" tabindex="-1">`
-  items. Roving focus: the group has `tabindex="0"` until an item is focused, then the focused
-  item takes `tabindex="0"` and the group `-1`; arrow keys move focus and loop; Home/End jump. A
-  click or Enter/Space selects; the selected item cannot be deselected.
+  items. Roving focus as Radix's `RovingFocusGroup`: the group keeps `tabindex="0"` and the
+  focused item takes `tabindex="0"`, the others `-1`; keyboard focus landing on the group moves to
+  the item that is on; arrow keys on both axes (the React demo gives the group no orientation)
+  move focus and loop; Home/End and PageUp/PageDown jump; Shift+Tab leaves the group without
+  stopping on it. A click or Enter/Space selects; the selected item cannot be deselected.
 - `Select` (Root/Trigger/Value/Icon/Portal/Content/Viewport/Item/ItemText) -> `createSelect`:
   the trigger is `<button type="button" role="combobox" aria-controls aria-expanded aria-autocomplete="none" dir="ltr" data-state="closed|open" class="fin-btn fin-select-trigger" aria-label>`
   holding `<span style="pointer-events: none;">label</span><span aria-hidden="true">▾</span>`,
   wrapped in `<label for class="fin-labeled-select"><span>Speed</span>…</label>`. Opening appends
   to `document.body` a wrapper `<div dir="ltr" style="position: fixed; left: 0px; top: 0px; min-width: max-content; z-index: 60; transform: translate(x, y);">`
-  containing `<div role="listbox" id data-state="open" dir="ltr" class="fin-portal fin-select-content" tabindex="-1" style="box-sizing: border-box; display: flex; flex-direction: column; outline: none;">`
+  containing `<div role="listbox" id data-state="open" data-side="bottom|top" data-align="start" dir="ltr" class="fin-portal fin-select-content" tabindex="-1" style="box-sizing: border-box; display: flex; flex-direction: column; outline: none; pointer-events: auto;">`
   then `<div role="presentation" style="position: relative; flex: 1 1 0%; overflow: auto;">` and
   `<div role="option" aria-labelledby aria-selected data-state="checked|unchecked" tabindex="-1" class="fin-select-item"><span id>1×</span></div>`
   items, the focused one carrying `data-highlighted`. Positioned 4px below the trigger, flipping
   above when there is no room, snapped to device pixels. Opens on pointerdown or Space, Enter,
   ArrowUp, ArrowDown; arrows and Home/End move the highlight; Enter, Space or pointerup select;
-  Escape or a pointerdown outside closes; focus returns to the trigger. Radix's typeahead is not
-  reproduced (no functional spec or parity state exercises it).
+  Escape or a pointerdown outside closes; focus returns to the trigger. Typing searches the
+  options as Radix does: on the closed trigger the value moves to the next match, in the open
+  listbox the match takes focus (repeating a character steps through its matches; the search
+  resets after a second). While open, the rest of the page carries `aria-hidden="true"` (with
+  Radix's `data-aria-hidden` marker) and `document.body` takes no pointer events.
 - `Label` -> a plain `<label for>` with the same class.
 
 ## DOM and class-name invariants
@@ -134,8 +139,9 @@ Known, accepted differences from the React render:
 - AG Grid's internal DOM differs because `ag-grid-react` renders the grid shell with React
   components while `createGrid` renders it itself (`data-ref` attributes, comment nodes, class
   order). Pixel output is identical.
-- Radix's private `data-radix-*` attributes, `data-side`/`data-align` and its CSS custom
-  properties are omitted, along with its inline `<style>` for hiding the viewport scrollbar.
+- Radix's private `data-radix-*` attributes and its CSS custom properties are omitted, along with
+  its inline `<style>` for hiding the viewport scrollbar, its focus guards and the
+  `data-scroll-locked` it sets on `<body>` while the Select is open.
 
 ## Deterministic mode
 

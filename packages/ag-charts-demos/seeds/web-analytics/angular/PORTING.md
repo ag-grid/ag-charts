@@ -141,9 +141,12 @@ Each component renders exactly what the Radix primitive renders, minus Radix's p
   (plus the `class` and `aria-label` written in the app template), with `[value]`/`(valueChange)`.
   `Tabs.Trigger` -> `TabTrigger` on `button[waTabTrigger]`:
   `type="button" role="tab" aria-selected aria-controls data-state="active|inactive" id tabindex data-orientation="horizontal"`.
-  Roving focus: triggers are `tabindex="-1"` until one is focused, which then takes `0`; a CDK
-  `FocusKeyManager` moves focus with the arrow keys, looping, and Home/End jump; Radix activates on
-  focus, so moving focus selects. `Tabs.Content` -> `TabContent` on `div[waTabContent]`:
+  Roving focus, hand-written after Radix's `RovingFocusGroup`: triggers are `tabindex="-1"` until
+  one is focused, which then takes `0` (the list keeps `0`); keyboard focus landing on the list
+  moves to the active trigger; Left/Right move focus, looping (Up/Down are ignored on the
+  horizontal list); Home/End and PageUp/PageDown jump; Shift+Tab leaves the list without stopping
+  on it. Radix activates on focus, so moving focus selects; a left-button mousedown without
+  Control, Space and Enter select too. `Tabs.Content` -> `TabContent` on `div[waTabContent]`:
   `role="tabpanel" data-orientation="horizontal" tabindex="0" data-state aria-labelledby id`,
   `hidden` while inactive. Radix keeps every panel in the DOM and mounts children only into the
   active one, so the app template renders all three panels and mounts each view with an `@if` on
@@ -156,14 +159,18 @@ Each component renders exactly what the Radix primitive renders, minus Radix's p
   with `<span style="pointer-events: none;">label</span><span aria-hidden="true">▾</span>`. While
   open, a CDK connected overlay (`CdkConnectedOverlay`, positioned bottom-start with a 4px offset
   and flipping above when there is no room) holds
-  `<div role="listbox" id data-state="open" data-side="bottom" data-align="start" dir="ltr" class="wa-portal wa-select-content" tabindex="-1" style="box-sizing: border-box; display: flex; flex-direction: column; outline: none;">`
+  `<div role="listbox" id data-state="open" data-side="bottom|top" data-align="start" dir="ltr" class="wa-portal wa-select-content" tabindex="-1" style="box-sizing: border-box; display: flex; flex-direction: column; outline: none; pointer-events: auto;">`
   then `<div role="presentation" style="position: relative; flex: 1 1 0%; overflow: auto;">` and
-  `<div role="option" aria-selected data-state="checked|unchecked" tabindex="-1" class="wa-select-item"><span>Last 30 days</span></div>`
-  items, the highlighted one carrying `data-highlighted` (a CDK `ActiveDescendantKeyManager`, built
-  when the overlay attaches). Opens on click, ArrowUp or ArrowDown; arrows and Home/End move the
-  highlight; Enter or Space selects; Escape, Tab or a click outside closes; focus returns to the
-  trigger. Radix's typeahead and `aria-labelledby` ids are not reproduced (no functional spec or
-  parity state exercises them).
+  `<div role="option" aria-labelledby aria-selected data-state="checked|unchecked" tabindex="-1" class="wa-select-item"><span id>Last 30 days</span></div>`
+  items (`SelectItem` directives), the focused one carrying `data-highlighted`. Opens on a mouse
+  pointerdown, a touch or pen click, or Space, Enter, ArrowUp, ArrowDown; the selected item takes
+  focus; arrows and Home/End move it; Enter, Space or pointerup select; Escape or a pointerdown
+  outside closes (the CDK overlay detaches on Escape, the port on the pointerdown); focus returns
+  to the trigger. Typing searches the options as Radix does: on the closed trigger the value moves
+  to the next match, in the open listbox the match takes focus (repeating a character steps
+  through its matches; the search resets after a second). While open, the rest of the page carries
+  `aria-hidden="true"` (with Radix's `data-aria-hidden` marker) and `document.body` takes no
+  pointer events.
 - `Popover` (Root/Anchor/Trigger/Portal/Content) in `OverviewView` -> written inline in
   `overview-view.ts`. The trigger is
   `<button type="button" aria-haspopup="dialog" aria-expanded data-state="closed|open" class="wa-btn wa-btn--secondary" [disabled]>Add event</button>`,
@@ -171,7 +178,7 @@ Each component renders exactly what the Radix primitive renders, minus Radix's p
   CDK connected overlay positioned `side="bottom" align="end" sideOffset={6}` (bottom-end, 6px
   offset, flipping above with a -6px offset) with `collisionPadding={8}` as
   `cdkConnectedOverlayViewportMargin`, holding
-  `<div id data-side="bottom" data-align="end" data-state="open" role="dialog" class="wa-portal" tabindex="-1">`
+  `<div id data-side="bottom|top" data-align="end" data-state="open" role="dialog" class="wa-portal" tabindex="-1">`
   and the keyed `<form waEventForm>`. The overlay origin is the trigger's `ElementRef`, or, when the
   form was opened from the chart's context menu, the `{ x, y }` point of the right-click (Radix's
   `Anchor virtualRef` with a zero-size `DOMRect`). Escape closes and returns focus to the trigger;
@@ -231,8 +238,9 @@ Known, accepted differences from the React render, none of which move a pixel:
   order).
 - Open overlays sit in the CDK overlay container (`.cdk-overlay-container` >
   `.cdk-overlay-connected-position-bounding-box` > `.cdk-overlay-pane`) rather than Radix's
-  `[data-radix-popper-content-wrapper]` div, and Radix's private attributes, CSS custom properties
-  and inline `<style>` for hiding the viewport scrollbar are omitted.
+  `[data-radix-popper-content-wrapper]` div, and Radix's private attributes, CSS custom properties,
+  inline `<style>` for hiding the viewport scrollbar, focus guards and the `data-scroll-locked` it
+  sets on `<body>` while the Select is open are omitted.
 - Angular binds the form inputs' `value` as a property, so the `value=""` attribute React reflects
   on controlled inputs is absent.
 - Cell icons are served as files (`media/*.svg`, `media/*.png`) where Vite inlines the SVGs as

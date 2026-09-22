@@ -102,29 +102,36 @@ Each factory renders exactly what the Radix primitive renders, minus Radix's pri
   holding `<span style="pointer-events: none;">label</span><span aria-hidden="true">▾</span>`,
   wrapped in `<label class="wa-labeled-select"><span>Range</span>…</label>` when a label is given.
   Opening appends to `document.body` a wrapper `<div dir="ltr" style="position: fixed; left: 0px; top: 0px; min-width: max-content; z-index: 60; transform: translate(x, y);">`
-  containing `<div role="listbox" id data-state="open" dir="ltr" class="wa-portal wa-select-content" tabindex="-1" style="box-sizing: border-box; display: flex; flex-direction: column; outline: none;">`
+  containing `<div role="listbox" id data-state="open" data-side="bottom|top" data-align="start" dir="ltr" class="wa-portal wa-select-content" tabindex="-1" style="box-sizing: border-box; display: flex; flex-direction: column; outline: none; pointer-events: auto;">`
   then `<div role="presentation" style="position: relative; flex: 1 1 0%; overflow: auto;">` and
   `<div role="option" aria-labelledby aria-selected data-state="checked|unchecked" tabindex="-1" class="wa-select-item"><span id>Last 30 days</span></div>`
   items, the focused one carrying `data-highlighted`. Positioned 4px below the trigger, flipping
   above when there is no room, snapped to device pixels. Opens on pointerdown or Space, Enter,
   ArrowUp, ArrowDown; arrows and Home/End move the highlight; Enter, Space or pointerup select;
-  Escape or a pointerdown outside closes; focus returns to the trigger. Radix's typeahead is not
-  reproduced (no functional spec or parity state exercises it).
+  Escape or a pointerdown outside closes; focus returns to the trigger. Typing searches the
+  options as Radix does: on the closed trigger the value moves to the next match, in the open
+  listbox the match takes focus (repeating a character steps through its matches; the search
+  resets after a second). While open, the rest of the page carries `aria-hidden="true"` (with
+  Radix's `data-aria-hidden` marker) and `document.body` takes no pointer events.
 - `Tabs` (Root/List/Trigger/Content, horizontal, automatic activation, `loop`) -> `createTabs`:
   `<div dir="ltr" data-orientation="horizontal" class="wa-app">` holding
   `<div role="tablist" aria-orientation="horizontal" aria-label="Analytics views" class="wa-tabs-list" tabindex="0" data-orientation="horizontal" style="outline: none;">`
   of `<button type="button" role="tab" aria-selected aria-controls data-state="active|inactive" id class="wa-tab-trigger" tabindex data-orientation="horizontal">`
   triggers and one `<div data-state="active|inactive" data-orientation="horizontal" role="tabpanel" aria-labelledby id tabindex="0" class="wa-tab-content" hidden>`
-  per tab. Roving focus: the list has `tabindex="0"` until a trigger is focused, then the focused
-  trigger takes `tabindex="0"` and the list `-1`; arrow keys move focus and activate, looping;
-  Home/End jump. A mousedown activates; Space or Enter activates. The panel that is active on
+  per tab. Roving focus as Radix's `RovingFocusGroup`: the list keeps `tabindex="0"` and the
+  focused trigger takes `tabindex="0"`, the others `-1`; keyboard focus landing on the list moves
+  to the active trigger; Left/Right move focus and activate, looping (Up/Down are ignored on the
+  horizontal list); Home/End and PageUp/PageDown jump; Shift+Tab leaves the list without stopping
+  on it. A left-button mousedown without Control activates, as do Space and Enter. The panel that
+  is active on
   first render carries `style="animation-duration: 0s;"` until the value first changes, as Radix
   suppresses the mount animation. Inactive panels are `hidden` and empty.
 - `Popover` (Root/Trigger/Anchor/Portal/Content, non-modal, `side="bottom" align="end"`) ->
   `createPopover`: the trigger is `<button type="button" aria-haspopup="dialog" aria-expanded data-state="closed|open" class="wa-btn wa-btn--secondary">Add event</button>`,
   gaining `aria-controls` while open. Opening appends to `document.body` a wrapper
   `<div style="position: fixed; left: 0px; top: 0px; min-width: max-content; z-index: auto; transform: translate(x, y);">`
-  holding `<div data-state="open" role="dialog" id class="wa-portal" tabindex="-1">` with the form.
+  holding `<div data-state="open" data-side="bottom|top" data-align="end" role="dialog" id class="wa-portal" tabindex="-1">`
+  with the form.
   Positioned 6px below the anchor with its right edge on the anchor's, shifted to stay 8px inside
   the viewport and flipping above when there is no room. Escape, a pointerdown outside or focus
   moving outside dismiss it; focus returns to the trigger unless the dismissal was an interaction
@@ -166,9 +173,9 @@ Known, accepted differences from the React render:
 - AG Grid's internal DOM differs because `ag-grid-react` renders the grid shell with React
   components while `createGrid` renders it itself (`data-ref` attributes, comment nodes, class
   order). Pixel output is identical.
-- Radix's private `data-radix-*` attributes, `data-side`/`data-align`, its CSS custom properties,
-  its focus guards and the `aria-hidden` it sets on siblings while a Select is open are omitted,
-  along with its inline `<style>` for hiding the viewport scrollbar.
+- Radix's private `data-radix-*` attributes and its CSS custom properties are omitted, along with
+  its inline `<style>` for hiding the viewport scrollbar, its focus guards and the
+  `data-scroll-locked` it sets on `<body>` while a Select is open.
 - The traffic chart's legend and axis labels can sit a few pixels apart from the React reference
   in the overview states. AG Charts re-lays a chart out when a web font it measured with a
   fallback finishes loading, and defers that re-layout to the end of any running animation. The
