@@ -1,4 +1,4 @@
-import { Debug, StateMachine, StateMachineProperty } from 'ag-charts-core';
+import { Debug, StateMachine } from 'ag-charts-core';
 
 import type { DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext, MeasurerDatumType } from '../annotationsSuperTypes';
@@ -29,11 +29,13 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerDatumType> extends
 > {
     override debug = Debug.create(true, 'annotations');
 
-    @StateMachineProperty()
     protected datum?: Datum;
 
-    @StateMachineProperty()
     protected node?: MeasurerScene;
+
+    override inheritedProperties() {
+        return ['datum', 'node'] as const;
+    }
 
     constructor(ctx: MeasurerStateMachineContext<Datum>) {
         const actionCreate = ({ point }: { point: DataPoint }) => {

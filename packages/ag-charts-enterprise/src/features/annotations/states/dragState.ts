@@ -1,4 +1,4 @@
-import { Debug, type Point, StateMachine, StateMachineProperty, Vec2 } from 'ag-charts-core';
+import { Debug, type Point, StateMachine, Vec2 } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { AnnotationDatum, AnnotationsStateMachineContext } from '../annotationsSuperTypes';
@@ -20,14 +20,15 @@ export class DragStateMachine<
     protected hasMoved = false;
     protected dragStart?: Point;
 
-    @StateMachineProperty()
     protected snapping: boolean = false;
 
-    @StateMachineProperty()
     protected datum?: Datum;
 
-    @StateMachineProperty()
     protected node?: Node;
+
+    override inheritedProperties() {
+        return ['snapping', 'datum', 'node'] as const;
+    }
 
     private offset?: Point;
 

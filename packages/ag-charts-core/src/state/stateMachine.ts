@@ -29,28 +29,9 @@ type HierarchyState = '__parent' | '__child';
 const debugColor = 'color: green';
 const debugQuietColor = 'color: grey';
 
-const PROPERTIES_KEY = '__stateMachineProperties';
-
-type WithStateMachineProperties = { [PROPERTIES_KEY]?: string[] };
-
-/** Marks a field to copy from the parent state machine into a child on every transition into it. */
-export function StateMachineProperty(): PropertyDecorator {
-    return (target, propertyKey) => {
-        const prototype = target as WithStateMachineProperties;
-        if (Object.getOwnPropertyDescriptor(prototype, PROPERTIES_KEY) == null) {
-            Object.defineProperty(prototype, PROPERTIES_KEY, { value: [...(prototype[PROPERTIES_KEY] ?? [])] });
-        }
-        prototype[PROPERTIES_KEY]!.push(String(propertyKey));
-    };
-}
-
-function stateMachineProperties(state: object) {
-    return (state as WithStateMachineProperties)[PROPERTIES_KEY] ?? [];
-}
-
 function applyProperties(parentState: AbstractStateMachine<any>, childState: StateMachine<any, any>) {
-    const parentProperties = stateMachineProperties(parentState);
-    for (const property of stateMachineProperties(childState)) {
+    const parentProperties = parentState.inheritedProperties();
+    for (const property of childState.inheritedProperties()) {
         if (parentProperties.includes(property)) {
             (childState as any)[property] = (parentState as any)[property] ?? null;
         }
@@ -59,6 +40,11 @@ function applyProperties(parentState: AbstractStateMachine<any>, childState: Sta
 
 abstract class AbstractStateMachine<Events extends Record<string, any>> {
     public parent?: AbstractStateMachine<Events>;
+
+    /** Fields copied from the parent state machine into a child on every transition into it. */
+    inheritedProperties(): readonly string[] {
+        return [];
+    }
 
     abstract transition<Event extends keyof Events & string>(event: Event, data?: Events[Event]): void;
     abstract transitionAsync<Event extends keyof Events & string>(event: Event, data?: Events[Event]): void;

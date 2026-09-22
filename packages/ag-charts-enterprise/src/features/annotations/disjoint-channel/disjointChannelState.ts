@@ -1,4 +1,4 @@
-import { Debug, type Point, StateMachine, StateMachineProperty, isNumber } from 'ag-charts-core';
+import { Debug, type Point, StateMachine, isNumber } from 'ag-charts-core';
 
 import { type AnnotationContext, AnnotationType, type DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
@@ -22,14 +22,15 @@ export class DisjointChannelStateMachine extends StateMachine<
 > {
     override debug = Debug.create(true, 'annotations');
 
-    @StateMachineProperty()
     protected datum?: DisjointChannelDatum;
 
-    @StateMachineProperty()
     protected node?: DisjointChannelScene;
 
-    @StateMachineProperty()
     protected snapping: boolean = false;
+
+    override inheritedProperties() {
+        return ['datum', 'node', 'snapping'] as const;
+    }
 
     constructor(ctx: DisjointChannelStateMachineContext) {
         const actionCreate = ({ point }: { point: DataPoint }) => {

@@ -1,4 +1,4 @@
-import { Debug, type Point, StateMachine, StateMachineProperty } from 'ag-charts-core';
+import { Debug, type Point, StateMachine } from 'ag-charts-core';
 
 import type { AnnotationContext, DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
@@ -27,14 +27,15 @@ export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
 > {
     override debug = Debug.create(true, 'annotations');
 
-    @StateMachineProperty()
     protected datum?: FibonacciRetracementTrendBasedDatum;
 
-    @StateMachineProperty()
     protected node?: FibonacciRetracementTrendBasedScene;
 
-    @StateMachineProperty()
     protected snapping: boolean = false;
+
+    override inheritedProperties() {
+        return ['datum', 'node', 'snapping'] as const;
+    }
 
     constructor(ctx: FibonacciRetracementTrendBasedStateMachineContext) {
         const actionCreate = ({ point }: { point: DataPoint }) => {

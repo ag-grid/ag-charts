@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Debug, StateMachine, StateMachineProperty } from 'ag-charts-core';
+import { Debug, StateMachine } from 'ag-charts-core';
 
 import type { AnnotationOptionsColorPickerType, DataPoint } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
@@ -48,11 +48,13 @@ export abstract class TextualStartEndStateMachine<
 > {
     override debug = Debug.create(true, 'annotations');
 
-    @StateMachineProperty()
     protected datum?: Datum;
 
-    @StateMachineProperty()
     protected node?: Node;
+
+    override inheritedProperties() {
+        return ['datum', 'node'] as const;
+    }
 
     constructor(ctx: TextualStartEndStateMachineContext<Datum>) {
         const actionCreate = ({ point }: { point: DataPoint }) => {

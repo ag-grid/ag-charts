@@ -1,4 +1,4 @@
-import { Debug, StateMachine, StateMachineProperty } from 'ag-charts-core';
+import { Debug, StateMachine } from 'ag-charts-core';
 
 import type { DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
@@ -19,8 +19,11 @@ export abstract class PointStateMachine<Datum extends PointDatum, Node extends P
 > {
     override debug = Debug.create(true, 'annotations');
 
-    @StateMachineProperty()
     protected node?: Node;
+
+    override inheritedProperties() {
+        return ['node'] as const;
+    }
 
     constructor(ctx: PointStateMachineContext<Datum>) {
         const actionCreate = ({ point }: { point: DataPoint }) => {

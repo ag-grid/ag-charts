@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ParallelStateMachine, StateMachine, StateMachineProperty } from './stateMachine';
+import { ParallelStateMachine, StateMachine } from './stateMachine';
 
 describe('State Machine', () => {
     let state: any;
@@ -140,8 +140,11 @@ describe('State Machine', () => {
         let childProperty: any;
 
         class Parent extends StateMachine<'initial', { event: undefined }> {
-            @StateMachineProperty()
             testProperty = 'parent-value';
+
+            override inheritedProperties() {
+                return ['testProperty'];
+            }
 
             constructor() {
                 super('initial', {
@@ -156,8 +159,11 @@ describe('State Machine', () => {
         }
 
         class Child extends StateMachine<'child-initial', { event: undefined }> {
-            @StateMachineProperty()
             testProperty = 'child-value';
+
+            override inheritedProperties() {
+                return ['testProperty'];
+            }
 
             constructor() {
                 super('child-initial', {

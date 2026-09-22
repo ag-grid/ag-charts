@@ -1,5 +1,5 @@
 import { type Direction } from 'ag-charts-community';
-import { Debug, StateMachine, StateMachineProperty } from 'ag-charts-core';
+import { Debug, StateMachine } from 'ag-charts-core';
 
 import { AnnotationType, type DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
@@ -17,8 +17,11 @@ export class CrossLineStateMachine extends StateMachine<
 > {
     override debug = Debug.create(true, 'annotations');
 
-    @StateMachineProperty()
     protected node?: CrossLineScene;
+
+    override inheritedProperties() {
+        return ['node'] as const;
+    }
 
     constructor(direction: Direction, ctx: CrossLineStateMachineContext) {
         const onClick = ({ point }: { point: DataPoint }) => {

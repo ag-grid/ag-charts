@@ -1,4 +1,4 @@
-import { Debug, type Point, StateMachine, StateMachineProperty } from 'ag-charts-core';
+import { Debug, type Point, StateMachine } from 'ag-charts-core';
 
 import type { AnnotationContext, DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
@@ -24,14 +24,15 @@ export abstract class LineTypeStateMachine<Datum extends LineTypeDatum> extends 
 > {
     override debug = Debug.create(true, 'annotations');
 
-    @StateMachineProperty()
     protected datum?: Datum;
 
-    @StateMachineProperty()
     protected node?: LineScene;
 
-    @StateMachineProperty()
     protected snapping: boolean = false;
+
+    override inheritedProperties() {
+        return ['datum', 'node', 'snapping'] as const;
+    }
 
     constructor(ctx: LineStateMachineContext<Datum>) {
         const actionCreate = ({ point }: { point: DataPoint }) => {

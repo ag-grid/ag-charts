@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-properties */
 import { _ModuleSupport } from 'ag-charts-community';
-import { Debug, ParallelStateMachine, type Point, StateMachine, StateMachineProperty } from 'ag-charts-core';
+import { Debug, ParallelStateMachine, type Point, StateMachine } from 'ag-charts-core';
 
 import { type AnnotationLineStyle, type AnnotationOptionsColorPickerType, AnnotationType } from './annotationTypes';
 import { annotationConfigs } from './annotationsConfig';
@@ -39,14 +39,15 @@ export class AnnotationsStateMachine extends ParallelStateMachine<States, Annota
     // TODO: remove this leak
     private active?: number;
 
-    @StateMachineProperty()
     protected snapping: boolean = false;
 
-    @StateMachineProperty()
     protected datum?: AnnotationDatum;
 
-    @StateMachineProperty()
     protected node?: AnnotationScene;
+
+    override inheritedProperties() {
+        return ['snapping', 'datum', 'node'] as const;
+    }
 
     constructor(ctx: AnnotationsStateMachineContext) {
         super(
@@ -117,10 +118,8 @@ class UpdateMachine extends StateMachine<States, AnnotationStateEvents> {
 class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEvents> {
     override debug = Debug.create(true, 'annotations');
 
-    @StateMachineProperty()
     protected active?: number;
 
-    @StateMachineProperty()
     protected hovered?: number;
 
     private updateActive(index: number | undefined) {
@@ -129,20 +128,19 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
         this.setActive(index);
     }
 
-    @StateMachineProperty()
     protected hoverCoords?: Point;
 
-    @StateMachineProperty()
     protected copied?: AnnotationDatum;
 
-    @StateMachineProperty()
     protected snapping: boolean = false;
 
-    @StateMachineProperty()
     protected datum?: AnnotationDatum;
 
-    @StateMachineProperty()
     protected node?: AnnotationScene;
+
+    override inheritedProperties() {
+        return ['active', 'hovered', 'hoverCoords', 'copied', 'snapping', 'datum', 'node'] as const;
+    }
 
     constructor(
         ctx: AnnotationsStateMachineContext,
