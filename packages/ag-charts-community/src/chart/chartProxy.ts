@@ -404,8 +404,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
             originators.push(new LegendPaginationOriginator(categoryLegend));
         }
 
-        originators.push(this.chart.ctx.activeManager);
-        originators.push(this.chart.ctx.collapsedManager);
+        originators.push(this.chart.ctx.activeManager, this.chart.ctx.collapsedManager);
 
         return originators;
     }
