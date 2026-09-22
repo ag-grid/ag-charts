@@ -838,13 +838,17 @@ export function doubleClickAction(canvasX: number, canvasY: number): (chart: Cha
     };
 }
 
-export function contextMenuAction(canvasX: number, canvasY: number): (chart: ChartOrProxy) => Promise<void> {
+export function contextMenuAction(
+    canvasX: number,
+    canvasY: number,
+    modifiers?: EventModifierInit
+): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const testTarget = findChartTarget(chart, canvasX, canvasY);
         checkTargetValid(testTarget);
 
-        dispatchEvent(testTarget, contextMenuEvent(testTarget, canvasX, canvasY));
+        dispatchEvent(testTarget, contextMenuEvent(testTarget, canvasX, canvasY, modifiers));
         return delay(50);
     };
 }
