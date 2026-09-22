@@ -42,6 +42,8 @@ export function getDragStartState<PointName extends string>(
     return dragState;
 }
 
+const DEFAULT_TRANSLATE_OPTIONS: { overflowContinuous: number } = { overflowContinuous: 0 };
+
 /**
  * Translate an collection of vectors by the given translation. Clamp the vectors as a group within the series area.
  *
@@ -66,12 +68,7 @@ export function translate<VectorName extends string>(
             vectors: Record<VectorName, Point>;
             angle: number;
         };
-    } = {
-        overflowContinuous: 0,
-        translateVectors: undefined,
-        invertYVectors: undefined,
-        snap: undefined,
-    }
+    } = DEFAULT_TRANSLATE_OPTIONS
 ) {
     const { xAxis, yAxis } = context;
     const vectorNames = Object.keys(vectors) as VectorName[];

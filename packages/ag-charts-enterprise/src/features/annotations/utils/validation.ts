@@ -5,10 +5,12 @@ import { getGroupingValue } from './scale';
 
 const { ContinuousScale } = _ModuleSupport;
 
+const DEFAULT_VALIDATE_OPTIONS: { overflowContinuous: boolean } = { overflowContinuous: false };
+
 export function validateDatumPoint(
     context: AnnotationContext,
     point: DataPoint,
-    options: { overflowContinuous: boolean } = { overflowContinuous: false },
+    options: { overflowContinuous: boolean } = DEFAULT_VALIDATE_OPTIONS,
     warningPrefix?: string
 ) {
     if (point.x == null || point.y == null) {
