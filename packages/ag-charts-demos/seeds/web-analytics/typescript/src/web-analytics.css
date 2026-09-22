@@ -1,0 +1,690 @@
+/* Canvas text never triggers a font download, so the charts rely on the document
+   FontFaceSet to load Urbanist and re-measure. */
+@import url('https://fonts.googleapis.com/css2?family=Urbanist:wght@400..700&display=swap');
+
+/* Dashboard chrome, scoped under .wa-app so it never leaks into other demos. Chart
+   visuals come from the AG Charts theme, not from here. */
+
+/* Tokens live on the app root and on portalled content (Radix menus mount at
+   document.body, outside .wa-app). */
+.wa-app,
+.wa-portal {
+    --wa-bg: #f1f4f9;
+    --wa-panel: #ffffff;
+    --wa-panel-2: #f7f9fc;
+    --wa-border: #dbe2ec;
+    --wa-border-strong: #c3cddc;
+    --wa-grid: #e8edf4;
+    --wa-text: #14202e;
+    --wa-muted: #5b6777;
+    --wa-accent: #2a78d6;
+    --wa-accent-strong: #1c5cab;
+    --wa-accent-soft: #eaf2fd;
+    /* Delta cues are text, so these are text-contrast steps, not the series green/red. */
+    --wa-up: #006300;
+    --wa-down: #c8322f;
+    --wa-radius: 8px;
+    --wa-radius-sm: 6px;
+    /* The single elevation in the app: a popover genuinely floats above content. */
+    --wa-shadow-popover: 0 4px 16px rgba(20, 32, 46, 0.12);
+    color: var(--wa-text);
+    font-family:
+        Urbanist,
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+    font-size: 14px;
+}
+
+.wa-app {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--wa-bg);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ---- top bar ---- */
+.wa-topbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 24px;
+    background: var(--wa-panel);
+    border-bottom: 1px solid var(--wa-border-strong);
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+}
+.wa-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: -0.01em;
+    margin-right: 24px;
+}
+.wa-brand-mark {
+    flex: none;
+    display: block;
+}
+.wa-topbar-spacer {
+    flex: 1 1 auto;
+}
+.wa-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* ---- demo notice (top bar info icon + hover tooltip) ---- */
+/* Anchor for the tooltip; the top bar row itself must not grow to fit it. */
+.wa-notice {
+    flex: none;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+.wa-notice-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: var(--wa-radius-sm);
+    background: transparent;
+    color: var(--wa-muted);
+    cursor: pointer;
+}
+.wa-notice-trigger:hover {
+    background: var(--wa-accent-soft);
+    color: var(--wa-accent-strong);
+}
+.wa-notice-trigger:focus-visible {
+    outline: 2px solid var(--wa-accent);
+    outline-offset: 1px;
+}
+.wa-notice-tip {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 60;
+    /* Wide enough to hold the notice on two or three lines, narrow enough to stay on a phone. */
+    width: max-content;
+    max-width: min(380px, calc(100vw - 24px));
+    padding: 10px 12px;
+    border: 1px solid var(--wa-border);
+    border-radius: var(--wa-radius-sm);
+    background: var(--wa-panel);
+    box-shadow: var(--wa-shadow-popover);
+    color: var(--wa-muted);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.45;
+    pointer-events: none;
+}
+
+/* ---- icon + label grid cells (country flag, browser icon) ---- */
+.wa-icon-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.wa-flag {
+    flex: none;
+    width: 18px;
+    height: 12px;
+    object-fit: cover;
+    border: 1px solid var(--wa-border);
+    border-radius: 2px;
+}
+.wa-cell-icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
+}
+
+/* ---- body / scroll region ---- */
+.wa-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 20px 24px 40px;
+}
+
+.wa-view {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 1560px;
+    margin: 0 auto;
+}
+
+/* ---- cards ---- */
+.wa-card {
+    background: var(--wa-panel);
+    border: 1px solid var(--wa-border);
+    border-radius: var(--wa-radius);
+    padding: 18px 20px;
+    min-width: 0;
+}
+.wa-card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+.wa-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    margin: 0;
+}
+.wa-card-sub {
+    font-size: 13px;
+    color: var(--wa-muted);
+}
+.wa-chart-box {
+    height: clamp(260px, 25vh, 320px);
+    min-width: 0;
+}
+
+.wa-chart-box-xxsm {
+    height: clamp(90px, 10vh, 120px);
+    min-width: 0;
+}
+
+.wa-chart-box-xsm {
+    height: clamp(140px, 15vh, 180px);
+    min-width: 0;
+}
+
+.wa-chart-box-lg {
+    height: clamp(320px, 30vh, 540px);
+    min-width: 0;
+}
+
+/* ---- KPI tabs ---- */
+/* Card whose head is the KPI tab strip, which spans the full card width. */
+.wa-card--tabbed {
+    padding-top: 0;
+}
+.wa-kpi-tabs {
+    display: grid;
+    /* Always one row: too narrow for every KPI and the strip scrolls, not the card. */
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(150px, 1fr);
+    overflow-x: auto;
+    margin: 0 -20px 16px;
+    background: var(--wa-panel-2);
+    border-radius: calc(var(--wa-radius) - 1px) calc(var(--wa-radius) - 1px) 0 0;
+}
+.wa-kpi {
+    position: relative;
+    /* A button does not inherit the app font by default. */
+    font: inherit;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-left: 1px solid var(--wa-border);
+    border-bottom: 1px solid var(--wa-border);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    overflow: hidden;
+    transition:
+        background 0.12s ease,
+        color 0.12s ease;
+}
+.wa-kpi:first-child {
+    border-left: 0;
+    border-top-left-radius: inherit;
+}
+.wa-kpi:last-child {
+    border-top-right-radius: inherit;
+}
+.wa-kpi:focus-visible {
+    outline: 2px solid var(--wa-accent);
+    outline-offset: -2px;
+}
+.wa-kpi:hover:not(.is-active) {
+    background: var(--wa-panel);
+}
+/* The selected tab joins the chart panel below it, breaking the strip's bottom rule. */
+.wa-kpi.is-active {
+    background: var(--wa-panel);
+    border-bottom-color: transparent;
+}
+.wa-kpi.is-active::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: currentcolor;
+}
+.wa-kpi-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--wa-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.wa-kpi-value {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    /* Text ink, not the metric colour — the sparkline already carries that. */
+    color: var(--wa-text);
+}
+.wa-kpi-delta {
+    font-size: 12px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+.wa-kpi-spark-box {
+    display: block;
+    height: 30px;
+    margin: 2px -4px -8px;
+}
+.wa-kpi-spark {
+    width: 100%;
+    height: 100%;
+}
+.wa-up {
+    color: var(--wa-up);
+}
+.wa-down {
+    color: var(--wa-down);
+}
+
+/* ---- grid layouts within a view ---- */
+.wa-grid-2 {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+/* Opt-in fill of the remaining viewport height: needs `.wa-view--fill` on the view,
+   `.wa-card--fill` on its cards and `.wa-fill` on the chart area inside each. */
+.wa-view--fill {
+    min-height: 100%;
+}
+.wa-view--fill > .wa-grid-2 {
+    flex: 1 1 auto;
+    min-height: 0;
+    align-items: stretch;
+}
+.wa-card--fill {
+    display: flex;
+    flex-direction: column;
+}
+.wa-card--fill > .wa-fill {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.wa-grid-2-even {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.wa-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.wa-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+/* ---- generic controls ---- */
+.wa-btn {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 14px;
+    border-radius: var(--wa-radius-sm);
+    border: 1px solid var(--wa-border);
+    background: var(--wa-panel);
+    color: var(--wa-text);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 500;
+    user-select: none;
+    transition:
+        background 0.12s ease,
+        border-color 0.12s ease;
+}
+.wa-btn:hover {
+    border-color: var(--wa-border-strong);
+    background: var(--wa-panel-2);
+}
+.wa-btn:focus-visible {
+    outline: 2px solid var(--wa-accent);
+    outline-offset: 1px;
+}
+.wa-btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+.wa-btn:disabled:hover {
+    border-color: var(--wa-border);
+    background: var(--wa-panel);
+}
+.wa-btn[data-state='open'] {
+    border-color: var(--wa-accent);
+}
+.wa-btn--primary {
+    background: var(--wa-accent);
+    border-color: var(--wa-accent);
+    color: #ffffff;
+}
+.wa-btn--primary:hover,
+.wa-btn--primary:disabled:hover {
+    background: var(--wa-accent-strong);
+    border-color: var(--wa-accent-strong);
+}
+/* Outlined counterpart to the primary button: accent ink, panel ground. */
+.wa-btn--secondary {
+    border-color: var(--wa-accent);
+    color: var(--wa-accent);
+}
+.wa-btn--secondary:hover {
+    border-color: var(--wa-accent-strong);
+    background: var(--wa-accent-soft);
+    color: var(--wa-accent-strong);
+}
+.wa-btn--secondary:disabled:hover {
+    border-color: var(--wa-accent);
+    background: var(--wa-panel);
+}
+
+/* Buttons inside cards sit beside 13-14px card text, so they run smaller than the
+   top-bar controls. */
+.wa-card .wa-btn {
+    height: 28px;
+    padding: 0 10px;
+    font-size: 13px;
+}
+
+/* ---- event annotations: card toolbar and its add-event popover ---- */
+.wa-card-actions {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.wa-event-form {
+    width: 260px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    background: var(--wa-panel);
+    border: 1px solid var(--wa-border-strong);
+    border-radius: var(--wa-radius);
+    box-shadow: var(--wa-shadow-popover);
+}
+/* Opened from the context menu: placed at the click point in viewport space. */
+.wa-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.wa-field-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--wa-muted);
+}
+.wa-input {
+    box-sizing: border-box;
+    width: 100%;
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid var(--wa-border);
+    border-radius: var(--wa-radius-sm);
+    background: var(--wa-panel);
+    color: var(--wa-text);
+    font: inherit;
+}
+.wa-input:focus-visible {
+    border-color: var(--wa-accent);
+    outline: 2px solid var(--wa-accent);
+    outline-offset: -1px;
+}
+.wa-fieldset {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+.wa-fieldset > .wa-field-label {
+    padding: 0;
+    margin-bottom: 5px;
+}
+.wa-radio-row {
+    display: flex;
+    gap: 14px;
+}
+.wa-radio {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+.wa-radio input {
+    accent-color: var(--wa-accent);
+    margin: 0;
+}
+.wa-event-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* ---- Radix Select ---- */
+.wa-labeled-select {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--wa-muted);
+    font-size: 13px;
+}
+.wa-select-trigger {
+    justify-content: space-between;
+    min-width: 96px;
+    font-weight: 500;
+}
+.wa-select-content {
+    z-index: 60;
+    background: var(--wa-panel);
+    border: 1px solid var(--wa-border);
+    border-radius: var(--wa-radius-sm);
+    padding: 5px;
+    box-shadow: var(--wa-shadow-popover);
+}
+.wa-select-item {
+    all: unset;
+    display: flex;
+    align-items: center;
+    height: 30px;
+    padding: 0 26px 0 12px;
+    border-radius: 7px;
+    cursor: pointer;
+    color: var(--wa-text);
+}
+.wa-select-item[data-highlighted] {
+    background: var(--wa-accent-soft);
+    color: var(--wa-accent-strong);
+    font-weight: 500;
+}
+
+/* ---- Radix Tabs ---- */
+.wa-tabs-list {
+    display: inline-flex;
+    gap: 4px;
+}
+.wa-tab-trigger {
+    all: unset;
+    padding: 7px 16px;
+    border-radius: var(--wa-radius-sm);
+    cursor: pointer;
+    color: var(--wa-muted);
+    font-weight: 600;
+    transition:
+        background 0.12s ease,
+        color 0.12s ease;
+}
+.wa-tab-trigger:hover {
+    color: var(--wa-text);
+    background: var(--wa-panel-2);
+}
+.wa-tab-trigger[data-state='active'] {
+    background: var(--wa-accent);
+    color: #fff;
+}
+/* `all: unset` drops the UA focus ring, and Radix moves focus between triggers with
+   the arrow keys, so the ring has to be restored explicitly. */
+.wa-tab-trigger:focus-visible {
+    outline: 2px solid var(--wa-accent);
+    outline-offset: 1px;
+}
+.wa-tab-trigger[data-state='active']:focus-visible {
+    outline-color: var(--wa-accent-strong);
+    outline-offset: 2px;
+}
+/* Fill the scroll region so a `.wa-view--fill` inside can resolve its 100% height.
+   Content taller than this still overflows and scrolls via `.wa-body`. */
+.wa-tab-content {
+    height: 100%;
+}
+.wa-tab-content:focus-visible {
+    outline: 2px solid var(--wa-accent);
+    outline-offset: 2px;
+    border-radius: var(--wa-radius-sm);
+}
+
+/* ---- empty state ---- */
+.wa-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 100%;
+    min-height: 200px;
+    color: var(--wa-muted);
+    text-align: center;
+}
+.wa-empty-icon {
+    font-size: 32px;
+    opacity: 0.6;
+}
+
+/* ---- AG Grid host ---- */
+.wa-grid-host {
+    /* Grid uses domLayout="autoHeight" + pagination, so it sizes to the page
+       instead of scrolling. */
+    width: 100%;
+}
+
+/* ---- traffic chart tooltip (scoped via the class its renderers emit) ---- */
+.wa-app .wa-traffic-tooltip {
+    /* Tighter than the 8px default: every row is a single line. */
+    --tooltip-row-spacing: 2px;
+}
+
+/* One content block per series, each with 8px of vertical padding: collapse the
+   doubled padding where two of them meet. */
+.wa-app .wa-traffic-tooltip:has(+ .wa-traffic-tooltip) {
+    padding-bottom: 4px;
+}
+
+.wa-app .wa-traffic-tooltip + .wa-traffic-tooltip {
+    padding-top: 2px;
+}
+
+.wa-app .wa-traffic-tooltip .ag-charts-tooltip-row {
+    /* Keep the symbol and label together on the left; the value is pushed right below. */
+    justify-content: flex-start;
+    align-items: center;
+    gap: 4px;
+}
+
+.wa-app .wa-traffic-tooltip .ag-charts-tooltip-label {
+    /* The default `flex: 1` stretches the label away from its symbol. */
+    flex: 0 1 auto;
+}
+
+.wa-app .wa-traffic-tooltip .ag-charts-tooltip-value {
+    font-weight: bold;
+    /* Sit against the row's right edge whatever the label width, so values line up. */
+    margin-inline-start: auto;
+    padding-inline-start: 16px;
+    text-align: right;
+}
+
+.wa-app .wa-traffic-tooltip .ag-charts-tooltip-symbol {
+    display: flex;
+    margin: 0;
+    padding: 0;
+}
+
+.wa-app .wa-traffic-tooltip .ag-charts-tooltip-footer {
+    border-top: 1px solid var(--wa-border);
+    padding-top: 8px;
+    margin-top: 8px;
+    text-align: left;
+}
+
+.wa-app .wa-traffic-tooltip .ag-charts-tooltip-footer-text {
+    display: block;
+    font-size: 12px;
+}
+
+/* ---- responsive: stack multi-column layouts, keep everything readable ---- */
+@media (max-width: 1100px) {
+    .wa-grid-2,
+    .wa-grid-2-even,
+    .wa-grid-3 {
+        grid-template-columns: 1fr;
+    }
+    .wa-grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 640px) {
+    .wa-grid-4 {
+        grid-template-columns: 1fr;
+    }
+    .wa-body {
+        padding: 16px 14px 32px;
+    }
+    .wa-topbar {
+        padding: 12px 14px;
+    }
+    .wa-kpi-value {
+        font-size: 22px;
+    }
+}

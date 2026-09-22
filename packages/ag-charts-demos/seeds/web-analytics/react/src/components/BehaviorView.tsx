@@ -1,0 +1,96 @@
+import type { FunnelStep, PageRow, PathLink, Session } from '../types';
+import { DurationHistogramChart } from './DurationHistogramChart';
+import { EmptyState } from './EmptyState';
+import { FunnelChart } from './FunnelChart';
+import { PagePerformanceChart } from './PagePerformanceChart';
+import { PageTreemapChart } from './PageTreemapChart';
+import { PathFlowChart } from './PathFlowChart';
+
+interface BehaviorViewProps {
+    funnelData: FunnelStep[];
+    pathData: PathLink[];
+    pageData: PageRow[];
+    sessions: Session[];
+    hasData: boolean;
+}
+
+export function BehaviorView({ funnelData, pathData, pageData, sessions, hasData }: BehaviorViewProps) {
+    return (
+        <div className="wa-view">
+            <section className="wa-card">
+                <div className="wa-card-head">
+                    <div>
+                        <h2 className="wa-card-title">User paths</h2>
+                    </div>
+                </div>
+                <div className="wa-chart-box-lg">
+                    {hasData && pathData.length > 0 ? (
+                        <PathFlowChart data={pathData} />
+                    ) : (
+                        <EmptyState message="No path data in this range" />
+                    )}
+                </div>
+            </section>
+            <div className="wa-grid-2-even">
+                <section className="wa-card">
+                    <div className="wa-card-head">
+                        <div>
+                            <h2 className="wa-card-title">Conversion funnel</h2>
+                        </div>
+                    </div>
+                    <div className="wa-chart-box">
+                        {hasData ? (
+                            <FunnelChart data={funnelData} />
+                        ) : (
+                            <EmptyState message="No funnel data in this range" />
+                        )}
+                    </div>
+                </section>
+                <section className="wa-card">
+                    <div className="wa-card-head">
+                        <div>
+                            <h2 className="wa-card-title">Session duration distribution</h2>
+                        </div>
+                    </div>
+                    <div className="wa-chart-box">
+                        {hasData ? (
+                            <DurationHistogramChart sessions={sessions} />
+                        ) : (
+                            <EmptyState message="No session data in this range" />
+                        )}
+                    </div>
+                </section>
+            </div>
+            <div className="wa-grid-2-even">
+                <section className="wa-card">
+                    <div className="wa-card-head">
+                        <div>
+                            <h2 className="wa-card-title">Page views vs conversion rate</h2>
+                        </div>
+                    </div>
+                    <div className="wa-chart-box">
+                        {hasData ? (
+                            <PagePerformanceChart data={pageData} />
+                        ) : (
+                            <EmptyState message="No page data in this range" />
+                        )}
+                    </div>
+                </section>
+                <section className="wa-card">
+                    <div className="wa-card-head">
+                        <div>
+                            <h2 className="wa-card-title">Page view distribution</h2>
+                        </div>
+                    </div>
+                    <div className="wa-chart-box">
+                        {hasData && pageData.length > 0 ? (
+                            <PageTreemapChart data={pageData} />
+                        ) : (
+                            <EmptyState message="No page data in this range" />
+                        )}
+                    </div>
+                </section>
+            </div>
+        </div>
+    );
+}
