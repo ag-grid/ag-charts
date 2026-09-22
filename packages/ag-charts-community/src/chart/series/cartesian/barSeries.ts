@@ -2200,7 +2200,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         if (ctx == null || this.processedData?.invalidData?.get(this.id)?.[datumIndex] === true) return undefined;
 
         const xValue = ctx.xValues[datumIndex];
-        if (xValue === undefined && !this.properties.allowNullKeys) return undefined;
+        if (xValue === undefined && !this.options.allowNullKeys) return undefined;
 
         const yRawValue = ctx.yRawValues[datumIndex];
         if (yRawValue == null) return undefined;
