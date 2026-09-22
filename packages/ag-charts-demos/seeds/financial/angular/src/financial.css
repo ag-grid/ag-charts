@@ -344,7 +344,7 @@
     flex-wrap: wrap;
 }
 /* Inside the chart card the header is part of the same component; spacing alone
-   separates it from the plot. */
+   separates it from the chart. */
 .fin-chart-card > .fin-title-bar {
     flex: 0 0 auto;
     margin-bottom: 10px;

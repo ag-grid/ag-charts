@@ -1,8 +1,8 @@
 {
     "demo": "procurement",
     "framework": "typescript",
-    "sourceHash": "sha256-910d9fc51999a56a64ff6dd40256048c8f8864595b8081280757ea2a9d552432",
-    "sourceCommit": "477b8508c5aeee8d82e659738d690dba5b127c06",
+    "sourceHash": "sha256-1eba27a07a54973013b9cc240b71f7ae1d0f665783b9206ce2aa716d8d7f1525",
+    "sourceCommit": "70fd5ba148be2a8cdb2841e6d2b7bb37c08c9d5f",
     "pinnedVersion": "14.2.0",
     "pinSource": "released",
     "vendored": ["web-analytics/topology.ts"],
