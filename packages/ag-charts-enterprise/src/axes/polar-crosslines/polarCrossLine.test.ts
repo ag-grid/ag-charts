@@ -337,6 +337,20 @@ describe('PolarCrossLine listeners', () => {
         }
     );
 
+    it('the outer edge of a circle radius range is a click target within tolerance', async () => {
+        const listener = vi.fn();
+        chart = await createEnterpriseChart(
+            polarOptions('circle', [], [{ type: 'range', range: [4, 8], listeners: { click: listener } }])
+        );
+        const instance = crossLineAt(chart, 'radius');
+        const { scale, axisInnerRadius, axisOuterRadius } = instance;
+        const outerEdge = axisOuterRadius + axisInnerRadius - scale!.convert(8);
+
+        await click(chart, canvasPoint(instance, outerEdge + 2, instance.gridAngles![0]));
+
+        expect(listener).toHaveBeenCalledTimes(1);
+    });
+
     it('a near miss on an angle line falls through to the chart `click` listener', async () => {
         const listener = vi.fn();
         const chartClick = vi.fn();

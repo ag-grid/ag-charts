@@ -563,7 +563,7 @@ export class ExtendedPath2D {
                     const cp2y = params[pi++];
                     cx = params[pi++];
                     cy = params[pi++];
-                    best = bezier2DDistance(cp0x, cp0y, cp1x, cp1y, cp2x, cp2y, cx, cy, x, y) ** 2;
+                    best = Math.min(best, bezier2DDistance(cp0x, cp0y, cp1x, cp1y, cp2x, cp2y, cx, cy, x, y) ** 2);
                     break;
                 }
                 case Command.ClosePath:

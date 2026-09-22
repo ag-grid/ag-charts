@@ -18,6 +18,19 @@ const square = (path: ExtendedPath2D, half: number, reverse = false) => {
 };
 
 describe('ExtendedPath2D', () => {
+    describe('distanceSquared', () => {
+        test('keeps the nearest curve when a farther one follows', () => {
+            const path = new ExtendedPath2D();
+            path.moveTo(100, 0);
+            path.arc(0, 0, 100, 0, 2 * Math.PI);
+            path.moveTo(50, 0);
+            path.arc(0, 0, 50, 0, 2 * Math.PI);
+
+            expect(path.distanceSquared(102, 0)).toBeLessThan(9);
+            expect(path.distanceSquared(0, 52)).toBeLessThan(9);
+        });
+    });
+
     describe('isPointInPath', () => {
         test('a ring of two closed subpaths excludes its hole', () => {
             const path = new ExtendedPath2D();
