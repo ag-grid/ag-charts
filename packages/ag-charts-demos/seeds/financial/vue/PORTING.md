@@ -152,7 +152,12 @@ without `.value`.
 The parity harness compares screenshots, so the DOM must produce the same layout. Keep these
 exactly as the React output:
 
-- Root: `<main data-demo-id="financial">` inside `#root`, containing `.fin-container`.
+- Root: `<main data-demo-id="financial">` inside `#root`, containing `.fin-container`, with the
+  inline style `position: fixed; inset: 0;`. This is a seed-level invariant every port carries:
+  the demo fills the viewport from its own fixed-position container, which leaves the wrapper
+  with no box of its own, and the e2e specs assert the wrapper is visible (in the demos app the
+  lazy-load fallback fills it while the assertion runs). The React seed generator emits the same
+  style from its template.
 - Every `fin-*` class name in `financial.css`, on the same element type, in the same nesting.
 - `data-` attributes read by the CSS: `.fin-body[data-drawer-open]` (`"true"`/`"false"` as text),
   `.fin-ticker-badge[data-avatar]`, and the `data-state` attributes reka-ui renders on the toggle
@@ -243,3 +248,8 @@ From the repository root, one Nx command at a time:
   `reka-ui` in place of the three `@radix-ui/react-*` packages; the `ag-grid-*` and `ag-charts-*`
   dependency set is otherwise the React seed's (no `ag-grid-enterprise`: the demo registers
   `AllCommunityModule` only).
+- Repository tooling: the root `package.json` carries `@vue/compiler-sfc` as a dev dependency so
+  that `yarn nx format` can parse `.vue` files (the sort-imports Prettier plugin needs it, and
+  `@vue/*` is not hoisted from the workspace packages). The root ESLint configuration has no
+  `.vue` handling, so `yarn nx lint ag-charts-demos` covers the seed's `.ts` files but not the
+  script blocks of its `.vue` files; `vue-tsc` type-checks them.
