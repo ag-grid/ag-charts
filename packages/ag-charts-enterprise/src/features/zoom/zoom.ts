@@ -224,10 +224,7 @@ export class Zoom extends AbstractModuleInstance {
                 ctx.zoomManager.setIndependentAxes(Boolean((opts as ZoomOpts).enableIndependentAxes));
                 this.panner.deceleration = opts.deceleration;
 
-                // ZoomToolbar still uses @Property/@ActionOnSet — sync options via set()
-                if (opts.buttons != null) {
-                    this.buttons.set(opts.buttons);
-                }
+                this.buttons.applyOptions(opts.buttons);
 
                 if (prevEnabled !== opts.enabled) {
                     prevEnabled = opts.enabled;
