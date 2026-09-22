@@ -78,9 +78,8 @@ export default defineConfig({
                     width: 800,
                     height: 600,
                 },
-                // The desktop device descriptors default to `hasTouch: false`, so
-                // `interactive-tooltip`'s `page.touchscreen.tap` case throws rather than running.
-                hasTouch: true,
+                // Setting `hasTouch` stops Playwright's Firefox emitting pointer events, killing every drag.
+                hasTouch: false,
             },
             testMatch: CROSS_BROWSER_SPECS,
         },

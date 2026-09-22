@@ -1,12 +1,9 @@
 import type { Page } from 'playwright/test';
 
-import type { ClientPoint } from 'ag-charts-core';
-
 import { evalPageFunction, getChartState } from './agE2E';
 import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
-    SELECTORS,
     canvasToPageTransformer,
     delay,
     dragCanvas,
@@ -269,23 +266,12 @@ test.describe('zoom', () => {
         } as const;
 
         test.beforeEach(async ({ page }) => {
-            async function measureElemCenter(selector: string, nth: number): Promise<ClientPoint> {
-                const elem = page.locator(selector).nth(nth);
-                const bbox = await elem.boundingBox();
-                expect(bbox).toBeDefined();
-                const { x, y, width, height } = bbox!;
-                return { clientX: x + width / 2, clientY: y + height / 2 };
-            }
-
             const { url } = toExamplePageUrl('zoom-e2e', 'zoom-selection', 'vanilla');
             await gotoExample(page, url);
 
-            const seriesAreaCenter = await measureElemCenter(SELECTORS.seriesArea, 0);
-            const xAxisCenter = await measureElemCenter(SELECTORS.axisProxy, 0);
-
-            await page.mouse.move(seriesAreaCenter.clientX, seriesAreaCenter.clientY);
+            await page.mouse.move(414, 286); // center of series-area.
             await page.mouse.down({ button: 'left' });
-            await page.mouse.move(xAxisCenter.clientX, xAxisCenter.clientY);
+            await page.mouse.move(50, 286); // center of x-axis
         });
         test('screenshot', async ({ page }) => {
             await expect(page).toHaveScreenshot('AG-18127-drag-move.png', { animations: 'disabled' });

@@ -142,19 +142,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         };
 
         const header = new NativeWidget(createElement('div', 'ag-charts-dialog__header'));
-        header.addListener('drag-start', (event) => {
-            const { sourceEvent } = event;
-            // Only start dragging when an empty part of the header is dragged
-            if (
-                sourceEvent.target instanceof Element &&
-                sourceEvent.target.classList.contains('ag-charts-dialog__header')
-            ) {
-                this.onDragStart(event);
-            }
-        });
-        header.addListener('drag-move', (event) => this.onDragMove(event));
-        header.addListener('drag-end', () => this.onDragEnd());
-
         const dragHandle = new DragHandleWidget();
         this.setDragHandle(dragHandle);
         const tabButtons = mapValues(tabs, (tab, key) =>

@@ -3,10 +3,10 @@ import { CleanupRegistry, EventEmitter, attachListener } from 'ag-charts-core';
 
 import type { Widget } from '../../widget/widget';
 import type {
+    ClickWidgetEvent,
     DblClickWidgetEvent,
     DragWidgetEvent,
     MouseWidgetEvent,
-    TouchSyntheticMouseWidgetEvent,
     TouchWidgetEvent,
     WidgetEventMap,
 } from '../../widget/widgetEvents';
@@ -17,24 +17,9 @@ const DOUBLE_TAP_THRESHOLD_PX = 30;
 const LONG_TAP_DURATION_MS = 500;
 const LONG_TAP_INTERRUPT_MIN_TOUCHMOVE_PXPX = 100; /* px² */
 
-type TSynthetic = 'click' | 'dblclick';
-
-/**
- * A `DragInterpreterClickEvent` is either a native 'click' MouseEvent, or a synthetic click event fired by a single
- * finger 'touchstart' and 'touchend'.
- */
-export type DragInterpreterClickEvent = MouseWidgetEvent<'click'> | TouchSyntheticMouseWidgetEvent<'click'>;
-
-/**
- * A `DragInterpreterDblClickEvent` is either a native 'dblclick' MouseEvent, or a synthetic click event fired by two
- * finger 'touchstart' and 'touchend' in quick succession (DOUBLE_TAP_TIMER_MS).
- */
-export type DragInterpreterDblClickEvent = MouseWidgetEvent<'dblclick'> | TouchSyntheticMouseWidgetEvent<'dblclick'>;
-
-type WE<D extends 'mouse' | 'touch'> = DragWidgetEvent & { device: D };
-function makeSynthetic<T extends TSynthetic>(type: T, event: WE<'mouse'>): MouseWidgetEvent<T> & { device: 'mouse' };
-function makeSynthetic<T extends TSynthetic>(type: T, event: WE<'touch'>): MouseWidgetEvent<T> & { device: 'touch' };
-function makeSynthetic(type: TSynthetic, event: DragWidgetEvent) {
+function makeSynthetic(type: 'click', event: DragWidgetEvent): ClickWidgetEvent;
+function makeSynthetic(type: 'dblclick', event: DragWidgetEvent): DblClickWidgetEvent;
+function makeSynthetic(type: 'click' | 'dblclick', event: DragWidgetEvent): ClickWidgetEvent | DblClickWidgetEvent {
     const { device, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent } = event;
     return { type, device, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent };
 }
@@ -64,11 +49,6 @@ function findTouch(touches: TouchList, identifier: number): Touch | undefined {
     return undefined;
 }
 
-type EventMap = Omit<WidgetEventMap, 'click' | 'dblclick'> & {
-    click: DragInterpreterClickEvent;
-    dblclick: DragInterpreterDblClickEvent;
-};
-
 /**
  * In the interest of robustness (and simplicity), the Widget class always dispatches these events after mousedown &
  * mouseup events for the left-button:
@@ -83,7 +63,7 @@ type EventMap = Omit<WidgetEventMap, 'click' | 'dblclick'> & {
  */
 export class DragInterpreter {
     private readonly cleanup = new CleanupRegistry();
-    readonly events = new EventEmitter<EventMap>();
+    readonly events = new EventEmitter<WidgetEventMap>();
 
     private dragStartEvent?: DragWidgetEvent<'drag-start'>;
     private isDragging = false;
@@ -166,12 +146,12 @@ export class DragInterpreter {
             return;
         }
 
-        if (event.device === 'mouse') {
+        if (event.device === 'mouse' || event.device === 'pen') {
             const click = makeSynthetic('click', event);
             this.events.emit('click', click);
         }
         // ignore 'drag-end' events from 'touchstart' or 'touchcancel'
-        else if (event.sourceEvent.type === 'touchend') {
+        else if (event.device satisfies 'touch') {
             if (checkDragDistance(this.touch.distanceTravelledX, this.touch.distanceTravelledY)) {
                 return; // this is a drag not a click, do not dispatch a 'click' event.
             }
@@ -262,8 +242,7 @@ export class LongTapInterpreter {
         // A chart update can replace the touched element mid-hold, leaving nothing to dispatch to.
         if (!element.contains(target as Node)) return;
 
-        // Unwinds every drag consumer between the touched element and the chart. Must precede the listeners
-        // below, whose 'touchcancel' handler would mistake it for the finger lifting.
+        // Must precede the listeners below, whose 'touchcancel' handler would misread it as a lift.
         target.dispatchEvent(
             new TouchEvent('touchcancel', {
                 bubbles: true,

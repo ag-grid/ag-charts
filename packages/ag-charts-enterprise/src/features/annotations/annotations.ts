@@ -464,7 +464,6 @@ export class Annotations extends AbstractModuleInstance {
                 // Interactions
                 seriesDragInterpreter.events.on('click', this.hoverTouchPreHandler.bind(this)),
                 seriesDragInterpreter.events.on('drag-start', this.hoverTouchPreHandler.bind(this)),
-                seriesDragInterpreter.events.on('drag-move', this.dragMoveTouchPreHandler.bind(this)),
                 seriesDragInterpreter.events.on('mousemove', this.onHover.bind(this)),
                 seriesDragInterpreter.events.on('click', this.onClick.bind(this)),
                 seriesDragInterpreter.events.on('dblclick', this.onDoubleClick.bind(this)),
@@ -995,11 +994,11 @@ export class Annotations extends AbstractModuleInstance {
         state.transition('hover', { offset, point, shiftKey, context });
     }
 
-    private onClick(event: _ModuleSupport.DragInterpreterClickEvent) {
+    private onClick(event: _Widget.ClickWidgetEvent) {
         const { state } = this;
 
         const context = this.getAnnotationContext();
-        if (!context) return;
+        if (!context || event.device === 'keyboard') return;
 
         const shiftKey = event.sourceEvent.shiftKey;
         const point = invertCoords(Vec2.from(event), context);
@@ -1009,7 +1008,7 @@ export class Annotations extends AbstractModuleInstance {
         state.transition('click', { point, shiftKey, textInputValue, bbox });
     }
 
-    private onDoubleClick(event: _ModuleSupport.DragInterpreterDblClickEvent) {
+    private onDoubleClick(event: _Widget.DblClickWidgetEvent) {
         const { state } = this;
 
         const context = this.getAnnotationContext();
@@ -1061,15 +1060,9 @@ export class Annotations extends AbstractModuleInstance {
         this.state.transition('resize', { textInputValue, bbox });
     }
 
-    private hoverTouchPreHandler(event: Parameters<Annotations['onHover']>[0] & { device: 'mouse' | 'touch' }) {
+    private hoverTouchPreHandler(event: _Widget.ClickWidgetEvent | _Widget.DragWidgetEvent) {
         if (event.device === 'touch') {
             this.onHover(event);
-        }
-    }
-
-    private dragMoveTouchPreHandler(event: _Widget.DragWidgetEvent<'drag-move'>) {
-        if (event.device === 'touch' && this.ctx.interactionManager.isState(InteractionState.AnnotationsSelected)) {
-            event.sourceEvent.preventDefault();
         }
     }
 
