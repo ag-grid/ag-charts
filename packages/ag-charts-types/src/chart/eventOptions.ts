@@ -269,16 +269,20 @@ export interface AgAxisClickEvent<TEvent extends string, TContext = ContextDefau
     axisId: string;
 }
 
-/** Axis listeners. Cross Line listeners are Cartesian charts only. */
-export interface AgAxisListeners<TContext = ContextDefault> {
-    /** The listener to call when the axis is clicked. */
-    click?: Listener<AgAxisClickEvent<'click', TContext>>;
-    /** The listener to call when the axis is double-clicked. */
-    doubleClick?: Listener<AgAxisClickEvent<'doubleClick', TContext>>;
+/** Axis listeners for the Cross Lines it owns. */
+export interface AgAxisCrossLineListeners<TContext = ContextDefault> {
     /** The listener to call when a Cross Line on this axis is clicked. */
     crossLineClick?: Listener<AgCrossLineClickEvent<TContext>>;
     /** The listener to call when a Cross Line on this axis is double-clicked. */
     crossLineDoubleClick?: Listener<AgCrossLineDoubleClickEvent<TContext>>;
+}
+
+/** Axis listeners. */
+export interface AgAxisListeners<TContext = ContextDefault> extends AgAxisCrossLineListeners<TContext> {
+    /** The listener to call when the axis is clicked. */
+    click?: Listener<AgAxisClickEvent<'click', TContext>>;
+    /** The listener to call when the axis is double-clicked. */
+    doubleClick?: Listener<AgAxisClickEvent<'doubleClick', TContext>>;
 }
 
 /** Identifies the Cross Line an event refers to, along with the axis that owns it. */

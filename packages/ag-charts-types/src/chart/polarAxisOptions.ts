@@ -11,6 +11,7 @@ import type {
     AgRangeCrossLineOptions,
 } from './crossLineOptions';
 import type { AgNumericValue } from './dataValues';
+import type { AgAxisCrossLineListeners } from './eventOptions';
 import type { AxisValue, ContextDefault, Degree, Ratio } from './types';
 
 export type AgPolarAxisShape = 'polygon' | 'circle';
@@ -28,6 +29,8 @@ export interface AgAngleCategoryAxisOptions<TContext = ContextDefault> extends A
     endAngle?: Degree;
     /** Add cross lines or regions corresponding to data values. */
     crossLines?: AgAngleCrossLineOptions<AxisValue>[];
+    /** A map of event names to event listeners. */
+    listeners?: AgAxisCrossLineListeners<TContext>;
     /**
      * This property is for grouped polar series plotted on a angle category axis.
      * It is a proportion between 0 and 1 which determines the size of the gap between the items within a single group along the angle axis.
@@ -55,6 +58,8 @@ export interface AgAngleNumberAxisOptions<TContext = ContextDefault>
     endAngle?: Degree;
     /** Add cross lines or regions corresponding to data values. */
     crossLines?: AgAngleCrossLineOptions<AgNumericValue>[];
+    /** A map of event names to event listeners. */
+    listeners?: AgAxisCrossLineListeners<TContext>;
 }
 
 export type AgAngleAxisLabelOrientation = 'fixed' | 'parallel' | 'perpendicular';

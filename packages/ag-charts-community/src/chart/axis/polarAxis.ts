@@ -28,6 +28,10 @@ export abstract class PolarAxis<
         return this.options.shape;
     }
 
+    protected override get userListeners() {
+        return this.options.listeners;
+    }
+
     /**
      * `innerRadiusRatio` is user-facing on radius axes only. The polar chart
      * copies the radius axis's value onto the angle axis at layout time

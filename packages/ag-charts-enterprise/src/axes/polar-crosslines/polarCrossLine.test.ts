@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type {
     AgAngleCrossLineOptions,
+    AgAxisCrossLineListeners,
     AgCartesianChartOptions,
     AgCartesianCrossLineOptions,
     AgChartInstance,
@@ -18,6 +19,7 @@ import {
     compareImageSnapshot,
     deproxy,
     doubleClickAction,
+    expectWarningMessages,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -439,6 +441,34 @@ describe('PolarCrossLine listeners', () => {
         await click(chart, pointOn(crossLineAt(chart, 'angle')));
 
         expect(chartClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('AC7: the same event reaches the axis-level and chart-level `crossLineClick` listeners', async () => {
+        const axisClick = vi.fn();
+        const chartClick = vi.fn();
+        const options = polarOptions('polygon', [], [{ type: 'range', range: [1, 3], id: 'band' }], {
+            listeners: { crossLineClick: chartClick },
+        });
+        options.axes!.radius = { ...options.axes!.radius, listeners: { crossLineClick: axisClick } };
+        chart = await createEnterpriseChart(options);
+
+        await click(chart, pointOn(crossLineAt(chart, 'radius')));
+
+        const expected = expect.objectContaining({ type: 'crossLineClick', crossLineId: 'band', axisId: 'radius' });
+        expect(axisClick).toHaveBeenCalledTimes(1);
+        expect(axisClick).toHaveBeenCalledWith(expected);
+        expect(chartClick).toHaveBeenCalledTimes(1);
+        expect(chartClick).toHaveBeenCalledWith(expected);
+    });
+
+    it('polar axes reject axis click listeners', async () => {
+        const options = polarOptions('polygon', [{ type: 'line', value: 'Q2' }], []);
+        options.axes!.angle = { ...options.axes!.angle, listeners: { click: vi.fn() } as AgAxisCrossLineListeners };
+        chart = await createEnterpriseChart(options);
+
+        expectWarningMessages([
+            'AG Charts - Option `axes.angle.listeners.click` is not supported by `radar-line` series, ignoring.',
+        ]);
     });
 
     it('AC7: a chart-level `crossLineClick` listener receives the cross-line event', async () => {

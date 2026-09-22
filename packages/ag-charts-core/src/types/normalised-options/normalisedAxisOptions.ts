@@ -7,6 +7,7 @@ import type {
     AgAxisBaseTickOptions,
     AgAxisCategoryIntervalOptions,
     AgAxisContinuousIntervalOptions,
+    AgAxisCrossLineListeners,
     AgAxisGridLineOptions,
     AgAxisLineOptions,
     AgBandHighlightOptions,
@@ -224,6 +225,7 @@ export type NormalisedBasePolarAxisOptions<
     TContext = ContextDefault,
 > = Normalised<AgBaseAxisOptions<TLabel, TContext>, AxisRequiredKeys, AxisLineTickGridLineMorph> & {
     shape: 'polygon' | 'circle';
+    listeners?: AgAxisCrossLineListeners<TContext>;
     innerRadiusRatio?: number;
     positionAngle?: number;
     startAngle?: number;
