@@ -1,7 +1,7 @@
 {
     "demo": "procurement",
     "framework": "typescript",
-    "sourceHash": "sha256-602e0de1143c1071423127461e821da7c3f9ddf537d87349a4d7f4a1f60ace37",
+    "sourceHash": "sha256-910d9fc51999a56a64ff6dd40256048c8f8864595b8081280757ea2a9d552432",
     "sourceCommit": "477b8508c5aeee8d82e659738d690dba5b127c06",
     "pinnedVersion": "14.2.0",
     "pinSource": "released",

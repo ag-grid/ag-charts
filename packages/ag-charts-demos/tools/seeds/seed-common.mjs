@@ -97,30 +97,103 @@ export function toPosix(path) {
     return path.split(sep).join('/');
 }
 
+/** Relative import specifiers, side-effect imports included; group 1 is the quote, group 2 the specifier. */
+export const RELATIVE_IMPORT = /(?<=\b(?:from|import)\s*)(['"])(\.[^'"]+)\1/g;
+/** A file whose imports are followed. */
+export const SOURCE_FILE = /\.[cm]?[jt]sx?$/;
+const SOURCE_EXTENSIONS = ['.ts', '.tsx'];
+
 /**
- * Deterministic content hash of `src/demos/<id>/**`: every file in sorted path order, each
- * contributing its relative path and its bytes. The ports' manifests (Phase 4) compare against
- * the same hash, so the algorithm is shared here rather than duplicated.
+ * Resolves a relative import the way the bundler does: the specifier as written, then with a
+ * source extension, then as a folder index. Reports which of those it took, since a seed that
+ * rewrites the import needs to write it the same way.
  */
-export function hashDemoSource(demoId) {
-    const dir = join(DEMOS_SRC_DIR, demoId);
-    const hash = createHash('sha256');
-    for (const file of listFiles(dir)) {
-        hash.update(file);
-        hash.update('\0');
-        hash.update(readFileSync(join(dir, file)));
-        hash.update('\0');
+export function resolveRelativeImport(fromFile, specifier) {
+    const base = resolve(dirname(fromFile), specifier);
+    const candidates = [
+        { target: base },
+        ...SOURCE_EXTENSIONS.map((ext) => ({ target: `${base}${ext}`, addedExtension: true })),
+        ...SOURCE_EXTENSIONS.map((ext) => ({ target: join(base, `index${ext}`), viaIndex: true })),
+    ];
+    const found = candidates.find(({ target }) => statSync(target, { throwIfNoEntry: false })?.isFile());
+    if (!found) {
+        throw new Error(`Cannot resolve import "${specifier}" from ${relative(WORKSPACE_ROOT, fromFile)}`);
     }
+    return found;
+}
+
+/** Which demo a source file below `srcDir` belongs to. */
+export function ownerDemo(file, srcDir = DEMOS_SRC_DIR) {
+    const rel = relative(srcDir, file);
+    if (rel.startsWith('..')) {
+        throw new Error(`${relative(WORKSPACE_ROOT, file)} is outside src/demos; a seed cannot include it`);
+    }
+    return rel.split(sep)[0];
+}
+
+/**
+ * The source a demo is made of: every file under its own folder, plus the files it reaches
+ * through relative imports from sibling demos (procurement draws its world map from
+ * web-analytics' topology rather than duplicating it). A seed copies the latter under
+ * `src/vendored/<demo>/`, and the manifests list them as `vendored`.
+ *
+ * @returns {{ files: string[], vendored: string[] }} `files` relative to the demo's folder,
+ * `vendored` relative to `srcDir` (`web-analytics/topology.ts`), both sorted.
+ */
+export function resolveDemoSources(demoId, srcDir = DEMOS_SRC_DIR) {
+    const dir = join(srcDir, demoId);
+    const files = listFiles(dir);
+    const queue = files.map((file) => join(dir, file));
+    const seen = new Set();
+    const vendored = new Set();
+    while (queue.length) {
+        const file = queue.shift();
+        if (seen.has(file)) continue;
+        seen.add(file);
+        if (ownerDemo(file, srcDir) !== demoId) vendored.add(toPosix(relative(srcDir, file)));
+        if (!SOURCE_FILE.test(file)) continue;
+        for (const [, , specifier] of readFileSync(file, 'utf8').matchAll(RELATIVE_IMPORT)) {
+            queue.push(resolveRelativeImport(file, specifier).target);
+        }
+    }
+    return { files, vendored: [...vendored].sort() };
+}
+
+/**
+ * Deterministic content hash of a demo's source: every file of `src/demos/<id>/**` in sorted
+ * path order, each contributing its relative path and its bytes, then every file it imports
+ * from a sibling demo under its `../<demo>/…` path. A change to a shared module such as
+ * web-analytics' topology therefore moves the hash of every demo that draws on it, and the
+ * ports of those demos are reported stale. The ports' manifests (Phase 4) compare against the
+ * same hash, so the algorithm is shared here rather than duplicated.
+ */
+export function hashDemoSource(demoId, srcDir = DEMOS_SRC_DIR) {
+    const dir = join(srcDir, demoId);
+    const { files, vendored } = resolveDemoSources(demoId, srcDir);
+    const hash = createHash('sha256');
+    const add = (key, path) => {
+        hash.update(key);
+        hash.update('\0');
+        hash.update(readFileSync(path));
+        hash.update('\0');
+    };
+    for (const file of files) add(file, join(dir, file));
+    for (const file of vendored) add(`../${file}`, join(srcDir, file));
     return `sha256-${hash.digest('hex')}`;
 }
 
 /**
- * The last commit that touched `src/demos/<id>`, or null when git cannot say (no repository,
- * or a shallow CI checkout whose single commit is not the real author of the change).
+ * The last commit that touched the demo's source, sibling-demo imports included, so a port's
+ * `sourceCommit` names the change it has to catch up with even when that change was made to a
+ * shared module.
  */
 export function readDemoSourceCommit(demoId) {
     try {
-        const sha = execFileSync('git', ['log', '-1', '--format=%H', '--', join('src', 'demos', demoId)], {
+        const paths = [
+            join('src', 'demos', demoId),
+            ...resolveDemoSources(demoId).vendored.map((file) => join('src', 'demos', file)),
+        ];
+        const sha = execFileSync('git', ['log', '-1', '--format=%H', '--', ...paths], {
             cwd: DEMOS_ROOT,
             encoding: 'utf8',
             stdio: ['ignore', 'pipe', 'ignore'],

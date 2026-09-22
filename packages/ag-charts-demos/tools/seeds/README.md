@@ -6,8 +6,10 @@ GitHub and opens in StackBlitz. The React seed is generated; the Angular, Vue an
 are hand-maintained ports. The scripts here keep both kinds honest.
 
 Every seed carries a `.seed-manifest.json` whose `sourceHash` is a content hash of
-`src/demos/<demo>/**` (`hashDemoSource` in `seed-common.mjs`) and whose `sourceCommit` is the last
-commit that touched it. The React generator writes it; a port's is stamped by hand after a sync.
+`src/demos/<demo>/**` plus every file the demo imports from a sibling demo (`hashDemoSource` in
+`seed-common.mjs`; procurement draws on web-analytics' topology, so a topology change moves the
+procurement hash too) and whose `sourceCommit` is the last commit that touched any of those files.
+The React generator writes it; a port's is stamped by hand after a sync.
 
 ## The manifest is what makes a seed exist
 
@@ -35,11 +37,12 @@ A port's manifest carries:
 {
     "demo": "financial",
     "framework": "angular",
-    "sourceHash": "sha256-…", // of src/demos/<demo>/** when last synced; written by stamp-port-manifest.mjs
-    "sourceCommit": "…", // the commit that last touched src/demos/<demo>; also stamped
+    "sourceHash": "sha256-…", // of src/demos/<demo>/** and its sibling-demo imports when last synced; stamped
+    "sourceCommit": "…", // the commit that last touched any of those files; also stamped
     "pinnedVersion": "14.2.0", // the ag-charts-* version the seed's package.json pins; kept by pin-ports.mjs
     "pinSource": "released", // "workspace" on a release branch, "released" on a pre-release build; likewise
-    "dist": "dist" // the seed-relative build output the parity harness serves
+    "dist": "dist", // the seed-relative build output the parity harness serves
+    "vendored": ["web-analytics/topology.ts"] // sibling-demo files copied under src/vendored/, if any
 }
 ```
 
@@ -89,8 +92,8 @@ node packages/ag-charts-demos/tools/seeds/pin-ports.mjs
 
 ### `check-seeds.mjs --stale [--fail-on-stale]`
 
-Reports the ports whose manifest no longer matches the hash of their golden master, as JSON on
-stdout:
+Reports the ports whose manifest no longer matches the hash of their golden master (sibling-demo
+imports included, so a shared module's change lists every demo that uses it), as JSON on stdout:
 
 ```json
 {

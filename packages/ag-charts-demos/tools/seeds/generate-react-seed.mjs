@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { dirname, join, relative, resolve, sep } from 'node:path';
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import prettier from 'prettier';
 
@@ -9,14 +9,18 @@ import {
     DEMOS_ROOT,
     DEMOS_SRC_DIR,
     MANIFEST_FILENAME,
+    RELATIVE_IMPORT,
     SEEDS_DIR,
+    SOURCE_FILE,
     WORKSPACE_ROOT,
     hashDemoSource,
     listFiles,
+    ownerDemo,
     readDemoIds,
     readDemoSourceCommit,
     readJson,
     readPinnedChartsVersion,
+    resolveRelativeImport,
     toPosix,
 } from './seed-common.mjs';
 
@@ -307,11 +311,6 @@ async function formatGeneratedFile(path, committedPath) {
     if (formatted !== source) writeFileSync(path, formatted);
 }
 
-/** Relative import specifiers, side-effect imports included; group 1 is the quote, group 2 the specifier. */
-const RELATIVE_IMPORT = /(?<=\b(?:from|import)\s*)(['"])(\.[^'"]+)\1/g;
-const SOURCE_FILE = /\.[cm]?[jt]sx?$/;
-const SOURCE_EXTENSIONS = ['.ts', '.tsx'];
-
 /**
  * Copies the demo's files into the seed's `src/`, following every relative import. A demo may
  * import from a sibling demo (procurement borrows web-analytics' world topology rather than
@@ -356,33 +355,10 @@ function copyDemoSource(demoId, sourceFiles, seedDir) {
     return vendored.sort();
 }
 
-/** Which demo a source file belongs to. */
-function ownerDemo(file) {
-    const rel = relative(DEMOS_SRC_DIR, file);
-    if (rel.startsWith('..')) {
-        throw new Error(`${relative(WORKSPACE_ROOT, file)} is outside src/demos; a seed cannot include it`);
-    }
-    return rel.split(sep)[0];
-}
-
 /** Where a demo source file lands inside the seed, relative to the seed root. */
 function seedPathFor(file, demoId) {
     const [owner, ...rest] = relative(DEMOS_SRC_DIR, file).split(sep);
     return owner === demoId ? join('src', ...rest) : join('src', 'vendored', owner, ...rest);
-}
-
-function resolveRelativeImport(fromFile, specifier) {
-    const base = resolve(dirname(fromFile), specifier);
-    const candidates = [
-        { target: base },
-        ...SOURCE_EXTENSIONS.map((ext) => ({ target: `${base}${ext}`, addedExtension: true })),
-        ...SOURCE_EXTENSIONS.map((ext) => ({ target: join(base, `index${ext}`), viaIndex: true })),
-    ];
-    const found = candidates.find(({ target }) => statSync(target, { throwIfNoEntry: false })?.isFile());
-    if (!found) {
-        throw new Error(`Cannot resolve import "${specifier}" from ${relative(WORKSPACE_ROOT, fromFile)}`);
-    }
-    return found;
 }
 
 export function isPreservedPath(relativePath) {
