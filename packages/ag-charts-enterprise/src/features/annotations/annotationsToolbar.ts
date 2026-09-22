@@ -1,18 +1,7 @@
-import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import {
-    ActionOnSet,
-    BaseProperties,
-    type BoxBounds,
-    ChartAxisDirection,
-    CleanupRegistry,
-    type DynamicContext,
-    EventEmitter,
-    PropertiesArray,
-    Property,
-} from 'ag-charts-core';
+import { type AgAnnotationsToolbar, _ModuleSupport, _Widget } from 'ag-charts-community';
+import { type BoxBounds, ChartAxisDirection, CleanupRegistry, type DynamicContext, EventEmitter } from 'ag-charts-core';
 
 import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
-import { ToolbarButtonProperties } from '../toolbar/buttonProperties';
 import { AnnotationType } from './annotationTypes';
 import {
     FIBONACCI_ANNOTATION_ITEMS,
@@ -54,28 +43,10 @@ type AnnotationsToolbarButtonValue =
     | 'note'
     | 'clear';
 
-class AnnotationsToolbarButtonProperties extends ToolbarButtonProperties {
-    @Property
-    value!: AnnotationsToolbarButtonValue;
-}
-
-export class AnnotationsToolbar extends BaseProperties {
-    @Property
-    @ActionOnSet<AnnotationsToolbar>({
-        changeValue(enabled: boolean) {
-            this.toolbar?.setHidden(!enabled);
-        },
-    })
-    public enabled?: boolean = true;
-
-    /**
-     * The padding between the toolbar and the chart area.
-     */
-    @Property
-    padding: number = 20;
-
-    @Property
-    public buttons = new PropertiesArray(AnnotationsToolbarButtonProperties);
+export class AnnotationsToolbar {
+    private enabled: boolean = true;
+    private padding: number = 20;
+    private buttons: AnnotationsToolbarButtonOptions[] = [];
 
     readonly events = new EventEmitter<EventMap>();
 
@@ -85,8 +56,6 @@ export class AnnotationsToolbar extends BaseProperties {
     private readonly menuMargin: number = 6;
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
-        super();
-
         this.toolbar = ((ctx as any).sharedToolbar as SharedToolbar).getSharedToolbar('annotations');
 
         const onKeyDown = this.onKeyDown.bind(this);
@@ -104,6 +73,17 @@ export class AnnotationsToolbar extends BaseProperties {
 
     public destroy() {
         this.cleanup.flush();
+    }
+
+    public applyOptions(options: AgAnnotationsToolbar & { enabled: boolean }) {
+        const { enabled, padding = 20, buttons = [] } = options;
+        if (enabled !== this.enabled) {
+            this.enabled = enabled;
+            this.toolbar.setHidden(!enabled);
+        }
+        this.padding = padding;
+        // Copied because menu presses rewrite a button's icon in place.
+        this.buttons = buttons.map((button) => ({ ...button }));
     }
 
     public toggleClearButtonEnabled(enabled: boolean) {
@@ -324,7 +304,8 @@ export class AnnotationsToolbar extends BaseProperties {
     private updateButtonByIndex(index: number, change: Partial<AnnotationsToolbarButtonOptions>) {
         const button = this.buttons.at(index);
         if (!button) return;
-        button.set({ ...button.toJson(), ...change, value: change.value ?? button.value });
-        this.toolbar.updateButtonByIndex(index, { ...button.toJson() } as any);
+        const updated = { ...button, ...change, value: change.value ?? button.value };
+        this.buttons[index] = updated;
+        this.toolbar.updateButtonByIndex(index, updated);
     }
 }
