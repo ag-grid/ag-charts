@@ -534,7 +534,7 @@ const MIN_DELIVERIES_FOR_RATE = 4;
  * yet — and only once there are enough of them to mean anything. Below
  * `MIN_DELIVERIES_FOR_RATE` the supplier shows its contracted reliability, flagged
  * `rateIsContracted`: one late delivery out of one is not a 0% on-time supplier, and
- * plotting it as one both libels the vendor and stretches the chart's axis.
+ * drawing it as one both libels the vendor and stretches the chart's axis.
  */
 export function scorecard(
     periodOrders: PurchaseOrder[],
@@ -727,7 +727,7 @@ export function spendByBucketAndSubcategory(
  * the question is when performance happened, not when the order was raised.
  *
  * A month with no deliveries is `null` rather than zero: a supplier that shipped nothing in
- * August did not achieve 0% in August, and plotting it as such would invent a collapse.
+ * August did not achieve 0% in August, and drawing it as such would invent a collapse.
  */
 export function onTimeByMonth(
     orders: PurchaseOrder[],
@@ -896,7 +896,7 @@ export function priceByMonth(
 }
 
 /**
- * Every monthly metric the supplier trend chart plots, per supplier.
+ * Every monthly metric the supplier trend chart draws, per supplier.
  *
  * Composed from `priceByMonth` and `onTimeByMonth` rather than recomputing them, so the trend chart
  * and the heatmap, sparklines and scorecard can never disagree about the same month.

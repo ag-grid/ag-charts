@@ -151,7 +151,7 @@ export interface Shipment {
     value: number;
 }
 
-/** A shipment with its interpolated current position, as the map plots it. */
+/** A shipment with its interpolated current position, as the map draws it. */
 export interface TrackedShipment extends Shipment {
     /** Journey completion as a 0–1 fraction of the depart → projected window. */
     progress: number;
@@ -216,7 +216,7 @@ export type RelationshipFlag = 'Late shipment open' | 'Renewal due' | 'Delivery 
 /**
  * One supplier's row on the scorecard — the core of the commodity manager's job.
  *
- * Backs both presentations the spec asks for: the scatter plots `priceIndex` against
+ * Backs both presentations the spec asks for: the scatter chart draws `priceIndex` against
  * `onTimeRate` sized by `spend`, and the card list shows the contract and relationship
  * columns. One derivation, so the two can never disagree.
  */
@@ -406,7 +406,7 @@ export interface PricePoint {
 }
 
 /**
- * One month of one supplier's performance, across every metric the trend chart can plot.
+ * One month of one supplier's performance, across every metric the trend chart can draw.
  *
  * Held as one point per month rather than a series per metric so the three views are guaranteed to
  * share a month axis and a scope — switching metric changes only what is read off the point.
@@ -425,7 +425,7 @@ export interface SupplierTrendPoint {
 }
 
 /**
- * A contiguous span of the timeline that a series plots one datum against.
+ * A contiguous span of the timeline that a series draws one datum against.
  *
  * `MonthBucket` is one of these, and the shape a bar chart's x axis is built from either way —
  * which is what lets the spend trend switch its grain without the aggregation knowing.

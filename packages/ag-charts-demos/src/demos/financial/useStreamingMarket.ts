@@ -11,6 +11,7 @@ import {
     PeerPerformanceFeed,
     TRENDING_STOCKS,
 } from './data';
+import { DETERMINISTIC, startTime } from './deterministic';
 import { type MoverRow, type Quote } from './types';
 
 // Fixed display order (values stream in place): trending by move size, active by volume.
@@ -61,7 +62,7 @@ export function useStreamingMarket() {
     // The oldest bar the chart still displays; the selected feed keeps everything newer.
     const retainFromRef = useRef<number>();
     if (!feedsRef.current || !peerFeedRef.current || !trendingFeedRef.current || !mostActiveFeedRef.current) {
-        const now = Date.now();
+        const now = startTime();
         feedsRef.current = new Map(ALL_INSTRUMENTS.map((inst) => [inst.ticker, new MarketFeed(inst, now)]));
         peerFeedRef.current = new PeerPerformanceFeed(now);
         trendingFeedRef.current = new MoverFeed(TRENDING_ROWS);
@@ -76,7 +77,8 @@ export function useStreamingMarket() {
     // The selection, readable synchronously: a frame queued by the outgoing interval lands before React runs
     // the cancelling effect, and a captured `ticker` would make that frame revert the selection.
     const tickerRef = useRef(ticker);
-    const [running, setRunning] = useState(true);
+    // Deterministic mode starts paused, so the frozen seed history is what renders; Live still streams.
+    const [running, setRunning] = useState(!DETERMINISTIC);
     const [speedMs, setSpeedMs] = useState(500);
     const [quotes, setQuotes] = useState<Quote[]>(() => readQuotes(feedsRef.current!));
     const [trending, setTrending] = useState<MoverRow[]>(() => trendingFeedRef.current!.snapshot());

@@ -18,7 +18,7 @@ interface CostReliabilityScatterProps {
 }
 
 /**
- * Her roster plotted as price against delivery performance, sized by spend — the same rows
+ * Her roster drawn as price against delivery performance, sized by spend — the same rows
  * the scorecard cards show, positioned instead of listed, so an outlier is visible at a
  * glance and the cards carry the detail.
  *
@@ -26,7 +26,7 @@ interface CostReliabilityScatterProps {
  * kilos, so a summed quantity is only comparable between suppliers that happen to share a unit,
  * and spend is what makes a relationship big in the sense the bubble implies.
  *
- * Price is plotted as a share of catalogue list for the same reason: the roster spans the whole
+ * Price is drawn as a share of catalogue list for the same reason: the roster spans the whole
  * commodity, and an average price across tonnes and kilos compares nothing.
  */
 export function CostReliabilityScatter({
@@ -35,8 +35,8 @@ export function CostReliabilityScatter({
     selectedSupplierId,
     onSelect,
 }: CostReliabilityScatterProps) {
-    // A supplier with no orders in scope has no price to plot, only a card.
-    const plotted = useMemo(() => rows.filter((row) => row.orderCount > 0), [rows]);
+    // A supplier with no orders in scope has no price to draw, only a card.
+    const drawn = useMemo(() => rows.filter((row) => row.orderCount > 0), [rows]);
 
     const options = useMemo<AgCartesianChartOptions<SupplierScorecard>>(() => {
         const series: AgBubbleSeriesOptions<SupplierScorecard> = {
@@ -87,7 +87,7 @@ export function CostReliabilityScatter({
 
         return {
             theme: THEME,
-            data: plotted,
+            data: drawn,
             series: [series],
             axes: {
                 x: {
@@ -126,7 +126,7 @@ export function CostReliabilityScatter({
                 size: ({ value }) => fmtCurrencyCompact(Number(value)),
             },
         };
-    }, [plotted, supplierColors, selectedSupplierId, onSelect]);
+    }, [drawn, supplierColors, selectedSupplierId, onSelect]);
 
     return <AgCharts options={options} style={{ height: '100%', width: '100%' }} />;
 }
