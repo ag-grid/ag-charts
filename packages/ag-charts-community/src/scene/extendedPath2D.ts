@@ -517,6 +517,10 @@ export class ExtendedPath2D {
                     break;
                 case Command.ClosePath:
                     intersectionCount += segmentIntersection(sx, sy, px, py, ox, oy, x, y);
+                    // Closing moves the current point back to the subpath start, so a following Move
+                    // must not count the closing edge a second time.
+                    px = sx;
+                    py = sy;
                     break;
             }
         }
