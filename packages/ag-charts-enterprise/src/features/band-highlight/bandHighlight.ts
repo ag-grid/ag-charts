@@ -55,15 +55,15 @@ export class BandHighlight extends AbstractModuleInstance {
         this.hideBand();
 
         const {
-            widgets: { seriesWidget, seriesDragInterpreter },
+            widgets: { seriesBoundsWidget, seriesDragInterpreter },
             animationManager,
             eventsHub,
         } = ctx;
 
         this.cleanup.register(
             ctx.scene.attachNode(this.bandHighlightGroup),
-            seriesWidget.addListener('mousemove', (event) => this.onHoverLikeEvent(event)),
-            seriesWidget.addListener('mouseleave', () => this.clearAllHighlight()),
+            seriesBoundsWidget.addListener('mousemove', (event) => this.onHoverLikeEvent(event)),
+            seriesBoundsWidget.addListener('mouseleave', () => this.clearAllHighlight()),
             animationManager.addListener('animation-start', () => this.clearAllHighlight()),
             eventsHub.on('layout:complete', (event) => this.layout(event)),
             eventsHub.on('dom:series-blurred', () => this.onSeriesBlurred()),
