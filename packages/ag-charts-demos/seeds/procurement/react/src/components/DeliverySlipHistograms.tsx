@@ -163,10 +163,11 @@ function splitOptions(row: SlipDistribution, lateCount: number, color: string): 
 /**
  * Each supplier's delivery slip as its own distribution, on one shared scale.
  *
- * The box plot beside this says where the middle half of each supplier's deliveries sits; this says
- * what the distribution is actually shaped like, which the quartiles flatten. A supplier clustered
- * tightly a day or two late is a scheduling problem she can plan around; one with a second cluster
- * out in the tail is a supplier that will stop a line occasionally, and the two can share a median.
+ * The box-and-whisker chart beside this says where the middle half of each supplier's deliveries
+ * sits; this says what the distribution is actually shaped like, which the quartiles flatten. A
+ * supplier clustered tightly a day or two late is a scheduling problem she can plan around; one
+ * with a second cluster out in the tail is a supplier that will stop a line occasionally, and the
+ * two can share a median.
  *
  * Small multiples rather than overlaid series: five translucent distributions on one pair of axes
  * occlude each other exactly where they differ, and the comparison here is between shapes.
@@ -254,7 +255,7 @@ export function DeliverySlipHistograms({
     return (
         <div className="pc-facets">
             {facets.map(({ row, options, split, isLast, lateCount }) => (
-                // The bottom facet is taller by its axis-label band, so every plot area keeps the same height.
+                // The bottom facet is taller by its axis-label band, so every series area keeps the same height.
                 <div key={row.supplierId} className={isLast ? 'pc-facet pc-facet--axis' : 'pc-facet'}>
                     <span className="pc-facet-head">
                         <span className="pc-facet-name">{row.supplier}</span>
@@ -263,7 +264,7 @@ export function DeliverySlipHistograms({
                         </span>
                     </span>
                     {/* The share of deliveries that ran late, against the shape of how late. The inner
-                        box is what the chart fills; the outer one spans the plot area beside it, so the
+                        box is what the chart fills; the outer one spans the series area beside it, so the
                         two stay centred on each other whatever height the facet takes. */}
                     <div className="pc-facet-split">
                         <div className="pc-facet-pie">

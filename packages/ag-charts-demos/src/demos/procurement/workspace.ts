@@ -372,7 +372,7 @@ const mySpendAllocation = (period: SpendPeriod) =>
         ? { amount: MY_BUDGET.annual, label: 'annual budget', windowLabel: 'year' }
         : { amount: MY_BUDGET.quarterly, label: 'quarterly allocation', windowLabel: 'quarter' };
 
-/** The month buckets of the selected window — the x axis every trend series is plotted on. */
+/** The month buckets of the selected window — the x axis every trend series is drawn on. */
 export const myPeriodMonths = (months: PeriodMonths): MonthBucket[] => monthBuckets(trailingMonths(months));
 
 // --- her trends ---------------------------------------------------------------
@@ -496,7 +496,7 @@ export const mySupplierShare = (rangeOrders: PurchaseOrder[]): SupplierShareRow[
  *
  * Either way the unfinished bucket at the end is excluded. A month a third elapsed draws a
  * third-height bar, and on a run-rate chart that reads as a collapse in committed spend rather
- * than as a period still in progress — the same reasoning as `onTimeByMonth` plotting an empty
+ * than as a period still in progress — the same reasoning as `onTimeByMonth` drawing an empty
  * month as `null` instead of zero. A chart should not invent a movement the data does not contain.
  */
 export function mySpendTrend(period: SpendPeriod): SpendTrend {

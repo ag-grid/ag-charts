@@ -18,7 +18,7 @@ interface DeliveryMapProps {
 }
 
 /**
- * Everything plotted on the map — moving shipments, their routes, and the fixed plants —
+ * Everything drawn on the map — moving shipments, their routes, and the fixed plants —
  * shares one datum shape.
  *
  * That is not incidental tidiness: a series' `idKey`/`latitudeKey` must name a key that

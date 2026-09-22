@@ -21,7 +21,7 @@ interface QualityCostChartProps {
     onSelect: (supplierId: string) => void;
 }
 
-/** The axis the reject rate is plotted against, kept off the money scale it shares a chart with. */
+/** The axis the reject rate is drawn against, kept off the money scale it shares a chart with. */
 const RATE_AXIS = 'rate';
 
 /**
