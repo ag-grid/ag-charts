@@ -477,7 +477,7 @@ class AgChartsInternal {
             proxy.releaseChart = poolResult?.release;
         } else if (poolResult || create) {
             proxy.releaseChart?.();
-            proxy.chart = chart;
+            proxy.setChart(chart);
             proxy.releaseChart = poolResult?.release;
         }
         const chartProxy = proxy;

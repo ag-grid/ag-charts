@@ -25,7 +25,6 @@ import type {
     SeriesPluginModuleInstance,
 } from 'ag-charts-core';
 import {
-    ActionOnSet,
     ChartAxisDirection,
     CleanupRegistry,
     EventEmitter,
@@ -302,12 +301,14 @@ export abstract class Series<
         return 'main';
     }
 
-    @ActionOnSet<Series<TDatum, TOpts, TLabel>>({
-        changeValue: function (newVal, oldVal) {
-            this.onSeriesGroupingChange(oldVal, newVal);
-        },
-    })
     seriesGrouping: SeriesGrouping | undefined = undefined;
+
+    setSeriesGrouping(seriesGrouping: SeriesGrouping | undefined) {
+        const previous = this.seriesGrouping;
+        if (seriesGrouping === previous) return;
+        this.seriesGrouping = seriesGrouping;
+        this.onSeriesGroupingChange(previous, seriesGrouping);
+    }
 
     readonly internalId = createId(this);
 

@@ -1,10 +1,8 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
-    ActionOnSet,
     ChartAxisDirection,
     type DynamicContext,
-    ProxyProperty,
     ZIndexMap,
     calcLineHeight,
 } from 'ag-charts-core';
@@ -17,12 +15,6 @@ export class MiniChart extends AbstractModuleInstance {
     get enabled(): boolean {
         return this.ctx.chartState.getValue('options', 'navigator.miniChart.enabled') ?? false;
     }
-
-    @ProxyProperty(['seriesRoot', 'inset'])
-    inset!: number;
-
-    @ProxyProperty(['seriesRoot', 'cornerRadius'])
-    cornerRadius!: number;
 
     readonly root = new Group({ name: 'root' });
     readonly seriesRoot = this.root.appendChild(
@@ -48,41 +40,43 @@ export class MiniChart extends AbstractModuleInstance {
     // Should be available after the first layout.
     protected seriesRect?: _ModuleSupport.BBox = undefined;
 
-    @ActionOnSet<MiniChart>({
-        changeValue(
-            newValue: _ModuleSupport.ChartAxes,
-            oldValue: _ModuleSupport.ChartAxes = new _ModuleSupport.ChartAxes()
-        ) {
-            const axisNodes = {
-                axisNode: this.axisGroup,
-                gridNode: this.axisGridGroup,
-                labelNode: this.axisLabelGroup,
-                overlayLowNode: this.axisCrosslineRangeGroup,
-                overlayMidNode: this.axisCrosslineLineGroup,
-                overlayHighNode: this.axisCrosslineLabelGroup,
-            };
-
-            for (const axis of oldValue) {
-                if (newValue.includes(axis)) continue;
-                axis.detachAxis();
-                axis.destroy();
-            }
-
-            for (const axis of newValue) {
-                if (oldValue?.includes(axis)) continue;
-
-                axis.attachAxis(axisNodes);
-            }
-        },
-    })
-    axes: _ModuleSupport.ChartAxes = new _ModuleSupport.ChartAxes();
-
-    @ActionOnSet<MiniChart>({
-        changeValue(newValue, oldValue) {
-            this.onSeriesChange(newValue, oldValue);
-        },
-    })
+    axes: _ModuleSupport.ChartAxes = this.createChartAxes();
     series: _ModuleSupport.UnknownSeries[] = [];
+
+    createChartAxes() {
+        return new _ModuleSupport.ChartAxes();
+    }
+
+    setAxes(axes: _ModuleSupport.ChartAxes) {
+        const previous = this.axes;
+        if (axes === previous) return;
+        this.axes = axes;
+
+        const axisNodes = {
+            axisNode: this.axisGroup,
+            gridNode: this.axisGridGroup,
+            labelNode: this.axisLabelGroup,
+            overlayLowNode: this.axisCrosslineRangeGroup,
+            overlayMidNode: this.axisCrosslineLineGroup,
+            overlayHighNode: this.axisCrosslineLabelGroup,
+        };
+        for (const axis of previous) {
+            if (axes.includes(axis)) continue;
+            axis.detachAxis();
+            axis.destroy();
+        }
+        for (const axis of axes) {
+            if (previous.includes(axis)) continue;
+            axis.attachAxis(axisNodes);
+        }
+    }
+
+    setSeries(series: _ModuleSupport.UnknownSeries[]) {
+        const previous = this.series;
+        if (series === previous) return;
+        this.series = series;
+        this.onSeriesChange(series, previous);
+    }
 
     private _unregisterLoader?: () => void;
 

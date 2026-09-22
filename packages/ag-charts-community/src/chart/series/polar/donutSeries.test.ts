@@ -47,7 +47,7 @@ function* iterLegendMarkerLabels(myChart: Chart) {
         const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
         for (const label of markerLabels) {
             const { x, y } = Transformable.toCanvas(label).computeCenter();
-            yield { x, y, text: label.text };
+            yield { x, y, text: String(label.label.text) };
         }
     }
 }

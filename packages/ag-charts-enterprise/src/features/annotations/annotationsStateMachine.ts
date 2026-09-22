@@ -1,13 +1,6 @@
 /* eslint-disable no-restricted-properties */
 import { _ModuleSupport } from 'ag-charts-community';
-import {
-    ActionOnSet,
-    Debug,
-    ParallelStateMachine,
-    type Point,
-    StateMachine,
-    StateMachineProperty,
-} from 'ag-charts-core';
+import { Debug, ParallelStateMachine, type Point, StateMachine, StateMachineProperty } from 'ag-charts-core';
 
 import { type AnnotationLineStyle, type AnnotationOptionsColorPickerType, AnnotationType } from './annotationTypes';
 import { annotationConfigs } from './annotationsConfig';
@@ -124,16 +117,17 @@ class UpdateMachine extends StateMachine<States, AnnotationStateEvents> {
 class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEvents> {
     override debug = Debug.create(true, 'annotations');
 
-    @ActionOnSet<AnnotationsMainStateMachine>({
-        changeValue(newValue?: number) {
-            this.setActive(newValue);
-        },
-    })
     @StateMachineProperty()
     protected active?: number;
 
     @StateMachineProperty()
     protected hovered?: number;
+
+    private updateActive(index: number | undefined) {
+        if (index === this.active) return;
+        this.active = index;
+        this.setActive(index);
+    }
 
     @StateMachineProperty()
     protected hoverCoords?: Point;
@@ -158,12 +152,12 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
             <T extends AnnotationDatum>(type: AnnotationType) =>
             (datum: T) => {
                 ctx.create(type, datum);
-                this.active = ctx.selectLast();
+                this.updateActive(ctx.selectLast());
             };
 
         const deleteDatum = () => {
             if (this.active != null) ctx.delete(this.active);
-            this.active = undefined;
+            this.updateActive(undefined);
             ctx.select();
         };
 
@@ -179,7 +173,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
             },
             deselect: () => {
                 const prevActive = this.active;
-                this.active = undefined;
+                this.updateActive(undefined);
                 this.hovered = undefined;
                 ctx.select(this.active, prevActive);
             },
@@ -334,7 +328,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
 
                 selectLast: () => {
                     const previousActive = this.active;
-                    this.active = ctx.selectLast();
+                    this.updateActive(ctx.selectLast());
                     ctx.select(this.active, previousActive);
                 },
 
@@ -351,7 +345,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                     {
                         action: () => {
                             const prevActive = this.active;
-                            this.active = this.hovered;
+                            this.updateActive(this.hovered);
                             ctx.select(this.active, prevActive);
                         },
                     },
@@ -371,7 +365,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                         target: States.Dragging,
                         action: () => {
                             const prevActive = this.active;
-                            this.active = this.hovered;
+                            this.updateActive(this.hovered);
                             ctx.select(this.active, prevActive);
                             ctx.startInteracting();
                         },
@@ -379,7 +373,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                     {
                         action: () => {
                             const prevActive = this.active;
-                            this.active = this.hovered;
+                            this.updateActive(this.hovered);
                             ctx.select(this.active, prevActive);
                         },
                     },
@@ -444,7 +438,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                     }
 
                     this.hovered = undefined;
-                    this.active = undefined;
+                    this.updateActive(undefined);
 
                     ctx.select();
                     ctx.resetToIdle();
@@ -569,7 +563,8 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                     ctx.hideTextInput();
 
                     const wasActive = this.active;
-                    this.active = this.hovered = undefined;
+                    this.hovered = undefined;
+                    this.updateActive(undefined);
                     ctx.select(this.active, wasActive);
 
                     if (wasActive == null) return;
