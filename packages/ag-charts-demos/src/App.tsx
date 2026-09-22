@@ -1,13 +1,23 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 
 import { LoadingDemo } from './LoadingDemo';
-import { DEMO_APPS } from './registry';
+import { waitForDeclaredFonts } from './fonts';
+import { DEMO_APPS, type DemoAppEntry } from './registry';
 
 const readHashId = () => window.location.hash.replace(/^#/, '');
 
 // When embedded (website dev server) the host fixes the demo via #root[data-demo-id];
 // the standalone server has no such attribute and selects via the URL hash instead.
 const readInitialId = () => document.getElementById('root')?.dataset.demoId ?? readHashId();
+
+// A demo's stylesheet, and with it the `@font-face` rules for its web fonts, arrives with its
+// chunk. The fonts are then loaded before the demo renders, so its charts lay out in their final
+// font from the first frame (see fonts.ts). The Suspense fallback stays up for the wait.
+async function loadWithFonts(entry: DemoAppEntry) {
+    const module = await entry.load();
+    await waitForDeclaredFonts();
+    return module;
+}
 
 export const App = () => {
     const [id, setId] = useState(readInitialId);
@@ -19,7 +29,7 @@ export const App = () => {
     }, []);
 
     const entry = useMemo(() => (id ? DEMO_APPS.find((app) => app.id === id) : DEMO_APPS[0]), [id]);
-    const LazyApp = useMemo(() => (entry ? lazy(entry.load) : null), [entry]);
+    const LazyApp = useMemo(() => (entry ? lazy(() => loadWithFonts(entry)) : null), [entry]);
 
     if (!entry || !LazyApp) {
         return (

@@ -30,6 +30,7 @@ are committed.
 src/
   main.tsx           # entry
   App.tsx            # selects a demo app by URL hash (#<id>) and renders it
+  fonts.ts           # waits for a demo's web fonts before its first render (see below)
   DemoPage.tsx       # shared page shell used by the demo apps
   LoadingDemo.tsx    # Suspense fallback while a demo app loads
   registry.ts        # the single list of demo apps (id + lazy loader)
@@ -49,6 +50,21 @@ seeds/               # standalone seed projects, one folder per demo and framewo
   <id>/<framework>/PORTING.md            # a port's mapping rules (React construct -> port equivalent)
 tools/seeds/         # generator, freshness and staleness checks, sync automation (see its README)
 ```
+
+### Web fonts and the first render
+
+The web-analytics and procurement demos take their fonts from Google Fonts through an `@import`
+in the demo's own stylesheet, and a chart lays out its labels with whatever font its canvas has at
+that moment, because canvas text never triggers a font download: a chart created while the font
+is still downloading is laid out with the fallback font's metrics and laid out again once the font
+arrives, and the two passes do not always land on the same pixels as one pass in the final font.
+So the demo loader in `src/App.tsx` renders a demo only once `waitForDeclaredFonts` (`src/fonts.ts`)
+has loaded the default face of every family the demo's stylesheet declares, or 3 seconds have
+passed, whichever comes first; a font that fails to load leaves the demo to render with its
+fallbacks as it would have anyway. That gives the first layout the final font, which is what the
+framework ports already get by their timing, and it is what makes the React reference and the
+ports pixel-identical in the parity harness. The generated React seed does the same in its
+`src/main.tsx`, with `src/fonts.ts` copied in beside the demo source.
 
 ## Seed projects
 
