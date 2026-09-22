@@ -29,9 +29,11 @@ type Region = keyof Omit<NonNullable<AgQuadrantChartOptions['regions']>, 'label'
 const DEFAULT_LABEL_POSITION: AgQuadrantRegionLabelPosition = 'inside-outer-outer';
 const DEFAULT_LABEL_SPACING = 10;
 
+type AxisDirection = -1 | 0 | 1;
+
 interface LabelDirection {
-    x: -1 | 0 | 1;
-    y: -1 | 0 | 1;
+    x: AxisDirection;
+    y: AxisDirection;
 }
 
 const REGION_DIRECTIONS: Record<Region, { x: -1 | 1; y: -1 | 1 }> = {
@@ -83,7 +85,7 @@ const LABEL_POSITIONS: Record<AgQuadrantRegionLabelPosition, RegionLabelPosition
     'inside-inner-inner': perRegion('inside-bottom-right', 'inside-bottom-left', 'inside-top-right', 'inside-top-left'),
 };
 
-function labelOffset(spacing: number, direction: -1 | 0 | 1, outward: -1 | 1) {
+function labelOffset(spacing: number, direction: AxisDirection, outward: -1 | 1) {
     return direction === 0 ? 0 : spacing * direction * outward;
 }
 

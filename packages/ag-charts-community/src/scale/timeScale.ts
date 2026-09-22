@@ -16,7 +16,9 @@ import { ContinuousScale } from './continuousScale';
 
 const sunday = new Date(1970, 0, 4);
 
-export class TimeScale extends ContinuousScale<Date, AgTimeInterval | AgTimeIntervalUnit | number> {
+type TimeTickInterval = AgTimeInterval | AgTimeIntervalUnit | number;
+
+export class TimeScale extends ContinuousScale<Date, TimeTickInterval> {
     static override is(value: unknown): value is TimeScale {
         return value instanceof TimeScale;
     }
@@ -60,7 +62,7 @@ export class TimeScale extends ContinuousScale<Date, AgTimeInterval | AgTimeInte
      * Returns uniformly-spaced dates that represent the scale's domain.
      */
     override ticks(
-        params: ScaleTickParams<AgTimeInterval | AgTimeIntervalUnit | number>,
+        params: ScaleTickParams<TimeTickInterval>,
         domain: Date[] = this.domain,
         visibleRange: [number, number] = [0, 1],
         { extend = false } = {}
@@ -201,7 +203,7 @@ export function getDateTicksForInterval({
 function updateNiceDomainIteration(
     d0: Date,
     d1: Date,
-    ticks: ScaleTickParams<AgTimeInterval | AgTimeIntervalUnit | number>,
+    ticks: ScaleTickParams<TimeTickInterval>,
     availableRange: number,
     logger: Logger | undefined
 ): [Date, Date] {

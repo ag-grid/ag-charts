@@ -5,11 +5,9 @@ import type { AgNumericValue } from 'ag-charts-types';
 import { AbstractScale } from './abstractScale';
 import { unpackDomainMinMax } from './scaleUtil';
 
-export abstract class ContinuousScale<D extends number | bigint | Date, I = number> extends AbstractScale<
-    D,
-    number,
-    I
-> {
+export type ContinuousDomainValue = number | bigint | Date;
+
+export abstract class ContinuousScale<D extends ContinuousDomainValue, I = number> extends AbstractScale<D, number, I> {
     static is(value: unknown): value is ContinuousScale<any, any> {
         return value instanceof ContinuousScale;
     }
@@ -252,7 +250,7 @@ export abstract class ContinuousScale<D extends number | bigint | Date, I = numb
 }
 
 // Narrows bigint endpoints to Number for storage; the exact bigints are retained separately in d0Big/d1Big.
-function narrowStoredDomain<D extends number | bigint | Date>(values: readonly (D | bigint)[]): D[] {
+function narrowStoredDomain<D extends ContinuousDomainValue>(values: readonly (D | bigint)[]): D[] {
     return values.map((v) => (typeof v === 'bigint' ? Number(v) : v)) as D[];
 }
 
@@ -307,7 +305,7 @@ function convertBigInt(value: number | bigint, d0: bigint, d1: bigint, range: nu
     return r0 + ratio * (r1 - r0);
 }
 
-export function normalizeContinuousDomains<D extends number | bigint | Date>(
+export function normalizeContinuousDomains<D extends ContinuousDomainValue>(
     ...domains: DomainWithMetadata<D>[]
 ): NormalizedDomain<D> {
     let min: D | undefined;
