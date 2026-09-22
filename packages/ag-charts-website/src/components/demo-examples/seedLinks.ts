@@ -2,11 +2,15 @@ import type { DemoPageOpenIn } from '@ag-website-shared/components/demo-page/typ
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
 import { agChartsVersion } from '@constants';
 import { getIsProduction } from '@utils/env';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 /**
  * Frameworks a demo can be seeded in, as the folder names under
- * `packages/ag-charts-demos/seeds/<demo>/`. Only the React seed exists so far; the ports are
- * listed here as they land.
+ * `packages/ag-charts-demos/seeds/<demo>/`. Which of them a demo offers is read from the seed
+ * manifests at build time (`readSeedManifests`), so a port shows up on its page once its manifest
+ * is committed.
  */
 export type SeedFramework = 'react' | 'angular' | 'vue' | 'typescript';
 
@@ -17,14 +21,24 @@ export const SEED_FRAMEWORK_DISPLAY_TEXT: Record<SeedFramework, string> = {
     typescript: 'TypeScript',
 };
 
-/** The seeds the site offers links for, in display order. */
-export const AVAILABLE_SEED_FRAMEWORKS: readonly SeedFramework[] = ['react'];
+/** Every framework a seed can be written in, in the order the page lists them. */
+export const SEED_FRAMEWORK_ORDER: readonly SeedFramework[] = ['react', 'angular', 'vue', 'typescript'];
 
 const REPOSITORY = 'ag-grid/ag-charts';
 const SEEDS_PATH = 'packages/ag-charts-demos/seeds';
+const MANIFEST_FILENAME = '.seed-manifest.json';
+
+/** The committed seeds in this checkout, resolved from this file so the reader needs no cwd. */
+const SEEDS_DIR = fileURLToPath(new URL('../../../../ag-charts-demos/seeds', import.meta.url));
 
 /** The branch every non-production build links to: it always carries the current seeds. */
 export const SEED_DEVELOPMENT_REF = 'latest';
+
+/** One committed seed, as its `.seed-manifest.json` declares it. */
+export interface SeedManifestEntry {
+    demo: string;
+    framework: SeedFramework;
+}
 
 interface SeedRefParams {
     /** The package version the site displays; defaults to the build's `PUBLIC_PACKAGE_VERSION`. */
@@ -37,6 +51,64 @@ interface SeedLinkParams extends SeedRefParams {
     /** Demo app id, as registered in `ag-charts-demos` and used for its seed folder. */
     demoId: string;
     framework: SeedFramework;
+}
+
+function isSeedFramework(value: string): value is SeedFramework {
+    return (SEED_FRAMEWORK_ORDER as readonly string[]).includes(value);
+}
+
+function listDirectories(dir: string): string[] {
+    return readdirSync(dir, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name)
+        .sort();
+}
+
+/**
+ * Every committed seed, found by its `seeds/<demo>/<framework>/.seed-manifest.json`. A folder
+ * without a manifest is not a seed and is skipped; a manifest that does not parse, that names a
+ * different demo or framework from the folder it lives in, or whose framework this site cannot
+ * label fails the build rather than quietly dropping or mislabelling a link.
+ *
+ * Runs at build time only: the demo page renders these links in its Astro frontmatter, and
+ * nothing client-side imports this module.
+ */
+export function readSeedManifests(seedsDir: string = SEEDS_DIR): SeedManifestEntry[] {
+    if (!existsSync(seedsDir)) {
+        throw new Error(`Demo seeds folder not found at ${seedsDir}`);
+    }
+    const entries: SeedManifestEntry[] = [];
+    for (const demo of listDirectories(seedsDir)) {
+        for (const framework of listDirectories(join(seedsDir, demo))) {
+            const manifestPath = join(seedsDir, demo, framework, MANIFEST_FILENAME);
+            if (!existsSync(manifestPath)) continue;
+
+            let manifest: Partial<Record<'demo' | 'framework', unknown>>;
+            try {
+                manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+            } catch (error) {
+                throw new Error(`${manifestPath} is not valid JSON: ${(error as Error).message}`);
+            }
+            if (manifest.demo !== demo || manifest.framework !== framework) {
+                throw new Error(
+                    `${manifestPath} names ${String(manifest.demo)}/${String(manifest.framework)} but lives at ${demo}/${framework}`
+                );
+            }
+            if (!isSeedFramework(framework)) {
+                throw new Error(
+                    `${manifestPath}: "${framework}" is not a seed framework the site can link (known: ${SEED_FRAMEWORK_ORDER.join(', ')})`
+                );
+            }
+            entries.push({ demo, framework });
+        }
+    }
+    return entries;
+}
+
+/** The frameworks `demoId` has a seed for, in display order; empty when it has none. */
+export function getAvailableSeedFrameworks(demoId: string, manifests: readonly SeedManifestEntry[]): SeedFramework[] {
+    const available = new Set(manifests.filter((entry) => entry.demo === demoId).map((entry) => entry.framework));
+    return SEED_FRAMEWORK_ORDER.filter((framework) => available.has(framework));
 }
 
 /**
@@ -85,13 +157,17 @@ export function getSeedStackBlitzUrl({ demoId, framework, title, ...ref }: SeedL
     return `https://stackblitz.com/github/${REPOSITORY}/tree/${resolveSeedGitRef(ref)}/${getSeedPath(demoId, framework)}?title=${encodeURIComponent(projectTitle)}`;
 }
 
-/** The demo page's "open in" entries, one per available seed framework. */
+/**
+ * The demo page's "open in" entries, one per framework the demo has a committed seed for, in
+ * display order. `manifests` defaults to the seeds in this checkout.
+ */
 export function getDemoOpenInLinks({
     demoId,
     title,
+    manifests = readSeedManifests(),
     ...ref
-}: Omit<SeedLinkParams, 'framework'> & { title: string }): DemoPageOpenIn[] {
-    return AVAILABLE_SEED_FRAMEWORKS.map((framework) => ({
+}: Omit<SeedLinkParams, 'framework'> & { title: string; manifests?: readonly SeedManifestEntry[] }): DemoPageOpenIn[] {
+    return getAvailableSeedFrameworks(demoId, manifests).map((framework) => ({
         framework: SEED_FRAMEWORK_DISPLAY_TEXT[framework],
         href: getSeedStackBlitzUrl({ demoId, framework, title, ...ref }),
         sourceHref: getSeedGithubUrl({ demoId, framework, ...ref }),

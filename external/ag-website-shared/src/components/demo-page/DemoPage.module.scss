@@ -247,7 +247,9 @@ $breakpoint-demo-fits: $demo-held-width + $hero-max-width + $demo-column-gap + $
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: $spacing-size-2;
+    // Wider than the gap inside a row, so a pair that wraps in the narrow hero column still
+    // reads as one framework's pair rather than as two rows.
+    gap: $spacing-size-3;
     margin: $spacing-size-4 0 0;
     padding: 0;
     list-style: none;
@@ -262,7 +264,12 @@ $breakpoint-demo-fits: $demo-held-width + $hero-max-width + $demo-column-gap + $
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: $spacing-size-3;
+    gap: $spacing-size-2 $spacing-size-3;
+
+    // Follows the list's alignment, so a wrapped pair lines up with the rows that did not wrap.
+    @media screen and (min-width: $breakpoint-docs-search-medium) {
+        justify-content: flex-start;
+    }
 }
 
 .openInButton,
