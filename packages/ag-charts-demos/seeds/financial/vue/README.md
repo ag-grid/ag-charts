@@ -16,7 +16,7 @@ npm run dev
 
 This project is a port of the React demo source in
 [`packages/ag-charts-demos/src/demos/financial`](../../../src/demos/financial), which is the
-golden master. The demo lives in `src/`, with `src/main.ts` mounting it. `PORTING.md` records how
+golden master. The demo lives in `src/`, with `src/main.ts` mounting it. [`PORTING.md`](../vue.PORTING.md) records how
 the React source maps onto this port and how the two are checked against each other; a change to
 the demo lands in the React source first and is then carried across.
 

@@ -47,7 +47,7 @@ seeds/               # standalone seed projects, one folder per demo and framewo
   <id>/vue/          #   port
   <id>/typescript/   #   vanilla port: Vite + TypeScript, no framework
   <id>/<framework>/.seed-manifest.json   # what the seed is and which src/demos/<id> it was last synced to
-  <id>/<framework>/PORTING.md            # a port's mapping rules (React construct -> port equivalent)
+  <id>/<framework>.PORTING.md            # a port's mapping rules (React construct -> port equivalent)
 tools/seeds/         # generator, freshness and staleness checks, sync automation (see its README)
 ```
 

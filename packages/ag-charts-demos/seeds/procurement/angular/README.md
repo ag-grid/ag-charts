@@ -23,7 +23,7 @@ in `src/`, with `src/main.ts` bootstrapping it. The pure TypeScript modules (dat
 theme, geography, routes, the workspace model and the grid configuration) and the JSON data under
 `src/data/` are copied from the React demo unchanged; the components are rewritten as standalone
 Angular components with signals, the Radix UI controls as components and directives over the
-Angular CDK. [`PORTING.md`](./PORTING.md) records the mapping and the invariants the port keeps to,
+Angular CDK. [`PORTING.md`](../angular.PORTING.md) records the mapping and the invariants the port keeps to,
 and `.seed-manifest.json` records which revision of the demo source it was ported from.
 
 Files under `src/vendored/` are copied from sibling demos that this one shares source with:

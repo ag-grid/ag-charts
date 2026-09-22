@@ -20,7 +20,7 @@ This project is a hand-written port of the React demo source in
 lives in `src/`, with `src/main.ts` mounting it. The pure TypeScript modules (data, topology,
 formatting, metrics, chart theme, icon and flag tables, grid configuration) are copied from the
 React demo unchanged; the components are rewritten against the DOM, `AgCharts.create` and
-`createGrid`. [`PORTING.md`](./PORTING.md) records the mapping and the invariants the port keeps
+`createGrid`. [`PORTING.md`](../typescript.PORTING.md) records the mapping and the invariants the port keeps
 to, and `.seed-manifest.json` records which revision of the demo source it was ported from.
 
 The `ag-charts-*` dependencies are pinned to 14.2.0, the latest release at the time this seed was

@@ -172,7 +172,7 @@ To do a sync yourself, or finish one the AI Workflow left:
 1. Check the ticket's AI fields first (`AI status`, `AI branch`, `AI PR URL`). If a branch or PR
    exists, continue from it rather than starting again, and say so on the ticket so the pipeline
    does not resume over your work. See the `aiw-help` skill for how to stop an in-flight run.
-2. Read `seeds/<demo>/<framework>/PORTING.md` for the port's mapping rules, then port the change
+2. Read `seeds/<demo>/<framework>.PORTING.md` for the port's mapping rules, then port the change
    listed in the ticket. Keep the React CSS and class names; the pixel comparison depends on them.
 3. Stamp the manifest: `node packages/ag-charts-demos/tools/seeds/stamp-port-manifest.mjs <demo> <framework>`.
 4. Verify: `node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --stale` prints an empty

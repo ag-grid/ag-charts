@@ -272,7 +272,7 @@ const codeBlock = (value) => ({ type: 'codeBlock', attrs: { language: 'sh' }, co
 const doc = (...content) => ({ type: 'doc', version: 1, content });
 
 const short = (sha) => (sha ? sha.slice(0, SHORT_SHA_LENGTH) : 'unknown');
-const portingPath = ({ demo, framework }) => `${SEEDS_PATH}/${demo}/${framework}/PORTING.md`;
+const portingPath = ({ demo, framework }) => `${SEEDS_PATH}/${demo}/${framework}.PORTING.md`;
 const stampCommand = ({ demo, framework }) =>
     `node packages/ag-charts-demos/tools/seeds/stamp-port-manifest.mjs ${demo} ${framework}`;
 

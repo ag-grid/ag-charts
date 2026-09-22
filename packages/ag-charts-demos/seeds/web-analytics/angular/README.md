@@ -22,7 +22,7 @@ This project is a hand-written port of the React demo source in
 lives in `src/`, with `src/main.ts` bootstrapping it. The pure TypeScript modules (data, metrics,
 formatting, chart theme, icon lookups, map topology, grid configuration) and the icon assets are
 copied from the React demo unchanged; the components are rewritten as standalone Angular components
-with signals, the Radix UI controls as components over the Angular CDK. [`PORTING.md`](./PORTING.md)
+with signals, the Radix UI controls as components over the Angular CDK. [`PORTING.md`](../angular.PORTING.md)
 records the mapping and the invariants the port keeps to, and `.seed-manifest.json` records which
 revision of the demo source it was ported from.
 

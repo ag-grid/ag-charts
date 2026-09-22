@@ -22,7 +22,7 @@ This project is a hand-written port of the React demo source in
 `src/`, with `src/main.ts` bootstrapping it. The pure TypeScript modules (data, formatting, chart
 theme, transactions, grid configuration) are copied from the React demo unchanged; the components
 are rewritten as standalone Angular components with signals, the Radix UI controls as components
-over the Angular CDK. [`PORTING.md`](./PORTING.md) records the mapping and the invariants the port
+over the Angular CDK. [`PORTING.md`](../angular.PORTING.md) records the mapping and the invariants the port
 keeps to, and `.seed-manifest.json` records which revision of the demo source it was ported from.
 
 The `ag-charts-*` dependencies are pinned to 14.2.0, the latest release at the time this seed was

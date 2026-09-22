@@ -20,7 +20,7 @@ This project is a hand-written port of the React demo source in
 in `src/`, with `src/main.ts` mounting it. The pure TypeScript modules (data, formatting, chart
 theme, geography, routes, workspace model, grid configuration) are copied from the React demo
 unchanged; the components are rewritten against the DOM, `AgCharts.create` and `createGrid`.
-[`PORTING.md`](./PORTING.md) records the mapping and the invariants the port keeps to, and
+[`PORTING.md`](../typescript.PORTING.md) records the mapping and the invariants the port keeps to, and
 `.seed-manifest.json` records which revision of the demo source it was ported from.
 
 Files under `src/vendored/` are copied from sibling demos that this one shares source with:

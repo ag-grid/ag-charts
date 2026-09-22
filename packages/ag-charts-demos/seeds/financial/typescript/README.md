@@ -19,7 +19,7 @@ This project is a hand-written port of the React demo source in
 [`packages/ag-charts-demos/src/demos/financial`](../../../src/demos/financial). The demo lives in
 `src/`, with `src/main.ts` mounting it. The pure TypeScript modules (data, formatting, chart theme,
 transactions, grid configuration) are copied from the React demo unchanged; the components are
-rewritten against the DOM, `AgCharts.create` and `createGrid`. [`PORTING.md`](./PORTING.md) records
+rewritten against the DOM, `AgCharts.create` and `createGrid`. [`PORTING.md`](../typescript.PORTING.md) records
 the mapping and the invariants the port keeps to, and `.seed-manifest.json` records which revision
 of the demo source it was ported from.
 

@@ -350,8 +350,8 @@ describe('run', () => {
         expect(fields.summary).toBe('[Charts] Sync demo ports: financial to e4340dd5');
         expect(fields.labels).toEqual(['ai-eligible']);
         const rendered = JSON.stringify(fields.description);
-        expect(rendered).toContain('packages/ag-charts-demos/seeds/financial/angular/PORTING.md');
-        expect(rendered).toContain('packages/ag-charts-demos/seeds/financial/vue/PORTING.md');
+        expect(rendered).toContain('packages/ag-charts-demos/seeds/financial/angular.PORTING.md');
+        expect(rendered).toContain('packages/ag-charts-demos/seeds/financial/vue.PORTING.md');
         expect(rendered).toContain('stamp-port-manifest.mjs financial angular');
         expect(rendered).toContain('yarn nx test:e2e:parity ag-charts-demos');
         expect(rendered).toContain('DEMOS_BASE_URL');
