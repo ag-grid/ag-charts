@@ -32,6 +32,50 @@ describe('ExtendedPath2D', () => {
     });
 
     describe('isPointInPath', () => {
+        test('a wedge excludes points on the diagonal through its apex', () => {
+            const path = new ExtendedPath2D();
+            path.moveTo(0, 0);
+            path.lineTo(200, -200);
+            path.arc(0, 0, 200 * Math.SQRT2, -Math.PI / 4, (3 * Math.PI) / 4);
+            path.closePath();
+
+            expect(path.isPointInPath(100, 100)).toBe(true);
+            expect(path.isPointInPath(300, 300)).toBe(false);
+            expect(path.isPointInPath(500, 500)).toBe(false);
+            expect(path.isPointInPath(-300, -300)).toBe(false);
+        });
+
+        test('a point level with a vertex is classified by the edges around it', () => {
+            const path = new ExtendedPath2D();
+            path.moveTo(0, -100);
+            path.lineTo(100, 0);
+            path.lineTo(0, 100);
+            path.lineTo(-100, 0);
+            path.closePath();
+
+            expect(path.isPointInPath(50, 0)).toBe(true);
+            expect(path.isPointInPath(150, 0)).toBe(false);
+            expect(path.isPointInPath(-150, 0)).toBe(false);
+            expect(path.isPointInPath(0, 50)).toBe(true);
+            expect(path.isPointInPath(0, 150)).toBe(false);
+        });
+
+        test('a circle built from arcs is classified level with its curve joins', () => {
+            const path = new ExtendedPath2D();
+            path.moveTo(100, 0);
+            path.arc(0, 0, 100, 0, 2 * Math.PI);
+            path.closePath();
+
+            expect(path.isPointInPath(50, 0)).toBe(true);
+            expect(path.isPointInPath(-50, 0)).toBe(true);
+            expect(path.isPointInPath(150, 0)).toBe(false);
+            expect(path.isPointInPath(-150, 0)).toBe(false);
+            expect(path.isPointInPath(0, 50)).toBe(true);
+            expect(path.isPointInPath(0, 150)).toBe(false);
+            expect(path.isPointInPath(60, 60)).toBe(true);
+            expect(path.isPointInPath(80, 80)).toBe(false);
+        });
+
         test('a ring of two closed subpaths excludes its hole', () => {
             const path = new ExtendedPath2D();
             square(path, 100);
