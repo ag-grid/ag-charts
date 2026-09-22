@@ -10,6 +10,7 @@ import type { DataModel, DataModelOptions, ProcessedData } from '../data/dataMod
 import type { PropertyDefinition } from '../data/dataModelTypes';
 import { DataSet } from '../data/dataSet';
 import type { PickFocusInputs, PickFocusOutputs, SeriesNodePickMatch } from './pickTypes';
+import { SeriesNodeDatumSentinel } from './pickTypes';
 import type { SeriesConstructorOpts, SeriesNodeDataContext } from './series';
 import { Series } from './series';
 import { type SeriesNodeDatum } from './seriesTypes';
@@ -147,14 +148,8 @@ export abstract class DataModelSeries<
             return;
         }
 
-        const nodeDatumIndex = this.computeFocusNodeIndex(opts, nodeData);
-        if (nodeDatumIndex === undefined) {
-            return;
-        }
-
         const { clipFocusBox } = this;
-        const datum = nodeData[nodeDatumIndex];
-        const datumIndex = datum.datumIndex;
+        const { datum, datumIndex } = this.findFocus(opts, nodeData);
         const derivedOpts = { ...opts, datumIndex };
         const bounds = this.computeFocusBounds(derivedOpts);
         if (bounds !== undefined) {
@@ -173,7 +168,31 @@ export abstract class DataModelSeries<
         return !missing && enabled && focusable;
     }
 
-    private computeFocusNodeIndex(opts: PickFocusInputs, nodeData: TDatum[]): number | undefined {
+    private findNodeDataIndexBounds(opts: PickFocusInputs, nodeData: TDatum[]) {
+        if (nodeData.length === 0) return [undefined, undefined];
+
+        const result: [undefined | number, undefined | number] = [undefined, undefined];
+        let low = 0;
+        let upp = nodeData.length - 1;
+        while (low <= upp) {
+            const mid = (low + upp) >> 1;
+            const midNode = nodeData[mid];
+            if (midNode.datumIndex < opts.datumIndex) {
+                result[0] = mid;
+                low = mid + 1;
+            } else if (midNode.datumIndex > opts.datumIndex) {
+                result[1] = mid;
+                upp = mid - 1;
+            } /* midNode.datumIndex === opts.datumIndex */ else {
+                return [mid, mid];
+            }
+        }
+        return result;
+    }
+
+    private findFocus(opts: PickFocusInputs, nodeData: TDatum[]): Pick<PickFocusOutputs, 'datum' | 'datumIndex'> {
+        const [lower, upper] = this.findNodeDataIndexBounds(opts, nodeData);
+
         const searchBackward = (nodeDatumIndex: number, delta: number): number | undefined => {
             while (nodeDatumIndex >= 0 && !this.isDatumEnabled(nodeData, nodeDatumIndex)) {
                 nodeDatumIndex += delta;
@@ -188,17 +207,30 @@ export abstract class DataModelSeries<
         };
 
         // Search forward or backwards depending on the delta direction.
-        let nodeIndex: number | undefined;
-        const clampedIndex = clamp(0, opts.datumIndex, nodeData.length - 1);
+        let nextNodeIndex: number | undefined;
         if (opts.datumIndexDelta < 0) {
-            nodeIndex = searchBackward(clampedIndex, opts.datumIndexDelta);
+            if (lower !== undefined) {
+                nextNodeIndex = searchBackward(lower, opts.datumIndexDelta);
+            }
         } else if (opts.datumIndexDelta > 0) {
-            nodeIndex = searchForward(clampedIndex, opts.datumIndexDelta);
+            if (upper !== undefined) {
+                nextNodeIndex = searchForward(upper, opts.datumIndexDelta);
+            }
         } /* opts.datumIndexDelta === 0 */ else {
-            nodeIndex = searchForward(clampedIndex, +1) ?? searchBackward(clampedIndex, -1);
+            if (lower !== undefined && nodeData[lower].datumIndex === opts.datumIndex) {
+                nextNodeIndex = lower;
+            }
+            if (upper !== undefined && nodeData[upper].datumIndex === opts.datumIndex) {
+                nextNodeIndex = upper;
+            }
         }
 
-        return nodeIndex;
+        if (nextNodeIndex === undefined) {
+            return { datum: SeriesNodeDatumSentinel.CULLED, datumIndex: opts.datumIndex };
+        } else {
+            const nextNode = nodeData[nextNodeIndex];
+            return { datum: nextNode, datumIndex: nextNode.datumIndex };
+        }
     }
 
     // Workaround - it would be nice if this difference didn't exist
