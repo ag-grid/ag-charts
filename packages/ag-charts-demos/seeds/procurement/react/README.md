@@ -17,7 +17,9 @@ npm run dev
 This project is generated from the React demo source in
 [`packages/ag-charts-demos/src/demos/procurement`](../../../src/demos/procurement) by
 `tools/seeds/generate-react-seed.mjs`. The demo source lives in `src/`, with `src/main.tsx`
-mounting it. Do not edit the seed in place: change the demo source and regenerate.
+mounting it once `src/fonts.ts` has loaded the demo's web fonts, so that the charts lay out in
+their final font from the first frame. Do not edit the seed in place: change the demo source and
+regenerate.
 
 Files under `src/vendored/` are copied from sibling demos that this one shares source with:
 

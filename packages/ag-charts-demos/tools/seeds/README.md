@@ -57,7 +57,10 @@ All commands run from the repository root.
 ### `generate-react-seed.mjs`
 
 Regenerates the React seed for every demo (or the ids given) from its golden master. Also
-available as `yarn nx run ag-charts-demos:generate-seeds`.
+available as `yarn nx run ag-charts-demos:generate-seeds`. Beside the copied demo source it writes
+the seed's `src/main.tsx` and copies `src/fonts.ts` from the demos app shell, so the seed too
+waits for the demo's web fonts before mounting (see "Web fonts and the first render" in the
+package README).
 
 ### `check-seeds.mjs --react`
 

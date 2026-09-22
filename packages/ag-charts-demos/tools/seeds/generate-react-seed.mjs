@@ -54,6 +54,12 @@ const PRESERVED_IN_TARGET = new Set(['node_modules', 'dist']);
 /** Packages the seed always needs regardless of what the demo imports. */
 const RUNTIME_ALWAYS = ['react', 'react-dom'];
 
+/**
+ * Files of the demos app shell that the seed's `src/main.tsx` needs beside the demo source, copied
+ * from `src/` as they are. A demo file of the same name would be overwritten, so none may exist.
+ */
+const SHELL_FILES = ['fonts.ts'];
+
 /** Bare import specifier -> package name (`@scope/name` or `name`), dropping any subpath. */
 function toPackageName(specifier) {
     const parts = specifier.split('/');
@@ -178,6 +184,7 @@ const renderMainTsx = (demoId) => `import { createRoot } from 'react-dom/client'
 
 import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
 
+import { waitForDeclaredFonts } from './fonts';
 import Demo from './index';
 
 // The demo registers the modules it needs in ./index.tsx; the community bundle is
@@ -189,14 +196,18 @@ if (!container) {
     throw new Error('Root container #root not found');
 }
 
-// The demo fills the viewport from a fixed-position container of its own, which would leave
-// this wrapper with no box; sizing it to the viewport keeps it visible to tooling. In the demos
-// app the loading fallback does that while the demo's chunk loads.
-createRoot(container).render(
-    <main data-demo-id="${demoId}" style={{ position: 'fixed', inset: 0 }}>
-        <Demo />
-    </main>
-);
+// The stylesheet ./index.tsx imports declares the demo's web fonts; they are loaded before the
+// first render so the charts lay out in their final font from the first frame (see ./fonts.ts).
+void waitForDeclaredFonts().then(() => {
+    // The demo fills the viewport from a fixed-position container of its own, which would leave
+    // this wrapper with no box; sizing it to the viewport keeps it visible to tooling. In the demos
+    // app the loading fallback does that while the demo's chunk loads.
+    createRoot(container).render(
+        <main data-demo-id="${demoId}" style={{ position: 'fixed', inset: 0 }}>
+            <Demo />
+        </main>
+    );
+});
 `;
 
 const renderVendoredNote = (vendored) =>
@@ -233,7 +244,9 @@ npm run dev
 This project is generated from the React demo source in
 [\`packages/ag-charts-demos/src/demos/${demoId}\`](../../../src/demos/${demoId}) by
 \`tools/seeds/generate-react-seed.mjs\`. The demo source lives in \`src/\`, with \`src/main.tsx\`
-mounting it. Do not edit the seed in place: change the demo source and regenerate.
+mounting it once \`src/fonts.ts\` has loaded the demo's web fonts, so that the charts lay out in
+their final font from the first frame. Do not edit the seed in place: change the demo source and
+regenerate.
 ${renderVendoredNote(vendored)}
 ${renderPinNote(pin)}
 AG Charts Enterprise features show a watermark until a licence key is set.
@@ -256,8 +269,10 @@ export async function generateReactSeed(demoId, outRoot = SEEDS_DIR) {
     if (!sourceFiles.includes('index.tsx')) {
         throw new Error(`src/demos/${demoId}/index.tsx is missing; the seed mounts the demo's default export`);
     }
-    if (sourceFiles.includes('main.tsx')) {
-        throw new Error(`src/demos/${demoId}/main.tsx would collide with the seed's own src/main.tsx`);
+    for (const file of ['main.tsx', ...SHELL_FILES]) {
+        if (sourceFiles.includes(file)) {
+            throw new Error(`src/demos/${demoId}/${file} would collide with the seed's own src/${file}`);
+        }
     }
 
     resetSeedDir(seedDir);
@@ -265,6 +280,9 @@ export async function generateReactSeed(demoId, outRoot = SEEDS_DIR) {
     const vendored = copyDemoSource(demoId, sourceFiles, seedDir);
 
     writeFileSync(join(seedSrcDir, 'main.tsx'), renderMainTsx(demoId));
+    for (const file of SHELL_FILES) {
+        cpSync(join(DEMOS_ROOT, 'src', file), join(seedSrcDir, file));
+    }
 
     const imported = collectImportedPackages(seedSrcDir, listFiles(seedSrcDir));
     const pin = readPinnedChartsVersion();
