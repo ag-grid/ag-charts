@@ -9,6 +9,7 @@ export type MockEvent = {
 
 const KNOWN_AG_CHARTS_CLASSES: readonly string[] = [
     'ag-charts-series-area',
+    'ag-charts-series-area-bounds',
     'ag-charts-canvas-proxy',
     'ag-charts-canvas-container',
 ] as const;

@@ -17,7 +17,7 @@ import { closeToBigInt, closeToDate, setupMockConsole } from 'ag-charts-test';
 import { createEnterpriseChart } from '../../test/utils';
 
 function measureXGridLines(): [number, number, number, number] | undefined {
-    const elem = document.querySelector('.ag-charts-series-area');
+    const elem = document.querySelector('.ag-charts-series-area-bounds');
     if (elem instanceof HTMLElement) {
         const left = Number.parseInt(elem.style.left);
         const width = Number.parseInt(elem.style.width);
@@ -31,7 +31,7 @@ function measureXGridLines(): [number, number, number, number] | undefined {
 
 // Centre of each of `count` equal bands across the series area.
 function measureBandCentres(count: number): number[] {
-    const elem = document.querySelector('.ag-charts-series-area');
+    const elem = document.querySelector('.ag-charts-series-area-bounds');
     if (!(elem instanceof HTMLElement)) throw new Error('series area not found');
     const left = Number.parseInt(elem.style.left);
     const width = Number.parseInt(elem.style.width);

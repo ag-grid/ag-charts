@@ -182,7 +182,7 @@ export class AxisWidgets {
         entry.region.widget.removeChildWidget(entry.text);
         this.ctx.domManager.addChild('canvas-proxy', this.titleId(axisId), entry.text.getElement(), {
             where: 'afterend',
-            query: '.ag-charts-series-area',
+            query: '.ag-charts-series-area-bounds',
         });
         entry.textNested = false;
         this.applyTitleBounds(entry);
@@ -215,6 +215,7 @@ class SeriesAreaWidget extends DOMManagerWidget {
 
 export class WidgetSet {
     readonly seriesWidget: SeriesAreaWidget;
+    readonly seriesBoundsWidget: Widget;
     readonly chartWidget: Widget;
     readonly containerWidget: Widget;
     readonly seriesDragInterpreter?: DragInterpreter;
@@ -224,6 +225,7 @@ export class WidgetSet {
     constructor(ctx: DynamicContext<ChartRegistry>, opts: { withDragInterpretation: boolean }) {
         const { domManager } = ctx;
         this.seriesWidget = new SeriesAreaWidget(ctx);
+        this.seriesBoundsWidget = new DOMManagerWidget(domManager.getParent('series-area-bounds'));
         this.chartWidget = new DOMManagerWidget(domManager.getParent('canvas-proxy'));
         this.containerWidget = new DOMManagerWidget(domManager.getParent('canvas-container'));
         this.containerWidget.addChild(this.chartWidget);
@@ -241,6 +243,7 @@ export class WidgetSet {
         this.longTapInterpreter?.destroy();
         this.seriesDragInterpreter?.destroy();
         this.seriesWidget.destroy();
+        this.seriesBoundsWidget.destroy();
         this.chartWidget.destroy();
         this.containerWidget.destroy();
     }

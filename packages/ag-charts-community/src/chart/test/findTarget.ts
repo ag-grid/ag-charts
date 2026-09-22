@@ -67,10 +67,12 @@ function initBoundingClientRect(widgets: WidgetSet) {
         width: widget.cssWidth(),
         height: widget.cssHeight(),
     });
+    const seriesAreaBounds = cssBounds(widgets.seriesBoundsWidget);
 
     stubBoundingClientRect(widgets.chartWidget.getElement(), canvasBounds);
     stubBoundingClientRect(widgets.containerWidget.getElement(), canvasBounds);
-    stubBoundingClientRect(widgets.seriesWidget.getElement(), cssBounds(widgets.seriesWidget));
+    stubBoundingClientRect(widgets.seriesBoundsWidget.getElement(), seriesAreaBounds);
+    stubBoundingClientRect(widgets.seriesWidget.getElement(), seriesAreaBounds);
     for (const axisWidget of axisRegionWidgets(widgets)) {
         stubBoundingClientRect(axisWidget.getElement(), () => axisWidget.getBounds());
     }
@@ -218,12 +220,12 @@ function findSeriesAreaTarget(chart: unknown, widgets: WidgetSet, clientX: numbe
         .cast(SeriesAreaManager)
         .findProperty('seriesRect')
         .castProperty('seriesRect', BBox).value.seriesRect;
-    const { seriesWidget, containerWidget } = widgets;
+    const { seriesWidget, seriesBoundsWidget, containerWidget } = widgets;
 
     const inSeriesRect = seriesRect?.containsPoint(clientX, clientY);
     const target: HTMLElement = inSeriesRect ? seriesWidget.getElement() : containerWidget.getElement();
     const [offsetX, offsetY] = inSeriesRect
-        ? [clientX - seriesWidget.cssLeft(), clientY - seriesWidget.cssTop()]
+        ? [clientX - seriesBoundsWidget.cssLeft(), clientY - seriesBoundsWidget.cssTop()]
         : [clientX, clientY];
     return makeMockEvent({ target, offsetX, offsetY, clientX, clientY });
 }

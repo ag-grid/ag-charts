@@ -168,7 +168,7 @@ describe('Grouped Category', () => {
         const rawValue = (value: unknown[]) => [{ value }];
 
         function measureBandCentres(count: number): number[] {
-            const elem = document.querySelector('.ag-charts-series-area');
+            const elem = document.querySelector('.ag-charts-series-area-bounds');
             if (!(elem instanceof HTMLElement)) throw new Error('series area not found');
             const left = Number.parseInt(elem.style.left);
             const width = Number.parseInt(elem.style.width);

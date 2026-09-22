@@ -2,13 +2,15 @@ import type { BaseAttributeTypeMap, BaseStyleTypeMap, BoxBounds, ElementID } fro
 import {
     getAttribute,
     getElementBBox,
+    isNode,
     setAttribute,
     setElementBBox,
     setElementStyle,
     setElementStyles,
 } from 'ag-charts-core';
 
-import { type WidgetEventMap, type WidgetEventMap_Internal, WidgetEventUtil } from './widgetEvents';
+import type { WidgetEvent, WidgetEventMap, WidgetEventMap_Internal } from './widgetEvents';
+import { WidgetEventUtil } from './widgetEvents';
 import { WidgetListenerHTML } from './widgetListenerHTML';
 import { WidgetListenerInternal } from './widgetListenerInternal';
 
@@ -175,6 +177,10 @@ export abstract class Widget<
 
     isDisabled() {
         return getAttribute(this.elem, 'aria-disabled', false);
+    }
+
+    containsTarget(event: Pick<WidgetEvent, 'sourceEvent'>) {
+        return isNode(event.sourceEvent.target) && this.elem.contains(event.sourceEvent.target);
     }
 
     hasPopup(): boolean {

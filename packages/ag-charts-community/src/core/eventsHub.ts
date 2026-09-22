@@ -162,6 +162,7 @@ export interface EventsHubMap {
     'dom:container-change': null;
     'dom:hidden': null;
     'dom:resize': null;
+    'dom:series-blurred': null;
     'font:load': null;
     'highlight:change': HighlightChangeEvent;
     'highlight:selection-updated': HighlightSelectionUpdatedEvent;
