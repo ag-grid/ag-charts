@@ -13,9 +13,9 @@ if (!container) {
 }
 
 const demo = createDemo();
-// The demo pins itself to the viewport (`.fin-container` is `position: fixed`), which would leave
-// this landmark with no box of its own. Sizing it to the viewport too keeps it visible to
-// assistive tech and to the functional specs without moving anything on screen.
+// The demo fills the viewport from a fixed-position container of its own, which would leave
+// this wrapper with no box; sizing it to the viewport keeps it visible to tooling. In the demos
+// app the loading fallback does that while the demo's chunk loads.
 container.append(h('main', { 'data-demo-id': 'financial', style: 'position: fixed; inset: 0;' }, demo.el));
 // Charts and grids are created once their elements are in the document, as the React layout
 // effects do.
