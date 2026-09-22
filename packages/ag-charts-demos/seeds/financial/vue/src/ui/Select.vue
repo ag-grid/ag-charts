@@ -19,7 +19,7 @@ import { type SelectOption } from './types';
 
 defineProps<{
     options: SelectOption[];
-    'aria-label': string;
+    ariaLabel: string;
     label: string;
 }>();
 
@@ -30,7 +30,7 @@ const model = defineModel<string>({ required: true });
     <Label :for="label" class="fin-labeled-select">
         <span>{{ label }}</span>
         <SelectRoot v-model="model">
-            <SelectTrigger class="fin-btn fin-select-trigger" :aria-label="$props['aria-label']">
+            <SelectTrigger class="fin-btn fin-select-trigger" :aria-label="ariaLabel">
                 <SelectValue />
                 <SelectIcon>▾</SelectIcon>
             </SelectTrigger>

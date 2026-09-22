@@ -95,9 +95,11 @@ Two places need help to reproduce Radix's DOM, both in `ui/ToggleGroup.vue`:
 - Radix ignores a re-press of the selected item through the demo's `next && set(next)` guard; the
   port's `onUpdate` handler does the same with the `AcceptableValue` payload reka-ui emits.
 
-`aria-label` is declared as a prop under its DOM name (`'aria-label'`) on `Select.vue` and
-`ToggleGroup.vue`, so that it lands on the trigger or group rather than falling through to the
-component root.
+`aria-label` is declared as the `ariaLabel` prop on `Select.vue` and `ToggleGroup.vue`, so that
+it lands on the trigger or group rather than falling through to the component root. Call sites
+still write `aria-label="…"`: Vue camel-cases the attribute to the prop, and the seed's
+`tsconfig.json` sets `vueCompilerOptions.htmlAttributes` to `[]` so vue-tsc accepts that spelling
+on components.
 
 ### Hooks to composables and Vue reactivity
 

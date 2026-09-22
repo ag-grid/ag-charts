@@ -13,5 +13,8 @@
     "skipLibCheck": true,
     "types": ["vite/client"]
   },
+  "vueCompilerOptions": {
+    "htmlAttributes": []
+  },
   "include": ["src/**/*.ts", "src/**/*.vue", "vite.config.ts"]
 }

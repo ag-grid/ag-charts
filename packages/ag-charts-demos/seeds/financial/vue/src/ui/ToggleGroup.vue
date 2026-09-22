@@ -9,7 +9,7 @@ import { type SelectOption } from './types';
 
 defineProps<{
     options: SelectOption[];
-    'aria-label': string;
+    ariaLabel: string;
 }>();
 
 const model = defineModel<string>({ required: true });
@@ -23,7 +23,7 @@ function onUpdate(next: AcceptableValue | AcceptableValue[]) {
 
 <template>
     <ToggleGroupRoot as-child type="single" :model-value="model" @update:model-value="onUpdate">
-        <div class="fin-toggle-group" role="radiogroup" :aria-label="$props['aria-label']">
+        <div class="fin-toggle-group" role="radiogroup" :aria-label="ariaLabel">
             <ToggleGroupItem
                 v-for="option in options"
                 :key="option.value"
