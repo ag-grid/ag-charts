@@ -97,6 +97,21 @@ export type TransferableResources = {
 };
 
 type SizeOptionKey = 'width' | 'height' | 'minWidth' | 'minHeight' | 'overrideDevicePixelRatio';
+const SIZE_OPTIONS = [
+    ['height', 'inHeight'],
+    ['minHeight', 'inMinHeight'],
+    ['minWidth', 'inMinWidth'],
+    ['overrideDevicePixelRatio', 'inOverrideDevicePixelRatio'],
+    ['width', 'inWidth'],
+] as const;
+
+/** A chart-like owner of series and axes: the chart itself or the navigator's mini chart. */
+interface SeriesAxesHost {
+    series: UnknownSeries[];
+    axes: ChartAxes;
+    setSeries(series: UnknownSeries[]): void;
+    setAxes(axes: ChartAxes): void;
+}
 
 type SeriesChangeType =
     | 'no-op'
@@ -1342,14 +1357,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
     /** Applies the sizing options in their declaration order, resizing once per changed value. */
     private applySizeOptions(deltaOptions: Partial<Record<SizeOptionKey, number | undefined>>) {
-        const sizeOptions = [
-            ['height', 'inHeight'],
-            ['minHeight', 'inMinHeight'],
-            ['minWidth', 'inMinWidth'],
-            ['overrideDevicePixelRatio', 'inOverrideDevicePixelRatio'],
-            ['width', 'inWidth'],
-        ] as const;
-        for (const [key, param] of sizeOptions) {
+        for (const [key, param] of SIZE_OPTIONS) {
             if (!(key in deltaOptions)) continue;
             const value = deltaOptions[key];
             if (value === this[key]) continue;
@@ -1814,16 +1822,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         this.chartOptions = newChartOptions;
 
-        const navigatorModule = this.modulesManager.getModule<{
-            miniChart?: {
-                enabled?: boolean;
-                series: UnknownSeries[];
-                axes: ChartAxes;
-                setSeries(series: UnknownSeries[]): void;
-                setAxes(axes: ChartAxes): void;
-                createChartAxes(): ChartAxes;
-            };
-        }>('navigator');
+        const navigatorModule = this.modulesManager.getModule<{ miniChart?: SeriesAxesHost & { enabled?: boolean } }>(
+            'navigator'
+        );
 
         if (!this.hasViewportSupport()) {
             // reset zoom to initial state
@@ -1840,7 +1841,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             this.applyMiniChartOptions(miniChart, miniChartSeries, newOpts, oldOpts);
         } else if (miniChart?.enabled === false) {
             miniChart.setSeries([]);
-            miniChart.setAxes(miniChart.createChartAxes());
+            miniChart.setAxes(new ChartAxes());
         }
 
         this.ctx.annotationManager?.setAnnotationStyles(newChartOptions.annotationThemes);
@@ -2035,7 +2036,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     private applySeries(
-        chart: { series: UnknownSeries[]; setSeries(series: UnknownSeries[]): void },
+        chart: SeriesAxesHost,
         optSeries: AgChartOptions['series'],
         oldOptSeries?: AgChartOptions['series']
     ): SeriesChangeType {
@@ -2112,11 +2113,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         return isUpdated ? 'updated' : 'no-op';
     }
 
-    private applyAxes(
-        chart: { axes: ChartAxes; setAxes(axes: ChartAxes): void },
-        options: AgChartOptions,
-        seriesStatus: SeriesChangeType
-    ) {
+    private applyAxes(chart: SeriesAxesHost, options: AgChartOptions, seriesStatus: SeriesChangeType) {
         if (!('axes' in options) || !options.axes) {
             return false;
         }

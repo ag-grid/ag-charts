@@ -40,7 +40,7 @@ export class MiniChart extends AbstractModuleInstance {
     // Should be available after the first layout.
     protected seriesRect?: _ModuleSupport.BBox = undefined;
 
-    private _axes: _ModuleSupport.ChartAxes = this.createChartAxes();
+    private _axes = new _ModuleSupport.ChartAxes();
     private _series: _ModuleSupport.UnknownSeries[] = [];
 
     get axes() {
@@ -49,10 +49,6 @@ export class MiniChart extends AbstractModuleInstance {
 
     get series() {
         return this._series;
-    }
-
-    createChartAxes() {
-        return new _ModuleSupport.ChartAxes();
     }
 
     setAxes(axes: _ModuleSupport.ChartAxes) {

@@ -41,7 +41,7 @@ function applyProperties(parentState: AbstractStateMachine<any>, childState: Sta
 abstract class AbstractStateMachine<Events extends Record<string, any>> {
     public parent?: AbstractStateMachine<Events>;
 
-    /** Fields copied from the parent state machine into a child on every transition into it. */
+    /** Fields copied from the parent before each transition is forwarded to a child; an override replaces the list. */
     inheritedProperties(): readonly string[] {
         return [];
     }
