@@ -40,6 +40,7 @@ person or an agent performs it.
 | `FinancialApp.tsx`                                        | `FinancialApp.vue`                                                    | ported                               |
 | `useStreamingMarket.ts`                                   | `useStreamingMarket.ts`                                               | ported (hook to composable)          |
 | `ui.tsx` (`Button`, `Select`, `ToggleGroup`)              | `ui/Button.vue`, `ui/Select.vue`, `ui/ToggleGroup.vue`, `ui/types.ts` | ported, one file per export          |
+| —                                                         | `ui/typeahead.ts`                                                     | port-only (see below)                |
 | `components/Toolbar.tsx`                                  | `components/Toolbar.vue`                                              | ported                               |
 | `components/DemoInfo.tsx`                                 | `components/DemoInfo.vue`                                             | ported                               |
 | `components/TickerCell.tsx` (`TickerBadge`, `TickerCell`) | `components/TickerBadge.vue`, `components/TickerCell.vue`             | ported, one file per export          |
@@ -84,7 +85,8 @@ import TickerCell from './TickerCell.vue';
 | `ToggleGroup.Root type="single" value onValueChange`                                   | `ToggleGroupRoot type="single" :model-value @update:model-value`                                                                |
 | `ToggleGroup.Item`                                                                     | `ToggleGroupItem`                                                                                                               |
 
-Two places need help to reproduce Radix's DOM, both in `ui/ToggleGroup.vue`:
+Four places need help to reproduce Radix's DOM and behaviour, two in `ui/ToggleGroup.vue` and two in
+`ui/Select.vue`:
 
 - Radix renders a single-select group as `role="radiogroup"` with `role="radio"` items carrying
   `aria-checked`. reka-ui renders `role="group"` with `aria-pressed` buttons. The port passes
@@ -94,6 +96,21 @@ Two places need help to reproduce Radix's DOM, both in `ui/ToggleGroup.vue`:
   specs select the range buttons by `getByRole('radio', { name })`, so this is load-bearing.
 - Radix ignores a re-press of the selected item through the demo's `next && set(next)` guard; the
   port's `onUpdate` handler does the same with the `AcceptableValue` payload reka-ui emits.
+- Radix's Select searches its options as you type on the closed trigger and moves the value to
+  the match (`useTypeaheadSearch`: characters typed within a second accumulate, a repeated
+  character steps through the options starting with it, and the search clears a second after the
+  last character and when the listbox opens). reka-ui's trigger only focuses the match, which sits
+  in a detached fragment while the listbox is closed, so the value never moves. `Select.vue`
+  listens to `keydown` on `SelectTrigger` and, while closed (`v-model:open`), searches the options
+  with `ui/typeahead.ts`, a copy of Radix's search and `findNextItem`, and sets the value. In the
+  open listbox reka-ui's own typeahead focuses the match as Radix does, so nothing is added there.
+- Radix marks an option `aria-selected="true"` only while it is both the value and focused, so the
+  attribute follows focus; reka-ui marks the value whether it is focused or not. `Select.vue`
+  renders each `SelectItem` `as-child` around its own `<div class="fin-select-item">` carrying
+  `:aria-selected` from the value and a `focused` ref that the item's `focus`/`blur` events keep.
+  reka-ui's `Slot` merges the supplied element's attributes over its own, so this `aria-selected`
+  wins while `role`, `aria-labelledby`, `data-state`, `data-highlighted` and `tabindex` still come
+  from reka-ui; the rendered element is the same `div` as before.
 
 `aria-label` is declared as the `ariaLabel` prop on `Select.vue` and `ToggleGroup.vue`, so that
 it lands on the trigger or group rather than falling through to the component root. Call sites
@@ -168,7 +185,10 @@ exactly as the React output:
   markup. Inline text that React renders from an expression (`v-text` in `FinancialApp.vue`,
   `ProfileGauges.vue`, `DemoInfo.vue`) must stay `v-text`, or a trailing space changes the layout.
 - Attributes the e2e specs and parity states rely on: `role="radio"` + `aria-checked` on the range
-  buttons, `aria-label="Time range"` on the group, the `/Live/`/`/Pause/` button text,
+  buttons, `aria-label="Time range"` on the group, `role="combobox"` with
+  `aria-label="Stream speed"`, `aria-expanded`, `aria-controls` (while open) and `data-state` on the
+  speed trigger, `role="option"` with `aria-labelledby`, `aria-selected` (the value, while focused),
+  `data-state` and `data-highlighted` on its options, the `/Live/`/`/Pause/` button text,
   `.fin-watchlist-grid .ag-row`, `.fin-quote-symbol`, `.ag-charts-wrapper`.
 
 Acceptable, invisible differences from reka-ui: `tabindex`, `dir`, `data-reka-collection-item`,

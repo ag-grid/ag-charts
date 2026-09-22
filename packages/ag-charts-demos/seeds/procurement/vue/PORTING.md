@@ -43,6 +43,7 @@ person or an agent performs it.
 | `index.tsx`                                                                                                             | `Procurement.vue`                                                                                                        | ported                              |
 | `WorkspaceApp.tsx`                                                                                                      | `WorkspaceApp.vue`                                                                                                       | ported                              |
 | `ui.tsx` (`Button`, `Select`, `ToggleGroup`, `SelectOption`)                                                            | `ui/Button.vue`, `ui/Select.vue`, `ui/SelectControl.vue`, `ui/ToggleGroup.vue`, `ui/types.ts`                            | ported, one file per export (below) |
+| —                                                                                                                       | `ui/typeahead.ts`                                                                                                        | port-only (below)                   |
 | `components/AttentionAlert.tsx`                                                                                         | `components/AttentionAlert.vue`                                                                                          | ported                              |
 | `components/AttentionList.tsx`                                                                                          | `components/AttentionList.vue`                                                                                           | ported                              |
 | `components/BudgetBurnUp.tsx`                                                                                           | `components/BudgetBurnUp.vue`                                                                                            | ported                              |
@@ -76,6 +77,8 @@ extension.
 wraps `SelectControl.vue`, which holds the reka-ui Select tree, because a Vue template cannot hold
 a fragment in a variable the way the React helper holds `trigger` and then either returns it bare
 or wraps it in a `Label`; `ToggleGroup.vue` is the toggle group; `types.ts` is `SelectOption`.
+`typeahead.ts` has no React counterpart: it is Radix's typeahead search, which `SelectControl.vue`
+runs on the closed trigger (below).
 
 ## Mapping rules
 
@@ -102,7 +105,8 @@ or wraps it in a `Label`; `ToggleGroup.vue` is the toggle group; `types.ts` is `
 | `ToggleGroup.Root type="single" value onValueChange`                                   | `ToggleGroupRoot type="single" :model-value @update:model-value`                                                                |
 | `ToggleGroup.Item`                                                                     | `ToggleGroupItem`                                                                                                               |
 
-Two places need help to reproduce Radix's DOM, both in `ui/ToggleGroup.vue`:
+Four places need help to reproduce Radix's DOM and behaviour, two in `ui/ToggleGroup.vue` and two in
+`ui/SelectControl.vue`:
 
 - Radix renders a single-select group as `role="radiogroup"` with `role="radio"` items carrying
   `aria-checked`. reka-ui renders `role="group"` with `aria-pressed` buttons. The port passes
@@ -112,6 +116,21 @@ Two places need help to reproduce Radix's DOM, both in `ui/ToggleGroup.vue`:
   metric buttons by `getByRole('radio', { name })`, so this is load-bearing.
 - Radix ignores a re-press of the selected item through the demo's `next && set(next)` guard; the
   port's `onUpdate` handler does the same with the `AcceptableValue` payload reka-ui emits.
+- Radix's Select searches its options as you type on the closed trigger and moves the value to
+  the match (`useTypeaheadSearch`: characters typed within a second accumulate, a repeated
+  character steps through the options starting with it, and the search clears a second after the
+  last character and when the listbox opens). reka-ui's trigger only focuses the match, which sits
+  in a detached fragment while the listbox is closed, so the value never moves. `SelectControl.vue`
+  listens to `keydown` on `SelectTrigger` and, while closed (`v-model:open`), searches the options
+  with `ui/typeahead.ts`, a copy of Radix's search and `findNextItem`, and sets the value. In the
+  open listbox reka-ui's own typeahead focuses the match as Radix does, so nothing is added there.
+- Radix marks an option `aria-selected="true"` only while it is both the value and focused, so the
+  attribute follows focus; reka-ui marks the value whether it is focused or not. `SelectControl.vue`
+  renders each `SelectItem` `as-child` around its own `<div class="pc-select-item">` carrying
+  `:aria-selected` from the value and a `focused` ref that the item's `focus`/`blur` events keep.
+  reka-ui's `Slot` merges the supplied element's attributes over its own, so this `aria-selected`
+  wins while `role`, `aria-labelledby`, `data-state`, `data-highlighted` and `tabindex` still come
+  from reka-ui; the rendered element is the same `div` as before.
 
 `aria-label` is a declared prop named `ariaLabel` on `Select.vue`, `SelectControl.vue` and
 `ToggleGroup.vue`, as it is on the React `Select` and `ToggleGroup`, so that it lands on the
@@ -206,7 +225,10 @@ exactly as the React output:
   `><` wrapping Prettier produces so no stray text node appears.
 - Attributes the e2e specs and parity states rely on: `role="tab"` with the tab names,
   `role="radio"` + `aria-checked` on the trend metric buttons with `aria-label="Trend metric"` on
-  the group, `role="dialog"` with `aria-label="Needs my attention"` on `.pc-alert-panel`,
+  the group, `role="combobox"` with the period selects' `aria-label`s, `aria-expanded`,
+  `aria-controls` (while open) and `data-state` on their triggers, `role="option"` with
+  `aria-labelledby`, `aria-selected` (the value, while focused), `data-state` and `data-highlighted`
+  on their options, `role="dialog"` with `aria-label="Needs my attention"` on `.pc-alert-panel`,
   `aria-expanded`/`aria-controls` on `.pc-alert-trigger`, the `Clear selection` and `Resolve`
   button names, `.pc-attention-item`, `.pc-po-action-done`, `.pc-stamp`, `.pc-chip`,
   `.ag-center-cols-container .pc-supplier-main`, `.ag-row.is-selected`, `.ag-charts-wrapper`.

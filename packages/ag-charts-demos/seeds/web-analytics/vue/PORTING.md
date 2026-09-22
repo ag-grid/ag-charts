@@ -43,6 +43,7 @@ person or an agent performs it.
 | `index.tsx`                                | `WebAnalytics.vue`                        | ported                 |
 | `WebAnalyticsApp.tsx`                      | `WebAnalyticsApp.vue`                     | ported                 |
 | `ui.tsx` (`Select`, `SelectOption`)        | `ui/Select.vue`, `ui/types.ts`            | ported (see below)     |
+| —                                          | `ui/typeahead.ts`                         | port-only (see below)  |
 | `components/ActivityByDayChart.tsx`        | `components/ActivityByDayChart.vue`       | ported                 |
 | `components/ActivityHeatmapChart.tsx`      | `components/ActivityHeatmapChart.vue`     | ported                 |
 | `components/AudienceView.tsx`              | `components/AudienceView.vue`             | ported                 |
@@ -102,7 +103,7 @@ stays one to one. `vue-tsc` and Vite both resolve named exports from a `.vue` mo
 | `Popover.Anchor virtualRef`                                                            | `PopoverAnchor as-child :reference` (see below)                                                                                 |
 | `Popover.Trigger`, `Portal`, `Content side align sideOffset collisionPadding`          | `PopoverTrigger`, `PopoverPortal`, `PopoverContent side align :side-offset :collision-padding`                                  |
 
-Three places need care to reproduce Radix's DOM:
+Five places need care to reproduce Radix's DOM and behaviour:
 
 - Radix renders nothing for an inactive `Tabs.Content`; reka-ui renders an empty
   `<div hidden role="tabpanel">` (its `Presence` is force-mounted) and unmounts the slot content, as
@@ -117,6 +118,21 @@ Three places need care to reproduce Radix's DOM:
   otherwise. A Vue template cannot place the same trigger subtree in two branches without
   duplicating it, so `ui/Select.vue` requires `label`; the demo's one caller always passes
   `label="Range"`.
+- Radix's Select searches its options as you type on the closed trigger and moves the value to
+  the match (`useTypeaheadSearch`: characters typed within a second accumulate, a repeated
+  character steps through the options starting with it, and the search clears a second after the
+  last character and when the listbox opens). reka-ui's trigger only focuses the match, which sits
+  in a detached fragment while the listbox is closed, so the value never moves. `Select.vue`
+  listens to `keydown` on `SelectTrigger` and, while closed (`v-model:open`), searches the options
+  with `ui/typeahead.ts`, a copy of Radix's search and `findNextItem`, and sets the value. In the
+  open listbox reka-ui's own typeahead focuses the match as Radix does, so nothing is added there.
+- Radix marks an option `aria-selected="true"` only while it is both the value and focused, so the
+  attribute follows focus; reka-ui marks the value whether it is focused or not. `Select.vue`
+  renders each `SelectItem` `as-child` around its own `<div class="wa-select-item">` carrying
+  `:aria-selected` from the value and a `focused` ref that the item's `focus`/`blur` events keep.
+  reka-ui's `Slot` merges the supplied element's attributes over its own, so this `aria-selected`
+  wins while `role`, `aria-labelledby`, `data-state`, `data-highlighted` and `tabindex` still come
+  from reka-ui; the rendered element is the same `div` as before.
 
 `ariaLabel` is a prop of `ui/Select.vue`, as it is of the React `Select`, and is passed as
 `ariaLabel="Date range"` (a kebab-case `aria-label` would fall through as an attribute under
@@ -192,9 +208,11 @@ exactly as the React output:
   `OverviewView.vue`, `DemoNotice.vue`) must stay `v-text`, or a trailing space changes the layout.
   `.wa-brand` and `.wa-radio` keep their icon and text on one line for the same reason.
 - Attributes the e2e specs and parity states rely on: `getByRole('tab', { name })` for the three
-  views, `getByRole('combobox', { name: 'Date range' })` and `getByRole('option', { name })` for the
-  range, `getByRole('button', { name: 'Add event' })`, `getByLabel('Event name')` (the label wraps
-  the input), `.wa-card-sub`, `.wa-chart-box-lg`, `.ag-center-cols-container .ag-row`,
+  views, `getByRole('combobox', { name: 'Date range' })` with `aria-expanded`, `aria-controls`
+  (while open) and `data-state`, and `getByRole('option', { name })` with `aria-labelledby`,
+  `aria-selected` (the value, while focused), `data-state` and `data-highlighted` for the range,
+  `getByRole('button', { name: 'Add event' })`, `getByLabel('Event name')` (the label wraps the
+  input), `.wa-card-sub`, `.wa-chart-box-lg`, `.ag-center-cols-container .ag-row`,
   `.ag-overlay-no-rows-center`, `.ag-charts-wrapper`.
 
 Acceptable, invisible differences from reka-ui: `tabindex`, `dir`, `data-orientation`,
