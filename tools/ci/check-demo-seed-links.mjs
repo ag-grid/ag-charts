@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
+import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -15,15 +16,21 @@ import { join } from 'node:path';
  * site build.
  *
  * The ref follows the website's own rule (`getSeedGitRef` in the same module): a production site
- * links the release tag derived from its version (from its `/debug/meta.json`, pre-release suffix
- * dropped), and every other site, staging included, links the `latest` branch. Production is
- * recognised the same way the site does it, by matching the origin against `PRODUCTION_SITE_URLS`
- * in the website constants.
+ * links the release tag derived from its version, and every other site, staging included, links
+ * the `latest` branch. Production is recognised the same way the site does it, by matching the
+ * origin against `PRODUCTION_SITE_URLS` in the website constants.
+ *
+ * Production is deployed from a release branch, `bX.Y.Z` for version X.Y.Z, so against a
+ * production site this check must run from that branch: the version comes from the branch name
+ * and the seeds listed are the ones that deployment carries. The site's own `/debug/meta.json`
+ * is read as a cross-check and a disagreement fails the run, since it means the checkout is not
+ * what was deployed. The branch is `GITHUB_REF_NAME` in a workflow and the checked-out branch
+ * locally.
  *
  * StackBlitz itself is not driven: it needs a real browser session (headless Chromium never gets
  * past its clone step), and it imports the same GitHub folder this verifies.
  *
- * Usage: node tools/ci/check-demo-seed-links.mjs <site-url>
+ * Usage: node tools/ci/check-demo-seed-links.mjs <site-url>   (from a bX.Y.Z branch for production)
  * Exits non-zero when a seed folder is missing at the linked ref. One exception: a release tag
  * with no seeds folder at all predates this feature, so on production that is a warning until
  * the next release is tagged. On `latest` the folder exists from the moment the seeds merge, so
@@ -35,6 +42,8 @@ const SEEDS_DIR = 'packages/ag-charts-demos/seeds';
 const MANIFEST_FILENAME = '.seed-manifest.json';
 const DEVELOPMENT_REF = 'latest';
 const WEBSITE_CONSTANTS = 'packages/ag-charts-website/src/constants.ts';
+/** Production deploys from `bX.Y.Z`, the branch of release X.Y.Z. */
+const RELEASE_BRANCH = /^b(\d+\.\d+\.\d+)$/;
 
 const siteUrl = process.argv[2]?.replace(/\/$/, '');
 if (!siteUrl) {
@@ -45,6 +54,12 @@ if (!siteUrl) {
 async function resolveStatus(url) {
     const response = await fetch(url, { method: 'HEAD', redirect: 'follow' });
     return response.status;
+}
+
+/** The branch this check runs from: the workflow's ref, or the checkout's branch locally. */
+function currentBranch() {
+    if (process.env.GITHUB_REF_NAME) return process.env.GITHUB_REF_NAME;
+    return execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { encoding: 'utf8' }).trim();
 }
 
 function toReleaseTag(version) {
@@ -101,14 +116,29 @@ const isProduction = readProductionSiteUrls().includes(new URL(siteUrl).origin);
 
 let ref = DEVELOPMENT_REF;
 if (isProduction) {
+    const branch = currentBranch();
+    const release = RELEASE_BRANCH.exec(branch);
+    if (!release) {
+        console.error(
+            `check-demo-seed-links: ${siteUrl} is a production site, which deploys from a bX.Y.Z release branch; run this check from that branch so the seeds it lists are the ones the site links (current branch: ${branch}).`
+        );
+        process.exit(1);
+    }
+    ref = toReleaseTag(release[1]);
+
     const metaResponse = await fetch(`${siteUrl}/debug/meta.json`);
     if (!metaResponse.ok) {
         console.error(`check-demo-seed-links: ${siteUrl}/debug/meta.json responded ${metaResponse.status}`);
         process.exit(1);
     }
-    const version = (await metaResponse.json()).versions?.charts;
-    ref = toReleaseTag(version);
-    console.log(`Production site at version ${version}`);
+    const siteVersion = (await metaResponse.json()).versions?.charts;
+    if (toReleaseTag(siteVersion) !== ref) {
+        console.error(
+            `check-demo-seed-links: ${siteUrl} reports version ${siteVersion} but this checkout is branch ${branch}; run the check from the branch the site was deployed from.`
+        );
+        process.exit(1);
+    }
+    console.log(`Production site at version ${siteVersion}, deployed from ${branch}`);
 }
 
 const seeds = listSeeds();

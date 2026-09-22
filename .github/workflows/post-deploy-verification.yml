@@ -105,8 +105,9 @@ jobs:
 
             # The demo pages link each seed project on GitHub (and in StackBlitz): staging and every
             # other non-production site link the latest branch, production links the release tag
-            # matching the deployed version. Verifies those folders resolve; StackBlitz itself cannot
-            # be driven headlessly, and it imports the same folder.
+            # matching the deployed version, which is the bX.Y.Z branch this workflow must then run
+            # from. Verifies those folders resolve; StackBlitz itself cannot be driven headlessly, and
+            # it imports the same folder.
             - name: Check demo seed links resolve
               if: always() && steps.run_tests.outcome != 'skipped'
               env:
