@@ -1,0 +1,9 @@
+{
+    "demo": "web-analytics",
+    "framework": "angular",
+    "sourceHash": "sha256-6aa998ad5358286ac3704a65ff8f26c2d857c21501c6f9261f6bb9818c3304cb",
+    "sourceCommit": "ec7212e3681d17596689a5c00f77863ba5e0f2a1",
+    "pinnedVersion": "14.2.0",
+    "pinSource": "released",
+    "dist": "dist"
+}
