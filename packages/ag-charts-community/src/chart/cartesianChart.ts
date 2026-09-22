@@ -1,5 +1,5 @@
 import type { CanvasPoint, ModuleInstance, RequireOptional, Size } from 'ag-charts-core';
-import { ActionOnSet, ChartAxisDirection, clampArray, entries, fromPairs, groupBy } from 'ag-charts-core';
+import { ChartAxisDirection, clampArray, entries, fromPairs, groupBy } from 'ag-charts-core';
 import type { AgCartesianAxisPosition, AgCoordinates } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
@@ -66,12 +66,7 @@ export class CartesianChart extends Chart {
     /** Integrated Charts feature state - not used in Standalone Charts. */
     public readonly paired: boolean = true;
 
-    @ActionOnSet<CartesianChart>({
-        changeValue(newValue, oldValue) {
-            this.onAxisChange(newValue, oldValue);
-        },
-    })
-    override axes = this.createChartAxes();
+    declare axes: CartesianChartAxes;
     override createChartAxes() {
         return new CartesianChartAxes();
     }
