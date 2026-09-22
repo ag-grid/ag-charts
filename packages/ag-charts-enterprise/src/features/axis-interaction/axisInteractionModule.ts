@@ -8,7 +8,7 @@ import { AxisInteraction } from './axisInteraction';
 export const AxisInteractionModule: PluginModuleDefinition<never> = {
     type: 'plugin',
     name: 'axis-interaction',
-    chartType: 'cartesian',
+    chartTypes: ['cartesian'],
     dependencies: [BackgroundRegionsModule],
     enterprise: true,
     version: VERSION,

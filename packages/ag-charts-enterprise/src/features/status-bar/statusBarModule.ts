@@ -7,7 +7,7 @@ import { StatusBar } from './statusBar';
 export const StatusBarModule: PluginModuleDefinition<never> = {
     type: 'plugin',
     name: 'statusBar',
-    chartType: 'cartesian',
+    chartTypes: ['cartesian'],
     dependencies: [BackgroundRegionsModule],
     enterprise: true,
     version: VERSION,

@@ -9,7 +9,7 @@ export const ChartToolbarModule: PluginModuleDefinition<AgChartToolbarThemeableO
     {
         type: 'plugin',
         name: 'chartToolbar',
-        chartType: 'cartesian',
+        chartTypes: ['cartesian'],
         dependencies: [BackgroundRegionsModule],
         enterprise: true,
         version: VERSION,

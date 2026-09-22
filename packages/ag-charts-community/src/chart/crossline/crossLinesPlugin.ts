@@ -30,8 +30,8 @@ import type { CrossLine, CrossLineValuePick, PendingCrossLineCallbackParam, Pola
  *   sit at the correct z-indices for cross-line rendering.
  * - Per-instance `CrossLine` runtime is constructed by reading `ctx.crossLine`, a factory
  *   installed via `DynamicContext.factory()` by the owning axis-plugin module's `register` hook.
- *   The community `CrossLinesModule` (scoped to `chartType: 'cartesian'`) installs the cartesian
- *   implementation; the enterprise `PolarCrossLinesModule` (scoped to `chartType: 'polar'`) installs
+ *   The community `CrossLinesModule` (scoped to `chartTypes: ['cartesian']`) installs the cartesian
+ *   implementation; the enterprise `PolarCrossLinesModule` (scoped to `chartTypes: ['polar']`) installs
  *   a polar-aware factory that branches on `axisCtx.axisType` between angle and radius variants.
  *   The two modules are distinct registry entries that share the same `optionsKey: 'crossLines'`,
  *   so `axis.crossLines` works uniformly across cartesian and polar axes.

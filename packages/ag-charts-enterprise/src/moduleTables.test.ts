@@ -47,6 +47,7 @@ const typeOrder = [
 
 type Definition = ModuleDefinition & {
     chartType?: string;
+    chartTypes?: readonly string[];
     optionsKey?: string;
     axisTypes?: string[];
     seriesTypes?: string[];
@@ -234,10 +235,10 @@ function placeholderValidator(options: OptionsDefs<any> | Validator | undefined)
     }
 }
 
-/** Whether `contributionsOf` will restore `chartTypes` from the placeholder's own `chartType`. */
+/** Whether `contributionsOf` will restore `chartTypes` from the placeholder's own. */
 function inheritedChartTypes(definition: Definition, contribution: OptionsContribution) {
-    const { chartType } = definition;
-    return chartType != null && contribution.chartTypes?.length === 1 && contribution.chartTypes[0] === chartType;
+    const { chartTypes } = definition;
+    return chartTypes != null && contribution.chartTypes === chartTypes;
 }
 
 /** Placeholders carry neither `options` nor `themeTemplate`, so their locations are spelled out. */
@@ -262,6 +263,7 @@ function sortedPlaceholders(catalogue: ModuleCatalogue) {
                 name: definition.name,
                 moduleId: catalogue.idOf.get(definition)!,
                 chartType: definition.chartType,
+                chartTypes: definition.chartTypes,
                 enterprise: definition.enterprise ? true : undefined,
                 optionsKey: definition.optionsKey,
                 axisTypes: definition.axisTypes,
@@ -430,8 +432,11 @@ function eslintMappings(catalogue: ModuleCatalogue): EslintMappings {
                     const [head, ...rest] = keys;
                     if (host === 'axis') {
                         if (keys.length === 1) {
-                            const polar = definition.chartType === 'polar';
-                            (polar ? tables.polarAxisPluginToModule : tables.axisPluginToModule).set(head, id);
+                            const chartTypes = definition.chartTypes ?? [];
+                            const everywhere = chartTypes.length === 0;
+                            if (everywhere || chartTypes.includes('polar'))
+                                tables.polarAxisPluginToModule.set(head, id);
+                            if (everywhere || chartTypes.includes('cartesian')) tables.axisPluginToModule.set(head, id);
                         } else if (keys.length === 2 && head === 'listeners') {
                             tables.axisListenerToModule.set(rest[0], id);
                         }

@@ -91,7 +91,7 @@ export function contributionHost(path: OptionsPath): { host: ContributionHost; r
 export interface ContributingDefinition {
     readonly type: string;
     readonly name: string;
-    readonly chartType?: string;
+    readonly chartTypes?: readonly string[];
     readonly optionsKey?: string;
     readonly axisTypes?: readonly string[];
     readonly seriesTypes?: readonly string[];
@@ -103,12 +103,11 @@ export interface ContributingDefinition {
 /**
  * The locations `definition` owns: its explicit `contributes`, otherwise the single location its
  * module type implies, provided it has `options` or a `themeTemplate` to put there. Either way a
- * contribution without `chartTypes` inherits the definition's `chartType`. Chart, axis, series and
+ * contribution without `chartTypes` inherits the definition's `chartTypes`. Chart, axis, series and
  * preset modules own whole subtrees by identity rather than by path and so contribute nothing.
  */
 export function contributionsOf(definition: ContributingDefinition): readonly OptionsContribution[] {
-    const { name, chartType, options, themeTemplate } = definition;
-    const chartTypes = chartType == null ? undefined : [chartType];
+    const { name, chartTypes, options, themeTemplate } = definition;
 
     if (definition.contributes != null) {
         if (chartTypes == null) return definition.contributes;
@@ -159,7 +158,23 @@ export interface ResolvedContribution<TDefinition extends ContributingDefinition
 
 /** Whether `contribution` applies to a chart of `chartType`; an undeclared chart type applies to all. */
 export function contributionMatchesChartType(contribution: OptionsContribution, chartType: string | undefined) {
-    return chartType == null || contribution.chartTypes == null || contribution.chartTypes.includes(chartType);
+    return matchesChartType(contribution.chartTypes, chartType);
+}
+
+/**
+ * Whether a module definition or placeholder applies to a chart of `chartType`. Axis and series
+ * modules belong to the one `chartType`; plugins list their `chartTypes`, and none declared applies to all.
+ */
+export function moduleMatchesChartType(
+    definition: { readonly chartType?: string; readonly chartTypes?: readonly string[] },
+    chartType: string | undefined
+) {
+    if (definition.chartType != null) return chartType == null || definition.chartType === chartType;
+    return matchesChartType(definition.chartTypes, chartType);
+}
+
+function matchesChartType(chartTypes: readonly string[] | undefined, chartType: string | undefined) {
+    return chartType == null || chartTypes == null || chartTypes.includes(chartType);
 }
 
 export function contributionMatchesAxisType(contribution: OptionsContribution, axisType: string) {

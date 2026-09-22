@@ -10,6 +10,7 @@ import {
     contributionMatchesChartType,
     contributionsOf,
     isContributionRequested,
+    moduleMatchesChartType,
     nestAtOptionsPath,
     parseOptionsPath,
     readContributedValue,
@@ -66,7 +67,7 @@ describe('contributionsOf', () => {
     it('derives a root location for a plugin', () => {
         const options = { enabled: boolean };
         expect(
-            contributionsOf({ type: ModuleType.Plugin, name: 'zoom', chartType: 'cartesian', options, ...base })
+            contributionsOf({ type: ModuleType.Plugin, name: 'zoom', chartTypes: ['cartesian'], options, ...base })
         ).toEqual([{ path: 'zoom', options, chartTypes: ['cartesian'] }]);
     });
 
@@ -75,7 +76,7 @@ describe('contributionsOf', () => {
             type: ModuleType.AxisPlugin,
             name: 'polarCrossLines',
             optionsKey: 'crossLines',
-            chartType: 'polar',
+            chartTypes: ['polar'],
             axisTypes: ['angle-number'],
             themeTemplate: {},
             ...base,
@@ -106,7 +107,7 @@ describe('contributionsOf', () => {
     it.each([ModuleType.Plugin, ModuleType.AxisPlugin, ModuleType.SeriesPlugin])(
         'derives nothing for a %s module with neither options nor a theme template',
         (type) => {
-            expect(contributionsOf({ type, name: 'zoom-base', chartType: 'cartesian', ...base })).toEqual([]);
+            expect(contributionsOf({ type, name: 'zoom-base', ...base })).toEqual([]);
         }
     );
 
@@ -134,14 +135,32 @@ describe('contributionsOf', () => {
         );
     });
 
-    it('gives explicit contributions the definition chart type unless they declare their own', () => {
+    it('gives explicit contributions the definition chart types unless they declare their own', () => {
         const contributes = [{ path: 'listeners.axisClick' }, { path: 'seriesArea.x', chartTypes: ['polar'] }];
-        expect(
-            contributionsOf({ type: ModuleType.Plugin, name: 'x', chartType: 'cartesian', contributes, ...base })
-        ).toEqual([
-            { path: 'listeners.axisClick', chartTypes: ['cartesian'] },
+        const chartTypes = ['cartesian', 'polar'];
+        expect(contributionsOf({ type: ModuleType.Plugin, name: 'x', chartTypes, contributes, ...base })).toEqual([
+            { path: 'listeners.axisClick', chartTypes },
             { path: 'seriesArea.x', chartTypes: ['polar'] },
         ]);
+    });
+});
+
+describe('moduleMatchesChartType', () => {
+    it('applies a plugin everywhere when no chart types are declared', () => {
+        expect(moduleMatchesChartType({}, 'polar')).toBe(true);
+    });
+
+    it('matches a plugin against each of its chart types', () => {
+        const definition = { chartTypes: ['cartesian', 'polar'] };
+        expect(moduleMatchesChartType(definition, 'cartesian')).toBe(true);
+        expect(moduleMatchesChartType(definition, 'polar')).toBe(true);
+        expect(moduleMatchesChartType(definition, 'standalone')).toBe(false);
+    });
+
+    it('matches an axis or series module against its single chart type', () => {
+        expect(moduleMatchesChartType({ chartType: 'polar' }, 'polar')).toBe(true);
+        expect(moduleMatchesChartType({ chartType: 'polar' }, 'cartesian')).toBe(false);
+        expect(moduleMatchesChartType({ chartType: 'polar' }, undefined)).toBe(true);
     });
 });
 

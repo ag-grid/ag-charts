@@ -9,7 +9,7 @@ import { rangesTheme } from './rangesTheme';
 export const RangesModule: PluginModuleDefinition<AgRangesOptions> = {
     type: 'plugin',
     name: 'ranges',
-    chartType: 'cartesian',
+    chartTypes: ['cartesian'],
     dependencies: [BackgroundRegionsModule],
     enterprise: true,
     version: VERSION,

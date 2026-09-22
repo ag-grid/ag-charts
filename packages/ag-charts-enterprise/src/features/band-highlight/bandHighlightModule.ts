@@ -7,7 +7,7 @@ import { BandHighlight } from './bandHighlight';
 export const BandHighlightModule: AxisPluginModuleDefinition<AgBandHighlightOptions> = {
     type: 'axis:plugin',
     name: 'bandHighlight',
-    chartType: 'cartesian',
+    chartTypes: ['cartesian'],
     dependencies: [BackgroundRegionsModule],
     axisTypes: ['category', 'ordinal-time', 'unit-time', 'grouped-category'],
     enterprise: true,
