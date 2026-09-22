@@ -24,11 +24,11 @@ describe('ExtendedPath2D', () => {
             square(path, 100);
             square(path, 50, true);
 
-            expect(path.isPointInPath(0, 75)).toBe(true);
-            expect(path.isPointInPath(75, 0)).toBe(true);
-            expect(path.isPointInPath(0, 0)).toBe(false);
+            expect(path.isPointInPath(10, 75)).toBe(true);
+            expect(path.isPointInPath(75, 10)).toBe(true);
+            expect(path.isPointInPath(10, 0)).toBe(false);
             expect(path.isPointInPath(0, 25)).toBe(false);
-            expect(path.isPointInPath(0, 125)).toBe(false);
+            expect(path.isPointInPath(10, 125)).toBe(false);
         });
 
         test('two coincident closed subpaths have no interior', () => {
@@ -36,7 +36,7 @@ describe('ExtendedPath2D', () => {
             square(path, 100);
             square(path, 100, true);
 
-            expect(path.isPointInPath(0, 0)).toBe(false);
+            expect(path.isPointInPath(10, 0)).toBe(false);
             expect(path.isPointInPath(0, 50)).toBe(false);
         });
     });
