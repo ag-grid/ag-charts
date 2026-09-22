@@ -11,8 +11,6 @@ import { CrossLineScene } from './crossLineScene';
 import { CrossLineStateMachine } from './crossLineState';
 
 export const horizontalLineConfig: AnnotationTypeConfig<HorizontalLineDatum, CrossLineScene> = {
-    type: AnnotationType.HorizontalLine,
-    datum: horizontalLineDatum,
     scene: CrossLineScene,
     translate: (node, datum, translation, context) => {
         if (horizontalLineDatum.is(datum) && CrossLineScene.is(node)) node.translate(datum, translation, context);
@@ -36,8 +34,6 @@ export const horizontalLineConfig: AnnotationTypeConfig<HorizontalLineDatum, Cro
 };
 
 export const verticalLineConfig: AnnotationTypeConfig<VerticalLineDatum, CrossLineScene> = {
-    type: AnnotationType.VerticalLine,
-    datum: verticalLineDatum,
     scene: CrossLineScene,
     translate: (node, datum, translation, context) => {
         if (verticalLineDatum.is(datum) && CrossLineScene.is(node)) node.translate(datum, translation, context);

@@ -6,8 +6,6 @@ import { ParallelChannelScene } from './parallelChannelScene';
 import { ParallelChannelStateMachine } from './parallelChannelState';
 
 export const parallelChannelConfig: AnnotationTypeConfig<ParallelChannelDatum, ParallelChannelScene> = {
-    type: AnnotationType.ParallelChannel,
-    datum: parallelChannelDatum,
     scene: ParallelChannelScene,
     translate: (node, datum, transition, context) => {
         if (parallelChannelDatum.is(datum) && ParallelChannelScene.is(node)) {

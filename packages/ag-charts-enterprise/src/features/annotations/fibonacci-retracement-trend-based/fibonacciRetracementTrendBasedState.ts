@@ -4,7 +4,7 @@ import type { AnnotationContext, DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
 import { SNAP_TO_ANGLE, snapPoint } from '../utils/coords';
-import { mergeAnnotationOptions } from '../utils/datum';
+import { applyAnnotationOptions } from '../utils/datum';
 import {
     type FibonacciRetracementTrendBasedDatum,
     fibonacciRetracementTrendBasedDatum,
@@ -42,7 +42,7 @@ export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
     constructor(ctx: FibonacciRetracementTrendBasedStateMachineContext) {
         const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = this.createDatum();
-            mergeAnnotationOptions(datum, { start: point, end: point });
+            applyAnnotationOptions(datum, { start: point, end: point });
             ctx.create(datum);
         };
 
@@ -56,7 +56,7 @@ export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
             const { datum, snapping } = this;
             if (!datum) return;
 
-            mergeAnnotationOptions(datum, { end: snapPoint(offset, context, snapping, datum.start, SNAP_TO_ANGLE) });
+            applyAnnotationOptions(datum, { end: snapPoint(offset, context, snapping, datum.start, SNAP_TO_ANGLE) });
             ctx.update();
         };
 
@@ -75,7 +75,7 @@ export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
             const { datum, snapping } = this;
             if (!datum) return;
 
-            mergeAnnotationOptions(datum, {
+            applyAnnotationOptions(datum, {
                 endRetracement: snapPoint(offset, context, snapping, datum.end, SNAP_TO_ANGLE),
             });
             ctx.update();

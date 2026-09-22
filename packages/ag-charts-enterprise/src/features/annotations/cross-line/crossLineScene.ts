@@ -221,7 +221,7 @@ export class CrossLineScene extends AnnotationScene<never> {
 
     public copy<D extends CrossLineDatum>(datum: D, copiedDatum: D, context: AnnotationContext): D | undefined {
         const isHorizontal = horizontalLineDatum.is(datum);
-        const axisContext = this.isHorizontal ? context.yAxis : context.xAxis;
+        const axisContext = isHorizontal ? context.yAxis : context.xAxis;
 
         const coords = this.convertCrossLine(datum, axisContext);
         if (!coords) {

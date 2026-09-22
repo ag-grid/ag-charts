@@ -20,8 +20,6 @@ import {
 } from './measurerState';
 
 export const dateRangeConfig: AnnotationTypeConfig<DateRangeDatum, MeasurerScene> = {
-    type: AnnotationType.DateRange,
-    datum: dateRangeDatum,
     scene: MeasurerScene,
     translate: (node, datum, translation, context) => {
         if (dateRangeDatum.is(datum) && MeasurerScene.is(node)) {
@@ -47,8 +45,6 @@ export const dateRangeConfig: AnnotationTypeConfig<DateRangeDatum, MeasurerScene
 };
 
 export const priceRangeConfig: AnnotationTypeConfig<PriceRangeDatum, MeasurerScene> = {
-    type: AnnotationType.PriceRange,
-    datum: priceRangeDatum,
     scene: MeasurerScene,
     translate: (node, datum, translation, context) => {
         if (priceRangeDatum.is(datum) && MeasurerScene.is(node)) {
@@ -74,8 +70,6 @@ export const priceRangeConfig: AnnotationTypeConfig<PriceRangeDatum, MeasurerSce
 };
 
 export const datePriceRangeConfig: AnnotationTypeConfig<DatePriceRangeDatum, MeasurerScene> = {
-    type: AnnotationType.DatePriceRange,
-    datum: datePriceRangeDatum,
     scene: MeasurerScene,
     translate: (node, datum, translation, context) => {
         if (datePriceRangeDatum.is(datum) && MeasurerScene.is(node)) {
@@ -101,8 +95,6 @@ export const datePriceRangeConfig: AnnotationTypeConfig<DatePriceRangeDatum, Mea
 };
 
 export const quickDatePriceRangeConfig: AnnotationTypeConfig<QuickDatePriceRangeDatum, QuickMeasurerScene> = {
-    type: AnnotationType.QuickDatePriceRange,
-    datum: quickDatePriceRangeDatum,
     scene: QuickMeasurerScene,
     translate: (node, datum, translation, context) => {
         if (quickDatePriceRangeDatum.is(datum) && QuickMeasurerScene.is(node)) {

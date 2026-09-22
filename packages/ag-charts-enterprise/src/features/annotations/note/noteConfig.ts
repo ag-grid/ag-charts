@@ -6,8 +6,6 @@ import { NoteScene } from './noteScene';
 import { NoteStateMachine } from './noteState';
 
 export const noteConfig: AnnotationTypeConfig<NoteDatum, NoteScene> = {
-    type: AnnotationType.Note,
-    datum: noteDatum,
     scene: NoteScene,
     translate: (node, datum, transition, context) => {
         if (noteDatum.is(datum) && NoteScene.is(node)) node.translate(datum, transition, context);

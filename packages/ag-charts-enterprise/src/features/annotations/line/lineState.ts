@@ -4,7 +4,7 @@ import type { AnnotationContext, DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
 import { SNAP_TO_ANGLE, snapPoint } from '../utils/coords';
-import { mergeAnnotationOptions } from '../utils/datum';
+import { applyAnnotationOptions } from '../utils/datum';
 import { type ArrowDatum, type LineDatum, type LineTypeDatum, arrowDatum, lineDatum } from './lineDatum';
 import type { LineScene } from './lineScene';
 
@@ -39,7 +39,7 @@ export abstract class LineTypeStateMachine<Datum extends LineTypeDatum> extends 
     constructor(ctx: LineStateMachineContext<Datum>) {
         const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = this.createDatum();
-            mergeAnnotationOptions(datum, { start: point, end: point });
+            applyAnnotationOptions(datum, { start: point, end: point });
             ctx.create(datum);
         };
 
@@ -53,7 +53,7 @@ export abstract class LineTypeStateMachine<Datum extends LineTypeDatum> extends 
             const { datum, snapping } = this;
             if (!datum) return;
 
-            mergeAnnotationOptions(datum, { end: snapPoint(offset, context, snapping, datum.start, SNAP_TO_ANGLE) });
+            applyAnnotationOptions(datum, { end: snapPoint(offset, context, snapping, datum.start, SNAP_TO_ANGLE) });
             ctx.update();
         };
 

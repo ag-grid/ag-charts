@@ -6,8 +6,6 @@ import { DisjointChannelScene } from './disjointChannelScene';
 import { DisjointChannelStateMachine } from './disjointChannelState';
 
 export const disjointChannelConfig: AnnotationTypeConfig<DisjointChannelDatum, DisjointChannelScene> = {
-    type: AnnotationType.DisjointChannel,
-    datum: disjointChannelDatum,
     scene: DisjointChannelScene,
     translate: (node, datum, transition, context) => {
         if (disjointChannelDatum.is(datum) && DisjointChannelScene.is(node)) {

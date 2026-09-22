@@ -6,8 +6,6 @@ import { ArrowUpScene } from './arrowUpScene';
 import { ArrowUpStateMachine } from './arrowUpState';
 
 export const arrowUpConfig: AnnotationTypeConfig<ArrowUpDatum, ArrowUpScene> = {
-    type: AnnotationType.ArrowUp,
-    datum: arrowUpDatum,
     scene: ArrowUpScene,
     translate: (node, datum, translation, context) => {
         if (arrowUpDatum.is(datum) && ArrowUpScene.is(node)) node.translate(datum, translation, context);

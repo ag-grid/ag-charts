@@ -4,7 +4,7 @@ import { type AnnotationContext, AnnotationType, type DataPoint } from '../annot
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
 import { SNAP_TO_ANGLE, snapPoint } from '../utils/coords';
-import { mergeAnnotationOptions } from '../utils/datum';
+import { applyAnnotationOptions } from '../utils/datum';
 import { getGroupingValue } from '../utils/scale';
 import { type DisjointChannelDatum, disjointChannelDatum } from './disjointChannelDatum';
 import type { DisjointChannelScene } from './disjointChannelScene';
@@ -37,7 +37,7 @@ export class DisjointChannelStateMachine extends StateMachine<
     constructor(ctx: DisjointChannelStateMachineContext) {
         const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = disjointChannelDatum.create();
-            mergeAnnotationOptions(datum, { start: point, end: point });
+            applyAnnotationOptions(datum, { start: point, end: point });
             ctx.create(datum);
         };
 
@@ -51,7 +51,7 @@ export class DisjointChannelStateMachine extends StateMachine<
             const { datum, snapping } = this;
             if (!datum) return;
 
-            mergeAnnotationOptions(datum, { end: snapPoint(offset, context, snapping, datum.start, SNAP_TO_ANGLE) });
+            applyAnnotationOptions(datum, { end: snapPoint(offset, context, snapping, datum.start, SNAP_TO_ANGLE) });
             ctx.update();
         };
 

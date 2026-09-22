@@ -1,6 +1,4 @@
-import { isObject } from 'ag-charts-core';
-
-import type { AnnotationDatumType, FillFields, StrokeFields } from '../annotationDatum';
+import { type FillFields, type StrokeFields, defineAnnotationDatum } from '../annotationDatum';
 import { type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { type TextualPointDatum, createTextualPointDatum } from '../datum/textualDatum';
 
@@ -11,25 +9,31 @@ export interface NoteDatum extends TextualPointDatum, FillFields, StrokeFields {
     background: NoteBackgroundDatum;
 }
 
-export const noteDatum: AnnotationDatumType<NoteDatum> = {
-    create: () => ({ ...createTextualPointDatum(), type: AnnotationType.Note, background: {} }),
-    is: (value): value is NoteDatum => isObject(value) && value.type === AnnotationType.Note,
-    getDefaultColor: (datum: NoteDatum, colorPickerType: AnnotationOptionsColorPickerType) => {
-        switch (colorPickerType) {
-            case 'line-color':
-                return datum.fill;
-            case 'text-color':
-                return datum.color;
-        }
-    },
-    getDefaultOpacity: (datum: NoteDatum, colorPickerType: AnnotationOptionsColorPickerType) => {
-        switch (colorPickerType) {
-            case 'line-color':
-                return datum.fillOpacity;
-            case 'text-color':
-                return undefined;
-        }
-    },
-    // Always allow hovering so the note text can be made visible
-    isHoverable: () => true,
-};
+function getNoteDefaultColor(datum: NoteDatum, colorPickerType: AnnotationOptionsColorPickerType) {
+    switch (colorPickerType) {
+        case 'line-color':
+            return datum.fill;
+        case 'text-color':
+            return datum.color;
+    }
+}
+
+function getNoteDefaultOpacity(datum: NoteDatum, colorPickerType: AnnotationOptionsColorPickerType) {
+    switch (colorPickerType) {
+        case 'line-color':
+            return datum.fillOpacity;
+        case 'text-color':
+            return undefined;
+    }
+}
+
+export const noteDatum = defineAnnotationDatum<NoteDatum>(
+    AnnotationType.Note,
+    () => ({ ...createTextualPointDatum(), background: {} }),
+    {
+        getDefaultColor: getNoteDefaultColor,
+        getDefaultOpacity: getNoteDefaultOpacity,
+        // Always hoverable so the note text can be revealed.
+        isHoverable: () => true,
+    }
+);

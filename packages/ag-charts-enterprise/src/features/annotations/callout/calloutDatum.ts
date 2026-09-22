@@ -1,6 +1,4 @@
-import { isObject } from 'ag-charts-core';
-
-import type { AnnotationDatumType, FillFields, StrokeFields } from '../annotationDatum';
+import { type FillFields, type StrokeFields, defineAnnotationDatum } from '../annotationDatum';
 import { AnnotationType } from '../annotationTypes';
 import {
     type TextualStartEndDatum,
@@ -13,9 +11,7 @@ export interface CalloutDatum extends TextualStartEndDatum, FillFields, StrokeFi
     type: AnnotationType.Callout;
 }
 
-export const calloutDatum: AnnotationDatumType<CalloutDatum> = {
-    create: () => ({ ...createTextualStartEndDatum(), type: AnnotationType.Callout }),
-    is: (value): value is CalloutDatum => isObject(value) && value.type === AnnotationType.Callout,
+export const calloutDatum = defineAnnotationDatum<CalloutDatum>(AnnotationType.Callout, createTextualStartEndDatum, {
     getDefaultColor: getFilledTextualDefaultColor,
     getDefaultOpacity: getFilledTextualDefaultOpacity,
-};
+});

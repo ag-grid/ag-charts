@@ -1,7 +1,6 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import type { Point, StateMachine } from 'ag-charts-core';
 
-import type { AnnotationDatumType } from './annotationDatum';
 import type { AnnotationContext, AnnotationType, Constructor, DataPoint } from './annotationTypes';
 import type { ArrowDownDatum } from './arrow-down/arrowDownDatum';
 import type { ArrowDownScene } from './arrow-down/arrowDownScene';
@@ -118,8 +117,6 @@ export interface AnnotationsStateMachineContext {
 }
 
 export interface AnnotationTypeConfig<Datum extends AnnotationDatum, Scene extends AnnotationScene> {
-    type: AnnotationType;
-    datum: AnnotationDatumType<Datum>;
     scene: Constructor<Scene>;
     update(node: AnnotationSceneNode<unknown>, datum: AnnotationDatum, context: AnnotationContext): void;
     translate(

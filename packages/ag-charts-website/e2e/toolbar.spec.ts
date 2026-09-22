@@ -1,3 +1,5 @@
+import type { Page } from '@playwright/test';
+
 import { test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
@@ -9,6 +11,11 @@ import {
     setupIntrinsicAssertions,
     toExamplePageUrl,
 } from './util';
+
+/** Picks a colour from the open colour picker by clicking part-way along its hue slider. */
+async function pickHue(page: Page) {
+    await page.locator('.ag-charts-color-picker__hue-input').click({ position: { x: 30, y: 5 } });
+}
 
 test.describe('toolbar', () => {
     setupIntrinsicAssertions(test);
@@ -127,12 +134,7 @@ test.describe('toolbar', () => {
         await page.getByTitle('Fill Color').click();
         await expectChartScreenshot(page, page, 'callout-5-fill-color-popover.png', { animations: 'disabled' });
 
-        await page.locator('.ag-charts-color-picker__hue-input').click({
-            position: {
-                x: 30,
-                y: 5,
-            },
-        });
+        await pickHue(page);
         await page.hover(SELECTORS.canvasProxy, { position: { x: 100, y: 100 } });
         await page.click(SELECTORS.canvasProxy, { position: { x: 100, y: 100 } });
         await expectChartScreenshot(page, page, 'callout-6-change-fill-color.png', { animations: 'disabled' });
@@ -173,7 +175,7 @@ test.describe('toolbar', () => {
         await expectChartScreenshot(page, page, 'fibonacci-2-complete.png', { animations: 'disabled' });
 
         await page.getByTitle('Line Color').click();
-        await page.locator('.ag-charts-color-picker__hue-input').click({ position: { x: 30, y: 5 } });
+        await pickHue(page);
         await page.hover(SELECTORS.canvasProxy, { position: { x: 500, y: 350 } });
         await page.click(SELECTORS.canvasProxy, { position: { x: 500, y: 350 } });
         await expectChartScreenshot(page, page, 'fibonacci-3-change-line-color.png', { animations: 'disabled' });
@@ -198,7 +200,7 @@ test.describe('toolbar', () => {
         await page.hover(SELECTORS.canvasProxy, { position: { x: 250, y: 185 } });
         await page.click(SELECTORS.canvasProxy, { position: { x: 250, y: 185 } });
         await page.getByTitle('Delete').click();
-        await expectChartScreenshot(page, page, 'measurer-3-deleted.png', { animations: 'disabled' });
+        await expectChartScreenshot(page, page, 'text-10-deleted.png', { animations: 'disabled' });
     });
 
     test('AG-13008 delete annotation', async ({ page }) => {

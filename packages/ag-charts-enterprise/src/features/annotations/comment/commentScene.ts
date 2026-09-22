@@ -24,7 +24,7 @@ export class CommentScene extends TextualPointScene<CommentDatum> {
 
     override type = AnnotationType.Comment;
 
-    protected override textPosition = 'bottom' as const;
+    protected override readonly textPosition = 'bottom' as const;
     protected override readonly textAlignment = 'left' as const;
 
     private readonly shape = new _ModuleSupport.Path();

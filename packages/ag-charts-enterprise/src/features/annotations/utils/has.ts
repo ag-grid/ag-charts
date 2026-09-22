@@ -13,15 +13,7 @@ import type { CrossLineDatum } from '../cross-line/crossLineDatum';
 import { quickDatePriceRangeDatum } from '../measurer/measurerDatum';
 import { type NoteDatum, noteDatum } from '../note/noteDatum';
 import { type TextDatum, textDatum } from '../text/textDatum';
-import {
-    isChannelType,
-    isCrossLineType,
-    isEphemeralType,
-    isLineType,
-    isMeasurerType,
-    isShapeType,
-    isTextType,
-} from './types';
+import { isChannelType, isCrossLineType, isLineType, isMeasurerType, isShapeType, isTextType } from './types';
 
 type StyledLineDatumType = Exclude<LineDatumType | ChannelDatumType | MeasurerDatumType, EphemeralDatumType>;
 
@@ -82,5 +74,5 @@ export function hasTextColor(datum?: AnnotationDatum) {
 }
 
 export function hasLineText(datum?: AnnotationDatum): datum is StyledLineDatumType {
-    return (isLineType(datum) || isChannelType(datum) || isMeasurerType(datum)) && !isEphemeralType(datum);
+    return hasLineStyle(datum);
 }

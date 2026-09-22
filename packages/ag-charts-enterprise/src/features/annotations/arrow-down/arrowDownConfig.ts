@@ -6,8 +6,6 @@ import { ArrowDownScene } from './arrowDownScene';
 import { ArrowDownStateMachine } from './arrowDownState';
 
 export const arrowDownConfig: AnnotationTypeConfig<ArrowDownDatum, ArrowDownScene> = {
-    type: AnnotationType.ArrowDown,
-    datum: arrowDownDatum,
     scene: ArrowDownScene,
     translate: (node, datum, translation, context) => {
         if (arrowDownDatum.is(datum) && ArrowDownScene.is(node)) node.translate(datum, translation, context);

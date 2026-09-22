@@ -1771,8 +1771,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if ('loading' in deltaOptions) this.loading = deltaOptions.loading;
         if ('context' in deltaOptions) this.context = deltaOptions.context;
 
-        // tooltip/seriesArea/overlays subtrees are applied via chartState observers registered in the constructor.
-
         let forceNodeDataRefresh = false;
         let seriesStatus: SeriesChangeType = 'no-op';
         if (deltaOptions.series != null) {

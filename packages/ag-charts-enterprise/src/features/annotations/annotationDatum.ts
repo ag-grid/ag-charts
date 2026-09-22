@@ -1,5 +1,5 @@
 import type { AgAnnotationLineStyleType, FontStyle, FontWeight, Formatter, TextAlign } from 'ag-charts-community';
-import { FONT_SIZE, generateUUID } from 'ag-charts-core';
+import { FONT_SIZE, generateUUID, isObject } from 'ag-charts-core';
 import type { Padding } from 'ag-charts-types';
 
 import type {
@@ -123,6 +123,19 @@ export interface AnnotationDatumType<Datum extends AnnotationDatumBase> {
     getDefaultColor(datum: Datum, colorPickerType: AnnotationOptionsColorPickerType): string | undefined;
     getDefaultOpacity(datum: Datum, colorPickerType: AnnotationOptionsColorPickerType): number | undefined;
     isHoverable?(datum: Datum): boolean;
+}
+
+/** Build a datum type from its `type` tag, a factory for the remaining fields and its colour behaviour. */
+export function defineAnnotationDatum<Datum extends AnnotationDatumBase>(
+    type: Datum['type'],
+    createFields: () => Omit<Datum, 'type'>,
+    behaviour: Omit<AnnotationDatumType<Datum>, 'create' | 'is'>
+): AnnotationDatumType<Datum> {
+    return {
+        create: () => ({ ...createFields(), type }) as Datum,
+        is: (value): value is Datum => isObject(value) && value.type === type,
+        ...behaviour,
+    };
 }
 
 /*************

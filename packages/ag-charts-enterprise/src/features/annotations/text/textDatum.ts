@@ -1,6 +1,4 @@
-import { isObject } from 'ag-charts-core';
-
-import type { AnnotationDatumType } from '../annotationDatum';
+import { defineAnnotationDatum } from '../annotationDatum';
 import { AnnotationType } from '../annotationTypes';
 import {
     type TextualPointDatum,
@@ -13,9 +11,7 @@ export interface TextDatum extends TextualPointDatum {
     type: AnnotationType.Text;
 }
 
-export const textDatum: AnnotationDatumType<TextDatum> = {
-    create: () => ({ ...createTextualPointDatum(), type: AnnotationType.Text }),
-    is: (value): value is TextDatum => isObject(value) && value.type === AnnotationType.Text,
+export const textDatum = defineAnnotationDatum<TextDatum>(AnnotationType.Text, createTextualPointDatum, {
     getDefaultColor: getTextualDefaultColor,
     getDefaultOpacity: getTextualDefaultOpacity,
-};
+});

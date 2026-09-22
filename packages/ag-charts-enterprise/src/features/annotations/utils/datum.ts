@@ -2,19 +2,7 @@ import { SKIP_JS_BUILTINS, deepClone, isPlainObject } from 'ag-charts-core';
 
 type OptionsRecord = Record<string, unknown>;
 
-/**
- * Apply annotation options onto an existing datum, merging into nested option objects so unspecified
- * nested keys keep their current values.
- */
-export function mergeAnnotationOptions<Options extends object, Datum extends Partial<Options>>(
-    datum: Datum,
-    options: Options
-) {
-    mergeRecord(datum, options);
-    return datum;
-}
-
-/** Apply externally supplied options, whose shape is not tracked against the datum type. */
+/** Apply options onto a datum, merging into nested option objects so unspecified nested keys keep their values. */
 export function applyAnnotationOptions<Datum extends object>(datum: Datum, options: object) {
     mergeRecord(datum, options);
     return datum;
@@ -27,6 +15,8 @@ function mergeRecord(target: object, source: object) {
         if (SKIP_JS_BUILTINS.has(key)) continue;
         const value = sourceRecord[key];
         const current = targetRecord[key];
+        if (isPlainObject(current) && value == null) continue;
+
         if (isPlainObject(value) && isPlainObject(current)) {
             mergeRecord(current, value);
         } else if (isPlainObject(value)) {
@@ -35,6 +25,16 @@ function mergeRecord(target: object, source: object) {
             targetRecord[key] = value;
         }
     }
+}
+
+/** Reset a datum to its defaults, keeping its identity and id, then apply the restored options. */
+export function resetAnnotationDatum<Datum extends { id: string }>(datum: Datum, defaults: Datum, options: object) {
+    const record = datum as OptionsRecord;
+    for (const key of Object.keys(record)) {
+        if (key !== 'id') delete record[key];
+    }
+    Object.assign(datum, defaults, { id: datum.id });
+    return applyAnnotationOptions(datum, options);
 }
 
 export function serialiseAnnotation<T extends { id: string }>(datum: T): Omit<T, 'id'> {

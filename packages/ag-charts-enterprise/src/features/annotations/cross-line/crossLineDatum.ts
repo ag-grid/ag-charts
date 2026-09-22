@@ -1,8 +1,5 @@
-import { isObject } from 'ag-charts-core';
-
 import {
     type AnnotationDatumBase,
-    type AnnotationDatumType,
     type AxisLabelDatum,
     type HandleDatum,
     type LineStyleFields,
@@ -12,11 +9,13 @@ import {
     createAxisLabelDatum,
     createHandleDatum,
     createLineTextDatum,
+    defineAnnotationDatum,
 } from '../annotationDatum';
-import { AnnotationType, type DataPoint } from '../annotationTypes';
+import { AnnotationType } from '../annotationTypes';
+import type { PointType } from '../utils/scale';
 
 export interface CrossLineTypeDatum extends AnnotationDatumBase, StrokeFields, LineStyleFields {
-    value?: DataPoint['x'];
+    value?: PointType;
     handle: HandleDatum;
     axisLabel: AxisLabelDatum;
     text: LineTextDatum;
@@ -41,19 +40,23 @@ function createCrossLineTypeDatum(): Omit<CrossLineTypeDatum, 'type'> {
     };
 }
 
-const getDefaultColor = (datum: CrossLineTypeDatum) => datum.stroke;
-const getDefaultOpacity = (datum: CrossLineTypeDatum) => datum.strokeOpacity;
+const getCrossLineDefaultColor = (datum: CrossLineTypeDatum) => datum.stroke;
+const getCrossLineDefaultOpacity = (datum: CrossLineTypeDatum) => datum.strokeOpacity;
 
-export const horizontalLineDatum: AnnotationDatumType<HorizontalLineDatum> = {
-    create: () => ({ ...createCrossLineTypeDatum(), type: AnnotationType.HorizontalLine }),
-    is: (value): value is HorizontalLineDatum => isObject(value) && value.type === AnnotationType.HorizontalLine,
-    getDefaultColor,
-    getDefaultOpacity,
-};
+export const horizontalLineDatum = defineAnnotationDatum<HorizontalLineDatum>(
+    AnnotationType.HorizontalLine,
+    createCrossLineTypeDatum,
+    {
+        getDefaultColor: getCrossLineDefaultColor,
+        getDefaultOpacity: getCrossLineDefaultOpacity,
+    }
+);
 
-export const verticalLineDatum: AnnotationDatumType<VerticalLineDatum> = {
-    create: () => ({ ...createCrossLineTypeDatum(), type: AnnotationType.VerticalLine }),
-    is: (value): value is VerticalLineDatum => isObject(value) && value.type === AnnotationType.VerticalLine,
-    getDefaultColor,
-    getDefaultOpacity,
-};
+export const verticalLineDatum = defineAnnotationDatum<VerticalLineDatum>(
+    AnnotationType.VerticalLine,
+    createCrossLineTypeDatum,
+    {
+        getDefaultColor: getCrossLineDefaultColor,
+        getDefaultOpacity: getCrossLineDefaultOpacity,
+    }
+);

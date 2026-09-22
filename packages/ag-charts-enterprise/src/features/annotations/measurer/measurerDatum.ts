@@ -1,7 +1,4 @@
-import { isObject } from 'ag-charts-core';
-
 import {
-    type AnnotationDatumType,
     type BackgroundDatum,
     type FillFields,
     type FontFields,
@@ -13,6 +10,7 @@ import {
     createFontFields,
     createHandleDatum,
     createLineTextDatum,
+    defineAnnotationDatum,
 } from '../annotationDatum';
 import { type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { type StartEndDatum, createStartEndDatum } from '../datum/startEndDatum';
@@ -73,7 +71,7 @@ function createMeasurerTypeDatum(): Omit<MeasurerTypeDatum, 'type'> {
     };
 }
 
-function getDefaultColor(datum: MeasurerTypeDatum, colorPickerType: AnnotationOptionsColorPickerType) {
+function getMeasurerDefaultColor(datum: MeasurerTypeDatum, colorPickerType: AnnotationOptionsColorPickerType) {
     switch (colorPickerType) {
         case 'fill-color':
             return datum.background.fill;
@@ -84,7 +82,7 @@ function getDefaultColor(datum: MeasurerTypeDatum, colorPickerType: AnnotationOp
     }
 }
 
-function getDefaultOpacity(datum: MeasurerTypeDatum, colorPickerType: AnnotationOptionsColorPickerType) {
+function getMeasurerDefaultOpacity(datum: MeasurerTypeDatum, colorPickerType: AnnotationOptionsColorPickerType) {
     switch (colorPickerType) {
         case 'fill-color':
             return datum.background.fillOpacity;
@@ -93,39 +91,37 @@ function getDefaultOpacity(datum: MeasurerTypeDatum, colorPickerType: Annotation
     }
 }
 
-export const dateRangeDatum: AnnotationDatumType<DateRangeDatum> = {
-    create: () => ({ ...createMeasurerTypeDatum(), type: AnnotationType.DateRange }),
-    is: (value): value is DateRangeDatum => isObject(value) && value.type === AnnotationType.DateRange,
-    getDefaultColor,
-    getDefaultOpacity,
-};
+export const dateRangeDatum = defineAnnotationDatum<DateRangeDatum>(AnnotationType.DateRange, createMeasurerTypeDatum, {
+    getDefaultColor: getMeasurerDefaultColor,
+    getDefaultOpacity: getMeasurerDefaultOpacity,
+});
 
-export const priceRangeDatum: AnnotationDatumType<PriceRangeDatum> = {
-    create: () => ({ ...createMeasurerTypeDatum(), type: AnnotationType.PriceRange }),
-    is: (value): value is PriceRangeDatum => isObject(value) && value.type === AnnotationType.PriceRange,
-    getDefaultColor,
-    getDefaultOpacity,
-};
+export const priceRangeDatum = defineAnnotationDatum<PriceRangeDatum>(
+    AnnotationType.PriceRange,
+    createMeasurerTypeDatum,
+    {
+        getDefaultColor: getMeasurerDefaultColor,
+        getDefaultOpacity: getMeasurerDefaultOpacity,
+    }
+);
 
-export const datePriceRangeDatum: AnnotationDatumType<DatePriceRangeDatum> = {
-    create: () => ({ ...createMeasurerTypeDatum(), type: AnnotationType.DatePriceRange }),
-    is: (value): value is DatePriceRangeDatum => isObject(value) && value.type === AnnotationType.DatePriceRange,
-    getDefaultColor,
-    getDefaultOpacity,
-};
+export const datePriceRangeDatum = defineAnnotationDatum<DatePriceRangeDatum>(
+    AnnotationType.DatePriceRange,
+    createMeasurerTypeDatum,
+    {
+        getDefaultColor: getMeasurerDefaultColor,
+        getDefaultOpacity: getMeasurerDefaultOpacity,
+    }
+);
 
-export const quickDatePriceRangeDatum: AnnotationDatumType<QuickDatePriceRangeDatum> = {
-    create: () => ({
-        ...createMeasurerTypeDatum(),
-        type: AnnotationType.QuickDatePriceRange,
-        up: createDirectionDatum(),
-        down: createDirectionDatum(),
-    }),
-    is: (value): value is QuickDatePriceRangeDatum =>
-        isObject(value) && value.type === AnnotationType.QuickDatePriceRange,
-    getDefaultColor,
-    getDefaultOpacity,
-};
+export const quickDatePriceRangeDatum = defineAnnotationDatum<QuickDatePriceRangeDatum>(
+    AnnotationType.QuickDatePriceRange,
+    () => ({ ...createMeasurerTypeDatum(), up: createDirectionDatum(), down: createDirectionDatum() }),
+    {
+        getDefaultColor: getMeasurerDefaultColor,
+        getDefaultOpacity: getMeasurerDefaultOpacity,
+    }
+);
 
 export function getMeasurerDirection(datum: MeasurerDatum): 'both' | 'horizontal' | 'vertical' {
     switch (datum.type) {

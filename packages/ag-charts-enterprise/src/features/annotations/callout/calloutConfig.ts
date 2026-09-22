@@ -6,8 +6,6 @@ import { CalloutScene } from './calloutScene';
 import { CalloutStateMachine } from './calloutState';
 
 export const calloutConfig: AnnotationTypeConfig<CalloutDatum, CalloutScene> = {
-    type: AnnotationType.Callout,
-    datum: calloutDatum,
     scene: CalloutScene,
     translate: (node, datum, transition, context) => {
         if (calloutDatum.is(datum) && CalloutScene.is(node)) return node.translate(datum, transition, context);

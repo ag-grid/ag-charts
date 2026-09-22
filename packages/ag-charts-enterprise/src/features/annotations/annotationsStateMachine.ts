@@ -14,7 +14,7 @@ import type { LinearSettingsDialogTextChangeProps } from './settings-dialog/sett
 import type { AnnotationStateEvents } from './states/stateTypes';
 import { guardCancelAndExit, guardSaveAndExit } from './states/textualStateUtils';
 import { maybeWrapText } from './text/util';
-import { applyAnnotationOptions, isWriteable, mergeAnnotationOptions } from './utils/datum';
+import { applyAnnotationOptions, isWriteable } from './utils/datum';
 import { hasLineStyle, hasLineText } from './utils/has';
 import { setColor, setLineStyle, setLineTextPosition } from './utils/styles';
 import { isEphemeralType, isTextType } from './utils/types';
@@ -423,7 +423,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                         const { datum } = this;
                         if (!hasLineText(datum)) return;
                         const { position, ...textProps } = props;
-                        mergeAnnotationOptions(datum.text, textProps);
+                        applyAnnotationOptions(datum.text, textProps);
                         if (position != null) setLineTextPosition(datum, position);
                         ctx.update();
                     },

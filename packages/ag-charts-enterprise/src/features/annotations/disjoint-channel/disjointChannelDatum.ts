@@ -1,7 +1,7 @@
-import { type Logger, isObject } from 'ag-charts-core';
+import type { Logger } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
-import type { AnnotationDatumType } from '../annotationDatum';
+import { defineAnnotationDatum } from '../annotationDatum';
 import { AnnotationType } from '../annotationTypes';
 import {
     type ChannelTypeDatum,
@@ -17,17 +17,14 @@ export interface DisjointChannelDatum extends ChannelTypeDatum {
     endHeight: AgNumericValue;
 }
 
-export const disjointChannelDatum: AnnotationDatumType<DisjointChannelDatum> = {
-    create: () => ({
-        ...createChannelTypeDatum(),
-        type: AnnotationType.DisjointChannel,
-        startHeight: 0,
-        endHeight: 0,
-    }),
-    is: (value): value is DisjointChannelDatum => isObject(value) && value.type === AnnotationType.DisjointChannel,
-    getDefaultColor: getChannelDefaultColor,
-    getDefaultOpacity: getChannelDefaultOpacity,
-};
+export const disjointChannelDatum = defineAnnotationDatum<DisjointChannelDatum>(
+    AnnotationType.DisjointChannel,
+    () => ({ ...createChannelTypeDatum(), startHeight: 0, endHeight: 0 }),
+    {
+        getDefaultColor: getChannelDefaultColor,
+        getDefaultOpacity: getChannelDefaultOpacity,
+    }
+);
 
 export function getDisjointChannelBottom(datum: DisjointChannelDatum, logger: Logger) {
     return getChannelBottom(datum, datum.startHeight, datum.endHeight, logger);

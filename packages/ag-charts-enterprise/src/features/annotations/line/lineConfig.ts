@@ -6,8 +6,6 @@ import { LineScene } from './lineScene';
 import { ArrowStateMachine, LineStateMachine } from './lineState';
 
 export const lineConfig: AnnotationTypeConfig<LineDatum, LineScene> = {
-    type: AnnotationType.Line,
-    datum: lineDatum,
     scene: LineScene,
     translate: (node, datum, transition, context) => {
         if (lineDatum.is(datum) && LineScene.is(node)) node.translate(datum, transition, context);
@@ -31,8 +29,6 @@ export const lineConfig: AnnotationTypeConfig<LineDatum, LineScene> = {
 };
 
 export const arrowConfig: AnnotationTypeConfig<ArrowDatum, LineScene> = {
-    type: AnnotationType.Arrow,
-    datum: arrowDatum,
     scene: LineScene,
     translate: (node, datum, transition, context) => {
         if (arrowDatum.is(datum) && LineScene.is(node)) node.translate(datum, transition, context);

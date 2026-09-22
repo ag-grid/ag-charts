@@ -534,7 +534,6 @@ export class CartesianChart extends Chart {
             for (const crossLine of crossLines) {
                 if (crossLine instanceof CartesianCrossLine) {
                     crossLine.position = position ?? 'top';
-                    crossLine.label.parallel ??= axis.parallel;
                 }
 
                 crossLine.calculatePadding?.(crossLinePadding);

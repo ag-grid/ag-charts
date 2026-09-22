@@ -3,7 +3,7 @@ import { Debug, StateMachine } from 'ag-charts-core';
 import type { DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext, MeasurerDatumType } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
-import { mergeAnnotationOptions } from '../utils/datum';
+import { applyAnnotationOptions } from '../utils/datum';
 import {
     type DatePriceRangeDatum,
     type DateRangeDatum,
@@ -42,13 +42,13 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerDatumType> extends
     constructor(ctx: MeasurerStateMachineContext<Datum>) {
         const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = this.createDatum();
-            mergeAnnotationOptions(datum, { start: point, end: point });
+            applyAnnotationOptions(datum, { start: point, end: point });
             ctx.create(datum);
         };
 
         const actionEndUpdate = ({ point }: { point: DataPoint }) => {
             const { datum, node } = this;
-            if (datum) mergeAnnotationOptions(datum, { end: point });
+            if (datum) applyAnnotationOptions(datum, { end: point });
 
             node?.toggleActive(true);
             node?.toggleHandles({ end: false });

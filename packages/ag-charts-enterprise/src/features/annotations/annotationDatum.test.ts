@@ -1,9 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { type AgAnnotation, type AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import type { AgAnnotation, AgCartesianChartOptions, AgLineAnnotation } from 'ag-charts-community';
 import {
     clickAction,
-    compareImageSnapshot,
     deproxy,
     expectWarningsCalls,
     hoverAction,
@@ -13,7 +12,12 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import {
+    ANNOTATIONS_EXAMPLE_OPTIONS,
+    compareAnnotationsSnapshot,
+    createAnnotationsChart,
+    restoreAnnotations,
+} from './test/fixture';
 
 const X_START = { __type: 'date' as const, value: '2024-03-01' };
 const X_MID = { __type: 'date' as const, value: '2024-06-01' };
@@ -119,22 +123,8 @@ describe('Annotation datum lifecycle', () => {
     let chart: any;
     const ctx = setupMockCanvas();
 
-    const EXAMPLE_OPTIONS: AgCartesianChartOptions = {
-        data: [
-            { x: new Date('2024-01-05'), y: 5 },
-            { x: new Date('2024-06-15'), y: 50 },
-            { x: new Date('2024-12-25'), y: 95 },
-        ],
-        series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
-        axes: { y: { type: 'number' }, x: { type: 'time' } },
-        annotations: { enabled: true, toolbar: { enabled: false } },
-    };
-
-    async function prepareChart(annotations: AgAnnotation[], baseOptions = EXAMPLE_OPTIONS) {
-        const options: AgCartesianChartOptions = { ...baseOptions, initialState: { annotations } };
-        prepareEnterpriseTestOptions(options);
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+    async function prepareChart(annotations: AgAnnotation[], baseOptions = ANNOTATIONS_EXAMPLE_OPTIONS) {
+        chart = await createAnnotationsChart({ ...baseOptions, initialState: { annotations } });
     }
 
     // Canvas position of a data point, read from the axes so the test does not encode layout sizes.
@@ -150,11 +140,7 @@ describe('Annotation datum lifecycle', () => {
         };
     }
 
-    async function restore(annotations: object[]) {
-        await chart.setState({ ...chart.getState(), annotations });
-        await waitForChartStability(chart);
-        return ctx.snapshot();
-    }
+    const restore = (annotations: object[]) => restoreAnnotations(chart, ctx, annotations);
 
     afterEach(() => {
         if (chart) {
@@ -163,9 +149,7 @@ describe('Annotation datum lifecycle', () => {
         }
     });
 
-    const compare = async () => {
-        await compareImageSnapshot(chart, ctx, { failureThreshold: 0, failureThresholdType: 'percent' });
-    };
+    const compare = () => compareAnnotationsSnapshot(chart, ctx);
 
     describe('serialised state', () => {
         it.each(ANNOTATION_TYPES.map((type) => [withArticle(type), type] as const))(
@@ -223,12 +207,15 @@ describe('Annotation datum lifecycle', () => {
             expect(annotations[0]).not.toHaveProperty('end');
         });
 
-        it('patches an annotation in place when the type at its index is unchanged', async () => {
-            await prepareChart([{ ...MINIMAL_ANNOTATIONS.line, text: { label: 'Kept' } }]);
+        it('resets fields absent from the restored state to their defaults', async () => {
+            await prepareChart([MINIMAL_ANNOTATIONS.line]);
+            await restore([{ ...MINIMAL_ANNOTATIONS.line, locked: true, lineStyle: 'dashed', text: { label: 'Set' } }]);
             await restore([MINIMAL_ANNOTATIONS.line]);
 
-            const [annotation] = chart.getState().annotations as Array<AgAnnotation & { text?: { label?: string } }>;
-            expect(annotation.text?.label).toBe('Kept');
+            const [line] = chart.getState().annotations as AgLineAnnotation[];
+            expect(line.locked).toBeUndefined();
+            expect(line.lineStyle).toBeUndefined();
+            expect(line.text?.label).toBe('');
         });
 
         it('does not pollute Object.prototype from a `__proto__` key in restored state', async () => {
@@ -274,8 +261,12 @@ describe('Annotation datum lifecycle', () => {
 
             const annotations = chart.getState().annotations as Array<AgAnnotation & { value?: number }>;
             expect(annotations).toHaveLength(2);
-            expect(annotations[1].type).toBe('horizontal-line');
+            expect(annotations[1]).toEqual({ ...annotations[0], value: expect.any(Number) });
             expect(annotations[1].value).not.toBe(annotations[0].value);
+
+            await keyDownAction(centre.x, centre.y, { key: 'z', code: 'KeyZ', ctrlKey: true })(chart);
+            await waitForChartStability(chart);
+            expect(chart.getState().annotations).toEqual([annotations[0]]);
         });
     });
 
@@ -340,11 +331,24 @@ describe('Annotation datum lifecycle', () => {
 
             expect(chart.getState().annotations[0]).toMatchObject({ type: 'horizontal-line', locked: true });
         });
+
+        it('undoes a toolbar lock in place', async () => {
+            await selectHorizontalLine();
+            const [before] = chart.getState().annotations;
+            body().querySelector<HTMLElement>('button[aria-checked]')!.click();
+            await waitForChartStability(chart);
+
+            const rect = deproxy(chart).seriesRect!;
+            await keyDownAction(rect.x, rect.y, { key: 'z', code: 'KeyZ', ctrlKey: true })(chart);
+            await waitForChartStability(chart);
+
+            expect(chart.getState().annotations).toEqual([before]);
+        });
     });
 
     describe('toolbar drawing', () => {
         it('serialises a horizontal line drawn from the toolbar', async () => {
-            await prepareChart([], { ...EXAMPLE_OPTIONS, annotations: { enabled: true } });
+            await prepareChart([], { ...ANNOTATIONS_EXAMPLE_OPTIONS, annotations: { enabled: true } });
             const body = deproxy(chart).ctx.agDocument.body;
             body.querySelector<HTMLElement>('button[title="Trend Lines"]')!.click();
             await waitForChartStability(chart);

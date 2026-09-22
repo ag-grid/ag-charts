@@ -603,7 +603,7 @@ export abstract class Series<
         return hasDimmedOpacity(unhighlightedItem) || hasDimmedOpacity(unhighlightedSeries);
     }
 
-    /** The chart-level `highlight` options; the single-key read avoids a sub-path split on per-datum paths. */
+    /** The chart-level `highlight` options. */
     protected getChartHighlightOptions() {
         return this.ctx.chartState.getValue('options')?.highlight;
     }

@@ -1,6 +1,4 @@
-import { isObject } from 'ag-charts-core';
-
-import type { AnnotationDatumType, FillFields, StrokeFields } from '../annotationDatum';
+import { type FillFields, type StrokeFields, defineAnnotationDatum } from '../annotationDatum';
 import { AnnotationType } from '../annotationTypes';
 import {
     type TextualPointDatum,
@@ -13,9 +11,7 @@ export interface CommentDatum extends TextualPointDatum, FillFields, StrokeField
     type: AnnotationType.Comment;
 }
 
-export const commentDatum: AnnotationDatumType<CommentDatum> = {
-    create: () => ({ ...createTextualPointDatum(), type: AnnotationType.Comment }),
-    is: (value): value is CommentDatum => isObject(value) && value.type === AnnotationType.Comment,
+export const commentDatum = defineAnnotationDatum<CommentDatum>(AnnotationType.Comment, createTextualPointDatum, {
     getDefaultColor: getFilledTextualDefaultColor,
     getDefaultOpacity: getFilledTextualDefaultOpacity,
-};
+});

@@ -6,8 +6,6 @@ import { TextScene } from './textScene';
 import { TextStateMachine } from './textState';
 
 export const textConfig: AnnotationTypeConfig<TextDatum, TextScene> = {
-    type: AnnotationType.Text,
-    datum: textDatum,
     scene: TextScene,
     translate: (node, datum, transition, context) => {
         if (textDatum.is(datum) && TextScene.is(node)) node.translate(datum, transition, context);

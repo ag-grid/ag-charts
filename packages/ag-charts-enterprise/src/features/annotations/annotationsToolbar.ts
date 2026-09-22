@@ -82,8 +82,7 @@ export class AnnotationsToolbar {
             this.toolbar.setHidden(!enabled);
         }
         this.padding = padding;
-        // Copied because menu presses rewrite a button's icon in place.
-        this.buttons = buttons.map((button) => ({ ...button }));
+        this.buttons = [...buttons];
     }
 
     public toggleClearButtonEnabled(enabled: boolean) {

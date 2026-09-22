@@ -6,8 +6,6 @@ import { CommentScene } from './commentScene';
 import { CommentStateMachine } from './commentState';
 
 export const commentConfig: AnnotationTypeConfig<CommentDatum, CommentScene> = {
-    type: AnnotationType.Comment,
-    datum: commentDatum,
     scene: CommentScene,
     translate: (node, datum, translation, context) => {
         if (commentDatum.is(datum) && CommentScene.is(node)) node.translate(datum, translation, context);

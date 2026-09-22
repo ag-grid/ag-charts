@@ -1,6 +1,4 @@
-import { isObject } from 'ag-charts-core';
-
-import type { AnnotationDatumType } from '../annotationDatum';
+import { defineAnnotationDatum } from '../annotationDatum';
 import { AnnotationType } from '../annotationTypes';
 import {
     type ShapePointDatum,
@@ -13,9 +11,7 @@ export interface ArrowDownDatum extends ShapePointDatum {
     type: AnnotationType.ArrowDown;
 }
 
-export const arrowDownDatum: AnnotationDatumType<ArrowDownDatum> = {
-    create: () => ({ ...createShapePointDatum(), type: AnnotationType.ArrowDown }),
-    is: (value): value is ArrowDownDatum => isObject(value) && value.type === AnnotationType.ArrowDown,
+export const arrowDownDatum = defineAnnotationDatum<ArrowDownDatum>(AnnotationType.ArrowDown, createShapePointDatum, {
     getDefaultColor: getShapeDefaultColor,
     getDefaultOpacity: getShapeDefaultOpacity,
-};
+});

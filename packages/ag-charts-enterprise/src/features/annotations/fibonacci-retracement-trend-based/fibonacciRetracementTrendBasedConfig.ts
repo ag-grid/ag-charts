@@ -12,8 +12,6 @@ export const fibonacciRetracementTrendBasedConfig: AnnotationTypeConfig<
     FibonacciRetracementTrendBasedDatum,
     FibonacciRetracementTrendBasedScene
 > = {
-    type: AnnotationType.FibonacciRetracementTrendBased,
-    datum: fibonacciRetracementTrendBasedDatum,
     scene: FibonacciRetracementTrendBasedScene,
     translate: (node, datum, transition, context) => {
         if (fibonacciRetracementTrendBasedDatum.is(datum) && FibonacciRetracementTrendBasedScene.is(node))

@@ -6,8 +6,6 @@ import { FibonacciRetracementScene } from './fibonacciRetracementScene';
 import { FibonacciRetracementStateMachine } from './fibonacciRetracementState';
 
 export const fibonacciRetracementConfig: AnnotationTypeConfig<FibonacciRetracementDatum, FibonacciRetracementScene> = {
-    type: AnnotationType.FibonacciRetracement,
-    datum: fibonacciRetracementDatum,
     scene: FibonacciRetracementScene,
     translate: (node, datum, transition, context) => {
         if (fibonacciRetracementDatum.is(datum) && FibonacciRetracementScene.is(node))

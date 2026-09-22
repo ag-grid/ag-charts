@@ -13,7 +13,7 @@ export class TextScene extends TextualPointScene<TextDatum> {
 
     type = AnnotationType.Text;
 
-    protected override textPosition = 'bottom' as const;
+    protected override readonly textPosition = 'bottom' as const;
     protected override readonly textAlignment = 'left' as const;
 
     constructor() {

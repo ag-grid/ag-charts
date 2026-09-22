@@ -6,7 +6,7 @@ import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import type { TextualStartEndDatum } from '../datum/textualDatum';
 import type { TextualStartEndScene } from '../scenes/textualStartEndScene';
 import { maybeWrapText } from '../text/util';
-import { mergeAnnotationOptions } from '../utils/datum';
+import { applyAnnotationOptions } from '../utils/datum';
 import { setColor } from '../utils/styles';
 import { isTextType } from '../utils/types';
 import type { AnnotationStateEvents } from './stateTypes';
@@ -61,7 +61,7 @@ export abstract class TextualStartEndStateMachine<
     constructor(ctx: TextualStartEndStateMachineContext<Datum>) {
         const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = this.createDatum();
-            mergeAnnotationOptions(datum, { start: point, end: point, visible: true });
+            applyAnnotationOptions(datum, { start: point, end: point, visible: true });
             ctx.create(datum);
         };
 
@@ -90,7 +90,7 @@ export abstract class TextualStartEndStateMachine<
 
         const onEndHover = ({ point }: { point: DataPoint }) => {
             const { datum, node } = this;
-            if (datum) mergeAnnotationOptions(datum, { end: point });
+            if (datum) applyAnnotationOptions(datum, { end: point });
             node?.toggleActive(true);
             node?.toggleHandles({ end: false });
             ctx.update();

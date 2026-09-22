@@ -1,12 +1,10 @@
-import { isObject } from 'ag-charts-core';
-
 import {
-    type AnnotationDatumType,
     type ExtendableFields,
     type LineStyleFields,
     type LineTextDatum,
     type StrokeFields,
     createLineTextDatum,
+    defineAnnotationDatum,
 } from '../annotationDatum';
 import { type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { type StartEndDatum, createStartEndDatum } from '../datum/startEndDatum';
@@ -40,16 +38,12 @@ export function getLineDefaultOpacity(datum: LineTypeDatum) {
     return datum.strokeOpacity;
 }
 
-export const lineDatum: AnnotationDatumType<LineDatum> = {
-    create: () => ({ ...createLineTypeDatum(), type: AnnotationType.Line }),
-    is: (value): value is LineDatum => isObject(value) && value.type === AnnotationType.Line,
+export const lineDatum = defineAnnotationDatum<LineDatum>(AnnotationType.Line, createLineTypeDatum, {
     getDefaultColor: getLineDefaultColor,
     getDefaultOpacity: getLineDefaultOpacity,
-};
+});
 
-export const arrowDatum: AnnotationDatumType<ArrowDatum> = {
-    create: () => ({ ...createLineTypeDatum(), type: AnnotationType.Arrow }),
-    is: (value): value is ArrowDatum => isObject(value) && value.type === AnnotationType.Arrow,
+export const arrowDatum = defineAnnotationDatum<ArrowDatum>(AnnotationType.Arrow, createLineTypeDatum, {
     getDefaultColor: getLineDefaultColor,
     getDefaultOpacity: getLineDefaultOpacity,
-};
+});
