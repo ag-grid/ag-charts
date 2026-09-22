@@ -1,7 +1,6 @@
 import {
     AgCartesianChartOptions,
     AgCharts,
-    BackgroundRegionsModule,
     LegendModule,
     ModuleRegistry,
     NumberAxisModule,
@@ -10,7 +9,7 @@ import {
 
 import { dealSeries } from './data';
 
-ModuleRegistry.registerModules([BackgroundRegionsModule, LegendModule, NumberAxisModule, ScatterSeriesModule]);
+ModuleRegistry.registerModules([LegendModule, NumberAxisModule, ScatterSeriesModule]);
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
