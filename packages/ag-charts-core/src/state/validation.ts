@@ -210,7 +210,7 @@ export class UnknownError extends ValidationError {
 export function validate<T>(
     options: unknown,
     optionsDefs: OptionsDefs<T>,
-    path = '',
+    path: string,
     params: ValidateParams
 ): ValidationResult<T> {
     if (!isObject(options)) {
