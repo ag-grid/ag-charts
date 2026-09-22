@@ -1,12 +1,22 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { Bounds4, BoxBounds, Point } from 'ag-charts-core';
+import { type Bounds4, type BoxBounds, Color, type Point } from 'ag-charts-core';
 
-import { type AnnotationContext, AnnotationType } from '../annotationTypes';
+import { type AnnotationContext, AnnotationType, type Padding } from '../annotationTypes';
+import type { TextualStartEndDatum } from '../datum/textualDatum';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { TextualStartEndScene } from '../scenes/textualStartEndScene';
-import type { CalloutProperties } from './calloutProperties';
+import { uniformPadding } from '../text/util';
+import { isWriteable } from '../utils/datum';
+import type { CalloutDatum } from './calloutDatum';
 
 const { drawCorner, Path } = _ModuleSupport;
+
+const DEFAULT_CALLOUT_PADDING = {
+    top: 6,
+    right: 12,
+    bottom: 9,
+    left: 12,
+};
 
 interface CalloutDimensions {
     tailPoint: {
@@ -23,12 +33,15 @@ interface CalloutDimensions {
 
 type PathType = 'corner' | 'side' | 'calloutCorner' | 'calloutSide';
 
-export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
+export class CalloutScene extends TextualStartEndScene<CalloutDatum> {
     static override is(value: unknown): value is CalloutScene {
         return AnnotationScene.isCheck(value, AnnotationType.Callout);
     }
 
     type = AnnotationType.Callout;
+
+    protected override readonly textPosition = 'bottom' as const;
+    protected override readonly textAlignment = 'left' as const;
 
     private readonly shape = new Path();
 
@@ -37,8 +50,28 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         this.append([this.shape, this.label, this.start, this.end]);
     }
 
-    override drag(datum: CalloutProperties, target: Point, context: AnnotationContext, snapping: boolean) {
-        if (!datum.isWriteable()) return;
+    public override getPlaceholderColor(datum: TextualStartEndDatum) {
+        const { r, g, b } = Color.fromString(datum.color ?? '#888888');
+        return new Color(r, g, b, 0.66).toString();
+    }
+
+    protected override getTextInputCoords(datum: TextualStartEndDatum, context: AnnotationContext, height: number) {
+        const coords = super.getTextInputCoords(datum, context, height);
+        const padding = this.getPadding(datum);
+
+        return {
+            x: coords.x + padding.left,
+            y: coords.y - padding.bottom,
+        };
+    }
+
+    protected override getPadding(datum: TextualStartEndDatum): Padding {
+        const { padding } = datum;
+        return padding == null ? { ...DEFAULT_CALLOUT_PADDING } : uniformPadding(padding);
+    }
+
+    override drag(datum: CalloutDatum, target: Point, context: AnnotationContext, snapping: boolean) {
+        if (!isWriteable(datum)) return;
 
         if (this.activeHandle === 'end') {
             this.dragHandle(datum, target, context, snapping);
@@ -47,8 +80,8 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         }
     }
 
-    protected override getLabelCoords(datum: CalloutProperties, bbox: BoxBounds, coords: Bounds4): Point {
-        const padding = datum.getPadding();
+    protected override getLabelCoords(datum: CalloutDatum, bbox: BoxBounds, coords: Bounds4): Point {
+        const padding = this.getPadding(datum);
         const {
             bodyBounds = {
                 x: 0,
@@ -64,7 +97,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         };
     }
 
-    protected override getHandleStyles(datum: CalloutProperties, handle: 'start' | 'end') {
+    protected override getHandleStyles(datum: CalloutDatum, handle: 'start' | 'end') {
         return handle === 'start'
             ? {
                   fill: datum.handle.fill,
@@ -76,7 +109,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
     }
 
     protected override updateAnchor(
-        datum: CalloutProperties,
+        datum: CalloutDatum,
         coords: Bounds4,
         context: AnnotationContext,
         bbox: _ModuleSupport.BBox
@@ -90,7 +123,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         };
     }
 
-    protected override updateShape(datum: CalloutProperties, textBox: BoxBounds, coords: Bounds4) {
+    protected override updateShape(datum: CalloutDatum, textBox: BoxBounds, coords: Bounds4) {
         const { shape } = this;
 
         // update shape styles
@@ -307,9 +340,9 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         }
     }
 
-    public getDimensions(datum: CalloutProperties, textBox: BoxBounds, coords: Bounds4): CalloutDimensions | undefined {
+    public getDimensions(datum: CalloutDatum, textBox: BoxBounds, coords: Bounds4): CalloutDimensions | undefined {
         const { fontSize } = datum;
-        const padding = datum.getPadding();
+        const padding = this.getPadding(datum);
 
         const horizontalPadding = padding.left + padding.right;
         const verticalPadding = padding.top + padding.bottom;

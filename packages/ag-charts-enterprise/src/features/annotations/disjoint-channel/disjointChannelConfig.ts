@@ -1,31 +1,26 @@
 import { AnnotationType } from '../annotationTypes';
 import type { AnnotationTypeConfig } from '../annotationsSuperTypes';
 import { DragStateMachine } from '../states/dragState';
-import { DisjointChannelProperties } from './disjointChannelProperties';
+import { type DisjointChannelDatum, disjointChannelDatum } from './disjointChannelDatum';
 import { DisjointChannelScene } from './disjointChannelScene';
 import { DisjointChannelStateMachine } from './disjointChannelState';
 
-export const disjointChannelConfig: AnnotationTypeConfig<DisjointChannelProperties, DisjointChannelScene> = {
+export const disjointChannelConfig: AnnotationTypeConfig<DisjointChannelDatum, DisjointChannelScene> = {
     type: AnnotationType.DisjointChannel,
-    datum: DisjointChannelProperties,
+    datum: disjointChannelDatum,
     scene: DisjointChannelScene,
-    isDatum: DisjointChannelProperties.is,
     translate: (node, datum, transition, context) => {
-        if (DisjointChannelProperties.is(datum) && DisjointChannelScene.is(node)) {
+        if (disjointChannelDatum.is(datum) && DisjointChannelScene.is(node)) {
             node.translate(datum, transition, context);
         }
     },
     copy: (node, datum, copiedDatum, context) => {
-        if (
-            DisjointChannelProperties.is(datum) &&
-            DisjointChannelProperties.is(copiedDatum) &&
-            DisjointChannelScene.is(node)
-        ) {
+        if (disjointChannelDatum.is(datum) && disjointChannelDatum.is(copiedDatum) && DisjointChannelScene.is(node)) {
             return node.copy(datum, copiedDatum, context);
         }
     },
     update: (node, datum, context) => {
-        if (DisjointChannelProperties.is(datum) && DisjointChannelScene.is(node)) {
+        if (disjointChannelDatum.is(datum) && DisjointChannelScene.is(node)) {
             node.update(datum, context);
         }
     },
@@ -34,5 +29,5 @@ export const disjointChannelConfig: AnnotationTypeConfig<DisjointChannelProperti
             ...ctx,
             create: createDatum(AnnotationType.DisjointChannel),
         }),
-    dragState: (ctx) => new DragStateMachine<DisjointChannelProperties, DisjointChannelScene>(ctx),
+    dragState: (ctx) => new DragStateMachine<DisjointChannelDatum, DisjointChannelScene>(ctx),
 };

@@ -1,24 +1,29 @@
 import { Debug, StateMachine, StateMachineProperty } from 'ag-charts-core';
 
 import type { DataPoint } from '../annotationTypes';
-import type { AnnotationsCreateStateMachineContext, MeasurerPropertiesType } from '../annotationsSuperTypes';
+import type { AnnotationsCreateStateMachineContext, MeasurerDatumType } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
+import { mergeAnnotationOptions } from '../utils/datum';
 import {
-    DatePriceRangeProperties,
-    DateRangeProperties,
-    PriceRangeProperties,
-    QuickDatePriceRangeProperties,
-} from './measurerProperties';
+    type DatePriceRangeDatum,
+    type DateRangeDatum,
+    type PriceRangeDatum,
+    type QuickDatePriceRangeDatum,
+    datePriceRangeDatum,
+    dateRangeDatum,
+    priceRangeDatum,
+    quickDatePriceRangeDatum,
+} from './measurerDatum';
 import type { MeasurerScene } from './measurerScene';
 
-interface MeasurerStateMachineContext<Datum extends MeasurerPropertiesType> extends Omit<
+interface MeasurerStateMachineContext<Datum extends MeasurerDatumType> extends Omit<
     AnnotationsCreateStateMachineContext,
     'create'
 > {
     create: (datum: Datum) => void;
 }
 
-abstract class MeasurerTypeStateMachine<Datum extends MeasurerPropertiesType> extends StateMachine<
+abstract class MeasurerTypeStateMachine<Datum extends MeasurerDatumType> extends StateMachine<
     'start' | 'end',
     Pick<AnnotationStateEvents, 'click' | 'hover' | 'drag' | 'dragEnd' | 'reset' | 'cancel'>
 > {
@@ -33,13 +38,13 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerPropertiesType> ex
     constructor(ctx: MeasurerStateMachineContext<Datum>) {
         const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = this.createDatum();
-            datum.set({ start: point, end: point });
+            mergeAnnotationOptions(datum, { start: point, end: point });
             ctx.create(datum);
         };
 
         const actionEndUpdate = ({ point }: { point: DataPoint }) => {
             const { datum, node } = this;
-            datum?.set({ end: point });
+            if (datum) mergeAnnotationOptions(datum, { end: point });
 
             node?.toggleActive(true);
             node?.toggleHandles({ end: false });
@@ -96,26 +101,26 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerPropertiesType> ex
     abstract createDatum(): Datum;
 }
 
-export class DateRangeStateMachine extends MeasurerTypeStateMachine<DateRangeProperties> {
+export class DateRangeStateMachine extends MeasurerTypeStateMachine<DateRangeDatum> {
     override createDatum() {
-        return new DateRangeProperties();
+        return dateRangeDatum.create();
     }
 }
 
-export class PriceRangeStateMachine extends MeasurerTypeStateMachine<PriceRangeProperties> {
+export class PriceRangeStateMachine extends MeasurerTypeStateMachine<PriceRangeDatum> {
     override createDatum() {
-        return new PriceRangeProperties();
+        return priceRangeDatum.create();
     }
 }
 
-export class DatePriceRangeStateMachine extends MeasurerTypeStateMachine<DatePriceRangeProperties> {
+export class DatePriceRangeStateMachine extends MeasurerTypeStateMachine<DatePriceRangeDatum> {
     override createDatum() {
-        return new DatePriceRangeProperties();
+        return datePriceRangeDatum.create();
     }
 }
 
-export class QuickDatePriceRangeStateMachine extends MeasurerTypeStateMachine<QuickDatePriceRangeProperties> {
+export class QuickDatePriceRangeStateMachine extends MeasurerTypeStateMachine<QuickDatePriceRangeDatum> {
     override createDatum() {
-        return new QuickDatePriceRangeProperties();
+        return quickDatePriceRangeDatum.create();
     }
 }

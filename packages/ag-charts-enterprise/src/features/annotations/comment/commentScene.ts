@@ -1,20 +1,31 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type Point, calcLineHeight } from 'ag-charts-core';
+import { Color, type Point, calcLineHeight } from 'ag-charts-core';
 
-import { type AnnotationContext, AnnotationType } from '../annotationTypes';
+import { type AnnotationContext, AnnotationType, type Padding } from '../annotationTypes';
+import type { TextualPointDatum } from '../datum/textualDatum';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { TextualPointScene } from '../scenes/textualPointScene';
-import { ANNOTATION_TEXT_LINE_HEIGHT } from '../text/util';
-import type { CommentProperties } from './commentProperties';
+import { ANNOTATION_TEXT_LINE_HEIGHT, uniformPadding } from '../text/util';
+import type { CommentDatum } from './commentDatum';
 
 const { drawCorner } = _ModuleSupport;
 
-export class CommentScene extends TextualPointScene<CommentProperties> {
+const DEFAULT_COMMENT_PADDING = {
+    top: 8,
+    right: 14,
+    bottom: 8,
+    left: 14,
+};
+
+export class CommentScene extends TextualPointScene<CommentDatum> {
     static override is(value: unknown): value is CommentScene {
         return AnnotationScene.isCheck(value, AnnotationType.Comment);
     }
 
     override type = AnnotationType.Comment;
+
+    protected override textPosition = 'bottom' as const;
+    protected override readonly textAlignment = 'left' as const;
 
     private readonly shape = new _ModuleSupport.Path();
 
@@ -23,7 +34,35 @@ export class CommentScene extends TextualPointScene<CommentProperties> {
         this.append([this.shape, this.label, this.handle]);
     }
 
-    protected override updateShape(datum: CommentProperties, bbox: _ModuleSupport.BBox) {
+    public override getPlaceholderColor(datum: TextualPointDatum) {
+        const { r, g, b } = Color.fromString(datum.color ?? '#888888');
+        return new Color(r, g, b, 0.66).toString();
+    }
+
+    protected override getTextInputCoords(datum: TextualPointDatum, context: AnnotationContext, height: number) {
+        const coords = super.getTextInputCoords(datum, context, height);
+        const padding = this.getPadding(datum);
+
+        return {
+            x: coords.x + padding.left,
+            y: coords.y - padding.bottom,
+        };
+    }
+
+    protected override getPadding(datum: TextualPointDatum): Padding {
+        const { padding, fontSize } = datum;
+        if (padding == null) {
+            return {
+                top: Math.max(fontSize * 0.4, DEFAULT_COMMENT_PADDING.top),
+                bottom: Math.max(fontSize * 0.4, DEFAULT_COMMENT_PADDING.bottom),
+                left: Math.max(fontSize * 0.8, DEFAULT_COMMENT_PADDING.left),
+                right: Math.max(fontSize * 0.8, DEFAULT_COMMENT_PADDING.right),
+            };
+        }
+        return uniformPadding(padding);
+    }
+
+    protected override updateShape(datum: CommentDatum, bbox: _ModuleSupport.BBox) {
         const { shape } = this;
 
         // update shape styles
@@ -37,15 +76,15 @@ export class CommentScene extends TextualPointScene<CommentProperties> {
         this.updatePath(datum, bbox);
     }
 
-    protected override getLabelCoords(datum: CommentProperties, point: Point): Point {
-        const padding = datum.getPadding();
+    protected override getLabelCoords(datum: CommentDatum, point: Point): Point {
+        const padding = this.getPadding(datum);
         return {
             x: point.x + padding.left,
             y: point.y - padding.bottom,
         };
     }
 
-    protected override getHandleStyles(datum: CommentProperties) {
+    protected override getHandleStyles(datum: CommentDatum) {
         return {
             fill: datum.handle.fill,
             stroke: datum.handle.stroke ?? datum.stroke ?? datum.fill,
@@ -54,15 +93,15 @@ export class CommentScene extends TextualPointScene<CommentProperties> {
         };
     }
 
-    protected override updateAnchor(datum: CommentProperties, bbox: _ModuleSupport.BBox, context: AnnotationContext) {
+    protected override updateAnchor(datum: CommentDatum, bbox: _ModuleSupport.BBox, context: AnnotationContext) {
         const anchor = super.updateAnchor(datum, bbox, context);
-        const padding = datum.getPadding();
+        const padding = this.getPadding(datum);
         anchor.y -= padding.bottom + padding.top;
         return anchor;
     }
 
-    private updatePath(datum: CommentProperties, bbox: _ModuleSupport.BBox) {
-        const padding = datum.getPadding();
+    private updatePath(datum: CommentDatum, bbox: _ModuleSupport.BBox) {
+        const padding = this.getPadding(datum);
         const { x, y } = bbox;
         let { width, height } = bbox;
         const { fontSize } = datum;

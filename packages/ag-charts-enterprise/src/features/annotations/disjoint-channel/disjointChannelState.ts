@@ -3,13 +3,14 @@ import { Debug, type Point, StateMachine, StateMachineProperty, isNumber } from 
 import { type AnnotationContext, AnnotationType, type DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
-import { snapPoint } from '../utils/coords';
+import { SNAP_TO_ANGLE, snapPoint } from '../utils/coords';
+import { mergeAnnotationOptions } from '../utils/datum';
 import { getGroupingValue } from '../utils/scale';
-import { DisjointChannelProperties } from './disjointChannelProperties';
+import { type DisjointChannelDatum, disjointChannelDatum } from './disjointChannelDatum';
 import type { DisjointChannelScene } from './disjointChannelScene';
 
 interface DisjointChannelStateMachineContext extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
-    create: (datum: DisjointChannelProperties) => void;
+    create: (datum: DisjointChannelDatum) => void;
 }
 
 export class DisjointChannelStateMachine extends StateMachine<
@@ -22,7 +23,7 @@ export class DisjointChannelStateMachine extends StateMachine<
     override debug = Debug.create(true, 'annotations');
 
     @StateMachineProperty()
-    protected datum?: DisjointChannelProperties;
+    protected datum?: DisjointChannelDatum;
 
     @StateMachineProperty()
     protected node?: DisjointChannelScene;
@@ -32,8 +33,8 @@ export class DisjointChannelStateMachine extends StateMachine<
 
     constructor(ctx: DisjointChannelStateMachineContext) {
         const actionCreate = ({ point }: { point: DataPoint }) => {
-            const datum = new DisjointChannelProperties();
-            datum.set({ start: point, end: point, startHeight: 0, endHeight: 0 });
+            const datum = disjointChannelDatum.create();
+            mergeAnnotationOptions(datum, { start: point, end: point });
             ctx.create(datum);
         };
 
@@ -47,7 +48,7 @@ export class DisjointChannelStateMachine extends StateMachine<
             const { datum, snapping } = this;
             if (!datum) return;
 
-            datum.set({ end: snapPoint(offset, context, snapping, datum.start, datum.snapToAngle) });
+            mergeAnnotationOptions(datum, { end: snapPoint(offset, context, snapping, datum.start, SNAP_TO_ANGLE) });
             ctx.update();
         };
 
@@ -81,7 +82,8 @@ export class DisjointChannelStateMachine extends StateMachine<
                 return;
             }
 
-            datum.set({ startHeight, endHeight });
+            datum.startHeight = startHeight;
+            datum.endHeight = endHeight;
             ctx.update();
         };
 
@@ -110,7 +112,8 @@ export class DisjointChannelStateMachine extends StateMachine<
                 return;
             }
 
-            datum.set({ startHeight, endHeight });
+            datum.startHeight = startHeight;
+            datum.endHeight = endHeight;
             ctx.recordAction(`Create ${AnnotationType.DisjointChannel} annotation`);
             ctx.showAnnotationOptions();
             ctx.update();

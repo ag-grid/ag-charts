@@ -1,25 +1,29 @@
 import { AnnotationType } from '../annotationTypes';
 import type { AnnotationTypeConfig } from '../annotationsSuperTypes';
 import { DragStateMachine } from '../states/dragState';
-import { HorizontalLineProperties, VerticalLineProperties } from './crossLineProperties';
+import {
+    type HorizontalLineDatum,
+    type VerticalLineDatum,
+    horizontalLineDatum,
+    verticalLineDatum,
+} from './crossLineDatum';
 import { CrossLineScene } from './crossLineScene';
 import { CrossLineStateMachine } from './crossLineState';
 
-export const horizontalLineConfig: AnnotationTypeConfig<HorizontalLineProperties, CrossLineScene> = {
+export const horizontalLineConfig: AnnotationTypeConfig<HorizontalLineDatum, CrossLineScene> = {
     type: AnnotationType.HorizontalLine,
-    datum: HorizontalLineProperties,
+    datum: horizontalLineDatum,
     scene: CrossLineScene,
-    isDatum: HorizontalLineProperties.is,
     translate: (node, datum, translation, context) => {
-        if (HorizontalLineProperties.is(datum) && CrossLineScene.is(node)) node.translate(datum, translation, context);
+        if (horizontalLineDatum.is(datum) && CrossLineScene.is(node)) node.translate(datum, translation, context);
     },
     copy: (node, datum, copiedDatum, context) => {
-        if (HorizontalLineProperties.is(datum) && HorizontalLineProperties.is(copiedDatum) && CrossLineScene.is(node)) {
-            return node.copy(datum, copiedDatum, context) as HorizontalLineProperties;
+        if (horizontalLineDatum.is(datum) && horizontalLineDatum.is(copiedDatum) && CrossLineScene.is(node)) {
+            return node.copy(datum, copiedDatum, context);
         }
     },
     update: (node, datum, context) => {
-        if (HorizontalLineProperties.is(datum) && CrossLineScene.is(node)) {
+        if (horizontalLineDatum.is(datum) && CrossLineScene.is(node)) {
             node.update(datum, context);
         }
     },
@@ -28,24 +32,23 @@ export const horizontalLineConfig: AnnotationTypeConfig<HorizontalLineProperties
             ...ctx,
             create: createDatum(AnnotationType.HorizontalLine),
         }),
-    dragState: (ctx) => new DragStateMachine<HorizontalLineProperties, CrossLineScene>(ctx),
+    dragState: (ctx) => new DragStateMachine<HorizontalLineDatum, CrossLineScene>(ctx),
 };
 
-export const verticalLineConfig: AnnotationTypeConfig<VerticalLineProperties, CrossLineScene> = {
+export const verticalLineConfig: AnnotationTypeConfig<VerticalLineDatum, CrossLineScene> = {
     type: AnnotationType.VerticalLine,
-    datum: VerticalLineProperties,
+    datum: verticalLineDatum,
     scene: CrossLineScene,
-    isDatum: VerticalLineProperties.is,
     translate: (node, datum, translation, context) => {
-        if (VerticalLineProperties.is(datum) && CrossLineScene.is(node)) node.translate(datum, translation, context);
+        if (verticalLineDatum.is(datum) && CrossLineScene.is(node)) node.translate(datum, translation, context);
     },
     copy: (node, datum, copiedDatum, context) => {
-        if (VerticalLineProperties.is(datum) && VerticalLineProperties.is(copiedDatum) && CrossLineScene.is(node)) {
-            return node.copy(datum, copiedDatum, context) as VerticalLineProperties;
+        if (verticalLineDatum.is(datum) && verticalLineDatum.is(copiedDatum) && CrossLineScene.is(node)) {
+            return node.copy(datum, copiedDatum, context);
         }
     },
     update: (node, datum, context) => {
-        if (VerticalLineProperties.is(datum) && CrossLineScene.is(node)) {
+        if (verticalLineDatum.is(datum) && CrossLineScene.is(node)) {
             node.update(datum, context);
         }
     },
@@ -54,5 +57,5 @@ export const verticalLineConfig: AnnotationTypeConfig<VerticalLineProperties, Cr
             ...ctx,
             create: createDatum(AnnotationType.VerticalLine),
         }),
-    dragState: (ctx) => new DragStateMachine<VerticalLineProperties, CrossLineScene>(ctx),
+    dragState: (ctx) => new DragStateMachine<VerticalLineDatum, CrossLineScene>(ctx),
 };

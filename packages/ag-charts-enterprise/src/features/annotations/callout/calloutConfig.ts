@@ -1,25 +1,24 @@
 import { AnnotationType } from '../annotationTypes';
 import type { AnnotationTypeConfig } from '../annotationsSuperTypes';
 import { DragStateMachine } from '../states/dragState';
-import { CalloutProperties } from './calloutProperties';
+import { type CalloutDatum, calloutDatum } from './calloutDatum';
 import { CalloutScene } from './calloutScene';
 import { CalloutStateMachine } from './calloutState';
 
-export const calloutConfig: AnnotationTypeConfig<CalloutProperties, CalloutScene> = {
+export const calloutConfig: AnnotationTypeConfig<CalloutDatum, CalloutScene> = {
     type: AnnotationType.Callout,
-    datum: CalloutProperties,
+    datum: calloutDatum,
     scene: CalloutScene,
-    isDatum: CalloutProperties.is,
     translate: (node, datum, transition, context) => {
-        if (CalloutProperties.is(datum) && CalloutScene.is(node)) return node.translate(datum, transition, context);
+        if (calloutDatum.is(datum) && CalloutScene.is(node)) return node.translate(datum, transition, context);
     },
     copy: (node, datum, copiedDatum, context) => {
-        if (CalloutProperties.is(datum) && CalloutProperties.is(copiedDatum) && CalloutScene.is(node)) {
+        if (calloutDatum.is(datum) && calloutDatum.is(copiedDatum) && CalloutScene.is(node)) {
             return node.copy(datum, copiedDatum, context);
         }
     },
     update: (node, datum, context) => {
-        if (CalloutProperties.is(datum) && CalloutScene.is(node)) {
+        if (calloutDatum.is(datum) && CalloutScene.is(node)) {
             node.update(datum, context);
         }
     },
@@ -28,5 +27,5 @@ export const calloutConfig: AnnotationTypeConfig<CalloutProperties, CalloutScene
             ...ctx,
             create: createDatum(AnnotationType.Callout),
         }),
-    dragState: (ctx) => new DragStateMachine<CalloutProperties, CalloutScene>(ctx),
+    dragState: (ctx) => new DragStateMachine<CalloutDatum, CalloutScene>(ctx),
 };

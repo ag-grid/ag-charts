@@ -10,9 +10,9 @@ import {
 } from 'ag-charts-core';
 
 import { type AnnotationLineStyle, type AnnotationOptionsColorPickerType, AnnotationType } from './annotationTypes';
-import { annotationConfigs, getTypedDatum } from './annotationsConfig';
+import { annotationConfigs } from './annotationsConfig';
 import type {
-    AnnotationProperties,
+    AnnotationDatum,
     AnnotationScene,
     AnnotationsStateMachineContext,
     AnnotationsStateMachineHelperFns,
@@ -21,9 +21,10 @@ import type { LinearSettingsDialogTextChangeProps } from './settings-dialog/sett
 import type { AnnotationStateEvents } from './states/stateTypes';
 import { guardCancelAndExit, guardSaveAndExit } from './states/textualStateUtils';
 import { maybeWrapText } from './text/util';
+import { applyAnnotationOptions, isWriteable, mergeAnnotationOptions } from './utils/datum';
 import { hasLineStyle, hasLineText } from './utils/has';
-import { setColor, setLineStyle } from './utils/styles';
-import { isChannelType, isEphemeralType, isTextType } from './utils/types';
+import { setColor, setLineStyle, setLineTextPosition } from './utils/styles';
+import { isEphemeralType, isTextType } from './utils/types';
 
 enum States {
     Idle = 'idle',
@@ -49,7 +50,7 @@ export class AnnotationsStateMachine extends ParallelStateMachine<States, Annota
     protected snapping: boolean = false;
 
     @StateMachineProperty()
-    protected datum?: AnnotationProperties;
+    protected datum?: AnnotationDatum;
 
     @StateMachineProperty()
     protected node?: AnnotationScene;
@@ -138,13 +139,13 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
     protected hoverCoords?: Point;
 
     @StateMachineProperty()
-    protected copied?: AnnotationProperties;
+    protected copied?: AnnotationDatum;
 
     @StateMachineProperty()
     protected snapping: boolean = false;
 
     @StateMachineProperty()
-    protected datum?: AnnotationProperties;
+    protected datum?: AnnotationDatum;
 
     @StateMachineProperty()
     protected node?: AnnotationScene;
@@ -154,7 +155,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
         private readonly setActive: (index?: number) => void
     ) {
         const createDatum =
-            <T extends AnnotationProperties>(type: AnnotationType) =>
+            <T extends AnnotationDatum>(type: AnnotationType) =>
             (datum: T) => {
                 ctx.create(type, datum);
                 this.active = ctx.selectLast();
@@ -259,7 +260,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                 }
 
                 const wrappedText = maybeWrapText(datum, textInputValue, bbox.width);
-                datum.set({ text: wrappedText });
+                datum.text = wrappedText;
 
                 ctx.update();
                 ctx.recordAction(`Change ${datum.type} annotation text`);
@@ -279,7 +280,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
             const { active, datum } = this;
             if (active == null) return false;
             if (!datum) return false;
-            return hasLineText(datum) && datum.isWriteable();
+            return hasLineText(datum) && isWriteable(datum);
         };
         const guardActiveNotEphemeral = () => this.active != null && !isEphemeralType(this.datum);
         const guardHovered = () => this.hovered != null;
@@ -343,7 +344,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                             const { active, hovered, datum } = this;
                             if (active == null || hovered !== active) return false;
                             if (!datum) return false;
-                            return isTextType(datum) && datum.isWriteable();
+                            return isTextType(datum) && isWriteable(datum);
                         },
                         target: States.TextInput,
                     },
@@ -397,8 +398,8 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                 lineProps: {
                     guard: guardActive,
                     action: (props) => {
-                        const datum = getTypedDatum(this.datum);
-                        datum?.set(props);
+                        const { datum } = this;
+                        if (datum) applyAnnotationOptions(datum, props);
                         ctx.update();
                         ctx.recordAction(
                             `Change ${datum?.type} ${Object.entries(props)
@@ -416,12 +417,11 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                 lineText: {
                     guard: guardActive,
                     action: (props: LinearSettingsDialogTextChangeProps) => {
-                        const datum = getTypedDatum(this.datum);
+                        const { datum } = this;
                         if (!hasLineText(datum)) return;
-                        if (isChannelType(datum) && props.position === 'center') {
-                            props.position = 'inside';
-                        }
-                        datum.text.set(props);
+                        const { position, ...textProps } = props;
+                        mergeAnnotationOptions(datum.text, textProps);
+                        if (position != null) setLineTextPosition(datum, position);
                         ctx.update();
                     },
                 },
@@ -506,8 +506,8 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                 onEnter: () => {
                     if (this.active == null) return;
 
-                    const datum = getTypedDatum(this.datum);
-                    if (!datum || !('getTextInputCoords' in datum)) return;
+                    const { datum } = this;
+                    if (!isTextType(datum)) return;
 
                     ctx.startInteracting();
                     ctx.showTextInput(this.active);

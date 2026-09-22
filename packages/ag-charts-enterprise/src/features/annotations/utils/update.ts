@@ -1,10 +1,7 @@
 import type { AnnotationContext } from '../annotationTypes';
 import { annotationConfigs } from '../annotationsConfig';
-import type { AnnotationProperties, AnnotationScene, AnnotationTypeConfig } from '../annotationsSuperTypes';
+import type { AnnotationDatum, AnnotationScene } from '../annotationsSuperTypes';
 
-export function updateAnnotation(node: AnnotationScene, datum: AnnotationProperties, context: AnnotationContext) {
-    for (const value of Object.values(annotationConfigs)) {
-        const lenientValue: AnnotationTypeConfig<any, AnnotationScene> = value;
-        lenientValue.update(node, datum, context);
-    }
+export function updateAnnotation(node: AnnotationScene, datum: AnnotationDatum, context: AnnotationContext) {
+    annotationConfigs[datum.type].update(node, datum, context);
 }

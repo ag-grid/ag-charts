@@ -2,21 +2,18 @@ import { Debug, StateMachine, StateMachineProperty } from 'ag-charts-core';
 
 import type { DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
-import type { PointProperties } from '../properties/pointProperties';
+import type { PointDatum } from '../datum/pointDatum';
 import type { PointScene } from '../scenes/pointScene';
 import type { AnnotationStateEvents } from './stateTypes';
 
-interface PointStateMachineContext<Datum extends PointProperties> extends Omit<
+interface PointStateMachineContext<Datum extends PointDatum> extends Omit<
     AnnotationsCreateStateMachineContext,
     'create'
 > {
     create: (datum: Datum) => void;
 }
 
-export abstract class PointStateMachine<
-    Datum extends PointProperties,
-    Node extends PointScene<Datum>,
-> extends StateMachine<
+export abstract class PointStateMachine<Datum extends PointDatum, Node extends PointScene<Datum>> extends StateMachine<
     'start' | 'waiting-first-render',
     Pick<AnnotationStateEvents, 'click' | 'drag' | 'cancel' | 'render' | 'reset'>
 > {
@@ -28,7 +25,8 @@ export abstract class PointStateMachine<
     constructor(ctx: PointStateMachineContext<Datum>) {
         const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = this.createDatum();
-            datum.set({ x: point.x, y: point.y });
+            datum.x = point.x;
+            datum.y = point.y;
             ctx.create(datum);
         };
 

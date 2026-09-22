@@ -4,11 +4,11 @@ import { Debug, StateMachine, StateMachineProperty } from 'ag-charts-core';
 import { AnnotationType, type DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
-import { type CrossLineProperties, HorizontalLineProperties, VerticalLineProperties } from './crossLineProperties';
+import { type CrossLineDatum, horizontalLineDatum, verticalLineDatum } from './crossLineDatum';
 import type { CrossLineScene } from './crossLineScene';
 
 interface CrossLineStateMachineContext extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
-    create: (datum: CrossLineProperties) => void;
+    create: (datum: CrossLineDatum) => void;
 }
 
 export class CrossLineStateMachine extends StateMachine<
@@ -23,9 +23,9 @@ export class CrossLineStateMachine extends StateMachine<
     constructor(direction: Direction, ctx: CrossLineStateMachineContext) {
         const onClick = ({ point }: { point: DataPoint }) => {
             const isHorizontal = direction === 'horizontal';
-            const datum = isHorizontal ? new HorizontalLineProperties() : new VerticalLineProperties();
+            const datum = isHorizontal ? horizontalLineDatum.create() : verticalLineDatum.create();
 
-            datum.set({ value: isHorizontal ? point.y : point.x });
+            datum.value = isHorizontal ? point.y : point.x;
             ctx.create(datum);
 
             ctx.recordAction(

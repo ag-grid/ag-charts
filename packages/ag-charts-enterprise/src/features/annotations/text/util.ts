@@ -1,16 +1,27 @@
 import { type TextAlign, _ModuleSupport } from 'ag-charts-community';
 import { type FontOptions, type Point, cachedTextMeasurer, calcLineHeight, wrapText } from 'ag-charts-core';
 
+import type { Padding } from '../annotationTypes';
+
 const { BBox } = _ModuleSupport;
 
 export type AnnotationTextPosition = 'top' | 'center' | 'bottom';
 export type AnnotationTextAlignment = 'left' | 'center' | 'right';
 
-type TextOptions = FontOptions & { textAlign: TextAlign; position: AnnotationTextPosition };
+export type TextOptions = FontOptions & { textAlign: TextAlign; position: AnnotationTextPosition };
 
 export const ANNOTATION_TEXT_LINE_HEIGHT = 1.38;
 
-export function maybeWrapText(options: TextOptions, text: string, maxWidth: number) {
+export function getAnnotationText(text: string, localeManager: _ModuleSupport.LocaleManager) {
+    const isPlaceholder = text.length === 0;
+    return { text: isPlaceholder ? localeManager.t('inputTextareaPlaceholder') : text, isPlaceholder };
+}
+
+export function uniformPadding(padding: number): Padding {
+    return { top: padding, right: padding, bottom: padding, left: padding };
+}
+
+export function maybeWrapText(options: FontOptions, text: string, maxWidth: number) {
     return maxWidth === 0 ? text : wrapText(text, { maxWidth, font: options, textWrap: 'always', avoidOrphans: false });
 }
 
@@ -41,7 +52,7 @@ export function updateTextNode(
     node: _ModuleSupport.Text,
     text: string,
     isPlaceholder: boolean,
-    config: TextOptions & { visible?: boolean; color?: string; getPlaceholderColor: () => string | undefined },
+    config: TextOptions & { visible?: boolean; color?: string; placeholderColor?: string },
     { x, y }: Point,
     textBaseline?: CanvasTextBaseline
 ) {
@@ -49,7 +60,7 @@ export function updateTextNode(
     const lineHeight = calcLineHeight(fontSize, ANNOTATION_TEXT_LINE_HEIGHT);
     textBaseline ??= config.position == 'center' ? 'middle' : config.position;
 
-    const fill = isPlaceholder ? config.getPlaceholderColor() : config.color;
+    const fill = isPlaceholder ? config.placeholderColor : config.color;
 
     node.setProperties({
         x,

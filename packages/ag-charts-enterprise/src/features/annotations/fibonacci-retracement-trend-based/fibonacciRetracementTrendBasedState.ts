@@ -3,15 +3,19 @@ import { Debug, type Point, StateMachine, StateMachineProperty } from 'ag-charts
 import type { AnnotationContext, DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
-import { snapPoint } from '../utils/coords';
-import { FibonacciRetracementTrendBasedProperties } from './fibonacciRetracementTrendBasedProperties';
+import { SNAP_TO_ANGLE, snapPoint } from '../utils/coords';
+import { mergeAnnotationOptions } from '../utils/datum';
+import {
+    type FibonacciRetracementTrendBasedDatum,
+    fibonacciRetracementTrendBasedDatum,
+} from './fibonacciRetracementTrendBasedDatum';
 import type { FibonacciRetracementTrendBasedScene } from './fibonacciRetracementTrendBasedScene';
 
 interface FibonacciRetracementTrendBasedStateMachineContext extends Omit<
     AnnotationsCreateStateMachineContext,
     'create'
 > {
-    create: (datum: FibonacciRetracementTrendBasedProperties) => void;
+    create: (datum: FibonacciRetracementTrendBasedDatum) => void;
 }
 
 export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
@@ -24,7 +28,7 @@ export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
     override debug = Debug.create(true, 'annotations');
 
     @StateMachineProperty()
-    protected datum?: FibonacciRetracementTrendBasedProperties;
+    protected datum?: FibonacciRetracementTrendBasedDatum;
 
     @StateMachineProperty()
     protected node?: FibonacciRetracementTrendBasedScene;
@@ -35,7 +39,7 @@ export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
     constructor(ctx: FibonacciRetracementTrendBasedStateMachineContext) {
         const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = this.createDatum();
-            datum.set({ start: point, end: point });
+            mergeAnnotationOptions(datum, { start: point, end: point });
             ctx.create(datum);
         };
 
@@ -49,7 +53,7 @@ export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
             const { datum, snapping } = this;
             if (!datum) return;
 
-            datum.set({ end: snapPoint(offset, context, snapping, datum.start, datum.snapToAngle) });
+            mergeAnnotationOptions(datum, { end: snapPoint(offset, context, snapping, datum.start, SNAP_TO_ANGLE) });
             ctx.update();
         };
 
@@ -68,7 +72,9 @@ export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
             const { datum, snapping } = this;
             if (!datum) return;
 
-            datum.set({ endRetracement: snapPoint(offset, context, snapping, datum.end, datum.snapToAngle) });
+            mergeAnnotationOptions(datum, {
+                endRetracement: snapPoint(offset, context, snapping, datum.end, SNAP_TO_ANGLE),
+            });
             ctx.update();
         };
 
@@ -146,6 +152,6 @@ export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
     }
 
     createDatum() {
-        return new FibonacciRetracementTrendBasedProperties();
+        return fibonacciRetracementTrendBasedDatum.create();
     }
 }

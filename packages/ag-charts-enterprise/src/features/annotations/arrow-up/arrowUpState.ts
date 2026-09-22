@@ -1,9 +1,9 @@
 import { PointStateMachine } from '../states/pointState';
-import { ArrowUpProperties } from './arrowUpProperties';
+import { type ArrowUpDatum, arrowUpDatum } from './arrowUpDatum';
 import type { ArrowUpScene } from './arrowUpScene';
 
-export class ArrowUpStateMachine extends PointStateMachine<ArrowUpProperties, ArrowUpScene> {
+export class ArrowUpStateMachine extends PointStateMachine<ArrowUpDatum, ArrowUpScene> {
     protected override createDatum() {
-        return new ArrowUpProperties();
+        return arrowUpDatum.create();
     }
 }

@@ -1,9 +1,9 @@
 import { TextualPointStateMachine } from '../states/textualPointState';
-import { TextProperties } from './textProperties';
+import { type TextDatum, textDatum } from './textDatum';
 import type { TextScene } from './textScene';
 
-export class TextStateMachine extends TextualPointStateMachine<TextProperties, TextScene> {
+export class TextStateMachine extends TextualPointStateMachine<TextDatum, TextScene> {
     protected override createDatum() {
-        return new TextProperties();
+        return textDatum.create();
     }
 }

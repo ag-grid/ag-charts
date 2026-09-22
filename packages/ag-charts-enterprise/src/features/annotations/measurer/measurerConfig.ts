@@ -2,11 +2,15 @@ import { AnnotationType } from '../annotationTypes';
 import type { AnnotationTypeConfig } from '../annotationsSuperTypes';
 import { DragStateMachine } from '../states/dragState';
 import {
-    DatePriceRangeProperties,
-    DateRangeProperties,
-    PriceRangeProperties,
-    QuickDatePriceRangeProperties,
-} from './measurerProperties';
+    type DatePriceRangeDatum,
+    type DateRangeDatum,
+    type PriceRangeDatum,
+    type QuickDatePriceRangeDatum,
+    datePriceRangeDatum,
+    dateRangeDatum,
+    priceRangeDatum,
+    quickDatePriceRangeDatum,
+} from './measurerDatum';
 import { MeasurerScene, QuickMeasurerScene } from './measurerScene';
 import {
     DatePriceRangeStateMachine,
@@ -15,23 +19,22 @@ import {
     QuickDatePriceRangeStateMachine,
 } from './measurerState';
 
-export const dateRangeConfig: AnnotationTypeConfig<DateRangeProperties, MeasurerScene> = {
+export const dateRangeConfig: AnnotationTypeConfig<DateRangeDatum, MeasurerScene> = {
     type: AnnotationType.DateRange,
-    datum: DateRangeProperties,
+    datum: dateRangeDatum,
     scene: MeasurerScene,
-    isDatum: DateRangeProperties.is,
     translate: (node, datum, translation, context) => {
-        if (DateRangeProperties.is(datum) && MeasurerScene.is(node)) {
+        if (dateRangeDatum.is(datum) && MeasurerScene.is(node)) {
             node.translate(datum, translation, context);
         }
     },
     copy: (node, datum, copiedDatum, context) => {
-        if (DateRangeProperties.is(datum) && DateRangeProperties.is(copiedDatum) && MeasurerScene.is(node)) {
-            return node.copy(datum, copiedDatum, context) as DateRangeProperties;
+        if (dateRangeDatum.is(datum) && dateRangeDatum.is(copiedDatum) && MeasurerScene.is(node)) {
+            return node.copy(datum, copiedDatum, context);
         }
     },
     update: (node, datum, context) => {
-        if (DateRangeProperties.is(datum) && MeasurerScene.is(node)) {
+        if (dateRangeDatum.is(datum) && MeasurerScene.is(node)) {
             node.update(datum, context);
         }
     },
@@ -40,26 +43,25 @@ export const dateRangeConfig: AnnotationTypeConfig<DateRangeProperties, Measurer
             ...ctx,
             create: createDatum(AnnotationType.DateRange),
         }),
-    dragState: (ctx) => new DragStateMachine<DateRangeProperties, MeasurerScene>(ctx),
+    dragState: (ctx) => new DragStateMachine<DateRangeDatum, MeasurerScene>(ctx),
 };
 
-export const priceRangeConfig: AnnotationTypeConfig<PriceRangeProperties, MeasurerScene> = {
+export const priceRangeConfig: AnnotationTypeConfig<PriceRangeDatum, MeasurerScene> = {
     type: AnnotationType.PriceRange,
-    datum: PriceRangeProperties,
+    datum: priceRangeDatum,
     scene: MeasurerScene,
-    isDatum: PriceRangeProperties.is,
     translate: (node, datum, translation, context) => {
-        if (PriceRangeProperties.is(datum) && MeasurerScene.is(node)) {
+        if (priceRangeDatum.is(datum) && MeasurerScene.is(node)) {
             node.translate(datum, translation, context);
         }
     },
     copy: (node, datum, copiedDatum, context) => {
-        if (PriceRangeProperties.is(datum) && PriceRangeProperties.is(copiedDatum) && MeasurerScene.is(node)) {
-            return node.copy(datum, copiedDatum, context) as PriceRangeProperties;
+        if (priceRangeDatum.is(datum) && priceRangeDatum.is(copiedDatum) && MeasurerScene.is(node)) {
+            return node.copy(datum, copiedDatum, context);
         }
     },
     update: (node, datum, context) => {
-        if (PriceRangeProperties.is(datum) && MeasurerScene.is(node)) {
+        if (priceRangeDatum.is(datum) && MeasurerScene.is(node)) {
             node.update(datum, context);
         }
     },
@@ -68,26 +70,25 @@ export const priceRangeConfig: AnnotationTypeConfig<PriceRangeProperties, Measur
             ...ctx,
             create: createDatum(AnnotationType.DateRange),
         }),
-    dragState: (ctx) => new DragStateMachine<PriceRangeProperties, MeasurerScene>(ctx),
+    dragState: (ctx) => new DragStateMachine<PriceRangeDatum, MeasurerScene>(ctx),
 };
 
-export const datePriceRangeConfig: AnnotationTypeConfig<DatePriceRangeProperties, MeasurerScene> = {
+export const datePriceRangeConfig: AnnotationTypeConfig<DatePriceRangeDatum, MeasurerScene> = {
     type: AnnotationType.DatePriceRange,
-    datum: DatePriceRangeProperties,
+    datum: datePriceRangeDatum,
     scene: MeasurerScene,
-    isDatum: DatePriceRangeProperties.is,
     translate: (node, datum, translation, context) => {
-        if (DatePriceRangeProperties.is(datum) && MeasurerScene.is(node)) {
+        if (datePriceRangeDatum.is(datum) && MeasurerScene.is(node)) {
             node.translate(datum, translation, context);
         }
     },
     copy: (node, datum, copiedDatum, context) => {
-        if (DatePriceRangeProperties.is(datum) && DatePriceRangeProperties.is(copiedDatum) && MeasurerScene.is(node)) {
-            return node.copy(datum, copiedDatum, context) as DatePriceRangeProperties;
+        if (datePriceRangeDatum.is(datum) && datePriceRangeDatum.is(copiedDatum) && MeasurerScene.is(node)) {
+            return node.copy(datum, copiedDatum, context);
         }
     },
     update: (node, datum, context) => {
-        if (DatePriceRangeProperties.is(datum) && MeasurerScene.is(node)) {
+        if (datePriceRangeDatum.is(datum) && MeasurerScene.is(node)) {
             node.update(datum, context);
         }
     },
@@ -96,30 +97,29 @@ export const datePriceRangeConfig: AnnotationTypeConfig<DatePriceRangeProperties
             ...ctx,
             create: createDatum(AnnotationType.DateRange),
         }),
-    dragState: (ctx) => new DragStateMachine<DatePriceRangeProperties, MeasurerScene>(ctx),
+    dragState: (ctx) => new DragStateMachine<DatePriceRangeDatum, MeasurerScene>(ctx),
 };
 
-export const quickDatePriceRangeConfig: AnnotationTypeConfig<QuickDatePriceRangeProperties, QuickMeasurerScene> = {
+export const quickDatePriceRangeConfig: AnnotationTypeConfig<QuickDatePriceRangeDatum, QuickMeasurerScene> = {
     type: AnnotationType.QuickDatePriceRange,
-    datum: QuickDatePriceRangeProperties,
+    datum: quickDatePriceRangeDatum,
     scene: QuickMeasurerScene,
-    isDatum: QuickDatePriceRangeProperties.is,
     translate: (node, datum, translation, context) => {
-        if (QuickDatePriceRangeProperties.is(datum) && QuickMeasurerScene.is(node)) {
+        if (quickDatePriceRangeDatum.is(datum) && QuickMeasurerScene.is(node)) {
             node.translate(datum, translation, context);
         }
     },
     copy: (node, datum, copiedDatum, context) => {
         if (
-            QuickDatePriceRangeProperties.is(datum) &&
-            QuickDatePriceRangeProperties.is(copiedDatum) &&
+            quickDatePriceRangeDatum.is(datum) &&
+            quickDatePriceRangeDatum.is(copiedDatum) &&
             QuickMeasurerScene.is(node)
         ) {
-            return node.copy(datum, copiedDatum, context) as QuickDatePriceRangeProperties;
+            return node.copy(datum, copiedDatum, context);
         }
     },
     update: (node, datum, context) => {
-        if (QuickDatePriceRangeProperties.is(datum) && QuickMeasurerScene.is(node)) {
+        if (quickDatePriceRangeDatum.is(datum) && QuickMeasurerScene.is(node)) {
             node.update(datum, context);
         }
     },
@@ -128,5 +128,5 @@ export const quickDatePriceRangeConfig: AnnotationTypeConfig<QuickDatePriceRange
             ...ctx,
             create: createDatum(AnnotationType.QuickDatePriceRange),
         }),
-    dragState: (ctx) => new DragStateMachine<QuickDatePriceRangeProperties, QuickMeasurerScene>(ctx),
+    dragState: (ctx) => new DragStateMachine<QuickDatePriceRangeDatum, QuickMeasurerScene>(ctx),
 };

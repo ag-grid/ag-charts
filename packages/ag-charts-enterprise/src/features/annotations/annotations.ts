@@ -12,15 +12,17 @@ import {
     type CurrentPoint,
     type DynamicContext,
     type Point,
-    PropertiesArray,
     Vec2,
     addValues,
+    deepClone,
+    generateUUID,
     isUnsupportedColorFormat,
     isValidDate,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
-import { TextInput } from '../text-input/textInput';
+import { TextInput, type TextInputLayout } from '../text-input/textInput';
+import { annotationDatums, getDefaultColor, isHoverable } from './annotationDatums';
 import { AnnotationDefaults } from './annotationDefaults';
 import { AnnotationOptionsToolbar } from './annotationOptionsToolbar';
 import type {
@@ -31,18 +33,22 @@ import type {
     HasLineStyleAnnotationType,
 } from './annotationTypes';
 import { AnnotationType, stringToAnnotationType } from './annotationTypes';
-import { annotationConfigs, getTypedDatum } from './annotationsConfig';
+import { annotationConfigs } from './annotationsConfig';
 import { LINE_STYLE_TYPE_ITEMS } from './annotationsMenuOptions';
 import { AnnotationsStateMachine } from './annotationsStateMachine';
-import type { AnnotationProperties, AnnotationScene as AnnotationSceneUnion } from './annotationsSuperTypes';
+import type { AnnotationDatum, AnnotationScene as AnnotationSceneUnion } from './annotationsSuperTypes';
 import { AnnotationsToolbar } from './annotationsToolbar';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
-import { HorizontalLineProperties, VerticalLineProperties } from './cross-line/crossLineProperties';
+import { calloutDatum } from './callout/calloutDatum';
+import { CalloutScene } from './callout/calloutScene';
+import { horizontalLineDatum, verticalLineDatum } from './cross-line/crossLineDatum';
 import type { AnnotationScene as AnnotationSceneNode } from './scenes/annotationScene';
+import { TextualPointScene } from './scenes/textualPointScene';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
 import { calculateAxisLabelPadding } from './utils/axis';
+import { applyAnnotationOptions, serialiseAnnotation } from './utils/datum';
 import { getGroupingValue } from './utils/scale';
-import { isChannelType, isEphemeralType, isLineType, isMeasurerType } from './utils/types';
+import { isChannelType, isEphemeralType, isLineType, isMeasurerType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
 import { invertCoords } from './utils/values';
@@ -62,7 +68,7 @@ export class Annotations extends AbstractModuleInstance {
     public optionsToolbar = new AnnotationOptionsToolbar(this.ctx, () => {
         const active = this.state.getActive();
         if (active == null) return;
-        return getTypedDatum(this.annotationData.at(active));
+        return this.annotationData.at(active);
     });
 
     public axesButtons: { enabled: boolean; axes: 'x' | 'y' | 'xy' } = { enabled: false, axes: 'y' };
@@ -75,7 +81,7 @@ export class Annotations extends AbstractModuleInstance {
 
     // State
     private readonly state: AnnotationsStateMachine;
-    private readonly annotationData = new PropertiesArray<AnnotationProperties>(Annotations.createAnnotationDatum);
+    private annotationData: AnnotationDatum[] = [];
     private readonly defaults = new AnnotationDefaults();
     private dataModel?: _ModuleSupport.DataModel<any, any>;
     private processedData?: _ModuleSupport.ProcessedData<any>;
@@ -83,7 +89,7 @@ export class Annotations extends AbstractModuleInstance {
     // Elements
     private seriesRect?: _ModuleSupport.BBox;
     private readonly container = new _ModuleSupport.Group({ name: 'static-annotations' });
-    private readonly annotations = new Selection<AnnotationProperties, AnnotationSceneNode<AnnotationProperties>>(
+    private readonly annotations = new Selection<AnnotationDatum, AnnotationSceneNode<AnnotationDatum>>(
         this.container,
         this.createAnnotationScene.bind(this)
     );
@@ -145,7 +151,7 @@ export class Annotations extends AbstractModuleInstance {
                 let hovered: number | undefined;
 
                 this.annotations.each((annotation, datum, index) => {
-                    if (!datum.isHoverable()) return;
+                    if (!isHoverable(datum)) return;
                     const contains = annotation.containsPoint(coords.x, coords.y);
                     if (contains) hovered ??= index;
                     annotation.toggleHovered(contains, active === index, datum.readOnly);
@@ -178,7 +184,7 @@ export class Annotations extends AbstractModuleInstance {
 
             translate: (index: number, translation: Point) => {
                 const node = this.annotations.at(index);
-                const datum = getTypedDatum(this.annotationData.at(index));
+                const datum = this.annotationData.at(index);
                 if (!node || !datum) {
                     return;
                 }
@@ -188,7 +194,7 @@ export class Annotations extends AbstractModuleInstance {
 
             copy: (index: number) => {
                 const node = this.annotations.at(index);
-                const datum = getTypedDatum(this.annotationData.at(index));
+                const datum = this.annotationData.at(index);
                 if (!node || !datum) {
                     return;
                 }
@@ -196,7 +202,7 @@ export class Annotations extends AbstractModuleInstance {
                 return this.createAnnotationDatumCopy(node, datum);
             },
 
-            paste: (datum: AnnotationProperties) => {
+            paste: (datum: AnnotationDatum) => {
                 this.createAnnotation(datum.type, datum, false);
 
                 this.postUpdateFns.push(() => {
@@ -266,7 +272,7 @@ export class Annotations extends AbstractModuleInstance {
                 this.onStartDragging(index);
             },
 
-            create: (type: AnnotationType, datum: AnnotationProperties) => {
+            create: (type: AnnotationType, datum: AnnotationDatum) => {
                 this.createAnnotation(type, datum);
             },
 
@@ -312,9 +318,22 @@ export class Annotations extends AbstractModuleInstance {
             },
 
             showTextInput: (active: number) => {
-                const datum = getTypedDatum(this.annotationData.at(active));
+                const datum = this.annotationData.at(active);
                 const node = this.annotations.at(active);
-                if (!node || !datum || !('getTextInputCoords' in datum) || !('getTextPosition' in datum)) return;
+                const context = this.getAnnotationContext();
+                if (!node || !context || !isTextType(datum)) return;
+
+                let layout: TextInputLayout;
+                let placeholderColor: string | undefined;
+                if (calloutDatum.is(datum)) {
+                    if (!CalloutScene.is(node)) return;
+                    layout = node.getTextInputLayout(datum, context);
+                    placeholderColor = node.getPlaceholderColor(datum);
+                } else {
+                    if (!(node instanceof TextualPointScene)) return;
+                    layout = node.getTextInputLayout(datum, context);
+                    placeholderColor = node.getPlaceholderColor(datum);
+                }
 
                 const styles = {
                     color: datum.color,
@@ -322,27 +341,19 @@ export class Annotations extends AbstractModuleInstance {
                     fontSize: datum.fontSize,
                     fontStyle: datum.fontStyle,
                     fontWeight: datum.fontWeight,
-                    placeholderColor: datum.getPlaceholderColor(),
+                    placeholderColor,
                 };
 
-                const context = this.getAnnotationContext()!;
-
-                const getTextInputCoords = (height: number) =>
-                    Vec2.add(datum.getTextInputCoords(context, height), Vec2.required(this.seriesRect));
-
-                const getTextPosition = () => datum.getTextPosition();
+                const seriesRectOffset = Vec2.required(this.seriesRect);
 
                 this.textInput.show({
                     styles,
                     layout: {
-                        getTextInputCoords,
-                        getTextPosition: getTextPosition,
-                        alignment: datum.alignment,
-                        textAlign: datum.textAlign,
-                        width: datum.width,
+                        ...layout,
+                        getTextInputCoords: (height: number) =>
+                            Vec2.add(layout.getTextInputCoords(height), seriesRectOffset),
                     },
                     text: datum.text,
-                    placeholderText: datum.placeholderText,
                     onChange: (_text, bbox) => {
                         this.state.transition('updateTextInputBBox', bbox);
                     },
@@ -391,7 +402,7 @@ export class Annotations extends AbstractModuleInstance {
                     };
                 const onChangeHideColor = (colorType: AnnotationOptionsColorPickerType) => () => {
                     this.recordActionAfterNextUpdate(
-                        `Change ${datum.type} ${colorType} to ${datum.getDefaultColor(colorType)}`,
+                        `Change ${datum.type} ${colorType} to ${getDefaultColor(datum, colorType)}`,
                         ['annotations', 'defaults']
                     );
                     this.update();
@@ -418,7 +429,7 @@ export class Annotations extends AbstractModuleInstance {
                             this.defaults.setDefaultLineTextPosition(datum.type, props.position);
                         this.recordActionAfterNextUpdate(
                             `Change ${datum.type} text ${Object.keys(props)
-                                .map((key) => `${key} to ${(props as any)[key]}`)
+                                .map((key) => `${key} to ${props[key as keyof typeof props]}`)
                                 .join(', ')}`
                         );
                     },
@@ -588,55 +599,35 @@ export class Annotations extends AbstractModuleInstance {
      * Create an annotation scene within the `this.annotations` scene selection. This method is automatically called by
      * the selection when a new scene is required.
      */
-    private createAnnotationScene(datum: AnnotationProperties) {
-        if (datum.type in annotationConfigs) {
-            return new annotationConfigs[datum.type].scene() as AnnotationSceneNode<AnnotationProperties>;
-        }
-        throw new Error(
-            `AG Charts - Cannot create annotation scene of type [${datum.type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
-        );
+    private createAnnotationScene(datum: AnnotationDatum) {
+        return new annotationConfigs[datum.type].scene() as AnnotationSceneNode<AnnotationDatum>;
     }
 
-    /**
-     * Create an annotation datum within the `this.annotationData` properties array. It is created as an instance
-     * of `AnnotationProperties` from the given config for its type. This method is only called when annotations
-     * are added from the initial state.
-     */
-    private static createAnnotationDatum(this: void, params: { type: AnnotationType }) {
-        if (params.type in annotationConfigs) {
-            return new annotationConfigs[params.type].datum().set(params);
+    /** Build a datum from restored options on top of the type's defaults. */
+    private createAnnotationDatum(options: AgAnnotation): AnnotationDatum {
+        const type = stringToAnnotationType(options.type);
+        if (type == null) {
+            throw new Error(
+                `AG Charts - Cannot create annotation datum of unknown type [${options.type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
+            );
         }
-        throw new Error(
-            `AG Charts - Cannot create annotation datum of unknown type [${params.type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
-        );
+        return applyAnnotationOptions(annotationDatums[type].create(), options);
     }
 
     /**
      * Append an annotation datum to `this.annotationData`, applying default styles. This method is called when a user
      * interacts with the chart to draw their own annotations.
      */
-    private createAnnotation(type: AnnotationType, datum: AnnotationProperties, applyDefaults: boolean = true) {
+    private createAnnotation(type: AnnotationType, datum: AnnotationDatum, applyDefaults: boolean = true) {
         this.annotationData.push(datum);
 
         if (applyDefaults) {
             const styles = this.ctx.annotationManager?.getAnnotationTypeStyles(type);
-            if (styles) datum.set(styles);
+            if (styles) applyAnnotationOptions(datum, styles);
             this.defaults.applyDefaults(datum);
         }
 
-        this.injectDatumDependencies(datum);
-
         this.update();
-    }
-
-    private injectDatumDependencies(datum: AnnotationProperties) {
-        if ('setLocaleManager' in datum) {
-            datum.setLocaleManager(this.ctx.localeManager);
-        }
-
-        if ('getVolume' in datum) {
-            datum.getVolume = this.getDatumRangeVolume.bind(this);
-        }
     }
 
     private getDatumRangeVolume(fromPoint: DataPoint['x'], toPoint: DataPoint['x']) {
@@ -670,44 +661,31 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private translateNode(
-        node: AnnotationSceneNode<AnnotationProperties>,
-        datum: AnnotationProperties,
+        node: AnnotationSceneNode<AnnotationDatum>,
+        datum: AnnotationDatum,
         translation: Point
-    ): AnnotationProperties | undefined {
-        const config = this.getAnnotationConfig(datum);
-
+    ): AnnotationDatum | undefined {
         const context = this.getAnnotationContext();
         if (!context) {
             return;
         }
 
-        config.translate(node, datum, translation, context);
+        annotationConfigs[datum.type].translate(node, datum, translation, context);
     }
 
     private createAnnotationDatumCopy(
-        node: AnnotationSceneNode<AnnotationProperties>,
-        datum: AnnotationProperties
-    ): AnnotationProperties | undefined {
-        const config = this.getAnnotationConfig(datum);
-
-        const newDatum = new config.datum();
-        newDatum.set(datum.toJson());
+        node: AnnotationSceneNode<AnnotationDatum>,
+        datum: AnnotationDatum
+    ): AnnotationDatum | undefined {
+        const newDatum = deepClone(datum);
+        newDatum.id = generateUUID();
 
         const context = this.getAnnotationContext();
         if (!context) {
             return;
         }
 
-        return config.copy(node, datum, newDatum, context);
-    }
-
-    private getAnnotationConfig(datum: AnnotationProperties) {
-        if (datum.type in annotationConfigs) {
-            return annotationConfigs[datum.type];
-        }
-        throw new Error(
-            `AG Charts - Cannot get annotation config of unknown type [${datum.type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
-        );
+        return annotationConfigs[datum.type].copy(node, datum, newDatum, context);
     }
 
     // Annotations are declared `defined` in the chart option defs, so the colour validators that gate every
@@ -741,11 +719,11 @@ export class Annotations extends AbstractModuleInstance {
         try {
             if (canPatchInPlace) {
                 for (let i = 0; i < annotations.length; i += 1) {
-                    this.annotationData[i].set(annotations[i]);
+                    applyAnnotationOptions(this.annotationData[i], annotations[i]);
                 }
             } else {
                 this.reset();
-                this.annotationData.set(annotations);
+                this.annotationData = annotations.map((annotation) => this.createAnnotationDatum(annotation));
             }
         } finally {
             this.isRestoringMemento = false;
@@ -926,7 +904,7 @@ export class Annotations extends AbstractModuleInstance {
         const context = this.getAnnotationContext();
         if (!seriesRect || !context) return;
 
-        annotationManager?.updateData(annotationData.toJson() as AgAnnotation[]);
+        annotationManager?.updateData(annotationData.map(serialiseAnnotation) as AgAnnotation[]);
 
         const showAnnotations = this.showAnnotations();
         this.toolbar.refreshButtonsEnabled(showAnnotations);
@@ -947,7 +925,6 @@ export class Annotations extends AbstractModuleInstance {
                 if ('setAxisLabelVisible' in node) {
                     node.setAxisLabelVisible(true);
                 }
-                this.injectDatumDependencies(datum);
                 updateAnnotation(node, datum, context);
             });
 
@@ -964,8 +941,10 @@ export class Annotations extends AbstractModuleInstance {
         const snap = this.opts.snap ?? false;
         return {
             logger: ctx.logger,
+            localeManager: ctx.localeManager,
             seriesRect,
             isRtl: ctx.domManager.isRtl,
+            getVolume: this.getDatumRangeVolume.bind(this),
             xAxis: {
                 ...xAxis.context,
                 bounds: xAxis.bounds,
@@ -1249,8 +1228,8 @@ export class Annotations extends AbstractModuleInstance {
     // would only cover it.
     private onStartDragging(index: number) {
         const datum = this.annotationData.at(index);
-        const isHorizontal = HorizontalLineProperties.is(datum);
-        if (!isHorizontal && !VerticalLineProperties.is(datum)) return;
+        const isHorizontal = horizontalLineDatum.is(datum);
+        if (!isHorizontal && !verticalLineDatum.is(datum)) return;
         if (!datum.axisLabel.enabled) return;
 
         const axis = isHorizontal ? this.yAxis : this.xAxis;
