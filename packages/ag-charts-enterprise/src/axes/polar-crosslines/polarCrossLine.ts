@@ -2,6 +2,7 @@ import type { AgBaseCrossLineLabelOptions, AgCrossLineListeners } from 'ag-chart
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     BaseProperties,
+    type CanvasPoint,
     ChartAxisDirection,
     type CrossLineLabelOverflow,
     Property,
@@ -14,6 +15,7 @@ import {
 } from 'ag-charts-core';
 
 const {
+    CROSS_LINE_HIT_TOLERANCE,
     getCrossLineValue,
     validateCrossLineValue,
     BandScale,
@@ -23,6 +25,7 @@ const {
     Path,
     RotatableText,
     Sector,
+    Transformable,
 } = _ModuleSupport;
 
 export class PolarCrossLineLabel extends LabelStyle implements AgBaseCrossLineLabelOptions {
@@ -100,8 +103,6 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
     @Property
     label = new PolarCrossLineLabel();
 
-    // Accepted so the shared cross-line options surface validates on polar axes, but never invoked:
-    // polar cross lines are not hit-testable.
     @Property
     listeners?: AgCrossLineListeners<unknown>;
 
@@ -155,6 +156,45 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
         this.axisInnerRadius = layout.axisInnerRadius;
         this.ticks = layout.ticks ?? [];
         this.gridAngles = layout.gridAngles;
+    }
+
+    /** Hit-tests a canvas-space point against the drawn line or fill and the label. */
+    containsPoint(point: CanvasPoint): boolean {
+        const group = this.type === 'range' ? this.rangeGroup : this.lineGroup;
+        if (this.enabled === false || !this.scale || !group.visible) {
+            return false;
+        }
+        const { x, y } = Transformable.fromCanvasPoint(this.crossLineRange, point);
+        const hit = this.type === 'range' ? this.rangeContainsPoint(x, y) : this.lineContainsPoint(x, y);
+        return hit || (this.getLabelBox()?.containsPoint(point.canvasX, point.canvasY) ?? false);
+    }
+
+    private rangeContainsPoint(x: number, y: number): boolean {
+        const node = this.shape === 'circle' ? this.sectorNode : this.polygonNode;
+        return node.visible && (node.isPointInPath(x, y) || this.isWithinTolerance(node, x, y));
+    }
+
+    private lineContainsPoint(x: number, y: number): boolean {
+        if (this.direction === ChartAxisDirection.Angle) {
+            return this.lineNode.visible && this.isWithinTolerance(this.lineNode, x, y);
+        }
+        // A radius line is a ring: the circle is a zero-width sector and the polygon a doubled outline, so
+        // neither has an interior to test and only the distance to the stroke counts.
+        if (this.shape === 'circle') {
+            const { sectorNode: sector } = this;
+            return sector.visible && Math.abs(Math.hypot(x, y) - sector.outerRadius) <= CROSS_LINE_HIT_TOLERANCE;
+        }
+        return this.polygonNode.visible && this.isWithinTolerance(this.polygonNode, x, y);
+    }
+
+    private isWithinTolerance(node: _ModuleSupport.Path, x: number, y: number): boolean {
+        return node.distanceSquared(x, y) <= CROSS_LINE_HIT_TOLERANCE ** 2;
+    }
+
+    getLabelBox(): _ModuleSupport.BBox | undefined {
+        const { label, labelNode } = this;
+        if (label.enabled === false || !label.text || !this.labelGroup.visible || !labelNode.visible) return;
+        return Transformable.toCanvas(labelNode);
     }
 
     update(visible: boolean) {

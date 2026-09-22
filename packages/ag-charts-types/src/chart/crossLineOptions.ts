@@ -4,7 +4,7 @@ import type { AgChartLabelStyleOptions } from './labelOptions';
 import type { AgCssColorOrRef } from './themeParamsOptions';
 import type { AxisValue, ContextDefault, FontFamilyFull, Opacity, PixelSize } from './types';
 
-/** Cross Line listeners. Cartesian charts only. */
+/** Cross Line listeners. */
 export interface AgCrossLineListeners<TContext = ContextDefault> {
     /** The listener to call when the Cross Line is clicked. */
     click?: Listener<AgCrossLineClickEvent<TContext>>;

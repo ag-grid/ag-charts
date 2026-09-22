@@ -172,7 +172,7 @@ class CartesianCrossLineLabel extends LabelStyle implements AgCartesianCrossLine
 type NodeData = [number, number];
 
 /** Pointer hit tolerance in pixels, widening a cross line's line/fill so thin `line` cross lines remain targetable. */
-const CROSS_LINE_HIT_TOLERANCE = 5;
+export const CROSS_LINE_HIT_TOLERANCE = 5;
 
 export class CartesianCrossLine extends BaseProperties implements CrossLine<CartesianCrossLineLabel> {
     static readonly className = 'CrossLine';
