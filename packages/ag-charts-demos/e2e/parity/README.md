@@ -13,17 +13,35 @@ yarn nx test:e2e:parity ag-charts-demos
 The Nx target builds the React app first and `playwright.parity.config.ts` serves `dist/` with
 `vite preview`. With no ports configured the run is **self-parity**: the React app is served on
 ports 4701 and 4702 and compared with itself, which must be pixel-identical. That guards the
-determinism the ports rely on, and is what CI runs until the seeds exist.
+determinism the ports rely on.
 
-| Variable                | Effect                                                                                                                                                                                                    |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PARITY_TARGETS`        | JSON array of `{ "demo", "framework", "baseURL" }`. Each entry is one served port to compare. The run then serves only the reference; the caller serves the ports (for example `vite preview` of a seed). |
-| `PARITY_REFERENCE_URL`  | Where the React reference is served. Defaults to `http://localhost:4701`, which the config starts; set it to use a reference served elsewhere.                                                            |
-| `PARITY_KEEP_ARTEFACTS` | `1` writes the screenshots for passing comparisons too.                                                                                                                                                   |
+| Variable                | Effect                                                                                                                                                                                                                                                                                    |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PARITY_DISCOVER`       | `1` finds every committed port by its `seeds/<demo>/<framework>/.seed-manifest.json` (all but the generated React seed) and serves each one's built `dist` (the manifest's `dist` path) with `serve-dist.mjs` on ports 4710 upwards, in `<demo>/<framework>` order. This is what CI runs. |
+| `PARITY_TARGETS`        | JSON array of `{ "demo", "framework", "baseURL" }`. Each entry is one served port to compare. The run then serves only the reference; the caller serves the ports. Takes precedence over `PARITY_DISCOVER`.                                                                               |
+| `PARITY_REFERENCE_URL`  | Where the React reference is served. Defaults to `http://localhost:4701`, which the config starts; set it to use a reference served elsewhere.                                                                                                                                            |
+| `PARITY_KEEP_ARTEFACTS` | `1` writes the screenshots for passing comparisons too.                                                                                                                                                                                                                                   |
 
-Example, comparing the Angular financial seed served on port 4710:
+### Discovered ports
 
 ```sh
+yarn nx run ag-charts-demos-seeds:build   # every seed's dist
+PARITY_DISCOVER=1 yarn nx test:e2e:parity ag-charts-demos
+```
+
+`targets.ts` (`discoverPorts`) reads the manifests and fails early, naming the seeds, when a
+port has no built `dist`. A new port needs nothing here: commit `seeds/<demo>/<framework>/` with
+its `.seed-manifest.json` (whose `dist` names the seed-relative build output) and it is picked up.
+`serve-dist.mjs` is a static server on Node's `http` and `fs` alone, so it runs inside the CI
+Playwright image without an install: files are served by extension with an SPA fallback to
+`index.html`, and paths escaping the directory are refused.
+
+### Explicit targets
+
+Example, comparing the Angular financial seed served on port 4710 by hand:
+
+```sh
+(cd packages/ag-charts-demos && node e2e/parity/serve-dist.mjs --dir seeds/financial/angular/dist --port 4710) &
 PARITY_TARGETS='[{"demo":"financial","framework":"angular","baseURL":"http://localhost:4710"}]' \
   yarn nx test:e2e:parity ag-charts-demos
 ```

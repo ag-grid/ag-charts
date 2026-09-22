@@ -304,6 +304,7 @@ jobs:
                       packages/*/dist/
                       external/*/dist/
                       packages/ag-charts-website/e2e/generated/
+                      packages/ag-charts-demos/seeds/*/*/dist/
                       !packages/*/dist/**/*.map
 
     lint:
@@ -1364,8 +1365,10 @@ jobs:
               timeout-minutes: 15
 
             # Pixel parity of the framework ports against the React reference, served from the
-            # dist/ the init job built. Until the seeds land (AG-18147 phases 1 and 3) there are no
-            # ports, so this compares the React app with itself and guards its determinism.
+            # dist/ the init job built. PARITY_DISCOVER finds every committed port by its
+            # seeds/<demo>/<framework>/.seed-manifest.json and serves the seed dist/ the init job
+            # built (ag-charts-demos-seeds:build, restored with the init outputs), so a new port
+            # joins this run by committing its manifest.
             - name: playwright parity ag-charts-demos
               id: demos_parity
               if: ${{ !cancelled() }}
@@ -1374,6 +1377,7 @@ jobs:
                     -v "$(pwd)":/data \
                     -w /data/packages/ag-charts-demos \
                     -e CI \
+                    -e PARITY_DISCOVER=1 \
                     ${PLAYWRIGHT_IMAGE} \
                     npx playwright test -c playwright.parity.config.ts
               timeout-minutes: 15
