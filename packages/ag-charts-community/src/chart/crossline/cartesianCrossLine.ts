@@ -171,8 +171,12 @@ class CartesianCrossLineLabel extends LabelStyle implements AgCartesianCrossLine
 
 type NodeData = [number, number];
 
-/** Pointer hit tolerance in pixels, widening a cross line's line/fill so thin `line` cross lines remain targetable. */
-export const CROSS_LINE_HIT_TOLERANCE = 5;
+const CROSS_LINE_MIN_HIT_TOLERANCE = 5;
+
+/** Pointer hit tolerance in pixels: half the stroke, floored so thin `line` cross lines remain targetable. */
+export function crossLineHitTolerance(strokeWidth: number | undefined): number {
+    return Math.max(CROSS_LINE_MIN_HIT_TOLERANCE, (strokeWidth ?? 1) / 2);
+}
 
 export class CartesianCrossLine extends BaseProperties implements CrossLine<CartesianCrossLineLabel> {
     static readonly className = 'CrossLine';
@@ -248,9 +252,9 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
     /**
      * Hit-tests a canvas-space point against this cross line's rendered line/fill and its label, widened
-     * by {@link CROSS_LINE_HIT_TOLERANCE} so thin `line` cross lines remain targetable. The `crossLineRange`
-     * node holds the geometry for both the `line` (stroke) and `range` (fill) variants; its bbox is
-     * transformed into canvas space to match the pointer coordinates carried by pointer events.
+     * by {@link crossLineHitTolerance}. The `crossLineRange` node holds the geometry for both the `line`
+     * (stroke) and `range` (fill) variants; its bbox is transformed into canvas space to match the
+     * pointer coordinates carried by pointer events.
      */
     containsPoint(point: CanvasPoint): boolean {
         const group = this.type === 'range' ? this.rangeGroup : this.lineGroup;
@@ -258,7 +262,8 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             return false;
         }
 
-        const bbox = Transformable.toCanvas(this.crossLineRange).clone().grow(CROSS_LINE_HIT_TOLERANCE);
+        const tolerance = crossLineHitTolerance(this.strokeWidth);
+        const bbox = Transformable.toCanvas(this.crossLineRange).clone().grow(tolerance);
         if (bbox.containsPoint(point.canvasX, point.canvasY)) {
             return true;
         }

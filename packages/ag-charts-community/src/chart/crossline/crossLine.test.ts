@@ -759,6 +759,39 @@ describe('CrossLine', () => {
             );
         });
 
+        test('a thick line widens its hit region to half the stroke width', async () => {
+            const click = vi.fn();
+            const build = (strokeWidth: number) =>
+                fullRangeOptions({
+                    axes: {
+                        x: { type: 'category' },
+                        y: {
+                            type: 'number',
+                            min: FULL_RANGE[0],
+                            max: FULL_RANGE[1],
+                            crossLines: [{ type: 'line', value: 5, strokeWidth, listeners: { click } }],
+                        },
+                    },
+                });
+
+            chart = await createChart(build(20));
+
+            const axis = chart.axes.findById('y')!;
+            const [crossLine] = getCrossLinesPlugin(axis)!.getInstances();
+            const line = Transformable.toCanvas(crossLine.lineGroup);
+            const y = line.y + line.height / 2 - 8;
+            await clickAction(CENTRE_X, y)(chart);
+
+            expect(click).toHaveBeenCalledTimes(1);
+
+            click.mockClear();
+            await chart.publicApi!.update(build(1));
+            await waitForChartStability(chart);
+            await clickAction(CENTRE_X, y)(chart);
+
+            expect(click).not.toHaveBeenCalled();
+        });
+
         test('clicking outside every cross line fires nothing', async () => {
             const click = vi.fn();
             chart = await createChart(

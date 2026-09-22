@@ -15,7 +15,7 @@ import {
 } from 'ag-charts-core';
 
 const {
-    CROSS_LINE_HIT_TOLERANCE,
+    crossLineHitTolerance,
     getCrossLineValue,
     validateCrossLineValue,
     BandScale,
@@ -182,13 +182,14 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
         // neither has an interior to test and only the distance to the stroke counts.
         if (this.shape === 'circle') {
             const { sectorNode: sector } = this;
-            return sector.visible && Math.abs(Math.hypot(x, y) - sector.outerRadius) <= CROSS_LINE_HIT_TOLERANCE;
+            const distance = Math.abs(Math.hypot(x, y) - sector.outerRadius);
+            return sector.visible && distance <= crossLineHitTolerance(this.strokeWidth);
         }
         return this.polygonNode.visible && this.isWithinTolerance(this.polygonNode, x, y);
     }
 
     private isWithinTolerance(node: _ModuleSupport.Path, x: number, y: number): boolean {
-        return node.distanceSquared(x, y) <= CROSS_LINE_HIT_TOLERANCE ** 2;
+        return node.distanceSquared(x, y) <= crossLineHitTolerance(this.strokeWidth) ** 2;
     }
 
     getLabelBox(): _ModuleSupport.BBox | undefined {

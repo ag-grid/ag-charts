@@ -351,6 +351,31 @@ describe('PolarCrossLine listeners', () => {
         expect(listener).toHaveBeenCalledTimes(1);
     });
 
+    it('a thick radius line widens its hit region to half the stroke width', async () => {
+        const listener = vi.fn();
+        const build = (strokeWidth: number) =>
+            polarOptions('polygon', [], [{ type: 'line', value: 5, strokeWidth, listeners: { click: listener } }]);
+        chart = await createEnterpriseChart(build(20));
+
+        const instance = crossLineAt(chart, 'radius');
+        const { scale, axisInnerRadius, axisOuterRadius } = instance;
+        const point = canvasPoint(
+            instance,
+            axisOuterRadius + axisInnerRadius - scale!.convert(5) + 8,
+            instance.gridAngles![0]
+        );
+        await click(chart, point);
+
+        expect(listener).toHaveBeenCalledTimes(1);
+
+        listener.mockClear();
+        await chart.publicApi!.update(prepareEnterpriseTestOptions(build(1)));
+        await waitForChartStability(chart);
+        await click(chart, point);
+
+        expect(listener).not.toHaveBeenCalled();
+    });
+
     it('a near miss on an angle line falls through to the chart `click` listener', async () => {
         const listener = vi.fn();
         const chartClick = vi.fn();
