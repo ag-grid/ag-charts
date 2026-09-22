@@ -127,13 +127,13 @@
         "classification": "zone-wrap",
         "reason": "Context-menu action dispatched from out-of-zone DOM listeners; re-entered into the zone by patchContextMenu."
     },
-    "AgAxisListeners.crossLineClick": {
+    "AgAxisCrossLineListeners.crossLineClick": {
         "classification": "zone-wrap",
-        "reason": "Axis listener; re-entered into the zone by patchChartOptions via patchListeners(axes[<key>].listeners)."
+        "reason": "Axis listener on cartesian and polar axes; re-entered into the zone by patchChartOptions via patchListeners(axes[<key>].listeners)."
     },
-    "AgAxisListeners.crossLineDoubleClick": {
+    "AgAxisCrossLineListeners.crossLineDoubleClick": {
         "classification": "zone-wrap",
-        "reason": "Axis listener; re-entered into the zone by patchChartOptions via patchListeners(axes[<key>].listeners)."
+        "reason": "Axis listener on cartesian and polar axes; re-entered into the zone by patchChartOptions via patchListeners(axes[<key>].listeners)."
     },
     "AgBaseChartListeners.crossLineClick": {
         "classification": "zone-wrap",
