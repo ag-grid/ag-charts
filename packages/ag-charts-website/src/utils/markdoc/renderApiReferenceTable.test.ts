@@ -212,7 +212,7 @@ describe('buildApiReferenceTable', () => {
         expect(propertyPaths(table)).toContain('label.rotation');
     });
 
-    it('renders neither label.position nor label.rotation when LabelType is only a typeParam default', () => {
+    it('renders the base label members but not the Cartesian ones for an angle axis cross-line', () => {
         const reference = makeReference({
             AgAngleLineCrossLineOptions: iface(
                 'AgAngleLineCrossLineOptions',
@@ -222,16 +222,15 @@ describe('buildApiReferenceTable', () => {
                     member('label', 'LabelType'),
                 ],
                 {
-                    typeParams: [
-                        { kind: 'typeParam', name: 'TValue', default: 'AxisValue' },
-                        { kind: 'typeParam', name: 'LabelType', default: 'AgBaseCrossLineLabelOptions' },
-                    ],
+                    typeParams: [{ kind: 'typeParam', name: 'TValue', default: 'AxisValue' }],
                     genericsMap: {
                         TValue: 'AxisValue',
+                        LabelType: 'AgBaseCrossLineLabelOptions',
                         TContext: 'ContextDefault',
                     },
                 }
             ),
+            AgBaseCrossLineLabelOptions: iface('AgBaseCrossLineLabelOptions', [member('text', 'string')]),
             AgCartesianCrossLineLabelOptions: iface('AgCartesianCrossLineLabelOptions', [
                 member('position', 'AgCrossLineLabelPosition'),
                 member('rotation', 'Degree'),
@@ -240,6 +239,7 @@ describe('buildApiReferenceTable', () => {
 
         const table = buildApiReferenceTable(reference, { id: 'AgAngleLineCrossLineOptions' });
 
+        expect(propertyPaths(table)).toContain('label.text');
         expect(propertyPaths(table)).not.toContain('label.position');
         expect(propertyPaths(table)).not.toContain('label.rotation');
     });

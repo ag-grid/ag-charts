@@ -9,8 +9,8 @@ import {
     processMembers,
 } from './apiReferenceHelpers';
 
-// Mirrors how the type generator emits an axis-specific cross-line option: a member-less interface
-// whose single heritage is a union alias, with the per-axis label type supplied via genericsMap.
+// The indirect union form: a member-less interface whose single heritage is a union alias, with the
+// label type supplied via genericsMap. No cross-line type is emitted this way any more; `AnyLeaf` is.
 const reference = new Map<string, any>(
     entries({
         AgCartesianCrossLineOptions: {
@@ -231,7 +231,7 @@ describe('cross-line union navigation (direct union alias)', () => {
             ]);
         });
 
-        it("resolves a variant's label from its own genericsMap, since the alias' genericsMap now carries only TValue/TContext", () => {
+        it("resolves a variant's label from its own genericsMap rather than the alias' genericsMap", () => {
             const union = getAliasedUnionVariants(directUnionCrossLineAlias(), directUnionReference as any)!;
             expect(union.genericsMap).toEqual({ TValue: 'AxisValue', TContext: 'ContextDefault' });
 
