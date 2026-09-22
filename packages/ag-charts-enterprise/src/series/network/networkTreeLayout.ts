@@ -160,7 +160,7 @@ class NetworkTreeVerticalLayout<TVertex, TEdge> extends NetworkDirectionalLayout
         path: _ModuleSupport.ExtendedPath2D,
         parentBBox: TBBox,
         childBBox: TBBox,
-        interpolation: NetworkLinkInterpolation = { type: 'step' },
+        interpolation: NetworkLinkInterpolation,
         options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>
     ) {
         const start = Vec2.from(
@@ -265,7 +265,7 @@ class NetworkTreeHorizontalLayout<TVertex, TEdge> extends NetworkDirectionalLayo
         path: _ModuleSupport.ExtendedPath2D,
         parentBBox: TBBox,
         childBBox: TBBox,
-        interpolation: NetworkLinkInterpolation = { type: 'step' },
+        interpolation: NetworkLinkInterpolation,
         options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>
     ) {
         const start = Vec2.from(

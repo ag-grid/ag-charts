@@ -247,9 +247,9 @@ interface BarPositionedCandidate extends PositionedLabelCandidate {
  * (or unset) has nothing to resolve, so the series keeps its unconditional first-orientation bake
  * and never enters the placement engine — leaving existing charts byte-identical.
  */
-export function barLabelResolvesOrientation(
-    orientation: AgChartLabelOrientation | AgChartLabelOrientation[] | undefined
-): boolean {
+type LabelOrientationOption = AgChartLabelOrientation | AgChartLabelOrientation[];
+
+export function barLabelResolvesOrientation(orientation: LabelOrientationOption | undefined): boolean {
     return Array.isArray(orientation) && orientation.length > 1;
 }
 
@@ -422,7 +422,7 @@ export function barLabelResolvesPlacement(placement: unknown): boolean {
  * the same fit against the bar region on the cheaper baked path.
  */
 export function barLabelUsesPositionedCandidates(
-    orientation: AgChartLabelOrientation | AgChartLabelOrientation[] | undefined,
+    orientation: LabelOrientationOption | undefined,
     placement: unknown,
     alwaysShow: boolean,
     fit: LabelFit | undefined
@@ -440,7 +440,7 @@ export function barLabelUsesPositionedCandidates(
  * label or a fit policy cascades through {@link barLabelUsesPositionedCandidates}.
  */
 export function barLabelRoutesThroughEngine(
-    orientation: AgChartLabelOrientation | AgChartLabelOrientation[] | undefined,
+    orientation: LabelOrientationOption | undefined,
     placement: unknown,
     alwaysShow: boolean,
     fit: LabelFit | undefined
@@ -452,7 +452,7 @@ export function barLabelRoutesThroughEngine(
 
 /** The label-surface fields a routing decision reads, so a caller hands over its label, not four arguments. */
 export interface BarLabelRoutingOptions extends LabelFitOptions {
-    readonly orientation?: AgChartLabelOrientation | AgChartLabelOrientation[];
+    readonly orientation?: LabelOrientationOption;
     readonly placement?: unknown;
     readonly collision: { readonly alwaysShow: boolean };
 }
@@ -484,7 +484,7 @@ export interface BarLabelSource {
     readonly label:
         | (OrientationAnchor & { text: NormalisedTextOrSegments; region?: BoxBounds } & BarLabelTarget)
         | undefined;
-    readonly config: FontOptions & { orientation?: AgChartLabelOrientation | AgChartLabelOrientation[] };
+    readonly config: FontOptions & { orientation?: LabelOrientationOption };
     /** Pre-measured footprint (text plus box padding/border); falls back to measuring `label.text` with `config`. */
     readonly size?: { width: number; height: number };
     /** Resolved obstacle-category toggles for this label, stamped onto the datum. */

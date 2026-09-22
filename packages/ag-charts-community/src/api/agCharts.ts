@@ -534,9 +534,9 @@ class AgChartsInternal {
         node: DeepPartial<AgChartOptions>,
         _parallelNode: DeepPartial<AgChartOptions> | undefined,
         _ctx: unknown,
-        previousModified: boolean | undefined
+        previousModified: boolean | undefined = false
     ): boolean => {
-        let modified = previousModified ?? false;
+        let modified = previousModified;
         if (typeof node !== 'object' || node == null) return modified;
         for (const key of strictObjectKeys(node)) {
             const value = node[key];

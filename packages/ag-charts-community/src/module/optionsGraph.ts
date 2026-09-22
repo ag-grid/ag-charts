@@ -1544,12 +1544,14 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             this.diagramVertex(diagram, vertex as any, 1, maxDepth);
         }
 
-        diagram.push('classDef UO fill: #e8f5e8, stroke: #4caf50');
-        diagram.push('classDef DE fill: #e3f2fd, stroke: #2196f3');
-        diagram.push('classDef DEP fill: #ffe0fd, stroke: #ff00f2');
-        diagram.push('classDef OP fill: #fff3e0, stroke: #ff9800');
-        diagram.push('classDef OPV fill: #fff3e0, stroke: #ff9800, stroke-width: 1px');
-        diagram.push('classDef OV fill: #e8f5ee, stroke: #4caf87');
+        diagram.push(
+            'classDef UO fill: #e8f5e8, stroke: #4caf50',
+            'classDef DE fill: #e3f2fd, stroke: #2196f3',
+            'classDef DEP fill: #ffe0fd, stroke: #ff00f2',
+            'classDef OP fill: #fff3e0, stroke: #ff9800',
+            'classDef OPV fill: #fff3e0, stroke: #ff9800, stroke-width: 1px',
+            'classDef OV fill: #e8f5ee, stroke: #4caf87'
+        );
 
         ambientLog.log(diagram.join('\n'));
     }

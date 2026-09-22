@@ -89,6 +89,10 @@ function toHighlightNodeDatum(series: SeriesType, legendDatum: CategoryLegendDat
     }
 }
 
+function unreachable(_a: never): never {
+    return undefined as never;
+}
+
 export class Legend {
     static readonly className = 'Legend';
 
@@ -1294,10 +1298,6 @@ export class Legend {
         const legendBBox = this.computePagedBBox();
 
         if (this.visible) {
-            function unreachable(_a: never): never {
-                return undefined as never;
-            }
-
             let translationX: number;
             let translationY: number;
             switch (placement) {
@@ -1420,9 +1420,6 @@ export class Legend {
 
         let legendWidth, legendHeight;
 
-        function unreachable(_a: never): never {
-            return undefined as never;
-        }
         switch (placement) {
             case 'top':
             case 'top-left':

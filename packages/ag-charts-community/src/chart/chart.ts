@@ -1531,12 +1531,13 @@ export abstract class Chart implements ModuleInstance, ChartService {
                     this.setCategoryLegendData(initialStateLegend);
                     break;
 
-                case 'gradientLegend':
+                case 'gradientLegend': {
                     const moduleInstance = this.modulesManager.getModule<ChartLegend>('gradientLegend')!;
                     moduleInstance.data = this.series
                         .filter((s) => s.options.showInLegend !== false)
                         .flatMap((s) => s.getLegendData('gradient'));
                     break;
+                }
             }
         }
     }

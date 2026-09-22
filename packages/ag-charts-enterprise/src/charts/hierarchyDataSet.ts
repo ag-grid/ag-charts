@@ -16,7 +16,7 @@ function pushChildren<T>(stack: T[], node: T, childrenKey: string): void {
     if (typeof node === 'object' && node != null) {
         const lenientNode: { [K in string]?: unknown } = node;
         const children: unknown = lenientNode[childrenKey];
-        if (children instanceof Array) {
+        if (Array.isArray(children)) {
             // push to stack in reverse, so that the first child is visited first:
             reversePush(stack, children);
         }
