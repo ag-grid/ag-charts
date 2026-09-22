@@ -182,9 +182,9 @@ const SPEND_PERIOD_SELECT_OPTIONS = SPEND_PERIOD_OPTIONS.map((option) => ({
                     </div>
                 </div>
 
-                <!-- Radix unmounts the content of the tabs that are not selected; only the selected panel renders. -->
-                @if (tab() === 'orders') {
-                    <div pcTabContent class="pc-tab-content" value="orders">
+                <!-- Radix keeps every panel in the DOM, hidden while inactive, and mounts content only into the selected one. -->
+                <div pcTabContent class="pc-tab-content" value="orders">
+                    @if (tab() === 'orders') {
                         <div
                             pcOrdersView
                             [kpis]="kpis()"
@@ -198,11 +198,11 @@ const SPEND_PERIOD_SELECT_OPTIONS = SPEND_PERIOD_OPTIONS.map((option) => ({
                             (clearSelection)="clearSelection()"
                             [canClearSelection]="selectedShipmentId() != null"
                         ></div>
-                    </div>
-                }
+                    }
+                </div>
 
-                @if (tab() === 'suppliers') {
-                    <div pcTabContent class="pc-tab-content" value="suppliers">
+                <div pcTabContent class="pc-tab-content" value="suppliers">
+                    @if (tab() === 'suppliers') {
                         <div
                             pcSuppliersView
                             [rows]="scorecardRows()"
@@ -214,11 +214,11 @@ const SPEND_PERIOD_SELECT_OPTIONS = SPEND_PERIOD_OPTIONS.map((option) => ({
                             [qualityCost]="qualityCost()"
                             [trend]="supplierTrend()"
                         ></div>
-                    </div>
-                }
+                    }
+                </div>
 
-                @if (tab() === 'spend') {
-                    <div pcTabContent class="pc-tab-content" value="spend">
+                <div pcTabContent class="pc-tab-content" value="spend">
+                    @if (tab() === 'spend') {
                         <div
                             pcSpendView
                             [kpis]="spendKpis()"
@@ -231,8 +231,8 @@ const SPEND_PERIOD_SELECT_OPTIONS = SPEND_PERIOD_OPTIONS.map((option) => ({
                             [spendTrend]="spendTrend()"
                             [subcategories]="subcategories"
                         ></div>
-                    </div>
-                }
+                    }
+                </div>
             </div>
         </div>
     `,

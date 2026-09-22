@@ -1,4 +1,4 @@
-import { CdkConnectedOverlay, type ConnectedPosition } from '@angular/cdk/overlay';
+import { CdkConnectedOverlay, type ConnectedOverlayPositionChange, type ConnectedPosition } from '@angular/cdk/overlay';
 import { Component, ElementRef, computed, effect, input, output, signal, viewChild } from '@angular/core';
 
 import type { DailyPoint } from '../data';
@@ -58,12 +58,13 @@ const POPOVER_POSITIONS: ConnectedPosition[] = [
                         [cdkConnectedOverlayOpen]="formOpen()"
                         [cdkConnectedOverlayPositions]="popoverPositions"
                         [cdkConnectedOverlayViewportMargin]="8"
+                        (positionChange)="onPopoverPositionChange($event)"
                         (overlayOutsideClick)="closeEventForm()"
                         (overlayKeydown)="onPopoverKeydown($event)"
                     >
                         <div
                             [id]="popoverId"
-                            data-side="bottom"
+                            [attr.data-side]="popoverSide()"
                             data-align="end"
                             data-state="open"
                             role="dialog"
@@ -166,6 +167,8 @@ export class OverviewView {
     protected readonly lastDay = computed(() => this.daily().at(-1)?.date);
 
     protected readonly formOpen = computed(() => this.formDay() != null);
+    /** The side of the anchor the popover settled on: below unless it had to flip. */
+    protected readonly popoverSide = signal<'bottom' | 'top'>('bottom');
     // The React `key={formDay.getTime()}`: a keyed `@for` over the one open day remounts the form afresh
     // when it reopens on another day.
     protected readonly formDays = computed(() => {
@@ -241,6 +244,10 @@ export class OverviewView {
         const lastDay = this.lastDay();
         if (!this.formOpen() && lastDay) this.openEventForm(lastDay);
         else this.closeEventForm();
+    }
+
+    protected onPopoverPositionChange(change: ConnectedOverlayPositionChange): void {
+        this.popoverSide.set(change.connectionPair.overlayY === 'top' ? 'bottom' : 'top');
     }
 
     /** Radix closes on Escape and hands focus back to the trigger; an outside click closes without it. */
