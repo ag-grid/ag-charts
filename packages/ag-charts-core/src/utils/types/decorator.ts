@@ -14,15 +14,6 @@ interface TransformConfig {
     optional?: boolean;
 }
 
-interface DecoratedObject {
-    [CONFIG_KEY]: Record<string, TransformConfig>;
-}
-
-// Used temporarily while transitioning between options validation methods.
-export function addFakeTransformToInstanceProperty(target: any, propertyKeyOrSymbol: string | symbol) {
-    initialiseConfig(target, propertyKeyOrSymbol).optional = true;
-}
-
 function initialiseConfig(target: any, propertyKeyOrSymbol: string | symbol) {
     if (Object.getOwnPropertyDescriptor(target, CONFIG_KEY) == null) {
         Object.defineProperty(target, CONFIG_KEY, { value: {} });
@@ -150,24 +141,4 @@ export function addObserverToInstanceProperty(setObserver: TransformFn): Propert
     return (target: any, propertyKeyOrSymbol: string | symbol) => {
         initialiseConfig(target, propertyKeyOrSymbol).observers.push(setObserver);
     };
-}
-
-export function isDecoratedObject(target: any): target is DecoratedObject {
-    return target !== undefined && CONFIG_KEY in target;
-}
-
-export function listDecoratedProperties<T>(target: T): (keyof T)[] {
-    const targets = new Set<object>();
-    while (isDecoratedObject(target)) {
-        targets.add(target?.[CONFIG_KEY]);
-        target = Object.getPrototypeOf(target);
-    }
-    return Array.from(targets).flatMap((configMap) => Object.keys(configMap) as (keyof T)[]);
-}
-
-export function extractDecoratedProperties(target: any) {
-    return listDecoratedProperties(target).reduce<Record<string, any>>((result, key) => {
-        result[String(key)] = target[key] ?? null;
-        return result;
-    }, {});
 }
