@@ -105,7 +105,7 @@
       "cache": false,
       "options": {
         "cwd": "{projectRoot}",
-        "command": "node tools/seeds/check-seeds.mjs --react"
+        "command": "node tools/seeds/check-seeds.mjs --react --pins"
       }
     },
     "lint:eslint": {},

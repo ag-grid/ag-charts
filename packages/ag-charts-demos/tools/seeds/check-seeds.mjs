@@ -4,7 +4,15 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 
-import { MANIFEST_FILENAME, SEEDS_DIR, WORKSPACE_ROOT, listFiles, readDemoIds } from './seed-common.mjs';
+import { PIN_COMMAND, describeDrift, findPortPinDrift } from './pin-ports.mjs';
+import {
+    MANIFEST_FILENAME,
+    SEEDS_DIR,
+    WORKSPACE_ROOT,
+    listFiles,
+    readDemoIds,
+    readPinnedChartsVersion,
+} from './seed-common.mjs';
 import { GENERATED_FRAMEWORK, findStalePorts } from './stale-ports.mjs';
 
 /**
@@ -22,7 +30,13 @@ import { GENERATED_FRAMEWORK, findStalePorts } from './stale-ports.mjs';
  * It needs nothing installed: the generator (and its Prettier dependency) is only loaded for
  * `--react`, so the demo-port-sync workflow can run it on a bare checkout.
  *
- * Usage: node tools/seeds/check-seeds.mjs --react
+ * `--pins` fails when a framework port's `ag-charts-*` pins, or its manifest's `pinnedVersion` /
+ * `pinSource`, disagree with the version the seeds install (`readPinnedChartsVersion`), naming
+ * the port and the command that fixes it. The React seed's pins are covered by `--react`.
+ *
+ * `--react` and `--pins` combine; the exit status is non-zero if either fails.
+ *
+ * Usage: node tools/seeds/check-seeds.mjs --react [--pins]
  *        node tools/seeds/check-seeds.mjs --stale [--fail-on-stale]
  */
 
@@ -134,15 +148,34 @@ function reportStale(failOnStale) {
     return failOnStale && stale.length > 0 ? 1 : 0;
 }
 
+function checkPins() {
+    const pin = readPinnedChartsVersion();
+    const drift = findPortPinDrift({ pin });
+    if (drift.length === 0) {
+        console.log(`check-seeds: every port pins ag-charts-* ${pin.pinnedVersion} (${pin.pinSource}).`);
+        return 0;
+    }
+    console.error(`check-seeds: framework ports must pin ag-charts-* ${pin.pinnedVersion} (${pin.pinSource}).\n`);
+    for (const line of describeDrift(drift)) console.error(`  ${line}`);
+    console.error(`\nFix with: ${PIN_COMMAND}`);
+    console.error('then commit the result.');
+    return 1;
+}
+
 async function main(argv) {
-    if (argv.includes('--react')) {
-        return checkReact();
+    const checks = [];
+    if (argv.includes('--react')) checks.push(checkReact);
+    if (argv.includes('--pins')) checks.push(checkPins);
+    if (checks.length > 0) {
+        let status = 0;
+        for (const check of checks) status = Math.max(status, await check());
+        return status;
     }
     if (argv.includes('--stale')) {
         return reportStale(argv.includes('--fail-on-stale'));
     }
     console.error(
-        'check-seeds: pass --react to verify the committed React seeds are fresh, or --stale to report ported seeds behind their golden master.'
+        'check-seeds: pass --react to verify the committed React seeds are fresh, --pins to verify the ports pin the seeds version, or --stale to report ported seeds behind their golden master.'
     );
     return 2;
 }

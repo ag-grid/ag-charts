@@ -33,6 +33,8 @@ done
 
 # The demo seed projects pin ag-charts-* to the released version (exact on a release branch), so regenerate them.
 node ./packages/ag-charts-demos/tools/seeds/generate-react-seed.mjs
+# The framework ports are hand-written rather than generated, so their pins are rewritten in place.
+node ./packages/ag-charts-demos/tools/seeds/pin-ports.mjs
 
 echo >./packages/ag-charts-community/src/version.ts "// DO NOT UPDATE MANUALLY: Generated from script during build time
 export const VERSION = '${NEW_VERSION}';"

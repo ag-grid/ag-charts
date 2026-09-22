@@ -19,7 +19,8 @@ Nothing lists the seeds. Everything that needs to know which seeds there are wal
   in `packages/ag-charts-website/src/components/demo-examples/seedLinks.ts`);
 - the parity harness, with `PARITY_DISCOVER=1`, serves and compares every port with a manifest
   (`e2e/parity/README.md`, "Discovered ports");
-- `check-seeds.mjs --stale` reports every port with a manifest whose `sourceHash` is behind;
+- `check-seeds.mjs --stale` reports every port with a manifest whose `sourceHash` is behind, and
+  `check-seeds.mjs --pins` fails when one pins a different `ag-charts-*` version from the seeds';
 - the post-deploy check `tools/ci/check-demo-seed-links.mjs` verifies that every seed with a
   manifest resolves on GitHub at the ref the deployed site links.
 
@@ -36,8 +37,8 @@ A port's manifest carries:
     "framework": "angular",
     "sourceHash": "sha256-…", // of src/demos/<demo>/** when last synced; written by stamp-port-manifest.mjs
     "sourceCommit": "…", // the commit that last touched src/demos/<demo>; also stamped
-    "pinnedVersion": "14.2.0", // the ag-charts-* version the seed's package.json pins
-    "pinSource": "released", // "workspace" on a release branch, "released" on a pre-release build
+    "pinnedVersion": "14.2.0", // the ag-charts-* version the seed's package.json pins; kept by pin-ports.mjs
+    "pinSource": "released", // "workspace" on a release branch, "released" on a pre-release build; likewise
     "dist": "dist" // the seed-relative build output the parity harness serves
 }
 ```
@@ -58,9 +59,33 @@ available as `yarn nx run ag-charts-demos:generate-seeds`.
 ### `check-seeds.mjs --react`
 
 Regenerates every React seed into a temporary folder and diffs it against the committed one. A
-difference fails the check with a summary of what changed. CI runs it as
-`yarn nx run ag-charts-demos:check-seeds` in the lint job, so a demo change must be committed
-together with its regenerated seed.
+difference fails the check with a summary of what changed. CI runs it, together with `--pins`
+below, as `yarn nx run ag-charts-demos:check-seeds` in the lint job, so a demo change must be
+committed together with its regenerated seed.
+
+### `check-seeds.mjs --pins`
+
+Fails when a framework port's `ag-charts-*` dependencies, or the `pinnedVersion` / `pinSource` in
+its manifest, disagree with the version the seeds install (`readPinnedChartsVersion` in
+`seed-common.mjs`: the workspace version on a release branch, the newest released version
+otherwise). The message names each port and what is off, and the command that fixes it. The React
+seed is not listed: `--react` regenerates it with its pins. Combines with `--react`; the exit status
+is non-zero if either fails.
+
+### `pin-ports.mjs`
+
+Rewrites every framework port to the pinned version: each `ag-charts-*` entry in the port's
+`package.json` (whichever dependency section it is in) and `pinnedVersion` / `pinSource` in its
+`.seed-manifest.json`, inserting the manifest fields after `framework` if a port lacks them. Values
+are replaced in the file text, not re-serialised, so each port keeps its own JSON formatting.
+Reports what it changed; changes nothing when every port is already in step.
+
+`tools/bump-versions.sh` runs it right after regenerating the React seeds, so a version bump moves
+the ports' pins in the same commit. Run it by hand after adding a port, or when `--pins` fails:
+
+```sh
+node packages/ag-charts-demos/tools/seeds/pin-ports.mjs
+```
 
 ### `check-seeds.mjs --stale [--fail-on-stale]`
 
