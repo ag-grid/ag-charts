@@ -344,6 +344,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
     private readonly aggregationManager = new AggregationManager<BarSeriesDataAggregationFilter>();
 
+    private nodeDatumContext: BarSeriesNodeDatumContext | undefined = undefined;
+
     override get pickModeAxis() {
         return this.options.sparklineMode ? 'main' : undefined;
     }
@@ -667,6 +669,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         xAxis: ChartAxis,
         yAxis: ChartAxis
     ): BarSeriesNodeDatumContext | undefined {
+        this.nodeDatumContext = undefined;
+
         const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return undefined;
 
@@ -744,7 +748,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             }
         }
 
-        return {
+        this.nodeDatumContext = {
             dataSource: rawData,
             rawData: rawData.data,
             xValues: dataModel.resolveKeysById(this, 'xValue', processedData),
@@ -807,6 +811,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             labelFit,
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
         };
+        return this.nodeDatumContext;
     }
 
     /**
@@ -2191,7 +2196,43 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     protected computeFocusBounds({ datumIndex }: PickFocusInputs): BBox | undefined {
-        const datumBox = this.contextNodeData?.nodeData[datumIndex].clipBBox;
+        const ctx = this.nodeDatumContext;
+        if (ctx == null || this.processedData?.invalidData?.get(this.id)?.[datumIndex] === true) return undefined;
+
+        const xValue = ctx.xValues[datumIndex];
+        if (xValue === undefined && !this.properties.allowNullKeys) return undefined;
+
+        const yRawValue = ctx.yRawValues[datumIndex];
+        if (yRawValue == null) return undefined;
+
+        // Stacking implies grouped data, so isStacked alone separates the grouped and simple paths.
+        const baseline = zeroLike(yRawValue);
+        const yStart = ctx.isStacked ? (ctx.yStartValues?.[datumIndex] ?? baseline) : baseline;
+        const yEnd = ctx.isStacked ? ctx.yEndValues?.[datumIndex] : yRawValue;
+        if (yEnd == null || !isContinuous(yEnd)) return undefined;
+
+        const yFilterValue = ctx.yFilterValues == null ? undefined : Number(ctx.yFilterValues[datumIndex]);
+        if (yFilterValue != null && !Number.isFinite(yFilterValue)) return undefined;
+
+        const x = this.computeXPosition(ctx, datumIndex);
+        if (!Number.isFinite(x)) return undefined;
+
+        // Cross-filtering draws the filtered value as a narrowed bar inset within the band.
+        const crossScale = yFilterValue != null && yFilterValue > yRawValue ? 0.6 : 1;
+        const currY = yFilterValue == null ? yEnd : Number(yStart) + yFilterValue;
+
+        const y = ctx.yScale.convert(currY);
+        const bottomY = ctx.yScale.convert(yStart);
+        if (!Number.isFinite(y) || !Number.isFinite(bottomY)) return undefined;
+
+        const crossStart = x + ctx.barWidth * 0.5 * (1 - crossScale);
+        const crossWidth = ctx.barWidth * crossScale;
+        const alongStart = Math.min(y, bottomY);
+        const alongLength = Math.abs(bottomY - y);
+
+        const datumBox = ctx.barAlongX
+            ? { x: alongStart, y: crossStart, width: alongLength, height: crossWidth }
+            : { x: crossStart, y: alongStart, width: crossWidth, height: alongLength };
         return computeBarFocusBounds(this, datumBox);
     }
 
