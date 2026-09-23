@@ -61,7 +61,7 @@ const Collapsible: FunctionComponent<Props> = ({
                         Version:
                     </label>
                     <select
-                        value={fixVersion === '' ? versions[0] : fixVersion}
+                        value={fixVersion == null || fixVersion === '' ? versions[0] : fixVersion}
                         aria-label={'Select Release Version'}
                         onChange={(event) => onChange(event.target.value)}
                         // eslint-disable-next-line no-restricted-properties

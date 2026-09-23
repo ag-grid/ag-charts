@@ -283,6 +283,10 @@ export function debugSceneNodeHighlight(ctx: CanvasRenderingContext2D, debugNode
     try {
         for (const [name, node] of Object.entries(debugNodes)) {
             const bbox = Transformable.toCanvas(node);
+            if (bbox == null) {
+                ambientLog.log(`Scene.render() - no bbox for debugged node [${name}].`);
+                continue;
+            }
 
             ctx.globalAlpha = 0.8;
             ctx.strokeStyle = 'red';

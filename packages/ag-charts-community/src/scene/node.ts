@@ -98,7 +98,8 @@ export abstract class Node<TDatum = unknown> {
     static *extractBBoxes(nodes: Iterable<Node>, skipInvisible?: boolean) {
         for (const n of nodes) {
             if (!skipInvisible || (n.visible && !n.transitionOut)) {
-                yield n.getBBox();
+                const bbox = n.getBBox();
+                if (bbox != null) yield bbox;
             }
         }
     }

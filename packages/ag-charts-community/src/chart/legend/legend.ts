@@ -1433,8 +1433,11 @@ export class Legend {
                     aspectRatio < 1
                         ? Math.min(maxCoefficient, minHeightCoefficient * (1 / aspectRatio))
                         : minHeightCoefficient;
-                legendWidth = maxWidth == null ? width : Math.min(maxWidth, width);
-                legendHeight = maxHeight == null ? Math.round(height * heightCoefficient) : Math.min(maxHeight, height);
+                legendWidth = maxWidth == null || maxWidth === 0 ? width : Math.min(maxWidth, width);
+                legendHeight =
+                    maxHeight == null || maxHeight === 0
+                        ? Math.round(height * heightCoefficient)
+                        : Math.min(maxHeight, height);
                 break;
             }
 
@@ -1448,8 +1451,11 @@ export class Legend {
                 // and maximum 25 percent of the chart width if width is smaller than height.
                 const widthCoefficient =
                     aspectRatio > 1 ? Math.min(maxCoefficient, minWidthCoefficient * aspectRatio) : minWidthCoefficient;
-                legendWidth = maxWidth == null ? Math.round(width * widthCoefficient) : Math.min(maxWidth, width);
-                legendHeight = maxHeight == null ? height : Math.min(maxHeight, height);
+                legendWidth =
+                    maxWidth == null || maxWidth === 0
+                        ? Math.round(width * widthCoefficient)
+                        : Math.min(maxWidth, width);
+                legendHeight = maxHeight == null || maxHeight === 0 ? height : Math.min(maxHeight, height);
                 break;
             }
             default:

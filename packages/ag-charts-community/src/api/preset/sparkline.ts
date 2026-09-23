@@ -134,7 +134,7 @@ const tooltipRendererFn = simpleMemorize((tooltip?: AgSparklineTooltip<any>, dat
 
         // Absent renderer or one returning `undefined` falls through to the default content.
         const userTitle = userContent?.title;
-        const hasUserTitle = userTitle != null;
+        const hasUserTitle = userTitle != null && userTitle !== '';
         const content = userContent?.content ?? defaultTooltipContent(xValue, yValue, datumKey, hasUserTitle);
 
         return hasUserTitle

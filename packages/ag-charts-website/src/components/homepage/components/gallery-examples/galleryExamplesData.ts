@@ -53,7 +53,7 @@ async function getUpdateExampleFunction({
         dataJs = dataJs?.replaceAll('\n', replaceNewlineToken);
     }
 
-    const exampleFunction = `() => {${dataJs}${mainJs}}`;
+    const exampleFunction = `() => {${dataJs ?? ''}${mainJs}}`;
 
     return startToken + exampleFunction + endToken;
 }

@@ -194,7 +194,14 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
 
     getLabelBox(): _ModuleSupport.BBox | undefined {
         const { label, labelNode } = this;
-        if (label.enabled === false || !label.text || !this.labelGroup.visible || !labelNode.visible) return;
+        if (
+            label.enabled === false ||
+            label.text == null ||
+            label.text === '' ||
+            !this.labelGroup.visible ||
+            !labelNode.visible
+        )
+            return;
         return Transformable.toCanvas(labelNode);
     }
 

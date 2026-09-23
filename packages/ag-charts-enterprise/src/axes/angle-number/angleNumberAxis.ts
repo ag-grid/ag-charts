@@ -82,8 +82,8 @@ export class AngleNumberAxis extends AngleAxis<AgNumericValue, LinearAngleScale,
         let rawTicks: number[];
         if (values == null) {
             const { arcLength } = scale;
-            const minTickCount = maxSpacing == null ? 1 : Math.floor(arcLength / maxSpacing);
-            const maxTickCount = minSpacing == null ? Infinity : Math.floor(arcLength / minSpacing);
+            const minTickCount = maxSpacing == null || maxSpacing === 0 ? 1 : Math.floor(arcLength / maxSpacing);
+            const maxTickCount = minSpacing == null || minSpacing === 0 ? Infinity : Math.floor(arcLength / minSpacing);
             const preferredTickCount = Math.floor((4 / Math.PI) * Math.abs(requestedRange[0] - requestedRange[1]));
             const tickCount = Math.max(minTickCount, Math.min(maxTickCount, preferredTickCount));
             const tickParams: ScaleTickParams<number> = {
