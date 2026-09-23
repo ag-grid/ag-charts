@@ -18,6 +18,7 @@ import {
     afterNextRender,
     computed,
     contentChildren,
+    effect,
     inject,
     input,
     model,
@@ -694,7 +695,6 @@ export class TabTrigger {
         'data-orientation': 'vertical',
         tabindex: '0',
         '[attr.data-state]': "active() ? 'active' : 'inactive'",
-        '[attr.hidden]': "active() ? null : ''",
         '[attr.aria-labelledby]': 'tabs.triggerId(value())',
         '[id]': 'tabs.contentId(value())',
     },
@@ -703,4 +703,14 @@ export class TabContent {
     readonly value = input.required<string>();
     protected readonly tabs = inject(Tabs);
     protected readonly active = computed(() => this.tabs.value() === this.value());
+
+    private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+
+    constructor() {
+        // `hidden` is not a host binding: Angular applies those only after checking the `@if`
+        // views, so the charts mounted into a newly selected panel would measure it while it was
+        // still hidden. React unhides the panel and mounts the view in one commit, before any chart
+        // is created. A view's effects run before its `@if` views are checked, keeping that order.
+        effect(() => this.host.toggleAttribute('hidden', !this.active()));
+    }
 }

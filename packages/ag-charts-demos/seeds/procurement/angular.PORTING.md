@@ -149,7 +149,10 @@ Each component renders exactly what the Radix primitive renders, minus Radix's p
   `role="tabpanel" data-state="active|inactive" data-orientation="vertical" aria-labelledby id tabindex="0"`,
   `hidden` while inactive. Radix keeps every panel in the DOM and mounts children only into the
   active one, so the app template renders all three panels and mounts each view with an
-  `@if (tab() === '<value>')` inside its panel.
+  `@if (tab() === '<value>')` inside its panel. `hidden` is toggled by an `effect`, not a host
+  binding: Angular applies host bindings only after checking the `@if` views, so the charts in a
+  newly selected panel would be created while it was still hidden and size themselves from a
+  later, fractional measurement (React unhides the panel before any chart in it is created).
 - `ToggleGroup.Root` (single, `rovingFocus`, `loop`) -> `ToggleGroup` on `div[pcToggleGroup]`:
   host `role="radiogroup" dir="ltr" class="pc-toggle-group" aria-label tabindex="0" style="outline: none;"`
   with `<button type="button" data-state="on|off" role="radio" aria-checked class="pc-toggle-item" tabindex>`
