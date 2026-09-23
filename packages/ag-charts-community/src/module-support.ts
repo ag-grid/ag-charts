@@ -323,6 +323,7 @@ export { plotAreaPathFill, prepareAreaFillAnimationFns } from './chart/series/ca
 export { calculateDataDiff } from './chart/series/cartesian/diffUtil';
 export {
     computeMarkerFocusBounds,
+    computeMarkerFocusBoundsOfNodeDatum,
     getMarkerStyles,
     cartesianMarkerDrawMode,
     markerFadeInAnimation,

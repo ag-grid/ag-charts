@@ -184,7 +184,13 @@ export abstract class DataModelSeries<
                 result[1] = mid;
                 upp = mid - 1;
             } /* midNode.datumIndex === opts.datumIndex */ else {
-                return [mid, mid];
+                // Exact match found, but there might be duplicate `datumIndex` entries (e.g. range-area), so search for
+                // the 1st duplicate:
+                let firstIdx = mid;
+                while (firstIdx > 0 && nodeData[firstIdx - 1].datumIndex === opts.datumIndex) {
+                    firstIdx--;
+                }
+                return [firstIdx, firstIdx];
             }
         }
         return result;

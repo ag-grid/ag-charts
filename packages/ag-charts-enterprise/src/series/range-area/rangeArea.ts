@@ -93,7 +93,7 @@ const {
     animationValidation,
     diff,
     updateClipPath,
-    computeMarkerFocusBounds,
+    computeMarkerFocusBoundsOfNodeDatum,
     plotAreaPathFill,
     plotLinePathStroke,
     interpolatePoints,
@@ -1831,8 +1831,13 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
-        const hiBox = computeMarkerFocusBounds(this, opts);
-        const loBox = computeMarkerFocusBounds(this, { ...opts, datumIndex: opts.datumIndex + 1 });
+        const nodeData = this.contextNodeData?.nodeData;
+        if (nodeData == null) return undefined;
+
+        const hiIndex = nodeData.findIndex((node) => node.datumIndex === opts.datumIndex);
+        const loIndex = hiIndex === -1 ? -1 : hiIndex + 1;
+        const hiBox = computeMarkerFocusBoundsOfNodeDatum(this, nodeData[hiIndex]);
+        const loBox = computeMarkerFocusBoundsOfNodeDatum(this, nodeData[loIndex]);
         if (hiBox && loBox) {
             return BBox.merge([hiBox, loBox]);
         }

@@ -146,7 +146,7 @@ interface MarkerNodeDatum extends SeriesNodeDatum {
 }
 
 interface MarkerSeries<TDatum extends MarkerNodeDatum> extends ISeries<TDatum, ISeriesOptions, unknown> {
-    getNodeData(): { [index: number]: TDatum | undefined } | undefined;
+    getNodeData(): { find(predicate: (elem: TDatum) => boolean): TDatum | undefined } | undefined;
     getFormattedMarkerStyle(datum: TDatum): { size: number; shape?: AgMarkerShape };
 }
 
@@ -157,7 +157,14 @@ export function computeMarkerFocusBounds<TDatum extends MarkerNodeDatum>(
     const nodeData = series.getNodeData();
     if (nodeData === undefined) return undefined;
 
-    const datum = nodeData[datumIndex];
+    const nodeDatum = nodeData.find((n) => n.datumIndex === datumIndex);
+    return computeMarkerFocusBoundsOfNodeDatum(series, nodeDatum);
+}
+
+export function computeMarkerFocusBoundsOfNodeDatum<TDatum extends MarkerNodeDatum>(
+    series: MarkerSeries<TDatum>,
+    datum: TDatum | undefined
+): BBox | undefined {
     const { point } = datum ?? {};
     if (datum == null || point == null) return undefined;
 
