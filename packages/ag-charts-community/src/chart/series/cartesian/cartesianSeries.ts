@@ -818,7 +818,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             return this.pickFocus({ datumIndex: 0, datumIndexDelta: 0, otherIndex, otherIndexDelta: 0 });
         }
         if (where === 'data-end') {
-            const end = this.contextNodeData.nodeData.length - 1;
+            const end = this.dataCount() - 1;
             return this.pickFocus({ datumIndex: end, datumIndexDelta: 0, otherIndex, otherIndexDelta: 0 });
         }
 
