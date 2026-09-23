@@ -105,7 +105,7 @@ export class LogScale extends ContinuousScale<number> {
         let p1 = this.log(stop);
 
         let intervalIgnored: boolean | undefined;
-        if (interval != null) {
+        if (interval != null && interval !== 0 && !Number.isNaN(interval)) {
             const inBounds = (tick: number) => tick >= start && tick <= stop;
             const step = Math.min(Math.abs(interval), Math.abs(p1 - p0));
             const { ticks: rangeTicks, count, firstTickIndex } = range(p0, p1, step, visibleRange);

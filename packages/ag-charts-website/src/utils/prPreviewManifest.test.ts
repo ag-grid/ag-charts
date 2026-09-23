@@ -167,7 +167,7 @@ describe('buildPrPreviewPlan', () => {
 
         for (const [packageName, { version }] of Object.entries(manifest.packages)) {
             const url = importMap[packageName];
-            if (url !== '') {
+            if (url != null && url !== '') {
                 expect(url, packageName).satisfies((value: string) =>
                     value.startsWith(`${NPM_CDN}/${packageName}@${version}/`)
                 );
