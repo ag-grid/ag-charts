@@ -13,15 +13,19 @@ import { findStalePorts } from './stale-ports.mjs';
  * Files the JIRA work item that gets stale demo ports re-synced, from the demo-port-sync
  * workflow after a push to `latest` changed a React demo.
  *
- * 1. Derives the ticket the change belongs to from the pushed commit range: commit subjects
- *    filed under a key per git-conventions, then any key mentioned in a commit message (merge
- *    commits carry the branch name), then the merged PRs' branch names. A Sub-task resolves to
- *    its parent; an Epic gets a Task rather than a Sub-task. With no key at all, a Task is filed
- *    under the showcase epic AG-17737.
- * 2. If that parent already has an open "Sync demo ports" issue, comments on it with the new
- *    source commit and stops. It is never re-transitioned: a run may be in flight, and the agent
- *    reads repository state at the start of its next run anyway.
- * 3. Otherwise creates the issue (component Charts, Track Housekeeping, label `ai-eligible`, an
+ * 1. One sync issue is open at a time. Staleness is repository-wide (every push while a port is
+ *    behind reports it again), so if any open "Sync demo ports" issue exists, whatever it is
+ *    filed under, this comments on it with the new commit range and the current stale ports and
+ *    files nothing. An issue already under way is not re-transitioned: a run may be in flight,
+ *    and the agent reads repository state at the start of its next run anyway. An issue still in
+ *    a To Do status is transitioned to In Progress as well, since that is what dispatches the
+ *    agent and a previous run may have created it but failed to transition it.
+ * 2. Otherwise derives the ticket the change belongs to from the pushed commit range: commit
+ *    subjects filed under a key per git-conventions, then any key mentioned in a commit message
+ *    (merge commits carry the branch name), then the merged PRs' branch names. A Sub-task
+ *    resolves to its parent; an Epic gets a Task rather than a Sub-task. With no key at all, a
+ *    Task is filed under the showcase epic AG-17737.
+ * 3. Creates the issue there (component Charts, Track Housekeeping, label `ai-eligible`, an
  *    ADF description with the stale ports, the commit range, each port's PORTING.md, the
  *    re-stamp command and the parity gate as acceptance criteria) and transitions it to
  *    In Progress. That transition is what the JIRA automation rule listens for: it dispatches
@@ -53,6 +57,8 @@ export const AI_ELIGIBLE_LABEL = 'ai-eligible';
 /** The phrase the dedupe JQL keys on; every summary this script writes contains it. */
 export const SUMMARY_MARKER = 'Sync demo ports';
 export const IN_PROGRESS = 'In Progress';
+/** The status category key JIRA gives every To Do-like status, whatever the workflow names it. */
+export const TO_DO_CATEGORY = 'new';
 /** The pushed paths that make a commit relevant to the derived ticket. */
 export const DEMOS_SOURCE_PATH = 'packages/ag-charts-demos/src';
 const SEEDS_PATH = 'packages/ag-charts-demos/seeds';
@@ -205,16 +211,25 @@ export async function resolveTarget(jira, derivedKey) {
     return { issueType: 'Sub-task', parentKey, reason: `${parentKey} is a ${issuetype.name}${state}${via}` };
 }
 
-export function syncIssueJql(parentKey) {
-    return `parent = ${parentKey} AND summary ~ "${SUMMARY_MARKER}" AND statusCategory != Done`;
+/**
+ * Every open sync issue in the project, oldest first. Not scoped to a parent or a component: the
+ * stale ports are the same whichever ticket a push derives, so one open issue covers them all,
+ * including one a person filed by hand. Built only from
+ * this module's constants; nothing from a commit or the environment reaches it.
+ */
+export function syncIssueJql() {
+    return `project = ${PROJECT_KEY} AND summary ~ "${SUMMARY_MARKER}" AND statusCategory != Done ORDER BY created ASC`;
 }
 
-/** The open sync issue already under `parentKey`, or null. Null in a dry run too: nothing was asked. */
-export async function findOpenSyncIssue(jira, parentKey) {
+/**
+ * The oldest open sync issue, or null. `~` is a word search, so a match must also carry the
+ * marker phrase verbatim in its summary. Null in a dry run too: nothing was asked.
+ */
+export async function findOpenSyncIssue(jira) {
     const result = await jira.request('GET', '/search/jql', {
-        query: { jql: syncIssueJql(parentKey), fields: 'summary,status', maxResults: '10' },
+        query: { jql: syncIssueJql(), fields: 'summary,status', maxResults: '50' },
     });
-    return result?.issues?.[0] ?? null;
+    return (result?.issues ?? []).find((issue) => issue.fields?.summary?.includes(SUMMARY_MARKER)) ?? null;
 }
 
 /**
@@ -276,6 +291,9 @@ const portingPath = ({ demo, framework }) => `${SEEDS_PATH}/${demo}/${framework}
 const stampCommand = ({ demo, framework }) =>
     `node packages/ag-charts-demos/tools/seeds/stamp-port-manifest.mjs ${demo} ${framework}`;
 
+const commitItems = (commits) =>
+    bulletList(commits.map((commit) => listItem(paragraph(text(`${short(commit.sha)} ${commit.subject}`)))));
+
 function stalePortItems(stale) {
     return stale.map((port) =>
         listItem(
@@ -307,7 +325,7 @@ export function buildDescription({ stale, commits, compareUrl, shortSha, runUrl 
         ),
         bulletList(stalePortItems(stale)),
         paragraph(text('Source commit range: '), link(compareUrl, compareUrl)),
-        bulletList(commits.map((commit) => listItem(paragraph(text(`${short(commit.sha)} ${commit.subject}`))))),
+        commitItems(commits),
         paragraph(text('Once a port is in step, record it (and commit the manifest with the port):')),
         codeBlock(stale.map(stampCommand).join('\n')),
         heading('Acceptance Criteria'),
@@ -343,18 +361,22 @@ export function buildDescription({ stale, commits, compareUrl, shortSha, runUrl 
     );
 }
 
-/** The comment left on an open sync issue when the source moves again. */
-export function buildCommentBody({ stale, compareUrl, shortSha, runUrl }) {
+/**
+ * The comment left on the open sync issue when the source moves again: the new commit range and
+ * the full current stale list, which supersedes the one in the description. `restarting` says
+ * whether this run also moves the issue to In Progress.
+ */
+export function buildCommentBody({ stale, commits = [], compareUrl, shortSha, runUrl, restarting = false }) {
     return doc(
-        paragraph(
-            text(`The React demo source moved again, to ${shortSha} (`),
-            link('compare', compareUrl),
-            text('). Sync these ports to it:')
-        ),
+        paragraph(text(`The React demo source moved again, to ${shortSha}. These ports are stale now:`)),
         bulletList(stalePortItems(stale)),
+        paragraph(text('New source commit range: '), link(compareUrl, compareUrl)),
+        ...(commits.length ? [commitItems(commits)] : []),
         paragraph(
             text(
-                'Not re-transitioned: a run may be in flight, and the agent reads the repository at the start of its next run. '
+                restarting
+                    ? `Moved to ${IN_PROGRESS}: the issue had not started, so this dispatches the AI Workflow. `
+                    : 'Not re-transitioned: it is already under way, a run may be in flight, and the agent reads the repository at the start of its next run. '
             ),
             link('CI run', runUrl)
         )
@@ -367,11 +389,15 @@ export function buildCommentBody({ stale, compareUrl, shortSha, runUrl }) {
  * A minimal REST client. `request(method, path, { query, body })` resolves `path` under `baseUrl`
  * and returns the parsed JSON (null for 204). In a dry run it logs the request instead and
  * returns null, so callers treat null as "unknown".
+ *
+ * `path` is appended to `baseUrl` even when written with a leading slash: plain URL resolution
+ * would take `/issue` back to the origin and drop a base path such as JIRA's `/rest/api/3/`.
  */
 export function createRestClient({ baseUrl, headers, dryRun = false, log = console.log, fetchImpl = fetch, label }) {
+    const base = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
     return {
         async request(method, path, { query, body } = {}) {
-            const url = new URL(path, baseUrl);
+            const url = new URL(path.replace(/^\/+/, ''), base);
             for (const [name, value] of Object.entries(query ?? {})) url.searchParams.set(name, value);
             if (dryRun) {
                 const rendered = body === undefined ? '' : `\n${JSON.stringify(body, null, 2)}`;
@@ -395,12 +421,13 @@ export function createRestClient({ baseUrl, headers, dryRun = false, log = conso
     };
 }
 
-export function createJiraClient({ siteUrl, email, apiToken, dryRun, log }) {
+export function createJiraClient({ siteUrl, email, apiToken, dryRun, log, fetchImpl }) {
     return createRestClient({
         label: 'JIRA',
         baseUrl: new URL('/rest/api/3/', siteUrl).toString(),
         dryRun,
         log,
+        fetchImpl,
         headers: () => {
             if (!email || !apiToken) throw new Error('JIRA_EMAIL and JIRA_API_TOKEN are required outside --dry-run');
             return { Authorization: `Basic ${Buffer.from(`${email}:${apiToken}`).toString('base64')}` };
@@ -408,12 +435,13 @@ export function createJiraClient({ siteUrl, email, apiToken, dryRun, log }) {
     });
 }
 
-export function createGithubClient({ repository, token, dryRun, log }) {
+export function createGithubClient({ repository, token, dryRun, log, fetchImpl }) {
     const client = createRestClient({
         label: 'GitHub',
         baseUrl: 'https://api.github.com',
         dryRun,
         log,
+        fetchImpl,
         headers: () => ({
             Authorization: `Bearer ${token}`,
             Accept: 'application/vnd.github+json',
@@ -426,8 +454,9 @@ export function createGithubClient({ repository, token, dryRun, log }) {
 // ---------------------------------------------------------------- orchestration
 
 /**
- * Runs the whole decision for one push. Returns `{ action: 'none' | 'commented' | 'created',
- * key, parentKey, issueType, derived }` and logs each step through `log`.
+ * Runs the whole decision for one push. Returns `{ action: 'none' }`, `{ action: 'commented',
+ * key, transitioned }` or `{ action: 'created', key, parentKey, issueType, derived }`, and logs
+ * each step through `log`.
  */
 export async function run({
     stale,
@@ -453,6 +482,22 @@ export async function run({
     log(`Stale ports: ${stale.map((port) => `${port.demo}/${port.framework}`).join(', ')}`);
     log(`Commits in the push: ${rangeCommits.length}, touching ${DEMOS_SOURCE_PATH}: ${commits.length}`);
 
+    const existing = await findOpenSyncIssue(jira);
+    if (existing) {
+        const status = existing.fields?.status;
+        const restarting = status?.statusCategory?.key === TO_DO_CATEGORY;
+        log(
+            `${existing.key} is already open (${status?.name ?? 'status unknown'}); commenting${restarting ? ` and moving it to ${IN_PROGRESS}` : ''}.`
+        );
+        const body = buildCommentBody({ stale, commits, compareUrl, shortSha, runUrl, restarting });
+        await jira.request('POST', `/issue/${existing.key}/comment`, { body: { body } });
+        if (restarting) {
+            const transitionId = await transitionTo(jira, existing.key, IN_PROGRESS);
+            log(`Transitioned ${existing.key} to ${IN_PROGRESS} (transition ${transitionId}).`);
+        }
+        return { action: 'commented', key: existing.key, transitioned: restarting };
+    }
+
     let derived = deriveTicketKey({ commits, rangeCommits });
     if (!derived.key && github) {
         const branchNames = await readMergedBranchNames(commits, github);
@@ -462,14 +507,6 @@ export async function run({
 
     const target = await resolveTarget(jira, derived.key);
     log(`Target: ${target.issueType} under ${target.parentKey} (${target.reason}).`);
-
-    const existing = await findOpenSyncIssue(jira, target.parentKey);
-    if (existing) {
-        log(`${existing.key} is already open (${existing.fields?.status?.name ?? 'status unknown'}); commenting.`);
-        const body = buildCommentBody({ stale, compareUrl, shortSha, runUrl });
-        await jira.request('POST', `/issue/${existing.key}/comment`, { body: { body } });
-        return { action: 'commented', key: existing.key, ...target, derived };
-    }
 
     const summary = buildSummary(stale, shortSha);
     const description = buildDescription({ stale, commits, compareUrl, shortSha, runUrl });

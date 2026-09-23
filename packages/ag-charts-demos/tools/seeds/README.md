@@ -152,16 +152,19 @@ none. It reads `CURRENT_SHA`, `BEFORE_SHA`, `RUN_URL`, `GITHUB_REPOSITORY`, `GIT
    now behind, and that a Sub-task will follow after merge. Nothing blocks.
 2. The PR merges to `latest`. `.github/workflows/demo-port-sync.yml` runs the stale report and,
    if anything is listed, `create-port-sync-subtask.mjs`:
-    - The JIRA key comes from the pushed commit range: subjects filed under a key
+    - One sync issue is open at a time. If any open "Sync demo ports" issue exists in project AG,
+      whatever it is filed under, the script comments on it with the new commit range and the
+      current stale ports, and files nothing. An issue already under way is not re-transitioned:
+      a run may be in flight, and the agent reads the repository at the start of its next run. An
+      issue still in To Do is moved to In Progress as well, so a run that created it but failed to
+      transition it is retried by the next push.
+    - Otherwise the JIRA key comes from the pushed commit range: subjects filed under a key
       (`AG-12345 …`), then any key mentioned in a commit message (merge commits carry the branch
       name), then the merged PRs' branch names (`ghabot-ag-12345-…`, `ag-12345/…`). A Sub-task
       resolves to its parent; an Epic gets a Task rather than a Sub-task. With no key at all, or
       when the parent is Done (a Sub-task under a closed parent never appears on the board), a
       Task is filed under the showcase epic AG-17737.
-    - If that parent already has an open "Sync demo ports" issue, the script comments on it with
-      the new source commit and the stale ports, and stops. It is never re-transitioned: a run
-      may be in flight, and the agent reads the repository at the start of its next run.
-    - Otherwise it creates the issue (summary `[Charts] Sync demo ports: <demo> to <shortsha>`,
+    - It creates the issue (summary `[Charts] Sync demo ports: <demo> to <shortsha>`,
       component Charts, Track Housekeeping, label `ai-eligible`) with a description listing the
       stale ports, the commit range, each port's `PORTING.md`, the stamp command and the
       acceptance criteria, then transitions it to In Progress. That transition fires the JIRA

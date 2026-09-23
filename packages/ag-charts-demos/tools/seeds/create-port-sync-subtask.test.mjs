@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
     AI_ELIGIBLE_LABEL,
@@ -8,6 +8,8 @@ import {
     branchTicketKeys,
     buildCreateFields,
     buildSummary,
+    createGithubClient,
+    createJiraClient,
     deriveTicketKey,
     findOpenSyncIssue,
     resolveTarget,
@@ -235,24 +237,38 @@ describe('resolveTarget', () => {
 });
 
 describe('findOpenSyncIssue', () => {
-    it('searches with the dedupe JQL and returns the first open match', async () => {
+    it('searches the whole project, not one parent, and returns the oldest open match', async () => {
         const jira = fakeJira({
             'GET /search/jql': {
-                issues: [{ key: 'AG-18300', fields: { summary: '[Charts] Sync demo ports: financial to 1234' } }],
+                issues: [
+                    { key: 'AG-18300', fields: { summary: '[Charts] Sync demo ports: financial to 1234' } },
+                    { key: 'AG-18310', fields: { summary: '[Charts] Sync demo ports: procurement to 5678' } },
+                ],
             },
         });
-        await expect(findOpenSyncIssue(jira, 'AG-18147')).resolves.toMatchObject({ key: 'AG-18300' });
-        expect(jira.calls[0].query.jql).toBe(
-            'parent = AG-18147 AND summary ~ "Sync demo ports" AND statusCategory != Done'
-        );
-        expect(syncIssueJql(FALLBACK_EPIC)).toBe(
-            'parent = AG-17737 AND summary ~ "Sync demo ports" AND statusCategory != Done'
-        );
+        await expect(findOpenSyncIssue(jira)).resolves.toMatchObject({ key: 'AG-18300' });
+        const expectedJql =
+            'project = AG AND summary ~ "Sync demo ports" AND statusCategory != Done ORDER BY created ASC';
+        expect(jira.calls[0].query.jql).toBe(expectedJql);
+        expect(syncIssueJql()).toBe(expectedJql);
+        expect(expectedJql).not.toContain('parent');
+    });
+
+    it('skips a word-search match whose summary lacks the marker phrase', async () => {
+        const jira = fakeJira({
+            'GET /search/jql': {
+                issues: [
+                    { key: 'AG-100', fields: { summary: 'Demo: sync the ports list' } },
+                    { key: 'AG-18300', fields: { summary: '[Charts] Sync demo ports: financial to 1234' } },
+                ],
+            },
+        });
+        await expect(findOpenSyncIssue(jira)).resolves.toMatchObject({ key: 'AG-18300' });
     });
 
     it('returns null when nothing is open, or when nothing was asked', async () => {
-        await expect(findOpenSyncIssue(fakeJira({ 'GET /search/jql': { issues: [] } }), 'AG-1')).resolves.toBeNull();
-        await expect(findOpenSyncIssue(fakeJira(), 'AG-1')).resolves.toBeNull();
+        await expect(findOpenSyncIssue(fakeJira({ 'GET /search/jql': { issues: [] } }))).resolves.toBeNull();
+        await expect(findOpenSyncIssue(fakeJira())).resolves.toBeNull();
     });
 });
 
@@ -280,6 +296,38 @@ describe('transitionTo', () => {
             'AG-1 has no "In Progress" transition; available: Done'
         );
         expect(jira.calls).toHaveLength(1);
+    });
+});
+
+describe('clients', () => {
+    it('sends JIRA requests under /rest/api/3/, whatever the leading slash', async () => {
+        const fetchImpl = vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ key: 'AG-1' }) }));
+        const jira = createJiraClient({
+            siteUrl: 'https://example.atlassian.net',
+            email: 'bot@example.com',
+            apiToken: 'token',
+            fetchImpl,
+        });
+
+        await expect(jira.request('POST', '/issue', { body: { fields: {} } })).resolves.toEqual({ key: 'AG-1' });
+        await jira.request('GET', '/search/jql', { query: { jql: 'project = AG' } });
+
+        const [[createUrl, createInit], [searchUrl]] = fetchImpl.mock.calls;
+        expect(String(createUrl)).toBe('https://example.atlassian.net/rest/api/3/issue');
+        expect(createInit).toMatchObject({ method: 'POST', body: '{"fields":{}}' });
+        expect(createInit.headers.Authorization).toBe(
+            `Basic ${Buffer.from('bot@example.com:token').toString('base64')}`
+        );
+        expect(String(searchUrl)).toBe('https://example.atlassian.net/rest/api/3/search/jql?jql=project+%3D+AG');
+    });
+
+    it('sends GitHub requests to the API root', async () => {
+        const fetchImpl = vi.fn(async () => ({ ok: true, status: 200, json: async () => [] }));
+        const github = createGithubClient({ repository: 'ag-grid/ag-charts', token: 't', fetchImpl });
+        await github.request('GET', '/repos/ag-grid/ag-charts/commits/abc/pulls');
+        expect(String(fetchImpl.mock.calls[0][0])).toBe(
+            'https://api.github.com/repos/ag-grid/ag-charts/commits/abc/pulls'
+        );
     });
 });
 
@@ -340,8 +388,8 @@ describe('run', () => {
             issueType: 'Sub-task',
         });
         expect(jira.calls.map(({ method, path }) => `${method} ${path}`)).toEqual([
-            'GET /issue/AG-18147',
             'GET /search/jql',
+            'GET /issue/AG-18147',
             'POST /issue',
             'GET /issue/AG-18300/transitions',
             'POST /issue/AG-18300/transitions',
@@ -361,23 +409,63 @@ describe('run', () => {
         expect(fields.description.content[0]).toMatchObject({ type: 'heading', attrs: { level: 1 } });
     });
 
-    it('comments on an open sync issue instead of creating or transitioning', async () => {
+    const openIssue = (key, name, category, summary = '[Charts] Sync demo ports: financial to 1234') => ({
+        issues: [{ key, fields: { summary, status: { name, statusCategory: { key: category } } } }],
+    });
+
+    it('comments on an open sync issue that is under way, without creating or transitioning', async () => {
+        const jira = fakeJira({ 'GET /search/jql': openIssue('AG-18300', 'In Progress', 'indeterminate') });
+
+        const result = await run({ ...base, jira });
+
+        expect(result).toEqual({ action: 'commented', key: 'AG-18300', transitioned: false });
+        expect(jira.calls.map(({ method, path }) => `${method} ${path}`)).toEqual([
+            'GET /search/jql',
+            'POST /issue/AG-18300/comment',
+        ]);
+        const rendered = JSON.stringify(jira.calls[1].body.body);
+        expect(rendered).toContain('moved again, to e4340dd5');
+        expect(rendered).toContain('Not re-transitioned');
+        expect(rendered).toContain('compare/520e6e753b23a914604858cd5c557f38d6de69f8...e4340dd598');
+        expect(rendered).toContain('abcdef01 AG-18147 Add a deterministic mode to the financial demo data');
+        expect(rendered).toContain('financial/angular');
+        expect(rendered).toContain('financial/vue');
+    });
+
+    it('comments on an open sync issue under another parent rather than filing a second one', async () => {
         const jira = fakeJira({
-            'GET /issue/AG-18147': { fields: { issuetype: { name: 'Task', subtask: false } } },
-            'GET /search/jql': { issues: [{ key: 'AG-18300', fields: { status: { name: 'In Progress' } } }] },
+            'GET /search/jql': openIssue(
+                'AG-18310',
+                'In Progress',
+                'indeterminate',
+                '[Charts] Sync demo ports: web-analytics to 9999'
+            ),
+        });
+
+        const result = await run({ ...base, commits: [commit('AG-18999 Restyle the order book')], jira });
+
+        expect(result).toMatchObject({ action: 'commented', key: 'AG-18310' });
+        expect(jira.calls.some(({ method, path }) => method === 'POST' && path === '/issue')).toBe(false);
+        expect(jira.calls.some(({ path }) => path === '/issue/AG-18999')).toBe(false);
+    });
+
+    it('also moves an open sync issue still in To Do to In Progress, so a failed transition is retried', async () => {
+        const jira = fakeJira({
+            'GET /search/jql': openIssue('AG-18300', 'To Do', 'new'),
+            'GET /issue/AG-18300/transitions': { transitions: [{ id: '21', name: 'In Progress' }] },
         });
 
         const result = await run({ ...base, jira });
 
-        expect(result).toMatchObject({ action: 'commented', key: 'AG-18300' });
+        expect(result).toEqual({ action: 'commented', key: 'AG-18300', transitioned: true });
         expect(jira.calls.map(({ method, path }) => `${method} ${path}`)).toEqual([
-            'GET /issue/AG-18147',
             'GET /search/jql',
             'POST /issue/AG-18300/comment',
+            'GET /issue/AG-18300/transitions',
+            'POST /issue/AG-18300/transitions',
         ]);
-        const rendered = JSON.stringify(jira.calls[2].body.body);
-        expect(rendered).toContain('moved again, to e4340dd5');
-        expect(rendered).toContain('Not re-transitioned');
+        expect(jira.calls[3].body).toEqual({ transition: { id: '21' } });
+        expect(JSON.stringify(jira.calls[1].body.body)).toContain('Moved to In Progress');
     });
 
     it('consults merged PR branches only when the commits name no ticket, then files under that ticket', async () => {
@@ -420,14 +508,13 @@ describe('run', () => {
 
         expect(result).toMatchObject({ action: 'created', issueType: 'Task', parentKey: FALLBACK_EPIC });
         expect(jira.calls[0]).toMatchObject({ method: 'GET', path: '/search/jql' });
-        expect(jira.calls[0].query.jql).toContain(`parent = ${FALLBACK_EPIC}`);
         expect(jira.calls[1].body.fields).toMatchObject({
             issuetype: { name: 'Task' },
             parent: { key: FALLBACK_EPIC },
         });
     });
 
-    it('makes no write in a dry run and still shows the create path', async () => {
+    it('takes the create path with placeholders when no read has an answer, as in a dry run', async () => {
         const jira = fakeJira();
         const result = await run({ ...base, jira });
         expect(result).toMatchObject({
@@ -436,12 +523,36 @@ describe('run', () => {
             derived: { key: 'AG-18147', source: 'commit-prefix' },
         });
         expect(jira.calls.map(({ method, path }) => `${method} ${path}`)).toEqual([
-            'GET /issue/AG-18147',
             'GET /search/jql',
+            'GET /issue/AG-18147',
             'POST /issue',
             'GET /issue/AG-XXXXX/transitions',
             'POST /issue/AG-XXXXX/transitions',
         ]);
         expect(jira.calls[4].body).toEqual({ transition: { id: '<id of "In Progress">' } });
+    });
+
+    it('sends nothing over the network through the real clients in a dry run', async () => {
+        const fetchImpl = vi.fn(async () => {
+            throw new Error('a dry run must not fetch');
+        });
+        const logged = [];
+        const log = (line) => logged.push(line);
+        const jira = createJiraClient({ siteUrl: 'https://example.atlassian.net', dryRun: true, log, fetchImpl });
+        const github = createGithubClient({ repository: 'ag-grid/ag-charts', dryRun: true, log, fetchImpl });
+
+        // An unlinked commit, so the GitHub branch lookup is exercised as well.
+        const result = await run({ ...base, commits: [commit('Fix typo')], jira, github });
+
+        expect(fetchImpl).not.toHaveBeenCalled();
+        expect(result).toMatchObject({ action: 'created', key: 'AG-XXXXX', parentKey: FALLBACK_EPIC });
+        const requests = logged.map((line) => line.split('\n')[0]);
+        expect(requests).toEqual([
+            expect.stringMatching(/^\[dry-run\] JIRA GET \/rest\/api\/3\/search\/jql\?jql=/),
+            '[dry-run] GitHub GET /repos/ag-grid/ag-charts/commits/abcdef0123456789/pulls',
+            '[dry-run] JIRA POST /rest/api/3/issue',
+            '[dry-run] JIRA GET /rest/api/3/issue/AG-XXXXX/transitions',
+            '[dry-run] JIRA POST /rest/api/3/issue/AG-XXXXX/transitions',
+        ]);
     });
 });
