@@ -283,7 +283,7 @@ test.describe('Page Verification', () => {
             .poll(
                 () => {
                     const recorded = annotations
-                        .slice(beforeInjection)
+                        .slice(selfCheckInjectionStart)
                         .filter(
                             (annotation) =>
                                 annotation.type === CSP_VIOLATION_ANNOTATION ||
