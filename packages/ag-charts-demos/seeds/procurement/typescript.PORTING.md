@@ -184,7 +184,13 @@ there is no random source or clock to seed. The parity harness still loads
 
 ## Sync procedure (Phase 4)
 
-1. Diff `src/demos/procurement` at `sourceCommit` in `.seed-manifest.json` against `latest`.
+`/port-showcases` aligns a stale port by following this guide, and the Demo Port Alignment workflow
+runs it at the release-branch cut. To align this port by hand, work through these steps:
+
+1. Diff `src/demos/procurement` between the `sourceCommit` recorded in `.seed-manifest.json` and `HEAD`,
+   the branch being aligned (a release branch at the cut), from the repository root:
+   `git diff <sourceCommit> HEAD -- packages/ag-charts-demos/src/demos`. The whole of `src/demos`,
+   since a module imported from a sibling demo counts towards this demo's source hash.
 2. Re-copy every byte-for-byte module in the file mapping table.
 3. Apply component and hook changes by the mapping rules above, keeping the invariants.
 4. Type-check and build:
@@ -200,7 +206,10 @@ there is no random source or clock to seed. The parity harness still loads
     ```
     The manifest's `vendored` field lists the cross-demo modules copied under `src/vendored/`
     (`web-analytics/topology.ts`), matching the React seed's manifest; the stamp leaves it as is.
-7. If the pinned `ag-charts-*` version changed, update `package.json` to match.
+7. Leave the `ag-charts-*` pins, and the manifest's `pinnedVersion` / `pinSource`, alone: `pin-ports.mjs`
+   owns them and re-pins every port on each version bump and at the release-branch cut, so never
+   edit them by hand. Any other dependency pin is updated by hand to match the React demo's
+   `packages/ag-charts-demos/package.json` when that changed.
 
 ## Parity check
 

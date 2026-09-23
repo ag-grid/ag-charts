@@ -258,7 +258,13 @@ difference on every state.
 
 ## Sync procedure (Phase 4)
 
-1. Diff `src/demos/procurement` at `sourceCommit` in `.seed-manifest.json` against `latest`.
+`/port-showcases` aligns a stale port by following this guide, and the Demo Port Alignment workflow
+runs it at the release-branch cut. To align this port by hand, work through these steps:
+
+1. Diff `src/demos/procurement` between the `sourceCommit` recorded in `.seed-manifest.json` and `HEAD`,
+   the branch being aligned (a release branch at the cut), from the repository root:
+   `git diff <sourceCommit> HEAD -- packages/ag-charts-demos/src/demos`. The whole of `src/demos`,
+   since a module imported from a sibling demo counts towards this demo's source hash.
 2. Re-copy every byte-for-byte module in the file mapping table: from the demo source for the
    modules it lists, from the regenerated React seed for `routes.ts` and `vendored/`.
 3. Apply component changes by the mapping rules above, keeping the invariants.
@@ -271,21 +277,15 @@ difference on every state.
    masks or loosen tolerances for anything but unavoidable browser chrome.
 6. Rewrite the manifest from `packages/ag-charts-demos`:
     ```sh
-    node --input-type=module -e "
-    import { writeFileSync } from 'node:fs';
-    import { hashDemoSource, readDemoSourceCommit, readPinnedChartsVersion } from './tools/seeds/seed-common.mjs';
-    const pin = readPinnedChartsVersion();
-    writeFileSync('seeds/procurement/angular/.seed-manifest.json', JSON.stringify({
-        demo: 'procurement', framework: 'angular',
-        sourceHash: hashDemoSource('procurement'), sourceCommit: readDemoSourceCommit('procurement'),
-        pinnedVersion: pin.pinnedVersion, pinSource: pin.pinSource, dist: 'dist',
-        vendored: ['web-analytics/topology.ts'],
-    }, null, 4) + '\n');
-    "
+    node tools/seeds/stamp-port-manifest.mjs procurement angular
     ```
+    which rewrites `sourceHash` and `sourceCommit` and leaves every other field as it was.
     `vendored` lists the cross-demo modules copied under `src/vendored/`, exactly as the React seed's
     manifest lists them; if the React seed's list changes, change this one to match.
-7. If the pinned `ag-charts-*` or `ag-grid-*` version changed, update `package.json` to match.
+7. Leave the `ag-charts-*` pins, and the manifest's `pinnedVersion` / `pinSource`, alone: `pin-ports.mjs`
+   owns them and re-pins every port on each version bump and at the release-branch cut, so never
+   edit them by hand. Any other dependency pin, the `ag-grid-*` ones included, is updated by hand
+   to match the React demo's `packages/ag-charts-demos/package.json` when that changed.
 
 ## Parity check
 

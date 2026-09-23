@@ -153,7 +153,13 @@ query string directly; everything goes through `DETERMINISTIC`, `startTime()` an
 
 ## Sync procedure (Phase 4)
 
-1. Diff `src/demos/financial` at `sourceCommit` in `.seed-manifest.json` against `latest`.
+`/port-showcases` aligns a stale port by following this guide, and the Demo Port Alignment workflow
+runs it at the release-branch cut. To align this port by hand, work through these steps:
+
+1. Diff `src/demos/financial` between the `sourceCommit` recorded in `.seed-manifest.json` and `HEAD`,
+   the branch being aligned (a release branch at the cut), from the repository root:
+   `git diff <sourceCommit> HEAD -- packages/ag-charts-demos/src/demos`. The whole of `src/demos`,
+   since a module imported from a sibling demo counts towards this demo's source hash.
 2. Re-copy every byte-for-byte module in the file mapping table.
 3. Apply component and hook changes by the mapping rules above, keeping the invariants.
 4. Type-check and build:
@@ -165,18 +171,13 @@ query string directly; everything goes through `DETERMINISTIC`, `startTime()` an
    masks or loosen tolerances for anything but unavoidable browser chrome.
 6. Rewrite the manifest from `packages/ag-charts-demos`:
     ```sh
-    node --input-type=module -e "
-    import { writeFileSync } from 'node:fs';
-    import { hashDemoSource, readDemoSourceCommit, readPinnedChartsVersion } from './tools/seeds/seed-common.mjs';
-    const pin = readPinnedChartsVersion();
-    writeFileSync('seeds/financial/typescript/.seed-manifest.json', JSON.stringify({
-        demo: 'financial', framework: 'typescript',
-        sourceHash: hashDemoSource('financial'), sourceCommit: readDemoSourceCommit('financial'),
-        pinnedVersion: pin.pinnedVersion, pinSource: pin.pinSource, dist: 'dist',
-    }, null, 4) + '\n');
-    "
+    node tools/seeds/stamp-port-manifest.mjs financial typescript
     ```
-7. If the pinned `ag-charts-*` version changed, update `package.json` to match.
+    which rewrites `sourceHash` and `sourceCommit` and leaves every other field as it was.
+7. Leave the `ag-charts-*` pins, and the manifest's `pinnedVersion` / `pinSource`, alone: `pin-ports.mjs`
+   owns them and re-pins every port on each version bump and at the release-branch cut, so never
+   edit them by hand. Any other dependency pin is updated by hand to match the React demo's
+   `packages/ag-charts-demos/package.json` when that changed.
 
 ## Parity check
 

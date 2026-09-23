@@ -250,11 +250,16 @@ Regenerate it after a sync, from `packages/ag-charts-demos`:
 node tools/seeds/stamp-port-manifest.mjs web-analytics vue
 ```
 
-`pinnedVersion` must also be what `package.json` pins for the three `ag-charts-*` dependencies.
+The `ag-charts-*` pins in `package.json`, and `pinnedVersion` / `pinSource` here, are owned by
+`pin-ports.mjs`, which re-pins every port on each version bump and at the release-branch cut; never
+edit them by hand. Any other dependency pin is updated by hand to match the React demo's
+`packages/ag-charts-demos/package.json` when that changed.
 
 ## Checking a sync
 
-From the repository root, one Nx command at a time:
+`/port-showcases` aligns a stale port by following this guide and runs these checks, and the Demo
+Port Alignment workflow runs it at the release-branch cut. To check a hand-made sync, run them
+from the repository root, one Nx command at a time:
 
 1. `yarn nx run ag-charts-demos-seeds:typecheck-vue` and `yarn nx run ag-charts-demos-seeds:build-vue`
    (both also run as part of `yarn nx run ag-charts-demos-seeds:build`).
@@ -270,7 +275,7 @@ From the repository root, one Nx command at a time:
     ```
 
     Every state in `e2e/parity/states.ts` must pass at both viewports. Results are written to
-    `packages/ag-charts-demos/e2e/parity/results/summary.json`, with diff images beside it on a
+    `packages/ag-charts-demos/e2e/parity/results/ports/summary.json`, with diff images beside it on a
     failure. Fix the port rather than adding a mask; `e2e/parity/masks.ts` is for chrome that
     cannot be made identical, with a one-line reason per entry.
 

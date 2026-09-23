@@ -224,21 +224,21 @@ sync agent compares this file's `sourceHash` with the current hash to know wheth
 Regenerate it after a sync, from `packages/ag-charts-demos`:
 
 ```sh
-node --input-type=module -e "
-import { writeFileSync } from 'node:fs';
-import { hashDemoSource, readDemoSourceCommit, readPinnedChartsVersion } from './tools/seeds/seed-common.mjs';
-const { pinnedVersion, pinSource } = readPinnedChartsVersion();
-const manifest = { demo: 'financial', framework: 'vue', sourceHash: hashDemoSource('financial'),
-  sourceCommit: readDemoSourceCommit('financial'), pinnedVersion, pinSource, dist: 'dist' };
-writeFileSync('seeds/financial/vue/.seed-manifest.json', JSON.stringify(manifest, null, 4) + '\n');
-"
+node tools/seeds/stamp-port-manifest.mjs financial vue
 ```
 
-`pinnedVersion` must also be what `package.json` pins for the three `ag-charts-*` dependencies.
+which rewrites `sourceHash` and `sourceCommit` and leaves every other field as it was.
+
+The `ag-charts-*` pins in `package.json`, and `pinnedVersion` / `pinSource` here, are owned by
+`pin-ports.mjs`, which re-pins every port on each version bump and at the release-branch cut; never
+edit them by hand. Any other dependency pin is updated by hand to match the React demo's
+`packages/ag-charts-demos/package.json` when that changed.
 
 ## Checking a sync
 
-From the repository root, one Nx command at a time:
+`/port-showcases` aligns a stale port by following this guide and runs these checks, and the Demo
+Port Alignment workflow runs it at the release-branch cut. To check a hand-made sync, run them
+from the repository root, one Nx command at a time:
 
 1. `yarn nx run ag-charts-demos-seeds:typecheck-vue` and `yarn nx run ag-charts-demos-seeds:build-vue`
    (both also run as part of `yarn nx run ag-charts-demos-seeds:build`).
@@ -251,7 +251,7 @@ From the repository root, one Nx command at a time:
     ```
 
     Every state in `e2e/parity/states.ts` must pass at both viewports. Results are written to
-    `packages/ag-charts-demos/e2e/parity/results/summary.json`, with diff images beside it on a
+    `packages/ag-charts-demos/e2e/parity/results/ports/summary.json`, with diff images beside it on a
     failure. Fix the port rather than adding a mask; `e2e/parity/masks.ts` is for chrome that
     cannot be made identical, with a one-line reason per entry.
 
