@@ -1,7 +1,7 @@
 import { type ReporterDescription, defineConfig, devices } from '@playwright/test';
 import { relative } from 'node:path';
 
-import { DISCOVER, SELF_PARITY, SELF_PARITY_PORTS, discoverPorts } from './e2e/parity/targets';
+import { DISCOVER, RUN_KIND, SELF_PARITY, SELF_PARITY_PORTS, discoverPorts } from './e2e/parity/targets';
 
 // Pixel-parity run: e2e/parity/parity.spec.ts compares each framework port against the React
 // reference, live, in deterministic mode. See e2e/parity/README.md for the environment variables,
@@ -11,11 +11,16 @@ import { DISCOVER, SELF_PARITY, SELF_PARITY_PORTS, discoverPorts } from './e2e/p
 
 const CI = !!process.env.CI;
 
+// Never reused: whatever already answers on one of these ports may be another checkout's build, and
+// comparing against it would pass or fail for reasons unrelated to this tree. A busy port fails the
+// run instead; the PARITY_*_PORT variables in targets.ts move the ports.
+const REUSE_EXISTING_SERVER = false;
+
 /** A `vite preview` of the built React app (dist/) on `port`. */
 const preview = (port: number) => ({
     command: `npx vite preview --port ${port} --strictPort`,
     url: `http://localhost:${port}`,
-    reuseExistingServer: !CI,
+    reuseExistingServer: REUSE_EXISTING_SERVER,
     timeout: 120_000,
 });
 
@@ -23,7 +28,7 @@ const preview = (port: number) => ({
 const serveDist = (distDir: string, port: number) => ({
     command: `node e2e/parity/serve-dist.mjs --dir "${relative(__dirname, distDir)}" --port ${port}`,
     url: `http://localhost:${port}`,
-    reuseExistingServer: !CI,
+    reuseExistingServer: REUSE_EXISTING_SERVER,
     timeout: 30_000,
 });
 
@@ -31,19 +36,22 @@ const serveDist = (distDir: string, port: number) => ({
 // ports (PARITY_TARGETS) is handed served ports and needs just the reference; a discovery run
 // (PARITY_DISCOVER=1) serves every committed port's dist itself. The reference is served here
 // unless PARITY_REFERENCE_URL points at one served elsewhere.
-const reference = process.env.PARITY_REFERENCE_URL ? [] : [preview(SELF_PARITY_PORTS.reference)];
-const webServer = SELF_PARITY
-    ? [...reference, preview(SELF_PARITY_PORTS.port)]
-    : DISCOVER
-      ? [...reference, ...discoverPorts().map((port) => serveDist(port.distDir, port.port))]
-      : reference;
+function webServers() {
+    const reference = process.env.PARITY_REFERENCE_URL ? [] : [preview(SELF_PARITY_PORTS.reference)];
+    if (SELF_PARITY) return [...reference, preview(SELF_PARITY_PORTS.port)];
+    if (DISCOVER) return [...reference, ...discoverPorts().map((port) => serveDist(port.distDir, port.port))];
+    return reference;
+}
+const webServer = webServers();
 
 const reporter: ReporterDescription[] = [['./e2e/parity/summary-reporter.ts'], ['line']];
-if (CI) reporter.push(['junit', { outputFile: '../../reports/ag-charts-demos-parity.xml' }]);
+if (CI) reporter.push(['junit', { outputFile: `../../reports/ag-charts-demos-${RUN_KIND}.xml` }]);
 
 export default defineConfig({
     testDir: './e2e/parity',
-    outputDir: './test-results/parity',
+    // compare.test.ts beside the spec is a Vitest unit test.
+    testMatch: '*.spec.ts',
+    outputDir: `./test-results/parity-${RUN_KIND}`,
     // Two full loads of the heaviest demo, driven to a state and settled, well inside this.
     timeout: 120_000,
     fullyParallel: true,

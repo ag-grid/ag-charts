@@ -4,16 +4,41 @@ import { PNG } from 'pngjs';
 // Pixel comparison of two screenshots taken in the same run. No golden images are stored: the
 // React reference is photographed alongside the port every time, so there is no baseline to churn.
 
-/** Pixels differing by more than this ratio of the image fail the comparison. */
-export const MAX_DIFF_PIXEL_RATIO = 0.01;
+/** How a pair of screenshots is compared and when the comparison passes. */
+export interface ComparisonGate {
+    /**
+     * Per-pixel colour tolerance, as pixelmatch's `threshold`: 0 counts any change, 1 none. The
+     * YIQ colour distance is compared against `35215 × threshold²`.
+     */
+    pixelThreshold: number;
+    /** Whether pixels pixelmatch classifies as anti-aliased edges count as differing. */
+    includeAntiAliasing: boolean;
+    /** Differing pixels, as a ratio of the reference image, above which the comparison fails. */
+    maxDiffPixelRatio: number;
+}
 
 /**
- * Per-pixel colour tolerance (0 exact, 1 anything), and whether anti-aliased edge pixels count.
- * Playwright's own comparator uses these defaults; the harness matches them so a tolerance that
- * passes here means the same thing as in the website's snapshot tests.
+ * Self-parity: the React app compared with itself, which must be pixel-identical. Every channel of
+ * every pixel counts, edges included, so this proves the demos and the harness are deterministic.
  */
-const PIXEL_THRESHOLD = 0.2;
-const INCLUDE_ANTI_ALIASING = false;
+export const SELF_PARITY_GATE: ComparisonGate = {
+    pixelThreshold: 0,
+    includeAntiAliasing: true,
+    maxDiffPixelRatio: 0,
+};
+
+/**
+ * A port against the React reference, calibrated on every committed port (see "What is compared"
+ * in README.md). At this threshold the ports that render like the reference differ by at most 41
+ * pixels, 0.002% of the screenshot; the ratio gives five times that headroom. The threshold is low
+ * enough to count a recolour from #ffffff to #e6e6e6 (0.1 is not), and the ratio is far below
+ * one 110×110 block in the tallest screenshot; compare.test.ts proves both.
+ */
+export const PORT_GATE: ComparisonGate = {
+    pixelThreshold: 0.05,
+    includeAntiAliasing: false,
+    maxDiffPixelRatio: 0.0001,
+};
 
 const GAP = 16;
 const GAP_COLOUR = [0xff, 0x00, 0xff, 0xff] as const;
@@ -22,19 +47,24 @@ export interface Comparison {
     /** Image size of the reference screenshot. */
     width: number;
     height: number;
+    /** Image size of the port screenshot. */
+    portWidth: number;
+    portHeight: number;
     /** Whether the port screenshot has a different size; a comparison then fails outright. */
     sizeMismatch: boolean;
     diffPixels: number;
     totalPixels: number;
     /** `diffPixels / totalPixels`, or 1 on a size mismatch. */
     diffPixelRatio: number;
+    /** Same size, and no more than the gate's ratio of pixels differ. */
+    passed: boolean;
     /** Highlighted differences; absent on a size mismatch. */
     diff?: Buffer;
     /** Reference on the left, port on the right. */
     sideBySide: Buffer;
 }
 
-export function compareScreenshots(reference: Buffer, port: Buffer): Comparison {
+export function compareScreenshots(reference: Buffer, port: Buffer, gate: ComparisonGate): Comparison {
     const a = PNG.sync.read(reference);
     const b = PNG.sync.read(port);
     const sideBySide = composeSideBySide(a, b);
@@ -44,26 +74,33 @@ export function compareScreenshots(reference: Buffer, port: Buffer): Comparison 
         return {
             width: a.width,
             height: a.height,
+            portWidth: b.width,
+            portHeight: b.height,
             sizeMismatch: true,
             diffPixels: totalPixels,
             totalPixels,
             diffPixelRatio: 1,
+            passed: false,
             sideBySide,
         };
     }
 
     const diff = new PNG({ width: a.width, height: a.height });
     const diffPixels = pixelmatch(a.data, b.data, diff.data, a.width, a.height, {
-        threshold: PIXEL_THRESHOLD,
-        includeAA: INCLUDE_ANTI_ALIASING,
+        threshold: gate.pixelThreshold,
+        includeAA: gate.includeAntiAliasing,
     });
+    const diffPixelRatio = diffPixels / totalPixels;
     return {
         width: a.width,
         height: a.height,
+        portWidth: b.width,
+        portHeight: b.height,
         sizeMismatch: false,
         diffPixels,
         totalPixels,
-        diffPixelRatio: diffPixels / totalPixels,
+        diffPixelRatio,
+        passed: diffPixelRatio <= gate.maxDiffPixelRatio,
         diff: PNG.sync.write(diff),
         sideBySide,
     };

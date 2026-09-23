@@ -1368,6 +1368,22 @@ jobs:
                     npx playwright test
               timeout-minutes: 15
 
+            # Self-parity: the React app served twice from the dist/ the init job built, with
+            # vite preview as the port run serves its reference, and compared with itself. Every
+            # pixel must match; this proves the demos and the harness are deterministic, which the
+            # port comparison below relies on to mean anything.
+            - name: playwright self-parity ag-charts-demos
+              id: demos_self_parity
+              if: ${{ !cancelled() }}
+              run: |
+                  docker run --rm --ipc=host --init \
+                    -v "$(pwd)":/data \
+                    -w /data/packages/ag-charts-demos \
+                    -e CI \
+                    ${PLAYWRIGHT_IMAGE} \
+                    npx playwright test -c playwright.parity.config.ts
+              timeout-minutes: 15
+
             # Pixel parity of the framework ports against the React reference, served from the
             # dist/ the init job built. PARITY_DISCOVER finds every committed port by its
             # seeds/<demo>/<framework>/.seed-manifest.json and serves the seed dist/ the init job

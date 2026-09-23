@@ -2,6 +2,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 import { DEMO_APPS } from '../../src/registry';
+import { type ComparisonGate, PORT_GATE, SELF_PARITY_GATE } from './compare';
 
 // What the parity run compares: the React reference against one or more targets, each a demo
 // served from a base URL. Configuration is by environment so CI and the Phase 4 sync agent can
@@ -15,11 +16,29 @@ export interface ParityTarget {
     baseURL: string;
 }
 
-/** Ports the config serves itself when the run is self-parity (no `PARITY_TARGETS`). */
-export const SELF_PARITY_PORTS = { reference: 4701, port: 4702 } as const;
+/** A local port from the environment variable `name`, or `fallback` when it is unset. */
+function envPort(name: string, fallback: number): number {
+    const raw = process.env[name];
+    if (raw == null || raw === '') return fallback;
+    const port = Number(raw);
+    if (!Number.isInteger(port) || port <= 0 || port > 65_535) {
+        throw new Error(`${name} must be a port number, not "${raw}"`);
+    }
+    return port;
+}
 
-/** Discovered ports are served from here upwards, one port each, in manifest order. */
-export const DISCOVERED_PORT_BASE = 4710;
+/**
+ * Ports the config serves the React app on: the reference always (unless `PARITY_REFERENCE_URL`
+ * names one served elsewhere), and the second copy a self-parity run compares it with.
+ * `PARITY_REFERENCE_PORT` and `PARITY_SELF_PORT` move them, so runs in two checkouts can coexist.
+ */
+export const SELF_PARITY_PORTS = {
+    reference: envPort('PARITY_REFERENCE_PORT', 4701),
+    port: envPort('PARITY_SELF_PORT', 4702),
+} as const;
+
+/** Discovered ports are served from here upwards, one port each, in manifest order. `PARITY_PORT_BASE` moves them. */
+export const DISCOVERED_PORT_BASE = envPort('PARITY_PORT_BASE', 4710);
 
 /** `packages/ag-charts-demos/seeds`, where every port lives as `<demo>/<framework>/`. */
 export const SEEDS_DIR = resolve(__dirname, '..', '..', 'seeds');
@@ -43,6 +62,16 @@ export const DISCOVER = !process.env.PARITY_TARGETS && ['1', 'true'].includes(pr
  * itself, which proves the demos and the harness are deterministic before any port exists.
  */
 export const SELF_PARITY = !process.env.PARITY_TARGETS && !DISCOVER;
+
+/**
+ * Which kind of run this is. It names the results folder, the JUnit report and Playwright's output
+ * folder, so a self-parity run and a run against the ports can follow each other (as in CI)
+ * without the second deleting what the first left.
+ */
+export const RUN_KIND: 'self-parity' | 'ports' = SELF_PARITY ? 'self-parity' : 'ports';
+
+/** The gate every comparison in this run must pass. */
+export const GATE: ComparisonGate = SELF_PARITY ? SELF_PARITY_GATE : PORT_GATE;
 
 /** A committed port found by its manifest: where its source is and where its build lands. */
 export interface DiscoveredPort {

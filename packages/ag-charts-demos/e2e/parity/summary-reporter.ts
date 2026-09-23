@@ -1,7 +1,6 @@
 import type { FullResult, Reporter, TestCase, TestResult } from '@playwright/test/reporter';
 import { mkdirSync, rmSync, writeFileSync } from 'fs';
 
-import { MAX_DIFF_PIXEL_RATIO } from './compare';
 import {
     type ComparisonRecord,
     type ParitySummary,
@@ -9,51 +8,61 @@ import {
     RESULT_ATTACHMENT,
     SCHEMA_VERSION,
     SUMMARY_PATH,
-    comparisonKey,
+    attemptKey,
+    summariseAttempts,
 } from './summary';
-import { REFERENCE_URL } from './targets';
+import { GATE, REFERENCE_URL, RUN_KIND } from './targets';
 
 /**
  * Gathers the `parity-result` attachment each comparison test leaves and writes
- * `results/summary.json` when the run ends. A retried test overwrites its earlier record, so the
- * summary reflects the final attempt.
+ * `results/<run>/summary.json` when the run ends. Every attempt keeps its own record, so a failure
+ * followed by a passing retry, or one failing repeat among several, stays visible.
  */
 class ParitySummaryReporter implements Reporter {
     private readonly records = new Map<string, ComparisonRecord>();
 
     onBegin() {
-        // Artefacts from a previous run would otherwise sit beside this run's summary.
+        // Artefacts from a previous run of this kind would otherwise sit beside this run's summary.
         rmSync(RESULTS_DIR, { recursive: true, force: true });
         mkdirSync(RESULTS_DIR, { recursive: true });
     }
 
-    onTestEnd(test: TestCase, result: TestResult) {
+    onTestEnd(_test: TestCase, result: TestResult) {
+        // A test attaches its record up front and again once compared; the last one wins.
+        let record: ComparisonRecord | undefined;
         for (const attachment of result.attachments) {
             if (attachment.name !== RESULT_ATTACHMENT || !attachment.body) continue;
-            const record = JSON.parse(attachment.body.toString('utf8')) as ComparisonRecord;
-            if (!record.passed && !record.error && result.error?.message) {
-                record.error = stripAnsi(result.error.message);
-            }
-            this.records.set(comparisonKey(record), record);
+            record = JSON.parse(attachment.body.toString('utf8')) as ComparisonRecord;
         }
+        if (!record) return;
+        if (result.status !== 'passed') record.passed = false;
+        if (!record.passed && !record.error && result.error?.message) {
+            record.error = stripAnsi(result.error.message);
+        }
+        this.records.set(attemptKey(record), record);
     }
 
     onEnd(result: FullResult) {
         const comparisons = [...this.records.values()];
-        const passed = comparisons.filter((record) => record.passed).length;
+        const totals = summariseAttempts(comparisons);
         const summary: ParitySummary = {
             schemaVersion: SCHEMA_VERSION,
             generatedAt: new Date().toISOString(),
             status: result.status,
+            run: RUN_KIND,
             reference: { framework: 'react', baseURL: REFERENCE_URL },
-            maxDiffPixelRatio: MAX_DIFF_PIXEL_RATIO,
-            totals: { comparisons: comparisons.length, passed, failed: comparisons.length - passed },
+            gate: GATE,
+            totals,
             comparisons,
         };
         mkdirSync(RESULTS_DIR, { recursive: true });
         writeFileSync(SUMMARY_PATH, JSON.stringify(summary, null, 2) + '\n');
+        const flaky = totals.flaky > 0 ? ` (${totals.flaky} flaky)` : '';
         // eslint-disable-next-line no-console
-        console.log(`Parity summary: ${passed}/${comparisons.length} comparisons passed — ${SUMMARY_PATH}`);
+        console.log(
+            `Parity summary (${RUN_KIND}): ${totals.passed}/${totals.comparisons} comparisons passed${flaky}, ` +
+                `${totals.attempts} attempts — ${SUMMARY_PATH}`
+        );
     }
 
     printsToStdio() {
