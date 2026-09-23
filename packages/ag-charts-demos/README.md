@@ -30,7 +30,8 @@ are committed.
 src/
   main.tsx           # entry
   App.tsx            # selects a demo app by URL hash (#<id>) and renders it
-  fonts.ts           # waits for a demo's web fonts before its first render (see below)
+  deterministicMode.ts # reads the e2e switch (?deterministic=1 / VITE_DEMO_DETERMINISTIC=1)
+  fonts.ts           # in an e2e run, waits for a demo's web fonts before its first render (see below)
   DemoPage.tsx       # shared page shell used by the demo apps
   LoadingDemo.tsx    # Suspense fallback while a demo app loads
   registry.ts        # the single list of demo apps (id + lazy loader)
@@ -58,13 +59,18 @@ in the demo's own stylesheet, and a chart lays out its labels with whatever font
 that moment, because canvas text never triggers a font download: a chart created while the font
 is still downloading is laid out with the fallback font's metrics and laid out again once the font
 arrives, and the two passes do not always land on the same pixels as one pass in the final font.
-So the demo loader in `src/App.tsx` renders a demo only once `waitForDeclaredFonts` (`src/fonts.ts`)
-has loaded the default face of every family the demo's stylesheet declares, or 3 seconds have
-passed, whichever comes first; a font that fails to load leaves the demo to render with its
-fallbacks as it would have anyway. That gives the first layout the final font, which is what the
-framework ports already get by their timing, and it is what makes the React reference and the
-ports pixel-identical in the parity harness. The generated React seed does the same in its
-`src/main.tsx`, with `src/fonts.ts` copied in beside the demo source.
+A visitor ends up with the same chart either way once the font is in, so a normal load renders at
+once and is never held back for its fonts. The parity harness cannot accept the difference: it
+compares the React reference pixel for pixel with the framework ports, whose first layout already
+sees the fonts by their timing, and with itself. So in an e2e run, and only then, the demo loader
+in `src/App.tsx` renders a demo once `waitForDeclaredFonts` (`src/fonts.ts`) has loaded the
+default face of every family the demo's stylesheet declares, or 3 seconds have passed, whichever
+comes first; a font that fails to load leaves the demo to render with its fallbacks as it would
+have anyway. An e2e run is one loaded with the deterministic switch, `?deterministic=1` in the URL
+or a build with `VITE_DEMO_DETERMINISTIC=1` (`src/deterministicMode.ts`), which the parity harness
+sets on every load; it is the same switch that freezes the financial demo's data. The functional
+specs in `e2e/*.spec.ts` assert nothing that depends on the font, so they load without it. The
+generated React seeds and the framework ports do not wait.
 
 ## Seed projects
 

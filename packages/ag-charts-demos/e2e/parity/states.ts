@@ -8,8 +8,8 @@ import { waitForAllChartUpdates } from '../chart-assertions';
 // functional specs (procurement.spec.ts, web-analytics.spec.ts, demo-charts.spec.ts) exercise.
 
 /**
- * How long a demo's shell may take to appear. It first waits up to three seconds for its web fonts
- * (src/fonts.ts), and a busy machine loading both sides at once has been seen to exceed the default
+ * How long a demo's shell may take to appear. Loaded in deterministic mode, the React app first
+ * waits up to three seconds for its web fonts (src/fonts.ts), and a busy machine loading both sides at once has been seen to exceed the default
  * five seconds.
  */
 const FIRST_LOAD_TIMEOUT = 15_000;

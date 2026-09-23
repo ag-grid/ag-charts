@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { FONT_LOAD_TIMEOUT_MS, waitForDeclaredFonts } from './fonts';
+import { FONT_LOAD_TIMEOUT_MS, beforeFirstRender, waitForDeclaredFonts } from './fonts';
 
 // The tests run in Node, where there is no document: each case installs a stand-in for the
 // FontFaceSet with the faces a stylesheet would have declared.
@@ -21,7 +21,42 @@ function installFonts(faces: FakeFace[], load: (spec: string) => Promise<unknown
 
 afterEach(() => {
     vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
     vi.useRealTimers();
+});
+
+// The wait exists for the parity harness, which needs a first layout in the final fonts; a visitor
+// gets the same chart once the font arrives, so a normal load must not be held back for it.
+describe('beforeFirstRender', () => {
+    const faces = [{ family: 'Urbanist', weight: '400', style: 'normal' }];
+
+    it('never touches the fonts on a normal load', async () => {
+        const fonts = installFonts(faces, () => new Promise(() => {}));
+        vi.stubGlobal('window', { location: { search: '' } });
+        await expect(beforeFirstRender()).resolves.toBeUndefined();
+        expect(fonts.load).not.toHaveBeenCalled();
+    });
+
+    it('waits for the declared fonts with ?deterministic=1 in the URL', async () => {
+        const fonts = installFonts(faces, () => Promise.resolve([]));
+        vi.stubGlobal('window', { location: { search: '?deterministic=1' } });
+        await beforeFirstRender();
+        expect(fonts.load).toHaveBeenCalledWith('16px "Urbanist"');
+    });
+
+    it('waits for the declared fonts in a build with VITE_DEMO_DETERMINISTIC=1', async () => {
+        const fonts = installFonts(faces, () => Promise.resolve([]));
+        vi.stubEnv('VITE_DEMO_DETERMINISTIC', '1');
+        await beforeFirstRender();
+        expect(fonts.load).toHaveBeenCalledWith('16px "Urbanist"');
+    });
+
+    it('ignores the switch set to anything but 1 or true', async () => {
+        const fonts = installFonts(faces, () => Promise.resolve([]));
+        vi.stubGlobal('window', { location: { search: '?deterministic=0' } });
+        await beforeFirstRender();
+        expect(fonts.load).not.toHaveBeenCalled();
+    });
 });
 
 describe('waitForDeclaredFonts', () => {

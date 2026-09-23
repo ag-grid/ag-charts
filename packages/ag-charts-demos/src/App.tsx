@@ -1,7 +1,7 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 
 import { LoadingDemo } from './LoadingDemo';
-import { waitForDeclaredFonts } from './fonts';
+import { beforeFirstRender } from './fonts';
 import { DEMO_APPS, type DemoAppEntry } from './registry';
 
 const readHashId = () => window.location.hash.replace(/^#/, '');
@@ -11,11 +11,12 @@ const readHashId = () => window.location.hash.replace(/^#/, '');
 const readInitialId = () => document.getElementById('root')?.dataset.demoId ?? readHashId();
 
 // A demo's stylesheet, and with it the `@font-face` rules for its web fonts, arrives with its
-// chunk. The fonts are then loaded before the demo renders, so its charts lay out in their final
-// font from the first frame (see fonts.ts). The Suspense fallback stays up for the wait.
+// chunk. In an e2e run (the deterministic switch) the fonts are then loaded before the demo
+// renders, so its charts lay out in their final font from the first frame, as the parity harness
+// needs (see fonts.ts); the Suspense fallback stays up for the wait. A normal load renders at once.
 async function loadWithFonts(entry: DemoAppEntry) {
     const module = await entry.load();
-    await waitForDeclaredFonts();
+    await beforeFirstRender();
     return module;
 }
 

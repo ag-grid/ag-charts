@@ -150,9 +150,12 @@ Web analytics and procurement are already deterministic: the sessions pool is ge
 fixed seed and the procurement dataset is static JSON with its own `meta.now`. Both format with
 `en-US` and read the local time zone, which the harness pins.
 
-Both sides also lay their charts out with their web fonts already loaded: the React app waits for
-them before a demo's first render, and the ports' first layout sees them by their own timing. See
-"Web fonts and the first render" in the package README.
+Both sides also lay their charts out with their web fonts already loaded: loaded with the switch,
+and only then, the React app waits for them before a demo's first render, and the ports' first
+layout sees them by their own timing. Charts measure their text on a canvas with whatever font it
+has at that moment, so a first layout in a fallback font can land on other pixels than one in the
+final font; the comparison needs the final font from the first layout, a visitor does not, which is
+why a normal load never waits. See "Web fonts and the first render" in the package README.
 
 ## Results
 
