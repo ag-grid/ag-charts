@@ -49,7 +49,7 @@ seeds/               # standalone seed projects, one folder per demo and framewo
   <id>/typescript/   #   vanilla port: Vite + TypeScript, no framework
   <id>/<framework>/.seed-manifest.json   # what the seed is and which src/demos/<id> it was last synced to
   <id>/<framework>.PORTING.md            # a port's mapping rules (React construct -> port equivalent)
-tools/seeds/         # generator, freshness and staleness checks, sync automation (see its README)
+tools/seeds/         # generator, freshness, staleness and pin checks, manifest stamping (see its README)
 ```
 
 ### Web fonts and the first render
@@ -84,9 +84,11 @@ download.
 - The React demo under `src/demos/<id>` is the golden master. The React seed is **generated** from it
   (`tools/seeds/generate-react-seed.mjs`) and CI fails if the committed seed is stale.
 - The Angular, Vue and vanilla TypeScript seeds are ports of the React demo. They are built,
-  type-checked and e2e-tested in CI only; the website keeps rendering React. When a React demo
-  changes, CI files a JIRA Sub-task that gets the ports re-synced; how that works, and how to do a
-  sync by hand, is in [`tools/seeds/README.md`](tools/seeds/README.md).
+  type-checked and e2e-tested in CI only; the website keeps rendering React. A React demo change
+  leaves its ports stale, and stale ports are expected on `latest` between releases: they are
+  aligned at the release-branch cut by the "Demo Port Alignment" workflow
+  (`.github/workflows/demo-port-align.yml`), or on demand with `/port-showcases`. See
+  [`tools/seeds/README.md`](tools/seeds/README.md).
 - Parity is a hard gate: a Playwright screenshot diff of each port against the React demo at fixed
   viewports with frozen data and time, plus the functional specs run against each port. The harness
   and its `PARITY_DISCOVER=1` mode, which finds every committed port by its manifest, are described

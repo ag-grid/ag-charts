@@ -360,16 +360,17 @@ jobs:
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: yarn nx run ag-charts-demos:check-seeds
 
-            # The Angular, Vue and TypeScript seeds are ports of the React demos, synced after the
-            # fact: a demo change is expected to leave them stale on a PR. This only tells the
-            # author so; once the change is on latest, demo-port-sync.yml files the JIRA Sub-task
-            # that gets them re-synced. Never blocks: the report is informational.
+            # The Angular, Vue and TypeScript seeds are ports of the React demos, aligned after the
+            # fact: a demo change is expected to leave them stale, and they stay stale on latest
+            # between releases. The "Demo Port Alignment" workflow (demo-port-align.yml) aligns them
+            # at the release-branch cut, and /port-showcases does it on demand. This only tells the
+            # author so. Never blocks: the report is informational.
             - name: Stale demo ports (non-blocking)
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               continue-on-error: true
               run: |
                   node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --stale > stale-ports.json
-                  jq -r '.stale[] | "::warning title=Stale demo port::seeds/\(.demo)/\(.framework) was last synced to \(.manifestCommit[0:8] // "an unknown commit") and no longer matches src/demos/\(.demo). A \"Sync demo ports\" JIRA Sub-task will follow once this merges to latest; no action needed on this PR."' stale-ports.json
+                  jq -r '.stale[] | "::warning title=Stale demo port::seeds/\(.demo)/\(.framework) was last aligned to \(.manifestCommit[0:8] // "an unknown commit") and no longer matches src/demos/\(.demo). Expected between releases: ports are aligned at the release-branch cut (Demo Port Alignment workflow) or with /port-showcases; no action needed on this PR."' stale-ports.json
 
     generate:
         runs-on: ubuntu-24.04

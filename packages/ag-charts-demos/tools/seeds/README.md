@@ -194,56 +194,16 @@ reporting it.
 node packages/ag-charts-demos/tools/seeds/stamp-port-manifest.mjs financial angular
 ```
 
-### `create-port-sync-subtask.mjs [--dry-run] [--stale-report <file>]`
+## How the ports are aligned
 
-Files the JIRA work item that gets stale ports re-synced. Run by the sync workflow below; run it
-by hand only with `--dry-run`, which prints every JIRA and GitHub request it would make and makes
-none. It reads `CURRENT_SHA`, `BEFORE_SHA`, `RUN_URL`, `GITHUB_REPOSITORY`, `GITHUB_TOKEN`,
-`JIRA_SITE_URL`, `JIRA_EMAIL` and `JIRA_API_TOKEN` from the environment.
-
-## How a port gets re-synced
-
-1. A PR changes a React demo. The lint job's "Stale demo ports" step warns that the ports are
-   now behind, and that a Sub-task will follow after merge. Nothing blocks.
-2. The PR merges to `latest`. `.github/workflows/demo-port-sync.yml` runs the stale report and,
-   if anything is listed, `create-port-sync-subtask.mjs`:
-    - One sync issue is open at a time. If any open "Sync demo ports" issue exists in project AG,
-      whatever it is filed under, the script comments on it with the new commit range and the
-      current stale ports, and files nothing. An issue already under way is not re-transitioned:
-      a run may be in flight, and the agent reads the repository at the start of its next run. An
-      issue still in To Do is moved to In Progress as well, so a run that created it but failed to
-      transition it is retried by the next push.
-    - Otherwise the JIRA key comes from the pushed commit range: subjects filed under a key
-      (`AG-12345 …`), then any key mentioned in a commit message (merge commits carry the branch
-      name), then the merged PRs' branch names (`ghabot-ag-12345-…`, `ag-12345/…`). A Sub-task
-      resolves to its parent; an Epic gets a Task rather than a Sub-task. With no key at all, or
-      when the parent is Done (a Sub-task under a closed parent never appears on the board), a
-      Task is filed under the showcase epic AG-17737.
-    - It creates the issue (summary `[Charts] Sync demo ports: <demo> to <shortsha>`,
-      component Charts, Track Housekeeping, label `ai-eligible`) with a description listing the
-      stale ports, the commit range, each port's `PORTING.md`, the stamp command and the
-      acceptance criteria, then transitions it to In Progress. That transition fires the JIRA
-      automation rule that dispatches `jira-resume` into `jira-agent-pipeline.yml`, and the AI
-      Workflow ports the change and opens a PR.
-3. The PR is gated by the parity harness (`e2e/parity/README.md`): every port screenshot must
-   match React within tolerance, and the functional specs must pass against each port.
-
-A JIRA failure never fails the push. The step continues on error and posts to the CI alert
-channel (`CI_FAILURE_SLACK_CHANNEL`, the same one `ci.yml` alerts to) so it can be filed by hand.
-
-## Taking over a sync Sub-task
-
-To do a sync yourself, or finish one the AI Workflow left:
-
-1. Check the ticket's AI fields first (`AI status`, `AI branch`, `AI PR URL`). If a branch or PR
-   exists, continue from it rather than starting again, and say so on the ticket so the pipeline
-   does not resume over your work. See the `aiw-help` skill for how to stop an in-flight run.
-2. Read `seeds/<demo>/<framework>.PORTING.md` for the port's mapping rules, then port the change
-   listed in the ticket. Keep the React CSS and class names; the pixel comparison depends on them.
-3. Stamp the manifest: `node packages/ag-charts-demos/tools/seeds/stamp-port-manifest.mjs <demo> <framework>`.
-4. Verify: `node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --stale` prints an empty
-   list, `yarn nx test:e2e:parity ag-charts-demos` is green with the port served, and the
-   functional specs pass with `DEMOS_BASE_URL` pointing at the port (both described in
-   `e2e/parity/README.md`).
-5. Open the PR against the ticket as usual. The port-only change does not touch
-   `src/demos/**`, so it does not trigger another sync.
+1. A PR changes a React demo. Its ports are now stale, which is expected: the lint job's "Stale
+   demo ports" step warns without blocking. The ports stay stale on `latest` until the next
+   release.
+2. At the release-branch cut, the "Demo Port Alignment" workflow
+   (`.github/workflows/demo-port-align.yml`) opens a PR into `bX.Y.Z` that aligns every stale port
+   with its demo. Anyone can do the same at any time with `/port-showcases`.
+3. An alignment edits the port, following `seeds/<demo>/<framework>.PORTING.md` (keep the React CSS
+   and class names; the pixel comparison depends on them), and restamps its manifest with
+   `stamp-port-manifest.mjs`, so `--stale` stops reporting it. The PR is gated by the parity
+   harness (`e2e/parity/README.md`): every port screenshot must match React within tolerance. The
+   functional specs should pass with `DEMOS_BASE_URL` pointing at the port too.

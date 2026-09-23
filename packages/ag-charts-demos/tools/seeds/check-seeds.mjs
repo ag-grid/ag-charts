@@ -30,7 +30,8 @@ import { GENERATED_FRAMEWORK, findStalePorts } from './stale-ports.mjs';
  * `{ "stale": [{ demo, framework, sourceHash, manifestHash, sourceCommit, manifestCommit }] }`.
  * It is a report, so it exits 0 whatever it finds unless `--fail-on-stale` is also passed.
  * It needs nothing installed: the generator (and its Prettier dependency) is only loaded for
- * `--react`, so the demo-port-sync workflow can run it on a bare checkout.
+ * `--react`, so CI can run it on a bare checkout. Stale ports are expected on `latest` between
+ * releases; they are aligned at the release-branch cut.
  *
  * `--pins` fails when a framework port's `ag-charts-*` pins, or its manifest's `pinnedVersion` /
  * `pinSource`, disagree with what the seeds install (`readPinnedChartsVersion`: the release

@@ -13,7 +13,6 @@
 // server-side needs no history at all, and reports the truncation and divergence cases
 // explicitly instead of leaving them to be inferred from a git error.
 import { getStagingUrl, ghaError, ghaWarning } from '../../external/ag-shared/scripts/slack/_ci-notification-utils.mjs';
-import { ticketKeysIn } from '../jira/ticket-keys.mjs';
 
 const {
     JIRA_EMAIL,
@@ -28,6 +27,11 @@ const {
     GITHUB_TOKEN,
     DRY_RUN,
 } = process.env;
+
+// Only AG keys are matched. Case-insensitively on purpose: branch names in merge-commit
+// subjects use lowercase (`imoses/ag-17999`, `ghabot-ag-17992-...`), and a case-sensitive
+// pattern silently drops those commits.
+const TICKET_PATTERN = /\bAG-(\d+)\b/gi;
 
 const dryRun = DRY_RUN === 'true';
 // A dry run is expected to work without credentials, so that the commit range and the
@@ -114,7 +118,8 @@ async function getDeployedCommits() {
 function groupCommitsByTicket(commits) {
     const byTicket = new Map();
     for (const commit of commits) {
-        for (const key of ticketKeysIn(commit.subject)) {
+        for (const [, number] of commit.subject.matchAll(TICKET_PATTERN)) {
+            const key = `AG-${number}`;
             if (!byTicket.has(key)) byTicket.set(key, []);
             byTicket.get(key).push(commit);
         }
