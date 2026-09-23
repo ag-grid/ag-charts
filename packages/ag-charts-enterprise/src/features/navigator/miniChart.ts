@@ -40,17 +40,25 @@ export class MiniChart extends AbstractModuleInstance {
     // Should be available after the first layout.
     protected seriesRect?: _ModuleSupport.BBox = undefined;
 
-    axes: _ModuleSupport.ChartAxes = this.createChartAxes();
-    series: _ModuleSupport.UnknownSeries[] = [];
+    private _axes: _ModuleSupport.ChartAxes = this.createChartAxes();
+    private _series: _ModuleSupport.UnknownSeries[] = [];
+
+    get axes() {
+        return this._axes;
+    }
+
+    get series() {
+        return this._series;
+    }
 
     createChartAxes() {
         return new _ModuleSupport.ChartAxes();
     }
 
     setAxes(axes: _ModuleSupport.ChartAxes) {
-        const previous = this.axes;
+        const previous = this._axes;
         if (axes === previous) return;
-        this.axes = axes;
+        this._axes = axes;
 
         const axisNodes = {
             axisNode: this.axisGroup,
@@ -72,9 +80,9 @@ export class MiniChart extends AbstractModuleInstance {
     }
 
     setSeries(series: _ModuleSupport.UnknownSeries[]) {
-        const previous = this.series;
+        const previous = this._series;
         if (series === previous) return;
-        this.series = series;
+        this._series = series;
         this.onSeriesChange(series, previous);
     }
 

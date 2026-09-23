@@ -63,10 +63,15 @@ export interface FactoryApi {
 export class AgChartInstanceProxy implements AgChartProxy {
     static readonly chartInstances = new WeakMap<Chart, AgChartInstanceProxy>();
 
-    chart?: Chart;
+    // An ES private field keeps the chart, which links back through `publicApi`, out of `JSON.stringify`.
+    #chart?: Chart;
+
+    get chart() {
+        return this.#chart;
+    }
 
     setChart(chart: Chart | undefined) {
-        const previous = this.chart;
+        const previous = this.#chart;
         if (chart === previous) return;
 
         if (previous != null) {
@@ -75,7 +80,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
             }
             AgChartInstanceProxy.chartInstances.delete(previous);
         }
-        this.chart = chart;
+        this.#chart = chart;
         if (chart != null) {
             chart.publicApi = this;
             AgChartInstanceProxy.chartInstances.set(chart, this);

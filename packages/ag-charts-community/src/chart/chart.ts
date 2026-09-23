@@ -287,16 +287,20 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
     private extraDebugStats: Record<string, number> = {};
 
-    container?: HTMLElement;
+    private _container?: HTMLElement;
+
+    get container() {
+        return this._container;
+    }
 
     private setContainer(container: HTMLElement | undefined) {
-        const previous = this.container;
+        const previous = this._container;
         if (container === previous) return;
 
         if (previous != null) {
             Chart.chartsInstances.delete(previous);
         }
-        this.container = container;
+        this._container = container;
         if (container != null && !this.destroyed) {
             this.ctx.domManager.setContainer(container);
             Chart.chartsInstances.set(container, this);
