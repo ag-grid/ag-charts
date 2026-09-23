@@ -1,10 +1,10 @@
 {
     "demo": "procurement",
     "framework": "vue",
-    "sourceHash": "sha256-5126cc4daa448459af621606186b436ff688f3aa2866c91301343e4c82ca5e41",
-    "sourceCommit": "7fe5a649fba41bae870ced5cba4c599e31ba812e",
-    "pinnedVersion": "14.2.0",
-    "pinSource": "released",
+    "sourceHash": "sha256-3036237812f763dca8e94d5e4f7fa433e29ebc8badf9ff04f33c2aaa42f938ad",
+    "sourceCommit": "c71fa80f18e8fd577e8a355a1d9e604155c76006",
+    "pinnedVersion": "latest",
+    "pinSource": "dist-tag",
     "dist": "dist",
     "vendored": ["web-analytics/topology.ts"]
 }
