@@ -12,6 +12,7 @@ import type {
     AgRangeCrossLineOptions,
 } from './crossLineOptions';
 import type { AgNumericValue } from './dataValues';
+import type { AgAxisCrossLineListeners } from './eventOptions';
 import type { AgPolarAxisShape } from './polarAxisOptions';
 import type { AxisValue, ContextDefault, Degree, Ratio } from './types';
 
@@ -34,6 +35,8 @@ export interface AgRadiusNumberAxisOptions<TContext = ContextDefault>
     title?: AgAxisCaptionOptions;
     /** Add cross lines or regions corresponding to data values. */
     crossLines?: AgRadiusCrossLineOptions<AgNumericValue>[];
+    /** A map of event names to event listeners. */
+    listeners?: AgAxisCrossLineListeners<TContext>;
     /**
      * The ratio of the inner radius of the axis as a proportion of the overall radius.
      *  Used to create an inner circle.
@@ -52,6 +55,8 @@ export interface AgRadiusCategoryAxisOptions<TContext = ContextDefault> extends 
     title?: AgAxisCaptionOptions;
     /** Add cross lines or regions corresponding to data values. */
     crossLines?: AgRadiusCrossLineOptions<AxisValue>[];
+    /** A map of event names to event listeners. */
+    listeners?: AgAxisCrossLineListeners<TContext>;
     /**
      * The ratio of the inner radius of the axis as a proportion of the overall radius.
      *  Used to create an inner circle.

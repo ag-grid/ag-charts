@@ -99,7 +99,7 @@ export {
 } from './chart/series/cartesian/util';
 export { hasDimmedOpacity } from './chart/series/util';
 export { stackCartesianSeries } from './chart/cartesianUtil';
-export { CartesianCrossLine } from './chart/crossline/cartesianCrossLine';
+export { CartesianCrossLine, crossLineHitTolerance } from './chart/crossline/cartesianCrossLine';
 export type {
     ActiveLoadMementoEvent,
     AxisLayout,

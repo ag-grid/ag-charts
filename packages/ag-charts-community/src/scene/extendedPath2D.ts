@@ -9,7 +9,6 @@ import {
 
 import { parseSvg } from '../util/svg';
 import { BBox } from './bbox';
-import { cubicSegmentIntersections, segmentIntersection } from './intersection';
 
 enum Command {
     Move,
@@ -461,44 +460,32 @@ export class ExtendedPath2D {
         const commands = this.commands;
         const params = this.params;
         const cn = this.commandsLength;
-        // Hit testing using ray casting method, where the ray's origin is some point
-        // outside the path. In this case, an offscreen point that is remote enough, so that
-        // even if the path itself is large and is partially offscreen, the ray's origin
-        // will likely be outside the path anyway. To test if the given point is inside the
-        // path or not, we cast a ray from the origin to the given point and check the number
-        // of intersections of this segment with the path. If the number of intersections is
-        // even, then the ray both entered and exited the path an equal number of times,
-        // therefore the point is outside the path, and inside the path, if the number of
-        // intersections is odd. Since the path is compound, we check if the ray segment
-        // intersects with each of the path's segments, which can be either a line segment
-        // (one or no intersection points) or a Bézier curve segment (up to 3 intersection
-        // points).
-        const ox = -10000;
-        const oy = -10000;
+        // Even-odd rule along the horizontal ray running left from the point. Every edge is counted under the
+        // half-open rule, so a vertex or curve join lying on the ray is counted by exactly one of its edges.
         // the starting point of the  current path
         let sx: number = Number.NaN;
         let sy: number = Number.NaN;
         // the previous point of the current path
         let px = 0;
         let py = 0;
-        let intersectionCount = 0;
+        let crossings = 0;
 
         for (let ci = 0, pi = 0; ci < cn; ci++) {
             switch (commands[ci]) {
                 case Command.Move:
-                    intersectionCount += segmentIntersection(sx, sy, px, py, ox, oy, x, y);
+                    crossings += rayCrossesLine(px, py, sx, sy, x, y);
                     px = params[pi++];
                     sx = px;
                     py = params[pi++];
                     sy = py;
                     break;
                 case Command.Line:
-                    intersectionCount += segmentIntersection(px, py, params[pi++], params[pi++], ox, oy, x, y);
+                    crossings += rayCrossesLine(px, py, params[pi++], params[pi++], x, y);
                     px = params[pi - 2];
                     py = params[pi - 1];
                     break;
                 case Command.Curve:
-                    intersectionCount += cubicSegmentIntersections(
+                    crossings += rayCrossesCubic(
                         px,
                         py,
                         params[pi++],
@@ -507,8 +494,6 @@ export class ExtendedPath2D {
                         params[pi++],
                         params[pi++],
                         params[pi++],
-                        ox,
-                        oy,
                         x,
                         y
                     );
@@ -516,12 +501,16 @@ export class ExtendedPath2D {
                     py = params[pi - 1];
                     break;
                 case Command.ClosePath:
-                    intersectionCount += segmentIntersection(sx, sy, px, py, ox, oy, x, y);
+                    crossings += rayCrossesLine(px, py, sx, sy, x, y);
+                    // Closing moves the current point back to the subpath start, so a following Move
+                    // must not count the closing edge a second time.
+                    px = sx;
+                    py = sy;
                     break;
             }
         }
 
-        return intersectionCount % 2 === 1;
+        return crossings % 2 === 1;
     }
 
     distanceSquared(x: number, y: number): number {
@@ -559,7 +548,7 @@ export class ExtendedPath2D {
                     const cp2y = params[pi++];
                     cx = params[pi++];
                     cy = params[pi++];
-                    best = bezier2DDistance(cp0x, cp0y, cp1x, cp1y, cp2x, cp2y, cx, cy, x, y) ** 2;
+                    best = Math.min(best, bezier2DDistance(cp0x, cp0y, cp1x, cp1y, cp2x, cp2y, cx, cy, x, y) ** 2);
                     break;
                 }
                 case Command.ClosePath:
@@ -721,4 +710,83 @@ export class ExtendedPath2D {
         if (current.length > 0) polygons.push(current);
         return polygons;
     }
+}
+
+/** Whether the horizontal ray running left from (x, y) crosses the edge, under the half-open rule. */
+function rayCrossesLine(x0: number, y0: number, x1: number, y1: number, x: number, y: number): number {
+    if (y0 > y === y1 > y) {
+        return 0;
+    }
+    return x0 + ((y - y0) / (y1 - y0)) * (x1 - x0) < x ? 1 : 0;
+}
+
+/** How many times the horizontal ray running left from (x, y) crosses the cubic, under the half-open rule. */
+function rayCrossesCubic(
+    p0x: number,
+    p0y: number,
+    p1x: number,
+    p1y: number,
+    p2x: number,
+    p2y: number,
+    p3x: number,
+    p3y: number,
+    x: number,
+    y: number
+): number {
+    // Split at the vertical extrema so each piece is monotone in y and crosses the ray at most once.
+    const a = 3 * (-p0y + 3 * p1y - 3 * p2y + p3y);
+    const b = 6 * (p0y - 2 * p1y + p2y);
+    const c = 3 * (p1y - p0y);
+    let split0 = 1;
+    let split1 = 1;
+    if (a === 0) {
+        if (b !== 0) {
+            split0 = -c / b;
+        }
+    } else {
+        const discriminant = b * b - 4 * a * c;
+        if (discriminant >= 0) {
+            const root = Math.sqrt(discriminant);
+            split0 = (-b - root) / (2 * a);
+            split1 = (-b + root) / (2 * a);
+        }
+    }
+    if (split0 > split1) {
+        [split0, split1] = [split1, split0];
+    }
+
+    let crossings = 0;
+    let ta = 0;
+    let ya = p0y;
+    for (let piece = 0; piece < 3; piece++) {
+        let tb = 1;
+        if (piece === 0) {
+            tb = split0;
+        } else if (piece === 1) {
+            tb = split1;
+        }
+        if (!(tb > ta && tb <= 1)) {
+            continue;
+        }
+        const yb = tb === 1 ? p3y : evaluateBezier(p0y, p1y, p2y, p3y, tb);
+        if (ya > y !== yb > y) {
+            const rising = yb > ya;
+            let lo = ta;
+            let hi = tb;
+            for (let i = 0; i < 24; i++) {
+                const mid = (lo + hi) / 2;
+                if (evaluateBezier(p0y, p1y, p2y, p3y, mid) < y === rising) {
+                    lo = mid;
+                } else {
+                    hi = mid;
+                }
+            }
+            if (evaluateBezier(p0x, p1x, p2x, p3x, (lo + hi) / 2) < x) {
+                crossings++;
+            }
+        }
+        ta = tb;
+        ya = yb;
+    }
+    return crossings;
 }

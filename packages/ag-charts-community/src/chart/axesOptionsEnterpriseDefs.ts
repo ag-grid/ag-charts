@@ -2,6 +2,7 @@ import {
     type OptionsDefs,
     arrayOfDefs,
     boolean,
+    callback,
     constant,
     date,
     defined,
@@ -37,6 +38,11 @@ import {
     radiusCrossLineLabelOptionsDefs,
 } from './axesOptionsDefs';
 
+const polarAxisListenersOptionsDefs = {
+    crossLineClick: callback,
+    crossLineDoubleClick: callback,
+};
+
 export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,
     type: constant('ordinal-time'),
@@ -60,6 +66,7 @@ export const angleNumberAxisOptionsDefs: OptionsDefs<AgAngleNumberAxisOptions> =
     ...commonAxisOptionsDefs,
     ...continuousAxisOptions(numericValue),
     type: constant('angle-number'),
+    listeners: polarAxisListenersOptionsDefs,
     crossLines: arrayOfDefs(
         crossLineOptionsDefs(numericValue, commonCrossLineLabelOptionsDefs),
         'a cross-line options array'
@@ -80,6 +87,7 @@ angleNumberAxisOptionsDefs.shape = union('polygon', 'circle');
 export const angleCategoryAxisOptionsDefs: OptionsDefs<AgAngleCategoryAxisOptions> = {
     ...commonAxisOptionsDefs,
     type: constant('angle-category'),
+    listeners: polarAxisListenersOptionsDefs,
     shape: union('polygon', 'circle'),
     crossLines: arrayOfDefs(
         crossLineOptionsDefs(defined, commonCrossLineLabelOptionsDefs),
@@ -102,6 +110,7 @@ export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions>
     ...commonAxisOptionsDefs,
     ...continuousAxisOptions(numericValue),
     type: constant('radius-number'),
+    listeners: polarAxisListenersOptionsDefs,
     shape: union('polygon', 'circle'),
     positionAngle: number,
     innerRadiusRatio: ratio,
@@ -119,6 +128,7 @@ export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions>
 export const radiusCategoryAxisOptionsDefs: OptionsDefs<AgRadiusCategoryAxisOptions> = {
     ...commonAxisOptionsDefs,
     type: constant('radius-category'),
+    listeners: polarAxisListenersOptionsDefs,
     positionAngle: number,
     innerRadiusRatio: ratio,
     paddingInner: ratio,
