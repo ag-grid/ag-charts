@@ -3,6 +3,7 @@
 import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { PIN_COMMAND, describeDrift, findPortPinDrift } from './pin-ports.mjs';
 import {
@@ -44,11 +45,12 @@ import { GENERATED_FRAMEWORK, findStalePorts, findTouchedStalePorts, readChanged
  * and the command that fixes it. The React seed's pins are covered by `--react`. Both checks
  * follow the branch the checkout is built for (`resolveBranch`), a pull request's base included.
  *
- * `--react` and `--pins` combine; the exit status is non-zero if either fails.
+ * The flags combine: every check asked for runs, in the order `--react`, `--pins`, `--touched`,
+ * `--stale`, and the exit status is non-zero if any fails. Stdout carries the `--stale` JSON and
+ * nothing else; every other line, success messages included, goes to stderr, so
+ * `--stale --pins > stale.json` still writes a parseable report.
  *
- * Usage: node tools/seeds/check-seeds.mjs --react [--pins]
- *        node tools/seeds/check-seeds.mjs --stale [--fail-on-stale]
- *        node tools/seeds/check-seeds.mjs --touched <base>
+ * Usage: node tools/seeds/check-seeds.mjs [--react] [--pins] [--touched <base>] [--stale [--fail-on-stale]]
  */
 
 const STAMP_SCRIPT = 'packages/ag-charts-demos/tools/seeds/stamp-port-manifest.mjs';
@@ -140,7 +142,7 @@ async function checkReact() {
         }
 
         if (stale.length === 0) {
-            console.log('check-seeds: all React seeds are up to date.');
+            console.error('check-seeds: all React seeds are up to date.');
             return 0;
         }
 
@@ -157,17 +159,17 @@ async function checkReact() {
     }
 }
 
-function reportStale(failOnStale) {
+function reportStale({ failOnStale }) {
     const stale = findStalePorts({ onSkip: (message) => console.error(`check-seeds: ${message}`) });
     console.log(JSON.stringify({ stale }, null, 2));
     return failOnStale && stale.length > 0 ? 1 : 0;
 }
 
-function checkTouched(base) {
+function checkTouched({ base }) {
     const stale = findStalePorts({ onSkip: (message) => console.error(`check-seeds: ${message}`) });
     const touched = findTouchedStalePorts({ changedFiles: readChangedFiles(base), stale });
     if (touched.length === 0) {
-        console.log(`check-seeds: no port edited since ${base} is left stale.`);
+        console.error(`check-seeds: no port edited since ${base} is left stale.`);
         return 0;
     }
     console.error(`check-seeds: these ports are edited since ${base} but still stale against their React demo.\n`);
@@ -188,7 +190,7 @@ function checkPins() {
     const pin = readPinnedChartsVersion();
     const drift = findPortPinDrift({ pin });
     if (drift.length === 0) {
-        console.log(`check-seeds: every port pins ag-charts-* ${describePin(pin)}.`);
+        console.error(`check-seeds: every port pins ag-charts-* ${describePin(pin)}.`);
         return 0;
     }
     console.error(`check-seeds: framework ports must pin ag-charts-* ${describePin(pin)}.\n`);
@@ -198,30 +200,39 @@ function checkPins() {
     return 1;
 }
 
-async function main(argv) {
-    const checks = [];
-    if (argv.includes('--react')) checks.push(checkReact);
-    if (argv.includes('--pins')) checks.push(checkPins);
-    if (checks.length > 0) {
-        let status = 0;
-        for (const check of checks) status = Math.max(status, await check());
-        return status;
-    }
-    if (argv.includes('--stale')) {
-        return reportStale(argv.includes('--fail-on-stale'));
-    }
+const CHECKS = { react: checkReact, pins: checkPins, touched: checkTouched, stale: reportStale };
+
+const USAGE =
+    'check-seeds: pass --react to verify the committed React seeds are fresh, --pins to verify the ports pin the seeds version, --touched <base> to verify the ports a change edits are restamped, or --stale to report ported seeds behind their golden master. The flags combine.';
+
+/** The checks `argv` asks for, in the order they run, or the message explaining why it is malformed. */
+export function parseChecks(argv) {
+    const requested = [];
+    if (argv.includes('--react')) requested.push({ name: 'react' });
+    if (argv.includes('--pins')) requested.push({ name: 'pins' });
     if (argv.includes('--touched')) {
         const base = argv[argv.indexOf('--touched') + 1];
         if (!base || base.startsWith('--')) {
-            console.error('check-seeds: --touched needs the base to compare with, e.g. --touched origin/latest');
-            return 2;
+            return { error: 'check-seeds: --touched needs the base to compare with, e.g. --touched origin/latest' };
         }
-        return checkTouched(base);
+        requested.push({ name: 'touched', base });
     }
-    console.error(
-        'check-seeds: pass --react to verify the committed React seeds are fresh, --pins to verify the ports pin the seeds version, --stale to report ported seeds behind their golden master, or --touched <base> to verify the ports a change edits are restamped.'
-    );
-    return 2;
+    if (argv.includes('--stale')) requested.push({ name: 'stale', failOnStale: argv.includes('--fail-on-stale') });
+    return requested.length > 0 ? { requested } : { error: USAGE };
 }
 
-process.exit(await main(process.argv.slice(2)));
+/** Runs every check `argv` asks for, even after one fails; the exit status is the worst of them. */
+export async function runChecks(argv, checks = CHECKS) {
+    const { requested, error } = parseChecks(argv);
+    if (error) {
+        console.error(error);
+        return 2;
+    }
+    let status = 0;
+    for (const request of requested) status = Math.max(status, await checks[request.name](request));
+    return status;
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+    process.exit(await runChecks(process.argv.slice(2)));
+}

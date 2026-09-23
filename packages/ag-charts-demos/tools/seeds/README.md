@@ -124,6 +124,13 @@ fonts: the demos app does that only in an e2e run, for the parity harness (see "
 first render" in the package README), and the parity harness compares the ports with the demos
 app, not with this seed.
 
+### Combining the `check-seeds.mjs` flags
+
+`--react`, `--pins`, `--touched <base>` and `--stale` combine: every check asked for runs, in that
+order, even after one fails, and the exit status is non-zero if any fails. Stdout carries the
+`--stale` JSON and nothing else; every other line, success messages included, goes to stderr, so
+`check-seeds.mjs --stale --pins > stale.json` still writes a parseable report.
+
 ### `check-seeds.mjs --react`
 
 Regenerates every React seed into a temporary folder and diffs it against the committed one. A
@@ -136,8 +143,7 @@ committed together with its regenerated seed.
 Fails when a framework port's `ag-charts-*` dependencies, or the `pinnedVersion` / `pinSource` in
 its manifest, disagree with what the seeds install on this branch (see "Pins" below). The message
 names each port and what is off, the pin expected and why, and the command that fixes it. The React
-seed is not listed: `--react` regenerates it with its pins. Combines with `--react`; the exit status
-is non-zero if either fails.
+seed is not listed: `--react` regenerates it with its pins.
 
 ### `pin-ports.mjs`
 
