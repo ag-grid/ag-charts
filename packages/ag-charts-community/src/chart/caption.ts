@@ -11,14 +11,7 @@ import {
     wrapText,
     wrapTextSegments,
 } from 'ag-charts-core';
-import type {
-    AgCaptionTooltipRendererParams,
-    FontStyle,
-    FontWeight,
-    Renderer,
-    TextAlign,
-    TextWrap,
-} from 'ag-charts-types';
+import type { AgCaptionTooltipRendererParams, FontStyle, FontWeight, Renderer, TextWrap } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
@@ -58,19 +51,16 @@ export class Caption implements CaptionLike {
 
     enabled: boolean = false;
     text?: NormalisedTextOrSegments;
-    textAlign: TextAlign = 'center';
     fontStyle?: FontStyle;
     fontWeight?: FontWeight;
     fontSize: number = FONT_SIZE.SMALLER;
     fontFamily: string = 'sans-serif';
     color?: string;
-    spacing?: number;
     maxWidth?: number;
     maxHeight?: number;
     wrapping: TextWrap = 'always';
     truncate: boolean = true;
     padding: number = 0;
-    layoutStyle: 'block' | 'overlay' = 'block';
     readonly tooltip: CaptionTooltipOptions = {};
 
     applyTitle(title: NormalisedAxisTitleOptions) {
