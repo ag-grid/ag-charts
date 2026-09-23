@@ -10,7 +10,7 @@ const { seriesAreaBackgroundRegionLabelDef, seriesAreaBackgroundRegionRangeDef }
 export const BackgroundRegionsModule: PluginModuleDefinition<never, _ModuleSupport.ChartRegistry> = {
     type: 'plugin',
     name: 'background-regions',
-    chartType: 'cartesian',
+    chartTypes: ['cartesian'],
     enterprise: true,
     version: VERSION,
     dependencies: [SeriesAreaModule],

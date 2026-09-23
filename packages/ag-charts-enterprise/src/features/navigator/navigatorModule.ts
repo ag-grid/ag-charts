@@ -9,7 +9,7 @@ import { NAVIGATOR_THEME } from './navigatorTheme';
 export const NavigatorModule: PluginModuleDefinition<AgNavigatorOptions, _ModuleSupport.ChartRegistry> = {
     type: 'plugin',
     name: 'navigator',
-    chartType: 'cartesian',
+    chartTypes: ['cartesian'],
     dependencies: [BackgroundRegionsModule],
     enterprise: true,
     version: VERSION,

@@ -7,7 +7,10 @@ export interface ModulePlaceholder {
     type: `${ModuleType}` | ModuleType;
     name: string;
     moduleId: string;
+    /** The chart type an axis or series module belongs to. */
     chartType?: ChartType;
+    /** The chart types a plugin applies to; absent when it applies everywhere. */
+    chartTypes?: readonly ChartType[];
     enterprise?: boolean;
     optionsKey?: string;
     axisTypes?: readonly string[];

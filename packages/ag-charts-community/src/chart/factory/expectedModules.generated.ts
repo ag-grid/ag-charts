@@ -352,7 +352,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         type: 'plugin',
         name: 'annotations',
         moduleId: 'AnnotationsModule',
-        chartType: 'cartesian',
+        chartTypes: ['cartesian'],
         enterprise: true,
         contributes: [
             {
@@ -365,7 +365,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         type: 'plugin',
         name: 'axis-interaction',
         moduleId: 'AxisInteractionModule',
-        chartType: 'cartesian',
+        chartTypes: ['cartesian'],
         enterprise: true,
         contributes: [
             {
@@ -390,7 +390,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         type: 'plugin',
         name: 'background-regions',
         moduleId: 'BackgroundRegionsModule',
-        chartType: 'cartesian',
+        chartTypes: ['cartesian'],
         enterprise: true,
         contributes: [
             {
@@ -403,7 +403,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         type: 'plugin',
         name: 'chartToolbar',
         moduleId: 'ChartToolbarModule',
-        chartType: 'cartesian',
+        chartTypes: ['cartesian'],
         enterprise: true,
         contributes: [
             {
@@ -486,7 +486,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         type: 'plugin',
         name: 'navigator',
         moduleId: 'NavigatorModule',
-        chartType: 'cartesian',
+        chartTypes: ['cartesian'],
         enterprise: true,
         contributes: [
             {
@@ -499,7 +499,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         type: 'plugin',
         name: 'ranges',
         moduleId: 'RangesModule',
-        chartType: 'cartesian',
+        chartTypes: ['cartesian'],
         enterprise: true,
         contributes: [
             {
@@ -512,7 +512,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         type: 'plugin',
         name: 'scrollbar',
         moduleId: 'ScrollbarModule',
-        chartType: 'cartesian',
+        chartTypes: ['cartesian'],
         enterprise: true,
         contributes: [
             {
@@ -542,7 +542,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         type: 'plugin',
         name: 'statusBar',
         moduleId: 'StatusBarModule',
-        chartType: 'cartesian',
+        chartTypes: ['cartesian'],
         enterprise: true,
         contributes: [
             {
@@ -554,7 +554,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         type: 'plugin',
         name: 'sync',
         moduleId: 'SyncModule',
-        chartType: 'cartesian',
+        chartTypes: ['cartesian'],
         enterprise: true,
         contributes: [
             {
@@ -584,7 +584,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         type: 'axis:plugin',
         name: 'bandHighlight',
         moduleId: 'BandHighlightModule',
-        chartType: 'cartesian',
+        chartTypes: ['cartesian'],
         enterprise: true,
         axisTypes: ['category', 'ordinal-time', 'unit-time', 'grouped-category'],
         contributes: [
@@ -598,7 +598,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         type: 'axis:plugin',
         name: 'crosshair',
         moduleId: 'CrosshairModule',
-        chartType: 'cartesian',
+        chartTypes: ['cartesian'],
         enterprise: true,
         contributes: [
             {
@@ -610,7 +610,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         type: 'axis:plugin',
         name: 'crossLines',
         moduleId: 'CrossLinesModule',
-        chartType: 'cartesian',
+        chartTypes: ['cartesian'],
         contributes: [
             {
                 path: 'axes[].crossLines',
@@ -621,7 +621,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         type: 'axis:plugin',
         name: 'polarCrossLines',
         moduleId: 'PolarCrossLinesModule',
-        chartType: 'polar',
+        chartTypes: ['polar'],
         enterprise: true,
         optionsKey: 'crossLines',
         axisTypes: ['angle-category', 'angle-number', 'radius-category', 'radius-number'],
@@ -636,7 +636,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         type: 'series:plugin',
         name: 'errorBar',
         moduleId: 'ErrorBarsModule',
-        chartType: 'cartesian',
+        chartTypes: ['cartesian'],
         enterprise: true,
         seriesTypes: ['bar', 'line', 'scatter'],
         contributes: [

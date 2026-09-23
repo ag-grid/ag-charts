@@ -200,7 +200,7 @@ export interface PluginModuleDefinition<TOptions, TRegistry = unknown> extends M
     ModuleType.Plugin,
     TOptions
 > {
-    readonly chartType?: string;
+    readonly chartTypes?: readonly string[];
 
     register?(this: void, ctx: DynamicContext<TRegistry>): void;
 }
@@ -210,7 +210,7 @@ export interface AxisPluginModuleDefinition<TOptions> extends ModuleDefinition<
     TOptions,
     AxisPluginModuleInstance
 > {
-    readonly chartType?: string;
+    readonly chartTypes?: readonly string[];
     readonly axisTypes?: string[];
     readonly optionsKey?: string;
 }
@@ -220,6 +220,6 @@ export interface SeriesPluginModuleDefinition<TOptions> extends ModuleDefinition
     TOptions,
     SeriesPluginModuleInstance
 > {
-    readonly chartType?: string;
+    readonly chartTypes?: readonly string[];
     readonly seriesTypes?: string[];
 }

@@ -44,7 +44,7 @@ Declare it when the module owns options anywhere else, or owns several locations
 export const AxisInteractionModule: PluginModuleDefinition<never> = {
     type: 'plugin',
     name: 'axis-interaction',
-    chartType: 'cartesian',
+    chartTypes: ['cartesian'],
     enterprise: true,
     version: VERSION,
     contributes: [
@@ -64,7 +64,8 @@ Each contribution:
     keep whatever the chart defs already declare there.
 -   `themeTemplate`: defaults merged at the path.
 -   `chartTypes` / `axisTypes` / `seriesTypes`: where the location applies. A contribution without
-    `chartTypes` inherits the definition's `chartType`.
+    `chartTypes` inherits the definition's; omitting the list applies everywhere, while an empty list
+    applies nowhere.
 -   `requested`: `'enabled'` (default) or `'present'`, deciding whether a supplied value counts as a
     request for the missing module.
 -   `apiName`: a public name for the report when the path alone reads badly.

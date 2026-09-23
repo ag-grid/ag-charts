@@ -7,7 +7,7 @@ import { ChartSync } from './chartSync';
 export const SyncModule: PluginModuleDefinition<AgChartSyncOptions> = {
     type: 'plugin',
     name: 'sync',
-    chartType: 'cartesian',
+    chartTypes: ['cartesian'],
     dependencies: [BackgroundRegionsModule],
     enterprise: true,
     version: VERSION,

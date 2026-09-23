@@ -9,7 +9,7 @@ import { CrossLinesPlugin } from './crossLinesPlugin';
 export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions[]> = /* #__PURE__ */ communityModule({
     type: 'axis:plugin',
     name: 'crossLines',
-    chartType: 'cartesian',
+    chartTypes: ['cartesian'],
     enterprise: false,
     version: VERSION,
 

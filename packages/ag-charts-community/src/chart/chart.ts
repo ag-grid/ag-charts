@@ -23,6 +23,7 @@ import {
     isFiniteNumber,
     isInputPending,
     mergeDefaults,
+    moduleMatchesChartType,
     pause,
     readContributedValue,
     roundTo,
@@ -2020,7 +2021,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         let modulesChanged = false;
         for (const module of this.ctx.moduleRegistry.listModulesByType(ModuleType.Plugin)) {
-            const shouldBeEnabled = !module.chartType || module.chartType === chartType;
+            const shouldBeEnabled = moduleMatchesChartType(module, chartType);
             if (shouldBeEnabled === this.modulesManager.isEnabled(module.name)) continue;
 
             if (shouldBeEnabled) {
@@ -2244,7 +2245,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         const { moduleRegistry } = this.ctx;
         for (const module of moduleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
-            if (module.chartType && module.chartType !== chartType) continue;
+            if (!moduleMatchesChartType(module, chartType)) continue;
 
             const pluginOpts = readContributedValue(moduleRegistry.moduleContributions(module.name), 'axis', options);
             const shouldBeEnabled = pluginOpts != null;

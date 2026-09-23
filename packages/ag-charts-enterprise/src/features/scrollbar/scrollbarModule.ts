@@ -10,7 +10,7 @@ import { SCROLLBAR_THEME } from './scrollbarTheme';
 export const ScrollbarModule: PluginModuleDefinition<AgScrollbarOptions, _ModuleSupport.ChartRegistry> = {
     type: 'plugin',
     name: 'scrollbar',
-    chartType: 'cartesian',
+    chartTypes: ['cartesian'],
     enterprise: true,
     version: VERSION,
     dependencies: [ZoomInteractionModule, BackgroundRegionsModule],

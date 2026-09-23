@@ -9,7 +9,7 @@ import { annotationsTheme } from './annotationsTheme';
 export const AnnotationsModule: PluginModuleDefinition<AgAnnotationsOptions, _ModuleSupport.ChartRegistry> = {
     type: 'plugin',
     name: 'annotations',
-    chartType: 'cartesian',
+    chartTypes: ['cartesian'],
     dependencies: [BackgroundRegionsModule],
     enterprise: true,
     version: VERSION,

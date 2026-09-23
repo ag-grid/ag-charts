@@ -9,6 +9,7 @@ import {
     ReactiveState,
     type StrictHTMLElement,
     createDynamicContext,
+    moduleMatchesChartType,
 } from 'ag-charts-core';
 
 import { ChartTypeOriginator } from '../api/preset/chartTypeOriginator';
@@ -148,7 +149,7 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
     // Plugin modules register their own services (e.g. sharedToolbar) after the
     // core registry is complete but before any consumer reads from the context.
     for (const module of vars.moduleRegistry.listModulesByType(ModuleType.Plugin)) {
-        if (!module.chartType || module.chartType === vars.chartType) {
+        if (moduleMatchesChartType(module, vars.chartType)) {
             module.register?.(ctx);
         }
     }

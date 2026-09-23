@@ -19,6 +19,7 @@ import {
     isContributionRequested,
     isDefined,
     isObject,
+    moduleMatchesChartType,
     resolveContributions,
     visitOptionsPath,
 } from 'ag-charts-core';
@@ -293,7 +294,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
     for (const module of ExpectedModules.values()) {
         if (SkippedModules.has(module.name)) continue;
         // Ignore modules that don't match the current chart type
-        if (chartType && module.chartType && chartType !== module.chartType) continue;
+        if (!moduleMatchesChartType(module, chartType)) continue;
 
         switch (module.type) {
             case 'chart':

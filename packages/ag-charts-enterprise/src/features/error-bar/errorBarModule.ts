@@ -8,7 +8,7 @@ import { ErrorBars } from './errorBar';
 export const ErrorBarsModule: SeriesPluginModuleDefinition<AgErrorBarOptions> = {
     type: 'series:plugin',
     name: 'errorBar',
-    chartType: 'cartesian',
+    chartTypes: ['cartesian'],
     dependencies: [BackgroundRegionsModule],
     seriesTypes: ['bar', 'line', 'scatter'],
     enterprise: true,
