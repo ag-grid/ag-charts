@@ -1404,16 +1404,20 @@ jobs:
               id: demos_parity
               if: ${{ !cancelled() }}
               run: |
-                  report=packages/ag-charts-demos/e2e/parity/results/stale-ports.json
+                  # The report goes under the runner's temp folder, mounted read-only into the
+                  # container: e2e/parity/results/ is created by the self-parity container as root,
+                  # so the runner user cannot write into it.
+                  report="${RUNNER_TEMP}/parity-input/stale-ports.json"
                   mkdir -p "$(dirname "$report")"
                   node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --stale > "$report"
                   jq -r '.stale[] | "::warning title=Stale demo port skipped by parity::seeds/\(.demo)/\(.framework) no longer matches src/demos/\(.demo) and is not compared. It is aligned at the release-branch cut (Demo Port Alignment workflow) or with /port-showcases."' "$report"
                   docker run --rm --ipc=host --init \
                     -v "$(pwd)":/data \
+                    -v "${RUNNER_TEMP}/parity-input":/parity-input:ro \
                     -w /data/packages/ag-charts-demos \
                     -e CI \
                     -e PARITY_DISCOVER=1 \
-                    -e PARITY_STALE_REPORT=e2e/parity/results/stale-ports.json \
+                    -e PARITY_STALE_REPORT=/parity-input/stale-ports.json \
                     ${PLAYWRIGHT_IMAGE} \
                     npx playwright test -c playwright.parity.config.ts
               timeout-minutes: 15
