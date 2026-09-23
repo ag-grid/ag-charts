@@ -14,13 +14,14 @@ import {
     SOURCE_FILE,
     WORKSPACE_ROOT,
     hashDemoSource,
+    listDemoSourceFiles,
     listFiles,
     ownerDemo,
     readDemoIds,
-    readDemoSourceCommit,
     readJson,
     readPinnedChartsVersion,
     resolveRelativeImport,
+    resolveSourceCommit,
     toPosix,
 } from './seed-common.mjs';
 
@@ -44,9 +45,6 @@ import {
  */
 
 export const FRAMEWORK = 'react';
-
-/** Test files stay with the workspace: the seed has no test runner and vitest is not a seed dependency. */
-const EXCLUDED_SOURCE = /\.(test|spec)\.[cm]?[jt]sx?$/;
 
 /** Files the generator owns beside the copied source; anything else in the target is removed. */
 const PRESERVED_IN_TARGET = new Set(['node_modules', 'dist']);
@@ -265,7 +263,8 @@ export async function generateReactSeed(demoId, outRoot = SEEDS_DIR) {
     const seedDir = join(outRoot, demoId, FRAMEWORK);
     const seedSrcDir = join(seedDir, 'src');
 
-    const sourceFiles = listFiles(sourceDir).filter((file) => !EXCLUDED_SOURCE.test(file));
+    // The same file list the source hash is computed over: test files and ignored files stay out.
+    const sourceFiles = listDemoSourceFiles(sourceDir);
     if (!sourceFiles.includes('index.tsx')) {
         throw new Error(`src/demos/${demoId}/index.tsx is missing; the seed mounts the demo's default export`);
     }
@@ -275,6 +274,7 @@ export async function generateReactSeed(demoId, outRoot = SEEDS_DIR) {
         }
     }
 
+    const previousManifest = readCommittedManifest(demoId);
     resetSeedDir(seedDir);
     mkdirSync(seedSrcDir, { recursive: true });
     const vendored = copyDemoSource(demoId, sourceFiles, seedDir);
@@ -286,6 +286,7 @@ export async function generateReactSeed(demoId, outRoot = SEEDS_DIR) {
 
     const imported = collectImportedPackages(seedSrcDir, listFiles(seedSrcDir));
     const pin = readPinnedChartsVersion();
+    const sourceHash = hashDemoSource(demoId);
     const packageJson = renderPackageJson(demoId, buildDependencies(demoId, imported, pin.pinnedVersion));
 
     writeJson(join(seedDir, 'package.json'), packageJson, 2);
@@ -299,8 +300,8 @@ export async function generateReactSeed(demoId, outRoot = SEEDS_DIR) {
         {
             demo: demoId,
             framework: FRAMEWORK,
-            sourceHash: hashDemoSource(demoId),
-            sourceCommit: readDemoSourceCommit(demoId),
+            sourceHash,
+            sourceCommit: resolveSourceCommit(demoId, sourceHash, previousManifest),
             pinnedVersion: pin.pinnedVersion,
             pinSource: pin.pinSource,
             vendored,
@@ -313,6 +314,18 @@ export async function generateReactSeed(demoId, outRoot = SEEDS_DIR) {
         await formatGeneratedFile(join(seedDir, file), join(SEEDS_DIR, demoId, FRAMEWORK, file));
     }
     return files;
+}
+
+/**
+ * The manifest committed for the demo's React seed, read before the seed is rewritten, whatever
+ * `outRoot` is; null when there is none yet or it does not parse.
+ */
+function readCommittedManifest(demoId) {
+    try {
+        return readJson(join(SEEDS_DIR, demoId, FRAMEWORK, MANIFEST_FILENAME));
+    } catch {
+        return null;
+    }
 }
 
 /**

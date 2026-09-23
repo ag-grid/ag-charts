@@ -76,7 +76,10 @@ export function readDemoIds() {
     return ids;
 }
 
-/** Every file below `dir`, as POSIX paths relative to `dir`, sorted. */
+/**
+ * Every file below `dir`, as POSIX paths relative to `dir`, sorted. Walks the file system as it
+ * is, so it suits folders the tooling writes itself; source is listed with `listSourceFiles`.
+ */
 export function listFiles(dir) {
     const files = [];
     const walk = (current) => {
@@ -91,6 +94,58 @@ export function listFiles(dir) {
     };
     walk(dir);
     return files.sort();
+}
+
+/**
+ * The files below `dir` that git would commit, as POSIX paths relative to `dir`, sorted: tracked
+ * files plus untracked ones that no ignore rule excludes, less any deleted from the working tree.
+ * Ignored files (`.DS_Store`, editor droppings, local build output) therefore never reach a
+ * seed or a source hash. Untracked files do count, so a new demo file is picked up before it is
+ * staged; once committed, the result is what a CI checkout of the same commit sees.
+ *
+ * Falls back to walking the folder only when `dir` is not inside a git work tree at all, which
+ * is the case for the unit tests' temporary folders; any other git failure is an error.
+ */
+export function listSourceFiles(dir) {
+    let output;
+    try {
+        output = execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard', '--', '.'], {
+            cwd: dir,
+            encoding: 'utf8',
+            stdio: ['ignore', 'pipe', 'pipe'],
+        });
+    } catch (error) {
+        if (/not a git repository/i.test(String(error.stderr ?? ''))) return listFiles(dir);
+        throw error;
+    }
+    const files = new Set(
+        output
+            .split('\0')
+            .filter(Boolean)
+            .filter((file) => statSync(join(dir, file), { throwIfNoEntry: false })?.isFile())
+    );
+    return [...files].sort();
+}
+
+/**
+ * Test files stay with the workspace: a seed has no test runner and vitest is not a seed
+ * dependency. They are left out of the seed and of the source hash alike, so a test-only edit
+ * neither changes a seed nor reports its ports stale.
+ */
+export const EXCLUDED_DEMO_SOURCE = /\.(test|spec)\.[cm]?[jt]sx?$/;
+
+/** `EXCLUDED_DEMO_SOURCE` as git exclude pathspecs, so the history is read over the same files. */
+const EXCLUDED_DEMO_SOURCE_PATHSPECS = ['test', 'spec'].flatMap((kind) =>
+    ['', 'c', 'm'].flatMap((module) =>
+        ['j', 't'].flatMap((language) =>
+            ['s', 'sx'].map((suffix) => `:(glob,exclude)**/*.${kind}.${module}${language}${suffix}`)
+        )
+    )
+);
+
+/** The files a demo's folder contributes to its seed and its source hash, relative to `dir`, sorted. */
+export function listDemoSourceFiles(dir) {
+    return listSourceFiles(dir).filter((file) => !EXCLUDED_DEMO_SOURCE.test(file));
 }
 
 export function toPosix(path) {
@@ -132,7 +187,8 @@ export function ownerDemo(file, srcDir = DEMOS_SRC_DIR) {
 }
 
 /**
- * The source a demo is made of: every file under its own folder, plus the files it reaches
+ * The source a demo is made of: every file under its own folder (`listDemoSourceFiles`: git's
+ * view of it, test files excluded), plus the files it reaches
  * through relative imports from sibling demos (procurement draws its world map from
  * web-analytics' topology rather than duplicating it). A seed copies the latter under
  * `src/vendored/<demo>/`, and the manifests list them as `vendored`.
@@ -142,7 +198,7 @@ export function ownerDemo(file, srcDir = DEMOS_SRC_DIR) {
  */
 export function resolveDemoSources(demoId, srcDir = DEMOS_SRC_DIR) {
     const dir = join(srcDir, demoId);
-    const files = listFiles(dir);
+    const files = listDemoSourceFiles(dir);
     const queue = files.map((file) => join(dir, file));
     const seen = new Set();
     const vendored = new Set();
@@ -160,8 +216,9 @@ export function resolveDemoSources(demoId, srcDir = DEMOS_SRC_DIR) {
 }
 
 /**
- * Deterministic content hash of a demo's source: every file of `src/demos/<id>/**` in sorted
- * path order, each contributing its relative path and its bytes, then every file it imports
+ * Deterministic content hash of a demo's source: every file `resolveDemoSources` lists for
+ * `src/demos/<id>/` in sorted path order (test files and ignored files excluded, exactly as the
+ * seed leaves them out), each contributing its relative path and its bytes, then every file it imports
  * from a sibling demo under its `../<demo>/…` path. A change to a shared module such as
  * web-analytics' topology therefore moves the hash of every demo that draws on it, and the
  * ports of those demos are reported stale. The ports' manifests (Phase 4) compare against the
@@ -185,23 +242,47 @@ export function hashDemoSource(demoId, srcDir = DEMOS_SRC_DIR) {
 /**
  * The last commit that touched the demo's source, sibling-demo imports included, so a port's
  * `sourceCommit` names the change it has to catch up with even when that change was made to a
- * shared module.
+ * shared module. Test files are left out, as they are from the hash.
+ *
+ * In a shallow clone the history stops at the shallow boundary, whose commit appears to add
+ * every file it holds, so `git log` would name it whenever the real change is older. A boundary
+ * commit is therefore not an answer and this returns null; callers keep the recorded commit when
+ * the source is unchanged (`resolveSourceCommit`).
  */
-export function readDemoSourceCommit(demoId) {
+export function readDemoSourceCommit(demoId, { demosRoot = DEMOS_ROOT } = {}) {
+    const git = (args) =>
+        execFileSync('git', args, { cwd: demosRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
     try {
+        const srcDir = join(demosRoot, 'src', 'demos');
         const paths = [
             join('src', 'demos', demoId),
-            ...resolveDemoSources(demoId).vendored.map((file) => join('src', 'demos', file)),
+            ...resolveDemoSources(demoId, srcDir).vendored.map((file) => join('src', 'demos', file)),
         ];
-        const sha = execFileSync('git', ['log', '-1', '--format=%H', '--', ...paths], {
-            cwd: DEMOS_ROOT,
-            encoding: 'utf8',
-            stdio: ['ignore', 'pipe', 'ignore'],
-        }).trim();
-        return sha || null;
+        const sha = git(['log', '-1', '--format=%H', '--', ...paths, ...EXCLUDED_DEMO_SOURCE_PATHSPECS]);
+        if (!sha) return null;
+        if (git(['rev-parse', '--is-shallow-repository']) === 'true') {
+            const shallowFile = resolve(demosRoot, git(['rev-parse', '--git-path', 'shallow']));
+            const boundary = readFileSync(shallowFile, 'utf8').split('\n');
+            if (boundary.includes(sha)) return null;
+        }
+        return sha;
     } catch {
         return null;
     }
+}
+
+/**
+ * The `sourceCommit` to record for a demo whose source now hashes to `sourceHash`. When the
+ * manifest being rewritten already records that hash, its commit still names the change it was
+ * synced to and is kept: rewriting it would only let a shallow clone (a version bump, a CI job)
+ * replace it with whatever commit the clone happens to start at. Otherwise the commit is read
+ * from the history.
+ */
+export function resolveSourceCommit(demoId, sourceHash, previousManifest, readSourceCommit = readDemoSourceCommit) {
+    if (previousManifest?.sourceHash === sourceHash && previousManifest.sourceCommit) {
+        return previousManifest.sourceCommit;
+    }
+    return readSourceCommit(demoId);
 }
 
 export function readJson(path) {

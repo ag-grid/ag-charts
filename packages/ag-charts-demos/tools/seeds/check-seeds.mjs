@@ -10,6 +10,7 @@ import {
     SEEDS_DIR,
     WORKSPACE_ROOT,
     listFiles,
+    listSourceFiles,
     readDemoIds,
     readPinnedChartsVersion,
 } from './seed-common.mjs';
@@ -84,7 +85,9 @@ function compareSeed(demoId, freshRoot, isPreservedPath) {
         return [`${label}: missing (not generated yet)`];
     }
 
-    const committedFiles = new Set(listFiles(committedDir).filter((file) => !isPreservedPath(file)));
+    // Git's view of the committed seed, so an ignored file dropped into it (`.DS_Store`) is not
+    // reported as a file the generator no longer writes.
+    const committedFiles = new Set(listSourceFiles(committedDir).filter((file) => !isPreservedPath(file)));
     const freshFiles = new Set(listFiles(freshDir));
     const report = [];
 

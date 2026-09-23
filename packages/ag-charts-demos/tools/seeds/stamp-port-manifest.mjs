@@ -11,13 +11,15 @@ import {
     hashDemoSource,
     readDemoIds,
     readDemoSourceCommit,
+    resolveSourceCommit,
 } from './seed-common.mjs';
 import { GENERATED_FRAMEWORK } from './stale-ports.mjs';
 
 /**
  * Records that a framework port is in step with its React golden master: rewrites the port's
  * `.seed-manifest.json` `sourceHash` and `sourceCommit` from the current `src/demos/<demo>/**`,
- * leaving every other field as it was. Run it after porting a demo change, before committing;
+ * leaving every other field as it was. When the hash is unchanged the recorded `sourceCommit` is
+ * kept (see `resolveSourceCommit`), so re-stamping from a shallow clone cannot rewrite it. Run it after porting a demo change, before committing;
  * `check-seeds.mjs --stale` then stops reporting the port.
  *
  * Usage: node tools/seeds/stamp-port-manifest.mjs <demo> <framework>
@@ -26,8 +28,9 @@ import { GENERATED_FRAMEWORK } from './stale-ports.mjs';
 /** Rewrites the manifest at `manifestPath`; returns the new `{ sourceHash, sourceCommit }`. */
 export function stampPortManifest(manifestPath, { hashSource, readSourceCommit }) {
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-    manifest.sourceHash = hashSource(manifest.demo);
-    manifest.sourceCommit = readSourceCommit(manifest.demo);
+    const sourceHash = hashSource(manifest.demo);
+    manifest.sourceCommit = resolveSourceCommit(manifest.demo, sourceHash, manifest, readSourceCommit);
+    manifest.sourceHash = sourceHash;
     writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 4)}\n`);
     return { sourceHash: manifest.sourceHash, sourceCommit: manifest.sourceCommit };
 }

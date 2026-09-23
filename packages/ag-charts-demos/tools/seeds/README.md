@@ -11,6 +11,13 @@ Every seed carries a `.seed-manifest.json` whose `sourceHash` is a content hash 
 procurement hash too) and whose `sourceCommit` is the last commit that touched any of those files.
 The React generator writes it; a port's is stamped by hand after a sync.
 
+The hash covers exactly what the React seed copies: the files git would commit (tracked, or
+untracked and not ignored, so `.DS_Store` and the like never count), less test files
+(`*.test.*`, `*.spec.*`), which stay with the workspace. A test-only edit therefore changes no
+seed and makes no port stale. When a manifest is rewritten with an unchanged hash its
+`sourceCommit` is kept, so regenerating from a shallow clone (a version bump, a CI job) cannot
+replace it with the clone's starting commit.
+
 ## The manifest is what makes a seed exist
 
 Nothing lists the seeds. Everything that needs to know which seeds there are walks
@@ -123,7 +130,8 @@ nothing installed: the generator and its Prettier dependency are only loaded for
 ### `stamp-port-manifest.mjs <demo> <framework>`
 
 Records that a port is in step with its golden master by rewriting the manifest's `sourceHash`
-and `sourceCommit` from the current source. Every other field is left as it was. Run it once the
+and `sourceCommit` from the current source (the commit is kept when the hash has not moved).
+Every other field is left as it was. Run it once the
 port reproduces the demo change, and commit the manifest with the port; `--stale` then stops
 reporting it.
 
