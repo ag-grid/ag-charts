@@ -1,7 +1,7 @@
 import { resolve } from 'path';
 
 import type { ComparisonGate } from './compare';
-import { RUN_KIND } from './targets';
+import { RUN_KIND, type SkippedPort } from './targets';
 
 // The shape of the JSON summary the run leaves behind, shared by the spec that produces one
 // record per attempt at a comparison and the reporter that gathers them. Documented in README.md.
@@ -13,7 +13,7 @@ export const SUMMARY_PATH = resolve(RESULTS_DIR, 'summary.json');
 /** Name of the per-test attachment carrying a `ComparisonRecord`. */
 export const RESULT_ATTACHMENT = 'parity-result';
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 export interface ComparisonArtefacts {
     /** Paths relative to the results directory. Present only when written (failure, or PARITY_KEEP_ARTEFACTS=1). */
@@ -62,8 +62,36 @@ export interface ParitySummary {
      * outcome over its attempts. `attempts` counts every record in `comparisons`.
      */
     totals: { comparisons: number; passed: number; flaky: number; failed: number; attempts: number };
+    /**
+     * Committed ports the run did not compare, in `<demo>/<framework>` order: in a discovery run,
+     * the stale ones (`reason: 'stale'`), whose manifest records an older hash of the demo than
+     * its current one. Empty in every other run.
+     */
+    skipped: SkippedPort[];
     /** Every attempt, retries and repeats included, in the order they ended. */
     comparisons: ComparisonRecord[];
+}
+
+/**
+ * The lines the run prints about the ports it skipped, or has nothing to compare: loud on purpose,
+ * since a skipped port is one the run says nothing else about.
+ */
+export function describeSkipped(skipped: readonly SkippedPort[], compared: number): string[] {
+    const lines: string[] = [];
+    if (skipped.length > 0) {
+        lines.push(
+            `Parity: SKIPPED ${skipped.length} stale port${skipped.length === 1 ? '' : 's'}, not compared with the React demo. ` +
+                'Stale ports are expected between releases; they are aligned at the release-branch cut ' +
+                '("Demo Port Alignment" workflow) or with /port-showcases.'
+        );
+        for (const port of skipped) {
+            const synced = port.manifestCommit ? port.manifestCommit.slice(0, 8) : (port.manifestHash ?? 'never');
+            const now = port.sourceCommit ? port.sourceCommit.slice(0, 8) : port.sourceHash;
+            lines.push(`  - ${port.demo}/${port.framework}: ${port.reason}, aligned to ${synced}, demo now at ${now}`);
+        }
+    }
+    if (compared === 0) lines.push('Parity: no current ports to compare.');
+    return lines;
 }
 
 type ComparisonIdentity = Pick<ComparisonRecord, 'framework' | 'demo' | 'state' | 'viewport'>;

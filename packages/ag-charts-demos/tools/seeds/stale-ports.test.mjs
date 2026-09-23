@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { findStalePorts, readPortManifests } from './stale-ports.mjs';
+import { findStalePorts, findTouchedStalePorts, readPortManifests } from './stale-ports.mjs';
 import { stampPortManifest } from './stamp-port-manifest.mjs';
 
 const CURRENT_HASH = 'sha256-current';
@@ -139,5 +139,63 @@ describe('stampPortManifest', () => {
             )}\n`
         );
         expect(findStalePorts({ ...options(), hashSource: () => 'sha256-new' })).toEqual([]);
+    });
+});
+
+describe('findTouchedStalePorts', () => {
+    const SEEDS = 'packages/ag-charts-demos/seeds/';
+    const stalePort = (demo, framework) => ({
+        demo,
+        framework,
+        sourceHash: 'sha256-now',
+        manifestHash: 'sha256-then',
+        sourceCommit: 'c0ffee',
+        manifestCommit: 'decade',
+    });
+    const stale = [stalePort('financial', 'angular'), stalePort('financial', 'vue')];
+
+    it('reports a stale port the change edits, with the files that touched it', () => {
+        const changedFiles = [
+            `${SEEDS}financial/angular/src/app/app.component.ts`,
+            `${SEEDS}financial/angular/src/styles.css`,
+            'packages/ag-charts-demos/src/demos/financial/data.ts',
+        ];
+        expect(findTouchedStalePorts({ changedFiles, stale })).toEqual([
+            { ...stalePort('financial', 'angular'), files: ['src/app/app.component.ts', 'src/styles.css'] },
+        ]);
+    });
+
+    it('passes a change that edits only ports that are not stale', () => {
+        const changedFiles = [`${SEEDS}procurement/angular/src/main.ts`, `${SEEDS}financial/typescript/src/main.ts`];
+        expect(findTouchedStalePorts({ changedFiles, stale })).toEqual([]);
+    });
+
+    it('passes a change that leaves the stale ports alone', () => {
+        const changedFiles = [
+            'packages/ag-charts-demos/src/demos/financial/data.ts',
+            `${SEEDS}financial/react/src/data.ts`,
+        ];
+        expect(findTouchedStalePorts({ changedFiles, stale })).toEqual([]);
+    });
+
+    it('does not count a pin update, which rewrites every port stale or not', () => {
+        const changedFiles = [
+            `${SEEDS}financial/angular/package.json`,
+            `${SEEDS}financial/angular/.seed-manifest.json`,
+            `${SEEDS}financial/vue/package.json`,
+        ];
+        expect(findTouchedStalePorts({ changedFiles, stale })).toEqual([]);
+    });
+
+    it('counts a nested package.json, which no pin update writes', () => {
+        const changedFiles = [`${SEEDS}financial/vue/src/data/package.json`];
+        expect(findTouchedStalePorts({ changedFiles, stale })).toEqual([
+            { ...stalePort('financial', 'vue'), files: ['src/data/package.json'] },
+        ]);
+    });
+
+    it('does not mistake a framework whose name another starts with', () => {
+        const changedFiles = [`${SEEDS}financial/angular-signals/src/main.ts`, `${SEEDS}financial/angular.PORTING.md`];
+        expect(findTouchedStalePorts({ changedFiles, stale })).toEqual([]);
     });
 });

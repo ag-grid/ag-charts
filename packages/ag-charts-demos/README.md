@@ -89,10 +89,11 @@ download.
   aligned at the release-branch cut by the "Demo Port Alignment" workflow
   (`.github/workflows/demo-port-align.yml`), or on demand with `/port-showcases`. See
   [`tools/seeds/README.md`](tools/seeds/README.md).
-- Parity is a hard gate: a Playwright screenshot diff of each port against the React demo at fixed
-  viewports with frozen data and time, plus the functional specs run against each port. The harness
-  and its `PARITY_DISCOVER=1` mode, which finds every committed port by its manifest, are described
-  in [`e2e/parity/README.md`](e2e/parity/README.md).
+- Parity is a hard gate for every port that is not stale: a Playwright screenshot diff of each port
+  against the React demo at fixed viewports with frozen data and time, plus the functional specs run
+  against each port. The harness and its `PARITY_DISCOVER=1` mode, which finds every committed port
+  by its manifest and skips the stale ones, are described in
+  [`e2e/parity/README.md`](e2e/parity/README.md).
 - Seeds must be fully self-contained — nothing in a seed may reference a path above its own root —
   so that StackBlitz can import the folder on its own.
 

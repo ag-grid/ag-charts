@@ -15,7 +15,7 @@ import {
     readDemoIds,
     readPinnedChartsVersion,
 } from './seed-common.mjs';
-import { GENERATED_FRAMEWORK, findStalePorts } from './stale-ports.mjs';
+import { GENERATED_FRAMEWORK, findStalePorts, findTouchedStalePorts, readChangedFiles } from './stale-ports.mjs';
 
 /**
  * Freshness check for the committed seed projects.
@@ -33,6 +33,11 @@ import { GENERATED_FRAMEWORK, findStalePorts } from './stale-ports.mjs';
  * `--react`, so CI can run it on a bare checkout. Stale ports are expected on `latest` between
  * releases; they are aligned at the release-branch cut.
  *
+ * `--touched <base>` fails when a port the change edits (a file under `seeds/<demo>/<framework>/`
+ * that differs between `<base>` and `HEAD`, pin-only files aside) is still stale: the port was
+ * aligned without restamping its manifest, and the blocking parity run, which skips stale ports,
+ * would not compare it. The message names the stamp command.
+ *
  * `--pins` fails when a framework port's `ag-charts-*` pins, or its manifest's `pinnedVersion` /
  * `pinSource`, disagree with what the seeds install (`readPinnedChartsVersion`: the release
  * version on a release branch or a release, the npm `latest` dist-tag otherwise), naming the port
@@ -43,7 +48,10 @@ import { GENERATED_FRAMEWORK, findStalePorts } from './stale-ports.mjs';
  *
  * Usage: node tools/seeds/check-seeds.mjs --react [--pins]
  *        node tools/seeds/check-seeds.mjs --stale [--fail-on-stale]
+ *        node tools/seeds/check-seeds.mjs --touched <base>
  */
+
+const STAMP_SCRIPT = 'packages/ag-charts-demos/tools/seeds/stamp-port-manifest.mjs';
 
 /** Manifest fields the comparison ignores: a shallow CI checkout cannot reproduce the source commit. */
 const MANIFEST_IGNORED_FIELDS = ['sourceCommit'];
@@ -155,6 +163,27 @@ function reportStale(failOnStale) {
     return failOnStale && stale.length > 0 ? 1 : 0;
 }
 
+function checkTouched(base) {
+    const stale = findStalePorts({ onSkip: (message) => console.error(`check-seeds: ${message}`) });
+    const touched = findTouchedStalePorts({ changedFiles: readChangedFiles(base), stale });
+    if (touched.length === 0) {
+        console.log(`check-seeds: no port edited since ${base} is left stale.`);
+        return 0;
+    }
+    console.error(`check-seeds: these ports are edited since ${base} but still stale against their React demo.\n`);
+    for (const { demo, framework, files } of touched) {
+        console.error(`  seeds/${demo}/${framework}: ${files.join(', ')}`);
+    }
+    console.error(
+        '\nOnce a port reproduces its demo, restamp its manifest so the parity run compares it rather than skipping it as stale:'
+    );
+    for (const { demo, framework } of touched) {
+        console.error(`  node ${STAMP_SCRIPT} ${demo} ${framework}`);
+    }
+    console.error('then commit the manifest with the port.');
+    return 1;
+}
+
 function checkPins() {
     const pin = readPinnedChartsVersion();
     const drift = findPortPinDrift({ pin });
@@ -181,8 +210,16 @@ async function main(argv) {
     if (argv.includes('--stale')) {
         return reportStale(argv.includes('--fail-on-stale'));
     }
+    if (argv.includes('--touched')) {
+        const base = argv[argv.indexOf('--touched') + 1];
+        if (!base || base.startsWith('--')) {
+            console.error('check-seeds: --touched needs the base to compare with, e.g. --touched origin/latest');
+            return 2;
+        }
+        return checkTouched(base);
+    }
     console.error(
-        'check-seeds: pass --react to verify the committed React seeds are fresh, --pins to verify the ports pin the seeds version, or --stale to report ported seeds behind their golden master.'
+        'check-seeds: pass --react to verify the committed React seeds are fresh, --pins to verify the ports pin the seeds version, --stale to report ported seeds behind their golden master, or --touched <base> to verify the ports a change edits are restamped.'
     );
     return 2;
 }

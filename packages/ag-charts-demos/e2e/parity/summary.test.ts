@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { type ComparisonRecord, attemptDir, attemptKey, summariseAttempts } from './summary';
+import { type ComparisonRecord, attemptDir, attemptKey, describeSkipped, summariseAttempts } from './summary';
+import type { SkippedPort } from './targets';
 
 function attempt(overrides: Partial<ComparisonRecord>): ComparisonRecord {
     return {
@@ -64,5 +65,36 @@ describe('attempt identity', () => {
             'angular/financial/initial@1440x900/repeat-1-retry-0',
             'angular/financial/initial@1440x900/repeat-1-retry-1',
         ]);
+    });
+});
+
+describe('describeSkipped', () => {
+    const skipped = (framework: string, overrides: Partial<SkippedPort> = {}): SkippedPort => ({
+        demo: 'financial',
+        framework,
+        sourceHash: 'sha256-now',
+        manifestHash: 'sha256-then',
+        sourceCommit: 'c0ffee0011223344',
+        manifestCommit: 'decade0011223344',
+        reason: 'stale',
+        ...overrides,
+    });
+
+    it('says nothing when no port is skipped and some are compared', () => {
+        expect(describeSkipped([], 3)).toEqual([]);
+    });
+
+    it('names every skipped port with what it was aligned to and where the demo is now', () => {
+        const lines = describeSkipped([skipped('angular'), skipped('vue', { manifestCommit: null })], 1);
+        expect(lines[0]).toMatch(/^Parity: SKIPPED 2 stale ports, not compared with the React demo\./);
+        expect(lines.slice(1)).toEqual([
+            '  - financial/angular: stale, aligned to decade00, demo now at c0ffee00',
+            '  - financial/vue: stale, aligned to sha256-then, demo now at c0ffee00',
+        ]);
+    });
+
+    it('says there is nothing to compare when every port is skipped or none exists', () => {
+        expect(describeSkipped([skipped('angular')], 0).at(-1)).toBe('Parity: no current ports to compare.');
+        expect(describeSkipped([], 0)).toEqual(['Parity: no current ports to compare.']);
     });
 });

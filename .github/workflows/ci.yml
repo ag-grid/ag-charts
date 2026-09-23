@@ -372,6 +372,13 @@ jobs:
                   node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --stale > stale-ports.json
                   jq -r '.stale[] | "::warning title=Stale demo port::seeds/\(.demo)/\(.framework) was last aligned to \(.manifestCommit[0:8] // "an unknown commit") and no longer matches src/demos/\(.demo). Expected between releases: ports are aligned at the release-branch cut (Demo Port Alignment workflow) or with /port-showcases; no action needed on this PR."' stale-ports.json
 
+            # The blocking parity run skips stale ports, so a port this change edits must not be left
+            # stale: an alignment that forgot to restamp the manifest would otherwise skip its own
+            # parity check. Pin-only edits (a version bump) do not count.
+            - name: Edited demo ports are restamped
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              run: node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --touched "${{ steps.setup.outputs.base }}"
+
     generate:
         runs-on: ubuntu-24.04
         name: Generate (${{ matrix.shard }}/${{ strategy.job-total }})
@@ -1389,16 +1396,24 @@ jobs:
             # dist/ the init job built. PARITY_DISCOVER finds every committed port by its
             # seeds/<demo>/<framework>/.seed-manifest.json and serves the seed dist/ the init job
             # built (ag-charts-demos-seeds:build, restored with the init outputs), so a new port
-            # joins this run by committing its manifest.
+            # joins this run by committing its manifest. Stale ports, whose demo changed after they
+            # were last aligned, are skipped and listed: they are expected between releases and
+            # aligned at the release-branch cut. The stale report is written here on the runner,
+            # where the checkout's git is set up, and read by the run in the container.
             - name: playwright parity ag-charts-demos
               id: demos_parity
               if: ${{ !cancelled() }}
               run: |
+                  report=packages/ag-charts-demos/e2e/parity/results/stale-ports.json
+                  mkdir -p "$(dirname "$report")"
+                  node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --stale > "$report"
+                  jq -r '.stale[] | "::warning title=Stale demo port skipped by parity::seeds/\(.demo)/\(.framework) no longer matches src/demos/\(.demo) and is not compared. It is aligned at the release-branch cut (Demo Port Alignment workflow) or with /port-showcases."' "$report"
                   docker run --rm --ipc=host --init \
                     -v "$(pwd)":/data \
                     -w /data/packages/ag-charts-demos \
                     -e CI \
                     -e PARITY_DISCOVER=1 \
+                    -e PARITY_STALE_REPORT=e2e/parity/results/stale-ports.json \
                     ${PLAYWRIGHT_IMAGE} \
                     npx playwright test -c playwright.parity.config.ts
               timeout-minutes: 15

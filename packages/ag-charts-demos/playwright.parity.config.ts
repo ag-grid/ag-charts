@@ -1,7 +1,7 @@
 import { type ReporterDescription, defineConfig, devices } from '@playwright/test';
 import { relative } from 'node:path';
 
-import { DISCOVER, RUN_KIND, SELF_PARITY, SELF_PARITY_PORTS, discoverPorts } from './e2e/parity/targets';
+import { DISCOVER, RUN_KIND, SELF_PARITY, SELF_PARITY_PORTS, discoverParityPorts } from './e2e/parity/targets';
 
 // Pixel-parity run: e2e/parity/parity.spec.ts compares each framework port against the React
 // reference, live, in deterministic mode. See e2e/parity/README.md for the environment variables,
@@ -34,12 +34,17 @@ const serveDist = (distDir: string, port: number) => ({
 
 // Serve only what nothing else serves. Self-parity needs the React app twice; a run against real
 // ports (PARITY_TARGETS) is handed served ports and needs just the reference; a discovery run
-// (PARITY_DISCOVER=1) serves every committed port's dist itself. The reference is served here
-// unless PARITY_REFERENCE_URL points at one served elsewhere.
+// (PARITY_DISCOVER=1) serves the dist of every committed port that is not stale itself, and
+// nothing at all when every port is stale. The reference is served here unless
+// PARITY_REFERENCE_URL points at one served elsewhere.
 function webServers() {
     const reference = process.env.PARITY_REFERENCE_URL ? [] : [preview(SELF_PARITY_PORTS.reference)];
     if (SELF_PARITY) return [...reference, preview(SELF_PARITY_PORTS.port)];
-    if (DISCOVER) return [...reference, ...discoverPorts().map((port) => serveDist(port.distDir, port.port))];
+    if (DISCOVER) {
+        const { ports } = discoverParityPorts();
+        if (ports.length === 0) return [];
+        return [...reference, ...ports.map((port) => serveDist(port.distDir, port.port))];
+    }
     return reference;
 }
 const webServer = webServers();

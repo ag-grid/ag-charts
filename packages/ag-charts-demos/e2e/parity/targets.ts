@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
@@ -73,6 +74,12 @@ export const RUN_KIND: 'self-parity' | 'ports' = SELF_PARITY ? 'self-parity' : '
 /** The gate every comparison in this run must pass. */
 export const GATE: ComparisonGate = SELF_PARITY ? SELF_PARITY_GATE : PORT_GATE;
 
+/**
+ * True when a discovery run compares stale ports too (`PARITY_INCLUDE_STALE=1`), for checking a
+ * port mid-alignment before its manifest is restamped. Off by default, and off in CI.
+ */
+export const INCLUDE_STALE = ['1', 'true'].includes(process.env.PARITY_INCLUDE_STALE ?? '');
+
 /** A committed port found by its manifest: where its source is and where its build lands. */
 export interface DiscoveredPort {
     demo: string;
@@ -87,11 +94,10 @@ export interface DiscoveredPort {
 
 /**
  * Every non-React port under `seeds/`, found by its `.seed-manifest.json`, in sorted
- * `<demo>/<framework>` order so port numbers are stable between runs. A new port is picked up by
- * committing its manifest; nothing here has to change. A port whose `dist` is missing is
- * reported, since the run would otherwise fail inside the web server with less to go on.
+ * `<demo>/<framework>` order. A new port is picked up by committing its manifest; nothing here has
+ * to change. `port` is 0 until `discoverParityPorts` numbers the ports it serves.
  */
-export function discoverPorts(): DiscoveredPort[] {
+export function readCommittedPorts(): DiscoveredPort[] {
     if (!existsSync(SEEDS_DIR)) return [];
     const ports: DiscoveredPort[] = [];
     for (const demo of readdirSync(SEEDS_DIR, { withFileTypes: true })) {
@@ -130,27 +136,121 @@ export function discoverPorts(): DiscoveredPort[] {
         }
     }
     ports.sort((a, b) => `${a.demo}/${a.framework}`.localeCompare(`${b.demo}/${b.framework}`));
-    ports.forEach((port, index) => (port.port = DISCOVERED_PORT_BASE + index));
+    return ports;
+}
 
-    const unbuilt = ports.filter((port) => !existsSync(join(port.distDir, 'index.html')));
+/**
+ * One entry of `check-seeds.mjs --stale`: a port whose manifest's `sourceHash` (`manifestHash`) is
+ * not the current hash of its React demo (`sourceHash`). The commits name the same two points.
+ */
+export interface StalePortReport {
+    demo: string;
+    framework: string;
+    sourceHash: string;
+    manifestHash: string | null;
+    sourceCommit: string | null;
+    manifestCommit: string | null;
+}
+
+/** A committed port a discovery run leaves out, and why. Recorded in `summary.json`. */
+export interface SkippedPort extends StalePortReport {
+    reason: 'stale';
+}
+
+const STALE_REPORT_SCRIPT = resolve(__dirname, '..', '..', 'tools', 'seeds', 'check-seeds.mjs');
+
+/**
+ * The stale ports, from the report `check-seeds.mjs --stale` writes, so the hashing is the seed
+ * tooling's own and never reimplemented here. With `PARITY_STALE_REPORT` naming a file (relative
+ * to the working directory) the report is read from it: CI writes it on the host, where the
+ * checkout's git is set up (the hash reads its file list from git), before starting the run in its
+ * Playwright container. Otherwise the script is run here.
+ */
+export function readStaleReport(): StalePortReport[] {
+    const path = process.env.PARITY_STALE_REPORT;
+    const text = path
+        ? readFileSync(resolve(path), 'utf8')
+        : execFileSync(process.execPath, [STALE_REPORT_SCRIPT, '--stale'], {
+              encoding: 'utf8',
+              stdio: ['ignore', 'pipe', 'inherit'],
+          });
+    const report = JSON.parse(text) as { stale?: unknown };
+    if (!Array.isArray(report.stale)) {
+        throw new Error(`${path ?? 'check-seeds.mjs --stale'} is not a stale report: it has no "stale" array`);
+    }
+    return report.stale as StalePortReport[];
+}
+
+/**
+ * Splits the committed ports into the ones to compare and the stale ones to skip. A stale port's
+ * manifest records an older hash of its demo than the current one: the demo changed after the port
+ * was last aligned, which is expected on `latest` between releases (ports are aligned at the
+ * release-branch cut), so comparing it would fail every pull request that visibly changes a demo.
+ * With `includeStale` nothing is skipped.
+ */
+export function partitionStalePorts<T extends { demo: string; framework: string }>(
+    ports: readonly T[],
+    stale: readonly StalePortReport[],
+    includeStale = false
+): { current: T[]; skipped: SkippedPort[] } {
+    if (includeStale) return { current: [...ports], skipped: [] };
+    const staleByKey = new Map(stale.map((entry) => [`${entry.demo}/${entry.framework}`, entry]));
+    const current: T[] = [];
+    const skipped: SkippedPort[] = [];
+    for (const port of ports) {
+        const entry = staleByKey.get(`${port.demo}/${port.framework}`);
+        if (!entry) {
+            current.push(port);
+            continue;
+        }
+        const { demo, framework, sourceHash, manifestHash, sourceCommit, manifestCommit } = entry;
+        skipped.push({ demo, framework, reason: 'stale', sourceHash, manifestHash, sourceCommit, manifestCommit });
+    }
+    return { current, skipped };
+}
+
+let discovered: { ports: DiscoveredPort[]; skipped: SkippedPort[] } | undefined;
+
+/**
+ * What a `PARITY_DISCOVER` run compares: every committed port that is not stale (see
+ * `partitionStalePorts`), numbered from `DISCOVERED_PORT_BASE` in `<demo>/<framework>` order so
+ * port numbers are stable between runs, and the stale ones it skips. A port to compare whose
+ * `dist` is missing is reported, since the run would otherwise fail inside the web server with
+ * less to go on. Worked out once per process: the config, the reporter and the spec all ask.
+ */
+export function discoverParityPorts(): { ports: DiscoveredPort[]; skipped: SkippedPort[] } {
+    if (discovered) return discovered;
+    const committed = readCommittedPorts();
+    const stale = committed.length === 0 || INCLUDE_STALE ? [] : readStaleReport();
+    const { current, skipped } = partitionStalePorts(committed, stale, INCLUDE_STALE);
+    current.forEach((port, index) => (port.port = DISCOVERED_PORT_BASE + index));
+
+    const unbuilt = current.filter((port) => !existsSync(join(port.distDir, 'index.html')));
     if (unbuilt.length > 0) {
         const names = unbuilt.map((port) => `${port.demo}/${port.framework}`).join(', ');
         throw new Error(
             `No built dist for ${names}; run \`yarn nx run ag-charts-demos-seeds:build\` before a PARITY_DISCOVER run`
         );
     }
-    return ports;
+    discovered = { ports: current, skipped };
+    return discovered;
+}
+
+/** The ports this run skips: the stale ones in a discovery run, none otherwise. */
+export function skippedPorts(): SkippedPort[] {
+    return DISCOVER ? discoverParityPorts().skipped : [];
 }
 
 /**
  * The targets: from the `PARITY_TARGETS` JSON array of `{ demo, framework, baseURL }`; or, with
- * `PARITY_DISCOVER=1`, one per discovered port at the local port the config serves it on. With
- * neither, every registered demo is compared against the second React preview.
+ * `PARITY_DISCOVER=1`, one per discovered port that is not stale, at the local port the config
+ * serves it on, which may be none. With neither, every registered demo is compared against the
+ * second React preview.
  */
 export function parityTargets(): ParityTarget[] {
     const raw = process.env.PARITY_TARGETS;
     if (!raw && DISCOVER) {
-        return discoverPorts().map(({ demo, framework, port }) => ({
+        return discoverParityPorts().ports.map(({ demo, framework, port }) => ({
             demo,
             framework,
             baseURL: `http://localhost:${port}`,

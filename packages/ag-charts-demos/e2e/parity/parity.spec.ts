@@ -13,7 +13,7 @@ import {
     attemptDir,
     comparisonKey,
 } from './summary';
-import { GATE, type ParityTarget, REFERENCE_URL, demoPageUrl, parityTargets } from './targets';
+import { DISCOVER, GATE, type ParityTarget, REFERENCE_URL, demoPageUrl, parityTargets, skippedPorts } from './targets';
 
 // Pixel parity of each framework port against the React reference, compared live: for every named
 // state and viewport the two apps are loaded in deterministic mode, driven to the state through the
@@ -222,6 +222,20 @@ function defineComparisons(target: ParityTarget) {
     });
 }
 
-for (const target of parityTargets()) {
+const targets = parityTargets();
+for (const target of targets) {
     defineComparisons(target);
+}
+
+// A discovery run with every port stale, or none committed, has nothing to compare. It passes with
+// this one test saying so, rather than failing as a run with no tests; the reporter lists the
+// skipped ports and summary.json records them.
+if (DISCOVER && targets.length === 0) {
+    test('no current ports to compare', () => {
+        const skipped = skippedPorts().map((port) => `${port.demo}/${port.framework}`);
+        test.info().annotations.push({
+            type: 'no current ports',
+            description: skipped.length > 0 ? `every port is stale: ${skipped.join(', ')}` : 'no port is committed',
+        });
+    });
 }

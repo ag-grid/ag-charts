@@ -27,7 +27,7 @@ Nothing lists the seeds. Everything that needs to know which seeds there are wal
   every framework with a manifest, in the order React, Angular, Vue, TypeScript (`readSeedManifests`
   in `packages/ag-charts-website/src/components/demo-examples/seedLinks.ts`);
 - the parity harness, with `PARITY_DISCOVER=1`, serves and compares every port with a manifest
-  (`e2e/parity/README.md`, "Discovered ports");
+  that is not stale, and lists the stale ones it skips (`e2e/parity/README.md`, "Discovered ports");
 - `check-seeds.mjs --stale` reports every port with a manifest whose `sourceHash` is behind, and
   `check-seeds.mjs --pins` fails when one pins a different `ag-charts-*` version from the seeds';
 - the post-deploy check `tools/ci/check-demo-seed-links.mjs` reads the seed links the deployed
@@ -180,7 +180,27 @@ imports included, so a shared module's change lists every demo that uses it), as
 been synced and is reported. The React seed is never listed here; `--react` covers it.
 
 It is a report, so it exits 0 whatever it finds unless `--fail-on-stale` is passed, and it needs
-nothing installed: the generator and its Prettier dependency are only loaded for `--react`.
+nothing installed: the generator and its Prettier dependency are only loaded for `--react`. The
+lint job prints it as non-blocking warnings, and the parity run reads it to skip stale ports.
+
+### `check-seeds.mjs --touched <base>`
+
+Fails when a port the change edits is still stale: a file under `seeds/<demo>/<framework>/` differs
+between `<base>` and `HEAD`, and the port's manifest is behind its golden master. A port is aligned
+by editing it and restamping its manifest; edited and still stale means the restamp was forgotten,
+and the blocking parity run, which skips stale ports, would not compare it. The message names each
+port, the files that touched it and the stamp command. Changes to a port's `package.json` and
+`.seed-manifest.json` alone do not count: `pin-ports.mjs` rewrites those in every port on each
+version bump and at the release-branch cut, stale or not.
+
+It compares the trees at `<base>` and `HEAD`, so it needs no merge base and works in a shallow
+clone once `<base>` is fetched; uncommitted changes are not seen. CI runs it in the lint job with the
+same base as the affected checks (`findTouchedStalePorts` in `stale-ports.mjs` takes the changed files
+as input, for the unit tests):
+
+```sh
+node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --touched origin/latest
+```
 
 ### `stamp-port-manifest.mjs <demo> <framework>`
 
@@ -197,13 +217,14 @@ node packages/ag-charts-demos/tools/seeds/stamp-port-manifest.mjs financial angu
 ## How the ports are aligned
 
 1. A PR changes a React demo. Its ports are now stale, which is expected: the lint job's "Stale
-   demo ports" step warns without blocking. The ports stay stale on `latest` until the next
-   release.
+   demo ports" step warns without blocking, and the blocking parity run skips them, listing each
+   in its output and in `summary.json`. The ports stay stale on `latest` until the next release.
 2. At the release-branch cut, the "Demo Port Alignment" workflow
    (`.github/workflows/demo-port-align.yml`) opens a PR into `bX.Y.Z` that aligns every stale port
    with its demo. Anyone can do the same at any time with `/port-showcases`.
 3. An alignment edits the port, following `seeds/<demo>/<framework>.PORTING.md` (keep the React CSS
    and class names; the pixel comparison depends on them), and restamps its manifest with
-   `stamp-port-manifest.mjs`, so `--stale` stops reporting it. The PR is gated by the parity
-   harness (`e2e/parity/README.md`): every port screenshot must match React within tolerance. The
-   functional specs should pass with `DEMOS_BASE_URL` pointing at the port too.
+   `stamp-port-manifest.mjs`. Once restamped the port is current again, so the parity run compares
+   it: every port screenshot must match React within tolerance. The functional specs should pass
+   with `DEMOS_BASE_URL` pointing at the port too (`e2e/parity/README.md`). The lint job's
+   `check-seeds.mjs --touched` fails a PR that edits a port without restamping it.

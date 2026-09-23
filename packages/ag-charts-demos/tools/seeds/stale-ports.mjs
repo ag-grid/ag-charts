@@ -1,9 +1,11 @@
+import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 
 import {
     MANIFEST_FILENAME,
     SEEDS_DIR,
+    WORKSPACE_ROOT,
     hashDemoSource,
     readDemoIds,
     readDemoSourceCommit,
@@ -89,6 +91,54 @@ export function findStalePorts({
         });
     }
     return stale;
+}
+
+/** `packages/ag-charts-demos/seeds/`, as the paths `git diff --name-only` prints start. */
+const SEEDS_PATH_PREFIX = `${relative(WORKSPACE_ROOT, SEEDS_DIR).split(/[\\/]/).join('/')}/`;
+
+/**
+ * Files that a pin update (`pin-ports.mjs`, run by `tools/bump-versions.sh` on every version bump
+ * and at a release-branch cut) rewrites in every port, stale or not. Changing only these does not
+ * count as touching the port, or a release cut would fail on the ports it is about to align.
+ */
+const PIN_FILES = new Set(['package.json', MANIFEST_FILENAME]);
+
+/**
+ * The stale ports a change edits: every entry of `stale` (as `findStalePorts` returns them) with a
+ * file under its `seeds/<demo>/<framework>/` among `changedFiles`, other than the files a pin
+ * update rewrites. Each is returned with the `files` that touched it, relative to the port.
+ *
+ * A port is aligned by editing it and then restamping its manifest; one that is edited and still
+ * stale was aligned without the restamp, and the blocking parity run would skip it as stale rather
+ * than compare it. `changedFiles` are repository-relative POSIX paths, as `git diff --name-only`
+ * prints them.
+ */
+export function findTouchedStalePorts({ changedFiles, stale, seedsPathPrefix = SEEDS_PATH_PREFIX }) {
+    const touched = [];
+    for (const port of stale) {
+        const portPrefix = `${seedsPathPrefix}${port.demo}/${port.framework}/`;
+        const files = changedFiles
+            .filter((file) => file.startsWith(portPrefix))
+            .map((file) => file.slice(portPrefix.length))
+            .filter((file) => !PIN_FILES.has(file));
+        if (files.length > 0) touched.push({ ...port, files });
+    }
+    return touched;
+}
+
+/**
+ * The files that differ between the tree at `base` and the working tree's `HEAD`, as
+ * repository-relative POSIX paths. A tree comparison needs no merge base, so it works in the
+ * shallow clones CI checks out, as long as `base` itself has been fetched.
+ */
+export function readChangedFiles(base) {
+    return execFileSync('git', ['diff', '--name-only', '--no-renames', base, 'HEAD'], {
+        cwd: WORKSPACE_ROOT,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+    })
+        .split('\n')
+        .filter(Boolean);
 }
 
 function listDirectories(dir) {

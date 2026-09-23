@@ -9,9 +9,10 @@ import {
     SCHEMA_VERSION,
     SUMMARY_PATH,
     attemptKey,
+    describeSkipped,
     summariseAttempts,
 } from './summary';
-import { GATE, REFERENCE_URL, RUN_KIND } from './targets';
+import { DISCOVER, GATE, REFERENCE_URL, RUN_KIND, parityTargets, skippedPorts } from './targets';
 
 /**
  * Gathers the `parity-result` attachment each comparison test leaves and writes
@@ -25,6 +26,7 @@ class ParitySummaryReporter implements Reporter {
         // Artefacts from a previous run of this kind would otherwise sit beside this run's summary.
         rmSync(RESULTS_DIR, { recursive: true, force: true });
         mkdirSync(RESULTS_DIR, { recursive: true });
+        if (DISCOVER) this.log(describeSkipped(skippedPorts(), parityTargets().length));
     }
 
     onTestEnd(_test: TestCase, result: TestResult) {
@@ -53,16 +55,23 @@ class ParitySummaryReporter implements Reporter {
             reference: { framework: 'react', baseURL: REFERENCE_URL },
             gate: GATE,
             totals,
+            skipped: skippedPorts(),
             comparisons,
         };
         mkdirSync(RESULTS_DIR, { recursive: true });
         writeFileSync(SUMMARY_PATH, JSON.stringify(summary, null, 2) + '\n');
         const flaky = totals.flaky > 0 ? ` (${totals.flaky} flaky)` : '';
-        // eslint-disable-next-line no-console
-        console.log(
+        const skipped = summary.skipped.length > 0 ? `, ${summary.skipped.length} stale ports skipped` : '';
+        if (DISCOVER) this.log(describeSkipped(summary.skipped, parityTargets().length));
+        this.log([
             `Parity summary (${RUN_KIND}): ${totals.passed}/${totals.comparisons} comparisons passed${flaky}, ` +
-                `${totals.attempts} attempts — ${SUMMARY_PATH}`
-        );
+                `${totals.attempts} attempts${skipped} — ${SUMMARY_PATH}`,
+        ]);
+    }
+
+    private log(lines: readonly string[]) {
+        // eslint-disable-next-line no-console
+        for (const line of lines) console.log(line);
     }
 
     printsToStdio() {
