@@ -197,12 +197,26 @@ export async function expectTabsContract(page: Page, spec: TabsSpec) {
     await expect(tabs.nth(initial)).toBeFocused();
 
     const [next, previous] = spec.orientation === 'horizontal' ? ['ArrowRight', 'ArrowLeft'] : ['ArrowDown', 'ArrowUp'];
+    const last = spec.tabs.length - 1;
+    const wrapped = (initial + last) % spec.tabs.length;
+    // Home and End are each pressed away from the end they jump to, so a key that does nothing
+    // leaves focus on the wrong tab and fails. Which goes first depends on where the arrows left
+    // focus: from the first tab only End moves, from anywhere else Home does.
+    const ends: [string, number][] =
+        wrapped === 0
+            ? [
+                  ['End', last],
+                  ['Home', 0],
+              ]
+            : [
+                  ['Home', 0],
+                  ['End', last],
+              ];
     const moves: [string, number][] = [
         [next, (initial + 1) % spec.tabs.length],
         [previous, initial],
-        [previous, (initial + spec.tabs.length - 1) % spec.tabs.length],
-        ['End', spec.tabs.length - 1],
-        ['Home', 0],
+        [previous, wrapped],
+        ...ends,
     ];
     let selected = initial;
     for (const [key, index] of moves) {
