@@ -14,7 +14,7 @@ import {
 const { Range, TranslatableGroup, BBox, getShapeFill, InteractionState } = _ModuleSupport;
 
 // Shape definitions `getShapeFill` completes a user-supplied non-flat fill with; internal only.
-const FILL_GRADIENT_DEFAULTS: RequiredInternalAgGradientColor = {
+const BAND_FILL_GRADIENT_DEFAULTS: RequiredInternalAgGradientColor = {
     type: 'gradient',
     colorStops: [],
     bounds: 'item',
@@ -23,7 +23,7 @@ const FILL_GRADIENT_DEFAULTS: RequiredInternalAgGradientColor = {
     reverse: false,
     colorSpace: 'rgb',
 };
-const FILL_PATTERN_DEFAULTS: RequiredInternalAgPatternColor = {
+const BAND_FILL_PATTERN_DEFAULTS: RequiredInternalAgPatternColor = {
     type: 'pattern',
     rotation: 0,
     scale: 1,
@@ -39,7 +39,7 @@ const FILL_PATTERN_DEFAULTS: RequiredInternalAgPatternColor = {
     strokeOpacity: 1,
     strokeWidth: 0,
 };
-const FILL_IMAGE_DEFAULTS: RequiredInternalAgImageFill = {
+const BAND_FILL_IMAGE_DEFAULTS: RequiredInternalAgImageFill = {
     type: 'image',
     url: '',
     rotation: 0,
@@ -190,7 +190,12 @@ export class BandHighlight extends AbstractModuleInstance {
         node.strokeOpacity = strokeOpacity;
         node.lineDash = lineDash;
         node.lineDashOffset = lineDashOffset;
-        node.fill = getShapeFill(fill, FILL_GRADIENT_DEFAULTS, FILL_PATTERN_DEFAULTS, FILL_IMAGE_DEFAULTS);
+        node.fill = getShapeFill(
+            fill,
+            BAND_FILL_GRADIENT_DEFAULTS,
+            BAND_FILL_PATTERN_DEFAULTS,
+            BAND_FILL_IMAGE_DEFAULTS
+        );
         node.fillOpacity = fillOpacity;
         node.startLine = true;
         node.endLine = true;

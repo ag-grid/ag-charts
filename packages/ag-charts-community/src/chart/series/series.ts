@@ -855,10 +855,10 @@ export abstract class Series<
      * `undefined` when there is none, for series-level highlights, and for the hovered series itself.
      */
     private getSharedCategoryMatch(highlightedDatum: HighlightNodeDatum | undefined): DatumIndex | undefined {
-        if (highlightedDatum == null || this.getChartHighlightOptions()?.mode !== 'shared') return;
-        if (highlightedDatum.series == null || !this.isDatumHighlight(highlightedDatum)) return;
+        if (highlightedDatum?.series == null || !this.isDatumHighlight(highlightedDatum)) return;
         // The hovered series is styled as in `'single'` mode, so a match of its own would only repaint it.
         if (highlightedDatum.series === this) return;
+        if (this.getChartHighlightOptions()?.mode !== 'shared') return;
 
         return this.ctx.chartService.getSharedHighlightMatch?.(
             highlightedDatum.series,
