@@ -12,7 +12,7 @@
       "cache": true,
       "options": {
         "cwd": "{projectRoot}",
-        "command": "for seed in */react; do echo \"== $seed\" && vite build \"$seed\" || exit 1; done"
+        "command": "for seed in */react; do [ -d \"$seed\" ] || continue; echo \"== $seed\" && vite build \"$seed\" || exit 1; done"
       }
     },
     "typecheck": {
@@ -23,7 +23,7 @@
       "cache": true,
       "options": {
         "cwd": "{projectRoot}",
-        "command": "for seed in */react; do echo \"== $seed\" && tsc --noEmit -p \"$seed/tsconfig.json\" || exit 1; done"
+        "command": "for seed in */react; do [ -d \"$seed\" ] || continue; echo \"== $seed\" && tsc --noEmit -p \"$seed/tsconfig.json\" || exit 1; done"
       }
     },
     "build-vue": {
@@ -34,7 +34,7 @@
       "cache": true,
       "options": {
         "cwd": "{projectRoot}",
-        "command": "for seed in */vue; do echo \"== $seed\" && vite build \"$seed\" || exit 1; done"
+        "command": "for seed in */vue; do [ -d \"$seed\" ] || continue; echo \"== $seed\" && vite build \"$seed\" || exit 1; done"
       }
     },
     "typecheck-vue": {
@@ -45,7 +45,7 @@
       "cache": true,
       "options": {
         "cwd": "{projectRoot}",
-        "command": "for seed in */vue; do echo \"== $seed\" && vue-tsc --noEmit -p \"$seed/tsconfig.json\" || exit 1; done"
+        "command": "for seed in */vue; do [ -d \"$seed\" ] || continue; echo \"== $seed\" && vue-tsc --noEmit -p \"$seed/tsconfig.json\" || exit 1; done"
       }
     },
     "build-typescript": {
@@ -56,7 +56,7 @@
       "cache": true,
       "options": {
         "cwd": "{projectRoot}",
-        "command": "for seed in */typescript; do echo \"== $seed\" && vite build \"$seed\" || exit 1; done"
+        "command": "for seed in */typescript; do [ -d \"$seed\" ] || continue; echo \"== $seed\" && vite build \"$seed\" || exit 1; done"
       }
     },
     "typecheck-typescript": {
@@ -67,7 +67,7 @@
       "cache": true,
       "options": {
         "cwd": "{projectRoot}",
-        "command": "for seed in */typescript; do echo \"== $seed\" && tsc --noEmit -p \"$seed/tsconfig.json\" || exit 1; done"
+        "command": "for seed in */typescript; do [ -d \"$seed\" ] || continue; echo \"== $seed\" && tsc --noEmit -p \"$seed/tsconfig.json\" || exit 1; done"
       }
     },
     "build-angular": {
@@ -78,7 +78,7 @@
       "cache": true,
       "options": {
         "cwd": "{projectRoot}",
-        "command": "for seed in */angular; do echo \"== $seed\" && (cd \"$seed\" && NG_CLI_ANALYTICS=false ng build) || exit 1; done"
+        "command": "for seed in */angular; do [ -d \"$seed\" ] || continue; echo \"== $seed\" && (cd \"$seed\" && NG_CLI_ANALYTICS=false ng build) || exit 1; done"
       }
     },
     "typecheck-angular": {
@@ -89,7 +89,7 @@
       "cache": true,
       "options": {
         "cwd": "{projectRoot}",
-        "command": "for seed in */angular; do echo \"== $seed\" && ngc --noEmit -p \"$seed/tsconfig.app.json\" || exit 1; done"
+        "command": "for seed in */angular; do [ -d \"$seed\" ] || continue; echo \"== $seed\" && ngc --noEmit -p \"$seed/tsconfig.app.json\" || exit 1; done"
       }
     }
   },
