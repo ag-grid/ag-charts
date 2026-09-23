@@ -1,4 +1,4 @@
-import { deepClone, isPlainObject } from 'ag-charts-core';
+import { SKIP_JS_BUILTINS, deepClone, isPlainObject } from 'ag-charts-core';
 
 type OptionsRecord = Record<string, unknown>;
 
@@ -24,6 +24,7 @@ function mergeRecord(target: object, source: object) {
     const targetRecord = target as OptionsRecord;
     const sourceRecord = source as OptionsRecord;
     for (const key of Object.keys(sourceRecord)) {
+        if (SKIP_JS_BUILTINS.has(key)) continue;
         const value = sourceRecord[key];
         const current = targetRecord[key];
         if (isPlainObject(value) && isPlainObject(current)) {

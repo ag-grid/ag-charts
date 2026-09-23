@@ -16,7 +16,6 @@ import {
     addValues,
     deepClone,
     generateUUID,
-    isUnsupportedColorFormat,
     isValidDate,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
@@ -686,26 +685,10 @@ export class Annotations extends AbstractModuleInstance {
         return annotationConfigs[datum.type].copy(node, datum, newDatum, context);
     }
 
-    // Annotations are declared `defined` in the chart option defs, so the colour validators that gate every
-    // other colour surface never run over them.
-    private dropUnsupportedColors(annotation: AgAnnotation) {
-        const colors: { color?: unknown; stroke?: unknown; fill?: unknown } = annotation;
-        for (const key of ['color', 'stroke', 'fill'] as const) {
-            const value = colors[key];
-            if (typeof value === 'string' && isUnsupportedColorFormat(value)) {
-                this.ctx.logger.warnOnce(
-                    `Annotation property [${key}] cannot be set to [${value}]; expecting a supported color string, ignoring.`
-                );
-                delete colors[key];
-            }
-        }
-        return annotation;
-    }
-
     private onRestoreAnnotations(event: { annotations: Array<AgAnnotation> }) {
         if (!(this.opts.enabled ?? true)) return;
 
-        const annotations = event.annotations.map((annotation) => this.dropUnsupportedColors(annotation));
+        const { annotations } = event;
         const canPatchInPlace =
             this.annotationData.length === annotations.length &&
             annotations.every((annotation, index) => {

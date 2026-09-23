@@ -231,12 +231,31 @@ describe('Annotation datum lifecycle', () => {
             expect(annotation.text?.label).toBe('Kept');
         });
 
-        it('restores state containing an unknown property without warning', async () => {
+        it('does not pollute Object.prototype from a `__proto__` key in restored state', async () => {
+            await prepareChart([MINIMAL_ANNOTATIONS.line]);
+            const start = JSON.parse('{"__proto__":{"polluted":"yes"},"y":30}');
+            try {
+                await restore([{ ...MINIMAL_ANNOTATIONS.line, start: Object.assign(start, { x: X_START }) }]);
+
+                expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+                expectWarningsCalls().toEqual([
+                    ['AG Charts - Unknown option `annotations[0][type=line].start.__proto__`, ignoring.'],
+                ]);
+            } finally {
+                delete (Object.prototype as Record<string, unknown>).polluted;
+            }
+        });
+
+        it('warns about and drops an unknown property in restored state', async () => {
             await prepareChart([MINIMAL_ANNOTATIONS.line]);
             await restore([{ ...MINIMAL_ANNOTATIONS.line, bogus: 1 }]);
 
-            expectWarningsCalls().toEqual([]);
-            expect(chart.getState().annotations).toHaveLength(1);
+            expectWarningsCalls().toEqual([
+                ['AG Charts - Unknown option `annotations[0][type=line].bogus`, ignoring.'],
+            ]);
+            const annotations = chart.getState().annotations;
+            expect(annotations).toHaveLength(1);
+            expect(annotations[0]).not.toHaveProperty('bogus');
         });
     });
 
@@ -270,8 +289,8 @@ describe('Annotation datum lifecycle', () => {
         const menuRowByValue = (value: string) => () =>
             body().querySelector<HTMLElement>(`.ag-charts-menu__row[data-popover-id="${value}"]`) ?? undefined;
 
-        async function selectHorizontalLine() {
-            await prepareChart([MINIMAL_ANNOTATIONS['horizontal-line']]);
+        async function selectHorizontalLine(annotation: AgAnnotation = MINIMAL_ANNOTATIONS['horizontal-line']) {
+            await prepareChart([annotation]);
             const rect = deproxy(chart).seriesRect;
             expect(rect).toBeDefined();
             const centre = { x: rect!.x + rect!.width / 2, y: rect!.y + rect!.height / 2 };
@@ -295,6 +314,15 @@ describe('Annotation datum lifecycle', () => {
 
             const [annotation] = chart.getState().annotations;
             expect(annotation).toMatchObject({ type: 'horizontal-line', lineStyle: 'dashed' });
+            expect(annotation.lineDash).toBeUndefined();
+        });
+
+        it('drops a custom line dash when a line style is picked from the toolbar', async () => {
+            await selectHorizontalLine({ ...MINIMAL_ANNOTATIONS['horizontal-line'], lineDash: [10, 2] });
+            await pick('Line Style', menuRowByValue('dotted'));
+
+            const [annotation] = chart.getState().annotations;
+            expect(annotation).toMatchObject({ type: 'horizontal-line', lineStyle: 'dotted' });
             expect(annotation.lineDash).toBeUndefined();
         });
 
