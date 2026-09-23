@@ -220,17 +220,23 @@ reporting it.
 node packages/ag-charts-demos/tools/seeds/stamp-port-manifest.mjs financial angular
 ```
 
-## How the ports are aligned
+## How a port gets aligned
 
 1. A PR changes a React demo. Its ports are now stale, which is expected: the lint job's "Stale
    demo ports" step warns without blocking, and the blocking parity run skips them, listing each
    in its output and in `summary.json`. The ports stay stale on `latest` until the next release.
-2. At the release-branch cut, the "Demo Port Alignment" workflow
-   (`.github/workflows/demo-port-align.yml`) opens a PR into `bX.Y.Z` that aligns every stale port
-   with its demo. Anyone can do the same at any time with `/port-showcases`.
-3. An alignment edits the port, following `seeds/<demo>/<framework>.PORTING.md` (keep the React CSS
-   and class names; the pixel comparison depends on them), and restamps its manifest with
-   `stamp-port-manifest.mjs`. Once restamped the port is current again, so the parity run compares
-   it: every port screenshot must match React within tolerance. The functional specs should pass
-   with `DEMOS_BASE_URL` pointing at the port too (`e2e/parity/README.md`). The lint job's
+2. When a release branch `bX.Y.Z` is cut, the "Demo Port Alignment" workflow
+   (`.github/workflows/demo-port-align.yml`) runs the stale report on it. With nothing stale it ends
+   there. Otherwise it runs the `/port-showcases` skill headlessly, which ports each React change
+   following the port's `seeds/<demo>/<framework>.PORTING.md` (keeping the React CSS and class
+   names, which the pixel comparison depends on), restamps the manifests with
+   `stamp-port-manifest.mjs` and runs the gates, then opens one PR into the release branch listing
+   the stale ports and the gate results. It can also be run by hand from the Actions tab, with the
+   release branch as input.
+3. The PR is gated by CI like any other. Once restamped a port is current again, so the parity run
+   compares it: every port screenshot must match React within tolerance. The lint job's
    `check-seeds.mjs --touched` fails a PR that edits a port without restamping it.
+
+To align ports yourself on any branch, run `/port-showcases [demo] [framework]` in Claude Code. The
+functional specs should pass with `DEMOS_BASE_URL` pointing at an aligned port too
+(`e2e/parity/README.md`).

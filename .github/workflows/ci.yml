@@ -370,7 +370,7 @@ jobs:
               continue-on-error: true
               run: |
                   node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --stale > stale-ports.json
-                  jq -r '.stale[] | "::warning title=Stale demo port::seeds/\(.demo)/\(.framework) was last aligned to \(.manifestCommit[0:8] // "an unknown commit") and no longer matches src/demos/\(.demo). Expected between releases: ports are aligned at the release-branch cut (Demo Port Alignment workflow) or with /port-showcases; no action needed on this PR."' stale-ports.json
+                  jq -r '.stale[] | "::warning title=Stale demo port::seeds/\(.demo)/\(.framework) was last aligned to \(.manifestCommit[0:8] // "an unknown commit") and no longer matches src/demos/\(.demo). The ports are aligned by the Demo Port Alignment workflow when the next release branch is cut; no action needed on this PR."' stale-ports.json
 
             # The blocking parity run skips stale ports, so a port this change edits must not be left
             # stale: an alignment that forgot to restamp the manifest would otherwise skip its own
