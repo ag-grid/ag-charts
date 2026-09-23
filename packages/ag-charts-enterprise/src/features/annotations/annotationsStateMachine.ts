@@ -19,6 +19,17 @@ import { hasLineStyle, hasLineText } from './utils/has';
 import { setColor, setLineStyle, setLineTextPosition } from './utils/styles';
 import { isEphemeralType, isTextType } from './utils/types';
 
+const ANNOTATIONS_STATE_MACHINE_INHERITED_PROPERTIES = ['snapping', 'datum', 'node'] as const;
+const ANNOTATIONS_MAIN_STATE_MACHINE_INHERITED_PROPERTIES = [
+    'active',
+    'hovered',
+    'hoverCoords',
+    'copied',
+    'snapping',
+    'datum',
+    'node',
+] as const;
+
 enum States {
     Idle = 'idle',
     Dragging = 'dragging',
@@ -46,7 +57,7 @@ export class AnnotationsStateMachine extends ParallelStateMachine<States, Annota
     protected node?: AnnotationScene;
 
     override inheritedProperties() {
-        return ['snapping', 'datum', 'node'] as const;
+        return ANNOTATIONS_STATE_MACHINE_INHERITED_PROPERTIES;
     }
 
     constructor(ctx: AnnotationsStateMachineContext) {
@@ -139,7 +150,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
     protected node?: AnnotationScene;
 
     override inheritedProperties() {
-        return ['active', 'hovered', 'hoverCoords', 'copied', 'snapping', 'datum', 'node'] as const;
+        return ANNOTATIONS_MAIN_STATE_MACHINE_INHERITED_PROPERTIES;
     }
 
     constructor(

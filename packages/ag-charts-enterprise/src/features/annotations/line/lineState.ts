@@ -8,6 +8,8 @@ import { mergeAnnotationOptions } from '../utils/datum';
 import { type ArrowDatum, type LineDatum, type LineTypeDatum, arrowDatum, lineDatum } from './lineDatum';
 import type { LineScene } from './lineScene';
 
+const INHERITED_PROPERTIES = ['datum', 'node', 'snapping'] as const;
+
 interface LineStateMachineContext<Datum extends LineTypeDatum> extends Omit<
     AnnotationsCreateStateMachineContext,
     'create'
@@ -31,7 +33,7 @@ export abstract class LineTypeStateMachine<Datum extends LineTypeDatum> extends 
     protected snapping: boolean = false;
 
     override inheritedProperties() {
-        return ['datum', 'node', 'snapping'] as const;
+        return INHERITED_PROPERTIES;
     }
 
     constructor(ctx: LineStateMachineContext<Datum>) {

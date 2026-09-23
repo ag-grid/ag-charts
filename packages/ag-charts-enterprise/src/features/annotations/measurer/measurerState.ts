@@ -16,6 +16,8 @@ import {
 } from './measurerDatum';
 import type { MeasurerScene } from './measurerScene';
 
+const INHERITED_PROPERTIES = ['datum', 'node'] as const;
+
 interface MeasurerStateMachineContext<Datum extends MeasurerDatumType> extends Omit<
     AnnotationsCreateStateMachineContext,
     'create'
@@ -34,7 +36,7 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerDatumType> extends
     protected node?: MeasurerScene;
 
     override inheritedProperties() {
-        return ['datum', 'node'] as const;
+        return INHERITED_PROPERTIES;
     }
 
     constructor(ctx: MeasurerStateMachineContext<Datum>) {

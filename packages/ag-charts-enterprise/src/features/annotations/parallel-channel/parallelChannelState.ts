@@ -9,6 +9,8 @@ import { getGroupingValue } from '../utils/scale';
 import { type ParallelChannelDatum, parallelChannelDatum } from './parallelChannelDatum';
 import type { ParallelChannelScene } from './parallelChannelScene';
 
+const INHERITED_PROPERTIES = ['datum', 'node', 'snapping'] as const;
+
 interface ParallelChannelStateMachineContext extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
     create: (datum: ParallelChannelDatum) => void;
 }
@@ -29,7 +31,7 @@ export class ParallelChannelStateMachine extends StateMachine<
     protected snapping: boolean = false;
 
     override inheritedProperties() {
-        return ['datum', 'node', 'snapping'] as const;
+        return INHERITED_PROPERTIES;
     }
 
     constructor(ctx: ParallelChannelStateMachineContext) {

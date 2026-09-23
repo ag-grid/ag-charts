@@ -187,5 +187,57 @@ describe('State Machine', () => {
             state.transition('event'); // child
             expect(childProperty).toBe('parent-value');
         });
+
+        it('should pass properties through every level of nested state machines', () => {
+            let leafProperty: string | undefined;
+
+            class Leaf extends StateMachine<'leaf-initial', { event: undefined }> {
+                testProperty = 'leaf-value';
+
+                override inheritedProperties() {
+                    return ['testProperty'];
+                }
+
+                constructor() {
+                    super('leaf-initial', {
+                        'leaf-initial': {
+                            event: () => {
+                                leafProperty = this.testProperty;
+                            },
+                        },
+                    });
+                }
+            }
+
+            class Middle extends StateMachine<'middle-initial', { event: undefined }> {
+                testProperty = 'middle-value';
+
+                override inheritedProperties() {
+                    return ['testProperty'];
+                }
+
+                constructor() {
+                    super('middle-initial', { 'middle-initial': { event: { target: new Leaf() } } });
+                }
+            }
+
+            class Root extends StateMachine<'root-initial', { event: undefined }> {
+                testProperty = 'root-value';
+
+                override inheritedProperties() {
+                    return ['testProperty'];
+                }
+
+                constructor() {
+                    super('root-initial', { 'root-initial': { event: { target: new Middle() } } });
+                }
+            }
+
+            state = new Root();
+            state.transition('event'); // root enters middle
+            state.transition('event'); // middle enters leaf
+            state.transition('event'); // leaf handles the event
+            expect(leafProperty).toBe('root-value');
+        });
     });
 });

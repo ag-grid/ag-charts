@@ -4,6 +4,8 @@ import type { AnnotationContext } from '../annotationTypes';
 import type { AnnotationDatum, AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from './stateTypes';
 
+const INHERITED_PROPERTIES = ['snapping', 'datum', 'node'] as const;
+
 export class DragStateMachine<
     Datum extends AnnotationDatum,
     Node extends {
@@ -27,7 +29,7 @@ export class DragStateMachine<
     protected node?: Node;
 
     override inheritedProperties() {
-        return ['snapping', 'datum', 'node'] as const;
+        return INHERITED_PROPERTIES;
     }
 
     private offset?: Point;

@@ -6,6 +6,8 @@ import type { PointDatum } from '../datum/pointDatum';
 import type { PointScene } from '../scenes/pointScene';
 import type { AnnotationStateEvents } from './stateTypes';
 
+const INHERITED_PROPERTIES = ['node'] as const;
+
 interface PointStateMachineContext<Datum extends PointDatum> extends Omit<
     AnnotationsCreateStateMachineContext,
     'create'
@@ -22,7 +24,7 @@ export abstract class PointStateMachine<Datum extends PointDatum, Node extends P
     protected node?: Node;
 
     override inheritedProperties() {
-        return ['node'] as const;
+        return INHERITED_PROPERTIES;
     }
 
     constructor(ctx: PointStateMachineContext<Datum>) {

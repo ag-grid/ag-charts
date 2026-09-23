@@ -9,6 +9,8 @@ import { getGroupingValue } from '../utils/scale';
 import { type DisjointChannelDatum, disjointChannelDatum } from './disjointChannelDatum';
 import type { DisjointChannelScene } from './disjointChannelScene';
 
+const INHERITED_PROPERTIES = ['datum', 'node', 'snapping'] as const;
+
 interface DisjointChannelStateMachineContext extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
     create: (datum: DisjointChannelDatum) => void;
 }
@@ -29,7 +31,7 @@ export class DisjointChannelStateMachine extends StateMachine<
     protected snapping: boolean = false;
 
     override inheritedProperties() {
-        return ['datum', 'node', 'snapping'] as const;
+        return INHERITED_PROPERTIES;
     }
 
     constructor(ctx: DisjointChannelStateMachineContext) {

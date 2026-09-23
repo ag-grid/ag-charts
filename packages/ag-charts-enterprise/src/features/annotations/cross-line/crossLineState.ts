@@ -7,6 +7,8 @@ import type { AnnotationStateEvents } from '../states/stateTypes';
 import { type CrossLineDatum, horizontalLineDatum, verticalLineDatum } from './crossLineDatum';
 import type { CrossLineScene } from './crossLineScene';
 
+const INHERITED_PROPERTIES = ['node'] as const;
+
 interface CrossLineStateMachineContext extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
     create: (datum: CrossLineDatum) => void;
 }
@@ -20,7 +22,7 @@ export class CrossLineStateMachine extends StateMachine<
     protected node?: CrossLineScene;
 
     override inheritedProperties() {
-        return ['node'] as const;
+        return INHERITED_PROPERTIES;
     }
 
     constructor(direction: Direction, ctx: CrossLineStateMachineContext) {

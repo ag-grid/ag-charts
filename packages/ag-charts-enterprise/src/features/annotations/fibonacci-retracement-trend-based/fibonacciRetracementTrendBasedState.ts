@@ -11,6 +11,8 @@ import {
 } from './fibonacciRetracementTrendBasedDatum';
 import type { FibonacciRetracementTrendBasedScene } from './fibonacciRetracementTrendBasedScene';
 
+const INHERITED_PROPERTIES = ['datum', 'node', 'snapping'] as const;
+
 interface FibonacciRetracementTrendBasedStateMachineContext extends Omit<
     AnnotationsCreateStateMachineContext,
     'create'
@@ -34,7 +36,7 @@ export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
     protected snapping: boolean = false;
 
     override inheritedProperties() {
-        return ['datum', 'node', 'snapping'] as const;
+        return INHERITED_PROPERTIES;
     }
 
     constructor(ctx: FibonacciRetracementTrendBasedStateMachineContext) {

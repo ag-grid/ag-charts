@@ -11,6 +11,8 @@ import { isTextType } from '../utils/types';
 import type { AnnotationStateEvents } from './stateTypes';
 import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
 
+const INHERITED_PROPERTIES = ['datum', 'node'] as const;
+
 interface TextualPointStateMachineContext<Datum extends TextualPointDatum> extends Omit<
     AnnotationsCreateStateMachineContext,
     'create'
@@ -45,7 +47,7 @@ export abstract class TextualPointStateMachine<
     protected node?: Node;
 
     override inheritedProperties() {
-        return ['datum', 'node'] as const;
+        return INHERITED_PROPERTIES;
     }
 
     constructor(ctx: TextualPointStateMachineContext<Datum>) {
