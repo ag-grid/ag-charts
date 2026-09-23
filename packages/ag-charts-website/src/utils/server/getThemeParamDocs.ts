@@ -36,7 +36,7 @@ export function themeParamDocs(reference: ApiReferenceType): Record<string, stri
     for (const node of interfaceChain(reference, ROOT_INTERFACE)) {
         for (const member of node.members) {
             const text = tooltipText(parseJsDocs(member.docs));
-            if (text) {
+            if (text !== '') {
                 docs[member.name] = text;
             }
         }
@@ -58,7 +58,7 @@ function interfaceChain(reference: ApiReferenceType, name: string): InterfaceNod
     }
     const bases = (node.heritage ?? []).flatMap((base) => {
         const baseName = heritageName(base);
-        return baseName ? interfaceChain(reference, baseName) : [];
+        return baseName == null || baseName === '' ? [] : interfaceChain(reference, baseName);
     });
     return [...bases, node];
 }

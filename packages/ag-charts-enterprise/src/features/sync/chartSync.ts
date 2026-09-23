@@ -220,7 +220,7 @@ export class ChartSync extends AbstractModuleInstance {
 
         const [primaryKeys, secondaryKeys] = series ? getDirectionKeys(series, mainDirection, secondaryDirection) : [];
         const datum = readDatum(event.currentHighlight);
-        let eventValue = primaryKeys?.[0] ? datum?.[primaryKeys[0]] : undefined;
+        let eventValue = primaryKeys?.[0] == null ? undefined : datum?.[primaryKeys[0]];
         let valueIsDate: boolean = false;
         if (isDate(eventValue)) {
             valueIsDate = true;
@@ -324,7 +324,7 @@ export class ChartSync extends AbstractModuleInstance {
             if (seriesKeyAxis !== axis.id) return;
 
             const nodeData: _ModuleSupport.SeriesNodeDatum[] = (series as any).contextNodeData?.nodeData ?? [];
-            if (!nodeData?.length) return;
+            if (nodeData.length === 0) return;
 
             const firstNode = nodeData[0];
             const mainDirectionKey = `${mainDirection}Key` as const;

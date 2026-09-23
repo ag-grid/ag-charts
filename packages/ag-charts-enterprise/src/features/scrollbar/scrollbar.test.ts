@@ -216,7 +216,7 @@ function buildPlacementScrollbarOptions(
     position: 'top' | 'bottom' | 'left' | 'right',
     placement?: 'inner' | 'outer'
 ) {
-    const base = placement ? { ...SCROLLBAR_PLACEMENT_BASE, placement } : { ...SCROLLBAR_PLACEMENT_BASE };
+    const base = placement == null ? { ...SCROLLBAR_PLACEMENT_BASE } : { ...SCROLLBAR_PLACEMENT_BASE, placement };
     return {
         ...base,
         horizontal:
@@ -236,7 +236,7 @@ function buildPlacementOptions(
 
     if (orientation === 'horizontal') {
         axes.xPrimary = { type: 'number', position: scenario.horizontal.xAxes[0], tick: tickBase };
-        if (scenario.horizontal.xAxes[1]) {
+        if (scenario.horizontal.xAxes[1] != null) {
             axes.xSecondary = { type: 'number', position: scenario.horizontal.xAxes[1], tick: tickBase };
         }
         axes.y = { type: 'number', position: 'left', tick: tickBase };
@@ -250,7 +250,7 @@ function buildPlacementOptions(
             marker: { enabled: false },
         });
 
-        if (scenario.horizontal.xAxes[1]) {
+        if (scenario.horizontal.xAxes[1] != null) {
             series.push({
                 type: 'line',
                 xKey: 'x',
@@ -263,7 +263,7 @@ function buildPlacementOptions(
     } else {
         axes.x = { type: 'number', position: 'bottom', tick: tickBase };
         axes.yPrimary = { type: 'number', position: scenario.vertical.yAxes[0], tick: tickBase };
-        if (scenario.vertical.yAxes[1]) {
+        if (scenario.vertical.yAxes[1] != null) {
             axes.ySecondary = { type: 'number', position: scenario.vertical.yAxes[1], tick: tickBase };
         }
 
@@ -276,7 +276,7 @@ function buildPlacementOptions(
             marker: { enabled: false },
         });
 
-        if (scenario.vertical.yAxes[1]) {
+        if (scenario.vertical.yAxes[1] != null) {
             series.push({
                 type: 'line',
                 xKey: 'x',
@@ -312,8 +312,9 @@ describe('Scrollbar Placement with Multiple Axes', () => {
         describe(scenario.label, () => {
             for (const orientation of ['horizontal', 'vertical'] as const) {
                 for (const placement of [undefined, 'inner'] as const) {
-                    const placementSuffix = placement ? `-${placement}` : '';
-                    const label = placement ? `${orientation} scrollbar (${placement})` : `${orientation} scrollbar`;
+                    const placementSuffix = placement == null ? '' : `-${placement}`;
+                    const label =
+                        placement == null ? `${orientation} scrollbar` : `${orientation} scrollbar (${placement})`;
                     it(`renders ${label} on the correct side`, async () => {
                         const options = await renderSnapshot(
                             ctx,

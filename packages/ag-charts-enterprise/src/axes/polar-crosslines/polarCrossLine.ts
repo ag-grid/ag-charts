@@ -194,7 +194,14 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
 
     getLabelBox(): _ModuleSupport.BBox | undefined {
         const { label, labelNode } = this;
-        if (label.enabled === false || !label.text || !this.labelGroup.visible || !labelNode.visible) return;
+        if (
+            label.enabled === false ||
+            label.text == null ||
+            label.text === '' ||
+            !this.labelGroup.visible ||
+            !labelNode.visible
+        )
+            return;
         return Transformable.toCanvas(labelNode);
     }
 
@@ -350,7 +357,14 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
 
     private updateAngleLabelNode(visible: boolean) {
         const { label, labelNode: node, range, scale, type, ticks } = this;
-        if (!visible || label.enabled === false || !label.text || !scale || (type === 'range' && !range)) {
+        if (
+            !visible ||
+            label.enabled === false ||
+            label.text == null ||
+            label.text === '' ||
+            !scale ||
+            (type === 'range' && !range)
+        ) {
             node.visible = false;
             return;
         }
@@ -523,7 +537,7 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
 
     private updateRadiusLabelNode(visible: boolean) {
         const { innerRadius, label, labelNode: node, scale, shape, type } = this;
-        if (!visible || label.enabled === false || !label.text || !scale) {
+        if (!visible || label.enabled === false || label.text == null || label.text === '' || !scale) {
             node.visible = false;
             return;
         }

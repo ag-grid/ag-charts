@@ -376,7 +376,7 @@ describe('RadarLineSeries', () => {
                 [...s]
                     .filter(([k]) => k.startsWith('series[1]/marker['))
                     .map(([, v]) => [v.x + (v.translationX ?? 0), v.y + (v.translationY ?? 0)] as const)
-                    .sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+                    .sort((a, b) => (a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]));
             const centersBefore = survivorCenters(before);
             const centersHidden = survivorCenters(hidden);
             expect(centersHidden.length, 'survivor marker count unchanged by hide').toBe(centersBefore.length);

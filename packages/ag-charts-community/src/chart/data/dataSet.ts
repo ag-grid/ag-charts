@@ -150,7 +150,7 @@ export class DataSet<T = unknown> {
 
     getItemIdFromIndex(datumIndex: number): string | number {
         const datum: T | undefined = this.getDatumAt(datumIndex);
-        const itemId = datum ? this.getIdValue(datum) : undefined;
+        const itemId = datum == null ? undefined : this.getIdValue(datum);
         return itemId ?? datumIndex;
     }
 
@@ -183,7 +183,7 @@ export class DataSet<T = unknown> {
         if (append) result.append = append;
 
         // Convert add to prepend, append, or arbitrary insertion based on addIndex
-        if (add && add.length > 0) {
+        if (add != null && add.length > 0) {
             const currentSize = this.netSize();
 
             if (addIndex === undefined || addIndex >= currentSize) {
@@ -292,7 +292,7 @@ export class DataSet<T = unknown> {
         if (!this.itemToIndexCache) return;
 
         // When dataIdKey is set, reference-based cache is not useful — invalidate.
-        if (this.dataIdKey) {
+        if (this.dataIdKey != null && this.dataIdKey !== '') {
             this.itemToIndexCache = undefined;
             return;
         }
@@ -636,7 +636,7 @@ export class DataSet<T = unknown> {
             return;
         }
 
-        if (this.dataIdKey) {
+        if (this.dataIdKey != null && this.dataIdKey !== '') {
             this.applyRemovalsById(remove, state);
         } else {
             this.applyRemovalsByRef(remove, state);
@@ -729,7 +729,7 @@ export class DataSet<T = unknown> {
             return;
         }
 
-        if (this.dataIdKey) {
+        if (this.dataIdKey != null && this.dataIdKey !== '') {
             this.applyUpdatesById(update, state);
         } else {
             this.applyUpdatesByRef(update, state);

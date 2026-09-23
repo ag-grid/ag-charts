@@ -119,7 +119,7 @@ export interface BuildPrPreviewPlanArgs {
 
 export const previewBaseUrl = ({ repo, pr }: { repo: string; pr: number }): string => {
     const [owner, name] = repo.split('/');
-    if (!owner || !name) {
+    if (owner == null || owner === '' || name == null || name === '') {
         throw new Error(`Expected repo as 'owner/name', got '${repo}'.`);
     }
     return `https://${owner}.github.io/${name}/pr-${pr}/`;
@@ -149,7 +149,7 @@ export const buildPrPreviewPlan = ({
                 );
             }
             const relativePath = packageRelativePath(packageName, url);
-            if (!relativePath) {
+            if (relativePath == null || relativePath === '') {
                 throw new Error(`Could not read a '${packageName}'-relative path out of '${url}'.`);
             }
             const target = `${packageName}/${relativePath}`;

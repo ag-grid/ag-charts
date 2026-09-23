@@ -193,7 +193,7 @@ export function extractImageData({
     bbox?: { x: number; y: number; width: number; height: number };
 }) {
     let sourceCanvas = nodeCanvas;
-    if (bbox && nodeCanvas) {
+    if (bbox != null && nodeCanvas != null) {
         const { x, y, width, height } = bbox;
 
         // Canvas must have a valid size, otherwise node-canvas fails.

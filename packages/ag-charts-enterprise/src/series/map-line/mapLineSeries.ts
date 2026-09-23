@@ -249,7 +249,7 @@ export class MapLineSeries
 
     private isColorScaleValid() {
         const { colorKey } = this.options;
-        if (!colorKey) {
+        if (colorKey == null || colorKey === '') {
             return false;
         }
 

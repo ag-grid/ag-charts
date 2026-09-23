@@ -29,7 +29,7 @@ describe('ChartTheme', () => {
     let chart: ChartOrProxy;
 
     afterEach(async () => {
-        if (chart) {
+        if (chart != null) {
             await waitForChartStability(chart);
             chart.destroy();
             (chart as any) = null;

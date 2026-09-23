@@ -48,7 +48,7 @@ export function galleryPageSeoProblems(html: string): string[] {
     const title = titleOf(html);
     const h1 = h1Of(html);
 
-    if (!title) {
+    if (title == null || title === '') {
         problems.push('serves an empty <title>');
     } else if (title.includes(RETIRED_TITLE_PATTERN)) {
         problems.push(`serves the retired "${RETIRED_TITLE_PATTERN} {name}" title: "${title}"`);
@@ -57,13 +57,13 @@ export function galleryPageSeoProblems(html: string): string[] {
     }
 
     const description = metaDescriptionOf(html);
-    if (!description) {
+    if (description == null || description === '') {
         problems.push('serves an empty meta description');
     } else if (description.includes(RETIRED_DESCRIPTION_PATTERN)) {
         problems.push(`serves the retired meta description: "${description}"`);
     }
 
-    if (!h1) {
+    if (h1 == null || h1 === '') {
         problems.push('serves an empty <h1>');
     } else if (!h1.includes(EXAMPLE_INTENT)) {
         problems.push(`serves a bare chart name as its <h1>: "${h1}"`);
@@ -100,10 +100,10 @@ export function gallerySeoChecker({ buildDir, log }: { buildDir: string; log: (m
     );
 
     log(
-        `Gallery SEO: ${pages.length} example pages checked, ${failures.length ? `${failures.length} problem/s` : 'all pass'}`
+        `Gallery SEO: ${pages.length} example pages checked, ${failures.length === 0 ? 'all pass' : `${failures.length} problem/s`}`
     );
 
-    if (failures.length) {
+    if (failures.length > 0) {
         throw new Error(
             `Gallery example pages failed the SEO check. Fix their copy in '${COPY_SOURCE}'.\n${failures.join('\n')}`
         );

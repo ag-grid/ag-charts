@@ -103,8 +103,8 @@ export class GuardedElement {
             const mid = Math.floor((left + right) / 2);
             const currentTabIndex = elements[mid].tabIndex;
             if (currentTabIndex === targetTabIndex) {
-                before = elements[mid - 1] || undefined;
-                after = elements[mid + 1] || undefined;
+                before = mid > 0 ? elements[mid - 1] : undefined;
+                after = mid + 1 < elements.length ? elements[mid + 1] : undefined;
                 break;
             } else if (currentTabIndex < targetTabIndex) {
                 before = elements[mid];

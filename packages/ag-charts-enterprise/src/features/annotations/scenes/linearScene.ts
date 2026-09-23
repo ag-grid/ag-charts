@@ -69,10 +69,10 @@ export abstract class LinearScene<
     public drag(datum: Datum, target: Point, context: AnnotationContext, snapping: boolean) {
         if (!datum.isWriteable()) return;
 
-        if (this.activeHandle) {
-            this.dragHandle(datum, target, context, snapping);
-        } else {
+        if (this.activeHandle == null) {
             this.dragAll(datum, target, context);
+        } else {
+            this.dragHandle(datum, target, context, snapping);
         }
     }
 

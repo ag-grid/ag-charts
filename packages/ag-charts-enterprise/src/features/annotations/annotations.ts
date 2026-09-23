@@ -374,7 +374,7 @@ export class Annotations extends AbstractModuleInstance {
 
             showAnnotationOptions: (active: number) => {
                 const node = this.annotations.at(active) as AnnotationSceneUnion;
-                if (!node || isEphemeralType(this.annotationData.at(active))) return;
+                if (node == null || isEphemeralType(this.annotationData.at(active))) return;
 
                 this.optionsToolbar.updateButtons(this.annotationData.at(active)!);
                 this.optionsToolbar.show();
@@ -416,8 +416,10 @@ export class Annotations extends AbstractModuleInstance {
                     },
                     onChangeText: (props) => {
                         this.state.transition('lineText', props);
-                        if (props.alignment) this.defaults.setDefaultLineTextAlignment(datum.type, props.alignment);
-                        if (props.position) this.defaults.setDefaultLineTextPosition(datum.type, props.position);
+                        if (props.alignment != null)
+                            this.defaults.setDefaultLineTextAlignment(datum.type, props.alignment);
+                        if (props.position != null)
+                            this.defaults.setDefaultLineTextPosition(datum.type, props.position);
                         this.recordActionAfterNextUpdate(
                             `Change ${datum.type} text ${Object.keys(props)
                                 .map((key) => `${key} to ${(props as any)[key]}`)
@@ -1024,7 +1026,7 @@ export class Annotations extends AbstractModuleInstance {
         this.reset();
 
         const context = this.getAnnotationContext();
-        if (!this.annotationData || !context) return;
+        if (this.annotationData == null || !context) return;
 
         const { state } = this;
 
@@ -1168,7 +1170,7 @@ export class Annotations extends AbstractModuleInstance {
                 return;
         }
 
-        if (translation.x || translation.y) {
+        if (translation.x !== 0 || translation.y !== 0) {
             state.transition('translate', { translation });
             sourceEvent.preventDefault();
         }

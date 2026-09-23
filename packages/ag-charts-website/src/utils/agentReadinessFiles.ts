@@ -77,7 +77,7 @@ function buildLinks({ siteRoot, chartsDocsPrefix }: AgentReadinessInput): AgentR
  */
 /** Render one index group as an `###` heading over its links, or nothing when it is empty. */
 function renderIndexSection({ title, links }: LlmsTxtSection): string {
-    if (!links.length) {
+    if (links.length === 0) {
         return '';
     }
     return [`### ${title}`, ...links.map((link) => `- [${link.title}](${link.url})`)].join('\n');
@@ -94,18 +94,19 @@ export function buildLlmsTxt(input: AgentReadinessInput): string {
     // The docs exist once per framework, so listing all four would quadruple the file for no new
     // information. Publish the framework-agnostic JavaScript URL and state the substitution.
     const anyFrameworkPrefix = input.chartsDocsPrefix.replace(/^[a-z]+/, '<framework>');
-    const docsIndexSection = docsIndex
-        ? [
-              '',
-              '## Documentation',
-              'Every documentation page, in navigation order. Each URL is the framework-agnostic' +
-                  ` JavaScript one; replace \`${input.chartsDocsPrefix}\` with \`${anyFrameworkPrefix}\`` +
-                  ' (`react`, `angular` or `vue`) for the framework-specific page.',
-              '',
-              `${docsIndex}\n`,
-          ].join('\n')
-        : '';
-    const siteIndexSection = siteIndex ? ['', '## Site pages', '', `${siteIndex}\n`].join('\n') : '';
+    const docsIndexSection =
+        docsIndex.length > 0
+            ? [
+                  '',
+                  '## Documentation',
+                  'Every documentation page, in navigation order. Each URL is the framework-agnostic' +
+                      ` JavaScript one; replace \`${input.chartsDocsPrefix}\` with \`${anyFrameworkPrefix}\`` +
+                      ' (`react`, `angular` or `vue`) for the framework-specific page.',
+                  '',
+                  `${docsIndex}\n`,
+              ].join('\n')
+            : '';
+    const siteIndexSection = siteIndex.length > 0 ? ['', '## Site pages', '', `${siteIndex}\n`].join('\n') : '';
     // State the `.md` rule rather than enumerate pages, which would drift out of date.
     const markdownLine =
         input.includeMarkdownDocs === false

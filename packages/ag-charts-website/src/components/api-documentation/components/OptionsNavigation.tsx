@@ -315,7 +315,7 @@ function NavProperty({
             {expandable && isExpanded && (
                 <>
                     <NavGroup depth={depth + 1}>
-                        {isTypedUnion && unionVariants?.primitive && (
+                        {isTypedUnion && unionVariants?.primitive != null && unionVariants.primitive !== '' && (
                             <NavUnionPrimitive
                                 depth={depth + 1}
                                 name={cleanupName(member.name)}
@@ -507,7 +507,9 @@ function NavBreadcrumb({
     children: ReactNode;
 }) {
     const selection = useContext(SelectionContext);
-    const isSelected = selection?.selection.pageInterface === rootInterface && !selection?.selection.hash;
+    const selectedHash = selection?.selection.hash;
+    const isSelected =
+        selection?.selection.pageInterface === rootInterface && (selectedHash == null || selectedHash === '');
     const handleClick = () => {
         const navData = {
             pathname: basePath,

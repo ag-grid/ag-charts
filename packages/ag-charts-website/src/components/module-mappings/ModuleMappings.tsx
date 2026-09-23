@@ -154,7 +154,7 @@ export function ModuleMappings({
                 if (bundleOption === '') {
                     return true;
                 } else if (bundleOption === ALL_COMMUNITY_MODULE) {
-                    return params.node.allLeafChildren?.length
+                    return params.node.allLeafChildren != null && params.node.allLeafChildren.length > 0
                         ? params.node.allLeafChildren.some((child) => child.data.isEnterprise)
                         : params.data.isEnterprise;
                 }
@@ -191,7 +191,7 @@ export function ModuleMappings({
                     enableCellTextSelection
                 />
             </div>
-            {selectedDependenciesSnippet && (
+            {selectedDependenciesSnippet != null && selectedDependenciesSnippet !== '' && (
                 <div className={styles.moduleSnippet}>
                     <Snippet framework={framework} shiki={true} content={selectedDependenciesSnippet} copyToClipboard />
                 </div>

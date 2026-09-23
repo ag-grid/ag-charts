@@ -20,7 +20,7 @@ export const useUpdateDataFromUrl = ({
             const integratedChartsParam = searchParams.get('integratedCharts');
             const importTypeParam = searchParams.get('importType');
 
-            if (integratedChartsParam) {
+            if (integratedChartsParam != null && integratedChartsParam !== '') {
                 if (integratedChartsParam === 'true') {
                     setIsIntegratedCharts(true);
                     newSearchParams.integratedCharts = true;
@@ -39,7 +39,7 @@ export const useUpdateDataFromUrl = ({
             newSearchParams.importType = undefined;
         }
 
-        if (Object.keys(newSearchParams).length) {
+        if (Object.keys(newSearchParams).length > 0) {
             updateSearchParams(newSearchParams);
         }
     }, [library]);

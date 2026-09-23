@@ -370,7 +370,7 @@ describe('BarSeries', () => {
     let chart: AgChartInstance;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -411,7 +411,7 @@ describe('BarSeries', () => {
                         );
                     }
                 }
-                if (!example.warnings?.length) {
+                if (example.warnings == null || example.warnings.length === 0) {
                     expect(console.warn).not.toHaveBeenCalled();
                 }
             }

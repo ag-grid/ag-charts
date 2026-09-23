@@ -381,7 +381,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private updateComplete() {
         const { pendingViewportFocus } = this.focus;
-        if (pendingViewportFocus && this.focus.series !== undefined) {
+        if (pendingViewportFocus != null && this.focus.series !== undefined) {
             this.focus.pendingViewportFocus = undefined;
             this.pickViewportFocus(pendingViewportFocus);
         } else if (this.isState(InteractionState.Focusable) && this.getFocusIndicator()?.isFocusVisible()) {
@@ -768,7 +768,7 @@ export class SeriesAreaManager extends BaseManager {
         this.setHoverDevice(focusVisibleStyle ? 'keyboard' : 'pointer');
 
         const { pendingViewportFocus } = this.focus;
-        if (this.refreshFocus() === PickedFocusStatus.PENDING_VIEWPORT_FOCUS && pendingViewportFocus) {
+        if (this.refreshFocus() === PickedFocusStatus.PENDING_VIEWPORT_FOCUS && pendingViewportFocus != null) {
             this.focus.pendingViewportFocus = undefined;
             this.pickViewportFocus(pendingViewportFocus);
         }
@@ -1466,7 +1466,7 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         if (
-            targetElement &&
+            targetElement != null &&
             this.chart.tooltip.interactive &&
             this.chart.ctx.domManager.isManagedChildDOMElement(targetElement, 'canvas-overlay', DEFAULT_TOOLTIP_CLASS)
         ) {
@@ -1522,10 +1522,14 @@ export class SeriesAreaManager extends BaseManager {
         const newSeries = event.currentHighlight?.series;
 
         // Adjust the cursor if a specific datum is highlighted, rather than just a series.
-        if (lastSeries?.options.cursor && event.previousHighlight?.datum) {
+        if (lastSeries?.options.cursor != null && event.previousHighlight?.datum) {
             this.chart.ctx.domManager.updateCursor(lastSeries.id);
         }
-        if (newSeries?.options.cursor && newSeries.options.cursor !== 'default' && event.currentHighlight?.datum) {
+        if (
+            newSeries?.options.cursor != null &&
+            newSeries.options.cursor !== 'default' &&
+            event.currentHighlight?.datum
+        ) {
             this.chart.ctx.domManager.updateCursor(newSeries.id, newSeries.options.cursor);
         }
 

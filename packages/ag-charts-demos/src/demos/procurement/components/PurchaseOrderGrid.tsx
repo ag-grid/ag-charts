@@ -123,7 +123,7 @@ export function PurchaseOrderGrid({ orders, poActions, onAction }: PurchaseOrder
                     if (!data) return null;
                     const recorded = poActions[data.poId];
                     // Once a decision is recorded the line states it rather than offering the same buttons again.
-                    if (recorded) {
+                    if (recorded != null) {
                         return (
                             <span className="pc-po-action-done">
                                 <span aria-hidden="true">✓</span> {recorded}

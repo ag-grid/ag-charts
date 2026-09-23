@@ -243,7 +243,7 @@ export class ProxyInteractionService {
         const element = widget.getElement();
         setElementStyle(element, 'cursor', params.cursor);
         element.classList.toggle('ag-charts-proxy-elem', true);
-        if (params.classList?.length) {
+        if (params.classList != null && params.classList.length > 0) {
             element.classList.add(...params.classList);
         }
         return element;

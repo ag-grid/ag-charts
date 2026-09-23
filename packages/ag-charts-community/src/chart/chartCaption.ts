@@ -174,13 +174,13 @@ export class ChartCaption implements CaptionLike {
 
     private updateA11yText(moduleCtx: DynamicContext<ChartRegistry>, where: 'beforebegin' | 'afterend') {
         const { proxyInteractionService } = moduleCtx;
-        if (!this.enabled || !this.text) {
+        if (!this.enabled || this.text == null || this.text === '') {
             this.destroyProxyText();
             return;
         }
 
         const bbox = Transformable.toCanvas(this.node);
-        if (!bbox) return;
+        if (bbox == null) return;
 
         const { id: domManagerId } = this;
         if (this.proxyText == null) {

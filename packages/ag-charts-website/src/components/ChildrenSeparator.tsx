@@ -6,7 +6,7 @@ export function ChildrenSeparator({ children, separator = ', ' }: { children: Re
     return (
         <>
             {Children.toArray(children).reduce<ReactNode[]>(
-                (result, child, index) => result.concat(index ? [createSeparator(index), child] : child),
+                (result, child, index) => result.concat(index === 0 ? child : [createSeparator(index), child]),
                 []
             )}
         </>

@@ -469,7 +469,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                     if (this.active == null) return;
 
                     const type = ctx.getAnnotationType(this.active);
-                    if (!type) return;
+                    if (type == null) return;
 
                     ctx.startDragging(this.active);
                     this.transitionRoot(type);

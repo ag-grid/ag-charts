@@ -194,7 +194,8 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             ...otherOpts,
         });
 
-        if (!propertyKeys || !propertyNames) throw new Error(`Unable to initialise series type ${this.type}`);
+        if (propertyKeys == null || propertyNames == null)
+            throw new Error(`Unable to initialise series type ${this.type}`);
 
         this.opts = {
             pathsPerSeries,
@@ -744,7 +745,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         _nodeData: DatumOf<TTypes>[],
         highlightedItem: DatumOf<TTypes>
     ): DatumOf<TTypes>[] | undefined {
-        return highlightedItem ? [{ ...highlightedItem }] : undefined;
+        return highlightedItem == null ? undefined : [{ ...highlightedItem }];
     }
 
     protected getHighlightLabelData(

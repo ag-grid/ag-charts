@@ -115,7 +115,7 @@ export class Text<D = unknown> extends Shape<D> {
                     children.push(new ImageSegmentNode());
                 } else {
                     for (const line of toTextString(segment.text).split(LineSplitter)) {
-                        if (line) children.push(new Text({ trimText: false }));
+                        if (line !== '') children.push(new Text({ trimText: false }));
                     }
                 }
             }
@@ -210,7 +210,10 @@ export class Text<D = unknown> extends Shape<D> {
         if (isArray(text)) {
             const { font, lineHeight, textAlign, textBaseline } = options;
             const { width, height, lineMetrics } = measureTextSegments(text, font);
-            const totalHeight = lineHeight ? lineHeight * lineMetrics.length : height;
+            const totalHeight =
+                lineHeight == null || lineHeight === 0 || Number.isNaN(lineHeight)
+                    ? height
+                    : lineHeight * lineMetrics.length;
             const offsetTop = Text.calcTopOffset(totalHeight, lineMetrics[0], textBaseline);
             const offsetLeft = Text.calcLeftOffset(width, textAlign);
 
@@ -234,7 +237,10 @@ export class Text<D = unknown> extends Shape<D> {
     ): BBox {
         const { font, lineHeight, textAlign, textBaseline, isRtl } = opts;
         const { width, height, lineMetrics } = cachedTextMeasurer(font).measureLines(lines);
-        const totalHeight = lineHeight ? lineHeight * lineMetrics.length : height;
+        const totalHeight =
+            lineHeight == null || lineHeight === 0 || Number.isNaN(lineHeight)
+                ? height
+                : lineHeight * lineMetrics.length;
         const offsetTop = Text.calcTopOffset(totalHeight, lineMetrics[0], textBaseline);
         const offsetLeft = Text.calcLeftOffset(width, textAlign, isRtl);
 
@@ -274,7 +280,7 @@ export class Text<D = unknown> extends Shape<D> {
                 const isPureTextLine =
                     lineMetrics.length === 1 &&
                     line.segments.length > 0 &&
-                    !line.blockImages?.length &&
+                    (line.blockImages?.length ?? 0) === 0 &&
                     line.segments.every((s) => s.type !== 'image');
                 if (isPureTextLine) {
                     return (
@@ -300,7 +306,7 @@ export class Text<D = unknown> extends Shape<D> {
     }
 
     private static calcLeftOffset(width: number, textAlign?: CanvasTextAlign, isRtl?: boolean): number {
-        switch (textAlign && resolveTextAlign(textAlign, isRtl)) {
+        switch (textAlign == null ? undefined : resolveTextAlign(textAlign, isRtl)) {
             case 'center':
                 return width * 0.5;
             case 'right':
@@ -321,7 +327,7 @@ export class Text<D = unknown> extends Shape<D> {
             return new BBox(this.x, this.y, 0, 0);
         }
         this.generateTextMap();
-        if (this.textMap?.size && isArray(this.text)) {
+        if (this.textMap != null && this.textMap.size > 0 && isArray(this.text)) {
             const bbox = BBox.merge(this.textMap.values());
             const { height, lineMetrics } = this.getSegmentMetrics(this.text);
             bbox.x = this.x - Text.calcLeftOffset(bbox.width, this.textAlign, this.scene?.isRtl);
@@ -394,7 +400,7 @@ export class Text<D = unknown> extends Shape<D> {
     }
 
     private generateTextMap() {
-        if (!isArray(this.text) || this.textMap?.size) return;
+        if (!isArray(this.text) || (this.textMap?.size ?? 0) > 0) return;
 
         this.textMap ??= new Map();
         this.generatingTextMap = true;
@@ -428,7 +434,7 @@ export class Text<D = unknown> extends Shape<D> {
         for (let lineIndex = 0; lineIndex < lineMetrics.length; ) {
             const line = lineMetrics[lineIndex];
 
-            if (line.blockImages?.length) {
+            if ((line.blockImages?.length ?? 0) > 0) {
                 const span = line.blockRowSpan ?? 1;
                 const nextOffsetY = this.layoutBlockRow(lineMetrics, lineIndex, span, offsetY, labelLeft, childNodes);
                 if (nextOffsetY == null) return;
@@ -658,8 +664,8 @@ export class Text<D = unknown> extends Shape<D> {
 
         if (Text.debug.check()) {
             const bbox = this.getBBox();
-            ctx.lineWidth = this.textMap?.size ? 2 : 1;
-            ctx.strokeStyle = this.textMap?.size ? 'blue' : 'red';
+            ctx.lineWidth = (this.textMap?.size ?? 0) > 0 ? 2 : 1;
+            ctx.strokeStyle = (this.textMap?.size ?? 0) > 0 ? 'blue' : 'red';
             ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
         }
 
@@ -690,7 +696,9 @@ export class Text<D = unknown> extends Shape<D> {
     private renderText(renderCtx: RenderContext): void {
         const { fill, stroke, strokeWidth, font, textAlign } = this;
 
-        if ((!fill && !(stroke && strokeWidth)) || !this.layerManager) {
+        const hasFill = fill != null && fill !== '';
+        const hasStroke = stroke != null && stroke !== '' && strokeWidth > 0;
+        if ((!hasFill && !hasStroke) || !this.layerManager) {
             // Short circuit early if nothing will be rendered.
             return super.render(renderCtx);
         }

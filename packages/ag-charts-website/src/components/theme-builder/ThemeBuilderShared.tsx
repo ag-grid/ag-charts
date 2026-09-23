@@ -30,9 +30,10 @@ setParamDocsProvider((property) => siteParamDocs[property]);
  */
 const paramAnchor = (property: string) => `reference-AgChartTheme-params-${property}`;
 
-setParamDocsUrlProvider((property) =>
-    siteParamDocs[property] ? `${urlWithBaseUrl('/themes-api/')}#${paramAnchor(property)}` : undefined
-);
+setParamDocsUrlProvider((property) => {
+    const doc = siteParamDocs[property];
+    return doc == null || doc === '' ? undefined : `${urlWithBaseUrl('/themes-api/')}#${paramAnchor(property)}`;
+});
 
 export function ThemeBuilderShared({ paramDocs }: { paramDocs: Record<string, string> }) {
     siteParamDocs = paramDocs;

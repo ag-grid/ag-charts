@@ -105,7 +105,7 @@ export class CrossLineScene extends AnnotationScene<never> {
     }
 
     private updateText(datum: CrossLineProperties, coords: Bounds4) {
-        this.text = this.updateNode(CollidableText<never>, this.text, !!datum.text.label);
+        this.text = this.updateNode(CollidableText<never>, this.text, datum.text.label !== '');
 
         updateLineText(this.line.id, this.line, coords, datum.text, this.text, datum.text.label, datum.strokeWidth);
     }
@@ -185,7 +185,7 @@ export class CrossLineScene extends AnnotationScene<never> {
 
         if (!datum.isWriteable() || !dragState) return;
 
-        if (activeHandle) {
+        if (activeHandle != null) {
             this[activeHandle].toggleDragging(true);
         }
 

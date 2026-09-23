@@ -38,7 +38,10 @@ export function navSectionsToIndex({
 
     const walk = (items: DocsNavItem[], trail: (string | undefined)[]) => {
         const links = items
-            .filter((item) => item.title && isDestination(item) && isAvailableFor(item, framework))
+            .filter(
+                (item) =>
+                    item.title != null && item.title !== '' && isDestination(item) && isAvailableFor(item, framework)
+            )
             .map((item) => ({
                 title: item.title!,
                 // The base path comes from `siteRoot` alone: `urlWithPrefix` would add a second
@@ -48,7 +51,7 @@ export function navSectionsToIndex({
                     siteRoot
                 ),
             }));
-        if (links.length) {
+        if (links.length > 0) {
             // A nav section can be untitled — the API nav opens with a `hideTitle` section
             // holding the reference landing page — so drop the empty level from the heading.
             index.push({ title: trail.filter(Boolean).join(' > '), links });
@@ -61,7 +64,10 @@ export function navSectionsToIndex({
     };
 
     for (const section of sections) {
-        walk(section.children ?? [], titlePrefix ? [titlePrefix, section.title] : [section.title]);
+        walk(
+            section.children ?? [],
+            titlePrefix == null || titlePrefix === '' ? [section.title] : [titlePrefix, section.title]
+        );
     }
 
     return index;
@@ -72,7 +78,7 @@ export function navPageNames(sections: DocsNavItem[]): Set<string> {
     const names = new Set<string>();
     const walk = (items: DocsNavItem[]) => {
         for (const item of items) {
-            if (item.path) {
+            if (item.path != null && item.path !== '') {
                 names.add(item.path);
             }
             item.childPaths?.forEach((path) => names.add(path));

@@ -159,7 +159,7 @@ export function getDateTicksForInterval({
     extend: boolean;
     logger: Logger | undefined;
 }): Date[] | undefined {
-    if (!interval) {
+    if (interval == null) {
         return [];
     }
 

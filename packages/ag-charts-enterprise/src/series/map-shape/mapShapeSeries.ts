@@ -257,10 +257,12 @@ export class MapShapeSeries
                     includeProperty: false,
                     processor: () => (datum) => featureById.get(datum as string),
                 }),
-                ...(labelKey ? [valueProperty(labelKey, 'category', { id: 'labelValue' })] : []),
-                ...(colorKey
-                    ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue', invalidValue: undefined })]
-                    : []),
+                ...(labelKey == null || labelKey === ''
+                    ? []
+                    : [valueProperty(labelKey, 'category', { id: 'labelValue' })]),
+                ...(colorKey == null || colorKey === ''
+                    ? []
+                    : [valueProperty(colorKey, colorScaleType, { id: 'colorValue', invalidValue: undefined })]),
             ],
         });
 
@@ -289,7 +291,7 @@ export class MapShapeSeries
 
     private isColorScaleValid() {
         const { colorKey } = this.options;
-        if (!colorKey) {
+        if (colorKey == null || colorKey === '') {
             return false;
         }
 
