@@ -206,22 +206,20 @@ export abstract class DataModelSeries<
             return nodeDatumIndex === nodeData.length ? undefined : nodeDatumIndex;
         };
 
-        // Search forward or backwards depending on the delta direction.
         let nextNodeIndex: number | undefined;
-        if (opts.datumIndexDelta < 0) {
-            if (lower !== undefined) {
+        // Search forward or backwards depending on the delta direction.
+        if (lower !== undefined && upper !== undefined) {
+            if (opts.datumIndexDelta < 0) {
                 nextNodeIndex = searchBackward(lower, opts.datumIndexDelta);
-            }
-        } else if (opts.datumIndexDelta > 0) {
-            if (upper !== undefined) {
+            } else if (opts.datumIndexDelta > 0) {
                 nextNodeIndex = searchForward(upper, opts.datumIndexDelta);
-            }
-        } /* opts.datumIndexDelta === 0 */ else {
-            if (lower !== undefined && nodeData[lower].datumIndex === opts.datumIndex) {
-                nextNodeIndex = lower;
-            }
-            if (upper !== undefined && nodeData[upper].datumIndex === opts.datumIndex) {
-                nextNodeIndex = upper;
+            } /* opts.datumIndexDelta === 0 */ else {
+                if (nodeData[lower].datumIndex === opts.datumIndex) {
+                    nextNodeIndex = lower;
+                }
+                if (nodeData[upper].datumIndex === opts.datumIndex) {
+                    nextNodeIndex = upper;
+                }
             }
         }
 
