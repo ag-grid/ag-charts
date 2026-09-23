@@ -1,6 +1,10 @@
 import { type AgAnnotationLineStyleType, type AgAnnotationOptionsToolbar, _ModuleSupport } from 'ag-charts-community';
 import { type BoxBounds, CleanupRegistry, Color, type DynamicContext, EventEmitter } from 'ag-charts-core';
-import type { ToolbarButton } from 'ag-charts-types';
+import type {
+    AgAnnotationOptionsToolbarButtonValue,
+    AgAnnotationOptionsToolbarSwitchValue,
+    ToolbarButton,
+} from 'ag-charts-types';
 
 import { ColorPicker } from '../../components/color-picker/colorPicker';
 import {
@@ -23,6 +27,21 @@ import { isTextType } from './utils/types';
 type ButtonInteractionOptions = Parameters<_ModuleSupport.ToolbarButtonWidget['update']>[1];
 
 const { FloatingToolbar, Menu, ToolbarButtonWidget } = _ModuleSupport;
+
+const TOOLBAR_BUTTON_OPTIONS: Record<
+    AgAnnotationOptionsToolbarButtonValue | AgAnnotationOptionsToolbarSwitchValue,
+    AnnotationOptions
+> = {
+    delete: AnnotationOptions.Delete,
+    'line-stroke-width': AnnotationOptions.LineStrokeWidth,
+    'line-style-type': AnnotationOptions.LineStyleType,
+    'line-color': AnnotationOptions.LineColor,
+    'fill-color': AnnotationOptions.FillColor,
+    lock: AnnotationOptions.Lock,
+    'text-color': AnnotationOptions.TextColor,
+    'text-size': AnnotationOptions.TextSize,
+    settings: AnnotationOptions.Settings,
+};
 interface EventMap {
     'pressed-delete': null;
     'pressed-settings': { sourceEvent: Event };
@@ -154,7 +173,7 @@ export class AnnotationOptionsToolbar {
         this.buttons = (options.buttons ?? []).map((button) => ({
             ...button,
             type: button.type ?? 'button',
-            value: button.value as AnnotationOptions,
+            value: TOOLBAR_BUTTON_OPTIONS[button.value],
         }));
     }
 
