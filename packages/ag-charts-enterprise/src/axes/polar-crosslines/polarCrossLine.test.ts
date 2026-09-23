@@ -11,7 +11,7 @@ import type {
     AgPolarChartOptions,
     AgRadiusCrossLineOptions,
 } from 'ag-charts-community';
-import { AgCharts, _ModuleSupport } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import type { Chart } from 'ag-charts-community-test';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -24,25 +24,18 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { ChartAxisDirection } from 'ag-charts-core';
 
+import {
+    crossLineInstances,
+    pointOnPolarCrossLine,
+    polarCanvasPoint,
+    polarCrossLineAt,
+} from '../../test/polarCrossLines';
 import { createEnterpriseChart, mockCssVarColorSupport, prepareEnterpriseTestOptions } from '../../test/utils';
 import { PolarCrossLine } from './polarCrossLine';
 import * as examples from './test/examples';
 
-type CrossLinesPlugin = NonNullable<ReturnType<typeof _ModuleSupport.getCrossLinesPlugin>>;
-
 type TCtx = ReturnType<typeof setupMockCanvas>;
-
-// Polar axes get the enterprise `polarCrossLines` module, which the module map keys by that
-// name — so `getCrossLinesPlugin`, which looks up `crossLines`, only resolves cartesian axes.
-const crossLineInstances = (target: Chart, axisId: string) => {
-    const axis = target.axes.findById(axisId);
-    if (axis == null) return [];
-    const plugin =
-        _ModuleSupport.getCrossLinesPlugin(axis) ?? axis.getModuleMap().getModule<CrossLinesPlugin>('polarCrossLines');
-    return plugin?.getInstances() ?? [];
-};
 
 const compare = async (chart: AgChartInstance | undefined, ctx: TCtx) => {
     expect(chart).toBeDefined();
@@ -216,35 +209,6 @@ describe('PolarCrossLine listeners', () => {
         ...rest,
     });
 
-    const crossLineAt = (target: Chart, axisId: string, index = 0) =>
-        crossLineInstances(target, axisId)[index] as PolarCrossLine;
-
-    const canvasPoint = (instance: PolarCrossLine, radius: number, angle: number) =>
-        _ModuleSupport.Transformable.toCanvasPoint(
-            instance.type === 'range' ? instance.rangeGroup : instance.lineGroup,
-            radius * Math.cos(angle),
-            radius * Math.sin(angle)
-        );
-
-    // A point on the drawn geometry of each cross-line kind, derived from the instance's own layout.
-    const pointOn = (instance: PolarCrossLine) => {
-        const { scale, axisInnerRadius, axisOuterRadius } = instance;
-        const midRadius = (axisInnerRadius + axisOuterRadius) / 2;
-        if (instance.direction === ChartAxisDirection.Angle) {
-            const angle =
-                instance.type === 'line'
-                    ? scale!.convert(instance.value)
-                    : (scale!.convert(instance.range![0]) + scale!.convert(instance.range![1])) / 2;
-            return canvasPoint(instance, midRadius, angle);
-        }
-        const toRadius = (value: unknown) => axisOuterRadius + axisInnerRadius - scale!.convert(value);
-        const radius =
-            instance.type === 'line'
-                ? toRadius(instance.value)
-                : (toRadius(instance.range![0]) + toRadius(instance.range![1])) / 2;
-        return canvasPoint(instance, radius, instance.gridAngles![0]);
-    };
-
     const labelCentre = (instance: PolarCrossLine) => {
         const { x, y } = instance.getLabelBox()!.computeCenter();
         return { canvasX: x, canvasY: y };
@@ -263,7 +227,7 @@ describe('PolarCrossLine listeners', () => {
             )
         );
 
-        await click(chart, pointOn(crossLineAt(chart, 'angle')));
+        await click(chart, pointOnPolarCrossLine(polarCrossLineAt(chart, 'angle')));
 
         expect(listener).toHaveBeenCalledTimes(1);
         expect(listener).toHaveBeenCalledWith(
@@ -283,7 +247,7 @@ describe('PolarCrossLine listeners', () => {
         const listeners: AgCrossLineListeners = { click: vi.fn(), doubleClick: vi.fn() };
         chart = await createEnterpriseChart(polarOptions('polygon', [], [{ type: 'line', value: 5, listeners }]));
 
-        const { canvasX, canvasY } = pointOn(crossLineAt(chart, 'radius'));
+        const { canvasX, canvasY } = pointOnPolarCrossLine(polarCrossLineAt(chart, 'radius'));
         await doubleClickAction(canvasX, canvasY)(chart);
 
         expect(listeners.doubleClick).toHaveBeenCalledTimes(1);
@@ -312,11 +276,11 @@ describe('PolarCrossLine listeners', () => {
                 }
             )
         );
-        const instance = crossLineAt(chart, 'radius');
+        const instance = polarCrossLineAt(chart, 'radius');
         const { scale, axisInnerRadius, axisOuterRadius } = instance;
         const missRadius = axisOuterRadius + axisInnerRadius - scale!.convert(3);
 
-        await click(chart, canvasPoint(instance, missRadius, instance.gridAngles![0]));
+        await click(chart, polarCanvasPoint(instance, missRadius, instance.gridAngles![0]));
 
         expect(listener).not.toHaveBeenCalled();
         expect(chartClick).toHaveBeenCalledTimes(1);
@@ -329,11 +293,11 @@ describe('PolarCrossLine listeners', () => {
             chart = await createEnterpriseChart(
                 polarOptions(shape, [], [{ type: 'range', range: [4, 8], listeners: { click: listener } }])
             );
-            const instance = crossLineAt(chart, 'radius');
+            const instance = polarCrossLineAt(chart, 'radius');
             const { scale, axisInnerRadius, axisOuterRadius } = instance;
             const holeRadius = axisOuterRadius + axisInnerRadius - scale!.convert(1);
 
-            await click(chart, canvasPoint(instance, holeRadius, instance.gridAngles![0]));
+            await click(chart, polarCanvasPoint(instance, holeRadius, instance.gridAngles![0]));
 
             expect(listener).not.toHaveBeenCalled();
         }
@@ -344,11 +308,11 @@ describe('PolarCrossLine listeners', () => {
         chart = await createEnterpriseChart(
             polarOptions('circle', [], [{ type: 'range', range: [4, 8], listeners: { click: listener } }])
         );
-        const instance = crossLineAt(chart, 'radius');
+        const instance = polarCrossLineAt(chart, 'radius');
         const { scale, axisInnerRadius, axisOuterRadius } = instance;
         const outerEdge = axisOuterRadius + axisInnerRadius - scale!.convert(8);
 
-        await click(chart, canvasPoint(instance, outerEdge + 2, instance.gridAngles![0]));
+        await click(chart, polarCanvasPoint(instance, outerEdge + 2, instance.gridAngles![0]));
 
         expect(listener).toHaveBeenCalledTimes(1);
     });
@@ -359,9 +323,9 @@ describe('PolarCrossLine listeners', () => {
             polarOptions('polygon', [], [{ type: 'line', value: 5, strokeWidth, listeners: { click: listener } }]);
         chart = await createEnterpriseChart(build(20));
 
-        const instance = crossLineAt(chart, 'radius');
+        const instance = polarCrossLineAt(chart, 'radius');
         const { scale, axisInnerRadius, axisOuterRadius } = instance;
-        const point = canvasPoint(
+        const point = polarCanvasPoint(
             instance,
             axisOuterRadius + axisInnerRadius - scale!.convert(5) + 8,
             instance.gridAngles![0]
@@ -391,10 +355,10 @@ describe('PolarCrossLine listeners', () => {
                 }
             )
         );
-        const instance = crossLineAt(chart, 'angle');
+        const instance = polarCrossLineAt(chart, 'angle');
         const midRadius = (instance.axisInnerRadius + instance.axisOuterRadius) / 2;
 
-        await click(chart, canvasPoint(instance, midRadius, instance.scale!.convert('Q3') + 0.5));
+        await click(chart, polarCanvasPoint(instance, midRadius, instance.scale!.convert('Q3') + 0.5));
 
         expect(listener).not.toHaveBeenCalled();
         expect(chartClick).toHaveBeenCalledTimes(1);
@@ -410,7 +374,7 @@ describe('PolarCrossLine listeners', () => {
             )
         );
 
-        await click(chart, labelCentre(crossLineAt(chart, 'angle')));
+        await click(chart, labelCentre(polarCrossLineAt(chart, 'angle')));
 
         expect(listener).toHaveBeenCalledTimes(1);
         expect(listener).toHaveBeenCalledWith(expect.objectContaining({ crossLineType: 'line', value: 'Q3' }));
@@ -426,8 +390,8 @@ describe('PolarCrossLine listeners', () => {
             )
         );
 
-        await click(chart, pointOn(crossLineAt(chart, 'angle')));
-        await click(chart, pointOn(crossLineAt(chart, 'radius')));
+        await click(chart, pointOnPolarCrossLine(polarCrossLineAt(chart, 'angle')));
+        await click(chart, pointOnPolarCrossLine(polarCrossLineAt(chart, 'radius')));
 
         expect(listener.mock.calls.map(([event]) => event.crossLineId)).toEqual(['angle-line', 'radius-band']);
     });
@@ -438,7 +402,7 @@ describe('PolarCrossLine listeners', () => {
             polarOptions('polygon', [{ type: 'range', range: ['Q1', 'Q2'] }], [], { listeners: { click: chartClick } })
         );
 
-        await click(chart, pointOn(crossLineAt(chart, 'angle')));
+        await click(chart, pointOnPolarCrossLine(polarCrossLineAt(chart, 'angle')));
 
         expect(chartClick).toHaveBeenCalledTimes(1);
     });
@@ -452,7 +416,7 @@ describe('PolarCrossLine listeners', () => {
         options.axes!.radius = { ...options.axes!.radius, listeners: { crossLineClick: axisClick } };
         chart = await createEnterpriseChart(options);
 
-        await click(chart, pointOn(crossLineAt(chart, 'radius')));
+        await click(chart, pointOnPolarCrossLine(polarCrossLineAt(chart, 'radius')));
 
         const expected = expect.objectContaining({ type: 'crossLineClick', crossLineId: 'band', axisId: 'radius' });
         expect(axisClick).toHaveBeenCalledTimes(1);
@@ -479,7 +443,7 @@ describe('PolarCrossLine listeners', () => {
             })
         );
 
-        await click(chart, pointOn(crossLineAt(chart, 'radius')));
+        await click(chart, pointOnPolarCrossLine(polarCrossLineAt(chart, 'radius')));
 
         expect(chartClick).toHaveBeenCalledWith(
             expect.objectContaining({ type: 'crossLineClick', crossLineId: 'band', axisId: 'radius' })
@@ -498,8 +462,8 @@ describe('PolarCrossLine listeners', () => {
         ];
 
         const expectClickTarget = async (target: Chart, axisId: string, listener: ReturnType<typeof vi.fn>) => {
-            const instance = crossLineAt(target, axisId);
-            await click(target, pointOn(instance));
+            const instance = polarCrossLineAt(target, axisId);
+            await click(target, pointOnPolarCrossLine(instance));
             expect(listener).toHaveBeenCalledTimes(1);
             expect(listener).toHaveBeenCalledWith(expect.objectContaining({ axisId, crossLineType: instance.type }));
         };
