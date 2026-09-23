@@ -64,6 +64,56 @@ const MINIMAL_ANNOTATIONS = {
 type AnnotationTypeName = keyof typeof MINIMAL_ANNOTATIONS;
 const ANNOTATION_TYPES = Object.keys(MINIMAL_ANNOTATIONS) as AnnotationTypeName[];
 
+const withArticle = (type: string) => `${/^[aeiou]/.test(type) ? 'an' : 'a'} ${type}`;
+
+// Non-default values for the nested groups each model family owns.
+const RICH_ANNOTATIONS = [
+    {
+        ...MINIMAL_ANNOTATIONS.line,
+        stroke: 'red',
+        strokeWidth: 4,
+        lineDash: [8, 2],
+        extendStart: true,
+        locked: true,
+        handle: { fill: 'blue' },
+        text: { label: 'Trend', position: 'bottom', alignment: 'right', color: 'green', fontSize: 18 },
+    },
+    {
+        ...MINIMAL_ANNOTATIONS['horizontal-line'],
+        lineStyle: 'dotted',
+        axisLabel: { enabled: true, fill: 'orange' },
+        text: { label: 'Level', position: 'center' },
+    },
+    {
+        ...MINIMAL_ANNOTATIONS['parallel-channel'],
+        extendEnd: true,
+        background: { fill: 'pink', fillOpacity: 0.5 },
+        middle: { visible: false },
+        text: { label: 'Channel', position: 'inside', alignment: 'center' },
+    },
+    {
+        ...MINIMAL_ANNOTATIONS['fibonacci-retracement'],
+        bands: 6,
+        reverse: true,
+        showFill: false,
+        isMultiColor: false,
+        label: { color: 'purple' },
+    },
+    { ...MINIMAL_ANNOTATIONS.note, fill: 'yellow', background: { fill: 'black', stroke: 'white' } },
+    { ...MINIMAL_ANNOTATIONS.callout, fontSize: 20, fill: 'cyan', visible: false },
+    {
+        ...MINIMAL_ANNOTATIONS['date-range'],
+        extendAbove: true,
+        statistics: { color: 'red', divider: { stroke: 'blue' } },
+    },
+    { ...MINIMAL_ANNOTATIONS['quick-date-price-range'], up: { fill: 'green', statistics: { fill: 'white' } } },
+] satisfies AgAnnotation[];
+
+// Dates serialise in normalised ISO form, so compare everything but the positions.
+const POSITION_KEYS = new Set(['start', 'end', 'x', 'value']);
+const withoutPositions = (annotation: object) =>
+    Object.fromEntries(Object.entries(annotation).filter(([key]) => !POSITION_KEYS.has(key)));
+
 describe('Annotation datum lifecycle', () => {
     setupMockConsole();
     let chart: any;
@@ -118,10 +168,13 @@ describe('Annotation datum lifecycle', () => {
     };
 
     describe('serialised state', () => {
-        it.each(ANNOTATION_TYPES)('serialises a %s annotation created from minimal options', async (type) => {
-            await prepareChart([MINIMAL_ANNOTATIONS[type]]);
-            expect(chart.getState().annotations).toMatchSnapshot();
-        });
+        it.each(ANNOTATION_TYPES.map((type) => [withArticle(type), type] as const))(
+            'serialises %s annotation created from minimal options',
+            async (_name, type) => {
+                await prepareChart([MINIMAL_ANNOTATIONS[type]]);
+                expect(chart.getState().annotations).toMatchSnapshot();
+            }
+        );
 
         it('round-trips every annotation type through chart state unchanged', async () => {
             await prepareChart(Object.values(MINIMAL_ANNOTATIONS));
@@ -132,6 +185,17 @@ describe('Annotation datum lifecycle', () => {
 
             expect(chart.getState().annotations).toEqual(before.annotations);
             expect(restored).toMatchImage(image);
+        });
+
+        it('round-trips non-default options into a new chart unchanged', async () => {
+            await prepareChart(RICH_ANNOTATIONS);
+            const serialised = chart.getState().annotations;
+            expect(serialised).toMatchObject(RICH_ANNOTATIONS.map(withoutPositions));
+            chart.destroy();
+
+            await prepareChart(serialised);
+
+            expect(chart.getState().annotations).toEqual(serialised);
         });
     });
 
@@ -152,9 +216,11 @@ describe('Annotation datum lifecycle', () => {
             await prepareChart([MINIMAL_ANNOTATIONS.line]);
             await restore([MINIMAL_ANNOTATIONS.comment]);
 
-            const [annotation] = chart.getState().annotations as AgAnnotation[];
-            expect(annotation.type).toBe('comment');
-            expect(chart.getState().annotations).toHaveLength(1);
+            const annotations = chart.getState().annotations as AgAnnotation[];
+            expect(annotations).toHaveLength(1);
+            expect(annotations[0]).toMatchObject(withoutPositions(MINIMAL_ANNOTATIONS.comment));
+            expect(annotations[0]).not.toHaveProperty('start');
+            expect(annotations[0]).not.toHaveProperty('end');
         });
 
         it('patches an annotation in place when the type at its index is unchanged', async () => {
@@ -195,8 +261,96 @@ describe('Annotation datum lifecycle', () => {
         });
     });
 
+    describe('options toolbar edits', () => {
+        const body = () => deproxy(chart).ctx.agDocument.body;
+        const toolbarButton = (title: string) => body().querySelector<HTMLElement>(`button[title="${title}"]`);
+        const menuRowByLabel = (label: string) => () =>
+            Array.from(body().querySelectorAll<HTMLElement>('.ag-charts-menu__row')).find(
+                (row) => row.querySelector('.ag-charts-menu__label')?.textContent === label
+            );
+        const menuRowByValue = (value: string) => () =>
+            body().querySelector<HTMLElement>(`.ag-charts-menu__row[data-popover-id="${value}"]`) ?? undefined;
+
+        async function selectHorizontalLine() {
+            await prepareChart([MINIMAL_ANNOTATIONS['horizontal-line']]);
+            const rect = deproxy(chart).seriesRect;
+            expect(rect).toBeDefined();
+            const centre = { x: rect!.x + rect!.width / 2, y: rect!.y + rect!.height / 2 };
+            await hoverAction(centre.x, centre.y)(chart);
+            await clickAction(centre.x, centre.y)(chart);
+            await waitForChartStability(chart);
+        }
+
+        async function pick(buttonTitle: string, findRow: () => HTMLElement | undefined) {
+            toolbarButton(buttonTitle)!.click();
+            await waitForChartStability(chart);
+            const row = findRow();
+            expect(row).toBeDefined();
+            row!.click();
+            await waitForChartStability(chart);
+        }
+
+        it('serialises a line style picked from the toolbar', async () => {
+            await selectHorizontalLine();
+            await pick('Line Style', menuRowByValue('dashed'));
+
+            const [annotation] = chart.getState().annotations;
+            expect(annotation).toMatchObject({ type: 'horizontal-line', lineStyle: 'dashed' });
+            expect(annotation.lineDash).toBeUndefined();
+        });
+
+        it('serialises a stroke width picked from the toolbar', async () => {
+            await selectHorizontalLine();
+            await pick('Line Stroke Width', menuRowByLabel('4'));
+
+            expect(chart.getState().annotations[0]).toMatchObject({ type: 'horizontal-line', strokeWidth: 4 });
+        });
+
+        it('serialises a lock set from the toolbar', async () => {
+            await selectHorizontalLine();
+            body().querySelector<HTMLElement>('button[aria-checked]')!.click();
+            await waitForChartStability(chart);
+
+            expect(chart.getState().annotations[0]).toMatchObject({ type: 'horizontal-line', locked: true });
+        });
+    });
+
+    describe('toolbar drawing', () => {
+        it('serialises a horizontal line drawn from the toolbar', async () => {
+            await prepareChart([], { ...EXAMPLE_OPTIONS, annotations: { enabled: true } });
+            const body = deproxy(chart).ctx.agDocument.body;
+            body.querySelector<HTMLElement>('button[title="Trend Lines"]')!.click();
+            await waitForChartStability(chart);
+            const item = Array.from(body.querySelectorAll<HTMLElement>('.ag-charts-menu__row')).find(
+                (row) => row.textContent === 'Horizontal Line'
+            );
+            expect(item).toBeDefined();
+            item!.click();
+            await waitForChartStability(chart);
+
+            const point = toCanvas(new Date(X_MID.value), 40);
+            await hoverAction(point.x, point.y)(chart);
+            await clickAction(point.x, point.y)(chart);
+            await waitForChartStability(chart);
+
+            const annotations = chart.getState().annotations;
+            expect(annotations).toHaveLength(1);
+            expect(annotations[0].type).toBe('horizontal-line');
+            expect(annotations[0].value).toBeCloseTo(40, 0);
+            expect(annotations).toMatchSnapshot();
+        });
+    });
+
     describe('line styles', () => {
-        const STYLED_TYPES = ['line', 'parallel-channel', 'date-range'] as const;
+        const STYLED_TYPES = [
+            'line',
+            'horizontal-line',
+            'parallel-channel',
+            'disjoint-channel',
+            'fibonacci-retracement',
+            'date-range',
+            'price-range',
+        ] as const;
 
         it.each(STYLED_TYPES)('renders a dashed %s annotation', async (type) => {
             await prepareChart([{ ...MINIMAL_ANNOTATIONS[type], lineStyle: 'dashed', strokeWidth: 3 }]);
@@ -210,13 +364,14 @@ describe('Annotation datum lifecycle', () => {
     });
 
     describe('rendering', () => {
-        it.each(['arrow', 'arrow-up', 'arrow-down', 'quick-date-price-range'] as const)(
-            'renders a %s annotation',
-            async (type) => {
-                await prepareChart([MINIMAL_ANNOTATIONS[type]]);
-                await compare();
-            }
-        );
+        it.each(
+            (['arrow', 'arrow-up', 'arrow-down', 'quick-date-price-range'] as const).map(
+                (type) => [withArticle(type), type] as const
+            )
+        )('renders %s annotation', async (_name, type) => {
+            await prepareChart([MINIMAL_ANNOTATIONS[type]]);
+            await compare();
+        });
 
         it('places the hovered note text below the point when there is no room above it', async () => {
             await prepareChart([{ ...MINIMAL_ANNOTATIONS.note, y: 98 }]);
@@ -228,6 +383,11 @@ describe('Annotation datum lifecycle', () => {
 
         it('renders the placeholder for an empty comment annotation', async () => {
             await prepareChart([{ ...MINIMAL_ANNOTATIONS.comment, text: '' }]);
+            await compare();
+        });
+
+        it('renders the placeholder for an empty callout annotation', async () => {
+            await prepareChart([{ ...MINIMAL_ANNOTATIONS.callout, text: '' }]);
             await compare();
         });
 
