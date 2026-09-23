@@ -609,6 +609,15 @@
     width: 100%;
 }
 
+/* The pagination panel's top border closes the rows, so the last row needs none. The grid
+   hides it itself while the rows fill the body, through the ag-body-*-content-no-gap classes on
+   .ag-root, but ag-grid-react's GridBodyComp rewrites that element's class list when its layout
+   class changes and drops them, so React drew a doubled line where the other frameworks draw
+   one. Hidden here in every framework, whatever those classes say. */
+.wa-grid-host .ag-row-last {
+    border-bottom-color: transparent;
+}
+
 /* ---- traffic chart tooltip (scoped via the class its renderers emit) ---- */
 .wa-app .wa-traffic-tooltip {
     /* Tighter than the 8px default: every row is a single line. */
