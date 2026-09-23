@@ -4,9 +4,10 @@
 //
 //   node e2e/parity/serve-dist.mjs --dir <path> --port <number>
 //
-// Files are served from `dir`; a path with no file behind it gets `index.html` (the seeds are
-// single-page apps, and the parity URL carries a query string and a hash), so an unknown path is
-// never a 404. Paths that escape `dir` are refused.
+// Files are served from `dir`. A missing path with no extension gets `index.html`, since the seeds
+// are single-page apps and such a path is a route; a missing path with an extension is an asset that
+// is not there, and is a 404 rather than a page of HTML the browser would try to run as the asset.
+// A path that cannot be decoded is a 400, and a path that escapes `dir` a 403.
 import { createReadStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { createServer } from 'node:http';
@@ -58,15 +59,32 @@ if (!(await fileAt(index))) {
     throw new Error(`No index.html under ${dir}; build the seed first`);
 }
 
+/** The request's path, decoded; null when it is not valid percent-encoding. */
+function decodedPathname(url) {
+    try {
+        return decodeURIComponent(new URL(url ?? '/', 'http://localhost').pathname);
+    } catch {
+        return null;
+    }
+}
+
 const server = createServer(async (request, response) => {
-    const pathname = decodeURIComponent(new URL(request.url ?? '/', 'http://localhost').pathname);
+    const pathname = decodedPathname(request.url);
+    if (pathname == null) {
+        response.writeHead(400).end();
+        return;
+    }
     const requested = normalize(join(dir, pathname));
     if (requested !== dir && !requested.startsWith(root)) {
         response.writeHead(403).end();
         return;
     }
 
-    const file = (await fileAt(requested)) ?? index;
+    const file = (await fileAt(requested)) ?? (extname(requested) === '' ? index : null);
+    if (!file) {
+        response.writeHead(404, { 'cache-control': 'no-store' }).end();
+        return;
+    }
     response.writeHead(200, {
         'content-type': CONTENT_TYPES[extname(file).toLowerCase()] ?? 'application/octet-stream',
         'cache-control': 'no-store',
