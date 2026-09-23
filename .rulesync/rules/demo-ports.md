@@ -2,7 +2,7 @@
 root: false
 targets: ['*']
 description: 'Where the framework ports of the showcase demos come from and which files are generated'
-globs: ['**/ag-charts-demos/seeds/**']
+globs: ['**/ag-charts-demos/seeds/**', '**/ag-charts-demos/src/demos/**']
 ---
 
 # Showcase Demo Seeds and Ports
