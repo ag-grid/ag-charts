@@ -43,7 +43,7 @@ function trafficTooltip({
                     <span class="ag-charts-tooltip-label">${fmtDate(date)}</span>
                     <span class="ag-charts-tooltip-value">${value}</span>
                 </div>
-                ${footerRows ? `<div class="ag-charts-tooltip-footer">${footerRows}</div>` : ''}
+                ${footerRows === '' ? '' : `<div class="ag-charts-tooltip-footer">${footerRows}</div>`}
             </div>`;
 }
 
@@ -163,7 +163,7 @@ export function TrafficChart({
             // Stable per-day id so the selection API can address items by day.
             id: dayId(d.date),
             value: def.daily(d),
-            value_prev: dailyPrevious[i] ? def.daily(dailyPrevious[i]) : undefined,
+            value_prev: dailyPrevious[i] == null ? undefined : def.daily(dailyPrevious[i]),
             // The previous series is drawn against the current x, so keep its real date for the tooltip.
             date_prev: dailyPrevious[i]?.date,
         }));

@@ -62,7 +62,7 @@ export function OverviewView({
         if (selectedAnnotationId != null && !selectedAnnotation) setSelectedAnnotationId(null);
     }, [selectedAnnotationId, selectedAnnotation]);
     // The charted day domain, which also bounds the form's date field.
-    const firstDay = daily[0]?.date;
+    const firstDay = daily.at(0)?.date;
     const lastDay = daily.at(-1)?.date;
 
     // Clicking the selected annotation again deselects it.

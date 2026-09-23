@@ -1,8 +1,8 @@
 {
     "demo": "financial",
     "framework": "react",
-    "sourceHash": "sha256-410140e42a7cd574a0ae19d0f153a0e75cedc4f925ac50884dc98b5f5caf2b54",
-    "sourceCommit": "7fe5a649fba41bae870ced5cba4c599e31ba812e",
+    "sourceHash": "sha256-888f965c918c1bb2b5899805bbf02ef226f11b7367c1ec3f5de1c3a88b0679e2",
+    "sourceCommit": "b8ed8802f6d676224b4a25da6f77dbea49b382db",
     "pinnedVersion": "latest",
     "pinSource": "dist-tag",
     "vendored": []

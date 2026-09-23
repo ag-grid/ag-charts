@@ -93,7 +93,11 @@ export function EventForm({ date, minDate, maxDate, onSubmit, onCancel }: EventF
                 <button type="button" className="wa-btn" onClick={onCancel}>
                     Cancel
                 </button>
-                <button type="submit" className="wa-btn wa-btn--primary" disabled={label.trim() === '' || !dateValue}>
+                <button
+                    type="submit"
+                    className="wa-btn wa-btn--primary"
+                    disabled={label.trim() === '' || dateValue === ''}
+                >
                     Add event
                 </button>
             </div>

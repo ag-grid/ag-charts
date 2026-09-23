@@ -1,8 +1,8 @@
 {
     "demo": "web-analytics",
     "framework": "typescript",
-    "sourceHash": "sha256-d9d693f481494ff98ae0abf4f15b190028e64c16f590f2321de3060d0efee47f",
-    "sourceCommit": "238e4d00e655e0e237d4f71eb66db44013b8b5f4",
+    "sourceHash": "sha256-b1c3333d1b5ced297a334ff3687ecff37fae9ce45c88ed8a01560308b8792b5c",
+    "sourceCommit": "0a4b240e3acb399ea583c574710884d5b9e5e874",
     "pinnedVersion": "latest",
     "pinSource": "dist-tag",
     "dist": "dist"

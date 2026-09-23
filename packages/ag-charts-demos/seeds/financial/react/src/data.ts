@@ -625,7 +625,7 @@ export class PeerPerformanceFeed {
                 key: `${label}|${ticker}`,
                 time: label,
                 peer: ticker,
-                value: round2(moves.length ? mean(moves) : 0),
+                value: round2(moves.length > 0 ? mean(moves) : 0),
             });
         }
         return cells;
