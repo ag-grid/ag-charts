@@ -7,10 +7,12 @@ name: Demo port sync
 # which the JIRA automation rule turns into a `jira-resume` dispatch for jira-agent-pipeline.yml.
 # The AI Workflow then ports the change and opens a PR gated by the demo parity check.
 #
-# Dedupe: an open "Sync demo ports" issue under the same parent gets a comment instead of a
-# second issue, and is never re-transitioned (a run may be in flight). The whole workflow is
-# best-effort: nothing here may paint a green push red, so the JIRA step continues on error and
-# a failure is posted to the CI alert channel instead.
+# Dedupe: one sync issue is open at a time. While any "Sync demo ports" issue is open, wherever it
+# is filed, a push that leaves ports stale comments on it (new commit range, current stale list)
+# instead of filing another. An issue already under way is not re-transitioned (a run may be in
+# flight); one still in To Do is moved to In Progress too, which retries a dispatch whose
+# transition failed. JIRA is best-effort: that step continues on error and a failure is posted to
+# the CI alert channel instead. The stale report is not: if it crashes, the run fails.
 #
 # Prerequisites (all shared with ci.yml's "Comment on deployed JIRA tickets" step and the CI alert):
 #   secrets: JIRA_AI_BOT_EMAIL, JIRA_AI_BOT_API_TOKEN, SLACK_BOT_OAUTH_TOKEN
@@ -34,7 +36,12 @@ permissions:
     # The merged-PR lookup that derives a ticket from a branch name when no commit names one.
     pull-requests: read
 
-# Two pushes in quick succession must not race the dedupe search: queue, never cancel.
+# Runs one at a time, so two pushes in quick succession cannot race the dedupe search. GitHub
+# keeps at most one run pending per group: a third push while one runs and one waits cancels the
+# waiting run. Nothing stale is missed by that, because every run recomputes the stale ports from
+# the tree it checks out. What the cancelled run's commits lose is their place in the "commit
+# range" (BEFORE_SHA is the previous push, not the last run that completed), so they are neither
+# listed in the issue nor used to derive the ticket it is filed under.
 concurrency:
     group: demo-port-sync
     cancel-in-progress: false
@@ -71,11 +78,19 @@ jobs:
 
             # No install: the seed tooling's --stale path and the JIRA script use only Node
             # built-ins, which is what lets this run in seconds on a bare checkout.
+            # `shell: bash` runs with pipefail, so a crash in check-seeds fails the step rather
+            # than being masked by `tee`; an unreadable report fails it too.
             - name: Stale demo ports
               id: stale
+              shell: bash
               run: |
                   node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --stale | tee stale-ports.json
-                  echo "count=$(jq '.stale | length' stale-ports.json)" >> "$GITHUB_OUTPUT"
+                  count=$(jq '.stale | length' stale-ports.json)
+                  if [[ ! "$count" =~ ^[0-9]+$ ]]; then
+                      echo "::error title=Stale demo ports::check-seeds --stale produced no stale count (got '${count}')."
+                      exit 1
+                  fi
+                  echo "count=${count}" >> "$GITHUB_OUTPUT"
 
             - name: Nothing stale
               if: steps.stale.outputs.count == '0'
