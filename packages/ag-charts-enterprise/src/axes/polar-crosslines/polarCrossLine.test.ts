@@ -443,6 +443,36 @@ describe('PolarCrossLine listeners', () => {
         expect(chartClick).toHaveBeenCalledTimes(1);
     });
 
+    it.each(['angle', 'radius'] as const)(
+        'a %s cross line disabled on update is neither drawn nor a click target',
+        async (axisId) => {
+            const listener = vi.fn();
+            const chartClick = vi.fn();
+            const options = (enabled: boolean) => {
+                const crossLine = { type: 'range' as const, enabled, listeners: { click: listener } };
+                return polarOptions(
+                    'polygon',
+                    axisId === 'angle' ? [{ ...crossLine, range: ['Q1', 'Q2'] }] : [],
+                    axisId === 'radius' ? [{ ...crossLine, range: [2, 6] }] : [],
+                    { listeners: { click: chartClick } }
+                );
+            };
+            chart = await createEnterpriseChart(options(true));
+            const point = pointOn(crossLineAt(chart, axisId));
+
+            await chart.publicApi!.update(prepareEnterpriseTestOptions(options(false)));
+            await waitForChartStability(chart);
+            const instance = crossLineAt(chart, axisId);
+            expect(instance.rangeGroup.visible).toBe(false);
+            expect(instance.labelGroup.visible).toBe(false);
+
+            await click(chart, point);
+
+            expect(listener).not.toHaveBeenCalled();
+            expect(chartClick).toHaveBeenCalledTimes(1);
+        }
+    );
+
     it('AC7: the same event reaches the axis-level and chart-level `crossLineClick` listeners', async () => {
         const axisClick = vi.fn();
         const chartClick = vi.fn();
