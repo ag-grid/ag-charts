@@ -1,7 +1,7 @@
 {
     "demo": "web-analytics",
     "framework": "typescript",
-    "sourceHash": "sha256-6aa998ad5358286ac3704a65ff8f26c2d857c21501c6f9261f6bb9818c3304cb",
+    "sourceHash": "sha256-0c3785dd85076a47b3935d1c2da02c9ff9ffa254d4208799c4fac16580f43892",
     "sourceCommit": "ec7212e3681d17596689a5c00f77863ba5e0f2a1",
     "pinnedVersion": "14.2.0",
     "pinSource": "released",
