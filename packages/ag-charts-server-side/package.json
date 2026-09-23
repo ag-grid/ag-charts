@@ -47,7 +47,7 @@
     "@types/jsdom": "^20.0.0",
     "ag-charts-community": "14.2.0-beta.20260922",
     "ag-charts-enterprise": "14.2.0-beta.20260922",
-    "jest-image-snapshot": "^6.0.0"
+    "jest-image-snapshot": "^6.5.2"
   },
   "engines": {
     "node": ">=20.0.0"

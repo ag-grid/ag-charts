@@ -12,7 +12,7 @@
     "jsdom": "~26.1.0",
     "sharp": "0.33.5",
     "ag-charts-enterprise": "14.2.0-beta.20260922",
-    "@swc/helpers": "0.5.21",
+    "@swc/helpers": "0.5.23",
     "process": "0.11.10",
     "ag-charts-test": "14.2.0-beta.20260922",
     "ag-charts-generate-example-files": "14.2.0-beta.20260922"
