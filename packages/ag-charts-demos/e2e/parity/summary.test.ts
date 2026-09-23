@@ -85,11 +85,25 @@ describe('describeSkipped', () => {
     });
 
     it('names every skipped port with what it was aligned to and where the demo is now', () => {
-        const lines = describeSkipped([skipped('angular'), skipped('vue', { manifestCommit: null })], 1);
-        expect(lines[0]).toMatch(/^Parity: SKIPPED 2 stale ports, not compared with the React demo\./);
+        const lines = describeSkipped([skipped('angular')], 1);
+        expect(lines[0]).toMatch(/^Parity: SKIPPED 1 stale port, not compared with the React demo\./);
+        expect(lines.slice(1)).toEqual(['  - financial/angular: stale, aligned to decade00, demo now at c0ffee00']);
+    });
+
+    it('falls back to the hashes when the commits cannot tell the two apart', () => {
+        const hashes = { sourceHash: 'sha256-0123456789abcdef', manifestHash: 'sha256-fedcba9876543210' };
+        const lines = describeSkipped(
+            [
+                skipped('angular', { ...hashes, sourceCommit: 'decade0011223344' }), // demo change not committed
+                skipped('vue', { ...hashes, sourceCommit: null }), // shallow clone
+                skipped('typescript', { ...hashes, manifestHash: null, manifestCommit: null }), // never aligned
+            ],
+            1
+        );
         expect(lines.slice(1)).toEqual([
-            '  - financial/angular: stale, aligned to decade00, demo now at c0ffee00',
-            '  - financial/vue: stale, aligned to sha256-then, demo now at c0ffee00',
+            '  - financial/angular: stale, aligned to sha256-fedcba98, demo now at sha256-01234567',
+            '  - financial/vue: stale, aligned to sha256-fedcba98, demo now at sha256-01234567',
+            '  - financial/typescript: stale, aligned to never, demo now at sha256-01234567',
         ]);
     });
 
