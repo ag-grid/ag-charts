@@ -1,6 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import type { SeedManifestEntry } from './seedLinks';
 import {
@@ -220,6 +221,19 @@ describe('seedLinks', () => {
         test('is empty when no folder carries a manifest', () => {
             mkdirSync(join(seedsDir, 'financial', 'react'), { recursive: true });
             expect(readSeedManifests(seedsDir)).toEqual([]);
+        });
+
+        test("defaults to this checkout's seeds folder, found from the monorepo root", () => {
+            // `astro dev` and the site build run from the website package, which `getRootUrl`
+            // relies on; nx runs vitest from the monorepo root, so stand in the build's cwd. The
+            // folder exists in every checkout (it holds the seeds' `project.json`).
+            const websiteDir = fileURLToPath(new URL('../../../', import.meta.url));
+            const cwd = vi.spyOn(process, 'cwd').mockReturnValue(websiteDir);
+            try {
+                expect(() => readSeedManifests()).not.toThrow();
+            } finally {
+                cwd.mockRestore();
+            }
         });
 
         test('fails when the seeds folder itself is missing', () => {

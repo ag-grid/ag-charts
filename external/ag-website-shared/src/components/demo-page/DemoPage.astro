@@ -83,7 +83,7 @@ const { currentId, examples, eyebrow, title, description, primaryCta, secondaryC
                                     data-seed-source={seed.framework}
                                 >
                                     <Icon name="github" />
-                                    See on GitHub
+                                    See on GitHub{openIn.length > 1 && ` (${seed.framework})`}
                                 </a>
                             </li>
                         ))}

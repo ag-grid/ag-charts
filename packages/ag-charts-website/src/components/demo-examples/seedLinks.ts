@@ -2,6 +2,7 @@ import type { DemoPageOpenIn } from '@ag-website-shared/components/demo-page/typ
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
 import { agChartsVersion } from '@constants';
 import { getIsProduction } from '@utils/env';
+import { getRootUrl } from '@utils/pages';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -28,8 +29,14 @@ const REPOSITORY = 'ag-grid/ag-charts';
 const SEEDS_PATH = 'packages/ag-charts-demos/seeds';
 const MANIFEST_FILENAME = '.seed-manifest.json';
 
-/** The committed seeds in this checkout, resolved from this file so the reader needs no cwd. */
-const SEEDS_DIR = fileURLToPath(new URL('../../../../ag-charts-demos/seeds', import.meta.url));
+/**
+ * The committed seeds in this checkout. Resolved from the monorepo root (`getRootUrl`) rather than
+ * `import.meta.url`, which points at the bundled chunk at build time and so depends on how deep
+ * Astro nests its output.
+ */
+function defaultSeedsDir(): string {
+    return join(fileURLToPath(getRootUrl()), SEEDS_PATH);
+}
 
 /** The branch every non-production build links to: it always carries the current seeds. */
 export const SEED_DEVELOPMENT_REF = 'latest';
@@ -73,7 +80,7 @@ function listDirectories(dir: string): string[] {
  * Runs at build time only: the demo page renders these links in its Astro frontmatter, and
  * nothing client-side imports this module.
  */
-export function readSeedManifests(seedsDir: string = SEEDS_DIR): SeedManifestEntry[] {
+export function readSeedManifests(seedsDir: string = defaultSeedsDir()): SeedManifestEntry[] {
     if (!existsSync(seedsDir)) {
         throw new Error(`Demo seeds folder not found at ${seedsDir}`);
     }
