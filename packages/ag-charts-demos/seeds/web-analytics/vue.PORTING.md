@@ -236,8 +236,8 @@ being ignored, as the React seed does. Do not add a flag.
     "framework": "vue",
     "sourceHash": "sha256-…",
     "sourceCommit": "…",
-    "pinnedVersion": "14.2.0",
-    "pinSource": "released",
+    "pinnedVersion": "latest",
+    "pinSource": "dist-tag",
     "dist": "dist"
 }
 ```

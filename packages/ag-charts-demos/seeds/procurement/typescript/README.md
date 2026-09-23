@@ -27,7 +27,8 @@ Files under `src/vendored/` are copied from sibling demos that this one shares s
 
 - `src/demos/web-analytics/topology.ts`
 
-The `ag-charts-*` dependencies are pinned to 14.2.0, the latest release at the time this seed was
-written from a pre-release build. The demo itself may already use features of the next release; if
-so, this seed catches up when that release is published.
+The `ag-charts-*` dependencies use the npm `latest` tag on the development branch, so `npm install`
+fetches the newest published release; on a release branch they pin that release exactly. The demo
+may already use features of a release that is not out yet; if so, it catches up when that release is
+published.
 AG Charts Enterprise and AG Grid Enterprise features show a watermark until a licence key is set.

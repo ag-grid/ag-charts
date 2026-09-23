@@ -254,8 +254,8 @@ copied `data.ts` is the whole of deterministic mode.
     "framework": "vue",
     "sourceHash": "sha256-…",
     "sourceCommit": "…",
-    "pinnedVersion": "14.2.0",
-    "pinSource": "released",
+    "pinnedVersion": "latest",
+    "pinSource": "dist-tag",
     "dist": "dist",
     "vendored": ["web-analytics/topology.ts"]
 }

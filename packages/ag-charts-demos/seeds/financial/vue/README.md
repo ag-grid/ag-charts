@@ -20,7 +20,8 @@ golden master. The demo lives in `src/`, with `src/main.ts` mounting it. [`PORTI
 the React source maps onto this port and how the two are checked against each other; a change to
 the demo lands in the React source first and is then carried across.
 
-The `ag-charts-*` dependencies are pinned to 14.2.0, the latest release at the time this seed was
-synced from a pre-release build. The demo itself may already use features of the next release; if
-so, this seed catches up when that release is published.
+The `ag-charts-*` dependencies use the npm `latest` tag on the development branch, so `npm install`
+fetches the newest published release; on a release branch they pin that release exactly. The demo
+may already use features of a release that is not out yet; if so, it catches up when that release is
+published.
 AG Charts Enterprise features show a watermark until a licence key is set.
