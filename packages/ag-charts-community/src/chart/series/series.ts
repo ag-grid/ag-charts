@@ -301,12 +301,16 @@ export abstract class Series<
         return 'main';
     }
 
-    seriesGrouping: SeriesGrouping | undefined = undefined;
+    private _seriesGrouping: SeriesGrouping | undefined = undefined;
+
+    get seriesGrouping() {
+        return this._seriesGrouping;
+    }
 
     setSeriesGrouping(seriesGrouping: SeriesGrouping | undefined) {
-        const previous = this.seriesGrouping;
+        const previous = this._seriesGrouping;
         if (seriesGrouping === previous) return;
-        this.seriesGrouping = seriesGrouping;
+        this._seriesGrouping = seriesGrouping;
         this.onSeriesGroupingChange(previous, seriesGrouping);
     }
 
