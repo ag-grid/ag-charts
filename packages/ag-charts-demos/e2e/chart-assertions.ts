@@ -92,7 +92,7 @@ async function inspectCharts(page: Page, emptyOverlays: readonly string[]): Prom
             const heading = el.closest('section, .fin-section, .wa-card')?.querySelector('h2, h3')?.textContent;
             // An empty heading names nothing, so it falls back like a missing one.
             const title = heading?.trim();
-            if (title) return title;
+            if (title != null && title !== '') return title;
             return el.parentElement?.className ?? 'chart';
         };
         const isPainted = (wrapper: Element): boolean =>

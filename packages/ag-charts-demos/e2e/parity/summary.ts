@@ -73,7 +73,8 @@ export interface ParitySummary {
 }
 
 /** `sha256-` and the first eight hex digits of a source hash; `never` for a port never aligned. */
-const shortHash = (hash: string | null) => (hash ? hash.slice(0, 'sha256-'.length + 8) : 'never');
+const shortHash = (hash: string | null) =>
+    hash != null && hash !== '' ? hash.slice(0, 'sha256-'.length + 8) : 'never';
 
 /**
  * The lines the run prints about the ports it skipped, or has nothing to compare: loud on purpose,
@@ -91,7 +92,12 @@ export function describeSkipped(skipped: readonly SkippedPort[], compared: numbe
             // The commits name the change when they differ; they do not when the demo change is not
             // committed yet, or a shallow clone cannot tell, and the hashes do.
             const { manifestCommit, sourceCommit } = port;
-            const byCommit = !!manifestCommit && !!sourceCommit && manifestCommit !== sourceCommit;
+            const byCommit =
+                manifestCommit != null &&
+                manifestCommit !== '' &&
+                sourceCommit != null &&
+                sourceCommit !== '' &&
+                manifestCommit !== sourceCommit;
             const synced = byCommit ? manifestCommit.slice(0, 8) : shortHash(port.manifestHash);
             const now = byCommit ? sourceCommit.slice(0, 8) : shortHash(port.sourceHash);
             lines.push(`  - ${port.demo}/${port.framework}: ${port.reason}, aligned to ${synced}, demo now at ${now}`);

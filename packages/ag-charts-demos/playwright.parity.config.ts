@@ -9,7 +9,7 @@ import { DISCOVER, RUN_KIND, SELF_PARITY, SELF_PARITY_PORTS, discoverParityPorts
 //
 // Run through Nx so the reference is built first: `yarn nx test:e2e:parity ag-charts-demos`.
 
-const CI = !!process.env.CI;
+const CI = process.env.CI != null && process.env.CI !== '';
 
 // Never reused: whatever already answers on one of these ports may be another checkout's build, and
 // comparing against it would pass or fail for reasons unrelated to this tree. A busy port fails the
@@ -38,7 +38,8 @@ const serveDist = (distDir: string, port: number) => ({
 // nothing at all when every port is stale. The reference is served here unless
 // PARITY_REFERENCE_URL points at one served elsewhere.
 function webServers() {
-    const reference = process.env.PARITY_REFERENCE_URL ? [] : [preview(SELF_PARITY_PORTS.reference)];
+    const referenceElsewhere = process.env.PARITY_REFERENCE_URL != null && process.env.PARITY_REFERENCE_URL !== '';
+    const reference = referenceElsewhere ? [] : [preview(SELF_PARITY_PORTS.reference)];
     if (SELF_PARITY) return [...reference, preview(SELF_PARITY_PORTS.port)];
     if (DISCOVER) {
         const { ports } = discoverParityPorts();

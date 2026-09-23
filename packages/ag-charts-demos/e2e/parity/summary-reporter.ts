@@ -38,8 +38,9 @@ class ParitySummaryReporter implements Reporter {
         }
         if (!record) return;
         if (result.status !== 'passed') record.passed = false;
-        if (!record.passed && !record.error && result.error?.message) {
-            record.error = stripAnsi(result.error.message);
+        const message = result.error?.message;
+        if (!record.passed && (record.error == null || record.error === '') && message != null && message !== '') {
+            record.error = stripAnsi(message);
         }
         this.records.set(attemptKey(record), record);
     }

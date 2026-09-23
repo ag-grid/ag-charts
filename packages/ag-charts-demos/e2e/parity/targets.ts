@@ -55,14 +55,17 @@ export const DEMO_IDS: readonly string[] = DEMO_APPS.map((app) => app.id);
  */
 export const REFERENCE_URL = process.env.PARITY_REFERENCE_URL ?? `http://localhost:${SELF_PARITY_PORTS.reference}`;
 
+/** True when `PARITY_TARGETS` names the targets. */
+const TARGETS_GIVEN = process.env.PARITY_TARGETS != null && process.env.PARITY_TARGETS !== '';
+
 /** True when the run finds the ports itself (`PARITY_DISCOVER=1`) rather than being told them. */
-export const DISCOVER = !process.env.PARITY_TARGETS && ['1', 'true'].includes(process.env.PARITY_DISCOVER ?? '');
+export const DISCOVER = !TARGETS_GIVEN && ['1', 'true'].includes(process.env.PARITY_DISCOVER ?? '');
 
 /**
  * True when nothing else is under test: the React app is served twice and compared with
  * itself, which proves the demos and the harness are deterministic before any port exists.
  */
-export const SELF_PARITY = !process.env.PARITY_TARGETS && !DISCOVER;
+export const SELF_PARITY = !TARGETS_GIVEN && !DISCOVER;
 
 /**
  * Which kind of run this is. It names the results folder, the JUnit report and Playwright's output
@@ -168,12 +171,13 @@ const STALE_REPORT_SCRIPT = resolve(__dirname, '..', '..', 'tools', 'seeds', 'ch
  */
 export function readStaleReport(): StalePortReport[] {
     const path = process.env.PARITY_STALE_REPORT;
-    const text = path
-        ? readFileSync(resolve(path), 'utf8')
-        : execFileSync(process.execPath, [STALE_REPORT_SCRIPT, '--stale'], {
-              encoding: 'utf8',
-              stdio: ['ignore', 'pipe', 'inherit'],
-          });
+    const text =
+        path != null && path !== ''
+            ? readFileSync(resolve(path), 'utf8')
+            : execFileSync(process.execPath, [STALE_REPORT_SCRIPT, '--stale'], {
+                  encoding: 'utf8',
+                  stdio: ['ignore', 'pipe', 'inherit'],
+              });
     const report = JSON.parse(text) as { stale?: unknown };
     if (!Array.isArray(report.stale)) {
         throw new Error(`${path ?? 'check-seeds.mjs --stale'} is not a stale report: it has no "stale" array`);
@@ -249,14 +253,14 @@ export function skippedPorts(): SkippedPort[] {
  */
 export function parityTargets(): ParityTarget[] {
     const raw = process.env.PARITY_TARGETS;
-    if (!raw && DISCOVER) {
+    if (!TARGETS_GIVEN && DISCOVER) {
         return discoverParityPorts().ports.map(({ demo, framework, port }) => ({
             demo,
             framework,
             baseURL: `http://localhost:${port}`,
         }));
     }
-    if (!raw) {
+    if (raw == null || raw === '') {
         return DEMO_IDS.map((demo) => ({
             demo,
             framework: REFERENCE_FRAMEWORK,

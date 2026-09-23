@@ -108,8 +108,10 @@ async function photograph(
             const style = document.createElement('style');
             style.textContent = css;
             const insert = () => (document.head ?? document.documentElement).append(style);
-            if (document.documentElement) insert();
-            else document.addEventListener('DOMContentLoaded', insert, { once: true });
+            // An init script can run before the document element exists, whatever the DOM types say.
+            const root: HTMLElement | null = document.documentElement;
+            if (root == null) document.addEventListener('DOMContentLoaded', insert, { once: true });
+            else insert();
         }, FREEZE_MOTION_CSS);
         await context.route(isThirdParty, replayPinned);
         const page = await context.newPage();
@@ -164,8 +166,8 @@ const attachRecord = (testInfo: TestInfo, record: ComparisonRecord) =>
     testInfo.attach(RESULT_ATTACHMENT, { body: JSON.stringify(record), contentType: 'application/json' });
 
 function defineComparisons(target: ParityTarget) {
-    const demo = DEMO_STATES[target.demo];
-    if (!demo) throw new Error(`no parity states are defined for demo "${target.demo}"`);
+    const demo = DEMO_STATES[target.demo] as (typeof DEMO_STATES)[keyof typeof DEMO_STATES] | undefined;
+    if (demo == null) throw new Error(`no parity states are defined for demo "${target.demo}"`);
     const masks = MASKS[target.demo] ?? [];
 
     test.describe(`${target.framework} ${target.demo}`, () => {
