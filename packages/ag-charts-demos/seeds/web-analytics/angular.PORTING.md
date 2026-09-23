@@ -150,7 +150,10 @@ Each component renders exactly what the Radix primitive renders, minus Radix's p
   `role="tabpanel" data-orientation="horizontal" tabindex="0" data-state aria-labelledby id`,
   `hidden` while inactive. Radix keeps every panel in the DOM and mounts children only into the
   active one, so the app template renders all three panels and mounts each view with an `@if` on
-  the same value; the `style="animation-duration: 0s;"` Radix writes on the panels is written
+  the same value. `hidden` is toggled by an `effect`, not a host binding: Angular applies host
+  bindings only after checking the `@if` views, so the charts in a newly selected panel would be
+  created while it was still hidden and size themselves from a later, fractional measurement
+  (React unhides the panel before any chart in it is created); the `style="animation-duration: 0s;"` Radix writes on the panels is written
   statically. The panel's `[tabs]` input takes the list through a template reference (`#tabs`).
 - `Select` (Root/Trigger/Value/Icon/Portal/Content/Viewport/Item/ItemText) -> `Select` on
   `label[waSelect]`: the host is the Radix `Label.Root`, `<label class="wa-labeled-select">`,
