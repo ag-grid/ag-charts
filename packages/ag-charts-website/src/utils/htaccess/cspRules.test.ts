@@ -105,7 +105,7 @@ describe('cspRules', () => {
             // Hashable only because neither tag interpolates a GTM variable — see the note above
             // GTM_UTM_CAPTURE_HASH in cspRules.ts.
             const site = getCspDirectives({ env: 'production', scope: 'site' })['script-src'];
-            expect(site).toContain("'sha256-nsp/0430/yfuSNjsteV2fUwjHINMowl9qldFKy6PKJs='"); // page-view capture
+            expect(site).toContain("'sha256-UZ79CQlmQa9u4xp1a60kP2//w3o9IvBsC2tdqv57moc='"); // page-view capture
             expect(site).toContain("'sha256-7f34QP24yF/YC+G6zSHRCBZrBez6xFf6GbcGIXkZ4K0='"); // webhook POST (live)
         });
 
@@ -115,7 +115,7 @@ describe('cspRules', () => {
             // alongside it until the rollout is complete and the old hash is confirmed
             // unused. AG-3390.
             const site = getCspDirectives({ env: 'production', scope: 'site' })['script-src'];
-            expect(site).toContain("'sha256-1biJs72+znqmnYHTG0Ps3v04No9BtvG8+3CNYyK5djo='");
+            expect(site).toContain("'sha256-7slCn/usH14D/QjSBhHPAkSInIZY56XqT8LTtYE71U8='");
         });
 
         it('allows the Make webhook in connect-src for the attribution POST', () => {
