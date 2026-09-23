@@ -30,8 +30,9 @@ Nothing lists the seeds. Everything that needs to know which seeds there are wal
   (`e2e/parity/README.md`, "Discovered ports");
 - `check-seeds.mjs --stale` reports every port with a manifest whose `sourceHash` is behind, and
   `check-seeds.mjs --pins` fails when one pins a different `ag-charts-*` version from the seeds';
-- the post-deploy check `tools/ci/check-demo-seed-links.mjs` verifies that every seed with a
-  manifest resolves on GitHub at the ref the deployed site links.
+- the post-deploy check `tools/ci/check-demo-seed-links.mjs` reads the seed links the deployed
+  demo pages render and verifies that each, and every seed with a manifest, resolves on GitHub at
+  the ref the deployed site links.
 
 So a new port becomes visible on the site, and part of the CI gates, by committing its folder with a
 manifest; no registry, website or workflow change is needed. A folder without a manifest is ignored

@@ -108,9 +108,11 @@ The links point at the seed folder in this repository at a git ref chosen per bu
 
 StackBlitz imports only the linked sub-folder, runs `npm install` against the seed's exact pins and
 starts its `dev` script. After each staging deploy, `tools/ci/check-demo-seed-links.mjs` (run by
-`.github/workflows/post-deploy-verification.yml`) HEADs the GitHub folder of every seed the
-manifests declare at the ref that site links, so a link that would 404 is caught; StackBlitz
-itself cannot be driven headlessly.
+`.github/workflows/post-deploy-verification.yml`) fetches the deployed demo pages, reads the
+StackBlitz and GitHub seed links they render, checks each targets the ref that site should link
+and HEADs the GitHub folder it opens; it also HEADs the folder of every seed the manifests
+declare. A link that would 404, or a page that renders none, is caught. StackBlitz itself cannot
+be driven headlessly, so its link is checked through the GitHub folder it imports.
 
 ## Commands
 
