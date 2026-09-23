@@ -69,8 +69,11 @@ ports pixel-identical in the parity harness. The generated React seed does the s
 ## Seed projects
 
 Each demo/framework pair is a standalone Vite project committed under `seeds/<id>/<framework>/`,
-with exact `ag-charts-*` pins, and is opened in StackBlitz straight from GitHub. There is no separate
-demos repository and no zip download.
+with `ag-charts-*` pinned to something public npm resolves, and is opened in StackBlitz straight
+from GitHub: the exact release on a `bX.Y.Z` release branch and at its `release-X.Y.Z` tag, npm's
+`latest` dist-tag everywhere else. How the pin is chosen is under "Pins" in
+[`tools/seeds/README.md`](tools/seeds/README.md). There is no separate demos repository and no zip
+download.
 
 - The React demo under `src/demos/<id>` is the golden master. The React seed is **generated** from it
   (`tools/seeds/generate-react-seed.mjs`) and CI fails if the committed seed is stale.
@@ -106,8 +109,8 @@ The links point at the seed folder in this repository at a git ref chosen per bu
 - every other build — dev, staging, PR previews — links the `latest` branch, which carries the seeds
   from the moment they merge.
 
-StackBlitz imports only the linked sub-folder, runs `npm install` against the seed's exact pins and
-starts its `dev` script. After each staging deploy, `tools/ci/check-demo-seed-links.mjs` (run by
+StackBlitz imports only the linked sub-folder, runs `npm install` against the seed's pins (exact at a
+release tag, the newest published release from `latest`) and starts its `dev` script. After each staging deploy, `tools/ci/check-demo-seed-links.mjs` (run by
 `.github/workflows/post-deploy-verification.yml`) fetches the deployed demo pages, reads the
 StackBlitz and GitHub seed links they render, checks each targets the ref that site should link
 and HEADs the GitHub folder it opens; it also HEADs the folder of every seed the manifests

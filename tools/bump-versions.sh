@@ -31,7 +31,19 @@ for package in ${PACKAGES[@]}; do
     node ${TOOLS_DIR}/update-package-json-deps.js $package "$NEW_VERSION"
 done
 
-# The demo seed projects pin ag-charts-* to the released version (exact on a release branch), so regenerate them.
+# The demo seed projects pin ag-charts-* by branch: X.Y.Z on a bX.Y.Z release branch or for a plain
+# X.Y.Z version, the npm "latest" dist-tag everywhere else (readPinnedChartsVersion in
+# packages/ag-charts-demos/tools/seeds/seed-common.mjs). The branch being bumped is the one checked
+# out, which the release scripts create or switch to before calling this, so it is named outright:
+# otherwise a CI variable naming the branch the job started on would take precedence. A detached
+# HEAD names nothing, and the seed tooling falls back to its CI variables.
+if [ -z "${AG_CHARTS_SEED_BRANCH:-}" ]; then
+    CHECKED_OUT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+    if [ "$CHECKED_OUT_BRANCH" != "HEAD" ]; then
+        export AG_CHARTS_SEED_BRANCH="$CHECKED_OUT_BRANCH"
+    fi
+fi
+echo "Pinning the demo seeds for branch ${AG_CHARTS_SEED_BRANCH:-(none checked out)}"
 node ./packages/ag-charts-demos/tools/seeds/generate-react-seed.mjs
 # The framework ports are hand-written rather than generated, so their pins are rewritten in place.
 node ./packages/ag-charts-demos/tools/seeds/pin-ports.mjs
