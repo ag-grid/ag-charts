@@ -268,10 +268,14 @@ jobs:
                   echo "E2E matrix determined to be: ${e2e_matrix} (e2e_test_count=${e2e_count})"
 
                   # Whether the demo-apps smoke should run (its own files or an upstream dep changed).
+                  # The seed projects under packages/ag-charts-demos/seeds are the nested project
+                  # ag-charts-demos-seeds, which has no test:e2e target of its own, so a port-only
+                  # change affects only it; it is counted too, since the job carries the parity step
+                  # that gates the ports. Non-zero means run; the value may be 2.
                   if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
                     demos_affected=1
                   else
-                    demos_affected=$(yarn -s nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test:e2e | grep -Fxc 'ag-charts-demos' || true)
+                    demos_affected=$(yarn -s nx show projects --affected --base ${{ steps.setup.outputs.base }} | grep -Fxc -e 'ag-charts-demos' -e 'ag-charts-demos-seeds' || true)
                   fi
                   echo "demos_affected=${demos_affected}" >> $GITHUB_OUTPUT
                   echo "Demos affected: ${demos_affected}"
@@ -365,7 +369,7 @@ jobs:
               continue-on-error: true
               run: |
                   node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --stale > stale-ports.json
-                  jq -r '.stale[] | "::warning title=Stale demo port::seeds/\(.demo)/\(.framework) was last synced to \(.manifestCommit // "an unknown commit" | .[0:8]) and no longer matches src/demos/\(.demo). A \"Sync demo ports\" JIRA Sub-task will follow once this merges to latest; no action needed on this PR."' stale-ports.json
+                  jq -r '.stale[] | "::warning title=Stale demo port::seeds/\(.demo)/\(.framework) was last synced to \(.manifestCommit[0:8] // "an unknown commit") and no longer matches src/demos/\(.demo). A \"Sync demo ports\" JIRA Sub-task will follow once this merges to latest; no action needed on this PR."' stale-ports.json
 
     generate:
         runs-on: ubuntu-24.04
