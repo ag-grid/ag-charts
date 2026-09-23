@@ -99,7 +99,7 @@ describe('Annotations', () => {
 
             expectWarningsCalls().toEqual([
                 [
-                    'AG Charts - Annotation property [color] cannot be set to [lab(50% 40 59.5)]; expecting a supported color string, ignoring.',
+                    'AG Charts - Option `annotations[0][type=callout].color` cannot be set to `"lab(50% 40 59.5)"`; expecting a supported color string (hex, rgb(), hsl(), oklch() or a CSS color name) or a color ref and where a color ref with [onto] or [ontoColor] must also have [mix], ignoring.',
                 ],
             ]);
         });
