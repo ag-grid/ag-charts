@@ -1,5 +1,5 @@
 import type { Scale } from 'ag-charts-core';
-import { ChartAxisDirection, type Point, clamp, objectsEqual } from 'ag-charts-core';
+import { ChartAxisDirection, type Point, objectsEqual } from 'ag-charts-core';
 import type { AgActiveItemState } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../scale/continuousScale';

@@ -847,8 +847,6 @@ export class SeriesAreaManager extends BaseManager {
 
     private onArrow(otherIndexDelta: number, datumIndexDelta: number, event: KeyboardWidgetEvent<'keydown'>): void {
         if (!this.onNav(event)) return;
-        this.focus.seriesIndex += otherIndexDelta;
-        this.focus.datumIndex += datumIndexDelta;
         this.handleFocusFromUserInput({ datumIndexDelta, otherIndexDelta });
     }
 
@@ -1037,14 +1035,15 @@ export class SeriesAreaManager extends BaseManager {
         inputs: FocusDeltas
     ): UpdatePickedFocusInputs | PickedFocusStatus.SERIES_NOT_FOUND {
         const { otherIndexDelta, datumIndexDelta } = inputs;
+        const datumIndex = this.focus.datumIndex + datumIndexDelta;
+        const otherIndex = this.focus.seriesIndex + otherIndexDelta;
+        const oldDatumIndex = this.focus.datumIndex;
+        const oldOtherIndex = this.focus.seriesIndex;
+
         if (this.chart.chartType === 'standalone') {
             // Single-series chart types (treemap, sunburst, gauges) repurpose focus.seriesIndex for
             // depth / datum type, so they can reuse the base keyboard handling.
             this.focus.series = this.focus.sortedSeries[0];
-            const datumIndex = this.focus.datumIndex;
-            const otherIndex = this.focus.seriesIndex;
-            const oldDatumIndex = this.focus.datumIndex - datumIndexDelta;
-            const oldOtherIndex = this.focus.seriesIndex - otherIndexDelta;
             return {
                 datumIndex,
                 datumIndexDelta,
@@ -1059,16 +1058,11 @@ export class SeriesAreaManager extends BaseManager {
         const visibleSeries = focus.sortedSeries.filter((s) => s.visible && s.focusable);
         if (visibleSeries.length === 0) return PickedFocusStatus.SERIES_NOT_FOUND;
 
-        const oldDatumIndex = focus.datumIndex - datumIndexDelta;
-        const oldOtherIndex = focus.seriesIndex - otherIndexDelta;
-
         // Update focused series:
-        focus.seriesIndex = clamp(0, focus.seriesIndex, visibleSeries.length - 1);
+        focus.seriesIndex = clamp(0, otherIndex, visibleSeries.length - 1);
         focus.series = visibleSeries[focus.seriesIndex];
 
         // Update focused datum:
-        const datumIndex = this.focus.datumIndex;
-        const otherIndex = this.focus.seriesIndex;
         return {
             datumIndex,
             datumIndexDelta,
