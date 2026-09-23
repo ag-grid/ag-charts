@@ -17,9 +17,7 @@ npm run dev
 This project is generated from the React demo source in
 [`packages/ag-charts-demos/src/demos/financial`](../../../src/demos/financial) by
 `tools/seeds/generate-react-seed.mjs`. The demo source lives in `src/`, with `src/main.tsx`
-mounting it once `src/fonts.ts` has loaded the demo's web fonts, so that the charts lay out in
-their final font from the first frame. Do not edit the seed in place: change the demo source and
-regenerate.
+mounting it. Do not edit the seed in place: change the demo source and regenerate.
 
 The `ag-charts-*` dependencies use the npm `latest` tag, so `npm install` fetches the newest
 published release. This seed follows the development branch, so the demo may already use features of
