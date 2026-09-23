@@ -205,6 +205,14 @@ describe('checkDemoSeedLinks', () => {
             expect(calls).toEqual([]);
         });
 
+        it('refuses to run from a detached HEAD, naming it', async () => {
+            const { fetchImpl, calls } = fakeFetch({ json: meta });
+            const result = await checkDemoSeedLinks({ ...base, siteUrl: PRODUCTION, fetchImpl, branch: () => null });
+            expect(result.ok).toBe(false);
+            expect(result.errors[0]).toMatch(/current branch: none, HEAD is detached/);
+            expect(calls).toEqual([]);
+        });
+
         it('fails when the site reports a different version from the branch', async () => {
             const { fetchImpl } = fakeFetch({
                 json: { [`${PRODUCTION}/debug/meta.json`]: { versions: { charts: '14.1.0' } } },

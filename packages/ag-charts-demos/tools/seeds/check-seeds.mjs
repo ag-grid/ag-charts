@@ -9,6 +9,7 @@ import {
     MANIFEST_FILENAME,
     SEEDS_DIR,
     WORKSPACE_ROOT,
+    describePin,
     listFiles,
     listSourceFiles,
     readDemoIds,
@@ -32,8 +33,10 @@ import { GENERATED_FRAMEWORK, findStalePorts } from './stale-ports.mjs';
  * `--react`, so the demo-port-sync workflow can run it on a bare checkout.
  *
  * `--pins` fails when a framework port's `ag-charts-*` pins, or its manifest's `pinnedVersion` /
- * `pinSource`, disagree with the version the seeds install (`readPinnedChartsVersion`), naming
- * the port and the command that fixes it. The React seed's pins are covered by `--react`.
+ * `pinSource`, disagree with what the seeds install (`readPinnedChartsVersion`: the release
+ * version on a release branch or a release, the npm `latest` dist-tag otherwise), naming the port
+ * and the command that fixes it. The React seed's pins are covered by `--react`. Both checks
+ * follow the branch the checkout is built for (`resolveBranch`), a pull request's base included.
  *
  * `--react` and `--pins` combine; the exit status is non-zero if either fails.
  *
@@ -155,10 +158,10 @@ function checkPins() {
     const pin = readPinnedChartsVersion();
     const drift = findPortPinDrift({ pin });
     if (drift.length === 0) {
-        console.log(`check-seeds: every port pins ag-charts-* ${pin.pinnedVersion} (${pin.pinSource}).`);
+        console.log(`check-seeds: every port pins ag-charts-* ${describePin(pin)}.`);
         return 0;
     }
-    console.error(`check-seeds: framework ports must pin ag-charts-* ${pin.pinnedVersion} (${pin.pinSource}).\n`);
+    console.error(`check-seeds: framework ports must pin ag-charts-* ${describePin(pin)}.\n`);
     for (const line of describeDrift(drift)) console.error(`  ${line}`);
     console.error(`\nFix with: ${PIN_COMMAND}`);
     console.error('then commit the result.');

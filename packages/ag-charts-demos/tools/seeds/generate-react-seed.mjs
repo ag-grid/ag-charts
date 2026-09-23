@@ -9,6 +9,7 @@ import {
     DEMOS_ROOT,
     DEMOS_SRC_DIR,
     MANIFEST_FILENAME,
+    PIN_SOURCE,
     RELATIVE_IMPORT,
     SEEDS_DIR,
     SOURCE_FILE,
@@ -33,12 +34,12 @@ import {
  * into the seed's `src/` and emits the scaffolding around it. Nothing in a seed may reference a
  * path above its own root, because StackBlitz imports only the seed folder from GitHub.
  *
- * The `ag-charts-*` pins must exist on npm, since that is where a StackBlitz user installs from.
- * A release branch pins the workspace version exactly; a pre-release workspace (`latest`, whose
- * betas are never published) pins the newest released version from the website's versions data
- * instead. See `readPinnedChartsVersion` in seed-common.mjs. The seeds are not Yarn workspaces, so
- * locally the pins are inert: the seed folder has no node_modules and every import resolves up
- * through the root node_modules, where `ag-charts-*` link to the local packages.
+ * The `ag-charts-*` pins must resolve on public npm, since that is where a StackBlitz user installs
+ * from. A release branch, or a release, pins the release version exactly; everywhere else the
+ * workspace carries a beta that is only on the private registry, so the npm `latest` dist-tag is
+ * pinned instead. See `readPinnedChartsVersion` in seed-common.mjs. The seeds are not Yarn
+ * workspaces, so locally the pins are inert: the seed folder has no node_modules and every import
+ * resolves up through the root node_modules, where `ag-charts-*` link to the local packages.
  *
  * Usage: node tools/seeds/generate-react-seed.mjs [--out <dir>] [<demo-id> ...]
  *   --out   Write below this directory instead of `seeds/` (the freshness check uses this).
@@ -217,11 +218,11 @@ ${vendored.map((file) => `\n-   \`src/demos/${file}\``).join('')}
 `;
 
 const renderPinNote = ({ pinnedVersion, pinSource }) =>
-    pinSource === 'workspace'
-        ? `The \`ag-charts-*\` dependencies are pinned to ${pinnedVersion}, the version the demo was generated against.`
-        : `The \`ag-charts-*\` dependencies are pinned to ${pinnedVersion}, the latest release at the time this seed was
-generated from a pre-release build. The demo itself may already use features of the next release; if
-so, this seed catches up when that release is published.`;
+    pinSource === PIN_SOURCE.release
+        ? `The \`ag-charts-*\` dependencies are pinned to ${pinnedVersion}, the release this seed was generated for.`
+        : `The \`ag-charts-*\` dependencies use the npm \`${pinnedVersion}\` tag, so \`npm install\` fetches the newest
+published release. This seed follows the development branch, so the demo may already use features of
+a release that is not out yet; if so, it catches up when that release is published.`;
 
 const renderReadme = (demoId, vendored, pin) => `# AG Charts demo: ${humanLabel(demoId)} (React)
 

@@ -5,9 +5,12 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+    describePin,
     hashDemoSource,
     listSourceFiles,
     readDemoSourceCommit,
+    readPinnedChartsVersion,
+    resolveBranch,
     resolveDemoSources,
     resolveSourceCommit,
 } from './seed-common.mjs';
@@ -181,5 +184,108 @@ describe('resolveSourceCommit', () => {
         expect(
             resolveSourceCommit('alpha', 'sha256-b', { sourceHash: 'sha256-b', sourceCommit: null }, readSourceCommit)
         ).toBe('latest-change');
+    });
+});
+
+describe('resolveBranch', () => {
+    const noGit = () => {
+        throw new Error('the checked-out branch must not be read');
+    };
+
+    it('takes AG_CHARTS_SEED_BRANCH ahead of every CI variable', () => {
+        const env = { AG_CHARTS_SEED_BRANCH: 'b14.3.0', GITHUB_BASE_REF: 'latest', GITHUB_REF_NAME: 'latest' };
+        expect(resolveBranch({ env, readGitBranch: noGit })).toBe('b14.3.0');
+    });
+
+    it('takes a pull request’s base branch, not its merge ref', () => {
+        const env = { GITHUB_BASE_REF: 'b14.2.0', GITHUB_REF_NAME: '8310/merge' };
+        expect(resolveBranch({ env, readGitBranch: noGit })).toBe('b14.2.0');
+    });
+
+    it('takes the pushed branch in any other workflow run', () => {
+        const env = { GITHUB_BASE_REF: '', GITHUB_REF_NAME: 'b14.2.0' };
+        expect(resolveBranch({ env, readGitBranch: noGit })).toBe('b14.2.0');
+    });
+
+    it('takes the checked-out branch outside a workflow', () => {
+        expect(resolveBranch({ env: {}, readGitBranch: () => 'ag-18147/fix-tooling' })).toBe('ag-18147/fix-tooling');
+    });
+
+    it('is null for a detached HEAD, or no git work tree, with no variable set', () => {
+        expect(resolveBranch({ env: {}, readGitBranch: () => 'HEAD' })).toBeNull();
+        expect(resolveBranch({ env: {}, readGitBranch: () => null })).toBeNull();
+    });
+});
+
+describe('readPinnedChartsVersion', () => {
+    const BETA = '14.2.0-beta.20260920';
+    const pinFor = (workspaceVersion, env, gitBranch = 'HEAD') =>
+        readPinnedChartsVersion({ workspaceVersion, env, readGitBranch: () => gitBranch });
+
+    it('pins the release on its release branch while the workspace still carries the beta', () => {
+        expect(pinFor(BETA, { GITHUB_REF_NAME: 'b14.2.0' })).toEqual({
+            pinnedVersion: '14.2.0',
+            pinSource: 'release',
+            reason: 'release branch b14.2.0',
+        });
+        expect(pinFor('14.2.0-beta.20260920.1405', {}, 'b14.2.0').pinnedVersion).toBe('14.2.0');
+    });
+
+    it('pins the release for a pull request into its release branch', () => {
+        const pin = pinFor(BETA, { GITHUB_BASE_REF: 'b14.2.0', GITHUB_REF_NAME: '8310/merge' });
+        expect(pin).toMatchObject({ pinnedVersion: '14.2.0', pinSource: 'release' });
+    });
+
+    it('pins a plain release version exactly whatever the branch, without reading it', () => {
+        const pin = readPinnedChartsVersion({
+            workspaceVersion: '14.2.0',
+            env: { GITHUB_REF_NAME: 'latest' },
+            readGitBranch: () => {
+                throw new Error('the branch must not be read');
+            },
+        });
+        expect(pin).toEqual({ pinnedVersion: '14.2.0', pinSource: 'release', reason: 'workspace version 14.2.0' });
+    });
+
+    it('pins the npm latest dist-tag on latest, next, feature branches and pull requests into them', () => {
+        for (const env of [
+            { GITHUB_REF_NAME: 'latest' },
+            { GITHUB_REF_NAME: 'next' },
+            { GITHUB_BASE_REF: 'latest', GITHUB_REF_NAME: '8310/merge' },
+        ]) {
+            expect(pinFor(BETA, env)).toMatchObject({ pinnedVersion: 'latest', pinSource: 'dist-tag' });
+        }
+        expect(pinFor(BETA, {}, 'ag-18147/fix-tooling')).toEqual({
+            pinnedVersion: 'latest',
+            pinSource: 'dist-tag',
+            reason: 'branch ag-18147/fix-tooling',
+        });
+    });
+
+    it('pins the dist-tag when no branch can be told', () => {
+        expect(pinFor(BETA, {}, 'HEAD')).toEqual({
+            pinnedVersion: 'latest',
+            pinSource: 'dist-tag',
+            reason: 'no branch checked out',
+        });
+    });
+
+    it('takes only an exact bX.Y.Z as a release branch', () => {
+        for (const branch of ['b14.2', 'b14.2.x', 'release/b14.2.0', 'b14.2.0-fix']) {
+            expect(pinFor(BETA, { GITHUB_REF_NAME: branch }).pinSource).toBe('dist-tag');
+        }
+    });
+
+    it('rejects a workspace version with no X.Y.Z release part', () => {
+        expect(() => pinFor('14.2-beta.1', {})).toThrow(/is not X\.Y\.Z/);
+    });
+});
+
+describe('describePin', () => {
+    it('names the pin, its source and the reason', () => {
+        expect(describePin({ pinnedVersion: '14.2.0', pinSource: 'release', reason: 'release branch b14.2.0' })).toBe(
+            '14.2.0 (release: release branch b14.2.0)'
+        );
+        expect(describePin({ pinnedVersion: 'latest', pinSource: 'dist-tag' })).toBe('latest (dist-tag)');
     });
 });

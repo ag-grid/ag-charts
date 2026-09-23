@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
-import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import { RELEASE_BRANCH, resolveBranch } from '../../packages/ag-charts-demos/tools/seeds/seed-common.mjs';
 
 /**
  * Post-deploy check that the demo pages' seed links resolve. Two checks, both against GitHub:
@@ -30,8 +31,9 @@ import { fileURLToPath } from 'node:url';
  * production site this check must run from that branch: the version comes from the branch name
  * and the seeds listed are the ones that deployment carries. The site's own `/debug/meta.json`
  * is read as a cross-check and a disagreement fails the run, since it means the checkout is not
- * what was deployed. The branch is `GITHUB_REF_NAME` in a workflow and the checked-out branch
- * locally.
+ * what was deployed. The branch is resolved as the seed tooling resolves it (`resolveBranch` in
+ * `packages/ag-charts-demos/tools/seeds/seed-common.mjs`): `GITHUB_REF_NAME` in a workflow run, the
+ * checked-out branch locally.
  *
  * Usage: node tools/ci/check-demo-seed-links.mjs <site-url>   (from a bX.Y.Z branch for production)
  *   <site-url> includes the site's base path: `https://charts-staging.ag-grid.com` for staging,
@@ -47,8 +49,6 @@ const MANIFEST_FILENAME = '.seed-manifest.json';
 export const DEVELOPMENT_REF = 'latest';
 const WEBSITE_CONSTANTS = 'packages/ag-charts-website/src/constants.ts';
 const DEMO_REGISTRY = 'packages/ag-charts-website/src/components/demo-examples/exampleRegistry.ts';
-/** Production deploys from `bX.Y.Z`, the branch of release X.Y.Z. */
-const RELEASE_BRANCH = /^b(\d+\.\d+\.\d+)$/;
 
 const WORKSPACE_ROOT = resolve(fileURLToPath(new URL('.', import.meta.url)), '..', '..');
 
@@ -183,16 +183,10 @@ export function listSeeds(root = WORKSPACE_ROOT) {
     return seeds;
 }
 
-/** The branch this check runs from: the workflow's ref, or the checkout's branch locally. */
-function currentBranch() {
-    if (process.env.GITHUB_REF_NAME) return process.env.GITHUB_REF_NAME;
-    return execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { encoding: 'utf8', cwd: WORKSPACE_ROOT }).trim();
-}
-
 /**
  * Runs both checks. Everything that touches the outside world is injected, so the unit tests can
  * run it offline: `fetchImpl` answers every request, `seeds` and `demoPages` stand in for the
- * checkout, `branch` for the current branch. Returns `{ ok, warnings, errors }` and logs progress
+ * checkout, `branch` for the current branch (`null` when none is checked out). Returns `{ ok, warnings, errors }` and logs progress
  * through `log`.
  */
 export async function checkDemoSeedLinks({
@@ -201,7 +195,7 @@ export async function checkDemoSeedLinks({
     seeds = listSeeds(),
     demoPages = parseDemoPages(readFileSync(join(WORKSPACE_ROOT, DEMO_REGISTRY), 'utf8')),
     productionSiteUrls = readProductionSiteUrls(),
-    branch = currentBranch,
+    branch = resolveBranch,
     log = console.log,
 }) {
     const errors = [];
@@ -211,7 +205,7 @@ export async function checkDemoSeedLinks({
 
     let ref = DEVELOPMENT_REF;
     if (isProduction) {
-        const branchName = branch();
+        const branchName = branch() ?? 'none, HEAD is detached';
         const release = RELEASE_BRANCH.exec(branchName);
         if (!release) {
             errors.push(

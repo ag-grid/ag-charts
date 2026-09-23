@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { SEEDS_DIR, WORKSPACE_ROOT, readPinnedChartsVersion } from './seed-common.mjs';
+import { SEEDS_DIR, WORKSPACE_ROOT, describePin, readPinnedChartsVersion } from './seed-common.mjs';
 import { readPortManifests } from './stale-ports.mjs';
 
 /**
@@ -13,11 +13,13 @@ import { readPortManifests } from './stale-ports.mjs';
  * The React seed is regenerated with its pins (`generate-react-seed.mjs`); the Angular, Vue and
  * TypeScript ports are hand-written, so this rewrites them in place instead: every `ag-charts-*`
  * dependency in each port's `package.json`, and `pinnedVersion` / `pinSource` in its
- * `.seed-manifest.json`, are set from `readPinnedChartsVersion()`. Values are replaced in the
- * file text rather than by re-serialising the JSON, so each file keeps its own formatting.
+ * `.seed-manifest.json`, are set from `readPinnedChartsVersion()`: the release version on a
+ * release branch or a release, the npm `latest` dist-tag everywhere else. Values are replaced in
+ * the file text rather than by re-serialising the JSON, so each file keeps its own formatting.
  *
  * `tools/bump-versions.sh` runs it right after the React seeds are regenerated, and
- * `check-seeds.mjs --pins` fails CI when a port's pins have drifted from that version.
+ * `check-seeds.mjs --pins` fails CI when a port's pins have drifted from that pin. Both follow the
+ * branch the checkout is built for (`resolveBranch`), so run it on the branch the change targets.
  *
  * Usage: node tools/seeds/pin-ports.mjs
  */
@@ -148,10 +150,10 @@ function main() {
     const pin = readPinnedChartsVersion();
     const fixed = pinPorts({ pin });
     if (fixed.length === 0) {
-        console.log(`pin-ports: every port already pins ag-charts-* ${pin.pinnedVersion} (${pin.pinSource}).`);
+        console.log(`pin-ports: every port already pins ag-charts-* ${describePin(pin)}.`);
         return;
     }
-    console.log(`pin-ports: pinned ag-charts-* ${pin.pinnedVersion} (${pin.pinSource}); was:`);
+    console.log(`pin-ports: pinned ag-charts-* ${describePin(pin)}; was:`);
     for (const line of describeDrift(fixed)) console.log(`  ${line}`);
 }
 

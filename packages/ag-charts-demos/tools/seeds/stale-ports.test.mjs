@@ -113,7 +113,7 @@ describe('stampPortManifest', () => {
             sourceHash: 'sha256-old',
             sourceCommit: 'bbb',
             pinnedVersion: '14.2.0',
-            pinSource: 'released',
+            pinSource: 'release',
             dist: 'dist',
         });
 
@@ -131,7 +131,7 @@ describe('stampPortManifest', () => {
                     sourceHash: 'sha256-new',
                     sourceCommit: CURRENT_COMMIT,
                     pinnedVersion: '14.2.0',
-                    pinSource: 'released',
+                    pinSource: 'release',
                     dist: 'dist',
                 },
                 null,

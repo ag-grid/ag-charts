@@ -22,39 +22,113 @@ export const WORKSPACE_ROOT = resolve(DEMOS_ROOT, '..', '..');
 
 export const MANIFEST_FILENAME = '.seed-manifest.json';
 
-/** The website's record of released versions, newest first; `tools/updateVersionsData.js` prepends each release. */
-export const RELEASED_VERSIONS_PATH = join(
-    WORKSPACE_ROOT,
-    'packages',
-    'ag-charts-website',
-    'src',
-    'content',
-    'versions',
-    'ag-charts-versions.json'
-);
+/**
+ * A release branch, `bX.Y.Z`, cut for release X.Y.Z by `tools/create-release-automated.sh`.
+ * Production is deployed from it too, which is how `tools/ci/check-demo-seed-links.mjs` uses it.
+ */
+export const RELEASE_BRANCH = /^b(\d+\.\d+\.\d+)$/;
 
 /**
- * The `ag-charts-*` version a seed pins, and where it came from.
- *
- * A seed is installed from npm, so its pin must be a published version. On a release branch the
- * workspace version is the release itself (`14.2.0`), so it is pinned exactly and the release
- * bump regenerates the seeds with it. Anywhere else the workspace carries a pre-release
- * (`14.2.0-beta.20260920`) that is never published, so the newest entry of the website's released
- * versions is pinned instead. Stripping the suffix would not do: on `latest` the beta already
- * carries the next release's number, which is unpublished until that release ships.
- *
- * @returns {{ pinnedVersion: string, pinSource: 'workspace' | 'released' }}
+ * Names the branch outright, ahead of everything `resolveBranch` would otherwise read.
+ * `tools/bump-versions.sh` sets it to the branch it has checked out, so a release cut pins for the
+ * branch it just created even where a CI variable still names the branch the job started on.
  */
-export function readPinnedChartsVersion() {
-    const workspaceVersion = readJson(join(WORKSPACE_ROOT, 'packages', 'ag-charts-community', 'package.json')).version;
-    if (!workspaceVersion.includes('-')) {
-        return { pinnedVersion: workspaceVersion, pinSource: 'workspace' };
+export const BRANCH_OVERRIDE_ENV = 'AG_CHARTS_SEED_BRANCH';
+
+/**
+ * The branch the checkout is being built for, or `null` when there is none to tell:
+ *
+ * 1. `AG_CHARTS_SEED_BRANCH`, when set (see `BRANCH_OVERRIDE_ENV`);
+ * 2. on a GitHub Actions pull request, the branch it merges into (`GITHUB_BASE_REF`): the
+ *    checkout is a detached merge commit, and what the change must suit is its target;
+ * 3. in any other GitHub Actions run, `GITHUB_REF_NAME`, the pushed or dispatched branch;
+ * 4. otherwise the checked-out branch (`git rev-parse --abbrev-ref HEAD`). A detached HEAD, or a
+ *    folder that is not a git work tree, gives `null`.
+ *
+ * `readGitBranch` stands in for step 4 in the unit tests.
+ */
+export function resolveBranch({ env = process.env, readGitBranch = readCheckedOutBranch } = {}) {
+    for (const name of [BRANCH_OVERRIDE_ENV, 'GITHUB_BASE_REF', 'GITHUB_REF_NAME']) {
+        if (env[name]) return env[name];
     }
-    const [newest] = readJson(RELEASED_VERSIONS_PATH);
-    if (typeof newest?.version !== 'string' || newest.version.includes('-')) {
-        throw new Error(`${relative(WORKSPACE_ROOT, RELEASED_VERSIONS_PATH)} does not start with a released version`);
+    const branch = readGitBranch();
+    return branch && branch !== 'HEAD' ? branch : null;
+}
+
+function readCheckedOutBranch() {
+    try {
+        return execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
+            cwd: WORKSPACE_ROOT,
+            encoding: 'utf8',
+            stdio: ['ignore', 'pipe', 'pipe'],
+        }).trim();
+    } catch (error) {
+        if (/not a git repository/i.test(String(error.stderr ?? ''))) return null;
+        throw error;
     }
-    return { pinnedVersion: newest.version, pinSource: 'released' };
+}
+
+/** How a seed's `ag-charts-*` pin was chosen, as its manifest's `pinSource` records it. */
+export const PIN_SOURCE = {
+    /** An exact release version: the checkout is a release, or a release branch working towards one. */
+    release: 'release',
+    /** The npm `latest` dist-tag: the checkout is ahead of every release. */
+    distTag: 'dist-tag',
+};
+
+/** The npm dist-tag that names the newest published release, pinned outside release branches. */
+export const NPM_LATEST_TAG = 'latest';
+
+/**
+ * The `ag-charts-*` version a seed pins, where it came from, and why.
+ *
+ * A seed is installed from public npm, since that is where a StackBlitz user installs from, so
+ * its pin must be something npm can resolve. The workspace version usually cannot be pinned as it
+ * is: between releases every branch carries a pre-release, `X.Y.Z-beta.<date>[.<time>]`
+ * (`tools/calculate-next-version.js`), and betas are published only to the private registry at
+ * registry.ag-grid.com, never to public npm.
+ *
+ * - A plain `X.Y.Z` workspace version is a release (the "Release X.Y.Z Prep" commit that is
+ *   tagged `release-X.Y.Z`), so it is pinned exactly, whatever the branch.
+ * - On a release branch, `bX.Y.Z`, the workspace carries `X.Y.Z-beta.*` until that prep commit,
+ *   and the seeds are meant for the release it becomes, so `X.Y.Z` is pinned. Both cases record
+ *   `pinSource` `release`, so the prep commit leaves every seed as it was.
+ * - Everywhere else (`latest`, `next`, feature branches, pull requests into them, a detached HEAD)
+ *   the beta carries the number of a release that is not out yet, so the seeds pin the npm
+ *   `latest` dist-tag and install the newest published release.
+ *
+ * The branch comes from `resolveBranch`; `env` and `readGitBranch` are passed through to it, and
+ * `workspaceVersion` stands in for the version in `ag-charts-community/package.json`, for the
+ * unit tests.
+ *
+ * @returns {{ pinnedVersion: string, pinSource: 'release' | 'dist-tag', reason: string }}
+ */
+export function readPinnedChartsVersion({ workspaceVersion = readWorkspaceVersion(), env, readGitBranch } = {}) {
+    const [release] = workspaceVersion.split('-');
+    if (!/^\d+\.\d+\.\d+$/.test(release)) {
+        throw new Error(`Workspace version ${workspaceVersion} is not X.Y.Z or X.Y.Z-<pre-release>`);
+    }
+    if (release === workspaceVersion) {
+        return { pinnedVersion: release, pinSource: PIN_SOURCE.release, reason: `workspace version ${release}` };
+    }
+    const branch = resolveBranch({ env, readGitBranch });
+    if (branch && RELEASE_BRANCH.test(branch)) {
+        return { pinnedVersion: release, pinSource: PIN_SOURCE.release, reason: `release branch ${branch}` };
+    }
+    return {
+        pinnedVersion: NPM_LATEST_TAG,
+        pinSource: PIN_SOURCE.distTag,
+        reason: branch ? `branch ${branch}` : 'no branch checked out',
+    };
+}
+
+/** `pin` for a log line, e.g. `14.2.0 (release: release branch b14.2.0)`. */
+export function describePin({ pinnedVersion, pinSource, reason }) {
+    return `${pinnedVersion} (${reason ? `${pinSource}: ${reason}` : pinSource})`;
+}
+
+function readWorkspaceVersion() {
+    return readJson(join(WORKSPACE_ROOT, 'packages', 'ag-charts-community', 'package.json')).version;
 }
 
 /**

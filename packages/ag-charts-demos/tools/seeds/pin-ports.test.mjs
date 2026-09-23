@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { describeDrift, findPortPinDrift, pinPorts } from './pin-ports.mjs';
 
-const PIN = { pinnedVersion: '14.2.0', pinSource: 'released' };
+const PIN = { pinnedVersion: '14.2.0', pinSource: 'release' };
 
 let seedsDir;
 
@@ -31,7 +31,7 @@ function writePort(demo, framework, { dependencies, devDependencies, manifest = 
 
 const inStep = {
     dependencies: { 'ag-charts-community': '14.2.0', 'ag-charts-enterprise': '14.2.0', 'ag-grid-community': '~35.0.1' },
-    manifest: { pinnedVersion: '14.2.0', pinSource: 'released', dist: 'dist' },
+    manifest: { pinnedVersion: '14.2.0', pinSource: 'release', dist: 'dist' },
 };
 
 beforeEach(() => {
@@ -57,7 +57,7 @@ describe('findPortPinDrift', () => {
                 'ag-charts-enterprise': '14.1.0',
                 'ag-grid-angular': '~34.0.0',
             },
-            manifest: { pinnedVersion: '14.1.0', pinSource: 'workspace', dist: 'dist' },
+            manifest: { pinnedVersion: '14.1.0', pinSource: 'dist-tag', dist: 'dist' },
         });
 
         const drift = findPortPinDrift({ seedsDir, pin: PIN });
@@ -66,11 +66,11 @@ describe('findPortPinDrift', () => {
                 demo: 'financial',
                 framework: 'angular',
                 pins: { 'ag-charts-angular': '14.1.0', 'ag-charts-enterprise': '14.1.0' },
-                manifest: { pinnedVersion: '14.1.0', pinSource: 'workspace' },
+                manifest: { pinnedVersion: '14.1.0', pinSource: 'dist-tag' },
             },
         ]);
         expect(describeDrift(drift)).toEqual([
-            'seeds/financial/angular: ag-charts-angular 14.1.0, ag-charts-enterprise 14.1.0, manifest pinnedVersion 14.1.0, manifest pinSource workspace',
+            'seeds/financial/angular: ag-charts-angular 14.1.0, ag-charts-enterprise 14.1.0, manifest pinnedVersion 14.1.0, manifest pinSource dist-tag',
         ]);
     });
 
@@ -120,7 +120,7 @@ describe('pinPorts', () => {
                 'ag-charts-community': '14.1.0',
                 'ag-grid-angular': '~35.0.1',
             },
-            manifest: { sourceCommit: 'abc', pinnedVersion: '14.1.0', pinSource: 'workspace', dist: 'dist' },
+            manifest: { sourceCommit: 'abc', pinnedVersion: '14.1.0', pinSource: 'dist-tag', dist: 'dist' },
         });
         const packageBefore = readFileSync(join(dir, 'package.json'), 'utf8');
         const manifestBefore = readFileSync(join(dir, '.seed-manifest.json'), 'utf8');
@@ -136,9 +136,28 @@ describe('pinPorts', () => {
         expect(readFileSync(join(dir, '.seed-manifest.json'), 'utf8')).toBe(
             manifestBefore
                 .replace('"pinnedVersion": "14.1.0"', '"pinnedVersion": "14.2.0"')
-                .replace('"pinSource": "workspace"', '"pinSource": "released"')
+                .replace('"pinSource": "dist-tag"', '"pinSource": "release"')
         );
         expect(findPortPinDrift({ seedsDir, pin: PIN })).toEqual([]);
+    });
+
+    it('moves a release-pinned port to the npm latest dist-tag', () => {
+        const dir = writePort('financial', 'vue', {
+            dependencies: { 'ag-charts-vue3': '14.2.0', 'ag-charts-enterprise': '14.2.0', vue: '^3.5.13' },
+            manifest: inStep.manifest,
+        });
+
+        pinPorts({ seedsDir, pin: { pinnedVersion: 'latest', pinSource: 'dist-tag' } });
+
+        expect(JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')).dependencies).toEqual({
+            'ag-charts-vue3': 'latest',
+            'ag-charts-enterprise': 'latest',
+            vue: '^3.5.13',
+        });
+        expect(JSON.parse(readFileSync(join(dir, '.seed-manifest.json'), 'utf8'))).toMatchObject({
+            pinnedVersion: 'latest',
+            pinSource: 'dist-tag',
+        });
     });
 
     it('preserves a 4-space package.json as it found it', () => {
@@ -167,7 +186,7 @@ describe('pinPorts', () => {
                     demo: 'financial',
                     framework: 'typescript',
                     pinnedVersion: '14.2.0',
-                    pinSource: 'released',
+                    pinSource: 'release',
                     sourceHash: 'sha256-x',
                     dist: 'dist',
                 },
