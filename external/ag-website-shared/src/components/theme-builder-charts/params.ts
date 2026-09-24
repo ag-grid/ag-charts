@@ -200,8 +200,7 @@ const collectSources = (value: unknown, found: string[]): void => {
     }
     const { ref, onto } = value as { ref?: unknown; onto?: unknown };
     if (typeof ref === 'string') {
-        // A reference to a composite member (`scrollbarThumbBorder.color`) inherits from the composite param.
-        found.push(ref.split('.')[0]);
+        found.push(ref);
         if (typeof onto === 'string') {
             found.push(onto);
         }
