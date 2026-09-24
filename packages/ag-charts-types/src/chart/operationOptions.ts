@@ -44,6 +44,12 @@ type ThemeParam =
     | keyof AgChartAllThemeParams
     | 'buttonBorder.color'
     | 'buttonBorder.width'
+    | 'buttonHoverBorder.color'
+    | 'buttonHoverBorder.width'
+    | 'buttonActiveBorder.color'
+    | 'buttonActiveBorder.width'
+    | 'buttonDisabledBorder.color'
+    | 'buttonDisabledBorder.width'
     | 'inputBorder.color'
     | 'inputBorder.width'
     | 'menuBorder.color'

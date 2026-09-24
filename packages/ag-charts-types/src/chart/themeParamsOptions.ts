@@ -70,6 +70,40 @@ export interface AgBaseChartThemeParams {
     buttonFontWeight?: FontWeight;
     /** Text colour of standard action buttons. A colour string, or a theme-colour reference object. */
     buttonTextColor?: AgCssColorOrRef;
+    /** Background colour of buttons when hovered. A colour string, or a theme-colour reference object. */
+    buttonHoverBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Border around buttons when hovered. `true` for the default border, `false` to disable, or an object to customise it.
+     * The border width follows `buttonBorder` unless set here.
+     */
+    buttonHoverBorder?: boolean | AgBorderThemeParam;
+    /** Text colour of buttons when hovered. A colour string, or a theme-colour reference object. */
+    buttonHoverTextColor?: AgCssColorOrRef;
+    /**
+     * Background colour of buttons in the active (pressed) state, such as a toggled toolbar button or a selected menu
+     * item. A colour string, or a theme-colour reference object.
+     */
+    buttonActiveBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Border around buttons in the active (pressed) state. `true` for the default border, `false` to disable, or an
+     * object to customise it. The border width follows `buttonBorder` unless set here.
+     */
+    buttonActiveBorder?: boolean | AgBorderThemeParam;
+    /** Text colour of buttons in the active (pressed) state. A colour string, or a theme-colour reference object. */
+    buttonActiveTextColor?: AgCssColorOrRef;
+    /** Background colour of disabled buttons. A colour string, or a theme-colour reference object. */
+    buttonDisabledBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Border around disabled buttons. `true` for the default border, `false` to disable, or an object to customise it.
+     * The border width follows `buttonBorder` unless set here.
+     */
+    buttonDisabledBorder?: boolean | AgBorderThemeParam;
+    /** Text colour of disabled buttons. A colour string, or a theme-colour reference object. */
+    buttonDisabledTextColor?: AgCssColorOrRef;
+    /** Horizontal padding inside standard action buttons. */
+    buttonHorizontalPadding?: PixelSize;
+    /** Vertical padding inside standard action buttons. */
+    buttonVerticalPadding?: PixelSize;
     /** Shadow around UI controls that have focus e.g. text inputs and buttons. The value must be a valid CSS box-shadow. */
     focusShadow?: CssShadow;
     /**
