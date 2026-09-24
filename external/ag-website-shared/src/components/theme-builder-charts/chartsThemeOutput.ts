@@ -17,7 +17,7 @@ const toPixelSize = (value: string): number | string => {
 const isPlainObject = (value: unknown): value is Record<string, any> =>
     typeof value === 'object' && value != null && !Array.isArray(value);
 
-const LENGTH_SUFFIXES = ['Radius', 'Width', 'Size', 'Padding', 'Spacing'];
+const LENGTH_SUFFIXES = ['Radius', 'Width', 'Size', 'Padding', 'Spacing', 'Thickness'];
 const isLengthParam = (property: string) => LENGTH_SUFFIXES.some((suffix) => property.endsWith(suffix));
 
 const toChartParamValue = (property: string, value: unknown): unknown => {

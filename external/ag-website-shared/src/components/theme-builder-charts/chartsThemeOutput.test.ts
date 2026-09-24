@@ -44,6 +44,16 @@ describe('toChartTheme', () => {
         expect(renderChartsThemeCode(off)).not.toContain('strokesEnabled');
     });
 
+    it('converts the scrollbar thickness from its length editor value to a number', () => {
+        // The param name carries none of the other length suffixes, but the
+        // editor still stores it as a CSS length.
+        const params = { scrollbarThickness: '20px', scrollbarTrackBorderRadius: '4px' };
+        expect(toChartTheme({ ...selection, params }).params).toEqual({
+            scrollbarThickness: 20,
+            scrollbarTrackBorderRadius: 4,
+        });
+    });
+
     it('keeps every bookkeeping key out of the snippet the user copies', () => {
         // The end of the same thread: whatever survives the projection is what
         // someone pastes into their app.
