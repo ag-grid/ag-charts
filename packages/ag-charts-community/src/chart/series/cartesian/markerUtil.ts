@@ -196,7 +196,9 @@ export function computeLineAreaFocusBounds<D extends MarkerNodeDatum, Ctx, Scrat
     const scratch = series.allocDatumScratch();
     const nodeDatum = series.allocDatumWriteable(ctx);
     series.handleDatum(ctx, scratch, opts.datumIndex, nodeDatum);
-    if (scratch.yDatum === undefined) return undefined;
+
+    const { x, y, size, focusSize } = nodeDatum.point;
+    if ([x, y, size, focusSize].some((n) => Number.isNaN(n))) return undefined;
 
     return computeMarkerFocusBoundsOfNodeDatum(series, nodeDatum);
 }
