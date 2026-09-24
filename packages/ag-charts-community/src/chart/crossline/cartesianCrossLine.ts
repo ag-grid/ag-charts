@@ -344,7 +344,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             }
 
             // Both ends clamped onto the same scale bound means the range lies wholly outside the domain.
-            const clampedAway = clampedYStart === clampedYEnd && (clampedYStart !== yStart || clampedYEnd !== yEnd);
+            const clampedAway = clampedYStart === clampedYEnd && clampedYStart !== yStart && clampedYEnd !== yEnd;
             if (clampedAway) {
                 return;
             }
