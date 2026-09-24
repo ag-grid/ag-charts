@@ -21,7 +21,6 @@ import {
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { TextInput } from '../text-input/textInput';
-import { AxesButtons } from './annotationAxesButtons';
 import { AnnotationDefaults } from './annotationDefaults';
 import { AnnotationOptionsToolbar } from './annotationOptionsToolbar';
 import type {
@@ -66,7 +65,7 @@ export class Annotations extends AbstractModuleInstance {
         return getTypedDatum(this.annotationData.at(active));
     });
 
-    public axesButtons = new AxesButtons();
+    public axesButtons: { enabled: boolean; axes: 'x' | 'y' | 'xy' } = { enabled: false, axes: 'y' };
 
     // Annotations is only created when the `annotations` subtree is configured, so assert
     // the subtree's presence here and rely on annotationsTheme for field-level defaults.
@@ -115,13 +114,10 @@ export class Annotations extends AbstractModuleInstance {
                 const opts = get('options', 'annotations');
                 const enabled = opts?.enabled ?? false;
 
-                this.toolbar.enabled = enabled;
-                this.optionsToolbar.enabled = enabled;
-                this.axesButtons.enabled = enabled;
-
-                if (opts?.toolbar != null) this.toolbar.set(opts.toolbar);
-                if (opts?.optionsToolbar != null) this.optionsToolbar.set(opts.optionsToolbar);
-                if (opts?.axesButtons != null) this.axesButtons.set(opts.axesButtons);
+                const { toolbar, optionsToolbar, axesButtons } = opts ?? {};
+                this.toolbar.applyOptions({ ...toolbar, enabled: toolbar?.enabled ?? enabled });
+                this.optionsToolbar.applyOptions({ ...optionsToolbar, enabled: optionsToolbar?.enabled ?? enabled });
+                this.axesButtons = { enabled: axesButtons?.enabled ?? enabled, axes: axesButtons?.axes ?? 'y' };
             }),
             () => {
                 this.clear();
@@ -842,14 +838,17 @@ export class Annotations extends AbstractModuleInstance {
         const padding = axisLayout.gridPadding + axisLayout.seriesAreaPadding;
         const bounds = new BBox(0, 0, seriesRect.width, seriesRect.height).grow(padding, axisPosition);
 
-        const lineDirection = direction === ChartAxisDirection.X ? 'vertical' : 'horizontal';
+        const isDirectionX = direction === ChartAxisDirection.X;
+        const lineDirection = isDirectionX ? 'vertical' : 'horizontal';
 
         const opts = this.opts;
         const enabled = opts.enabled ?? true;
         const snap = opts.snap ?? false;
         const { axesButtons } = this;
         const buttonEnabled =
-            enabled && axesButtons.enabled && (axesButtons.axes === 'xy' || axesButtons.axes === direction);
+            enabled &&
+            axesButtons.enabled &&
+            (axesButtons.axes === 'xy' || axesButtons.axes === (isDirectionX ? 'x' : 'y'));
         if (buttonEnabled) {
             button ??= new AxisButton(
                 this.ctx,

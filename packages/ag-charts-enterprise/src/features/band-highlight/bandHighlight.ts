@@ -4,20 +4,50 @@ import {
     ChartAxisDirection,
     ChartUpdateType,
     type NormalisedBandHighlightOptions,
+    type RequiredInternalAgGradientColor,
+    type RequiredInternalAgImageFill,
+    type RequiredInternalAgPatternColor,
     ZIndexMap,
     createId,
 } from 'ag-charts-core';
 
-const {
-    Range,
-    TranslatableGroup,
-    BBox,
-    FillGradientDefaults,
-    FillImageDefaults,
-    FillPatternDefaults,
-    getShapeFill,
-    InteractionState,
-} = _ModuleSupport;
+const { Range, TranslatableGroup, BBox, getShapeFill, InteractionState } = _ModuleSupport;
+
+// Shape definitions `getShapeFill` completes a user-supplied non-flat fill with; internal only.
+const BAND_FILL_GRADIENT_DEFAULTS: RequiredInternalAgGradientColor = {
+    type: 'gradient',
+    colorStops: [],
+    bounds: 'item',
+    gradient: 'linear',
+    rotation: 0,
+    reverse: false,
+    colorSpace: 'rgb',
+};
+const BAND_FILL_PATTERN_DEFAULTS: RequiredInternalAgPatternColor = {
+    type: 'pattern',
+    rotation: 0,
+    scale: 1,
+    pattern: 'forward-slanted-lines',
+    width: 26,
+    height: 26,
+    padding: 6,
+    fill: 'black',
+    fillOpacity: 1,
+    backgroundFill: 'white',
+    backgroundFillOpacity: 1,
+    stroke: 'black',
+    strokeOpacity: 1,
+    strokeWidth: 0,
+};
+const BAND_FILL_IMAGE_DEFAULTS: RequiredInternalAgImageFill = {
+    type: 'image',
+    url: '',
+    rotation: 0,
+    backgroundFill: 'black',
+    backgroundFillOpacity: 1,
+    repeat: 'no-repeat',
+    fit: 'contain',
+};
 
 type HoverLikeEvent =
     | _Widget.ClickWidgetEvent
@@ -29,12 +59,6 @@ export class BandHighlight extends AbstractModuleInstance {
     readonly id = createId(this);
 
     private options: NormalisedBandHighlightOptions | undefined;
-
-    // Built-in shape definitions for `getShapeFill` when the user supplies a non-flat fill; these
-    // are internal only, never user-facing options.
-    private readonly fillGradientDefaults = new FillGradientDefaults();
-    private readonly fillPatternDefaults = new FillPatternDefaults();
-    private readonly fillImageDefaults = new FillImageDefaults();
 
     private readonly axisCtx: _ModuleSupport.AxisContext;
     private bounds: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
@@ -166,7 +190,12 @@ export class BandHighlight extends AbstractModuleInstance {
         node.strokeOpacity = strokeOpacity;
         node.lineDash = lineDash;
         node.lineDashOffset = lineDashOffset;
-        node.fill = getShapeFill(fill, this.fillGradientDefaults, this.fillPatternDefaults, this.fillImageDefaults);
+        node.fill = getShapeFill(
+            fill,
+            BAND_FILL_GRADIENT_DEFAULTS,
+            BAND_FILL_PATTERN_DEFAULTS,
+            BAND_FILL_IMAGE_DEFAULTS
+        );
         node.fillOpacity = fillOpacity;
         node.startLine = true;
         node.endLine = true;

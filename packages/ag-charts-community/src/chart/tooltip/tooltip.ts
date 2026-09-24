@@ -1,15 +1,20 @@
 import {
     AgDocument,
-    BaseProperties,
     type CanvasPoint,
     CleanupRegistry,
     type Placement,
-    Property,
     calculatePlacement,
     clamp,
     isNode,
 } from 'ag-charts-core';
-import type { AgTooltipAnchorTo, AgTooltipMode, AgTooltipPlacement, InteractionRange, TextWrap } from 'ag-charts-types';
+import type {
+    AgChartTooltipOptions,
+    AgTooltipAnchorTo,
+    AgTooltipMode,
+    AgTooltipPlacement,
+    InteractionRange,
+    TextWrap,
+} from 'ag-charts-types';
 
 import type { DOMElementProxy } from '../../dom/domElementProxy';
 import type { DOMManager } from '../../dom/domManager';
@@ -103,56 +108,33 @@ const defaultPlacements: Record<AgTooltipAnchorTo, AgTooltipPlacement | AgToolti
     chart: 'top-left',
 };
 
-export class TooltipPosition extends BaseProperties {
-    @Property
-    /** The horizontal offset in pixels for the position of the tooltip. */
-    xOffset: number = 0;
-
-    @Property
-    /** The vertical offset in pixels for the position of the tooltip. */
-    yOffset: number = 0;
-
+export interface TooltipPosition {
+    xOffset: number;
+    yOffset: number;
     /** The distance in pixels between the tooltip and its anchor point, applied in the placement direction. */
-    @Property
     offset?: number;
-
-    @Property
     anchorTo?: AgTooltipAnchorTo;
-
-    @Property
     placement?: AgTooltipPlacement | AgTooltipPlacement[];
 }
 
-export class Tooltip extends BaseProperties {
-    @Property
+/** Undocumented keys the theme sets on `tooltip`. */
+export type NormalisedTooltipOptions = AgChartTooltipOptions & {
+    darkTheme?: boolean;
+    pagination?: boolean;
+    bounds?: 'extended' | 'canvas';
+};
+
+export class Tooltip {
     enabled: boolean = true;
-
-    @Property
     mode: AgTooltipMode = 'single';
-
-    @Property
     showArrow?: boolean;
-
-    @Property
     delay: number = 0;
-
-    @Property
     range?: InteractionRange = undefined;
-
-    @Property
     wrapping: TextWrap = 'hyphenate';
-
-    @Property
-    readonly position = new TooltipPosition();
-
-    @Property
-    readonly pagination = false;
-
-    @Property
+    position: TooltipPosition = { xOffset: 0, yOffset: 0 };
+    pagination = false;
     darkTheme = false;
-
     /** Escape-hatch for changes in AG-11645. */
-    @Property
     bounds: 'extended' | 'canvas' = 'extended';
 
     private readonly cleanup = new CleanupRegistry();
@@ -188,13 +170,24 @@ export class Tooltip extends BaseProperties {
     }
 
     constructor(private readonly agDocument: AgDocument) {
-        super();
-
         this.cleanup.register(
             this.springAnimation.events.on('update', () => {
                 this.updateTooltipPosition();
             })
         );
+    }
+
+    applyOptions(options: NormalisedTooltipOptions) {
+        this.enabled = options.enabled ?? true;
+        this.mode = options.mode ?? 'single';
+        this.showArrow = options.showArrow;
+        this.delay = options.delay ?? 0;
+        this.range = options.range;
+        this.wrapping = options.wrapping ?? 'hyphenate';
+        this.position = { xOffset: 0, yOffset: 0, ...options.position };
+        this.pagination = options.pagination ?? false;
+        this.darkTheme = options.darkTheme ?? false;
+        this.bounds = options.bounds ?? 'extended';
     }
 
     private localeManager: LocaleManager | undefined = undefined;

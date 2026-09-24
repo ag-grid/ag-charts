@@ -3,7 +3,6 @@ import type { AgBaseChartListeners, AgChartInstance, AgCoordinates } from 'ag-ch
 
 import { Group } from '../scene/group';
 import type { CaptionLike } from './captionLike';
-import type { ChartHighlight } from './chartHighlight';
 import type { ChartType } from './chartType';
 import type { DatumIndex, ISeries, ISeriesOptions, SeriesNodeDatum } from './series/seriesTypes';
 import type { CategoryGroupSeries } from './sharedCategoryGroup';
@@ -24,7 +23,6 @@ export interface ChartService {
     readonly selectionRoot: Group;
     readonly publicApi?: AgChartInstance;
     readonly context?: unknown;
-    readonly highlight?: ChartHighlight;
     getChartType(): ChartType;
     /** The index of the item `series` contributes at the hovered datum's category. Optional for partial stubs. */
     getSharedHighlightMatch?(

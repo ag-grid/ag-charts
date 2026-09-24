@@ -2,9 +2,11 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { type AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 import {
+    clickAction,
     compareImageSnapshot,
     deproxy,
     expectWarningsCalls,
+    hoverAction,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -848,6 +850,109 @@ describe('Annotations', () => {
             ]);
             expect(numberImage).not.toMatchImage(baseline, { writeDiff: false });
             expect(bigintImage).toMatchImage(numberImage);
+        });
+    });
+
+    describe('toolbar options', () => {
+        const annotationsModule = () => deproxy(chart).modulesManager.getModule<any>('annotations');
+        const withAnnotations = (annotations: AgCartesianChartOptions['annotations']): AgCartesianChartOptions => ({
+            ...EXAMPLE_OPTIONS,
+            annotations,
+        });
+
+        it('enables both toolbars from `annotations.enabled` when they are not configured', async () => {
+            await prepareChart(undefined, withAnnotations({ enabled: true }));
+
+            expect(annotationsModule().toolbar.enabled).toBe(true);
+            expect(annotationsModule().optionsToolbar.enabled).toBe(true);
+        });
+
+        it('keeps the options toolbar enabled when only the toolbar is disabled', async () => {
+            await prepareChart();
+
+            expect(annotationsModule().toolbar.enabled).toBe(false);
+            expect(annotationsModule().optionsToolbar.enabled).toBe(true);
+        });
+
+        it.each([
+            [undefined, false, true],
+            ['x', true, false],
+            ['y', false, true],
+            ['xy', true, true],
+        ] as const)('with `axesButtons.axes: %s` shows the x button %s and the y button %s', async (axes, x, y) => {
+            await prepareChart(
+                undefined,
+                withAnnotations({ enabled: true, toolbar: { enabled: false }, axesButtons: { enabled: true, axes } })
+            );
+
+            expect(annotationsModule().xAxis?.button != null).toBe(x);
+            expect(annotationsModule().yAxis?.button != null).toBe(y);
+        });
+
+        it('returns the axis button to the y axis when `axesButtons.axes` is removed on update', async () => {
+            await prepareChart(
+                undefined,
+                withAnnotations({
+                    enabled: true,
+                    toolbar: { enabled: false },
+                    axesButtons: { enabled: true, axes: 'x' },
+                })
+            );
+            expect(annotationsModule().xAxis?.button != null).toBe(true);
+
+            await chart.update(
+                prepareEnterpriseTestOptions(withAnnotations({ enabled: true, toolbar: { enabled: false } }))
+            );
+            await waitForChartStability(chart);
+
+            expect(annotationsModule().xAxis?.button != null).toBe(false);
+            expect(annotationsModule().yAxis?.button != null).toBe(true);
+        });
+
+        it('swaps the lock switch to its checked overrides while the selected annotation is locked', async () => {
+            await prepareChart(
+                { annotations: [{ type: 'horizontal-line', value: 50, locked: true }] },
+                {
+                    ...EXAMPLE_OPTIONS,
+                    annotations: {
+                        ...EXAMPLE_OPTIONS.annotations,
+                        optionsToolbar: {
+                            buttons: [
+                                {
+                                    type: 'switch',
+                                    value: 'lock',
+                                    icon: 'unlocked',
+                                    label: 'Lock',
+                                    tooltip: 'toolbarAnnotationsLock',
+                                    checkedOverrides: { icon: 'locked', tooltip: 'toolbarAnnotationsUnlock' },
+                                },
+                            ],
+                        },
+                    },
+                }
+            );
+            const rect = deproxy(chart).seriesRect;
+            expect(rect).toBeDefined();
+            const centre = { x: rect!.x + rect!.width / 2, y: rect!.y + rect!.height / 2 };
+
+            await hoverAction(centre.x, centre.y)(chart);
+            await clickAction(centre.x, centre.y)(chart);
+            await waitForChartStability(chart);
+
+            const lockSwitch = () =>
+                deproxy(chart).ctx.agDocument.body.querySelector<HTMLElement>('button[aria-checked]');
+            expect(lockSwitch()?.getAttribute('aria-checked')).toBe('true');
+            expect(lockSwitch()?.querySelector('.ag-charts-icon-locked')).not.toBeNull();
+            expect(lockSwitch()?.title).toBe('Unlock');
+            expect(lockSwitch()?.querySelector('.ag-charts-toolbar__label')).toBeNull();
+
+            lockSwitch()!.click();
+            await waitForChartStability(chart);
+
+            expect(lockSwitch()?.getAttribute('aria-checked')).toBe('false');
+            expect(lockSwitch()?.querySelector('.ag-charts-icon-unlocked')).not.toBeNull();
+            expect(lockSwitch()?.title).toBe('Lock');
+            expect(lockSwitch()?.querySelector('.ag-charts-toolbar__label')?.textContent).toBe('Lock');
         });
     });
 

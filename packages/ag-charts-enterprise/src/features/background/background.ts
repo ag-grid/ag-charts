@@ -20,7 +20,7 @@ export class Background extends _ModuleSupport.Background {
         super.applyOptions();
         const { image } = this.ctx.chartState.getValue('options', 'background');
         if (image != null) {
-            this.image.set(image);
+            this.image.applyOptions(image);
         }
     }
 

@@ -1,15 +1,4 @@
-import {
-    BaseProperties,
-    Border,
-    CleanupRegistry,
-    type DynamicContext,
-    Padding,
-    Property,
-    ProxyPropertyOnWrite,
-    ZIndexMap,
-    contributedKeysUnder,
-    without,
-} from 'ag-charts-core';
+import { CleanupRegistry, type DynamicContext, ZIndexMap, resolvePadding } from 'ag-charts-core';
 
 import type { LayoutCompleteEvent } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
@@ -17,6 +6,7 @@ import type { BBox } from '../../scene/bbox';
 import { Group, TransformableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { Rect } from '../../scene/shape/rect';
+import type { NormalisedSeriesAreaOptions } from '../chartState';
 
 /** Scene content a module renders inside the series area, positioned in series-rect space. */
 export interface SeriesAreaContent {
@@ -26,25 +16,18 @@ export interface SeriesAreaContent {
     update(clipRect: BBox | undefined): void;
 }
 
-export class SeriesArea extends BaseProperties {
+export class SeriesArea {
     private readonly seriesAreaGroup = new Group({
         name: 'series-area-container',
         zIndex: ZIndexMap.SERIES_AREA_CONTAINER,
     });
     private readonly borderNode = this.seriesAreaGroup.appendChild(new Rect());
 
-    @Property
-    border = new Border(this.borderNode);
+    private options: NormalisedSeriesAreaOptions = {};
 
-    @Property
-    clip?: boolean;
-
-    @ProxyPropertyOnWrite('borderNode', 'cornerRadius')
-    @Property
-    cornerRadius: number = 0;
-
-    @Property
-    padding = new Padding(0);
+    get clip(): boolean | undefined {
+        return this.options.clip;
+    }
 
     private readonly cleanup = new CleanupRegistry();
     private readonly contents = new Set<SeriesAreaContent>();
@@ -59,8 +42,6 @@ export class SeriesArea extends BaseProperties {
     });
 
     constructor(ctx: DynamicContext<ChartRegistry>) {
-        super();
-
         this.borderNode.fill = undefined;
 
         this.cleanup.register(
@@ -68,14 +49,19 @@ export class SeriesArea extends BaseProperties {
             ctx.scene.attachNode(this.overlayGroup),
             ctx.scene.attachNode(this.underlayGroup),
             ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)),
-            ctx.chartState.observe((get) => {
-                const opts = get('options', 'seriesArea');
-                if (opts == null) return;
-                // Keys such as `backgroundRegions` belong to the modules that contribute them.
-                const contributed = contributedKeysUnder(ctx.moduleRegistry.optionsContributions(), 'seriesArea');
-                this.set(without(opts, contributed));
-            })
+            ctx.chartState.observe((get) => this.applyOptions(get('options', 'seriesArea') ?? {}))
         );
+    }
+
+    private applyOptions(options: NormalisedSeriesAreaOptions) {
+        this.options = options;
+
+        const { border, cornerRadius = 0 } = options;
+        const { borderNode } = this;
+        borderNode.cornerRadius = cornerRadius;
+        borderNode.stroke = border?.stroke;
+        borderNode.strokeOpacity = border?.strokeOpacity ?? 1;
+        borderNode.strokeWidth = border?.enabled ? border.strokeWidth : 0;
     }
 
     destroy() {
@@ -83,13 +69,13 @@ export class SeriesArea extends BaseProperties {
     }
 
     getPadding() {
-        const { border, padding } = this;
-        const strokeWidth = border.enabled ? border.strokeWidth : 0;
+        const { strokeWidth } = this.borderNode;
+        const { top, right, bottom, left } = resolvePadding(this.options.padding);
         return {
-            top: padding.top + strokeWidth,
-            right: padding.right + strokeWidth,
-            bottom: padding.bottom + strokeWidth,
-            left: padding.left + strokeWidth,
+            top: top + strokeWidth,
+            right: right + strokeWidth,
+            bottom: bottom + strokeWidth,
+            left: left + strokeWidth,
         };
     }
 

@@ -1,5 +1,4 @@
 import type { BoxBounds, DynamicContext } from 'ag-charts-core';
-import { BaseProperties } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { DOMManager } from '../../dom/domManager';
@@ -192,7 +191,7 @@ export abstract class BaseToolbar<
         buttonWidget.addClass('ag-charts-toolbar__button');
 
         buttonWidget.addListener('click', (event) => {
-            const buttonOptions = { index, ...(button instanceof BaseProperties ? button.toJson() : button) };
+            const buttonOptions = { index, ...button };
             const buttonBounds = this.getButtonWidgetBounds(buttonWidget);
             const params: ToolbarEventMap<ButtonOptions>['button-pressed'] = {
                 event,

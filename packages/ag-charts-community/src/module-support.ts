@@ -252,14 +252,7 @@ export type {
 } from './chart/series/series';
 export { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from './chart/series/seriesLabelUtil';
 export type { SeriesItemHighlightStyle } from './chart/series/seriesProperties';
-export {
-    FillGradientDefaults,
-    FillImageDefaults,
-    FillPatternDefaults,
-    toHighlightString,
-    toSelectionString,
-    isUnselected,
-} from './chart/series/seriesProperties';
+export { toHighlightString, toSelectionString, isUnselected } from './chart/series/seriesProperties';
 export type {
     DatumIndex,
     ErrorBoundSeriesNodeDatum,
@@ -438,7 +431,6 @@ export { OrdinalTimeScale } from './scale/ordinalTimeScale';
 export { ApproximateOrdinalTimeScale } from './scale/approximateOrdinalTimeScale';
 export { APPROXIMATE_THRESHOLD } from './scale/discreteTimeScale';
 export {
-    LabelStyle,
     expandLabelBoxExtent,
     expandPlacementLabelBoxExtent,
     labelHasBox,

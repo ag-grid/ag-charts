@@ -1,22 +1,13 @@
 import {
-    BaseProperties,
     type NormalisedChartLabelPlacementStyleOptions,
     type NormalisedChartLabelStyleOptions,
     type NormalisedSeriesLabelOptions,
     type NormalisedTextOrSegments,
-    Property,
     type RequireOptional,
     isArray,
     mergeDefaults,
 } from 'ag-charts-core';
-import type {
-    AgChartLabelFormatterParams,
-    AgChartLabelStyleOptions,
-    FontStyle,
-    FontWeight,
-    Padding,
-    PaddingOptions,
-} from 'ag-charts-types';
+import type { AgChartLabelFormatterParams, Padding, PaddingOptions } from 'ag-charts-types';
 
 import type { AxisFormattableLabel, ContextFormatter } from '../module/axisContext';
 import { FormatManager } from './formatter/formatManager';
@@ -96,52 +87,6 @@ export class LabelValueFormatter<TParams = never, TDatum = any> implements AxisF
     ): NormalisedTextOrSegments | undefined {
         return formatLabelValue(this.label, this, formatWithContext, type, value, params);
     }
-}
-
-export class LabelBorder {
-    @Property
-    enabled: boolean = true;
-
-    @Property
-    stroke?: string;
-
-    @Property
-    strokeWidth?: number;
-
-    @Property
-    strokeOpacity?: number;
-}
-
-export class LabelStyle extends BaseProperties implements AgChartLabelStyleOptions {
-    @Property
-    border = new LabelBorder();
-
-    @Property
-    color?: string;
-
-    @Property
-    cornerRadius?: number;
-
-    @Property
-    fill?: string;
-
-    @Property
-    fillOpacity?: number;
-
-    @Property
-    fontStyle?: FontStyle;
-
-    @Property
-    fontWeight?: FontWeight;
-
-    @Property
-    fontSize!: number;
-
-    @Property
-    fontFamily!: string;
-
-    @Property
-    padding?: Padding;
 }
 
 /** A label carrying both placement styles, resolved once the placement engine picks a side. */
