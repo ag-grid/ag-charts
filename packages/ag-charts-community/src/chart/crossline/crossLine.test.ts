@@ -1290,6 +1290,16 @@ describe('CrossLine', () => {
             expect(box.width).toBeGreaterThanOrEqual(crossLine.scale!.bandwidth!);
         });
 
+        test('keeps a range that lies inside the last band', async () => {
+            const crossLine = await createBandChart([new Date(2026, 5, 5), new Date(2026, 5, 20)]);
+
+            expect(crossLine.rangeGroup.visible).toBe(true);
+            const [rangeNode] = crossLine.rangeGroup.children();
+            const box = Transformable.toCanvas(rangeNode);
+            expect(box.x + box.width).toBeCloseTo(chart.seriesRect!.x + chart.seriesRect!.width);
+            expect(box.width).toBeGreaterThanOrEqual(crossLine.scale!.bandwidth!);
+        });
+
         test('hides a range that ends before the domain', async () => {
             const crossLine = await createBandChart([new Date(2025, 9, 1), new Date(2025, 10, 1)]);
 
