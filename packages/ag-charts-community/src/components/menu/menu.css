@@ -55,7 +55,8 @@
     z-index: var(--ag-charts-layer-menu);
 }
 
-.ag-charts-menu__row--active {
+.ag-charts-menu__row--active,
+.ag-charts-menu__row--active:focus {
     --icon-color: var(--ag-charts-button-active-text-color);
     background: var(--ag-charts-button-active-background-color);
     color: var(--ag-charts-button-active-text-color);
