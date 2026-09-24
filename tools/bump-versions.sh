@@ -31,22 +31,14 @@ for package in ${PACKAGES[@]}; do
     node ${TOOLS_DIR}/update-package-json-deps.js $package "$NEW_VERSION"
 done
 
-# The demo seed projects pin ag-charts-* by branch: X.Y.Z on a bX.Y.Z release branch or for a plain
-# X.Y.Z version, the npm "latest" dist-tag everywhere else (readPinnedChartsVersion in
-# packages/ag-charts-demos/tools/seeds/seed-common.mjs). The branch being bumped is the one checked
-# out, which the release scripts create or switch to before calling this, so it is named outright:
-# otherwise a CI variable naming the branch the job started on would take precedence. A detached
-# HEAD names nothing, and the seed tooling falls back to its CI variables.
-if [ -z "${AG_CHARTS_SEED_BRANCH:-}" ]; then
-    CHECKED_OUT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-    if [ "$CHECKED_OUT_BRANCH" != "HEAD" ]; then
-        export AG_CHARTS_SEED_BRANCH="$CHECKED_OUT_BRANCH"
-    fi
-fi
-echo "Pinning the demo seeds for branch ${AG_CHARTS_SEED_BRANCH:-(none checked out)}"
-node ./packages/ag-charts-demos/tools/seeds/generate-react-seed.mjs
+# The demo seed projects pin ag-charts-* by version, whatever the branch (readPinnedChartsVersion in
+# packages/ag-charts-demos/tools/seeds/seed-common.mjs): X.Y.Z for a plain X.Y.Z version, the npm
+# "latest" dist-tag for a pre-release. Between bumps the seed tooling keeps a release pin that a
+# merge-back from a release branch carried in; --reset-pin drops it, so every bump, the weekly beta
+# bump and the release-branch cut included, writes the pin the new version calls for.
+node ./packages/ag-charts-demos/tools/seeds/generate-react-seed.mjs --reset-pin
 # The framework ports are hand-written rather than generated, so their pins are rewritten in place.
-node ./packages/ag-charts-demos/tools/seeds/pin-ports.mjs
+node ./packages/ag-charts-demos/tools/seeds/pin-ports.mjs --reset-pin
 
 echo >./packages/ag-charts-community/src/version.ts "// DO NOT UPDATE MANUALLY: Generated from script during build time
 export const VERSION = '${NEW_VERSION}';"

@@ -8,6 +8,7 @@ import {
     describePin,
     hashDemoSource,
     listSourceFiles,
+    readCommittedPins,
     readDemoSourceCommit,
     readPinnedChartsVersion,
     resolveBranch,
@@ -218,73 +219,192 @@ describe('resolveBranch', () => {
 });
 
 describe('readPinnedChartsVersion', () => {
-    const BETA = '14.2.0-beta.20260920';
-    const pinFor = (workspaceVersion, env, gitBranch = 'HEAD') =>
-        readPinnedChartsVersion({ workspaceVersion, env, readGitBranch: () => gitBranch });
+    const BETA = '14.3.0-beta.20260920';
+    let seedsDir;
 
-    it('pins the release on its release branch while the workspace still carries the beta', () => {
-        expect(pinFor(BETA, { GITHUB_REF_NAME: 'b14.2.0' })).toEqual({
+    /** A committed seed: its package.json's `ag-charts-*` dependencies and its manifest's pin fields. */
+    function writeSeed(seed, { pins, pinnedVersion, pinSource }) {
+        const dir = join(seedsDir, seed);
+        mkdirSync(dir, { recursive: true });
+        const [demo, framework] = seed.split('/');
+        writeFileSync(join(dir, 'package.json'), JSON.stringify({ dependencies: { react: '^19.0.0', ...pins } }));
+        writeFileSync(
+            join(dir, '.seed-manifest.json'),
+            JSON.stringify({ demo, framework, pinnedVersion, pinSource, sourceHash: 'sha256-x' })
+        );
+    }
+
+    /** Every seed of two demos pinning `version` throughout, as a merge-back or a bump leaves them. */
+    function writeSeeds(version, pinSource) {
+        for (const seed of ['financial/react', 'financial/angular', 'procurement/vue']) {
+            const pins = { 'ag-charts-community': version, 'ag-charts-enterprise': version };
+            writeSeed(seed, { pins, pinnedVersion: version, pinSource });
+        }
+    }
+
+    const pinFor = (workspaceVersion, options) => readPinnedChartsVersion({ workspaceVersion, seedsDir, ...options });
+
+    beforeEach(() => {
+        seedsDir = mkdtempSync(join(tmpdir(), 'seed-pins-'));
+        writeFileSync(join(seedsDir, 'project.json'), '{}');
+    });
+    afterEach(() => {
+        rmSync(seedsDir, { recursive: true, force: true });
+        vi.unstubAllEnvs();
+    });
+
+    it('pins a plain release version exactly, whatever the seeds carry and even without a reset', () => {
+        writeSeeds('latest', 'dist-tag');
+        const expected = { pinnedVersion: '14.2.0', pinSource: 'release', reason: 'workspace version 14.2.0' };
+        expect(pinFor('14.2.0')).toEqual(expected);
+        expect(pinFor('14.2.0', { reset: true })).toEqual(expected);
+
+        writeSeeds('14.1.0', 'release');
+        expect(pinFor('14.2.0')).toEqual(expected);
+    });
+
+    it('pins the npm latest dist-tag for a pre-release, on a release branch or a pull request into one too', () => {
+        writeSeeds('latest', 'dist-tag');
+        vi.stubEnv('AG_CHARTS_SEED_BRANCH', 'b14.2.0');
+        vi.stubEnv('GITHUB_BASE_REF', 'b14.2.0');
+        vi.stubEnv('GITHUB_REF_NAME', 'b14.2.0');
+
+        expect(pinFor('14.2.0-beta.20260920.1405')).toEqual({
+            pinnedVersion: 'latest',
+            pinSource: 'dist-tag',
+            reason: 'npm dist-tag: workspace version 14.2.0-beta.20260920.1405 is a pre-release, which public npm does not have',
+        });
+    });
+
+    it('pins the dist-tag for a pre-release when there are no seeds yet', () => {
+        rmSync(seedsDir, { recursive: true, force: true });
+        expect(pinFor(BETA)).toMatchObject({ pinnedVersion: 'latest', pinSource: 'dist-tag' });
+    });
+
+    it('keeps a release that every seed carries in from a merge-back', () => {
+        writeSeeds('14.2.0', 'release');
+
+        const pin = pinFor(BETA);
+        expect(pin).toEqual({
             pinnedVersion: '14.2.0',
             pinSource: 'release',
-            reason: 'release branch b14.2.0',
+            reason: 'release carried in by a merge-back; the next beta bump restores latest',
         });
-        expect(pinFor('14.2.0-beta.20260920.1405', {}, 'b14.2.0').pinnedVersion).toBe('14.2.0');
+        expect(describePin(pin)).toBe(
+            '14.2.0 (release carried in by a merge-back; the next beta bump restores latest)'
+        );
     });
 
-    it('pins the release for a pull request into its release branch', () => {
-        const pin = pinFor(BETA, { GITHUB_BASE_REF: 'b14.2.0', GITHUB_REF_NAME: '8310/merge' });
-        expect(pin).toMatchObject({ pinnedVersion: '14.2.0', pinSource: 'release' });
-    });
+    it('puts the dist-tag back over a carried-in release on a reset', () => {
+        writeSeeds('14.2.0', 'release');
 
-    it('pins a plain release version exactly whatever the branch, without reading it', () => {
-        const pin = readPinnedChartsVersion({
-            workspaceVersion: '14.2.0',
-            env: { GITHUB_REF_NAME: 'latest' },
-            readGitBranch: () => {
-                throw new Error('the branch must not be read');
-            },
-        });
-        expect(pin).toEqual({ pinnedVersion: '14.2.0', pinSource: 'release', reason: 'workspace version 14.2.0' });
-    });
-
-    it('pins the npm latest dist-tag on latest, next, feature branches and pull requests into them', () => {
-        for (const env of [
-            { GITHUB_REF_NAME: 'latest' },
-            { GITHUB_REF_NAME: 'next' },
-            { GITHUB_BASE_REF: 'latest', GITHUB_REF_NAME: '8310/merge' },
-        ]) {
-            expect(pinFor(BETA, env)).toMatchObject({ pinnedVersion: 'latest', pinSource: 'dist-tag' });
-        }
-        expect(pinFor(BETA, {}, 'ag-18147/fix-tooling')).toEqual({
+        expect(pinFor(BETA, { reset: true })).toEqual({
             pinnedVersion: 'latest',
             pinSource: 'dist-tag',
-            reason: 'branch ag-18147/fix-tooling',
+            reason: `npm dist-tag: workspace version ${BETA} is a pre-release, which public npm does not have; --reset-pin replaces the carried-in 14.2.0`,
         });
     });
 
-    it('pins the dist-tag when no branch can be told', () => {
-        expect(pinFor(BETA, {}, 'HEAD')).toEqual({
+    it('pins the dist-tag, naming what each seed carries, when the seeds mix a release with the dist-tag', () => {
+        writeSeeds('latest', 'dist-tag');
+        writeSeed('procurement/vue', {
+            pins: { 'ag-charts-vue3': '14.2.0', 'ag-charts-enterprise': '14.2.0' },
+            pinnedVersion: '14.2.0',
+            pinSource: 'release',
+        });
+
+        const pin = pinFor(BETA);
+        expect(pin).toMatchObject({ pinnedVersion: 'latest', pinSource: 'dist-tag' });
+        expect(pin.reason).toBe(
+            `npm dist-tag: workspace version ${BETA} is a pre-release, which public npm does not have; a release carried in by a merge-back is kept only when every seed pins the same plain X.Y.Z, but the seeds pin latest with pinSource dist-tag in financial/angular, financial/react; 14.2.0 with pinSource release in procurement/vue`
+        );
+    });
+
+    it('keeps no release that the seeds disagree on, or that one seed pins only in part', () => {
+        writeSeeds('14.2.0', 'release');
+        writeSeed('procurement/vue', {
+            pins: { 'ag-charts-vue3': 'latest', 'ag-charts-enterprise': 'latest' },
             pinnedVersion: 'latest',
             pinSource: 'dist-tag',
-            reason: 'no branch checked out',
         });
+        expect(pinFor(BETA).pinnedVersion).toBe('latest');
+
+        writeSeed('procurement/vue', {
+            pins: { 'ag-charts-vue3': '14.2.1', 'ag-charts-enterprise': '14.2.1' },
+            pinnedVersion: '14.2.1',
+            pinSource: 'release',
+        });
+        expect(pinFor(BETA).pinnedVersion).toBe('latest');
+
+        writeSeed('procurement/vue', {
+            pins: { 'ag-charts-vue3': '14.2.0', 'ag-charts-enterprise': 'latest' },
+            pinnedVersion: '14.2.0',
+            pinSource: 'release',
+        });
+        expect(pinFor(BETA).reason).toMatch(
+            /but the seeds pin .*; 14\.2\.0 and latest with pinSource release in procurement\/vue$/
+        );
     });
 
-    it('takes only an exact bX.Y.Z as a release branch', () => {
-        for (const branch of ['b14.2', 'b14.2.x', 'release/b14.2.0', 'b14.2.0-fix']) {
-            expect(pinFor(BETA, { GITHUB_REF_NAME: branch }).pinSource).toBe('dist-tag');
-        }
+    it('keeps no carried-in release whose manifests do not record it as a release', () => {
+        writeSeeds('14.2.0', 'release');
+        writeSeed('financial/angular', {
+            pins: { 'ag-charts-angular': '14.2.0' },
+            pinnedVersion: '14.2.0',
+            pinSource: 'dist-tag',
+        });
+        expect(pinFor(BETA).pinnedVersion).toBe('latest');
+
+        writeSeed('financial/angular', { pins: { 'ag-charts-angular': '14.2.0' }, pinSource: 'release' });
+        expect(pinFor(BETA).reason).toMatch(
+            /14\.2\.0 and no pinnedVersion with pinSource release in financial\/angular/
+        );
+    });
+
+    it('keeps no pre-release pin, however consistently the seeds carry it', () => {
+        writeSeeds('14.3.0-beta.1', 'release');
+
+        const pin = pinFor(BETA);
+        expect(pin).toMatchObject({ pinnedVersion: 'latest', pinSource: 'dist-tag' });
+        expect(pin.reason).toMatch(/but the seeds pin 14\.3\.0-beta\.1 with pinSource release in /);
     });
 
     it('rejects a workspace version with no X.Y.Z release part', () => {
-        expect(() => pinFor('14.2-beta.1', {})).toThrow(/is not X\.Y\.Z/);
+        expect(() => pinFor('14.2-beta.1')).toThrow(/is not X\.Y\.Z/);
+    });
+});
+
+describe('readCommittedPins', () => {
+    it('reads every seed with a manifest, the React seed included, and skips anything else', () => {
+        const seedsDir = mkdtempSync(join(tmpdir(), 'seed-pins-'));
+        try {
+            const write = (path, value) => {
+                mkdirSync(join(seedsDir, path, '..'), { recursive: true });
+                writeFileSync(join(seedsDir, path), JSON.stringify(value));
+            };
+            write('project.json', {});
+            write('financial/react/package.json', {
+                dependencies: { 'ag-charts-community': 'latest', react: '^19.0.0' },
+                devDependencies: { 'ag-charts-types': '14.2.0' },
+            });
+            write('financial/react/.seed-manifest.json', { pinnedVersion: 'latest', pinSource: 'dist-tag' });
+            write('financial/vue/.seed-manifest.json', {});
+            write('financial/notes/package.json', { dependencies: { 'ag-charts-community': '1.0.0' } });
+
+            expect(readCommittedPins(seedsDir)).toEqual([
+                { seed: 'financial/react', versions: ['14.2.0', 'latest'], pinSource: 'dist-tag' },
+                { seed: 'financial/vue', versions: [null], pinSource: null },
+            ]);
+        } finally {
+            rmSync(seedsDir, { recursive: true, force: true });
+        }
     });
 });
 
 describe('describePin', () => {
-    it('names the pin, its source and the reason', () => {
-        expect(describePin({ pinnedVersion: '14.2.0', pinSource: 'release', reason: 'release branch b14.2.0' })).toBe(
-            '14.2.0 (release: release branch b14.2.0)'
+    it('names the pin and why it was chosen, or its source when no reason is given', () => {
+        expect(describePin({ pinnedVersion: '14.2.0', pinSource: 'release', reason: 'workspace version 14.2.0' })).toBe(
+            '14.2.0 (workspace version 14.2.0)'
         );
         expect(describePin({ pinnedVersion: 'latest', pinSource: 'dist-tag' })).toBe('latest (dist-tag)');
     });

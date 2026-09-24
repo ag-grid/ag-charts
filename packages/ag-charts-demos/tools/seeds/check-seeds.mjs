@@ -40,10 +40,10 @@ import { GENERATED_FRAMEWORK, findStalePorts, findTouchedStalePorts, readChanged
  * would not compare it. The message names the stamp command.
  *
  * `--pins` fails when a framework port's `ag-charts-*` pins, or its manifest's `pinnedVersion` /
- * `pinSource`, disagree with what the seeds install (`readPinnedChartsVersion`: the release
- * version on a release branch or a release, the npm `latest` dist-tag otherwise), naming the port
- * and the command that fixes it. The React seed's pins are covered by `--react`. Both checks
- * follow the branch the checkout is built for (`resolveBranch`), a pull request's base included.
+ * `pinSource`, disagree with what the seeds install (`readPinnedChartsVersion`: the release for a
+ * plain `X.Y.Z` workspace version, the npm `latest` dist-tag for a pre-release, or a release every
+ * seed carries in from a merge-back), naming the port, the pin and why, and the command that fixes
+ * it. The React seed's pins are covered by `--react`, and both checks read the pin the same way.
  *
  * The flags combine: every check asked for runs, in the order `--react`, `--pins`, `--touched`,
  * `--stale`, and the exit status is non-zero if any fails. Stdout carries the `--stale` JSON and
@@ -132,21 +132,23 @@ function compareSeed(demoId, freshRoot, isPreservedPath) {
 
 async function checkReact() {
     const { generateReactSeed, isPreservedPath } = await import('./generate-react-seed.mjs');
+    const pin = readPinnedChartsVersion();
     const freshRoot = mkdtempSync(join(tmpdir(), 'ag-charts-seeds-'));
     try {
         const stale = [];
         for (const demoId of readDemoIds()) {
-            await generateReactSeed(demoId, freshRoot);
+            await generateReactSeed(demoId, freshRoot, { pin });
             const report = compareSeed(demoId, freshRoot, isPreservedPath);
             if (report.length) stale.push(report);
         }
 
         if (stale.length === 0) {
-            console.error('check-seeds: all React seeds are up to date.');
+            console.error(`check-seeds: all React seeds are up to date, pinning ag-charts-* ${describePin(pin)}.`);
             return 0;
         }
 
-        console.error('check-seeds: committed React seeds differ from their golden masters.\n');
+        console.error('check-seeds: committed React seeds differ from their golden masters.');
+        console.error(`They were regenerated pinning ag-charts-* ${describePin(pin)}.\n`);
         for (const report of stale) {
             console.error(report.join('\n'));
             console.error('');

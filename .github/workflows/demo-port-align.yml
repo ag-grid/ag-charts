@@ -146,9 +146,6 @@ jobs:
             cancel-in-progress: false
         env:
             RELEASE_BRANCH: ${{ needs.detect.outputs.release_branch }}
-            # The seed pins follow the branch (tools/seeds/README.md, "Pins"); a manual
-            # dispatch from another ref would otherwise resolve GITHUB_REF_NAME.
-            AG_CHARTS_SEED_BRANCH: ${{ needs.detect.outputs.release_branch }}
             ALIGN_BRANCH: demo-port-align/${{ needs.detect.outputs.release_branch }}-${{ github.run_id }}
             STALE_COUNT: ${{ needs.detect.outputs.stale_count }}
             STALE_JSON: ${{ needs.detect.outputs.stale_json }}

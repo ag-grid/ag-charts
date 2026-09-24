@@ -4,7 +4,14 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { SEEDS_DIR, WORKSPACE_ROOT, describePin, readPinnedChartsVersion } from './seed-common.mjs';
+import {
+    RESET_PIN_FLAG,
+    SEEDS_DIR,
+    WORKSPACE_ROOT,
+    describePin,
+    readChartsPins,
+    readPinnedChartsVersion,
+} from './seed-common.mjs';
 import { readPortManifests } from './stale-ports.mjs';
 
 /**
@@ -13,34 +20,19 @@ import { readPortManifests } from './stale-ports.mjs';
  * The React seed is regenerated with its pins (`generate-react-seed.mjs`); the Angular, Vue and
  * TypeScript ports are hand-written, so this rewrites them in place instead: every `ag-charts-*`
  * dependency in each port's `package.json`, and `pinnedVersion` / `pinSource` in its
- * `.seed-manifest.json`, are set from `readPinnedChartsVersion()`: the release version on a
- * release branch or a release, the npm `latest` dist-tag everywhere else. Values are replaced in
- * the file text rather than by re-serialising the JSON, so each file keeps its own formatting.
+ * `.seed-manifest.json`, are set from `readPinnedChartsVersion()`: the release for a plain
+ * `X.Y.Z` workspace version, the npm `latest` dist-tag for a pre-release, or a release that every
+ * seed already carries in from a merge-back, which is kept. Values are replaced in the file text
+ * rather than by re-serialising the JSON, so each file keeps its own formatting.
  *
- * `tools/bump-versions.sh` runs it right after the React seeds are regenerated, and
- * `check-seeds.mjs --pins` fails CI when a port's pins have drifted from that pin. Both follow the
- * branch the checkout is built for (`resolveBranch`), so run it on the branch the change targets.
+ * `--reset-pin` drops a carried-in release and writes the dist-tag for a pre-release.
+ * `tools/bump-versions.sh` runs it with `--reset-pin` right after regenerating the React seeds with
+ * it, and `check-seeds.mjs --pins` fails CI when a port's pins have drifted from the pin.
  *
- * Usage: node tools/seeds/pin-ports.mjs
+ * Usage: node tools/seeds/pin-ports.mjs [--reset-pin]
  */
 
-/** The dependency sections whose `ag-charts-*` entries are pinned. */
-const DEPENDENCY_SECTIONS = ['dependencies', 'devDependencies', 'peerDependencies'];
-
-const PINNED_PACKAGE = /^ag-charts-/;
-
 export const PIN_COMMAND = `node ${relative(WORKSPACE_ROOT, fileURLToPath(import.meta.url))}`;
-
-/** The `ag-charts-*` dependencies of a seed's package.json, as `{ name: version }`, whatever the section. */
-function readChartsPins(packageJson) {
-    const pins = {};
-    for (const section of DEPENDENCY_SECTIONS) {
-        for (const [name, version] of Object.entries(packageJson[section] ?? {})) {
-            if (PINNED_PACKAGE.test(name)) pins[name] = version;
-        }
-    }
-    return pins;
-}
 
 /** The manifest fields that record the pin. */
 const MANIFEST_PIN_FIELDS = ['pinnedVersion', 'pinSource'];
@@ -53,7 +45,7 @@ const MANIFEST_PIN_FIELDS = ['pinnedVersion', 'pinSource'];
  * missing). A port whose package.json pins nothing from `ag-charts-*` is an error: every port
  * renders a chart.
  */
-export function findPortPinDrift({ seedsDir = SEEDS_DIR, pin = readPinnedChartsVersion() } = {}) {
+export function findPortPinDrift({ seedsDir = SEEDS_DIR, pin = readPinnedChartsVersion({ seedsDir }) } = {}) {
     const drift = [];
     for (const { demo, framework, manifestPath, manifest } of readPortManifests(seedsDir)) {
         const packageJsonPath = join(dirname(manifestPath), 'package.json');
@@ -112,7 +104,7 @@ function escapeRegExp(value) {
  * Rewrites every drifted port to `pin`. Returns the drift that was fixed (see `findPortPinDrift`),
  * empty when nothing needed changing.
  */
-export function pinPorts({ seedsDir = SEEDS_DIR, pin = readPinnedChartsVersion() } = {}) {
+export function pinPorts({ seedsDir = SEEDS_DIR, pin = readPinnedChartsVersion({ seedsDir }) } = {}) {
     const drift = findPortPinDrift({ seedsDir, pin });
     for (const port of drift) {
         if (Object.keys(port.pins).length > 0) {
@@ -146,9 +138,22 @@ export function describeDrift(drift) {
     });
 }
 
-function main() {
-    const pin = readPinnedChartsVersion();
-    const fixed = pinPorts({ pin });
+/**
+ * Reads the pin as the command line asks (`--reset-pin` or not) and rewrites every drifted port to
+ * it. Returns `{ pin, fixed }`, `fixed` as `pinPorts` returns it. `seedsDir` and `workspaceVersion`
+ * stand in for the committed seeds and the workspace version in the unit tests.
+ */
+export function runPinPorts(argv, { seedsDir = SEEDS_DIR, workspaceVersion } = {}) {
+    const unknown = argv.filter((arg) => arg !== RESET_PIN_FLAG);
+    if (unknown.length) {
+        throw new Error(`unknown argument ${unknown.join(' ')}; usage: pin-ports.mjs [${RESET_PIN_FLAG}]`);
+    }
+    const pin = readPinnedChartsVersion({ workspaceVersion, seedsDir, reset: argv.includes(RESET_PIN_FLAG) });
+    return { pin, fixed: pinPorts({ seedsDir, pin }) };
+}
+
+function main(argv) {
+    const { pin, fixed } = runPinPorts(argv);
     if (fixed.length === 0) {
         console.log(`pin-ports: every port already pins ag-charts-* ${describePin(pin)}.`);
         return;
@@ -159,7 +164,7 @@ function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
     try {
-        main();
+        main(process.argv.slice(2));
     } catch (error) {
         console.error(`pin-ports: ${error.message}`);
         process.exit(1);

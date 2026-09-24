@@ -1,11 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { parseChecks, runChecks } from './check-seeds.mjs';
-import { BRANCH_OVERRIDE_ENV } from './seed-common.mjs';
 
 afterEach(() => {
     vi.restoreAllMocks();
-    vi.unstubAllEnvs();
 });
 
 /** Stand-ins for the real checks that record what ran and return the given statuses. */
@@ -74,10 +72,8 @@ describe('runChecks', () => {
     });
 
     it('keeps stdout to the --stale JSON when --pins runs with it', async () => {
-        // A release branch: the ports on `latest` pin the npm dist-tag, so `--pins` reports its
-        // drift, all of which must reach stderr. (A release commit pins its own version whatever
-        // the branch, and `--pins` then passes; its success line must reach stderr too.)
-        vi.stubEnv(BRANCH_OVERRIDE_ENV, 'b0.0.1');
+        // Whether `--pins` passes on the committed ports or reports their drift, every line it
+        // writes must reach stderr.
         const log = vi.spyOn(console, 'log').mockImplementation(() => {});
         const error = vi.spyOn(console, 'error').mockImplementation(() => {});
 

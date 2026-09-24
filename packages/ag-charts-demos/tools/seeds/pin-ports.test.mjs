@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { describeDrift, findPortPinDrift, pinPorts } from './pin-ports.mjs';
+import { describeDrift, findPortPinDrift, pinPorts, runPinPorts } from './pin-ports.mjs';
 
 const PIN = { pinnedVersion: '14.2.0', pinSource: 'release' };
 
@@ -213,6 +213,70 @@ describe('pinPorts', () => {
 
         expect(() => pinPorts({ seedsDir, pin: PIN })).toThrow(
             /vue\/package\.json: "ag-charts-community" occurs 2 times/
+        );
+    });
+});
+
+describe('runPinPorts', () => {
+    const BETA = '14.3.0-beta.20260920';
+
+    /** The React seed and two ports all on `version`, as a bump, or a merge-back from a release branch, leaves them. */
+    function writeCarriedIn(version) {
+        const pinSource = version === 'latest' ? 'dist-tag' : 'release';
+        const manifest = { pinnedVersion: version, pinSource, dist: 'dist' };
+        writePort('financial', 'react', { dependencies: { 'ag-charts-community': version }, manifest });
+        writePort('financial', 'vue', { dependencies: { 'ag-charts-vue3': version, vue: '^3.5.13' }, manifest });
+        return writePort('financial', 'angular', { dependencies: { 'ag-charts-angular': version }, manifest });
+    }
+
+    it('keeps a release every seed carries in from a merge-back, and rewrites nothing', () => {
+        const dir = writeCarriedIn('14.2.0');
+        const before = readFileSync(join(dir, 'package.json'), 'utf8');
+
+        const { pin, fixed } = runPinPorts([], { seedsDir, workspaceVersion: BETA });
+        expect(pin).toMatchObject({ pinnedVersion: '14.2.0', pinSource: 'release' });
+        expect(pin.reason).toMatch(/carried in by a merge-back/);
+        expect(fixed).toEqual([]);
+        expect(readFileSync(join(dir, 'package.json'), 'utf8')).toBe(before);
+    });
+
+    it('moves the ports to the npm latest dist-tag with --reset-pin', () => {
+        const dir = writeCarriedIn('14.2.0');
+
+        const { pin, fixed } = runPinPorts(['--reset-pin'], { seedsDir, workspaceVersion: BETA });
+        expect(pin).toMatchObject({ pinnedVersion: 'latest', pinSource: 'dist-tag' });
+        expect(fixed.map(({ framework }) => framework)).toEqual(['angular', 'vue']);
+        expect(JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')).dependencies).toEqual({
+            'ag-charts-angular': 'latest',
+        });
+    });
+
+    it('moves a port off a release the other seeds do not carry', () => {
+        writeCarriedIn('latest');
+        writePort('financial', 'vue', {
+            dependencies: { 'ag-charts-vue3': '14.2.0' },
+            manifest: { pinnedVersion: '14.2.0', pinSource: 'release' },
+        });
+
+        const { pin, fixed } = runPinPorts([], { seedsDir, workspaceVersion: BETA });
+        expect(pin.pinnedVersion).toBe('latest');
+        expect(describeDrift(fixed)).toEqual([
+            'seeds/financial/vue: ag-charts-vue3 14.2.0, manifest pinnedVersion 14.2.0, manifest pinSource release',
+        ]);
+    });
+
+    it('pins a plain release version exactly, with or without --reset-pin', () => {
+        writeCarriedIn('latest');
+
+        for (const argv of [[], ['--reset-pin']]) {
+            expect(runPinPorts(argv, { seedsDir, workspaceVersion: '14.2.0' }).pin.pinnedVersion).toBe('14.2.0');
+        }
+        expect(findPortPinDrift({ seedsDir, pin: PIN })).toEqual([]);
+    });
+
+    it('rejects an argument it does not know', () => {
+        expect(() => runPinPorts(['--reset'], { seedsDir, workspaceVersion: BETA })).toThrow(
+            /unknown argument --reset; usage: pin-ports\.mjs \[--reset-pin\]/
         );
     });
 });

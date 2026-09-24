@@ -11,9 +11,11 @@ import {
     MANIFEST_FILENAME,
     PIN_SOURCE,
     RELATIVE_IMPORT,
+    RESET_PIN_FLAG,
     SEEDS_DIR,
     SOURCE_FILE,
     WORKSPACE_ROOT,
+    describePin,
     hashDemoSource,
     listDemoSourceFiles,
     listFiles,
@@ -35,14 +37,16 @@ import {
  * path above its own root, because StackBlitz imports only the seed folder from GitHub.
  *
  * The `ag-charts-*` pins must resolve on public npm, since that is where a StackBlitz user installs
- * from. A release branch, or a release, pins the release version exactly; everywhere else the
- * workspace carries a beta that is only on the private registry, so the npm `latest` dist-tag is
- * pinned instead. See `readPinnedChartsVersion` in seed-common.mjs. The seeds are not Yarn
- * workspaces, so locally the pins are inert: the seed folder has no node_modules and every import
- * resolves up through the root node_modules, where `ag-charts-*` link to the local packages.
+ * from. A release pins its own version exactly; a pre-release is only on the private registry,
+ * so the npm `latest` dist-tag is pinned instead, unless every committed seed carries a release in
+ * from a merge-back, which is kept. See `readPinnedChartsVersion` in seed-common.mjs. The seeds are
+ * not Yarn workspaces, so locally the pins are inert: the seed folder has no node_modules and every
+ * import resolves up through the root node_modules, where `ag-charts-*` link to the local packages.
  *
- * Usage: node tools/seeds/generate-react-seed.mjs [--out <dir>] [<demo-id> ...]
- *   --out   Write below this directory instead of `seeds/` (the freshness check uses this).
+ * Usage: node tools/seeds/generate-react-seed.mjs [--out <dir>] [--reset-pin] [<demo-id> ...]
+ *   --out         Write below this directory instead of `seeds/` (the freshness check uses this).
+ *   --reset-pin   Pin what the workspace version calls for, dropping a release carried in by a
+ *                 merge-back. `tools/bump-versions.sh` passes it.
  */
 
 export const FRAMEWORK = 'react';
@@ -243,10 +247,11 @@ dist/
 `;
 
 /**
- * Writes the React seed for one demo into `<outRoot>/<id>/react`. Returns the files written,
- * relative to the seed root.
+ * Writes the React seed for one demo into `<outRoot>/<id>/react`, pinning `pin`. Returns the
+ * files written, relative to the seed root. When generating several seeds in place, read the pin
+ * once beforehand and pass it to each, since each seed written changes what the seeds carry.
  */
-export async function generateReactSeed(demoId, outRoot = SEEDS_DIR) {
+export async function generateReactSeed(demoId, outRoot = SEEDS_DIR, { pin = readPinnedChartsVersion() } = {}) {
     const sourceDir = join(DEMOS_SRC_DIR, demoId);
     const seedDir = join(outRoot, demoId, FRAMEWORK);
     const seedSrcDir = join(seedDir, 'src');
@@ -268,7 +273,6 @@ export async function generateReactSeed(demoId, outRoot = SEEDS_DIR) {
     writeFileSync(join(seedSrcDir, 'main.tsx'), renderMainTsx(demoId));
 
     const imported = collectImportedPackages(seedSrcDir, listFiles(seedSrcDir));
-    const pin = readPinnedChartsVersion();
     const sourceHash = hashDemoSource(demoId);
     const packageJson = renderPackageJson(demoId, buildDependencies(demoId, imported, pin.pinnedVersion));
 
@@ -400,13 +404,22 @@ function writeJson(path, value, indent) {
     writeFileSync(path, `${JSON.stringify(value, null, indent)}\n`);
 }
 
-async function main(argv) {
+/**
+ * Generates the seeds the command line names (every registered demo when it names none), reading
+ * the pin once, before any seed is written. `seedsDir` and `workspaceVersion` stand in for the
+ * committed seeds the pin is read from and the workspace version in the unit tests; `--out` still
+ * decides where the seeds are written.
+ */
+export async function generateReactSeeds(argv, { seedsDir = SEEDS_DIR, workspaceVersion, log = console.log } = {}) {
     let outRoot = SEEDS_DIR;
+    let reset = false;
     const ids = [];
     for (let i = 0; i < argv.length; i++) {
         if (argv[i] === '--out') {
             outRoot = argv[++i];
             if (!outRoot) throw new Error('--out requires a directory');
+        } else if (argv[i] === RESET_PIN_FLAG) {
+            reset = true;
         } else {
             ids.push(argv[i]);
         }
@@ -418,14 +431,16 @@ async function main(argv) {
         throw new Error(`Unknown demo id(s): ${unknown.join(', ')}. Registered: ${known.join(', ')}`);
     }
 
+    const pin = readPinnedChartsVersion({ workspaceVersion, seedsDir, reset });
+    log(`Pinning ag-charts-* ${describePin(pin)}`);
     for (const id of ids.length ? ids : known) {
-        const files = await generateReactSeed(id, outRoot);
-        console.log(`Generated ${join(outRoot, id, FRAMEWORK)} (${files.length} files)`);
+        const files = await generateReactSeed(id, outRoot, { pin });
+        log(`Generated ${join(outRoot, id, FRAMEWORK)} (${files.length} files)`);
     }
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-    main(process.argv.slice(2)).catch((error) => {
+    generateReactSeeds(process.argv.slice(2)).catch((error) => {
         console.error(`generate-react-seed: ${error.message}`);
         process.exit(1);
     });

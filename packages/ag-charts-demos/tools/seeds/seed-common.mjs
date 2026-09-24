@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -24,14 +24,14 @@ export const MANIFEST_FILENAME = '.seed-manifest.json';
 
 /**
  * A release branch, `bX.Y.Z`, cut for release X.Y.Z by `tools/create-release-automated.sh`.
- * Production is deployed from it too, which is how `tools/ci/check-demo-seed-links.mjs` uses it.
+ * Production is deployed from it, which is how `tools/ci/check-demo-seed-links.mjs` uses it. The
+ * seed pins do not depend on the branch (`readPinnedChartsVersion`).
  */
 export const RELEASE_BRANCH = /^b(\d+\.\d+\.\d+)$/;
 
 /**
- * Names the branch outright, ahead of everything `resolveBranch` would otherwise read.
- * `tools/bump-versions.sh` sets it to the branch it has checked out, so a release cut pins for the
- * branch it just created even where a CI variable still names the branch the job started on.
+ * Names the branch outright, ahead of everything `resolveBranch` would otherwise read: for
+ * example, to run `tools/ci/check-demo-seed-links.mjs` from a detached checkout of a release branch.
  */
 export const BRANCH_OVERRIDE_ENV = 'AG_CHARTS_SEED_BRANCH';
 
@@ -70,61 +70,170 @@ function readCheckedOutBranch() {
 
 /** How a seed's `ag-charts-*` pin was chosen, as its manifest's `pinSource` records it. */
 export const PIN_SOURCE = {
-    /** An exact release version: the checkout is a release, or a release branch working towards one. */
+    /** An exact release version: the workspace is at that release, or a merge-back carried it in. */
     release: 'release',
-    /** The npm `latest` dist-tag: the checkout is ahead of every release. */
+    /** The npm `latest` dist-tag: the workspace carries a pre-release, which public npm does not have. */
     distTag: 'dist-tag',
 };
 
-/** The npm dist-tag that names the newest published release, pinned outside release branches. */
+/** The npm dist-tag that names the newest published release, pinned for every pre-release. */
 export const NPM_LATEST_TAG = 'latest';
 
 /**
- * The `ag-charts-*` version a seed pins, where it came from, and why.
+ * The flag that makes `generate-react-seed.mjs` and `pin-ports.mjs` write the preferred pin even
+ * where the seeds carry a release a merge-back brought in (see `readPinnedChartsVersion`).
+ * `tools/bump-versions.sh` passes it on every version bump.
+ */
+export const RESET_PIN_FLAG = '--reset-pin';
+
+/** Why a merge-back may carry a release pin in, and how it goes away; shown whenever one is kept. */
+const CARRIED_RELEASE_REASON = `release carried in by a merge-back; the next beta bump restores ${NPM_LATEST_TAG}`;
+
+const RELEASE_VERSION = /^\d+\.\d+\.\d+$/;
+
+/** The dependency sections whose `ag-charts-*` entries are pinned. */
+const PIN_DEPENDENCY_SECTIONS = ['dependencies', 'devDependencies', 'peerDependencies'];
+
+const PINNED_PACKAGE = /^ag-charts-/;
+
+/** The `ag-charts-*` dependencies of a seed's package.json, as `{ name: version }`, whatever the section. */
+export function readChartsPins(packageJson) {
+    const pins = {};
+    for (const section of PIN_DEPENDENCY_SECTIONS) {
+        for (const [name, version] of Object.entries(packageJson[section] ?? {})) {
+            if (PINNED_PACKAGE.test(name)) pins[name] = version;
+        }
+    }
+    return pins;
+}
+
+/**
+ * The pin each committed seed carries, generated React seeds and framework ports alike, as
+ * `{ seed: '<demo>/<framework>', versions, pinSource }`: `versions` holds every distinct value
+ * among its `ag-charts-*` dependencies and its manifest's `pinnedVersion` (`null` when that is
+ * missing), sorted; `pinSource` is its manifest's, or `null`. A folder with no manifest is not a
+ * seed and is skipped.
+ */
+export function readCommittedPins(seedsDir = SEEDS_DIR) {
+    const seeds = [];
+    for (const demo of listDirectoryNames(seedsDir)) {
+        for (const framework of listDirectoryNames(join(seedsDir, demo))) {
+            const dir = join(seedsDir, demo, framework);
+            const manifestPath = join(dir, MANIFEST_FILENAME);
+            if (!existsSync(manifestPath)) continue;
+            const manifest = readJson(manifestPath);
+            const packageJsonPath = join(dir, 'package.json');
+            const pins = existsSync(packageJsonPath) ? readChartsPins(readJson(packageJsonPath)) : {};
+            const versions = new Set([...Object.values(pins), manifest.pinnedVersion ?? null]);
+            seeds.push({
+                seed: `${demo}/${framework}`,
+                versions: [...versions].sort(),
+                pinSource: manifest.pinSource ?? null,
+            });
+        }
+    }
+    return seeds;
+}
+
+function listDirectoryNames(dir) {
+    if (!existsSync(dir)) return [];
+    return readdirSync(dir, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name)
+        .sort();
+}
+
+/**
+ * The release every committed seed agrees on, or `null`: each seed's `ag-charts-*` dependencies
+ * and manifest `pinnedVersion` must all be one and the same plain `X.Y.Z`, with `pinSource`
+ * `release`.
+ */
+function findCarriedRelease(committed) {
+    const release = committed[0]?.versions[0];
+    if (!RELEASE_VERSION.test(release ?? '')) return null;
+    const agree = committed.every(
+        ({ versions, pinSource }) =>
+            versions.length === 1 && versions[0] === release && pinSource === PIN_SOURCE.release
+    );
+    return agree ? release : null;
+}
+
+/** Which seeds carry which pin, e.g. `latest with pinSource dist-tag in financial/react; 14.2.0 …`. */
+function describeCommittedPins(committed) {
+    const groups = new Map();
+    for (const { seed, versions, pinSource } of committed) {
+        const label = `${versions.map((version) => version ?? 'no pinnedVersion').join(' and ')} with pinSource ${pinSource ?? 'missing'}`;
+        groups.set(label, [...(groups.get(label) ?? []), seed]);
+    }
+    return [...groups].map(([label, seeds]) => `${label} in ${seeds.join(', ')}`).join('; ');
+}
+
+/**
+ * The `ag-charts-*` version the seeds pin, where it came from, and why.
  *
  * A seed is installed from public npm, since that is where a StackBlitz user installs from, so
  * its pin must be something npm can resolve. The workspace version usually cannot be pinned as it
  * is: between releases every branch carries a pre-release, `X.Y.Z-beta.<date>[.<time>]`
  * (`tools/calculate-next-version.js`), and betas are published only to the private registry at
- * registry.ag-grid.com, never to public npm.
+ * registry.ag-grid.com, never to public npm. The branch plays no part:
  *
- * - A plain `X.Y.Z` workspace version is a release (the "Release X.Y.Z Prep" commit that is
- *   tagged `release-X.Y.Z`), so it is pinned exactly, whatever the branch.
- * - On a release branch, `bX.Y.Z`, the workspace carries `X.Y.Z-beta.*` until that prep commit,
- *   and the seeds are meant for the release it becomes, so `X.Y.Z` is pinned. Both cases record
- *   `pinSource` `release`, so the prep commit leaves every seed as it was.
- * - Everywhere else (`latest`, `next`, feature branches, pull requests into them, a detached HEAD)
- *   the beta carries the number of a release that is not out yet, so the seeds pin the npm
- *   `latest` dist-tag and install the newest published release.
+ * 1. A plain `X.Y.Z` workspace version is a release (the "Release X.Y.Z Prep" commit, which runs
+ *    `tools/bump-versions.sh` and is tagged `release-X.Y.Z`), so it is pinned exactly.
+ * 2. A pre-release pins the npm `latest` dist-tag, which installs the newest published release;
+ *    release branches, `bX.Y.Z`, included.
+ * 3. Release branches are merged back into `latest` several times per release, and git carries
+ *    their pin lines across unannounced. So where rule 2 applies, a plain `X.Y.Z` that every
+ *    committed seed agrees on (`readCommittedPins`) is kept rather than flagged: plain versions
+ *    only come from a tagged Release Prep, which publishes that version to npm. The seeds must
+ *    agree completely, every `ag-charts-*` dependency, `pinnedVersion` and `pinSource` alike;
+ *    anything else, a pre-release pin included, gets rule 2's dist-tag, and the reason names what
+ *    the seeds carry. `reset` (`RESET_PIN_FLAG`) skips this rule, which is how the next version
+ *    bump puts the dist-tag back.
  *
- * The branch comes from `resolveBranch`; `env` and `readGitBranch` are passed through to it, and
- * `workspaceVersion` stands in for the version in `ag-charts-community/package.json`, for the
- * unit tests.
+ * `workspaceVersion` stands in for the version in `ag-charts-community/package.json`, and
+ * `seedsDir` for the committed seeds, for the unit tests.
  *
  * @returns {{ pinnedVersion: string, pinSource: 'release' | 'dist-tag', reason: string }}
  */
-export function readPinnedChartsVersion({ workspaceVersion = readWorkspaceVersion(), env, readGitBranch } = {}) {
+export function readPinnedChartsVersion({
+    workspaceVersion = readWorkspaceVersion(),
+    seedsDir = SEEDS_DIR,
+    reset = false,
+} = {}) {
     const [release] = workspaceVersion.split('-');
-    if (!/^\d+\.\d+\.\d+$/.test(release)) {
+    if (!RELEASE_VERSION.test(release)) {
         throw new Error(`Workspace version ${workspaceVersion} is not X.Y.Z or X.Y.Z-<pre-release>`);
     }
     if (release === workspaceVersion) {
         return { pinnedVersion: release, pinSource: PIN_SOURCE.release, reason: `workspace version ${release}` };
     }
-    const branch = resolveBranch({ env, readGitBranch });
-    if (branch && RELEASE_BRANCH.test(branch)) {
-        return { pinnedVersion: release, pinSource: PIN_SOURCE.release, reason: `release branch ${branch}` };
-    }
-    return {
+    const preferred = {
         pinnedVersion: NPM_LATEST_TAG,
         pinSource: PIN_SOURCE.distTag,
-        reason: branch ? `branch ${branch}` : 'no branch checked out',
+        reason: `npm dist-tag: workspace version ${workspaceVersion} is a pre-release, which public npm does not have`,
+    };
+    const committed = readCommittedPins(seedsDir);
+    const carried = findCarriedRelease(committed);
+    if (carried && reset) {
+        return { ...preferred, reason: `${preferred.reason}; ${RESET_PIN_FLAG} replaces the carried-in ${carried}` };
+    }
+    if (carried) {
+        return { pinnedVersion: carried, pinSource: PIN_SOURCE.release, reason: CARRIED_RELEASE_REASON };
+    }
+    const inStep = committed.every(
+        ({ versions, pinSource }) =>
+            versions.length === 1 && versions[0] === NPM_LATEST_TAG && pinSource === PIN_SOURCE.distTag
+    );
+    if (inStep || reset) return preferred;
+    return {
+        ...preferred,
+        reason: `${preferred.reason}; a release carried in by a merge-back is kept only when every seed pins the same plain X.Y.Z, but the seeds pin ${describeCommittedPins(committed)}`,
     };
 }
 
-/** `pin` for a log line, e.g. `14.2.0 (release: release branch b14.2.0)`. */
+/** `pin` for a log line, e.g. `14.2.0 (release carried in by a merge-back; …)`. */
 export function describePin({ pinnedVersion, pinSource, reason }) {
-    return `${pinnedVersion} (${reason ? `${pinSource}: ${reason}` : pinSource})`;
+    return `${pinnedVersion} (${reason ?? pinSource})`;
 }
 
 function readWorkspaceVersion() {
