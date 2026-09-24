@@ -315,10 +315,14 @@ function readCommittedManifest(demoId) {
  * Runs the workspace's Prettier over a generated file so the committed seed passes
  * `nx format:check` as written. The configuration is resolved for the file's committed
  * location whatever `outRoot` is, so the freshness check's temporary copy formats identically.
+ * A file the workspace's `.prettierignore` lists (such as the minified purchase orders) is left
+ * byte-identical to its source, as `nx format` leaves it.
  */
 async function formatGeneratedFile(path, committedPath) {
-    const { inferredParser } = await prettier.getFileInfo(committedPath);
-    if (!inferredParser) return;
+    const { ignored, inferredParser } = await prettier.getFileInfo(committedPath, {
+        ignorePath: join(WORKSPACE_ROOT, '.prettierignore'),
+    });
+    if (ignored || !inferredParser) return;
     const config = await prettier.resolveConfig(committedPath, { editorconfig: true });
     const source = readFileSync(path, 'utf8');
     const formatted = await prettier.format(source, { ...config, filepath: committedPath });
