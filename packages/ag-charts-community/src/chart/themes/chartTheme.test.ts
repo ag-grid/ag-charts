@@ -699,6 +699,21 @@ describe('ChartTheme', () => {
                 });
             });
 
+            test('zero item padding is accepted', async () => {
+                const legend = await resolvedLegend(
+                    baseOptions({}, { params: { legendItemVerticalPadding: 0, legendItemHorizontalPadding: 0 } })
+                );
+                expect(legend.item.padding).toEqual({ top: 0, right: 0, bottom: 0, left: 0 });
+            });
+
+            test('an invalid param value warns and is ignored', async () => {
+                const legend = await resolvedLegend(
+                    baseOptions({ border: { enabled: true } }, { params: { legendPadding: 'x' as any } })
+                );
+                expect(legend.padding).toBe(5);
+                expectWarningsCalls().toHaveLength(1);
+            });
+
             test('legendBorderRadius follows borderRadius', async () => {
                 const legend = await resolvedLegend(baseOptions({}, { params: { borderRadius: 10 } }));
                 expect(legend.cornerRadius).toBe(10);
