@@ -250,6 +250,7 @@ export function createWebAnalyticsApp(): View {
             active?.view.destroy();
             active = undefined;
             notice.destroy();
+            select.destroy();
         },
     };
 }

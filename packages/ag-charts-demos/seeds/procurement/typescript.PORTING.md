@@ -127,7 +127,8 @@ Each factory renders exactly what the Radix primitive renders, minus Radix's pri
   options as Radix does: on the closed trigger the value moves to the next match, in the open
   listbox the match takes focus (repeating a character steps through its matches; the search
   resets after a second). While open, the rest of the page carries `aria-hidden="true"` (with
-  Radix's `data-aria-hidden` marker) and `document.body` takes no pointer events.
+  Radix's `data-aria-hidden` marker) and `document.body` takes no pointer events. `destroy()`, the
+  unmount, closes an open listbox without moving focus, cancels pending timers and removes the select.
 - The attention worklist (`AttentionAlert`) uses no Radix primitive in the React source; its
   trigger, scrim, dialog panel and document-level focus trap are ported element for element.
 

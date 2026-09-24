@@ -24,6 +24,11 @@ export interface Select {
     el: HTMLLabelElement;
     /** Reflect a value set by the owner (Radix `value` prop). */
     setValue(value: string): void;
+    /**
+     * The React unmount: closes an open listbox without moving focus, undoing what opening did to
+     * the page and dropping its document listeners, cancels pending timers and removes the select.
+     */
+    destroy(): void;
 }
 
 const SELECT_OPEN_KEYS = [' ', 'Enter', 'ArrowUp', 'ArrowDown'];
@@ -62,6 +67,11 @@ function createTypeahead() {
                 search = '';
             }, TYPEAHEAD_RESET_MS);
             return search;
+        },
+        /** Drop the search and its pending reset. */
+        clear() {
+            clearTimeout(timer);
+            search = '';
         },
     };
 }
@@ -148,6 +158,15 @@ export function createSelect({
     const contentTypeahead = createTypeahead();
     // What last pressed the trigger: Radix opens on pointer down for a mouse, on click otherwise.
     let pointerType = 'touch';
+    /** Focus moves still to run, cancelled on destroy. */
+    const timers = new Set<ReturnType<typeof setTimeout>>();
+    const later = (callback: () => void) => {
+        const timer = setTimeout(() => {
+            timers.delete(timer);
+            callback();
+        });
+        timers.add(timer);
+    };
 
     // `pointer-events: none` so events from the value text never target it, as Radix renders it.
     const valueNode = h('span', { style: 'pointer-events: none;' }, labelOf(value));
@@ -204,7 +223,8 @@ export function createSelect({
     /** Undoes what opening did to the rest of the page: the hidden siblings and body pointer events. */
     let restorePage: (() => void) | undefined;
 
-    function close() {
+    /** Unmount the listbox and undo what opening did, without moving focus. */
+    function unmount() {
         if (!popover) return;
         popover.remove();
         popover = undefined;
@@ -214,9 +234,14 @@ export function createSelect({
         document.removeEventListener('keydown', onEscape, true);
         trigger.setAttribute('aria-expanded', 'false');
         trigger.setAttribute('data-state', 'closed');
+    }
+
+    function close() {
+        if (!popover) return;
+        unmount();
         // Radix hands focus back once the listbox has unmounted, on a timeout: a pointer down
         // outside has moved focus by then, and the trigger still ends up with it.
-        setTimeout(() => trigger.focus({ preventScroll: true }));
+        later(() => trigger.focus({ preventScroll: true }));
     }
 
     const onPointerDownOutside = (event: PointerEvent) => {
@@ -293,7 +318,7 @@ export function createSelect({
                         const current = items.find((item) => item === document.activeElement);
                         const search = contentTypeahead.add(event.key);
                         const next = findNextItem(items, (item) => item.textContent?.trim() ?? '', search, current);
-                        if (next) setTimeout(() => next.focus());
+                        if (next) later(() => next.focus());
                     }
                     if (!SELECT_NAVIGATION_KEYS.includes(event.key)) return;
                     let candidates = items.slice();
@@ -302,7 +327,7 @@ export function createSelect({
                         candidates = candidates.slice(candidates.indexOf(event.target as HTMLDivElement) + 1);
                     }
                     // Focus moves on a timeout, as in Radix, so the keydown finishes first.
-                    setTimeout(() => candidates[0]?.focus({ preventScroll: true }));
+                    later(() => candidates[0]?.focus({ preventScroll: true }));
                     event.preventDefault();
                 },
             },
@@ -364,6 +389,14 @@ export function createSelect({
         setValue(next) {
             value = next;
             valueNode.textContent = labelOf(next);
+        },
+        destroy() {
+            unmount();
+            for (const timer of timers) clearTimeout(timer);
+            timers.clear();
+            triggerTypeahead.clear();
+            contentTypeahead.clear();
+            el.remove();
         },
     };
 }

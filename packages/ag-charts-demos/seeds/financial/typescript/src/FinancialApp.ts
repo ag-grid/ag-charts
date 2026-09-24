@@ -227,6 +227,7 @@ export function createFinancialApp(): View {
         destroy() {
             unsubscribe();
             market.setRunning(false);
+            speedSelect.destroy();
             for (const view of [watchlist, trending, mostActive, financialChart, gauges, peerChart, heatmap]) {
                 view.destroy();
             }

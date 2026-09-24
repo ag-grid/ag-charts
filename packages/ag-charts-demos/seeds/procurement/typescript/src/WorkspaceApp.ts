@@ -375,6 +375,7 @@ export function createWorkspaceApp(): View {
 
     function destroyScene(current: TabScene) {
         current.alert?.destroy();
+        current.select?.destroy();
         current.view.destroy();
         current.view.el.remove();
         current.controls?.remove();

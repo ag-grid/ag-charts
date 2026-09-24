@@ -112,7 +112,8 @@ Each factory renders exactly what the Radix primitive renders, minus Radix's pri
   options as Radix does: on the closed trigger the value moves to the next match, in the open
   listbox the match takes focus (repeating a character steps through its matches; the search
   resets after a second). While open, the rest of the page carries `aria-hidden="true"` (with
-  Radix's `data-aria-hidden` marker) and `document.body` takes no pointer events.
+  Radix's `data-aria-hidden` marker) and `document.body` takes no pointer events. `destroy()`, the
+  unmount, closes an open listbox without moving focus, cancels pending timers and removes the select.
 - `Tabs` (Root/List/Trigger/Content, horizontal, automatic activation, `loop`) -> `createTabs`:
   `<div dir="ltr" data-orientation="horizontal" class="wa-app">` holding
   `<div role="tablist" aria-orientation="horizontal" aria-label="Analytics views" class="wa-tabs-list" tabindex="0" data-orientation="horizontal" style="outline: none;">`
